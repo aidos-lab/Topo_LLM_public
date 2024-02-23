@@ -6,7 +6,7 @@
 # Computer Science Department
 #
 # Authors:
-# Julius
+# Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 # Benjamin Ruppik (ruppik@hhu.de)
 #
 # This code was generated with the help of AI writing assistants
@@ -24,25 +24,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-Create embedding vectors.
-
-# TODO This script is under development
-"""
-
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # START Imports
 
 # Standard library imports
-import argparse
-import logging
+import json
+from os import PathLike
 import pathlib
+import pprint
+from abc import ABC, abstractmethod
+from typing import IO
 
 # Third party imports
-import torch
-import torch.utils.data
+from pydantic import BaseModel, Field
 
 # Local imports
+from topollm.utils.ConfigBaseModel import ConfigBaseModel
 
 # END Imports
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -52,3 +49,13 @@ import torch.utils.data
 
 # END Globals
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+
+class EmbeddingsConfig(ConfigBaseModel):
+    """Configurations for specifying embeddings."""
+
+    model_name: str = Field(
+        ...,
+        title="Model identifier for huggingface transformers model.",
+        description="The model identifier for the huggingface transformers model to use for computing embeddings.",
+    )
