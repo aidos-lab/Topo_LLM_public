@@ -1,6 +1,8 @@
 defaults:
   - embeddings: roberta
 
+seed: 1234
+
 hydra:
   run:
     dir: experiments/${model.name}/${now:%Y-%m-%d_%H-%M-%S}
