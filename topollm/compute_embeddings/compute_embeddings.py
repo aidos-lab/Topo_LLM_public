@@ -40,7 +40,7 @@ import pathlib
 import pprint
 
 # Third party imports
-from hydra import main
+import hydra
 import torch
 import torch.utils.data
 
@@ -57,8 +57,8 @@ from topollm.utils.Configs import EmbeddingsConfig
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
-@main(
-    config_path="configs",
+@hydra.main(
+    config_path="../../configs",
     config_name="config",
     version_base="1.2",
 )
@@ -71,12 +71,12 @@ def main(
         config,
     )
 
-    config = EmbeddingsConfig.model_validate(
-        config,
+    embeddings_config = EmbeddingsConfig.model_validate(
+        config.embeddings,
     )
 
     pprint.pprint(
-        config,
+        embeddings_config,
     )
 
 

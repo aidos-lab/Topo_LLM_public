@@ -1,2 +1,2 @@
-model_name: roberta-base
+huggingface_model_name: roberta-base
 layer: -1

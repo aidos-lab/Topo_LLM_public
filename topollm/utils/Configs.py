@@ -54,7 +54,7 @@ from topollm.utils.ConfigBaseModel import ConfigBaseModel
 class EmbeddingsConfig(ConfigBaseModel):
     """Configurations for specifying embeddings."""
 
-    model_name: str = Field(
+    huggingface_model_name: str = Field(
         ...,
         title="Model identifier for huggingface transformers model.",
         description="The model identifier for the huggingface transformers model to use for computing embeddings.",

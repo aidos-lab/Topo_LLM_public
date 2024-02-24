@@ -1,8 +1,9 @@
 defaults:
   - embeddings: roberta
+  - _self_
 
 seed: 1234
 
 hydra:
   run:
-    dir: experiments/${model.name}/${now:%Y-%m-%d_%H-%M-%S}
+    dir: experiments/${embeddings.huggingface_model_name}/${now:%Y-%m-%d_%H-%M-%S}
