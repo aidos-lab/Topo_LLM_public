@@ -1,0 +1,4 @@
+embeddings:
+  huggingface_model_name: test123
+  layer: -1
+seed: 1234

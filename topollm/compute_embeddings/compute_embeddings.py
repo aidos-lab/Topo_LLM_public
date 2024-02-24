@@ -40,12 +40,15 @@ import pathlib
 import pprint
 
 # Third party imports
+import datasets
 import hydra
 import torch
 import torch.utils.data
+import zarr
+from transformers import AutoModel
 
 # Local imports
-from topollm.utils.Configs import EmbeddingsConfig
+from topollm.utils.Configs import EmbeddingsConfig, DataConfig
 
 # END Imports
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -67,17 +70,37 @@ def main(
 ):
     """Run the script."""
 
-    pprint.pprint(
-        config,
+    print(
+        pprint.pformat(
+            f"config:\n{config}",
+        )
     )
 
     embeddings_config = EmbeddingsConfig.model_validate(
         config.embeddings,
     )
-
-    pprint.pprint(
-        embeddings_config,
+    data_config = DataConfig.model_validate(
+        config.data,
     )
+
+    print(
+        pprint.pformat(
+            f"embeddings_config:\n{embeddings_config}",
+        )
+    )
+
+    # Load the model
+    model = AutoModel.from_pretrained(
+        pretrained_model_name_or_path=embeddings_config.huggingface_model_name,
+    )
+
+    # Load the dataset from huggingface datasets
+    dataset = datasets.load_dataset(
+        data_config.dataset_identifier,
+    )
+
+    # TODO: Create split here
+    # split=data_config.split,
 
 
 if __name__ == "__main__":

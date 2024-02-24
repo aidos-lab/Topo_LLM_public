@@ -1,7 +1,10 @@
 defaults:
+  - data: bbc
   - embeddings: roberta
+  - transformations: none
   - _self_
 
+data_dir: data
 seed: 1234
 
 hydra:
