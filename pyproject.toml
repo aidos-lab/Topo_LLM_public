@@ -7,9 +7,15 @@ license = "Apache 2.0"
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.10"
+datasets = "*"
 hydra-core = "*"
+pandas = "*"
+pydantic = "*"
+python = "^3.10"
 StrEnum = {version = "^0.4", markers = "python_version < '3.11'"}
+torch = "*"
+transformers = "*"
+zarr = "*"
 
 
 [build-system]

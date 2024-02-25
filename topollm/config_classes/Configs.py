@@ -39,7 +39,7 @@ from typing import IO
 from pydantic import BaseModel, Field
 
 # Local imports
-from topollm.utils.ConfigBaseModel import ConfigBaseModel
+from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
 
 # END Imports
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #

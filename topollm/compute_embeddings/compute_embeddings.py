@@ -36,25 +36,30 @@ Create embedding vectors.
 # Standard library imports
 import argparse
 import logging
+import os
 import pathlib
 import pprint
 
 # Third party imports
 import datasets
 import hydra
+import hydra.core.hydra_config
 import torch
 import torch.utils.data
 import zarr
 from transformers import AutoModel
 
 # Local imports
-from topollm.utils.Configs import EmbeddingsConfig, DataConfig
+from topollm.config_classes.Configs import EmbeddingsConfig, DataConfig
 
 # END Imports
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # START Globals
+
+# A logger for this file
+global_logger = logging.getLogger(__name__)
 
 # END Globals
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -70,10 +75,14 @@ def main(
 ):
     """Run the script."""
 
-    print(
-        pprint.pformat(
-            f"config:\n{config}",
-        )
+    global_logger.info(f"Working directory:\n" f"{os.getcwd() = }")
+    global_logger.info(
+        f"Hydra output directory:\n"
+        f"{hydra.core.hydra_config.HydraConfig.get().runtime.output_dir}"
+    )
+
+    global_logger.info(
+        f"hydra config:\n" f"{pprint.pformat(config)}",
     )
 
     embeddings_config = EmbeddingsConfig.model_validate(
@@ -83,10 +92,11 @@ def main(
         config.data,
     )
 
-    print(
-        pprint.pformat(
-            f"embeddings_config:\n{embeddings_config}",
-        )
+    global_logger.info(
+        f"embeddings_config:\n" f"{pprint.pformat(embeddings_config)}",
+    )
+    global_logger.info(
+        f"data_config:\n" f"{pprint.pformat(data_config)}",
     )
 
     # Load the model
@@ -97,10 +107,13 @@ def main(
     # Load the dataset from huggingface datasets
     dataset = datasets.load_dataset(
         data_config.dataset_identifier,
+        trust_remote_code=True,
     )
 
     # TODO: Create split here
     # split=data_config.split,
+
+    return
 
 
 if __name__ == "__main__":

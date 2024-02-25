@@ -1,2 +1,4 @@
 huggingface_model_name: roberta-base
 layer: "-1"
+level: token
+max_length: 512

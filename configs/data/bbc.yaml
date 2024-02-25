@@ -1,3 +1,4 @@
+context: dataset_entry
 dataset_identifier: xsum
+number_of_samples: 10000
 split: train
-number_of_samples: 20000
