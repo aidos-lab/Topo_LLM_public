@@ -1,3 +1,4 @@
+column_name: summary
 context: dataset_entry
 dataset_identifier: xsum
 number_of_samples: 10000

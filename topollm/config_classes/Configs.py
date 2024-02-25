@@ -69,7 +69,21 @@ class EmbeddingsConfig(ConfigBaseModel):
 
 
 class DataConfig(ConfigBaseModel):
-    """Configurations for specifying data."""
+    """
+    Configurations for specifying data.
+    """
+
+    column_name: str = Field(
+        ...,
+        title="Column name to use for computing embeddings.",
+        description="The column name to use for computing embeddings.",
+    )
+
+    context: str = Field(
+        ...,
+        title="Context to use for computing embeddings.",
+        description="The context to use for computing embeddings.",
+    )
 
     dataset_identifier: str = Field(
         ...,
@@ -78,14 +92,14 @@ class DataConfig(ConfigBaseModel):
         "to use for computing embeddings.",
     )
 
-    split: str = Field(
-        ...,
-        title="Split to use for computing embeddings.",
-        description="The split to use for computing embeddings.",
-    )
-
     number_of_samples: int = Field(
         ...,
         title="Number of samples to use for computing embeddings.",
         description="The number of samples to use for computing embeddings.",
+    )
+
+    split: str = Field(
+        ...,
+        title="Split to use for computing embeddings.",
+        description="The split to use for computing embeddings.",
     )
