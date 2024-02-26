@@ -48,8 +48,9 @@ import hydra
 import hydra.core.hydra_config
 import torch
 import torch.utils.data
-import tqdm
 import zarr
+import zarr.core
+from tqdm.auto import tqdm
 from transformers import (
     AutoModel,
     AutoTokenizer,
@@ -60,7 +61,8 @@ from transformers import (
 )
 
 # Local imports
-from topollm.config_classes.Configs import DataConfig, EmbeddingsConfig, MasterConfig
+from topollm.config_classes.Configs import DataConfig, EmbeddingsConfig, MainConfig
+from topollm.config_classes.enums import Level
 
 # END Imports
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -78,17 +80,14 @@ global_logger = logging.getLogger(__name__)
 def convert_dataset_entry_to_features(
     dataset_entry: dict,
     tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast,
-    column_name="text",
-    max_length=512,
+    column_name: str = "text",
+    max_length: int = 512,
 ) -> BatchEncoding:
     """
-    Convert example to features.
-
-    Args:
-        example (dict): Example from the QNLI dataset.
-    Returns:
-        features (dict): Features for the example.
+    Convert dataset entires/examples to features
+    by tokenizing the text and padding/truncating to a maximum length.
     """
+
     features = tokenizer(
         dataset_entry[column_name],
         max_length=max_length,
@@ -99,37 +98,80 @@ def convert_dataset_entry_to_features(
     return features
 
 
-# Function to compute embeddings
-def compute_embeddings(batch):
+def collate(
+    batch: list,
+    device: torch.device,
+    model_input_names: list[str],
+) -> dict:
     """
-    # TODO Update this
+    Function to collate the batch.
+
+    Args:
+        batch (list):
+    Returns:
+        features (dict): Features for the batch.
     """
+    features: dict[str, torch.Tensor] = {
+        "input_ids": torch.tensor([item["input_ids"] for item in batch]),
+        "attention_mask": torch.tensor([item["attention_mask"] for item in batch]),
+    }
 
     # Move batch to device
     inputs = {
-        k: v.to(device) for k, v in batch.items() if k in tokenizer.model_input_names
+        key: value.to(device)
+        for key, value in features.items()
+        if key in model_input_names
     }
+
+    return inputs
+
+
+# Function to compute embeddings
+def compute_embeddings(
+    inputs: dict,
+    model: PreTrainedModel,
+    level: Level,
+) -> np.ndarray:
+    """
+    Compute embeddings for the given inputs using the given model.
+    """
 
     # Compute embeddings
     with torch.no_grad():
         outputs = model(**inputs)
 
     # Return embeddings
-    return outputs.last_hidden_state.mean(dim=1).cpu().numpy()
+    # TODO: Include the correct layer here
+    if level == Level.TOKEN:
+        return outputs.last_hidden_state.cpu().numpy()
+    elif level == Level.DATASET_ENTRY:
+        # TODO: Include other aggregation methods here
+        return outputs.last_hidden_state.mean(dim=1).cpu().numpy()
+    else:
+        raise ValueError(f"Unknown {level = }")
 
 
-# Adjusted function for computing embeddings that directly writes to Zarr
-def compute_and_store_embeddings(
-    batch,
-    zarr_array,
-    start_idx,
+def process_embedding_batch(
+    batch: dict,
+    model: PreTrainedModel,
+    level: Level,
+    zarr_array: zarr.core.Array,
+    start_idx: int,
 ):
-    # Compute embeddings as before
-    embeddings = compute_embeddings(
-        batch
-    )  # Assuming this function is defined as before
+    # Adjusted function for computing embeddings that directly writes to array
 
-    # Write embeddings to the Zarr array
+    # Compute embeddings
+    embeddings = compute_embeddings(
+        inputs=batch,
+        model=model,
+        level=level,
+    )
+
+    # TODO Extract the correct layer here/potentially aggregate
+
+    # TODO Write embeddings and metadata to disk
+
+    # Write embeddings to the array
     zarr_array[
         start_idx : start_idx + embeddings.shape[0],
         :,
@@ -138,7 +180,7 @@ def compute_and_store_embeddings(
 
 @hydra.main(
     config_path="../../configs",
-    config_name="master_config",
+    config_name="main_config",
     version_base="1.2",
 )
 def main(
@@ -157,21 +199,21 @@ def main(
             f"hydra config:\n" f"{pprint.pformat(config)}",
         )
 
-    master_config = MasterConfig.model_validate(
+    main_config = MainConfig.model_validate(
         config,
     )
 
     if verbosity >= 1:
         global_logger.info(
-            f"master_config:\n" f"{pprint.pformat(master_config)}",
+            f"master_config:\n" f"{pprint.pformat(main_config)}",
         )
 
     # Load the tokenizer and model
     tokenizer = AutoTokenizer.from_pretrained(
-        pretrained_model_name_or_path=master_config.embeddings.huggingface_model_name,
+        pretrained_model_name_or_path=main_config.embeddings.huggingface_model_name,
     )
     model: PreTrainedModel = AutoModel.from_pretrained(
-        pretrained_model_name_or_path=master_config.embeddings.huggingface_model_name,
+        pretrained_model_name_or_path=main_config.embeddings.huggingface_model_name,
     )
 
     if verbosity >= 1:
@@ -184,7 +226,7 @@ def main(
 
     # Load the dataset from huggingface datasets
     dataset = datasets.load_dataset(
-        master_config.data.dataset_identifier,
+        main_config.data.dataset_identifier,
         trust_remote_code=True,
     )
 
@@ -192,17 +234,18 @@ def main(
     # split=data_config.split,
 
     # Tokenize the dataset
-    partial_function_to_apply = partial(
+    partial_convert_dataset_entry_to_features = partial(
         convert_dataset_entry_to_features,
         tokenizer=tokenizer,
-        column_name=master_config.data.column_name,
+        column_name=main_config.data.column_name,
+        max_length=main_config.embeddings.max_length,
     )
 
     dataset_tokenized = dataset.map(
-        partial_function_to_apply,
+        partial_convert_dataset_entry_to_features,
         batched=True,
-        batch_size=1000,
-        num_proc=2,
+        batch_size=main_config.embeddings.dataset_map.batch_size,
+        num_proc=2,  # type: ignore
     )
 
     # The mapped dataset has the input_ids and attention_mask
@@ -223,9 +266,11 @@ def main(
     # )
 
     # Initialize the DataLoader
-    dataloader = torch.utils.data.DataLoader(
+    batch_size = main_config.embeddings.batch_size
+
+    embedding_dataloader = torch.utils.data.DataLoader(
         dataset_tokenized,
-        batch_size=16,
+        batch_size=batch_size,
         shuffle=False,
     )
 
@@ -235,7 +280,9 @@ def main(
     # Move model to the appropriate device
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     global_logger.info(f"{device = }")
-    model.to(device)
+    model.to(device)  # type: ignore
+
+    # TODO: Continue here
 
     N = len(dataset_tokenized["train"])  # Total number of items in the dataset
     D = 768  # Dimensionality of RoBERTa embeddings (for 'roberta-base') # TODO: Change
@@ -258,13 +305,25 @@ def main(
     )
 
     # Iterate over batches and write embeddings
+    global_logger.info("Computing and storing embeddings ...")
+
     start_idx = 0
-    for batch in tqdm(train_dataloader):
-        compute_and_store_embeddings(
-            batch,
-            start_idx,
+    for batch in tqdm(
+        embedding_dataloader,
+        desc="Computing and storing embeddings",
+    ):
+        process_embedding_batch(
+            batch=batch,
+            model=model,
+            level=main_config.embeddings.level,
+            zarr_array=zarr_array,
+            start_idx=start_idx,
         )
         start_idx += batch_size
+
+    global_logger.info("Computing and storing embeddings DONE")
+
+    global_logger.info("Script finished.")
 
     return
 

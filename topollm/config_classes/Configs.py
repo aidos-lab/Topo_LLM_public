@@ -34,12 +34,14 @@ import pathlib
 import pprint
 from abc import ABC, abstractmethod
 from typing import IO
+from networkx import number_of_selfloops
 
 # Third party imports
 from pydantic import BaseModel, Field
 
 # Local imports
 from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
+from topollm.config_classes.enums import Level
 
 # END Imports
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -88,8 +90,38 @@ class DataConfig(ConfigBaseModel):
     )
 
 
+class DatasetMapConfig(ConfigBaseModel):
+    """
+    Configurations for specifying dataset map.
+    """
+
+    batch_size: int = Field(
+        ...,
+        title="Batch size for mapping tokenization on dataset.",
+        description="The batch size for mapping tokenization on dataset.",
+    )
+
+    num_proc: int = Field(
+        ...,
+        title="Number of processes for mapping tokenization on dataset.",
+        description="The number of processes for mapping tokenization on dataset.",
+    )
+
+
 class EmbeddingsConfig(ConfigBaseModel):
     """Configurations for specifying embeddings."""
+
+    dataset_map: DatasetMapConfig = Field(
+        ...,
+        title="Dataset map configuration.",
+        description="The configuration for specifying dataset map.",
+    )
+
+    batch_size: int = Field(
+        ...,
+        title="Batch size for computing embeddings.",
+        description="The batch size for computing embeddings.",
+    )
 
     huggingface_model_name: str = Field(
         ...,
@@ -102,6 +134,18 @@ class EmbeddingsConfig(ConfigBaseModel):
         ...,
         title="Layer to use for computing embeddings.",
         description="The layer to use for computing embeddings.",
+    )
+
+    level: Level = Field(
+        default=Level.TOKEN,
+        title="Level to use for computing embeddings.",
+        description="The level to use for computing embeddings.",
+    )
+
+    max_length: int = Field(
+        ...,
+        title="Maximum length of the input sequence.",
+        description="The maximum length of the input sequence.",
     )
 
 
@@ -121,7 +165,7 @@ class PathsConfig(ConfigBaseModel):
     )
 
 
-class MasterConfig(ConfigBaseModel):
+class MainConfig(ConfigBaseModel):
     """
     Master configuration for computing embeddings.
     """
