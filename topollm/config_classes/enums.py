@@ -37,13 +37,17 @@ try:
 except ImportError:
     # Fallback to the strenum package for Python 3.10 and below.
     # Run `python3 -m pip install strenum` for python < 3.11
-    from strenum import StrEnum
+    from strenum import StrEnum  # type: ignore
 
 # END Imports
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-
 # ==============================
+
+
+@unique
+class DatasetType(StrEnum):
+    HUGGINGFACE_DATASET = "huggingface_dataset"
 
 
 @unique
@@ -93,21 +97,6 @@ class ExperimentMode(StrEnum):
     PREDICTION = "prediction"
 
 
-def experiment_mode_to_data_loader_key(
-    experiment_mode: ExperimentMode,
-) -> DataLoaderKey:
-    if experiment_mode == ExperimentMode.TRAINING:
-        return DataLoaderKey.TRAINING
-    elif experiment_mode == ExperimentMode.VALIDATION:
-        return DataLoaderKey.VALIDATION
-    elif experiment_mode == ExperimentMode.TESTING:
-        return DataLoaderKey.TESTING
-    elif experiment_mode == ExperimentMode.PREDICTION:
-        return DataLoaderKey.PREDICTION
-    else:
-        raise ValueError(f"Unknown experiment_mode: {experiment_mode}")
-
-
 # ==============================
 
 
@@ -136,20 +125,6 @@ class SubtokenExtractionMethod(StrEnum):
     LAST_SUBTOKEN = "last_subtoken"
 
 
-translate_subtoken_extraction_to_level: dict[
-    SubtokenExtractionMethod, dict[str, str]
-] = {
-    SubtokenExtractionMethod.FIRST_SUBTOKEN: {
-        "value_short": "wvfs",
-        "value_long": level_short_to_long["wvfs"],
-    },
-    SubtokenExtractionMethod.LAST_SUBTOKEN: {
-        "value_short": "wvls",
-        "value_long": level_short_to_long["wvls"],
-    },
-}
-
-
 @unique
 class DatasetMode(StrEnum):
     DATASETS_CONTEXTUAL_DIALOGUES = "datasets_contextual_dialogues"
@@ -171,12 +146,6 @@ class WordSeparationMethod(StrEnum):
     # with each word associated with a label on a separate line)
     FROM_TOKENIZER = "from_tokenizer"
     FROM_DATASET = "from_dataset"
-
-
-@unique
-class DataSourceMode(StrEnum):
-    HUGGINGFACE_DATASET = "huggingface_dataset"
-    CONVLAB_UNIFIED_DATAFORMAT = "convlab_unified_dataformat"
 
 
 # ==============================

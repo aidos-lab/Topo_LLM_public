@@ -41,7 +41,7 @@ from pydantic import BaseModel, Field
 
 # Local imports
 from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
-from topollm.config_classes.enums import Level
+from topollm.config_classes.enums import Level, Split, DatasetType
 
 # END Imports
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -77,13 +77,19 @@ class DataConfig(ConfigBaseModel):
         "to use for computing embeddings.",
     )
 
+    dataset_type: DatasetType = Field(
+        ...,
+        title="Dataset type.",
+        description="The dataset type.",
+    )
+
     number_of_samples: int = Field(
         ...,
         title="Number of samples to use for computing embeddings.",
         description="The number of samples to use for computing embeddings.",
     )
 
-    split: str = Field(
+    split: Split = Field(
         ...,
         title="Split to use for computing embeddings.",
         description="The split to use for computing embeddings.",
@@ -186,4 +192,10 @@ class MainConfig(ConfigBaseModel):
         ...,
         title="Paths configuration.",
         description="The configuration for specifying paths.",
+    )
+
+    verbosity: int = Field(
+        default=1,
+        title="Verbosity level.",
+        description="The verbosity level.",
     )

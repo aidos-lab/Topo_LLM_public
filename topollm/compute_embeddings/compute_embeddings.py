@@ -34,19 +34,18 @@ Create embedding vectors.
 # START Imports
 
 # Standard library imports
-import argparse
 import logging
-import numpy as np
 import os
-import pathlib
-import pprint
 import sys
+from abc import ABC, abstractmethod
 from functools import partial
 
 # Third party imports
 import datasets
 import hydra
 import hydra.core.hydra_config
+import numpy as np
+import omegaconf
 import torch
 import torch.utils.data
 import zarr
@@ -55,16 +54,16 @@ from tqdm.auto import tqdm
 from transformers import (
     AutoModel,
     AutoTokenizer,
+    BatchEncoding,
     PreTrainedModel,
     PreTrainedTokenizer,
     PreTrainedTokenizerFast,
-    BatchEncoding,
 )
+from topollm.config_classes.Configs import DataConfig, EmbeddingsConfig
 
 # Local imports
-from topollm.config_classes.Configs import DataConfig, EmbeddingsConfig, MainConfig
-from topollm.config_classes.enums import Level
-from topollm.utils.get_git_info import get_git_info
+from topollm.config_classes.enums import Level, DatasetType
+from topollm.utils.setup_main_config_and_log import setup_main_config_and_log
 
 # END Imports
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -129,7 +128,7 @@ def convert_dataset_entry_to_features(
     return features
 
 
-def collate(
+def collate_batch_and_move_to_device(
     batch: list,
     device: torch.device,
     model_input_names: list[str],
@@ -142,7 +141,7 @@ def collate(
     Returns:
         features (dict): Features for the batch.
     """
-    features: dict[str, torch.Tensor] = {
+    collated_batch: dict[str, torch.Tensor] = {
         "input_ids": torch.tensor([item["input_ids"] for item in batch]),
         "attention_mask": torch.tensor([item["attention_mask"] for item in batch]),
     }
@@ -150,7 +149,7 @@ def collate(
     # Move batch to device
     inputs = {
         key: value.to(device)
-        for key, value in features.items()
+        for key, value in collated_batch.items()
         if key in model_input_names
     }
 
@@ -209,113 +208,224 @@ def process_embedding_batch(
     ] = embeddings
 
 
+def load_tokenizer_and_model_for_embedding(
+    pretrained_model_name_or_path: str | os.PathLike,
+    logger: logging.Logger = logging.getLogger(__name__),
+    verbosity: int = 1,
+) -> tuple[
+    PreTrainedTokenizer | PreTrainedTokenizerFast,
+    PreTrainedModel,
+    torch.device,
+]:
+    """Loads the tokenizer and model based on the configuration,
+    and puts the model in evaluation mode.
+
+    Args:
+        pretrained_model_name_or_path:
+            The name or path of the pretrained model.
+
+    Returns:
+        A tuple of (tokenizer, model).
+    """
+    tokenizer = AutoTokenizer.from_pretrained(
+        pretrained_model_name_or_path=pretrained_model_name_or_path,
+    )
+    model: PreTrainedModel = AutoModel.from_pretrained(
+        pretrained_model_name_or_path=pretrained_model_name_or_path,
+    )
+
+    model.eval()  # Disable dropout layers
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model.to(device)  # type: ignore
+
+    if verbosity >= 1:
+        logger.info(
+            f"tokenizer:\n" f"{tokenizer}",
+        )
+        logger.info(
+            f"model:\n" f"{model}",
+        )
+        logger.info(
+            f"{device = }",
+        )
+
+    return tokenizer, model, device
+
+
+class EmbeddingDataLoaderPreparer(ABC):
+    """Abstract base class for embedding dataset preparers."""
+
+    def __init__(
+        self,
+        data_config: DataConfig,
+        embeddings_config: EmbeddingsConfig,
+        tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast,
+        device: torch.device,
+        collate_fn,
+    ):
+        self.data_config = data_config
+        self.embeddings_config = embeddings_config
+        self.tokenizer = tokenizer
+        self.device = device
+        self.collate_fn = collate_fn
+
+    @abstractmethod
+    def load_and_prepare_dataset(
+        self,
+    ):
+        """Loads and prepares a dataset."""
+        pass
+
+
+class HuggingfaceEmbeddingDataLoaderPreparer(EmbeddingDataLoaderPreparer):
+    def load_dataset_dict(
+        self,
+    ) -> datasets.DatasetDict:
+        """Loads the dataset based from huggingface datasets based on configuration."""
+        dataset_dict = datasets.load_dataset(
+            self.data_config.dataset_identifier,
+            trust_remote_code=True,
+        )
+
+        if not isinstance(
+            dataset_dict,
+            datasets.DatasetDict,
+        ):
+            raise ValueError(
+                f"Expected {dataset_dict = } " f"to be a {datasets.DatasetDict = }"
+            )
+
+        return dataset_dict
+
+    def select_dataset(
+        self,
+        dataset_dict: datasets.DatasetDict,
+    ) -> datasets.Dataset:
+        # Select the dataset split to use
+        dataset: datasets.Dataset = dataset_dict[self.data_config.split]
+
+        # Truncate the dataset to the specified number of samples
+        dataset = dataset.select(
+            indices=range(self.data_config.number_of_samples),
+        )
+
+        return dataset
+
+    def prepare_dataset_tokenized(
+        self,
+        dataset,
+    ) -> datasets.Dataset:
+        """Tokenizes dataset."""
+        # Make a partial function for mapping tokenizer over the dataset
+        partial_map_fn = partial(
+            convert_dataset_entry_to_features,
+            tokenizer=self.tokenizer,
+            column_name=self.data_config.column_name,
+            max_length=self.embeddings_config.max_length,
+        )
+
+        dataset_tokenized = dataset.map(
+            partial_map_fn,
+            batched=True,
+            batch_size=self.embeddings_config.dataset_map.batch_size,
+            num_proc=self.embeddings_config.dataset_map.num_proc,
+        )
+
+        return dataset_tokenized
+
+    def prepare_dataloader(
+        self,
+        dataset_tokenized: datasets.Dataset,
+    ) -> torch.utils.data.DataLoader:
+        # The mapped dataset has the input_ids and attention_mask
+        # as lists of integers, but we want to convert them to torch tensors
+        # to use them as model input.
+        # We will take care of this in the collate function of the DataLoader,
+        # which will also move the data to the appropriate device.
+        #
+        # An alternative way to set the format of the dataset to torch tensors
+        # is given below:
+        #
+        # dataset_tokenized.set_format(
+        #     type="torch",
+        #     columns=[
+        #         "input_ids",
+        #         "attention_mask",
+        #     ],
+        # )
+
+        partial_collate_fn = partial(
+            self.collate_fn,
+            device=self.device,
+            model_input_names=self.tokenizer.model_input_names,
+        )
+
+        dataloader = torch.utils.data.DataLoader(
+            dataset_tokenized,  # type: ignore
+            batch_size=self.embeddings_config.batch_size,
+            shuffle=False,
+            collate_fn=partial_collate_fn,
+        )
+
+        return dataloader
+
+
+def get_embedding_dataloader_preparer(
+    dataset_type: DatasetType,
+    data_config: DataConfig,
+    embeddings_config: EmbeddingsConfig,
+    tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast,
+    device: torch.device,
+    collate_fn,
+) -> EmbeddingDataLoaderPreparer:
+    """Factory function to instantiate dataset preparers based on the dataset type.
+
+    Args:
+        dataset_type:
+            The type of dataset to prepare.
+        config:
+            Configuration object containing dataset and model settings.
+        tokenizer:
+            Tokenizer object for datasets that require tokenization.
+
+    Returns:
+        An instance of a DatasetPreparer subclass.
+    """
+    if dataset_type == DatasetType.HUGGINGFACE_DATASET:
+        return HuggingfaceEmbeddingDataLoaderPreparer(
+            data_config=data_config,
+            embeddings_config=embeddings_config,
+            tokenizer=tokenizer,
+            device=device,
+            collate_fn=collate_fn,
+        )
+    # Extendable to other dataset types
+    # elif dataset_type == "convlab_unified_format":
+    #     return ImageDatasetPreparer(config)
+    else:
+        raise ValueError(f"Unsupported {dataset_type = }")
+
+
 @hydra.main(
     config_path="../../configs",
     config_name="main_config",
     version_base="1.2",
 )
 def main(
-    config,
+    config: omegaconf.DictConfig,
 ):
     """Run the script."""
 
-    verbosity: int = config.verbosity
-
-    if verbosity >= 1:
-        global_logger.info(f"Working directory:\n" f"{os.getcwd() = }")
-        global_logger.info(
-            f"Hydra output directory:\n"
-            f"{hydra.core.hydra_config.HydraConfig.get().runtime.output_dir}"
-        )
-        global_logger.info(
-            f"hydra config:\n" f"{pprint.pformat(config)}",
-        )
-
-    # Log git info
-    global_logger.info(f"{get_git_info() = }")
-
-    main_config = MainConfig.model_validate(
-        config,
+    main_config = setup_main_config_and_log(
+        config=config,
+        logger=global_logger,
     )
 
-    if verbosity >= 1:
-        global_logger.info(
-            f"master_config:\n" f"{pprint.pformat(main_config)}",
-        )
-
-    # Load the tokenizer and model
-    tokenizer = AutoTokenizer.from_pretrained(
+    tokenizer, model, device = load_tokenizer_and_model_for_embedding(
         pretrained_model_name_or_path=main_config.embeddings.huggingface_model_name,
+        logger=global_logger,
+        verbosity=main_config.verbosity,
     )
-    model: PreTrainedModel = AutoModel.from_pretrained(
-        pretrained_model_name_or_path=main_config.embeddings.huggingface_model_name,
-    )
-
-    if verbosity >= 1:
-        global_logger.info(
-            f"tokenizer:\n" f"{tokenizer}",
-        )
-        global_logger.info(
-            f"model:\n" f"{model}",
-        )
-
-    # Load the dataset from huggingface datasets
-    dataset = datasets.load_dataset(
-        main_config.data.dataset_identifier,
-        trust_remote_code=True,
-    )
-
-    # TODO: Create split here
-    # split=data_config.split,
-
-    # Tokenize the dataset
-    partial_convert_dataset_entry_to_features = partial(
-        convert_dataset_entry_to_features,
-        tokenizer=tokenizer,
-        column_name=main_config.data.column_name,
-        max_length=main_config.embeddings.max_length,
-    )
-
-    dataset_tokenized = dataset.map(
-        partial_convert_dataset_entry_to_features,
-        batched=True,
-        batch_size=main_config.embeddings.dataset_map.batch_size,
-        num_proc=2,  # type: ignore
-    )
-
-    # The mapped dataset has the input_ids and attention_mask
-    # as lists of integers, but we want to convert them to torch tensors
-    # to use them as model input.
-    # We will take care of this in the collate function of the DataLoader,
-    # which will also move the data to the appropriate device.
-    #
-    # An alternative way to set the format of the dataset to torch tensors
-    # is given below:
-    #
-    # dataset_tokenized.set_format(
-    #     type="torch",
-    #     columns=[
-    #         "input_ids",
-    #         "attention_mask",
-    #     ],
-    # )
-
-    # Initialize the DataLoader
-    batch_size = main_config.embeddings.batch_size
-
-    embedding_dataloader = torch.utils.data.DataLoader(
-        dataset_tokenized,
-        batch_size=batch_size,
-        shuffle=False,
-    )
-
-    # Ensure the model is in evaluation mode, which disables dropout layers
-    model.eval()
-
-    # Move model to the appropriate device
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    global_logger.info(f"{device = }")
-    model.to(device)  # type: ignore
 
     # TODO: Continue here
 
