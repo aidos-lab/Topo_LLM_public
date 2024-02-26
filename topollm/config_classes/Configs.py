@@ -51,23 +51,6 @@ from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
-class EmbeddingsConfig(ConfigBaseModel):
-    """Configurations for specifying embeddings."""
-
-    huggingface_model_name: str = Field(
-        ...,
-        title="Model identifier for huggingface transformers model.",
-        description="The model identifier for the huggingface transformers model "
-        "to use for computing embeddings.",
-    )
-
-    layer: str = Field(
-        ...,
-        title="Layer to use for computing embeddings.",
-        description="The layer to use for computing embeddings.",
-    )
-
-
 class DataConfig(ConfigBaseModel):
     """
     Configurations for specifying data.
@@ -102,4 +85,61 @@ class DataConfig(ConfigBaseModel):
         ...,
         title="Split to use for computing embeddings.",
         description="The split to use for computing embeddings.",
+    )
+
+
+class EmbeddingsConfig(ConfigBaseModel):
+    """Configurations for specifying embeddings."""
+
+    huggingface_model_name: str = Field(
+        ...,
+        title="Model identifier for huggingface transformers model.",
+        description="The model identifier for the huggingface transformers model "
+        "to use for computing embeddings.",
+    )
+
+    layer: str = Field(
+        ...,
+        title="Layer to use for computing embeddings.",
+        description="The layer to use for computing embeddings.",
+    )
+
+
+class PathsConfig(ConfigBaseModel):
+    """Configurations for specifying paths."""
+
+    data_dir: pathlib.Path = Field(
+        ...,
+        title="Data path.",
+        description="The path to the data.",
+    )
+
+    repository_base_path: pathlib.Path = Field(
+        ...,
+        title="Repository base path.",
+        description="The base path to the repository.",
+    )
+
+
+class MasterConfig(ConfigBaseModel):
+    """
+    Master configuration for computing embeddings.
+    """
+
+    data: DataConfig = Field(
+        ...,
+        title="Data configuration.",
+        description="The configuration for specifying data.",
+    )
+
+    embeddings: EmbeddingsConfig = Field(
+        ...,
+        title="Embeddings configuration.",
+        description="The configuration for specifying embeddings.",
+    )
+
+    paths: PathsConfig = Field(
+        ...,
+        title="Paths configuration.",
+        description="The configuration for specifying paths.",
     )

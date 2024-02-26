@@ -56,10 +56,11 @@ from transformers import (
     PreTrainedModel,
     PreTrainedTokenizer,
     PreTrainedTokenizerFast,
+    BatchEncoding,
 )
 
 # Local imports
-from topollm.config_classes.Configs import DataConfig, EmbeddingsConfig
+from topollm.config_classes.Configs import DataConfig, EmbeddingsConfig, MasterConfig
 
 # END Imports
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -74,14 +75,28 @@ global_logger = logging.getLogger(__name__)
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
-def tokenize(
-    dataset_entry,
+def convert_dataset_entry_to_features(
+    dataset_entry: dict,
     tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast,
     column_name="text",
-):
-    return tokenizer(
+    max_length=512,
+) -> BatchEncoding:
+    """
+    Convert example to features.
+
+    Args:
+        example (dict): Example from the QNLI dataset.
+    Returns:
+        features (dict): Features for the example.
+    """
+    features = tokenizer(
         dataset_entry[column_name],
+        max_length=max_length,
+        padding="max_length",
+        truncation="longest_first",
     )
+
+    return features
 
 
 # Function to compute embeddings
@@ -123,7 +138,7 @@ def compute_and_store_embeddings(
 
 @hydra.main(
     config_path="../../configs",
-    config_name="config",
+    config_name="master_config",
     version_base="1.2",
 )
 def main(
@@ -142,27 +157,21 @@ def main(
             f"hydra config:\n" f"{pprint.pformat(config)}",
         )
 
-    embeddings_config = EmbeddingsConfig.model_validate(
-        config.embeddings,
-    )
-    data_config = DataConfig.model_validate(
-        config.data,
+    master_config = MasterConfig.model_validate(
+        config,
     )
 
     if verbosity >= 1:
         global_logger.info(
-            f"embeddings_config:\n" f"{pprint.pformat(embeddings_config)}",
-        )
-        global_logger.info(
-            f"data_config:\n" f"{pprint.pformat(data_config)}",
+            f"master_config:\n" f"{pprint.pformat(master_config)}",
         )
 
     # Load the tokenizer and model
     tokenizer = AutoTokenizer.from_pretrained(
-        pretrained_model_name_or_path=embeddings_config.huggingface_model_name,
+        pretrained_model_name_or_path=master_config.embeddings.huggingface_model_name,
     )
     model: PreTrainedModel = AutoModel.from_pretrained(
-        pretrained_model_name_or_path=embeddings_config.huggingface_model_name,
+        pretrained_model_name_or_path=master_config.embeddings.huggingface_model_name,
     )
 
     if verbosity >= 1:
@@ -175,7 +184,7 @@ def main(
 
     # Load the dataset from huggingface datasets
     dataset = datasets.load_dataset(
-        data_config.dataset_identifier,
+        master_config.data.dataset_identifier,
         trust_remote_code=True,
     )
 
@@ -183,32 +192,40 @@ def main(
     # split=data_config.split,
 
     # Tokenize the dataset
-    partial_tokenize = partial(
-        tokenize,
+    partial_function_to_apply = partial(
+        convert_dataset_entry_to_features,
         tokenizer=tokenizer,
-        column_name=data_config.column_name,
+        column_name=master_config.data.column_name,
     )
 
     dataset_tokenized = dataset.map(
-        partial_tokenize,
+        partial_function_to_apply,
         batched=True,
+        batch_size=1000,
+        num_proc=2,
     )
 
-    dataset_tokenized.set_format(
-        type="torch",
-        columns=[
-            "input_ids",
-            "token_type_ids",
-            "attention_mask",
-            "label",
-        ],
-    )
-    global_logger.info(f"{dataset_tokenized.format['type'] = }")
+    # The mapped dataset has the input_ids and attention_mask
+    # as lists of integers, but we want to convert them to torch tensors
+    # to use them as model input.
+    # We will take care of this in the collate function of the DataLoader,
+    # which will also move the data to the appropriate device.
+    #
+    # An alternative way to set the format of the dataset to torch tensors
+    # is given below:
+    #
+    # dataset_tokenized.set_format(
+    #     type="torch",
+    #     columns=[
+    #         "input_ids",
+    #         "attention_mask",
+    #     ],
+    # )
 
     # Initialize the DataLoader
     dataloader = torch.utils.data.DataLoader(
         dataset_tokenized,
-        batch_size=batch_size,
+        batch_size=16,
         shuffle=False,
     )
 
@@ -220,7 +237,7 @@ def main(
     global_logger.info(f"{device = }")
     model.to(device)
 
-    N = len(tokenized_datasets["train"])  # Total number of items in the dataset
+    N = len(dataset_tokenized["train"])  # Total number of items in the dataset
     D = 768  # Dimensionality of RoBERTa embeddings (for 'roberta-base') # TODO: Change
 
     # Create a directory for the Zarr store, if it doesn't already exist
