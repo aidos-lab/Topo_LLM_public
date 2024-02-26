@@ -4,10 +4,14 @@ defaults:
   - transformations: none
   - _self_
 
-data_dir: data
+
+repository_base_path: ${oc.env:HOME}/git-source/Topo_LLM
+data_dir: ${repository_base_path}/data
 seed: 1234
 verbosity: 1
 
 hydra:
   run:
-    dir: experiments/${embeddings.huggingface_model_name}/${now:%Y-%m-%d_%H-%M-%S}
+    dir: ${repository_base_path}/hydra_output_dir/experiments/${embeddings.huggingface_model_name}/${now:%Y-%m-%d_%H-%M-%S}
+  job:
+    chdir: False

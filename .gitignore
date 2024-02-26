@@ -170,4 +170,4 @@ cython_debug/
 data/embeddings
 data/metadata
 
-experiments
+hydra_output_dir/

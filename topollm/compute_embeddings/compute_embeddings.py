@@ -243,7 +243,10 @@ def main(
     # Iterate over batches and write embeddings
     start_idx = 0
     for batch in tqdm(train_dataloader):
-        compute_and_store_embeddings(batch, start_idx)
+        compute_and_store_embeddings(
+            batch,
+            start_idx,
+        )
         start_idx += batch_size
 
     return
