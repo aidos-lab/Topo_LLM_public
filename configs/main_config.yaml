@@ -3,14 +3,19 @@ defaults:
   - embeddings: roberta
   - paths: absolute_repository_base
   - transformations: none
+  - override hydra/job_logging: custom
   - _self_
 
 
 seed: 1234
 verbosity: 1
 
+#------------------------- Hydra Config ------------------------#
 hydra:
   run:
     dir: ${paths.repository_base_path}/hydra_output_dir/experiments/${embeddings.huggingface_model_name}/${now:%Y-%m-%d_%H-%M-%S}
   job:
     chdir: False
+    env_set:
+      # HYDRA_FULL_ERROR: 1 # NOTE: This will not work for setting the environment variable, set in code instead
+      CUDA_VISIBLE_DEVICES: 0

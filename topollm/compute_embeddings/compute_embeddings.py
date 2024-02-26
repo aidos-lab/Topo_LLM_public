@@ -40,6 +40,7 @@ import numpy as np
 import os
 import pathlib
 import pprint
+import sys
 from functools import partial
 
 # Third party imports
@@ -63,6 +64,7 @@ from transformers import (
 # Local imports
 from topollm.config_classes.Configs import DataConfig, EmbeddingsConfig, MainConfig
 from topollm.config_classes.enums import Level
+from topollm.utils.get_git_info import get_git_info
 
 # END Imports
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -70,8 +72,37 @@ from topollm.config_classes.enums import Level
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # START Globals
 
+os.environ["HYDRA_FULL_ERROR"] = "1"
+
 # A logger for this file
 global_logger = logging.getLogger(__name__)
+
+
+def handle_exception(
+    exc_type,
+    exc_value,
+    exc_traceback,
+):
+    if issubclass(
+        exc_type,
+        KeyboardInterrupt,
+    ):
+        sys.__excepthook__(
+            exc_type,
+            exc_value,
+            exc_traceback,
+        )
+        return
+    else:
+        # Log the exception
+        global_logger.critical(
+            "Uncaught exception",
+            exc_info=(exc_type, exc_value, exc_traceback),
+        )
+
+
+sys.excepthook = handle_exception
+
 
 # END Globals
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -187,6 +218,7 @@ def main(
     config,
 ):
     """Run the script."""
+
     verbosity: int = config.verbosity
 
     if verbosity >= 1:
@@ -198,6 +230,9 @@ def main(
         global_logger.info(
             f"hydra config:\n" f"{pprint.pformat(config)}",
         )
+
+    # Log git info
+    global_logger.info(f"{get_git_info() = }")
 
     main_config = MainConfig.model_validate(
         config,
