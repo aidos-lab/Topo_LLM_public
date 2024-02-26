@@ -154,6 +154,12 @@ class EmbeddingsConfig(ConfigBaseModel):
         description="The maximum length of the input sequence.",
     )
 
+    num_workers: int = Field(
+        ...,
+        title="Number of workers for dataloader.",
+        description="The number of workers for dataloader.",
+    )
+
 
 class PathsConfig(ConfigBaseModel):
     """Configurations for specifying paths."""

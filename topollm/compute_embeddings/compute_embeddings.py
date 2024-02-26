@@ -39,6 +39,9 @@ import os
 import sys
 from abc import ABC, abstractmethod
 from functools import partial
+from os import PathLike
+from typing import Protocol, runtime_checkable
+from attr import dataclass
 
 # Third party imports
 import datasets
@@ -272,7 +275,7 @@ class EmbeddingDataLoaderPreparer(ABC):
     @abstractmethod
     def load_and_prepare_dataset(
         self,
-    ):
+    ) -> torch.utils.data.DataLoader:
         """Loads and prepares a dataset."""
         pass
 
@@ -365,6 +368,24 @@ class HuggingfaceEmbeddingDataLoaderPreparer(EmbeddingDataLoaderPreparer):
             batch_size=self.embeddings_config.batch_size,
             shuffle=False,
             collate_fn=partial_collate_fn,
+            num_workers=self.embeddings_config.num_workers,
+        )
+
+        return dataloader
+
+    def load_and_prepare_dataset(
+        self,
+    ) -> torch.utils.data.DataLoader:
+        """Loads and prepares a dataset."""
+        dataset_dict = self.load_dataset_dict()
+        dataset = self.select_dataset(
+            dataset_dict=dataset_dict,
+        )
+        dataset_tokenized = self.prepare_dataset_tokenized(
+            dataset=dataset,
+        )
+        dataloader = self.prepare_dataloader(
+            dataset_tokenized=dataset_tokenized,
         )
 
         return dataloader
@@ -406,6 +427,106 @@ def get_embedding_dataloader_preparer(
         raise ValueError(f"Unsupported {dataset_type = }")
 
 
+@dataclass
+class DataChunk:
+    """
+    Dataclass to hold one embedding chunk
+    and the batch containing the corresponding dataset entries.
+    """
+
+    embedding_array: np.ndarray
+    batch: dict
+    start_idx: int
+
+
+# Define a Storage Protocol
+@runtime_checkable
+class StorageProtocol(Protocol):
+    def open(
+        self,
+        shape: tuple[int, int],
+        dtype: str,
+        chunks: tuple[int, int],
+    ) -> None:
+        """Initializes the storage with specified configuration."""
+        ...
+
+    def write_chunk(
+        self,
+        data_chunk: DataChunk,
+    ) -> None:
+        """Writes a chunk of data starting from a specific index."""
+        ...
+
+
+# Implement the Protocol with a Zarr Storage Class
+class ZarrStorage:
+    def __init__(
+        self,
+        store_dir: PathLike,
+    ):
+        self.store_dir = store_dir
+        self.zarr_array = None
+
+    def open(
+        self,
+        shape: tuple[int, int],
+        dtype: str,
+        chunks: tuple[int, int],
+    ) -> None:
+        os.makedirs(
+            self.store_dir,
+            exist_ok=True,
+        )
+        self.zarr_array = zarr.open(
+            store=self.store_dir,
+            mode="w",
+            shape=shape,
+            dtype=dtype,
+            chunks=chunks,
+        )
+
+    def write_chunk(
+        self,
+        data_chunk: DataChunk,
+    ) -> None:
+        # TODO: Update this to work with the DataClass
+
+        self.zarr_array[start_idx : start_idx + len(data),] = data
+
+
+# Create a Data Handler Class with Dependency Injection
+class DataHandler:
+    # TODO: Update this
+
+    def __init__(
+        self,
+        storage_backend: StorageProtocol,
+    ):
+        self.storage = storage_backend
+
+    def store_embeddings(self, dataloader, model, config):
+        N = len(dataloader.dataset)
+        D = 768  # Dimensionality should ideally be determined dynamically
+
+        self.storage.open(shape=(N, D), dtype="float32", chunks=(1024, D))
+
+        start_idx = 0
+        for batch in tqdm(dataloader, desc="Computing and storing embeddings"):
+            embeddings = self.process_embedding_batch(
+                batch, model, config.embeddings.level
+            )
+            self.storage.write_chunk(embeddings, start_idx)
+            start_idx += len(batch)
+
+    def process_embedding_batch(self, batch, model, level):
+        # Process batch to generate embeddings
+        # Placeholder for actual embedding generation logic
+        return np.random.rand(
+            len(batch), 768
+        )  # Example: Replace with actual embedding computation
+
+
 @hydra.main(
     config_path="../../configs",
     config_name="main_config",
@@ -426,6 +547,18 @@ def main(
         logger=global_logger,
         verbosity=main_config.verbosity,
     )
+
+    embedding_dataloader_preparer = get_embedding_dataloader_preparer(
+        dataset_type=main_config.data.dataset_type,
+        data_config=main_config.data,
+        embeddings_config=main_config.embeddings,
+        tokenizer=tokenizer,
+        device=device,
+        collate_fn=collate_batch_and_move_to_device,
+    )
+    dataloader = embedding_dataloader_preparer.load_and_prepare_dataset()
+    # For debugging, you can get the first batch from the dataloader like this:
+    # example_batch = next(iter(dataloader))
 
     # TODO: Continue here
 
