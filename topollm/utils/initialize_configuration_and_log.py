@@ -46,10 +46,9 @@ from topollm.utils.get_git_info import get_git_info
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
-def setup_main_config_and_log(
+def setup_main_config(
     config: omegaconf.DictConfig,
-    logger: logging.Logger = logging.getLogger(__name__),
-):
+) -> MainConfig:
     """Sets up logging and validates the main configuration.
 
     Args:
@@ -59,12 +58,19 @@ def setup_main_config_and_log(
     Returns:
         The validated main configuration.
     """
-    logger.info(f"{get_git_info() = }")
 
     main_config = MainConfig.model_validate(
         config,
     )
 
+    return main_config
+
+
+def log_hydra_main_config(
+    config: omegaconf.DictConfig,
+    main_config: MainConfig,
+    logger: logging.Logger = logging.getLogger(__name__),
+) -> None:
     if main_config.verbosity >= 1:
         logger.info(f"Working directory:\n" f"{os.getcwd() = }")
         logger.info(
@@ -77,5 +83,31 @@ def setup_main_config_and_log(
         logger.info(
             f"main_config:\n" f"{pprint.pformat(main_config)}",
         )
+
+
+def log_git_info(
+    logger: logging.Logger = logging.getLogger(__name__),
+) -> None:
+    logger.info(f"{get_git_info() = }")
+
+    return None
+
+
+def initialize_configuration(
+    config: omegaconf.DictConfig,
+    logger: logging.Logger = logging.getLogger(__name__),
+) -> MainConfig:
+    main_config = setup_main_config(
+        config=config,
+    )
+
+    log_git_info(
+        logger=logger,
+    )
+    log_hydra_main_config(
+        config=config,
+        main_config=main_config,
+        logger=logger,
+    )
 
     return main_config

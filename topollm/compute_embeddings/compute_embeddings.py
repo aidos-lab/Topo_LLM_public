@@ -62,11 +62,11 @@ from transformers import (
     PreTrainedTokenizer,
     PreTrainedTokenizerFast,
 )
-from topollm.config_classes.Configs import DataConfig, EmbeddingsConfig
+from topollm.config_classes.Configs import DataConfig, EmbeddingsConfig, MainConfig
 
 # Local imports
 from topollm.config_classes.enums import Level, DatasetType
-from topollm.utils.setup_main_config_and_log import setup_main_config_and_log
+from topollm.utils.initialize_configuration_and_log import initialize_configuration
 
 # END Imports
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -232,6 +232,19 @@ def load_tokenizer_and_model_for_embedding(
         )
 
     return tokenizer, model, device
+
+
+@dataclass
+class EmbeddingDataLoaderContext:
+    """Encapsulates the context needed for preparing dataloaders."""
+
+    data_config: DataConfig
+    embeddings_config: EmbeddingsConfig
+    tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast
+    device: torch.device
+    collate_fn: Callable
+    logger: logging.Logger = field(default_factory=lambda: logging.getLogger(__name__))
+    verbosity: int = 1
 
 
 class EmbeddingDataLoaderPreparer(ABC):
@@ -483,7 +496,7 @@ class ZarrStorage:
             exist_ok=True,
         )
         self.zarr_array = zarr.open(
-            store=self.store_dir,
+            store=self.store_dir,  # type: ignore
             mode="w",
             shape=shape,
             dtype=dtype,
@@ -520,15 +533,30 @@ class DataHandler:
 
         self.storage.open(shape=(N, D), dtype="float32", chunks=(1024, D))
 
+        # Iterate over batches and write embeddings to storage
+        global_logger.info("Computing and storing embeddings ...")
+
         start_idx = 0
-        for batch in tqdm(dataloader, desc="Computing and storing embeddings"):
+        for batch in tqdm(
+            dataloader,
+            desc="Computing and storing embeddings",
+        ):
             embeddings = self.process_embedding_batch(
-                batch, model, config.embeddings.level
+                batch=batch,
+                model=model,
+                level=embeddings_config.level,
             )
             self.storage.write_chunk(embeddings, start_idx)
             start_idx += len(batch)
 
-    def process_embedding_batch(self, batch, model, level):
+        global_logger.info("Computing and storing embeddings DONE")
+
+    def process_embedding_batch(
+        self,
+        batch,
+        model,
+        level,
+    ):
         # Process batch to generate embeddings
         # Placeholder for actual embedding generation logic
         return np.random.rand(
@@ -546,14 +574,30 @@ def main(
 ):
     """Run the script."""
 
-    main_config = setup_main_config_and_log(
+    global_logger.info("Running script ...")
+
+    main_config: MainConfig = initialize_configuration(
         config=config,
         logger=global_logger,
     )
 
+    compute_embeddings(
+        main_config=main_config,
+        logger=global_logger,
+    )
+
+    global_logger.info("Running script DONE")
+
+    return
+
+
+def compute_embeddings(
+    main_config: MainConfig,
+    logger: logging.Logger = logging.getLogger(__name__),
+):
     tokenizer, model, device = load_tokenizer_and_model_for_embedding(
         pretrained_model_name_or_path=main_config.embeddings.huggingface_model_name,
-        logger=global_logger,
+        logger=logger,
         verbosity=main_config.verbosity,
     )
 
@@ -565,54 +609,15 @@ def main(
         device=device,
         collate_fn=collate_batch_and_move_to_device,
     )
-    dataloader = embedding_dataloader_preparer.load_and_prepare_dataloader()
+    dataloader = embedding_dataloader_preparer.prepare_dataloader()
+
     # For debugging, you can get the first batch from the dataloader like this:
     # example_batch = next(iter(dataloader))
 
     # TODO: Continue here
 
-    N = len(dataset_tokenized["train"])  # Total number of items in the dataset
-    D = 768  # Dimensionality of RoBERTa embeddings (for 'roberta-base') # TODO: Change
-
-    # Create a directory for the Zarr store, if it doesn't already exist
-    # TODO: Change this
-    zarr_dir = "embeddings.zarr"
-    os.makedirs(
-        zarr_dir,
-        exist_ok=True,
-    )
-
-    # Initialize a Zarr array
-    zarr_array = zarr.open(
-        store=zarr_dir,
-        mode="w",
-        shape=(N, D),
-        dtype=np.float32,
-        chunks=(1024, D),
-    )
-
-    # Iterate over batches and write embeddings
-    global_logger.info("Computing and storing embeddings ...")
-
-    start_idx = 0
-    for batch in tqdm(
-        embedding_dataloader,
-        desc="Computing and storing embeddings",
-    ):
-        process_embedding_batch(
-            batch=batch,
-            model=model,
-            level=main_config.embeddings.level,
-            zarr_array=zarr_array,
-            start_idx=start_idx,
-        )
-        start_idx += batch_size
-
-    global_logger.info("Computing and storing embeddings DONE")
-
-    global_logger.info("Script finished.")
-
-    return
+    # TODO: Create storage backend
+    # TODO: Create data handler and call
 
 
 if __name__ == "__main__":
