@@ -38,10 +38,10 @@ import logging
 import os
 import sys
 from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
 from functools import partial
 from os import PathLike
 from typing import Callable, Protocol, runtime_checkable
-from attr import dataclass
 
 # Third party imports
 import datasets
@@ -62,11 +62,13 @@ from transformers import (
     PreTrainedTokenizer,
     PreTrainedTokenizerFast,
 )
+
 from topollm.config_classes.Configs import DataConfig, EmbeddingsConfig, MainConfig
 
 # Local imports
-from topollm.config_classes.enums import Level, DatasetType
+from topollm.config_classes.enums import DatasetType, Level
 from topollm.utils.initialize_configuration_and_log import initialize_configuration
+from topollm.utils.setup_exception_logging import setup_exception_logging
 
 # END Imports
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -74,37 +76,12 @@ from topollm.utils.initialize_configuration_and_log import initialize_configurat
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # START Globals
 
-os.environ["HYDRA_FULL_ERROR"] = "1"
-
 # A logger for this file
 global_logger = logging.getLogger(__name__)
 
-
-def handle_exception(
-    exc_type,
-    exc_value,
-    exc_traceback,
-):
-    if issubclass(
-        exc_type,
-        KeyboardInterrupt,
-    ):
-        sys.__excepthook__(
-            exc_type,
-            exc_value,
-            exc_traceback,
-        )
-        return
-    else:
-        # Log the exception
-        global_logger.critical(
-            "Uncaught exception",
-            exc_info=(exc_type, exc_value, exc_traceback),
-        )
-
-
-sys.excepthook = handle_exception
-
+setup_exception_logging(
+    logger=global_logger,
+)
 
 # END Globals
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -139,7 +116,7 @@ def collate_batch_and_move_to_device(
 
 
 # Function to compute embeddings
-def compute_embeddings(
+def compute_embeddings_from_single_inputs(
     inputs: dict,
     model: PreTrainedModel,
     level: Level,
@@ -173,7 +150,7 @@ def process_embedding_batch(
     # Adjusted function for computing embeddings that directly writes to array
 
     # Compute embeddings
-    embeddings = compute_embeddings(
+    embeddings = compute_embeddings_from_single_inputs(
         inputs=batch,
         model=model,
         level=level,
