@@ -40,7 +40,7 @@ import sys
 from abc import ABC, abstractmethod
 from functools import partial
 from os import PathLike
-from typing import Protocol, runtime_checkable
+from typing import Callable, Protocol, runtime_checkable
 from attr import dataclass
 
 # Third party imports
@@ -108,27 +108,6 @@ sys.excepthook = handle_exception
 
 # END Globals
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-
-
-def convert_dataset_entry_to_features(
-    dataset_entry: dict,
-    tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast,
-    column_name: str = "text",
-    max_length: int = 512,
-) -> BatchEncoding:
-    """
-    Convert dataset entires/examples to features
-    by tokenizing the text and padding/truncating to a maximum length.
-    """
-
-    features = tokenizer(
-        dataset_entry[column_name],
-        max_length=max_length,
-        padding="max_length",
-        truncation="longest_first",
-    )
-
-    return features
 
 
 def collate_batch_and_move_to_device(
@@ -264,20 +243,45 @@ class EmbeddingDataLoaderPreparer(ABC):
         embeddings_config: EmbeddingsConfig,
         tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast,
         device: torch.device,
-        collate_fn,
+        collate_fn: Callable,
+        logger: logging.Logger = logging.getLogger(__name__),
+        verbosity: int = 1,
     ):
         self.data_config = data_config
         self.embeddings_config = embeddings_config
         self.tokenizer = tokenizer
         self.device = device
         self.collate_fn = collate_fn
+        self.logger = logger
+        self.verbosity = verbosity
 
     @abstractmethod
-    def load_and_prepare_dataset(
+    def prepare_dataloader(
         self,
     ) -> torch.utils.data.DataLoader:
-        """Loads and prepares a dataset."""
+        """Loads a dataset and prepares a dataloader."""
         pass
+
+    @staticmethod
+    def convert_dataset_entry_to_features(
+        dataset_entry: dict,
+        tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast,
+        column_name: str = "text",
+        max_length: int = 512,
+    ) -> BatchEncoding:
+        """
+        Convert dataset entires/examples to features
+        by tokenizing the text and padding/truncating to a maximum length.
+        """
+
+        features = tokenizer(
+            dataset_entry[column_name],
+            max_length=max_length,
+            padding="max_length",
+            truncation="longest_first",
+        )
+
+        return features
 
 
 class HuggingfaceEmbeddingDataLoaderPreparer(EmbeddingDataLoaderPreparer):
@@ -314,14 +318,14 @@ class HuggingfaceEmbeddingDataLoaderPreparer(EmbeddingDataLoaderPreparer):
 
         return dataset
 
-    def prepare_dataset_tokenized(
+    def create_dataset_tokenized(
         self,
-        dataset,
+        dataset: datasets.Dataset,
     ) -> datasets.Dataset:
         """Tokenizes dataset."""
         # Make a partial function for mapping tokenizer over the dataset
         partial_map_fn = partial(
-            convert_dataset_entry_to_features,
+            self.convert_dataset_entry_to_features,
             tokenizer=self.tokenizer,
             column_name=self.data_config.column_name,
             max_length=self.embeddings_config.max_length,
@@ -336,7 +340,7 @@ class HuggingfaceEmbeddingDataLoaderPreparer(EmbeddingDataLoaderPreparer):
 
         return dataset_tokenized
 
-    def prepare_dataloader(
+    def create_dataloader_from_tokenized_dataset(
         self,
         dataset_tokenized: datasets.Dataset,
     ) -> torch.utils.data.DataLoader:
@@ -373,7 +377,7 @@ class HuggingfaceEmbeddingDataLoaderPreparer(EmbeddingDataLoaderPreparer):
 
         return dataloader
 
-    def load_and_prepare_dataset(
+    def prepare_dataloader(
         self,
     ) -> torch.utils.data.DataLoader:
         """Loads and prepares a dataset."""
@@ -381,10 +385,10 @@ class HuggingfaceEmbeddingDataLoaderPreparer(EmbeddingDataLoaderPreparer):
         dataset = self.select_dataset(
             dataset_dict=dataset_dict,
         )
-        dataset_tokenized = self.prepare_dataset_tokenized(
+        dataset_tokenized = self.create_dataset_tokenized(
             dataset=dataset,
         )
-        dataloader = self.prepare_dataloader(
+        dataloader = self.create_dataloader_from_tokenized_dataset(
             dataset_tokenized=dataset_tokenized,
         )
 
@@ -505,7 +509,12 @@ class DataHandler:
     ):
         self.storage = storage_backend
 
-    def store_embeddings(self, dataloader, model, config):
+    def store_embeddings(
+        self,
+        dataloader,
+        model,
+        config,
+    ):
         N = len(dataloader.dataset)
         D = 768  # Dimensionality should ideally be determined dynamically
 
@@ -556,7 +565,7 @@ def main(
         device=device,
         collate_fn=collate_batch_and_move_to_device,
     )
-    dataloader = embedding_dataloader_preparer.load_and_prepare_dataset()
+    dataloader = embedding_dataloader_preparer.load_and_prepare_dataloader()
     # For debugging, you can get the first batch from the dataloader like this:
     # example_batch = next(iter(dataloader))
 
