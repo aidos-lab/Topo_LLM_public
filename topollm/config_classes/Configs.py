@@ -40,7 +40,13 @@ from pydantic import BaseModel, Field
 
 # Local imports
 from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
-from topollm.config_classes.enums import Level, Split, DatasetType, StorageType
+from topollm.config_classes.enums import (
+    AggregationType,
+    Level,
+    Split,
+    DatasetType,
+    StorageType,
+)
 
 # END Imports
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -125,6 +131,11 @@ class StorageConfig(ConfigBaseModel):
     )
 
 
+class EmbeddingExtractionConfig(BaseModel):
+    layers: int | list[int]
+    aggregation: AggregationType = AggregationType.MEAN
+
+
 class EmbeddingsConfig(ConfigBaseModel):
     """Configurations for specifying embeddings."""
 
@@ -140,17 +151,17 @@ class EmbeddingsConfig(ConfigBaseModel):
         description="The batch size for computing embeddings.",
     )
 
+    embedding_extraction: EmbeddingExtractionConfig = Field(
+        ...,
+        title="Embedding extraction configuration.",
+        description="The configuration for specifying embedding extraction.",
+    )
+
     huggingface_model_name: str = Field(
         ...,
         title="Model identifier for huggingface transformers model.",
         description="The model identifier for the huggingface transformers model "
         "to use for computing embeddings.",
-    )
-
-    layer: str = Field(
-        ...,
-        title="Layer to use for computing embeddings.",
-        description="The layer to use for computing embeddings.",
     )
 
     level: Level = Field(

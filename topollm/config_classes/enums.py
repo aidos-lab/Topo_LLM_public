@@ -61,6 +61,12 @@ class StorageType(StrEnum):
 
 
 @unique
+class AggregationType(StrEnum):
+    CONCATENATE = "concatenate"
+    MEAN = "mean"
+
+
+@unique
 class Level(StrEnum):
     TOKEN = "token"
     WVFS = "wvfs"

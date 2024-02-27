@@ -37,6 +37,7 @@ from typing import Callable
 
 # Third party imports
 import datasets
+from sympy import sequence
 import torch
 import torch.utils.data
 from transformers import BatchEncoding, PreTrainedTokenizer, PreTrainedTokenizerFast
@@ -100,6 +101,17 @@ class EmbeddingDataLoaderPreparer(ABC):
 
         return features
 
+    @property
+    @abstractmethod
+    def sequence_length(self) -> int:
+        """Returns the sequence length of the dataset."""
+        pass
+
+    @abstractmethod
+    def __len__(self) -> int:
+        """Returns the number of samples in the dataset."""
+        pass
+
 
 class HuggingfaceEmbeddingDataLoaderPreparer(EmbeddingDataLoaderPreparer):
     def load_dataset_dict(
@@ -121,6 +133,27 @@ class HuggingfaceEmbeddingDataLoaderPreparer(EmbeddingDataLoaderPreparer):
 
         return dataset_dict
 
+    @property
+    def sequence_length(
+        self,
+    ) -> int:
+        return self.preparer_context.embeddings_config.max_length
+
+    def __len__(
+        self,
+    ) -> int:
+        """Returns the number of samples in the dataset."""
+        if not hasattr(
+            self,
+            "dataset_length",
+        ):
+            raise ValueError(
+                "The dataset length is not available. "
+                "Please call prepare_dataloader() first."
+            )
+
+        return self.dataset_length
+
     def select_dataset(
         self,
         dataset_dict: datasets.DatasetDict,
@@ -135,6 +168,8 @@ class HuggingfaceEmbeddingDataLoaderPreparer(EmbeddingDataLoaderPreparer):
             indices=range(self.preparer_context.data_config.number_of_samples),
         )
 
+        self.dataset_length = len(dataset)
+
         return dataset
 
     def create_dataset_tokenized(
@@ -147,7 +182,7 @@ class HuggingfaceEmbeddingDataLoaderPreparer(EmbeddingDataLoaderPreparer):
             self.convert_dataset_entry_to_features,
             tokenizer=self.preparer_context.tokenizer,
             column_name=self.preparer_context.data_config.column_name,
-            max_length=self.preparer_context.embeddings_config.max_length,
+            max_length=self.sequence_length,
         )
 
         dataset_tokenized = dataset.map(

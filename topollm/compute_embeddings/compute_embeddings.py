@@ -39,7 +39,6 @@ import logging
 import os
 from dataclasses import dataclass
 from os import PathLike
-from typing import Protocol, runtime_checkable
 
 # Third party imports
 import hydra
@@ -48,8 +47,6 @@ import numpy as np
 import omegaconf
 import torch
 import torch.utils.data
-import zarr
-import zarr.core
 from tqdm.auto import tqdm
 from transformers import (
     AutoModel,
@@ -58,17 +55,27 @@ from transformers import (
     PreTrainedTokenizer,
     PreTrainedTokenizerFast,
 )
+
+# Local imports
+from topollm.config_classes.Configs import MainConfig, EmbeddingExtractionConfig
+from topollm.config_classes.enums import Level
+from topollm.utils.initialize_configuration_and_log import initialize_configuration
+from topollm.utils.setup_exception_logging import setup_exception_logging
 from topollm.compute_embeddings.EmbeddingDataLoaderPreparer import (
     EmbeddingDataLoaderPreparerContext,
     get_embedding_dataloader_preparer,
 )
-
-
-# Local imports
-from topollm.config_classes.Configs import MainConfig
-from topollm.config_classes.enums import Level
-from topollm.utils.initialize_configuration_and_log import initialize_configuration
-from topollm.utils.setup_exception_logging import setup_exception_logging
+from topollm.compute_embeddings.TokenLevelEmbeddingStorageProtocol import (
+    TokenLevelEmbeddingStorageProtocol,
+    TokenLevelDataChunk,
+    ChunkIdentifier,
+    ArrayProperties,
+    StoragePaths,
+    get_token_level_embedding_storage,
+)
+from topollm.utils.collate_batch_for_embedding import (
+    collate_batch_and_move_to_device,
+)
 
 # END Imports
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -87,66 +94,12 @@ setup_exception_logging(
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
-def collate_batch(
-    batch: list,
-) -> dict:
-    """
-    Function to collate the batch.
-
-    Args:
-        batch (list):
-    Returns:
-        features (dict): Features for the batch.
-    """
-    collated_batch: dict[str, torch.Tensor] = {
-        "input_ids": torch.tensor([item["input_ids"] for item in batch]),
-        "attention_mask": torch.tensor([item["attention_mask"] for item in batch]),
-    }
-
-    return collated_batch
-
-
-def move_collated_batch_to_device(
-    collated_batch: dict,
-    device: torch.device,
-    model_input_names: list[str],
-):
-    collated_batch = {
-        key: value.to(device)
-        for key, value in collated_batch.items()
-        if key in model_input_names
-    }
-
-    return collated_batch
-
-
-def collate_batch_and_move_to_device(
-    batch: list,
-    device: torch.device,
-    model_input_names: list[str],
-) -> dict:
-    collated_batch = collate_batch(
-        batch=batch,
-    )
-    collated_batch = move_collated_batch_to_device(
-        collated_batch=collated_batch,
-        device=device,
-        model_input_names=model_input_names,
-    )
-
-    return collated_batch
-
-
 def load_tokenizer_and_model_for_embedding(
     pretrained_model_name_or_path: str | os.PathLike,
     device: torch.device,
     logger: logging.Logger = logging.getLogger(__name__),
     verbosity: int = 1,
-) -> tuple[
-    PreTrainedTokenizer | PreTrainedTokenizerFast,
-    PreTrainedModel,
-    torch.device,
-]:
+) -> tuple[PreTrainedTokenizer | PreTrainedTokenizerFast, PreTrainedModel,]:
     """Loads the tokenizer and model based on the configuration,
     and puts the model in evaluation mode.
 
@@ -178,115 +131,7 @@ def load_tokenizer_and_model_for_embedding(
             f"{device = }",
         )
 
-    return tokenizer, model, device
-
-
-@dataclass
-class DataChunk:
-    """
-    Dataclass to hold one embedding chunk
-    and the batch containing the corresponding dataset entries.
-    """
-
-    batch_of_sequences_embedding_array: np.ndarray
-    batch: dict
-    chunk_idx: int
-    start_idx: int
-
-
-@dataclass
-class ArrayProperties:
-    shape: tuple[int, int]
-    dtype: str
-    chunks: tuple[int, int]
-
-
-# Define a Storage Protocol
-@runtime_checkable
-class EmbeddingStorageProtocol(Protocol):
-    def open(
-        self,
-        array_properties: ArrayProperties,
-    ) -> None:
-        """Initializes the storage with specified configuration."""
-        ...
-
-    def write_chunk(
-        self,
-        data_chunk: DataChunk,
-    ) -> None:
-        """Writes a chunk of data starting from a specific index."""
-        ...
-
-    def read_chunk(
-        self,
-        start_idx: int,
-        end_idx: int,
-    ) -> DataChunk:
-        """Reads a chunk of data starting from a specific index."""
-        ...
-
-
-def get_embedding_storage(
-    storage_type: str,
-    store_dir: PathLike,
-) -> EmbeddingStorageProtocol:
-    """Factory function to instantiate storage backends based on the storage type.
-
-    Args:
-        storage_type:
-            The type of storage to use.
-        store_dir:
-            The directory to store the embeddings in.
-
-    Returns:
-        An instance of a storage backend.
-    """
-    if storage_type == "zarr":
-        return ZarrEmbeddingStorage(
-            store_dir=store_dir,
-        )
-    # Extendable to other storage types
-    # elif storage_type == "hdf5":
-    #     return Hdf5EmbeddingStorage(store_dir)
-    else:
-        raise ValueError(f"Unsupported {storage_type = }")
-
-
-# Implement the Protocol with a Zarr Storage Class
-class ZarrEmbeddingStorage:
-    def __init__(
-        self,
-        store_dir: PathLike,
-    ):
-        self.store_dir = store_dir
-        self.zarr_array = None
-
-    def open(
-        self,
-        shape: tuple[int, int],
-        dtype: str,
-        chunks: tuple[int, int],
-    ) -> None:
-        os.makedirs(
-            self.store_dir,
-            exist_ok=True,
-        )
-        self.zarr_array = zarr.open(
-            store=self.store_dir,  # type: ignore
-            mode="w",
-            shape=shape,
-            dtype=dtype,
-            chunks=chunks,
-        )
-
-    def write_chunk(
-        self,
-        data_chunk: DataChunk,
-    ) -> None:
-        # TODO: Update this to work with the DataClass
-
-        self.zarr_array[start_idx : start_idx + len(data)] = data
+    return tokenizer, model
 
 
 class TokenLevelEmbeddingDataHandler:
@@ -294,17 +139,27 @@ class TokenLevelEmbeddingDataHandler:
     Create a Data Handler Class with Dependency Injection
     """
 
-    # TODO: Update this
-
     def __init__(
         self,
-        storage_backend: EmbeddingStorageProtocol,
+        storage_backend: TokenLevelEmbeddingStorageProtocol,
+        model: PreTrainedModel,
+        dataloader: torch.utils.data.DataLoader,
+        embedding_extraction_config: EmbeddingExtractionConfig,
+        logger: logging.Logger = logging.getLogger(__name__),
     ):
         self.storage = storage_backend
+        self.model = model
+        self.dataloader = dataloader
+        self.embedding_extraction_config = embedding_extraction_config
+        self.logger = logger
 
     def process_data(
         self,
     ) -> None:
+        """
+        Main method to process the data.
+        This method opens the storage and iterates over the dataloader.
+        """
         self.open_storage()
         self.iterate_over_dataloader()
 
@@ -312,108 +167,146 @@ class TokenLevelEmbeddingDataHandler:
 
     def open_storage(
         self,
-        array_properties: ArrayProperties,
     ) -> None:
-        N = len(dataloader.dataset)
-        D = 768  # Dimensionality should ideally be determined dynamically
-
-        # self.storage.open(
-        #     shape=(N, D),
-        #     dtype="float32",
-        #     chunks=(1024, D),
-        # )
-
-        self.storage.open(
-            array_properties,
-        )
+        self.storage.open()
 
         return
 
     def iterate_over_dataloader(
         self,
-        dataloader,
-        model,
-        config,
     ):
         # Iterate over batches and write embeddings to storage
-        global_logger.info("Computing and storing embeddings ...")
+        self.logger.info("Computing and storing embeddings ...")
 
-        start_idx = 0
-        for batch in tqdm(
-            dataloader,
+        for batch_idx, batch in tqdm(
+            enumerate(self.dataloader),
             desc="Computing and storing embeddings",
         ):
             self.process_single_batch(
-                model,
-                start_idx,
-                batch,
+                batch=batch,
+                batch_idx=batch_idx,
             )
-            start_idx += len(batch)
 
-        global_logger.info("Computing and storing embeddings DONE")
+        self.logger.info("Computing and storing embeddings DONE")
 
     def process_single_batch(
         self,
-        model,
-        start_idx,
-        batch,
-    ):
+        batch: dict,
+        batch_idx: int,
+    ) -> None:
         embeddings = self.compute_embeddings_from_batch(
             batch=batch,
-            model=model,
-            level=embeddings_config.level,
-        )
-        self.storage.write_chunk(
-            embeddings,
-            start_idx,
         )
 
-    def compute_embeddings_from_batch(
+        chunk_identifier = self.get_chunk_identifier(
+            batch=batch,
+            batch_idx=batch_idx,
+        )
+
+        data_chunk = TokenLevelDataChunk(
+            batch_of_sequences_embedding_array=embeddings,
+            batch=batch,
+            chunk_identifier=chunk_identifier,
+        )
+
+        self.storage.write_chunk(
+            data_chunk=data_chunk,
+        )
+
+        return
+
+    def get_chunk_identifier(
+        self,
         batch: dict,
-        model: PreTrainedModel,
-        level: Level,
-        start_idx: int,
-    ):
+        batch_idx: int,
+    ) -> ChunkIdentifier:
+        batch_len = len(batch["input_ids"])
+
+        chunk_identifier = ChunkIdentifier(
+            chunk_idx=batch_idx,
+            start_idx=batch_idx * batch_len,
+        )
+
+        return chunk_identifier
+
+    def compute_embeddings_from_batch(
+        self,
+        batch: dict,
+    ) -> np.ndarray:
         # Adjusted function for computing embeddings that directly writes to array
 
         # Compute embeddings
-        outputs = compute_embeddings_from_single_inputs(
+        model_outputs = self.compute_model_outputs_from_single_inputs(
             inputs=batch,
-            model=model,
-            level=level,
         )
-        # TODO Extract the correct layer here/potentially aggregate
+        embeddings = self.extract_embeddings_from_model_outputs(
+            model_outputs=model_outputs,
+        )
 
         return embeddings
 
     def compute_model_outputs_from_single_inputs(
+        self,
         inputs: dict,
-        model: PreTrainedModel,
-        level: Level,
-    ) -> np.ndarray:
+    ):
         """
         Compute embeddings for the given inputs using the given model.
         """
 
         # Compute embeddings
         with torch.no_grad():
-            outputs = model(**inputs)
+            outputs = self.model(**inputs)
 
         return outputs
 
     def extract_embeddings_from_model_outputs(
-        outputs,
+        self,
+        model_outputs,
     ) -> np.ndarray:
-        # Return embeddings
-        # TODO: Include the correct layer here/define config for layer extraction
-        # TODO: Remove aggregation from here, we will do this in a separate class
-        if level == Level.TOKEN:
-            return outputs.last_hidden_state.cpu().numpy()
-        elif level == Level.DATASET_ENTRY:
-            # TODO: Include other aggregation methods here
-            return outputs.last_hidden_state.mean(dim=1).cpu().numpy()
+        # Ensure the model outputs hidden states
+        if not hasattr(
+            model_outputs,
+            "hidden_states",
+        ):
+            raise ValueError("Model outputs do not contain 'hidden_states'")
+
+        hidden_states = (
+            model_outputs.hidden_states
+        )  # Assuming this is a tuple of tensors
+
+        # Extract specified layers
+        if isinstance(
+            self.embedding_extraction_config.layers,
+            int,
+        ):
+            layers_to_extract = [hidden_states[self.embedding_extraction_config.layers]]
         else:
-            raise ValueError(f"Unknown {level = }")
+            layers_to_extract = [
+                hidden_states[i] for i in self.embedding_extraction_config.layers
+            ]
+
+        # Aggregate the extracted layers
+        if self.embedding_extraction_config.aggregation == "concatenate":
+            # Concatenate across the last dimension
+            embeddings = torch.cat(
+                layers_to_extract,
+                dim=-1,
+            )
+        elif self.embedding_extraction_config.aggregation == "mean":
+            # Mean across the layers
+            embeddings = torch.mean(
+                torch.stack(
+                    layers_to_extract,
+                    dim=0,
+                ),
+                dim=0,
+            )
+        else:
+            raise ValueError(
+                f"Unsupported {self.embedding_extraction_config.aggregation = }"
+            )
+
+        return embeddings.cpu().numpy()
 
 
 @hydra.main(
@@ -451,7 +344,7 @@ def compute_embeddings(
     device: torch.device,
     logger: logging.Logger = logging.getLogger(__name__),
 ):
-    tokenizer, model, device = load_tokenizer_and_model_for_embedding(
+    tokenizer, model = load_tokenizer_and_model_for_embedding(
         pretrained_model_name_or_path=main_config.embeddings.huggingface_model_name,
         device=device,
         logger=logger,
@@ -476,16 +369,44 @@ def compute_embeddings(
         dataset_type=main_config.data.dataset_type,
         preparer_context=preparer_context,
     )
-
     dataloader = embedding_dataloader_preparer.prepare_dataloader()
-
     # For debugging, you can get the first batch from the dataloader like this:
     # example_batch = next(iter(dataloader))
 
-    # TODO: Continue here
+    # Number of the sequence of dataset entries
+    N = len(embedding_dataloader_preparer)
+    # Length of each sequence
+    S = embedding_dataloader_preparer.sequence_length
+    # Dimension of the embeddings
+    D = model.config.hidden_size
 
-    # TODO: Create storage backend
-    # TODO: Create data handler and call
+    array_properties = ArrayProperties(
+        shape=(N, S, D),
+        dtype="float32",
+        chunks=(1024,),  # TODO: Make chunk size configurable
+    )
+
+    # TODO: Implement these paths
+    storage_paths = StoragePaths(
+        array_dir=main_config.embeddings.array_dir,
+        metadata_dir=main_config.embeddings.metadata_dir,
+    )
+    storage_backend = get_token_level_embedding_storage(
+        storage_type=main_config.storage.storage_type,
+        array_properties=array_properties,
+        storage_paths=storage_paths,
+    )
+
+    data_handler = TokenLevelEmbeddingDataHandler(
+        storage_backend=storage_backend,
+        model=model,
+        dataloader=dataloader,
+        embedding_extraction_config=main_config.embeddings.embedding_extraction,
+        logger=logger,
+    )
+    data_handler.process_data()
+
+    return
 
 
 if __name__ == "__main__":
