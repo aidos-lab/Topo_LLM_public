@@ -2,6 +2,7 @@ defaults:
   - data: bbc
   - embeddings: roberta
   - paths: absolute_repository_base
+  - storage: zarr_vector_pd_metadata
   - transformations: none
   - override hydra/job_logging: custom
   - _self_

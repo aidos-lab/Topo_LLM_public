@@ -34,14 +34,13 @@ import pathlib
 import pprint
 from abc import ABC, abstractmethod
 from typing import IO
-from networkx import number_of_selfloops
 
 # Third party imports
 from pydantic import BaseModel, Field
 
 # Local imports
 from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
-from topollm.config_classes.enums import Level, Split, DatasetType
+from topollm.config_classes.enums import Level, Split, DatasetType, StorageType
 
 # END Imports
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -111,6 +110,18 @@ class DatasetMapConfig(ConfigBaseModel):
         ...,
         title="Number of processes for mapping tokenization on dataset.",
         description="The number of processes for mapping tokenization on dataset.",
+    )
+
+
+class StorageConfig(ConfigBaseModel):
+    """
+    Configurations for specifying storage.
+    """
+
+    storage_type: StorageType = Field(
+        ...,
+        title="Storage type.",
+        description="The storage type.",
     )
 
 
@@ -198,6 +209,12 @@ class MainConfig(ConfigBaseModel):
         ...,
         title="Paths configuration.",
         description="The configuration for specifying paths.",
+    )
+
+    storage: StorageConfig = Field(
+        ...,
+        title="Storage configuration.",
+        description="The configuration for specifying storage.",
     )
 
     verbosity: int = Field(

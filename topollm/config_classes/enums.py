@@ -39,6 +39,11 @@ except ImportError:
     # Run `python3 -m pip install strenum` for python < 3.11
     from strenum import StrEnum  # type: ignore
 
+assert issubclass(
+    StrEnum,
+    Enum,
+), "StrEnum should be a subclass of Enum"
+
 # END Imports
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
@@ -48,6 +53,11 @@ except ImportError:
 @unique
 class DatasetType(StrEnum):
     HUGGINGFACE_DATASET = "huggingface_dataset"
+
+
+@unique
+class StorageType(StrEnum):
+    ZARR_VECTORS_XARRAY_METADATA = "zarr_vectors_xarray_metadata"
 
 
 @unique

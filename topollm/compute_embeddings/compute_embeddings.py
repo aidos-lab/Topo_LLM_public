@@ -34,17 +34,14 @@ Create embedding vectors.
 # START Imports
 
 # Standard library imports
+from functools import partial
 import logging
 import os
-import sys
-from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
-from functools import partial
+from dataclasses import dataclass
 from os import PathLike
-from typing import Callable, Protocol, runtime_checkable
+from typing import Protocol, runtime_checkable
 
 # Third party imports
-import datasets
 import hydra
 import hydra.core.hydra_config
 import numpy as np
@@ -57,16 +54,19 @@ from tqdm.auto import tqdm
 from transformers import (
     AutoModel,
     AutoTokenizer,
-    BatchEncoding,
     PreTrainedModel,
     PreTrainedTokenizer,
     PreTrainedTokenizerFast,
 )
+from topollm.compute_embeddings.EmbeddingDataLoaderPreparer import (
+    EmbeddingDataLoaderPreparerContext,
+    get_embedding_dataloader_preparer,
+)
 
-from topollm.config_classes.Configs import DataConfig, EmbeddingsConfig, MainConfig
 
 # Local imports
-from topollm.config_classes.enums import DatasetType, Level
+from topollm.config_classes.Configs import MainConfig
+from topollm.config_classes.enums import Level
 from topollm.utils.initialize_configuration_and_log import initialize_configuration
 from topollm.utils.setup_exception_logging import setup_exception_logging
 
@@ -87,10 +87,8 @@ setup_exception_logging(
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
-def collate_batch_and_move_to_device(
+def collate_batch(
     batch: list,
-    device: torch.device,
-    model_input_names: list[str],
 ) -> dict:
     """
     Function to collate the batch.
@@ -105,70 +103,43 @@ def collate_batch_and_move_to_device(
         "attention_mask": torch.tensor([item["attention_mask"] for item in batch]),
     }
 
-    # Move batch to device
-    inputs = {
+    return collated_batch
+
+
+def move_collated_batch_to_device(
+    collated_batch: dict,
+    device: torch.device,
+    model_input_names: list[str],
+):
+    collated_batch = {
         key: value.to(device)
         for key, value in collated_batch.items()
         if key in model_input_names
     }
 
-    return inputs
+    return collated_batch
 
 
-# Function to compute embeddings
-def compute_embeddings_from_single_inputs(
-    inputs: dict,
-    model: PreTrainedModel,
-    level: Level,
-) -> np.ndarray:
-    """
-    Compute embeddings for the given inputs using the given model.
-    """
-
-    # Compute embeddings
-    with torch.no_grad():
-        outputs = model(**inputs)
-
-    # Return embeddings
-    # TODO: Include the correct layer here
-    if level == Level.TOKEN:
-        return outputs.last_hidden_state.cpu().numpy()
-    elif level == Level.DATASET_ENTRY:
-        # TODO: Include other aggregation methods here
-        return outputs.last_hidden_state.mean(dim=1).cpu().numpy()
-    else:
-        raise ValueError(f"Unknown {level = }")
-
-
-def process_embedding_batch(
-    batch: dict,
-    model: PreTrainedModel,
-    level: Level,
-    zarr_array: zarr.core.Array,
-    start_idx: int,
-):
-    # Adjusted function for computing embeddings that directly writes to array
-
-    # Compute embeddings
-    embeddings = compute_embeddings_from_single_inputs(
-        inputs=batch,
-        model=model,
-        level=level,
+def collate_batch_and_move_to_device(
+    batch: list,
+    device: torch.device,
+    model_input_names: list[str],
+) -> dict:
+    collated_batch = collate_batch(
+        batch=batch,
+    )
+    collated_batch = move_collated_batch_to_device(
+        collated_batch=collated_batch,
+        device=device,
+        model_input_names=model_input_names,
     )
 
-    # TODO Extract the correct layer here/potentially aggregate
-
-    # TODO Write embeddings and metadata to disk
-
-    # Write embeddings to the array
-    zarr_array[
-        start_idx : start_idx + embeddings.shape[0],
-        :,
-    ] = embeddings
+    return collated_batch
 
 
 def load_tokenizer_and_model_for_embedding(
     pretrained_model_name_or_path: str | os.PathLike,
+    device: torch.device,
     logger: logging.Logger = logging.getLogger(__name__),
     verbosity: int = 1,
 ) -> tuple[
@@ -194,7 +165,6 @@ def load_tokenizer_and_model_for_embedding(
     )
 
     model.eval()  # Disable dropout layers
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)  # type: ignore
 
     if verbosity >= 1:
@@ -212,235 +182,31 @@ def load_tokenizer_and_model_for_embedding(
 
 
 @dataclass
-class EmbeddingDataLoaderContext:
-    """Encapsulates the context needed for preparing dataloaders."""
-
-    data_config: DataConfig
-    embeddings_config: EmbeddingsConfig
-    tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast
-    device: torch.device
-    collate_fn: Callable
-    logger: logging.Logger = field(default_factory=lambda: logging.getLogger(__name__))
-    verbosity: int = 1
-
-
-class EmbeddingDataLoaderPreparer(ABC):
-    """Abstract base class for embedding dataset preparers."""
-
-    def __init__(
-        self,
-        data_config: DataConfig,
-        embeddings_config: EmbeddingsConfig,
-        tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast,
-        device: torch.device,
-        collate_fn: Callable,
-        logger: logging.Logger = logging.getLogger(__name__),
-        verbosity: int = 1,
-    ):
-        self.data_config = data_config
-        self.embeddings_config = embeddings_config
-        self.tokenizer = tokenizer
-        self.device = device
-        self.collate_fn = collate_fn
-        self.logger = logger
-        self.verbosity = verbosity
-
-    @abstractmethod
-    def prepare_dataloader(
-        self,
-    ) -> torch.utils.data.DataLoader:
-        """Loads a dataset and prepares a dataloader."""
-        pass
-
-    @staticmethod
-    def convert_dataset_entry_to_features(
-        dataset_entry: dict,
-        tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast,
-        column_name: str = "text",
-        max_length: int = 512,
-    ) -> BatchEncoding:
-        """
-        Convert dataset entires/examples to features
-        by tokenizing the text and padding/truncating to a maximum length.
-        """
-
-        features = tokenizer(
-            dataset_entry[column_name],
-            max_length=max_length,
-            padding="max_length",
-            truncation="longest_first",
-        )
-
-        return features
-
-
-class HuggingfaceEmbeddingDataLoaderPreparer(EmbeddingDataLoaderPreparer):
-    def load_dataset_dict(
-        self,
-    ) -> datasets.DatasetDict:
-        """Loads the dataset based from huggingface datasets based on configuration."""
-        dataset_dict = datasets.load_dataset(
-            self.data_config.dataset_identifier,
-            trust_remote_code=True,
-        )
-
-        if not isinstance(
-            dataset_dict,
-            datasets.DatasetDict,
-        ):
-            raise ValueError(
-                f"Expected {dataset_dict = } " f"to be a {datasets.DatasetDict = }"
-            )
-
-        return dataset_dict
-
-    def select_dataset(
-        self,
-        dataset_dict: datasets.DatasetDict,
-    ) -> datasets.Dataset:
-        # Select the dataset split to use
-        dataset: datasets.Dataset = dataset_dict[self.data_config.split]
-
-        # Truncate the dataset to the specified number of samples
-        dataset = dataset.select(
-            indices=range(self.data_config.number_of_samples),
-        )
-
-        return dataset
-
-    def create_dataset_tokenized(
-        self,
-        dataset: datasets.Dataset,
-    ) -> datasets.Dataset:
-        """Tokenizes dataset."""
-        # Make a partial function for mapping tokenizer over the dataset
-        partial_map_fn = partial(
-            self.convert_dataset_entry_to_features,
-            tokenizer=self.tokenizer,
-            column_name=self.data_config.column_name,
-            max_length=self.embeddings_config.max_length,
-        )
-
-        dataset_tokenized = dataset.map(
-            partial_map_fn,
-            batched=True,
-            batch_size=self.embeddings_config.dataset_map.batch_size,
-            num_proc=self.embeddings_config.dataset_map.num_proc,
-        )
-
-        return dataset_tokenized
-
-    def create_dataloader_from_tokenized_dataset(
-        self,
-        dataset_tokenized: datasets.Dataset,
-    ) -> torch.utils.data.DataLoader:
-        # The mapped dataset has the input_ids and attention_mask
-        # as lists of integers, but we want to convert them to torch tensors
-        # to use them as model input.
-        # We will take care of this in the collate function of the DataLoader,
-        # which will also move the data to the appropriate device.
-        #
-        # An alternative way to set the format of the dataset to torch tensors
-        # is given below:
-        #
-        # dataset_tokenized.set_format(
-        #     type="torch",
-        #     columns=[
-        #         "input_ids",
-        #         "attention_mask",
-        #     ],
-        # )
-
-        partial_collate_fn = partial(
-            self.collate_fn,
-            device=self.device,
-            model_input_names=self.tokenizer.model_input_names,
-        )
-
-        dataloader = torch.utils.data.DataLoader(
-            dataset_tokenized,  # type: ignore
-            batch_size=self.embeddings_config.batch_size,
-            shuffle=False,
-            collate_fn=partial_collate_fn,
-            num_workers=self.embeddings_config.num_workers,
-        )
-
-        return dataloader
-
-    def prepare_dataloader(
-        self,
-    ) -> torch.utils.data.DataLoader:
-        """Loads and prepares a dataset."""
-        dataset_dict = self.load_dataset_dict()
-        dataset = self.select_dataset(
-            dataset_dict=dataset_dict,
-        )
-        dataset_tokenized = self.create_dataset_tokenized(
-            dataset=dataset,
-        )
-        dataloader = self.create_dataloader_from_tokenized_dataset(
-            dataset_tokenized=dataset_tokenized,
-        )
-
-        return dataloader
-
-
-def get_embedding_dataloader_preparer(
-    dataset_type: DatasetType,
-    data_config: DataConfig,
-    embeddings_config: EmbeddingsConfig,
-    tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast,
-    device: torch.device,
-    collate_fn,
-) -> EmbeddingDataLoaderPreparer:
-    """Factory function to instantiate dataset preparers based on the dataset type.
-
-    Args:
-        dataset_type:
-            The type of dataset to prepare.
-        config:
-            Configuration object containing dataset and model settings.
-        tokenizer:
-            Tokenizer object for datasets that require tokenization.
-
-    Returns:
-        An instance of a DatasetPreparer subclass.
-    """
-    if dataset_type == DatasetType.HUGGINGFACE_DATASET:
-        return HuggingfaceEmbeddingDataLoaderPreparer(
-            data_config=data_config,
-            embeddings_config=embeddings_config,
-            tokenizer=tokenizer,
-            device=device,
-            collate_fn=collate_fn,
-        )
-    # Extendable to other dataset types
-    # elif dataset_type == "convlab_unified_format":
-    #     return ImageDatasetPreparer(config)
-    else:
-        raise ValueError(f"Unsupported {dataset_type = }")
-
-
-@dataclass
 class DataChunk:
     """
     Dataclass to hold one embedding chunk
     and the batch containing the corresponding dataset entries.
     """
 
-    embedding_array: np.ndarray
+    batch_of_sequences_embedding_array: np.ndarray
     batch: dict
+    chunk_idx: int
     start_idx: int
+
+
+@dataclass
+class ArrayProperties:
+    shape: tuple[int, int]
+    dtype: str
+    chunks: tuple[int, int]
 
 
 # Define a Storage Protocol
 @runtime_checkable
-class StorageProtocol(Protocol):
+class EmbeddingStorageProtocol(Protocol):
     def open(
         self,
-        shape: tuple[int, int],
-        dtype: str,
-        chunks: tuple[int, int],
+        array_properties: ArrayProperties,
     ) -> None:
         """Initializes the storage with specified configuration."""
         ...
@@ -452,9 +218,43 @@ class StorageProtocol(Protocol):
         """Writes a chunk of data starting from a specific index."""
         ...
 
+    def read_chunk(
+        self,
+        start_idx: int,
+        end_idx: int,
+    ) -> DataChunk:
+        """Reads a chunk of data starting from a specific index."""
+        ...
+
+
+def get_embedding_storage(
+    storage_type: str,
+    store_dir: PathLike,
+) -> EmbeddingStorageProtocol:
+    """Factory function to instantiate storage backends based on the storage type.
+
+    Args:
+        storage_type:
+            The type of storage to use.
+        store_dir:
+            The directory to store the embeddings in.
+
+    Returns:
+        An instance of a storage backend.
+    """
+    if storage_type == "zarr":
+        return ZarrEmbeddingStorage(
+            store_dir=store_dir,
+        )
+    # Extendable to other storage types
+    # elif storage_type == "hdf5":
+    #     return Hdf5EmbeddingStorage(store_dir)
+    else:
+        raise ValueError(f"Unsupported {storage_type = }")
+
 
 # Implement the Protocol with a Zarr Storage Class
-class ZarrStorage:
+class ZarrEmbeddingStorage:
     def __init__(
         self,
         store_dir: PathLike,
@@ -486,30 +286,55 @@ class ZarrStorage:
     ) -> None:
         # TODO: Update this to work with the DataClass
 
-        self.zarr_array[start_idx : start_idx + len(data),] = data
+        self.zarr_array[start_idx : start_idx + len(data)] = data
 
 
-# Create a Data Handler Class with Dependency Injection
-class DataHandler:
+class TokenLevelEmbeddingDataHandler:
+    """
+    Create a Data Handler Class with Dependency Injection
+    """
+
     # TODO: Update this
 
     def __init__(
         self,
-        storage_backend: StorageProtocol,
+        storage_backend: EmbeddingStorageProtocol,
     ):
         self.storage = storage_backend
 
-    def store_embeddings(
+    def process_data(
+        self,
+    ) -> None:
+        self.open_storage()
+        self.iterate_over_dataloader()
+
+        return
+
+    def open_storage(
+        self,
+        array_properties: ArrayProperties,
+    ) -> None:
+        N = len(dataloader.dataset)
+        D = 768  # Dimensionality should ideally be determined dynamically
+
+        # self.storage.open(
+        #     shape=(N, D),
+        #     dtype="float32",
+        #     chunks=(1024, D),
+        # )
+
+        self.storage.open(
+            array_properties,
+        )
+
+        return
+
+    def iterate_over_dataloader(
         self,
         dataloader,
         model,
         config,
     ):
-        N = len(dataloader.dataset)
-        D = 768  # Dimensionality should ideally be determined dynamically
-
-        self.storage.open(shape=(N, D), dtype="float32", chunks=(1024, D))
-
         # Iterate over batches and write embeddings to storage
         global_logger.info("Computing and storing embeddings ...")
 
@@ -518,27 +343,77 @@ class DataHandler:
             dataloader,
             desc="Computing and storing embeddings",
         ):
-            embeddings = self.process_embedding_batch(
-                batch=batch,
-                model=model,
-                level=embeddings_config.level,
+            self.process_single_batch(
+                model,
+                start_idx,
+                batch,
             )
-            self.storage.write_chunk(embeddings, start_idx)
             start_idx += len(batch)
 
         global_logger.info("Computing and storing embeddings DONE")
 
-    def process_embedding_batch(
+    def process_single_batch(
         self,
-        batch,
         model,
-        level,
+        start_idx,
+        batch,
     ):
-        # Process batch to generate embeddings
-        # Placeholder for actual embedding generation logic
-        return np.random.rand(
-            len(batch), 768
-        )  # Example: Replace with actual embedding computation
+        embeddings = self.compute_embeddings_from_batch(
+            batch=batch,
+            model=model,
+            level=embeddings_config.level,
+        )
+        self.storage.write_chunk(
+            embeddings,
+            start_idx,
+        )
+
+    def compute_embeddings_from_batch(
+        batch: dict,
+        model: PreTrainedModel,
+        level: Level,
+        start_idx: int,
+    ):
+        # Adjusted function for computing embeddings that directly writes to array
+
+        # Compute embeddings
+        outputs = compute_embeddings_from_single_inputs(
+            inputs=batch,
+            model=model,
+            level=level,
+        )
+        # TODO Extract the correct layer here/potentially aggregate
+
+        return embeddings
+
+    def compute_model_outputs_from_single_inputs(
+        inputs: dict,
+        model: PreTrainedModel,
+        level: Level,
+    ) -> np.ndarray:
+        """
+        Compute embeddings for the given inputs using the given model.
+        """
+
+        # Compute embeddings
+        with torch.no_grad():
+            outputs = model(**inputs)
+
+        return outputs
+
+    def extract_embeddings_from_model_outputs(
+        outputs,
+    ) -> np.ndarray:
+        # Return embeddings
+        # TODO: Include the correct layer here/define config for layer extraction
+        # TODO: Remove aggregation from here, we will do this in a separate class
+        if level == Level.TOKEN:
+            return outputs.last_hidden_state.cpu().numpy()
+        elif level == Level.DATASET_ENTRY:
+            # TODO: Include other aggregation methods here
+            return outputs.last_hidden_state.mean(dim=1).cpu().numpy()
+        else:
+            raise ValueError(f"Unknown {level = }")
 
 
 @hydra.main(
@@ -558,8 +433,11 @@ def main(
         logger=global_logger,
     )
 
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
     compute_embeddings(
         main_config=main_config,
+        device=device,
         logger=global_logger,
     )
 
@@ -570,22 +448,35 @@ def main(
 
 def compute_embeddings(
     main_config: MainConfig,
+    device: torch.device,
     logger: logging.Logger = logging.getLogger(__name__),
 ):
     tokenizer, model, device = load_tokenizer_and_model_for_embedding(
         pretrained_model_name_or_path=main_config.embeddings.huggingface_model_name,
+        device=device,
         logger=logger,
         verbosity=main_config.verbosity,
     )
 
-    embedding_dataloader_preparer = get_embedding_dataloader_preparer(
-        dataset_type=main_config.data.dataset_type,
+    partial_collate_fn = partial(
+        collate_batch_and_move_to_device,
+        device=device,
+        model_input_names=tokenizer.model_input_names,
+    )
+
+    preparer_context = EmbeddingDataLoaderPreparerContext(
         data_config=main_config.data,
         embeddings_config=main_config.embeddings,
         tokenizer=tokenizer,
-        device=device,
-        collate_fn=collate_batch_and_move_to_device,
+        collate_fn=partial_collate_fn,
+        logger=logger,
+        verbosity=main_config.verbosity,
     )
+    embedding_dataloader_preparer = get_embedding_dataloader_preparer(
+        dataset_type=main_config.data.dataset_type,
+        preparer_context=preparer_context,
+    )
+
     dataloader = embedding_dataloader_preparer.prepare_dataloader()
 
     # For debugging, you can get the first batch from the dataloader like this:
