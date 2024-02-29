@@ -39,6 +39,8 @@ import logging
 import os
 from dataclasses import dataclass
 from os import PathLike
+from re import A
+from typing import Protocol
 
 # Third party imports
 import hydra
@@ -58,7 +60,7 @@ from transformers import (
 
 # Local imports
 from topollm.config_classes.Configs import MainConfig, EmbeddingExtractionConfig
-from topollm.config_classes.enums import Level
+from topollm.config_classes.enums import Level, AggregationType
 from topollm.utils.initialize_configuration_and_log import initialize_configuration
 from topollm.utils.setup_exception_logging import setup_exception_logging
 from topollm.compute_embeddings.EmbeddingDataLoaderPreparer import (
@@ -134,6 +136,181 @@ def load_tokenizer_and_model_for_embedding(
     return tokenizer, model
 
 
+class LayerExtractor(Protocol):
+    def extract_layers_from_model_outputs(
+        self,
+        hidden_states,
+    ) -> list[torch.Tensor]:
+        """
+        This method extracts layers from the model outputs.
+        """
+        ...
+
+# Make an implementation of the LayerExtractor protocol
+# which is configured from a list of layer indices
+class LayerExtractorFromIndices:
+    def __init__(
+        self,
+        layer_indices: list[int],
+    ):
+        self.layer_indices = layer_indices
+
+    def extract_layers_from_model_outputs(
+        self,
+        hidden_states,
+    ) -> list[torch.Tensor]:
+        layers_to_extract = [
+            hidden_states[i] for i in self.layer_indices
+        ]
+        return layers_to_extract
+    
+
+class LayerAggregator(Protocol):
+    def aggregate_layers(
+        self,
+        layers_to_extract: list[torch.Tensor],
+    ) -> torch.Tensor:
+        """
+        This method aggregates the layers to be extracted into a single tensor.
+        """
+        ...
+
+class MeanLayerAggregator:
+    """
+    Implementation of the LayerAggregator protocol
+    which computes the mean of the layers to be extracted.
+    """
+
+    def aggregate_layers(
+        self,
+        layers_to_extract: list[torch.Tensor],
+    ) -> torch.Tensor:
+        # Mean across the layers
+        aggregated_layers = torch.mean(
+            torch.stack(
+                layers_to_extract,
+                dim=0,
+            ),
+            dim=0,
+        )
+        return aggregated_layers
+    
+class ConcatenateLayerAggregator:
+    """
+    Implementation of the LayerAggregator protocol
+    which concatenates the layers to be extracted.
+    """
+
+    def aggregate_layers(
+        self,
+        layers_to_extract: list[torch.Tensor],
+    ) -> torch.Tensor:
+        # Concatenate across the last dimension
+        aggregated_layers = torch.cat(
+            layers_to_extract,
+            dim=-1,
+        )
+        return aggregated_layers
+    
+class EmbeddingExtractor(Protocol):
+    def extract_embeddings_from_model_outputs(
+        self,
+        model_outputs,
+    ) -> np.ndarray:
+        """
+        This method extracts embeddings from the model outputs.
+        """
+        ...
+
+    def embedding_dimension(
+        self,
+        model_hidden_dimension: int,
+    ) -> int:
+        """
+        Given a model hidden dimension, this method returns the dimension of the embeddings
+        which will be computed by the model combined with the extraction method.
+        """
+        ...
+
+class TokenLevelEmbeddingExtractor:
+    """
+    Implementation of the EmbeddingExtractor protocol
+    which extracts token level embeddings.
+    """
+
+    def __init__(
+        self,
+        layer_extractor: LayerExtractor,
+        layer_aggregator: LayerAggregator,
+    ):
+        self.layer_extractor = layer_extractor
+        self.layer_aggregator = layer_aggregator
+
+    def extract_embeddings_from_model_outputs(
+        self,
+        model_outputs,
+    ) -> np.ndarray:
+        # Ensure the model outputs hidden states
+        if not hasattr(
+            model_outputs,
+            "hidden_states",
+        ):
+            raise ValueError("Model outputs do not contain 'hidden_states'")
+
+        hidden_states = (
+            model_outputs.hidden_states
+        )  # Assuming this is a tuple of tensors
+
+        # Extract specified layers
+        layers_to_extract = self.layer_extractor.extract_layers_from_model_outputs(
+            hidden_states=hidden_states,
+        )
+
+        # Aggregate the extracted layers
+        embeddings = self.layer_aggregator.aggregate_layers(
+            layers_to_extract=layers_to_extract,
+        )
+
+        return embeddings.cpu().numpy()
+
+    def embedding_dimension(
+        self,
+        model_config: PreTrainedConfig,
+    ) -> int:
+        # TODO: Solve the problem that we somewhere need to determine the
+        # dimension of the extracted embeddings
+
+        result = model_config.hidden_size * self.layer_aggregator.dimension_multiplier
+        
+        return result
+
+
+def get_embedding_extractor(
+    embedding_extraction_config: EmbeddingExtractionConfig,
+    model_config: PreTrainedConfig,
+) -> EmbeddingExtractor:
+    layer_extractor = LayerExtractorFromIndices(
+        layer_indices=embedding_extraction_config.layer_indices,
+    )
+
+    if embedding_extraction_config.aggregation == AggregationType.MEAN:
+        layer_aggregator = MeanLayerAggregator()
+    elif embedding_extraction_config.aggregation == AggregationType.CONCATENATE:
+        layer_aggregator = ConcatenateLayerAggregator()
+    else:
+        raise ValueError(
+            f"Unknown aggregation method: "
+            f"{embedding_extraction_config.aggregation = }",
+        )
+
+    embedding_extractor = TokenLevelEmbeddingExtractor(
+        layer_extractor=layer_extractor,
+        layer_aggregator=layer_aggregator,
+    )
+
+    return embedding_extractor
+
+
 class TokenLevelEmbeddingDataHandler:
     """
     Create a Data Handler Class with Dependency Injection
@@ -144,13 +321,13 @@ class TokenLevelEmbeddingDataHandler:
         storage_backend: TokenLevelEmbeddingStorageProtocol,
         model: PreTrainedModel,
         dataloader: torch.utils.data.DataLoader,
-        embedding_extraction_config: EmbeddingExtractionConfig,
+        embedding_extractor: EmbeddingExtractor,
         logger: logging.Logger = logging.getLogger(__name__),
     ):
         self.storage = storage_backend
         self.model = model
         self.dataloader = dataloader
-        self.embedding_extraction_config = embedding_extraction_config
+        self.embedding_extractor = embedding_extractor
         self.logger = logger
 
     def process_data(
@@ -239,7 +416,7 @@ class TokenLevelEmbeddingDataHandler:
         model_outputs = self.compute_model_outputs_from_single_inputs(
             inputs=batch,
         )
-        embeddings = self.extract_embeddings_from_model_outputs(
+        embeddings = self.embedding_extractor.extract_embeddings_from_model_outputs(
             model_outputs=model_outputs,
         )
 
@@ -259,54 +436,6 @@ class TokenLevelEmbeddingDataHandler:
 
         return outputs
 
-    def extract_embeddings_from_model_outputs(
-        self,
-        model_outputs,
-    ) -> np.ndarray:
-        # Ensure the model outputs hidden states
-        if not hasattr(
-            model_outputs,
-            "hidden_states",
-        ):
-            raise ValueError("Model outputs do not contain 'hidden_states'")
-
-        hidden_states = (
-            model_outputs.hidden_states
-        )  # Assuming this is a tuple of tensors
-
-        # Extract specified layers
-        if isinstance(
-            self.embedding_extraction_config.layers,
-            int,
-        ):
-            layers_to_extract = [hidden_states[self.embedding_extraction_config.layers]]
-        else:
-            layers_to_extract = [
-                hidden_states[i] for i in self.embedding_extraction_config.layers
-            ]
-
-        # Aggregate the extracted layers
-        if self.embedding_extraction_config.aggregation == "concatenate":
-            # Concatenate across the last dimension
-            embeddings = torch.cat(
-                layers_to_extract,
-                dim=-1,
-            )
-        elif self.embedding_extraction_config.aggregation == "mean":
-            # Mean across the layers
-            embeddings = torch.mean(
-                torch.stack(
-                    layers_to_extract,
-                    dim=0,
-                ),
-                dim=0,
-            )
-        else:
-            raise ValueError(
-                f"Unsupported {self.embedding_extraction_config.aggregation = }"
-            )
-
-        return embeddings.cpu().numpy()
 
 
 @hydra.main(
@@ -401,7 +530,7 @@ def compute_embeddings(
         storage_backend=storage_backend,
         model=model,
         dataloader=dataloader,
-        embedding_extraction_config=main_config.embeddings.embedding_extraction,
+        embedding_extractor=main_config.embeddings.embedding_extraction,
         logger=logger,
     )
     data_handler.process_data()

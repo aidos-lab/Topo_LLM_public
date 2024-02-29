@@ -4,7 +4,8 @@ defaults:
 
 batch_size: 32
 embedding_extraction:
-  layers: -1
+  layer_indices: 
+  - -1
   aggregation: mean
 huggingface_model_name: roberta-base
 level: token

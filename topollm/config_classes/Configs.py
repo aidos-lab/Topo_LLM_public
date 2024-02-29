@@ -132,7 +132,7 @@ class StorageConfig(ConfigBaseModel):
 
 
 class EmbeddingExtractionConfig(BaseModel):
-    layers: int | list[int]
+    layer_indices: list[int]
     aggregation: AggregationType = AggregationType.MEAN
 
 

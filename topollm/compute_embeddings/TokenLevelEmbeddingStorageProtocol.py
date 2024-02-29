@@ -101,10 +101,13 @@ class TokenLevelEmbeddingStorageProtocol(Protocol):
         ...
 
 
-class TokenLevelZarrXarrayEmbeddingStorage(TokenLevelEmbeddingStorageProtocol):
+class TokenLevelZarrXarrayEmbeddingStorage():
     """
     A storage protocol backend for token level embeddings
     using Zarr and Xarray.
+
+    Note: We do not need to inherit from TokenLevelEmbeddingStorageProtocol,
+    since we are not relying on an abstract base class.
     """
 
     def __init__(
@@ -187,10 +190,11 @@ def get_token_level_embedding_storage(
         An instance of a storage backend.
     """
     if storage_type == StorageType.ZARR_VECTORS_XARRAY_METADATA:
-        return TokenLevelZarrXarrayEmbeddingStorage(
+        storage_backend = TokenLevelZarrXarrayEmbeddingStorage(
             array_properties=array_properties,
             storage_paths=storage_paths,
         )
+        return storage_backend
     # Extendable to other storage types
     # elif storage_type == "hdf5":
     #     return Hdf5EmbeddingStorage(store_dir)
