@@ -37,9 +37,9 @@ Create embedding vectors.
 from functools import partial
 import logging
 import os
+import pathlib
 from dataclasses import dataclass
 from os import PathLike
-from re import A
 from typing import Protocol
 
 # Third party imports
@@ -57,6 +57,7 @@ from transformers import (
     PreTrainedTokenizer,
     PreTrainedTokenizerFast,
 )
+from transformers.configuration_utils import PretrainedConfig
 
 # Local imports
 from topollm.config_classes.Configs import MainConfig, EmbeddingExtractionConfig
@@ -146,6 +147,7 @@ class LayerExtractor(Protocol):
         """
         ...
 
+
 # Make an implementation of the LayerExtractor protocol
 # which is configured from a list of layer indices
 class LayerExtractorFromIndices:
@@ -159,13 +161,13 @@ class LayerExtractorFromIndices:
         self,
         hidden_states,
     ) -> list[torch.Tensor]:
-        layers_to_extract = [
-            hidden_states[i] for i in self.layer_indices
-        ]
+        layers_to_extract = [hidden_states[i] for i in self.layer_indices]
         return layers_to_extract
-    
+
 
 class LayerAggregator(Protocol):
+    dimension_multiplier: int
+
     def aggregate_layers(
         self,
         layers_to_extract: list[torch.Tensor],
@@ -175,11 +177,15 @@ class LayerAggregator(Protocol):
         """
         ...
 
+
 class MeanLayerAggregator:
     """
     Implementation of the LayerAggregator protocol
     which computes the mean of the layers to be extracted.
     """
+
+    def __init__(self):
+        self.dimension_multiplier = 1
 
     def aggregate_layers(
         self,
@@ -194,12 +200,16 @@ class MeanLayerAggregator:
             dim=0,
         )
         return aggregated_layers
-    
+
+
 class ConcatenateLayerAggregator:
     """
     Implementation of the LayerAggregator protocol
     which concatenates the layers to be extracted.
     """
+
+    def __init__(self):
+        self.dimension_multiplier = 1  # TODO: Change
 
     def aggregate_layers(
         self,
@@ -211,7 +221,8 @@ class ConcatenateLayerAggregator:
             dim=-1,
         )
         return aggregated_layers
-    
+
+
 class EmbeddingExtractor(Protocol):
     def extract_embeddings_from_model_outputs(
         self,
@@ -231,6 +242,7 @@ class EmbeddingExtractor(Protocol):
         which will be computed by the model combined with the extraction method.
         """
         ...
+
 
 class TokenLevelEmbeddingExtractor:
     """
@@ -275,19 +287,19 @@ class TokenLevelEmbeddingExtractor:
 
     def embedding_dimension(
         self,
-        model_config: PreTrainedConfig,
+        model_hidden_dimension: int,
     ) -> int:
         # TODO: Solve the problem that we somewhere need to determine the
         # dimension of the extracted embeddings
 
-        result = model_config.hidden_size * self.layer_aggregator.dimension_multiplier
-        
+        result = model_hidden_dimension * self.layer_aggregator.dimension_multiplier
+
         return result
 
 
 def get_embedding_extractor(
     embedding_extraction_config: EmbeddingExtractionConfig,
-    model_config: PreTrainedConfig,
+    model_config: PretrainedConfig,
 ) -> EmbeddingExtractor:
     layer_extractor = LayerExtractorFromIndices(
         layer_indices=embedding_extraction_config.layer_indices,
@@ -432,10 +444,12 @@ class TokenLevelEmbeddingDataHandler:
 
         # Compute embeddings
         with torch.no_grad():
-            outputs = self.model(**inputs)
+            outputs = self.model(
+                **inputs,
+                output_hidden_states=True,
+            )
 
         return outputs
-
 
 
 @hydra.main(
@@ -516,21 +530,33 @@ def compute_embeddings(
     )
 
     # TODO: Implement these paths
+    #
+    # storage_paths = StoragePaths(
+    #     array_dir=main_config.embeddings.array_dir,
+    #     metadata_dir=main_config.embeddings.metadata_dir,
+    # )
+
     storage_paths = StoragePaths(
-        array_dir=main_config.embeddings.array_dir,
-        metadata_dir=main_config.embeddings.metadata_dir,
+        array_dir=pathlib.Path("test_array_dir"),
+        metadata_dir=pathlib.Path("test_metadata_dir"),
     )
+
     storage_backend = get_token_level_embedding_storage(
         storage_type=main_config.storage.storage_type,
         array_properties=array_properties,
         storage_paths=storage_paths,
     )
 
+    embedding_extractor = get_embedding_extractor(
+        embedding_extraction_config=main_config.embeddings.embedding_extraction,
+        model_config=model.config,
+    )
+
     data_handler = TokenLevelEmbeddingDataHandler(
         storage_backend=storage_backend,
         model=model,
         dataloader=dataloader,
-        embedding_extractor=main_config.embeddings.embedding_extraction,
+        embedding_extractor=embedding_extractor,
         logger=logger,
     )
     data_handler.process_data()
