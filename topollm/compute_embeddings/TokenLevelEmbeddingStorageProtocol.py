@@ -101,7 +101,8 @@ class TokenLevelEmbeddingStorageProtocol(Protocol):
         ...
 
 
-class TokenLevelZarrXarrayEmbeddingStorage():
+# ! TODO
+class TokenLevelZarrXarrayEmbeddingStorage:
     """
     A storage protocol backend for token level embeddings
     using Zarr and Xarray.

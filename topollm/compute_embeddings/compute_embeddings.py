@@ -34,6 +34,7 @@ Create embedding vectors.
 # START Imports
 
 # Standard library imports
+from cgi import test
 from functools import partial
 import logging
 import os
@@ -209,7 +210,9 @@ class ConcatenateLayerAggregator:
     """
 
     def __init__(self):
-        self.dimension_multiplier = 1  # TODO: Change
+        self.dimension_multiplier = (
+            1  # ! TODO: This needs to be set flexibly depending on the method
+        )
 
     def aggregate_layers(
         self,
@@ -462,6 +465,8 @@ def main(
 ):
     """Run the script."""
 
+    print("Running script ...")
+
     global_logger.info("Running script ...")
 
     main_config: MainConfig = initialize_configuration(
@@ -535,7 +540,6 @@ def compute_embeddings(
     #     array_dir=main_config.embeddings.array_dir,
     #     metadata_dir=main_config.embeddings.metadata_dir,
     # )
-
     storage_paths = StoragePaths(
         array_dir=pathlib.Path("test_array_dir"),
         metadata_dir=pathlib.Path("test_metadata_dir"),
