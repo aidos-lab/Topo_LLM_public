@@ -69,9 +69,9 @@ from topollm.compute_embeddings.EmbeddingDataLoaderPreparer import (
     EmbeddingDataLoaderPreparerContext,
     get_embedding_dataloader_preparer,
 )
-from topollm.compute_embeddings.TokenLevelEmbeddingStorageProtocol import (
-    TokenLevelEmbeddingStorageProtocol,
-    TokenLevelDataChunk,
+from topollm.storage.StorageProtocols import (
+    ChunkedArrayStorageProtocol,
+    ArrayDataChunk,
     ChunkIdentifier,
     ArrayProperties,
     StoragePaths,
@@ -333,7 +333,7 @@ class TokenLevelEmbeddingDataHandler:
 
     def __init__(
         self,
-        storage_backend: TokenLevelEmbeddingStorageProtocol,
+        storage_backend: ChunkedArrayStorageProtocol,
         model: PreTrainedModel,
         dataloader: torch.utils.data.DataLoader,
         embedding_extractor: EmbeddingExtractor,
@@ -395,14 +395,15 @@ class TokenLevelEmbeddingDataHandler:
             batch_idx=batch_idx,
         )
 
-        data_chunk = TokenLevelDataChunk(
+        array_data_chunk = ArrayDataChunk(
             batch_of_sequences_embedding_array=embeddings,
-            batch=batch,
             chunk_identifier=chunk_identifier,
         )
 
+        # TODO Save metadata (i.e., the batch)
+
         self.storage.write_chunk(
-            data_chunk=data_chunk,
+            data_chunk=array_data_chunk,
         )
 
         return
