@@ -167,6 +167,8 @@ cython_debug/
 # Project specific
 # # # # # # # # # # # #
 
+data/datasets/iclr_2024_submissions/ICLR_Mistral_Embeddings.csv
+
 data/embeddings
 data/metadata
 
