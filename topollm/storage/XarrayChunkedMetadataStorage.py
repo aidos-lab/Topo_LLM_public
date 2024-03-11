@@ -37,9 +37,9 @@ import warnings
 # Local imports
 from topollm.storage.StorageProtocols import (
     MetaDataChunk,
-    ArrayProperties,
     ChunkIdentifier,
 )
+from topollm.storage.TokenLevelEmbeddingStorageFactory import ArrayProperties
 
 # END Imports
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -63,6 +63,7 @@ class XarrayChunkedMetadataStorage:
     ):
         self.array_properties = array_properties
         self.storage_path = storage_path
+        self.logger = logger
 
     def open(
         self,
@@ -94,8 +95,6 @@ class XarrayChunkedMetadataStorage:
         )
 
         return  # TODO fake implementation
-
-        self.zarr_array[start_idx : start_idx + len(data)] = data
 
     def read_chunk(
         self,

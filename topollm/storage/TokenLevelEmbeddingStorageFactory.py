@@ -32,16 +32,30 @@
 # Third party imports
 
 # Local imports
+from dataclasses import dataclass
+from os import PathLike
 from topollm.config_classes.enums import StorageType
 from topollm.storage.StorageProtocols import (
-    ArrayProperties,
     ChunkedArrayStorageProtocol,
-    StoragePaths,
 )
 from topollm.storage.ZarrChunkedArrayStorage import ZarrChunkedArrayStorage
 
 # END Imports
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+
+@dataclass
+class ArrayProperties:
+    shape: tuple[int, ...]
+    dtype: str  # e.g. "float32"
+    chunks: tuple[int, ...]
+
+
+@dataclass
+class StoragePaths:
+    array_dir: PathLike
+    metadata_dir: PathLike
+
 
 # TODO: Make this into a factory class which
 # TODO: It should get the paths and create the storage backends

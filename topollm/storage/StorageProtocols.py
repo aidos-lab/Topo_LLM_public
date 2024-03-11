@@ -28,8 +28,8 @@
 # START Imports
 
 # Standard library imports
+import chunk
 from dataclasses import dataclass
-from os import PathLike
 from typing import Protocol, runtime_checkable
 
 # Third party imports
@@ -46,6 +46,13 @@ import numpy as np
 class ChunkIdentifier:
     chunk_idx: int
     start_idx: int
+    chunk_size: int
+
+    @property
+    def end_idx(
+        self,
+    ) -> int:
+        return self.start_idx + self.chunk_size
 
 
 @dataclass
@@ -66,19 +73,6 @@ class MetaDataChunk:
 
     batch: dict
     chunk_identifier: ChunkIdentifier
-
-
-@dataclass
-class ArrayProperties:
-    shape: tuple[int, ...]
-    dtype: str  # e.g. "float32"
-    chunks: tuple[int, ...]
-
-
-@dataclass
-class StoragePaths:
-    array_dir: PathLike
-    metadata_dir: PathLike
 
 
 @runtime_checkable

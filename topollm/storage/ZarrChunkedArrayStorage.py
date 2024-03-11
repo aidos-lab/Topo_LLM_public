@@ -31,16 +31,18 @@
 import logging
 import os
 import warnings
+import pathlib
 
 # Third party imports
 import zarr
+import zarr.creation
 
 # Local imports
 from topollm.storage.StorageProtocols import (
     ArrayDataChunk,
-    ArrayProperties,
     ChunkIdentifier,
 )
+from topollm.storage.TokenLevelEmbeddingStorageFactory import ArrayProperties
 
 # END Imports
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -54,8 +56,6 @@ class ZarrChunkedArrayStorage:
     since we are not relying on an abstract base class.
     """
 
-    # TODO Implement this class
-
     def __init__(
         self,
         array_properties: ArrayProperties,
@@ -63,7 +63,10 @@ class ZarrChunkedArrayStorage:
         logger: logging.Logger = logging.getLogger(__name__),
     ):
         self.array_properties = array_properties
-        self.storage_path = storage_path
+        self.storage_path = pathlib.Path(
+            storage_path,
+        )
+        self.logger = logger
 
     def open(
         self,
@@ -74,12 +77,12 @@ class ZarrChunkedArrayStorage:
             self.storage_path,
             exist_ok=True,
         )
-        self.zarr_array = zarr.open(
-            store=self.storage_paths.array_dir,  # type: ignore
+        self.zarr_array = zarr.creation.open_array(
+            store=self.storage_path,
             mode="w",
             shape=self.array_properties.shape,
             dtype=self.array_properties.dtype,
-            chunks=self.array_properties.chunks,
+            chunks=self.array_properties.chunks,  # type: ignore
         )
 
         return
@@ -88,22 +91,25 @@ class ZarrChunkedArrayStorage:
         self,
         data_chunk: ArrayDataChunk,
     ) -> None:
-        # TODO: Update this to work with the DataClass
+        start_idx = data_chunk.chunk_identifier.start_idx
+        end_idx = data_chunk.chunk_identifier.end_idx
 
-        # TODO 1: Implement saving of the embeddings
+        data = data_chunk.batch_of_sequences_embedding_array
 
-        warnings.warn(
-            message=f"write_chunk Not implemented yet",
-        )
+        self.zarr_array[start_idx:end_idx,] = data
 
-        return  # ! TODO Currently this is a fake implementation
-
-        self.zarr_array[start_idx : start_idx + len(data)] = data
+        return
 
     def read_chunk(
         self,
         chunk_identifier: ChunkIdentifier,
     ) -> ArrayDataChunk:
-        # TODO implement
+        start_idx = chunk_identifier.start_idx
+        end_idx = chunk_identifier.end_idx
 
-        raise NotImplementedError
+        data = self.zarr_array[start_idx:end_idx,]
+
+        return ArrayDataChunk(
+            batch_of_sequences_embedding_array=data,
+            chunk_identifier=chunk_identifier,
+        )

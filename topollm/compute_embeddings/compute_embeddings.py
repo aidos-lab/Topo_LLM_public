@@ -25,16 +25,14 @@
 # limitations under the License.
 
 """
-Create embedding vectors.
-
-# TODO This script is under development
+Create embedding vectors from dataset.
 """
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # START Imports
 
 # Standard library imports
-from cgi import test
+import chunk
 from functools import partial
 import logging
 import os
@@ -59,11 +57,14 @@ from transformers import (
     PreTrainedTokenizerFast,
 )
 from transformers.configuration_utils import PretrainedConfig
+from topollm.compute_embeddings.LayerExtractor import LayerExtractor
 
 # Local imports
 from topollm.config_classes.Configs import MainConfig, EmbeddingExtractionConfig
 from topollm.config_classes.enums import Level, AggregationType
 from topollm.storage.TokenLevelEmbeddingStorageFactory import (
+    ArrayProperties,
+    StoragePaths,
     get_token_level_embedding_storage,
 )
 from topollm.utils.initialize_configuration_and_log import initialize_configuration
@@ -77,8 +78,7 @@ from topollm.storage.StorageProtocols import (
     ChunkedMetadataStorageProtocol,
     ArrayDataChunk,
     ChunkIdentifier,
-    ArrayProperties,
-    StoragePaths,
+    MetaDataChunk,
 )
 from topollm.utils.collate_batch_for_embedding import (
     collate_batch_and_move_to_device,
@@ -101,7 +101,7 @@ setup_exception_logging(
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
-def load_tokenizer_and_model_for_embedding(
+def load_tokenizer_and_model(
     pretrained_model_name_or_path: str | os.PathLike,
     device: torch.device,
     logger: logging.Logger = logging.getLogger(__name__),
@@ -139,17 +139,6 @@ def load_tokenizer_and_model_for_embedding(
         )
 
     return tokenizer, model
-
-
-class LayerExtractor(Protocol):
-    def extract_layers_from_model_outputs(
-        self,
-        hidden_states,
-    ) -> list[torch.Tensor]:
-        """
-        This method extracts layers from the model outputs.
-        """
-        ...
 
 
 class LayerExtractorFromIndices:
@@ -345,7 +334,8 @@ class TokenLevelEmbeddingDataHandler:
         embedding_extractor: EmbeddingExtractor,
         logger: logging.Logger = logging.getLogger(__name__),
     ):
-        self.storage = array_storage_backend
+        self.array_storage_backend = array_storage_backend
+        self.metadata_storage_backend = metadata_storage_backend
         self.model = model
         self.dataloader = dataloader
         self.embedding_extractor = embedding_extractor
@@ -366,7 +356,8 @@ class TokenLevelEmbeddingDataHandler:
     def open_storage(
         self,
     ) -> None:
-        self.storage.open()
+        self.array_storage_backend.open()
+        self.metadata_storage_backend.open()
 
         return
 
@@ -401,15 +392,24 @@ class TokenLevelEmbeddingDataHandler:
             batch_idx=batch_idx,
         )
 
+        # Write embeddings to storage
         array_data_chunk = ArrayDataChunk(
             batch_of_sequences_embedding_array=embeddings,
             chunk_identifier=chunk_identifier,
         )
 
-        # TODO Save metadata (i.e., the batch)
-
-        self.storage.write_chunk(
+        self.array_storage_backend.write_chunk(
             data_chunk=array_data_chunk,
+        )
+
+        # Write metadata to storage
+        metadata_data_chunk = MetaDataChunk(
+            batch=batch,
+            chunk_identifier=chunk_identifier,
+        )
+
+        self.metadata_storage_backend.write_chunk(
+            data_chunk=metadata_data_chunk,
         )
 
         return
@@ -424,6 +424,7 @@ class TokenLevelEmbeddingDataHandler:
         chunk_identifier = ChunkIdentifier(
             chunk_idx=batch_idx,
             start_idx=batch_idx * batch_len,
+            chunk_size=batch_len,
         )
 
         return chunk_identifier
@@ -499,7 +500,7 @@ def compute_embeddings(
     device: torch.device,
     logger: logging.Logger = logging.getLogger(__name__),
 ):
-    tokenizer, model = load_tokenizer_and_model_for_embedding(
+    tokenizer, model = load_tokenizer_and_model(
         pretrained_model_name_or_path=main_config.embeddings.huggingface_model_name,
         device=device,
         logger=logger,
@@ -533,7 +534,7 @@ def compute_embeddings(
     # Length of each sequence
     S = embedding_dataloader_preparer.sequence_length
     # Dimension of the embeddings
-    D = model.config.hidden_size
+    D: int = model.config.hidden_size
 
     array_properties = ArrayProperties(
         shape=(N, S, D),
@@ -552,7 +553,7 @@ def compute_embeddings(
         metadata_dir=pathlib.Path("test_metadata_dir"),
     )
 
-    storage_backend = get_token_level_embedding_storage(
+    array_storage_backend = get_token_level_embedding_storage(
         storage_type=main_config.storage.storage_type,
         array_properties=array_properties,
         storage_paths=storage_paths,
@@ -564,7 +565,7 @@ def compute_embeddings(
     )
 
     data_handler = TokenLevelEmbeddingDataHandler(
-        array_storage_backend=storage_backend,
+        array_storage_backend=array_storage_backend,
         model=model,
         dataloader=dataloader,
         embedding_extractor=embedding_extractor,
