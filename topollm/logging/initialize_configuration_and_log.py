@@ -40,7 +40,7 @@ import omegaconf
 # Local imports
 
 from topollm.config_classes.Configs import MainConfig
-from topollm.utils.get_git_info import get_git_info
+from topollm.logging.get_git_info import get_git_info
 
 # END Imports
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #

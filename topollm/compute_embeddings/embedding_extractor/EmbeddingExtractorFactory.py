@@ -31,18 +31,21 @@
 
 # Third party imports
 import numpy as np
-from topollm.compute_embeddings.EmbeddingExtractorProtocol import EmbeddingExtractor
+from topollm.compute_embeddings.embedding_extractor.EmbeddingExtractorProtocol import (
+    EmbeddingExtractor,
+)
 from transformers.configuration_utils import PretrainedConfig
+import transformers.modeling_outputs
 
 # Local imports
 
 # Local imports
-from topollm.compute_embeddings.LayerAggregator import (
+from topollm.compute_embeddings.embedding_extractor.LayerAggregator import (
     ConcatenateLayerAggregator,
     LayerAggregator,
     MeanLayerAggregator,
 )
-from topollm.compute_embeddings.LayerExtractor import (
+from topollm.compute_embeddings.embedding_extractor.LayerExtractor import (
     LayerExtractor,
     LayerExtractorFromIndices,
 )
@@ -63,13 +66,15 @@ class TokenLevelEmbeddingExtractor:
         self,
         layer_extractor: LayerExtractor,
         layer_aggregator: LayerAggregator,
+        embedding_dimension: int,
     ):
         self.layer_extractor = layer_extractor
         self.layer_aggregator = layer_aggregator
+        self.embedding_dimension = embedding_dimension
 
     def extract_embeddings_from_model_outputs(
         self,
-        model_outputs,
+        model_outputs: transformers.modeling_outputs.BaseModelOutput,
     ) -> np.ndarray:
         # Ensure the model outputs hidden states
         if not hasattr(
@@ -81,6 +86,12 @@ class TokenLevelEmbeddingExtractor:
         hidden_states = (
             model_outputs.hidden_states
         )  # Assuming this is a tuple of tensors
+
+        if hidden_states is None:
+            raise ValueError(
+                f"'hidden_states' is None. "
+                f"Did you call the model with 'output_hidden_states=True'?"
+            )
 
         # Extract specified layers
         layers_to_extract = self.layer_extractor.extract_layers_from_model_outputs(
@@ -94,20 +105,10 @@ class TokenLevelEmbeddingExtractor:
 
         return embeddings.cpu().numpy()
 
-    def embedding_dimension(
-        self,
-        model_hidden_dimension: int,
-    ) -> int:
-        # TODO: Solve the problem that we somewhere need to determine the dimension of the extracted embeddings
-
-        result = model_hidden_dimension * self.layer_aggregator.dimension_multiplier
-
-        return result
-
 
 def get_embedding_extractor(
     embedding_extraction_config: EmbeddingExtractionConfig,
-    model_config: PretrainedConfig,
+    model_hidden_size: int,
 ) -> EmbeddingExtractor:
     layer_extractor = LayerExtractorFromIndices(
         layer_indices=embedding_extraction_config.layer_indices,
@@ -115,8 +116,15 @@ def get_embedding_extractor(
 
     if embedding_extraction_config.aggregation == AggregationType.MEAN:
         layer_aggregator = MeanLayerAggregator()
+        embedding_dimension = model_hidden_size
     elif embedding_extraction_config.aggregation == AggregationType.CONCATENATE:
         layer_aggregator = ConcatenateLayerAggregator()
+
+        # Note that the following dimension computation assumes that the
+        # hidden size of the model is the same for all layers.
+        embedding_dimension = model_hidden_size * len(
+            embedding_extraction_config.layer_indices,
+        )
     else:
         raise ValueError(
             f"Unknown aggregation method: "
@@ -126,6 +134,7 @@ def get_embedding_extractor(
     embedding_extractor = TokenLevelEmbeddingExtractor(
         layer_extractor=layer_extractor,
         layer_aggregator=layer_aggregator,
+        embedding_dimension=embedding_dimension,
     )
 
     return embedding_extractor

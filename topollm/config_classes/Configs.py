@@ -45,7 +45,8 @@ from topollm.config_classes.enums import (
     Level,
     Split,
     DatasetType,
-    StorageType,
+    ArrayStorageType,
+    MetadataStorageType,
 )
 
 # END Imports
@@ -124,10 +125,22 @@ class StorageConfig(ConfigBaseModel):
     Configurations for specifying storage.
     """
 
-    storage_type: StorageType = Field(
+    array_storage_type: ArrayStorageType = Field(
         ...,
-        title="Storage type.",
-        description="The storage type.",
+        title="Array storage type.",
+        description="The storage type for arrays.",
+    )
+
+    metadata_storage_type: MetadataStorageType = Field(
+        ...,
+        title="Metadata storage type.",
+        description="The storage type for metadata.",
+    )
+
+    chunk_size: int = Field(
+        ...,
+        title="Chunk size for storage.",
+        description="The chunk size for storage.",
     )
 
 

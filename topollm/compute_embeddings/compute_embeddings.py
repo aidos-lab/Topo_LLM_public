@@ -32,6 +32,7 @@ Create embedding vectors from dataset.
 # START Imports
 
 # Standard library imports
+from curses import meta
 from functools import partial
 import logging
 import os
@@ -43,6 +44,7 @@ import hydra.core.hydra_config
 import omegaconf
 import torch
 import torch.utils.data
+import transformers
 from transformers import (
     AutoModel,
     AutoTokenizer,
@@ -50,7 +52,7 @@ from transformers import (
     PreTrainedTokenizer,
     PreTrainedTokenizerFast,
 )
-from topollm.compute_embeddings.EmbeddingExtractorFactory import (
+from topollm.compute_embeddings.embedding_extractor.EmbeddingExtractorFactory import (
     get_embedding_extractor,
 )
 from topollm.compute_embeddings.TokenLevelEmbeddingDataHandler import (
@@ -59,10 +61,11 @@ from topollm.compute_embeddings.TokenLevelEmbeddingDataHandler import (
 
 # Local imports
 from topollm.config_classes.Configs import MainConfig
-from topollm.storage.TokenLevelEmbeddingStorageFactory import (
+from topollm.storage.StorageFactory import (
     ArrayProperties,
     StoragePaths,
-    get_token_level_embedding_storage,
+    StorageSpecification,
+    StorageFactory,
 )
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
@@ -174,6 +177,15 @@ def compute_embeddings(
         logger=logger,
         verbosity=main_config.verbosity,
     )
+    model_config: transformers.PretrainedConfig = model.config
+    if model_config is None:
+        raise ValueError(
+            "Model does not have a configuration",
+        )
+    if main_config.verbosity >= 1:
+        logger.info(
+            f"{model_config = }",
+        )
 
     partial_collate_fn = partial(
         collate_batch_and_move_to_device,
@@ -202,12 +214,12 @@ def compute_embeddings(
     # Length of each sequence
     S = embedding_dataloader_preparer.sequence_length
     # Dimension of the embeddings
-    D: int = model.config.hidden_size
+    D: int = model_config.hidden_size
 
     array_properties = ArrayProperties(
         shape=(N, S, D),
         dtype="float32",
-        chunks=(1024,),  # TODO: Make chunk size configurable
+        chunks=(main_config.storage.chunk_size,),
     )
 
     # TODO: Implement these paths
@@ -221,17 +233,24 @@ def compute_embeddings(
         metadata_dir=pathlib.Path("test_metadata_dir"),
     )
 
-    array_storage_backend = get_token_level_embedding_storage(
-        storage_type=main_config.storage.storage_type,
+    storage_specification = StorageSpecification(
+        array_storage_type=main_config.storage.array_storage_type,
+        metadata_storage_type=main_config.storage.metadata_storage_type,
         array_properties=array_properties,
         storage_paths=storage_paths,
     )
 
-    metadata_storage_backend = None  # TODO implement the getter
+    storage_factory = StorageFactory(
+        storage_specification=storage_specification,
+        logger=logger,
+    )
+
+    array_storage_backend = storage_factory.get_array_storage()
+    metadata_storage_backend = storage_factory.get_metadata_storage()
 
     embedding_extractor = get_embedding_extractor(
         embedding_extraction_config=main_config.embeddings.embedding_extraction,
-        model_config=model.config,
+        model_hidden_size=D,
     )
 
     data_handler = TokenLevelEmbeddingDataHandler(

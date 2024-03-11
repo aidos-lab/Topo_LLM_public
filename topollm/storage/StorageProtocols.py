@@ -28,7 +28,6 @@
 # START Imports
 
 # Standard library imports
-import chunk
 from dataclasses import dataclass
 from typing import Protocol, runtime_checkable
 

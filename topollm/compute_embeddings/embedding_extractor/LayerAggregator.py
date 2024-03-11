@@ -30,7 +30,7 @@
 # Standard library imports
 
 # Third party imports
-import numpy as np
+import torch
 
 # Local imports
 from typing import Protocol
@@ -41,22 +41,51 @@ from typing import Protocol
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
-class EmbeddingExtractor(Protocol):
-    def extract_embeddings_from_model_outputs(
+class LayerAggregator(Protocol):
+    def aggregate_layers(
         self,
-        model_outputs,
-    ) -> np.ndarray:
+        layers_to_extract: list[torch.Tensor],
+    ) -> torch.Tensor:
         """
-        This method extracts embeddings from the model outputs.
+        This method aggregates the layers to be extracted into a single tensor.
         """
         ...
 
-    def embedding_dimension(
+
+class MeanLayerAggregator:
+    """
+    Implementation of the LayerAggregator protocol
+    which computes the mean of the layers to be extracted.
+    """
+
+    def aggregate_layers(
         self,
-        model_hidden_dimension: int,
-    ) -> int:
-        """
-        Given a model hidden dimension, this method returns the dimension of the embeddings
-        which will be computed by the model combined with the extraction method.
-        """
-        ...
+        layers_to_extract: list[torch.Tensor],
+    ) -> torch.Tensor:
+        # Mean across the layers
+        aggregated_layers = torch.mean(
+            torch.stack(
+                layers_to_extract,
+                dim=0,
+            ),
+            dim=0,
+        )
+        return aggregated_layers
+
+
+class ConcatenateLayerAggregator:
+    """
+    Implementation of the LayerAggregator protocol
+    which concatenates the layers to be extracted.
+    """
+
+    def aggregate_layers(
+        self,
+        layers_to_extract: list[torch.Tensor],
+    ) -> torch.Tensor:
+        # Concatenate across the last dimension
+        aggregated_layers = torch.cat(
+            layers_to_extract,
+            dim=-1,
+        )
+        return aggregated_layers

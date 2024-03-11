@@ -42,7 +42,7 @@ from topollm.storage.StorageProtocols import (
     ArrayDataChunk,
     ChunkIdentifier,
 )
-from topollm.storage.TokenLevelEmbeddingStorageFactory import ArrayProperties
+from topollm.storage.StorageFactory import ArrayProperties
 
 # END Imports
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #

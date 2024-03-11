@@ -36,9 +36,12 @@ import torch
 import torch.utils.data
 from tqdm.auto import tqdm
 from transformers import PreTrainedModel
+import transformers.modeling_outputs
 
 # Local imports
-from topollm.compute_embeddings.EmbeddingExtractorProtocol import EmbeddingExtractor
+from topollm.compute_embeddings.embedding_extractor.EmbeddingExtractorProtocol import (
+    EmbeddingExtractor,
+)
 from topollm.storage.StorageProtocols import (
     ArrayDataChunk,
     ChunkIdentifier,
@@ -164,9 +167,10 @@ class TokenLevelEmbeddingDataHandler:
         self,
         batch: dict,
     ) -> np.ndarray:
-        # Adjusted function for computing embeddings that directly writes to array
+        """
+        Function for computing model outputs and extracting embeddings from a batch.
+        """
 
-        # Compute embeddings
         model_outputs = self.compute_model_outputs_from_single_inputs(
             inputs=batch,
         )
@@ -179,13 +183,15 @@ class TokenLevelEmbeddingDataHandler:
     def compute_model_outputs_from_single_inputs(
         self,
         inputs: dict,
-    ):
+    ) -> transformers.modeling_outputs.BaseModelOutput:
         """
         Compute embeddings for the given inputs using the given model.
         """
 
-        # Compute embeddings
         with torch.no_grad():
+            # Compute embeddings.
+            # The `output_hidden_states` argument needs to be set to `True`
+            # so that we can access the hidden states from the different layers
             outputs = self.model(
                 **inputs,
                 output_hidden_states=True,
