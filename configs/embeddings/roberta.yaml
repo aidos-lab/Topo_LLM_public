@@ -9,8 +9,8 @@ embedding_extraction:
   - -1
   aggregation: mean
 language_model_config:
-  - huggingface_model_name: roberta-base
-  - masking_mode: no_masking
+  huggingface_model_name: roberta-base
+  masking_mode: no_masking
 level: token
 max_length: 512
 num_workers: 1

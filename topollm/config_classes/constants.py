@@ -73,9 +73,12 @@ NAME_PREFIXES: dict[
     "normalization": "norm-",
     "n_neighbors": "n-neighbors-",
     "query": "query-",
+    "split": "split-",
     "transformation": "trans-",
     "use_canonical_values_from_dataset": "use-canonical-val-",
 }
+
+FILE_NAME_TRUNCATION_LENGTH: int = 200
 
 
 # END Globals

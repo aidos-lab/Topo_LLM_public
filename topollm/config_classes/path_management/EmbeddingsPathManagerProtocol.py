@@ -42,48 +42,21 @@ from typing import Protocol
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
-class EmbeddingsPathManagerProtocol(Protocol):
-    def get_output_dir_absolute_path(
+class EmbeddingsPathManager(Protocol):
+    @property
+    def data_dir(
         self,
     ) -> pathlib.Path:
         ...
 
-    def get_model_files_dir_absolute_path(
+    @property
+    def array_dir_absolute_path(
         self,
     ) -> pathlib.Path:
         ...
 
-    def get_dataloaders_dir_absolute_path(
+    @property
+    def metadata_dir_absolute_path(
         self,
     ) -> pathlib.Path:
-        ...
-
-    def get_tensorboard_dir_absolute_path(
-        self,
-    ) -> pathlib.Path:
-        ...
-
-    def get_logging_file_absolute_path(
-        self,
-    ) -> pathlib.Path:
-        ...
-
-    def get_metrics_dir_absolute_path(
-        self,
-    ) -> pathlib.Path:
-        ...
-
-    def get_best_model_scores_dir_absolute_path(
-        self,
-    ) -> pathlib.Path:
-        ...
-
-    def get_model_predictions_dir_absolute_path(
-        self,
-    ) -> pathlib.Path:
-        ...
-
-    def construct_model_description_string(
-        self,
-    ) -> str:
         ...

@@ -73,8 +73,12 @@ class XarrayChunkedMetadataStorage:
     ) -> None:
         # # # #
         # Open xarray (for metadata)
+        os.makedirs(
+            self.storage_path,
+            exist_ok=True,
+        )
 
-        file_name = "metadata.nc"
+        file_name = "metadata.nc"  # TODO: Might not be neccessary
 
         warnings.warn(
             message=f"xarray Not implemented yet",

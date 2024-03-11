@@ -114,7 +114,9 @@ class DataConfig(ConfigBaseModel):
     ) -> str:
         return (
             f"{NAME_PREFIXES['data']}{self.dataset_description_string}"
+            f"_"
             f"{NAME_PREFIXES['split']}{self.split}"
+            f"_"
             f"{NAME_PREFIXES['context']}{self.context}"
         )
 
@@ -177,7 +179,8 @@ class EmbeddingExtractionConfig(BaseModel):
         """
         return (
             f"{NAME_PREFIXES['layer']}{str(self.layer_indices)}"
-            f"_{NAME_PREFIXES['aggregation']}{str(self.aggregation)}"
+            f"_"
+            f"{NAME_PREFIXES['aggregation']}{str(self.aggregation)}"
         )
 
 
@@ -202,7 +205,8 @@ class LanguageModelConfig(ConfigBaseModel):
         # Construct and return the model parameters description
 
         return (
-            f"{NAME_PREFIXES['model']}{self.huggingface_model_name}_"
+            f"{NAME_PREFIXES['model']}{self.huggingface_model_name}"
+            f"_"
             f"{NAME_PREFIXES['masking_mode']}{self.masking_mode}"
         )
 
@@ -295,6 +299,23 @@ class PathsConfig(ConfigBaseModel):
     )
 
 
+class TransformationsConfig(ConfigBaseModel):
+    normalization: str = Field(
+        ...,
+        title="Normalization method.",
+        description="The normalization method.",
+    )
+
+    @property
+    def transformation_config_description(
+        self,
+    ) -> str:
+        desc = f"{NAME_PREFIXES['normalization']}"
+        desc += f"{self.normalization}"
+
+        return desc
+
+
 class MainConfig(ConfigBaseModel):
     """
     Master configuration for computing embeddings.
@@ -324,25 +345,14 @@ class MainConfig(ConfigBaseModel):
         description="The configuration for specifying storage.",
     )
 
+    transformations: TransformationsConfig = Field(
+        ...,
+        title="Transformations configuration.",
+        description="The configuration for specifying transformations.",
+    )
+
     verbosity: int = Field(
         default=1,
         title="Verbosity level.",
         description="The verbosity level.",
     )
-
-
-class TransformationsConfig(ConfigBaseModel):
-    normalization: str = Field(
-        ...,
-        title="Normalization method.",
-        description="The normalization method.",
-    )
-
-    @property
-    def transformation_config_description(
-        self,
-    ) -> str:
-        desc = f"{NAME_PREFIXES['normalization']}"
-        desc += f"{self.normalization}"
-
-        return desc

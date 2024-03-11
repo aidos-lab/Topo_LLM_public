@@ -35,25 +35,29 @@ import logging
 # External imports
 
 # Local imports
-from convlab.tda.config_classes.ExperimentConfig import ExperimentConfig
-from convlab.tda.config_classes.path_management.SeparateDirectoriesEmbeddingsPathManager import (
-    SeparateDirectoriesEmbeddingsPathManager,
+from topollm.config_classes.Configs import MainConfig
+from topollm.config_classes.path_management.EmbeddingsPathManagerProtocol import (
+    EmbeddingsPathManager,
 )
-from convlab.tda.config_classes.path_management.ExperimentPathManagerProtocol import (
-    ExperimentPathManagerProtocol,
+from topollm.config_classes.path_management.SeparateDirectoriesEmbeddingsPathManager import (
+    SeparateDirectoriesEmbeddingsPathManager,
 )
 
 # END Imports
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
-def get_experiment_path_manager(
-    config: ExperimentConfig,
+def get_embeddings_path_manager(
+    config: MainConfig,
     logger: logging.Logger = logging.getLogger(__name__),
-) -> ExperimentPathManagerProtocol:
-    experiment_path_manger = SeparateDirectoriesEmbeddingsPathManager(
-        config=config,
+) -> EmbeddingsPathManager:
+    path_manger = SeparateDirectoriesEmbeddingsPathManager(
+        data_config=config.data,
+        embeddings_config=config.embeddings,
+        paths_config=config.paths,
+        transformations_config=config.transformations,
+        verbosity=config.verbosity,
         logger=logger,
     )
 
-    return experiment_path_manger
+    return path_manger

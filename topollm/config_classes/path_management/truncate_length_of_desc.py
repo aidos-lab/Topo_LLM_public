@@ -35,7 +35,7 @@ import logging
 # External imports
 
 # Local imports
-from convlab.tda.config_classes.constants import FILE_NAME_TRUNCATION_LENGTH
+from topollm.config_classes.constants import FILE_NAME_TRUNCATION_LENGTH
 
 # END Imports
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #

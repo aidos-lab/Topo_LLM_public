@@ -71,6 +71,9 @@ from topollm.compute_embeddings.TokenLevelEmbeddingDataHandler import (
     TokenLevelEmbeddingDataHandler,
 )
 from topollm.config_classes.Configs import MainConfig, TokenizerConfig
+from topollm.config_classes.path_management.EmbeddingsPathManagerFactory import (
+    get_embeddings_path_manager,
+)
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.storage.StorageFactory import (
@@ -177,7 +180,7 @@ def compute_embeddings(
     logger: logging.Logger = logging.getLogger(__name__),
 ):
     tokenizer, model = load_tokenizer_and_model(
-        pretrained_model_name_or_path=main_config.embeddings.huggingface_model_name,
+        pretrained_model_name_or_path=main_config.embeddings.language_model_config.huggingface_model_name,
         tokenizer_config=main_config.embeddings.tokenizer_config,
         device=device,
         logger=logger,
@@ -228,23 +231,13 @@ def compute_embeddings(
         chunks=(main_config.storage.chunk_size,),
     )
 
-    # TODO: Implement these paths
-    #
-    # storage_paths = StoragePaths(
-    #     array_dir=main_config.embeddings.array_dir,
-    #     metadata_dir=main_config.embeddings.metadata_dir,
-    # )
+    embeddings_path_manager = get_embeddings_path_manager(
+        config=main_config,
+        logger=logger,
+    )
     storage_paths = StoragePaths(
-        array_dir=pathlib.Path(
-            "data",
-            "embeddings",
-            "test_array_dir",
-        ),
-        metadata_dir=pathlib.Path(
-            "data",
-            "embeddings",
-            "test_metadata_dir",
-        ),
+        array_dir=embeddings_path_manager.array_dir_absolute_path,
+        metadata_dir=embeddings_path_manager.metadata_dir_absolute_path,
     )
 
     storage_specification = StorageSpecification(
