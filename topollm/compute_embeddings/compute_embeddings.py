@@ -54,6 +54,7 @@ from transformers import (
     PreTrainedTokenizer,
     PreTrainedTokenizerFast,
 )
+from yaml import Token
 
 # Local imports
 from topollm.compute_embeddings.collate_batch_for_embedding import (
@@ -69,7 +70,7 @@ from topollm.compute_embeddings.EmbeddingDataLoaderPreparer import (
 from topollm.compute_embeddings.TokenLevelEmbeddingDataHandler import (
     TokenLevelEmbeddingDataHandler,
 )
-from topollm.config_classes.Configs import MainConfig
+from topollm.config_classes.Configs import MainConfig, TokenizerConfig
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.storage.StorageFactory import (
@@ -98,6 +99,7 @@ setup_exception_logging(
 
 def load_tokenizer_and_model(
     pretrained_model_name_or_path: str | os.PathLike,
+    tokenizer_config: TokenizerConfig,
     device: torch.device,
     logger: logging.Logger = logging.getLogger(__name__),
     verbosity: int = 1,
@@ -114,6 +116,7 @@ def load_tokenizer_and_model(
     """
     tokenizer = AutoTokenizer.from_pretrained(
         pretrained_model_name_or_path=pretrained_model_name_or_path,
+        add_prefix_space=tokenizer_config.add_prefix_space,
     )
     model: PreTrainedModel = AutoModel.from_pretrained(
         pretrained_model_name_or_path=pretrained_model_name_or_path,
@@ -175,6 +178,7 @@ def compute_embeddings(
 ):
     tokenizer, model = load_tokenizer_and_model(
         pretrained_model_name_or_path=main_config.embeddings.huggingface_model_name,
+        tokenizer_config=main_config.embeddings.tokenizer_config,
         device=device,
         logger=logger,
         verbosity=main_config.verbosity,

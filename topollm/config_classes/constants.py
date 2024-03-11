@@ -50,7 +50,12 @@ Script for setting global variables for the config files.
 # easily change the prefixes for file paths and names
 # in one place without modifying the functions itself,
 # enhancing the maintainability of the code.
-NAME_PREFIXES = {
+NAME_PREFIXES: dict[
+    str,
+    str,
+] = {
+    "aggregation": "agg-",
+    "add_prefix_space": "add-prefix-space-",
     "center": "center-",
     "context": "ctxt-",
     "data": "data-",
@@ -63,6 +68,8 @@ NAME_PREFIXES = {
     "metric": "metric-",
     "model": "model-",
     "model_parameters": "mparam-",
+    "masking_mode": "mask-",
+    "max_length": "max-len-",
     "normalization": "norm-",
     "n_neighbors": "n-neighbors-",
     "query": "query-",

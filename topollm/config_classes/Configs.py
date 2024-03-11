@@ -47,6 +47,7 @@ from topollm.config_classes.enums import (
     ArrayStorageType,
     MetadataStorageType,
 )
+from topollm.config_classes.constants import NAME_PREFIXES
 
 # END Imports
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -82,6 +83,13 @@ class DataConfig(ConfigBaseModel):
         "to use for computing embeddings.",
     )
 
+    dataset_description_string: str = Field(
+        ...,
+        title="Dataset description string.",
+        description=f"The dataset description string. "
+        f"This will be used for creating the file paths",
+    )
+
     dataset_type: DatasetType = Field(
         ...,
         title="Dataset type.",
@@ -99,6 +107,16 @@ class DataConfig(ConfigBaseModel):
         title="Split to use for computing embeddings.",
         description="The split to use for computing embeddings.",
     )
+
+    @property
+    def data_config_description(
+        self,
+    ) -> str:
+        return (
+            f"{NAME_PREFIXES['data']}{self.dataset_description_string}"
+            f"{NAME_PREFIXES['split']}{self.split}"
+            f"{NAME_PREFIXES['context']}{self.context}"
+        )
 
 
 class DatasetMapConfig(ConfigBaseModel):
@@ -147,9 +165,76 @@ class EmbeddingExtractionConfig(BaseModel):
     layer_indices: list[int]
     aggregation: AggregationType = AggregationType.MEAN
 
+    @property
+    def embedding_extraction_config_description(
+        self,
+    ) -> str:
+        """
+        Get the description of the embedding extraction.
+
+        Returns:
+            str: The description of the embedding extraction.
+        """
+        return (
+            f"{NAME_PREFIXES['layer']}{str(self.layer_indices)}"
+            f"_{NAME_PREFIXES['aggregation']}{str(self.aggregation)}"
+        )
+
+
+class LanguageModelConfig(ConfigBaseModel):
+    huggingface_model_name: str = Field(
+        ...,
+        title="Model identifier for huggingface transformers model.",
+        description="The model identifier for the huggingface transformers model "
+        "to use for computing embeddings.",
+    )
+
+    masking_mode: str = Field(
+        ...,
+        title="Masking mode.",
+        description="The masking mode.",
+    )
+
+    @property
+    def lanugage_model_config_description(
+        self,
+    ) -> str:
+        # Construct and return the model parameters description
+
+        return (
+            f"{NAME_PREFIXES['model']}{self.huggingface_model_name}_"
+            f"{NAME_PREFIXES['masking_mode']}{self.masking_mode}"
+        )
+
+
+class TokenizerConfig(ConfigBaseModel):
+    add_prefix_space: bool = Field(
+        ...,
+        title="Add prefix space.",
+        description="Whether to add prefix space.",
+    )
+
+    @property
+    def tokenizer_config_description(
+        self,
+    ) -> str:
+        """
+        Get the description of the tokenizer config.
+
+        Returns:
+            str: The description of the tokenizer.
+        """
+        return f"{NAME_PREFIXES['add_prefix_space']}{str(self.add_prefix_space)}"
+
 
 class EmbeddingsConfig(ConfigBaseModel):
     """Configurations for specifying embeddings."""
+
+    tokenizer_config: TokenizerConfig = Field(
+        ...,
+        title="Tokenizer configuration.",
+        description="The configuration for specifying tokenizer.",
+    )
 
     dataset_map: DatasetMapConfig = Field(
         ...,
@@ -163,17 +248,16 @@ class EmbeddingsConfig(ConfigBaseModel):
         description="The batch size for computing embeddings.",
     )
 
+    language_model_config: LanguageModelConfig = Field(
+        ...,
+        title="Model configuration.",
+        description="The configuration for specifying model.",
+    )
+
     embedding_extraction: EmbeddingExtractionConfig = Field(
         ...,
         title="Embedding extraction configuration.",
         description="The configuration for specifying embedding extraction.",
-    )
-
-    huggingface_model_name: str = Field(
-        ...,
-        title="Model identifier for huggingface transformers model.",
-        description="The model identifier for the huggingface transformers model "
-        "to use for computing embeddings.",
     )
 
     level: Level = Field(
@@ -245,3 +329,20 @@ class MainConfig(ConfigBaseModel):
         title="Verbosity level.",
         description="The verbosity level.",
     )
+
+
+class TransformationsConfig(ConfigBaseModel):
+    normalization: str = Field(
+        ...,
+        title="Normalization method.",
+        description="The normalization method.",
+    )
+
+    @property
+    def transformation_config_description(
+        self,
+    ) -> str:
+        desc = f"{NAME_PREFIXES['normalization']}"
+        desc += f"{self.normalization}"
+
+        return desc

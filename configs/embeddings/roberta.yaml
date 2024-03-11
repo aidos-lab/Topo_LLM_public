@@ -1,5 +1,6 @@
 defaults:
   - dataset_map: batched
+  - tokenizer_config: no_modification
   - _self_
 
 batch_size: 32
@@ -7,7 +8,9 @@ embedding_extraction:
   layer_indices: 
   - -1
   aggregation: mean
-huggingface_model_name: roberta-base
+language_model_config:
+  - huggingface_model_name: roberta-base
+  - masking_mode: no_masking
 level: token
 max_length: 512
 num_workers: 1
