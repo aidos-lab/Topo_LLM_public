@@ -38,8 +38,8 @@ import warnings
 from topollm.storage.StorageProtocols import (
     MetaDataChunk,
     ChunkIdentifier,
+    ArrayProperties,
 )
-from topollm.storage.StorageFactory import ArrayProperties
 
 # END Imports
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #

@@ -62,7 +62,6 @@ from topollm.compute_embeddings.TokenLevelEmbeddingDataHandler import (
 # Local imports
 from topollm.config_classes.Configs import MainConfig
 from topollm.storage.StorageFactory import (
-    ArrayProperties,
     StoragePaths,
     StorageSpecification,
     StorageFactory,
@@ -76,6 +75,7 @@ from topollm.compute_embeddings.EmbeddingDataLoaderPreparer import (
 from topollm.compute_embeddings.collate_batch_for_embedding import (
     collate_batch_and_move_to_device,
 )
+from topollm.storage.StorageProtocols import ArrayProperties
 
 # END Imports
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -229,8 +229,16 @@ def compute_embeddings(
     #     metadata_dir=main_config.embeddings.metadata_dir,
     # )
     storage_paths = StoragePaths(
-        array_dir=pathlib.Path("test_array_dir"),
-        metadata_dir=pathlib.Path("test_metadata_dir"),
+        array_dir=pathlib.Path(
+            "data",
+            "embeddings",
+            "test_array_dir",
+        ),
+        metadata_dir=pathlib.Path(
+            "data",
+            "embeddings",
+            "test_metadata_dir",
+        ),
     )
 
     storage_specification = StorageSpecification(

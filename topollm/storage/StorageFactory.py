@@ -30,28 +30,23 @@
 # Standard library imports
 import logging
 
-# Third party imports
-
 # Local imports
 from dataclasses import dataclass
 from os import PathLike
+
+# Third party imports
 from topollm.config_classes.enums import ArrayStorageType, MetadataStorageType
-from topollm.storage.XarrayChunkedMetadataStorage import XarrayChunkedMetadataStorage
 from topollm.storage.StorageProtocols import (
+    ArrayProperties,
     ChunkedArrayStorageProtocol,
     ChunkedMetadataStorageProtocol,
 )
+from topollm.storage.XarrayChunkedMetadataStorage import XarrayChunkedMetadataStorage
 from topollm.storage.ZarrChunkedArrayStorage import ZarrChunkedArrayStorage
+
 
 # END Imports
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-
-
-@dataclass
-class ArrayProperties:
-    shape: tuple[int, ...]
-    dtype: str  # e.g. "float32"
-    chunks: tuple[int, ...]
 
 
 @dataclass

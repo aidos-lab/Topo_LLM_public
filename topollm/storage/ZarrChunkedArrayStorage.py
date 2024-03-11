@@ -30,8 +30,8 @@
 # Standard library imports
 import logging
 import os
-import warnings
 import pathlib
+import warnings
 
 # Third party imports
 import zarr
@@ -40,9 +40,9 @@ import zarr.creation
 # Local imports
 from topollm.storage.StorageProtocols import (
     ArrayDataChunk,
+    ArrayProperties,
     ChunkIdentifier,
 )
-from topollm.storage.StorageFactory import ArrayProperties
 
 # END Imports
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #

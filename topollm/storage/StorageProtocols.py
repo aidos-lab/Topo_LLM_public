@@ -74,6 +74,13 @@ class MetaDataChunk:
     chunk_identifier: ChunkIdentifier
 
 
+@dataclass
+class ArrayProperties:
+    shape: tuple[int, ...]
+    dtype: str  # e.g. "float32"
+    chunks: tuple[int, ...]
+
+
 @runtime_checkable
 class ChunkedArrayStorageProtocol(Protocol):
     def open(

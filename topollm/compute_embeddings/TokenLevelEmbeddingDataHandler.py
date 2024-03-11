@@ -34,7 +34,7 @@ import logging
 import numpy as np
 import torch
 import torch.utils.data
-from tqdm.auto import tqdm
+from tqdm import tqdm
 from transformers import PreTrainedModel
 import transformers.modeling_outputs
 
@@ -101,9 +101,11 @@ class TokenLevelEmbeddingDataHandler:
         # Iterate over batches and write embeddings to storage
         self.logger.info("Computing and storing embeddings ...")
 
-        for batch_idx, batch in tqdm(
-            enumerate(self.dataloader),
-            desc="Computing and storing embeddings",
+        for batch_idx, batch in enumerate(
+            tqdm(
+                self.dataloader,
+                desc="Computing and storing embeddings",
+            )
         ):
             self.process_single_batch(
                 batch=batch,
