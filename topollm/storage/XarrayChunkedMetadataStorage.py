@@ -33,11 +33,10 @@ import os
 import warnings
 
 # Third party imports
-import zarr
 
 # Local imports
 from topollm.storage.StorageProtocols import (
-    ArrayDataChunk,
+    MetaDataChunk,
     ArrayProperties,
     ChunkIdentifier,
 )
@@ -46,9 +45,9 @@ from topollm.storage.StorageProtocols import (
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
-class ZarrChunkedArrayStorage:
+class XarrayChunkedMetadataStorage:
     """
-    A storage protocol backend for embedding metadata using Zarr.
+    A storage protocol backend for embedding metadata using Xarray.
 
     Note: We do not need to inherit from the storage protocols,
     since we are not relying on an abstract base class.
@@ -69,41 +68,39 @@ class ZarrChunkedArrayStorage:
         self,
     ) -> None:
         # # # #
-        # Open zarr array (for embeddings)
-        os.makedirs(
-            self.storage_path,
-            exist_ok=True,
+        # Open xarray (for metadata)
+
+        file_name = "metadata.nc"
+
+        warnings.warn(
+            message=f"xarray Not implemented yet",
         )
-        self.zarr_array = zarr.open(
-            store=self.storage_paths.array_dir,  # type: ignore
-            mode="w",
-            shape=self.array_properties.shape,
-            dtype=self.array_properties.dtype,
-            chunks=self.array_properties.chunks,
-        )
+
+        # TODO 2: Continue here
 
         return
 
     def write_chunk(
         self,
-        data_chunk: ArrayDataChunk,
+        data_chunk: MetaDataChunk,
     ) -> None:
         # TODO: Update this to work with the DataClass
 
         # TODO 1: Implement saving of the embeddings
+        # TODO 2: Implement saving of the metadata
 
         warnings.warn(
             message=f"write_chunk Not implemented yet",
         )
 
-        return  # ! TODO Currently this is a fake implementation
+        return  # TODO fake implementation
 
         self.zarr_array[start_idx : start_idx + len(data)] = data
 
     def read_chunk(
         self,
         chunk_identifier: ChunkIdentifier,
-    ) -> ArrayDataChunk:
+    ) -> MetaDataChunk:
         # TODO implement
 
         raise NotImplementedError

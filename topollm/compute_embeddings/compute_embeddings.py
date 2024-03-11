@@ -63,6 +63,9 @@ from transformers.configuration_utils import PretrainedConfig
 # Local imports
 from topollm.config_classes.Configs import MainConfig, EmbeddingExtractionConfig
 from topollm.config_classes.enums import Level, AggregationType
+from topollm.storage.TokenLevelEmbeddingStorageFactory import (
+    get_token_level_embedding_storage,
+)
 from topollm.utils.initialize_configuration_and_log import initialize_configuration
 from topollm.utils.setup_exception_logging import setup_exception_logging
 from topollm.compute_embeddings.EmbeddingDataLoaderPreparer import (
@@ -71,11 +74,11 @@ from topollm.compute_embeddings.EmbeddingDataLoaderPreparer import (
 )
 from topollm.storage.StorageProtocols import (
     ChunkedArrayStorageProtocol,
+    ChunkedMetadataStorageProtocol,
     ArrayDataChunk,
     ChunkIdentifier,
     ArrayProperties,
     StoragePaths,
-    get_token_level_embedding_storage,
 )
 from topollm.utils.collate_batch_for_embedding import (
     collate_batch_and_move_to_device,
@@ -149,9 +152,12 @@ class LayerExtractor(Protocol):
         ...
 
 
-# Make an implementation of the LayerExtractor protocol
-# which is configured from a list of layer indices
 class LayerExtractorFromIndices:
+    """
+    Implementation of the LayerExtractor protocol
+    which is configured from a list of layer indices.
+    """
+
     def __init__(
         self,
         layer_indices: list[int],
@@ -292,8 +298,7 @@ class TokenLevelEmbeddingExtractor:
         self,
         model_hidden_dimension: int,
     ) -> int:
-        # TODO: Solve the problem that we somewhere need to determine the
-        # dimension of the extracted embeddings
+        # TODO: Solve the problem that we somewhere need to determine the dimension of the extracted embeddings
 
         result = model_hidden_dimension * self.layer_aggregator.dimension_multiplier
 
@@ -333,13 +338,14 @@ class TokenLevelEmbeddingDataHandler:
 
     def __init__(
         self,
-        storage_backend: ChunkedArrayStorageProtocol,
+        array_storage_backend: ChunkedArrayStorageProtocol,
+        metadata_storage_backend: ChunkedMetadataStorageProtocol,
         model: PreTrainedModel,
         dataloader: torch.utils.data.DataLoader,
         embedding_extractor: EmbeddingExtractor,
         logger: logging.Logger = logging.getLogger(__name__),
     ):
-        self.storage = storage_backend
+        self.storage = array_storage_backend
         self.model = model
         self.dataloader = dataloader
         self.embedding_extractor = embedding_extractor
@@ -558,7 +564,7 @@ def compute_embeddings(
     )
 
     data_handler = TokenLevelEmbeddingDataHandler(
-        storage_backend=storage_backend,
+        array_storage_backend=storage_backend,
         model=model,
         dataloader=dataloader,
         embedding_extractor=embedding_extractor,

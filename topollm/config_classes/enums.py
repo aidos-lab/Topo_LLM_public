@@ -28,6 +28,7 @@
 
 # System imports
 from enum import Enum, unique
+from re import X
 
 # Third-party imports
 
@@ -57,7 +58,8 @@ class DatasetType(StrEnum):
 
 @unique
 class StorageType(StrEnum):
-    ZARR_VECTORS_XARRAY_METADATA = "zarr_vectors_xarray_metadata"
+    ZARR = "zarr"
+    XARRAY = "xarray"
 
 
 @unique

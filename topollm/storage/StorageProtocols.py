@@ -28,17 +28,15 @@
 # START Imports
 
 # Standard library imports
-import numpy as np
 from dataclasses import dataclass
-from typing import Protocol, runtime_checkable
 from os import PathLike
-
+from typing import Protocol, runtime_checkable
 
 # Third party imports
+import numpy as np
 
 # Local imports
-from topollm.config_classes.enums import StorageType
-from topollm.storage.ZarrChunkedArrayStorage import ZarrChunkedArrayStorage
+
 
 # END Imports
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -55,16 +53,20 @@ class ArrayDataChunk:
     """
     Dataclass to hold a single embedding chunk.
     """
+
     batch_of_sequences_embedding_array: np.ndarray
     chunk_identifier: ChunkIdentifier
+
 
 @dataclass
 class MetaDataChunk:
     """
     Dataclass to hold a single metadata chunk.
     """
+
     batch: dict
     chunk_identifier: ChunkIdentifier
+
 
 @dataclass
 class ArrayProperties:
@@ -102,30 +104,24 @@ class ChunkedArrayStorageProtocol(Protocol):
         ...
 
 
-def get_token_level_embedding_storage(
-    storage_type: StorageType,
-    array_properties: ArrayProperties,
-    storage_paths: StoragePaths,
-) -> ChunkedArrayStorageProtocol:
-    """Factory function to instantiate storage backends based on the storage type.
+@runtime_checkable
+class ChunkedMetadataStorageProtocol(Protocol):
+    def open(
+        self,
+    ) -> None:
+        """Initializes the storage with specified configuration."""
+        ...
 
-    Args:
-        storage_type:
-            The type of storage to use.
-        store_dir:
-            The directory to store the embeddings in.
+    def write_chunk(
+        self,
+        data_chunk: MetaDataChunk,
+    ) -> None:
+        """Writes a chunk of data starting from a specific index."""
+        ...
 
-    Returns:
-        An instance of a storage backend.
-    """
-    if storage_type == StorageType.ZARR_VECTORS_XARRAY_METADATA:
-        storage_backend = ZarrChunkedArrayStorage(
-            array_properties=array_properties,
-            storage_paths=storage_paths,
-        )
-        return storage_backend
-    # Extendable to other storage types
-    # elif storage_type == "hdf5":
-    #     return Hdf5EmbeddingStorage(store_dir)
-    else:
-        raise ValueError(f"Unsupported {storage_type = }")
+    def read_chunk(
+        self,
+        chunk_identifier: ChunkIdentifier,
+    ) -> MetaDataChunk:
+        """Reads a chunk of data determined by the identifier."""
+        ...
