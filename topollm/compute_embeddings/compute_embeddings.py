@@ -64,13 +64,13 @@ from topollm.storage.TokenLevelEmbeddingStorageFactory import (
     StoragePaths,
     get_token_level_embedding_storage,
 )
-from topollm.utils.initialize_configuration_and_log import initialize_configuration
-from topollm.utils.setup_exception_logging import setup_exception_logging
+from topollm.logging.initialize_configuration_and_log import initialize_configuration
+from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.compute_embeddings.EmbeddingDataLoaderPreparer import (
     EmbeddingDataLoaderPreparerContext,
     get_embedding_dataloader_preparer,
 )
-from topollm.utils.collate_batch_for_embedding import (
+from topollm.compute_embeddings.collate_batch_for_embedding import (
     collate_batch_and_move_to_device,
 )
 
