@@ -37,6 +37,7 @@ from os import PathLike
 from topollm.config_classes.enums import StorageType
 from topollm.storage.StorageProtocols import (
     ChunkedArrayStorageProtocol,
+    ChunkedMetadataStorageProtocol,
 )
 from topollm.storage.ZarrChunkedArrayStorage import ZarrChunkedArrayStorage
 
@@ -65,7 +66,7 @@ def get_token_level_embedding_storage(
     storage_type: StorageType,
     array_properties: ArrayProperties,
     storage_paths: StoragePaths,
-) -> ChunkedArrayStorageProtocol:
+) -> tuple[ChunkedArrayStorageProtocol, ChunkedMetadataStorageProtocol,]:
     """Factory function to instantiate storage backends based on the storage type.
 
     Args:
