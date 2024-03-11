@@ -6,11 +6,14 @@
 # Computer Science Department
 #
 # Authors:
-# Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 # Benjamin Ruppik (ruppik@hhu.de)
+# Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
-# This code was generated with the help of AI writing assistants
-# including GitHub Copilot, ChatGPT, Bing Chat.
+# Code generation tools and workflows:
+# First versions of this code were potentially generated
+# with the help of AI writing assistants including
+# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
+# Afterwards, the generated segments were manually reviewed and edited.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -32,11 +35,10 @@ Create embedding vectors from dataset.
 # START Imports
 
 # Standard library imports
-from curses import meta
-from functools import partial
 import logging
 import os
 import pathlib
+from functools import partial
 
 # Third party imports
 import hydra
@@ -52,28 +54,28 @@ from transformers import (
     PreTrainedTokenizer,
     PreTrainedTokenizerFast,
 )
+
+# Local imports
+from topollm.compute_embeddings.collate_batch_for_embedding import (
+    collate_batch_and_move_to_device,
+)
 from topollm.compute_embeddings.embedding_extractor.EmbeddingExtractorFactory import (
     get_embedding_extractor,
 )
-from topollm.compute_embeddings.TokenLevelEmbeddingDataHandler import (
-    TokenLevelEmbeddingDataHandler,
-)
-
-# Local imports
-from topollm.config_classes.Configs import MainConfig
-from topollm.storage.StorageFactory import (
-    StoragePaths,
-    StorageSpecification,
-    StorageFactory,
-)
-from topollm.logging.initialize_configuration_and_log import initialize_configuration
-from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.compute_embeddings.EmbeddingDataLoaderPreparer import (
     EmbeddingDataLoaderPreparerContext,
     get_embedding_dataloader_preparer,
 )
-from topollm.compute_embeddings.collate_batch_for_embedding import (
-    collate_batch_and_move_to_device,
+from topollm.compute_embeddings.TokenLevelEmbeddingDataHandler import (
+    TokenLevelEmbeddingDataHandler,
+)
+from topollm.config_classes.Configs import MainConfig
+from topollm.logging.initialize_configuration_and_log import initialize_configuration
+from topollm.logging.setup_exception_logging import setup_exception_logging
+from topollm.storage.StorageFactory import (
+    StorageFactory,
+    StoragePaths,
+    StorageSpecification,
 )
 from topollm.storage.StorageProtocols import ArrayProperties
 

@@ -7,6 +7,7 @@
 #
 # Authors:
 # Benjamin Ruppik (ruppik@hhu.de)
+# Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
 # First versions of this code were potentially generated
@@ -66,7 +67,7 @@ tda_base_path, term_extraction_base_path = get_paths_from_environment_variables(
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
-class BioTaggerExperimentPathManager:
+class SeparateDirectoriesEmbeddingsPathManager:
     def __init__(
         self,
         config: ExperimentConfig,
@@ -250,7 +251,6 @@ class BioTaggerExperimentPathManager:
         self,
         base_path: os.PathLike = term_extraction_base_path,
     ) -> pathlib.Path:
-
         path = pathlib.Path(
             self.get_metrics_dir_absolute_path(
                 base_path=base_path,

@@ -36,8 +36,8 @@ import logging
 
 # Local imports
 from convlab.tda.config_classes.ExperimentConfig import ExperimentConfig
-from convlab.tda.config_classes.path_management.BioTaggerExperimentPathManager import (
-    BioTaggerExperimentPathManager,
+from convlab.tda.config_classes.path_management.SeparateDirectoriesEmbeddingsPathManager import (
+    SeparateDirectoriesEmbeddingsPathManager,
 )
 from convlab.tda.config_classes.path_management.ExperimentPathManagerProtocol import (
     ExperimentPathManagerProtocol,
@@ -51,7 +51,7 @@ def get_experiment_path_manager(
     config: ExperimentConfig,
     logger: logging.Logger = logging.getLogger(__name__),
 ) -> ExperimentPathManagerProtocol:
-    experiment_path_manger = BioTaggerExperimentPathManager(
+    experiment_path_manger = SeparateDirectoriesEmbeddingsPathManager(
         config=config,
         logger=logger,
     )
