@@ -76,18 +76,18 @@ class DataConfig(ConfigBaseModel):
         description="The context to use for computing embeddings.",
     )
 
-    dataset_identifier: str = Field(
-        ...,
-        title="Dataset identifier for huggingface datasets.",
-        description="The dataset identifier for the huggingface datasets "
-        "to use for computing embeddings.",
-    )
-
     dataset_description_string: str = Field(
         ...,
         title="Dataset description string.",
         description=f"The dataset description string. "
         f"This will be used for creating the file paths",
+    )
+
+    dataset_identifier: str = Field(
+        ...,
+        title="Dataset identifier for huggingface datasets.",
+        description="The dataset identifier for the huggingface datasets "
+        "to use for computing embeddings.",
     )
 
     dataset_type: DatasetType = Field(

@@ -268,7 +268,7 @@ def get_embedding_dataloader_preparer(
             preparer_context=preparer_context,
         )
     # Extendable to other dataset types
-    # elif dataset_type == "convlab_unified_format":
+    # elif dataset_type == "unified_format":
     #     return ImageDatasetPreparer(config)
     else:
         raise ValueError(f"Unsupported {dataset_type = }")

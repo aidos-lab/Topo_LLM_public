@@ -1,7 +1,7 @@
 column_name: summary
 context: dataset_entry
-dataset_type: huggingface_dataset
 dataset_description_string: xsum
 dataset_identifier: xsum
+dataset_type: huggingface_dataset
 number_of_samples: 5000
 split: train

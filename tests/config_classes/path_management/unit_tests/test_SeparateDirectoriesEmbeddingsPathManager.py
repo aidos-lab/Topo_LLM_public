@@ -36,12 +36,17 @@ import pathlib
 
 # Third-party imports
 import pytest
+from topollm.config_classes.enums import DatasetType, Split
 
 # Local imports
-from convlab.tda.config_classes.config_factory import experiment_config_list
-from convlab.tda.config_classes.ExperimentConfig import ExperimentConfig
-from convlab.tda.config_classes.path_management.BioTaggerExperimentPathManager import (
-    BioTaggerExperimentPathManager,
+from topollm.config_classes.path_management.SeparateDirectoriesEmbeddingsPathManager import (
+    SeparateDirectoriesEmbeddingsPathManager,
+)
+from topollm.config_classes.Configs import (
+    DataConfig,
+    EmbeddingsConfig,
+    PathsConfig,
+    TransformationsConfig,
 )
 
 # END Imports
@@ -57,10 +62,19 @@ logger = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="session")
-def config_fixture(
-    experiment_config_from_factory: ExperimentConfig,
-) -> ExperimentConfig:
-    return experiment_config_from_factory
+def data_config() -> DataConfig:
+    return DataConfig(
+        column_name="summary",
+        context="dataset_entry",
+        dataset_description_string="xsum",
+        dataset_identifier="xsum",
+        dataset_type=DatasetType.HUGGINGFACE_DATASET,
+        number_of_samples=5000,
+        split=Split.TRAIN,
+    )
+
+
+# TODO: Fixtures for embeddings_config, paths_config, transformations_config
 
 
 @pytest.fixture(scope="session")
@@ -69,22 +83,30 @@ def logger_fixture() -> logging.Logger:
 
 
 @pytest.fixture(scope="session")
-def path_manager(
-    config_fixture: ExperimentConfig,
+def embeddings_path_manager(
+    data_config: DataConfig,
+    embeddings_config: EmbeddingsConfig,
+    paths_config: PathsConfig,
+    transformations_config: TransformationsConfig,
     logger_fixture: logging.Logger,
-) -> BioTaggerExperimentPathManager:
-    return BioTaggerExperimentPathManager(
-        config=config_fixture,
+) -> SeparateDirectoriesEmbeddingsPathManager:
+    return SeparateDirectoriesEmbeddingsPathManager(
+        data_config=data_config,
+        embeddings_config=embeddings_config,
+        paths_config=paths_config,
+        transformations_config=transformations_config,
         logger=logger_fixture,
     )
 
 
-class TestBioTaggerExperimentPathManager:
+class TestSeparateDirectoriesEmbeddingsPathManager:
+    # TODO: Update the tests
+
     def test_get_output_dir_absolute_path(
         self,
-        path_manager: BioTaggerExperimentPathManager,
+        embeddings_path_manager: SeparateDirectoriesEmbeddingsPathManager,
     ):
-        result = path_manager.get_output_dir_absolute_path()
+        result = embeddings_path_manager.get_output_dir_absolute_path()
         logger.info(f"output_dir_absolute_path: {result = }")
 
         assert isinstance(
@@ -94,9 +116,9 @@ class TestBioTaggerExperimentPathManager:
 
     def test_get_model_files_dir_absolute_path(
         self,
-        path_manager: BioTaggerExperimentPathManager,
+        embeddings_path_manager: SeparateDirectoriesEmbeddingsPathManager,
     ):
-        result = path_manager.get_model_files_dir_absolute_path()
+        result = embeddings_path_manager.get_model_files_dir_absolute_path()
         logger.info(f"model_files_dir_absolute_path: {result = }")
 
         assert isinstance(
@@ -106,9 +128,9 @@ class TestBioTaggerExperimentPathManager:
 
     def test_get_dataloaders_dir_absolute_path(
         self,
-        path_manager: BioTaggerExperimentPathManager,
+        embeddings_path_manager: BioTaggerExperimentPathManager,
     ):
-        result = path_manager.get_dataloaders_dir_absolute_path()
+        result = embeddings_path_manager.get_dataloaders_dir_absolute_path()
         logger.info(f"dataloaders_dir_absolute_path: {result = }")
 
         assert isinstance(
@@ -118,9 +140,9 @@ class TestBioTaggerExperimentPathManager:
 
     def test_get_tensorboard_dir_absolute_path(
         self,
-        path_manager: BioTaggerExperimentPathManager,
+        embeddings_path_manager: BioTaggerExperimentPathManager,
     ):
-        result = path_manager.get_tensorboard_dir_absolute_path()
+        result = embeddings_path_manager.get_tensorboard_dir_absolute_path()
         logger.info(f"tensorboard_dir_absolute_path: {result = }")
 
         assert isinstance(
@@ -130,9 +152,9 @@ class TestBioTaggerExperimentPathManager:
 
     def test_get_logging_file_absolute_path(
         self,
-        path_manager: BioTaggerExperimentPathManager,
+        embeddings_path_manager: BioTaggerExperimentPathManager,
     ):
-        result = path_manager.get_logging_file_absolute_path()
+        result = embeddings_path_manager.get_logging_file_absolute_path()
         logger.info(f"logging_file_absolute_path: {result = }")
 
         assert isinstance(
@@ -142,9 +164,9 @@ class TestBioTaggerExperimentPathManager:
 
     def test_get_metrics_dir_absolute_path(
         self,
-        path_manager: BioTaggerExperimentPathManager,
+        embeddings_path_manager: BioTaggerExperimentPathManager,
     ):
-        result = path_manager.get_metrics_dir_absolute_path()
+        result = embeddings_path_manager.get_metrics_dir_absolute_path()
         logger.info(f"metrics_dir_absolute_path: {result = }")
 
         assert isinstance(
@@ -154,9 +176,9 @@ class TestBioTaggerExperimentPathManager:
 
     def test_get_best_model_scores_dir_absolute_path(
         self,
-        path_manager: BioTaggerExperimentPathManager,
+        embeddings_path_manager: BioTaggerExperimentPathManager,
     ):
-        result = path_manager.get_best_model_scores_dir_absolute_path()
+        result = embeddings_path_manager.get_best_model_scores_dir_absolute_path()
         logger.info(f"best_model_scores_dir_absolute_path: {result = }")
 
         assert isinstance(
@@ -166,9 +188,9 @@ class TestBioTaggerExperimentPathManager:
 
     def test_get_model_predictions_dir_absolute_path(
         self,
-        path_manager: BioTaggerExperimentPathManager,
+        embeddings_path_manager: BioTaggerExperimentPathManager,
     ):
-        result = path_manager.get_model_predictions_dir_absolute_path()
+        result = embeddings_path_manager.get_model_predictions_dir_absolute_path()
         logger.info(f"model_predictions_dir_absolute_path: {result = }")
 
         assert isinstance(
@@ -178,9 +200,9 @@ class TestBioTaggerExperimentPathManager:
 
     def test_construct_model_description_string(
         self,
-        path_manager: BioTaggerExperimentPathManager,
+        embeddings_path_manager: BioTaggerExperimentPathManager,
     ):
-        result = path_manager.construct_model_description_string()
+        result = embeddings_path_manager.construct_model_description_string()
         logger.info(f"model_description_string: {result = }")
 
         assert isinstance(
