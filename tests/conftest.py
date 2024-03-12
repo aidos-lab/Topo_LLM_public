@@ -132,7 +132,7 @@ def embeddings_config(
         language_model=language_model_config,
         embedding_extraction=embedding_extraction_config,
         level=Level.TOKEN,
-        num_workers=2,
+        num_workers=1,
     )
 
 
@@ -146,13 +146,11 @@ def repository_base_path() -> pathlib.Path:
 
 
 @pytest.fixture(scope="session")
-def session_tmp_path() -> (
-    Generator[
-        pathlib.Path,
-        None,
-        None,
-    ]
-):
+def session_tmp_path() -> Generator[
+    pathlib.Path,
+    None,
+    None,
+]:
     # Create a temporary directory for the session
     temp_dir = tempfile.mkdtemp()
     yield pathlib.Path(

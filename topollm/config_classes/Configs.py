@@ -283,7 +283,9 @@ class EmbeddingsConfig(ConfigBaseModel):
     num_workers: int = Field(
         ...,
         title="Number of workers for dataloader.",
-        description="The number of workers for dataloader.",
+        description=f"The number of workers for dataloader. "
+        f"Note that is appears to be necessary "
+        f"to set this to 0 for the 'mps' backend to work.",
     )
 
     @property

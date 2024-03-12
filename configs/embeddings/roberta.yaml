@@ -12,4 +12,4 @@ language_model:
   huggingface_model_name: roberta-base
   masking_mode: no_masking
 level: token
-num_workers: 1
+num_workers: 0

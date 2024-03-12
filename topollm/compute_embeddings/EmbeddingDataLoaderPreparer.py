@@ -218,12 +218,22 @@ class HuggingfaceEmbeddingDataLoaderPreparer(EmbeddingDataLoaderPreparer):
         #     ],
         # )
 
+        # The multiprocessing_context argument is the solution taken from:
+        # https://github.com/pytorch/pytorch/issues/87688
+        # But it does not appear to work with the "mps" backend.
+        #
+        # Not that you need to set `num_workers=0` so that the data loading
+        # runs in the main process.
+        # This appears to be necessary with the "mps" backend.
         dataloader = torch.utils.data.DataLoader(
             dataset_tokenized,  # type: ignore
             batch_size=self.preparer_context.embeddings_config.batch_size,
             shuffle=False,
             collate_fn=self.preparer_context.collate_fn,
             num_workers=self.preparer_context.embeddings_config.num_workers,
+            # multiprocessing_context=(
+            #     "fork" if torch.backends.mps.is_available() else None
+            # ),
         )
 
         return dataloader

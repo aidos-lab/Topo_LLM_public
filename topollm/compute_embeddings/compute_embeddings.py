@@ -96,6 +96,8 @@ setup_exception_logging(
     logger=global_logger,
 )
 
+torch.set_num_threads(1)
+
 # END Globals
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
@@ -106,7 +108,10 @@ def load_tokenizer_and_model(
     device: torch.device,
     logger: logging.Logger = logging.getLogger(__name__),
     verbosity: int = 1,
-) -> tuple[PreTrainedTokenizer | PreTrainedTokenizerFast, PreTrainedModel,]:
+) -> tuple[
+    PreTrainedTokenizer | PreTrainedTokenizerFast,
+    PreTrainedModel,
+]:
     """Loads the tokenizer and model based on the configuration,
     and puts the model in evaluation mode.
 
@@ -161,7 +166,13 @@ def main(
         logger=global_logger,
     )
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    if torch.backends.mps.is_available():
+        device = torch.device("mps")
+    elif torch.cuda.is_available():
+        device = torch.device("cuda")
+    else:
+        device = torch.device("cpu")
+    global_logger.info(f"{device = }")
 
     compute_embeddings(
         main_config=main_config,
