@@ -52,6 +52,7 @@ coverage.xml
 cover/
 
 tests/temp_files
+tests/*/temp_files
 
 # Translations
 *.mo
