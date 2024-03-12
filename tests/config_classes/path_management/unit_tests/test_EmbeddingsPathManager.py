@@ -36,20 +36,18 @@ import pathlib
 
 # Third-party imports
 import pytest
-from topollm.config_classes.enums import DatasetType, Split
 
 # Local imports
-from topollm.config_classes.path_management.EmbeddingsPathManagerProtocol import (
-    EmbeddingsPathManager,
-)
-from topollm.config_classes.path_management.SeparateDirectoriesEmbeddingsPathManager import (
-    SeparateDirectoriesEmbeddingsPathManager,
-)
 from topollm.config_classes.Configs import (
     DataConfig,
     EmbeddingsConfig,
     PathsConfig,
     TransformationsConfig,
+)
+from topollm.config_classes.enums import DatasetType, Split
+from topollm.config_classes.path_management import EmbeddingsPathManagerProtocol
+from topollm.config_classes.path_management.SeparateDirectoriesEmbeddingsPathManager import (
+    SeparateDirectoriesEmbeddingsPathManager,
 )
 
 # END Imports
@@ -58,10 +56,12 @@ from topollm.config_classes.Configs import (
 
 @pytest.fixture
 def embeddings_path_manager(
-    request,
-):
+    request: pytest.FixtureRequest,
+) -> EmbeddingsPathManagerProtocol.EmbeddingsPathManager:
     # This uses the request fixture to dynamically get a fixture by name.
-    return request.getfixturevalue(request.param)
+    return request.getfixturevalue(
+        argname=request.param,
+    )
 
 
 @pytest.mark.parametrize(
@@ -72,7 +72,7 @@ def embeddings_path_manager(
 class TestEmbeddingsPathManager:
     def test_data_dir(
         self,
-        embeddings_path_manager: EmbeddingsPathManager,
+        embeddings_path_manager: EmbeddingsPathManagerProtocol.EmbeddingsPathManager,
         logger_fixture: logging.Logger,
     ) -> None:
         result = embeddings_path_manager.data_dir
@@ -87,7 +87,7 @@ class TestEmbeddingsPathManager:
 
     def test_array_dir_absolute_path(
         self,
-        embeddings_path_manager: EmbeddingsPathManager,
+        embeddings_path_manager: EmbeddingsPathManagerProtocol.EmbeddingsPathManager,
         logger_fixture: logging.Logger,
     ) -> None:
         result = embeddings_path_manager.array_dir_absolute_path

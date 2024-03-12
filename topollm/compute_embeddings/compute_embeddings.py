@@ -36,8 +36,6 @@ Create embedding vectors from dataset.
 
 # Standard library imports
 import logging
-import os
-import pathlib
 from functools import partial
 
 # Third party imports
@@ -47,14 +45,6 @@ import omegaconf
 import torch
 import torch.utils.data
 import transformers
-from transformers import (
-    AutoModel,
-    AutoTokenizer,
-    PreTrainedModel,
-    PreTrainedTokenizer,
-    PreTrainedTokenizerFast,
-)
-from yaml import Token
 
 # Local imports
 from topollm.compute_embeddings.collate_batch_for_embedding import (
@@ -70,7 +60,10 @@ from topollm.compute_embeddings.EmbeddingDataLoaderPreparer import (
 from topollm.compute_embeddings.TokenLevelEmbeddingDataHandler import (
     TokenLevelEmbeddingDataHandler,
 )
-from topollm.config_classes.Configs import MainConfig, TokenizerConfig
+from topollm.model_handling.load_tokenizer import load_tokenizer
+from topollm.model_handling.load_model import load_model
+from topollm.model_handling.get_torch_device import get_torch_device
+from topollm.config_classes.Configs import MainConfig
 from topollm.config_classes.path_management.EmbeddingsPathManagerFactory import (
     get_embeddings_path_manager,
 )
@@ -96,55 +89,10 @@ setup_exception_logging(
     logger=global_logger,
 )
 
-torch.set_num_threads(1)
+# torch.set_num_threads(1)
 
 # END Globals
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-
-
-def load_tokenizer_and_model(
-    pretrained_model_name_or_path: str | os.PathLike,
-    tokenizer_config: TokenizerConfig,
-    device: torch.device,
-    logger: logging.Logger = logging.getLogger(__name__),
-    verbosity: int = 1,
-) -> tuple[
-    PreTrainedTokenizer | PreTrainedTokenizerFast,
-    PreTrainedModel,
-]:
-    """Loads the tokenizer and model based on the configuration,
-    and puts the model in evaluation mode.
-
-    Args:
-        pretrained_model_name_or_path:
-            The name or path of the pretrained model.
-
-    Returns:
-        A tuple of (tokenizer, model).
-    """
-    tokenizer = AutoTokenizer.from_pretrained(
-        pretrained_model_name_or_path=pretrained_model_name_or_path,
-        add_prefix_space=tokenizer_config.add_prefix_space,
-    )
-    model: PreTrainedModel = AutoModel.from_pretrained(
-        pretrained_model_name_or_path=pretrained_model_name_or_path,
-    )
-
-    model.eval()  # Disable dropout layers
-    model.to(device)  # type: ignore
-
-    if verbosity >= 1:
-        logger.info(
-            f"tokenizer:\n" f"{tokenizer}",
-        )
-        logger.info(
-            f"model:\n" f"{model}",
-        )
-        logger.info(
-            f"{device = }",
-        )
-
-    return tokenizer, model
 
 
 @hydra.main(
@@ -166,13 +114,10 @@ def main(
         logger=global_logger,
     )
 
-    if torch.backends.mps.is_available():
-        device = torch.device("mps")
-    elif torch.cuda.is_available():
-        device = torch.device("cuda")
-    else:
-        device = torch.device("cpu")
-    global_logger.info(f"{device = }")
+    device = get_torch_device(
+        preferred_torch_backend=main_config.preferred_torch_backend,
+        logger=global_logger,
+    )
 
     compute_embeddings(
         main_config=main_config,
@@ -190,13 +135,19 @@ def compute_embeddings(
     device: torch.device,
     logger: logging.Logger = logging.getLogger(__name__),
 ):
-    tokenizer, model = load_tokenizer_and_model(
+    tokenizer = load_tokenizer(
         pretrained_model_name_or_path=main_config.embeddings.language_model.huggingface_model_name,
         tokenizer_config=main_config.embeddings.tokenizer,
+        logger=logger,
+        verbosity=main_config.verbosity,
+    )
+    model = load_model(
+        pretrained_model_name_or_path=main_config.embeddings.language_model.huggingface_model_name,
         device=device,
         logger=logger,
         verbosity=main_config.verbosity,
     )
+
     model_config: transformers.PretrainedConfig = model.config
     if model_config is None:
         raise ValueError(

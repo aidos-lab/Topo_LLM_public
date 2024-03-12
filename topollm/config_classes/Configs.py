@@ -42,6 +42,7 @@ from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
 from topollm.config_classes.enums import (
     AggregationType,
     Level,
+    PreferredTorchBackend,
     Split,
     DatasetType,
     ArrayStorageType,
@@ -352,6 +353,12 @@ class MainConfig(ConfigBaseModel):
         ...,
         title="Paths configuration.",
         description="The configuration for specifying paths.",
+    )
+
+    preferred_torch_backend: PreferredTorchBackend = Field(
+        ...,
+        title="Preferred torch backend.",
+        description="The preferred torch backend.",
     )
 
     storage: StorageConfig = Field(

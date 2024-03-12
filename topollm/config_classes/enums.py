@@ -55,35 +55,46 @@ assert issubclass(
 
 
 @unique
-class DatasetType(StrEnum):
+class PreferredTorchBackend(StrEnum):  # type: ignore
+    CPU = "cpu"
+    CUDA = "cuda"
+    MPS = "mps"
+    AUTO = "auto"
+
+
+# ==============================
+
+
+@unique
+class DatasetType(StrEnum):  # type: ignore
     HUGGINGFACE_DATASET = "huggingface_dataset"
 
 
 @unique
-class ArrayStorageType(StrEnum):
+class ArrayStorageType(StrEnum):  # type: ignore
     ZARR = "zarr"
 
 
 @unique
-class MetadataStorageType(StrEnum):
+class MetadataStorageType(StrEnum):  # type: ignore
     XARRAY = "xarray"
 
 
 @unique
-class AggregationType(StrEnum):
+class AggregationType(StrEnum):  # type: ignore
     CONCATENATE = "concatenate"
     MEAN = "mean"
 
 
 @unique
-class Level(StrEnum):
+class Level(StrEnum):  # type: ignore
     TOKEN = "token"
     WVFS = "wvfs"
     DATASET_ENTRY = "dataset_entry"
 
 
 @unique
-class Split(StrEnum):
+class Split(StrEnum):  # type: ignore
     TRAIN = "train"
     VALIDATION = "validation"
     TEST = "test"
@@ -107,7 +118,7 @@ masking_mode_short_to_long: dict[str, str] = {
 
 
 @unique
-class DataLoaderKey(StrEnum):
+class DataLoaderKey(StrEnum):  # type: ignore
     TRAINING = "train"
     VALIDATION = "validation"
     TESTING = "test"
@@ -115,7 +126,7 @@ class DataLoaderKey(StrEnum):
 
 
 @unique
-class ExperimentMode(StrEnum):
+class ExperimentMode(StrEnum):  # type: ignore
     TRAINING = "training"
     VALIDATION = "validation"
     TESTING = "testing"
@@ -126,7 +137,7 @@ class ExperimentMode(StrEnum):
 
 
 @unique
-class DialogueDatasetDesc(StrEnum):
+class DialogueDatasetDesc(StrEnum):  # type: ignore
     MULTIWOZ21 = "multiwoz21"
     MULTIWOZ21_TRAIN = "multiwoz21-train"
     MULTIWOZ21_VALIDATION = "multiwoz21-validation"
@@ -138,26 +149,26 @@ class DialogueDatasetDesc(StrEnum):
 
 
 @unique
-class SplitMode(StrEnum):
+class SplitMode(StrEnum):  # type: ignore
     FULL = "full"
     COLUMN = "column"
     RANDOM = "random"
 
 
 @unique
-class SubtokenExtractionMethod(StrEnum):
+class SubtokenExtractionMethod(StrEnum):  # type: ignore
     FIRST_SUBTOKEN = "first_subtoken"
     LAST_SUBTOKEN = "last_subtoken"
 
 
 @unique
-class DatasetMode(StrEnum):
+class DatasetMode(StrEnum):  # type: ignore
     DATASETS_CONTEXTUAL_DIALOGUES = "datasets_contextual_dialogues"
     DATASETS_NER_EXPERIMENTS = "datasets_ner_experiments"
 
 
 @unique
-class WordSeparationMethod(StrEnum):
+class WordSeparationMethod(StrEnum):  # type: ignore
     # Option 1:
     # word_separation_method = "from_tokenizer"
     # means: use the word separation created by the tokenizer
@@ -179,39 +190,39 @@ class WordSeparationMethod(StrEnum):
 
 
 @unique
-class NeighborhoodsCenterMethod(StrEnum):
+class NeighborhoodsCenterMethod(StrEnum):  # type: ignore
     IGNORE = "ignore"
     ADD_CENTER = "add_center"
     ADDIFNOT = "addifnot"
 
 
 @unique
-class PrecomputedNeighborsMetric(StrEnum):
+class PrecomputedNeighborsMetric(StrEnum):  # type: ignore
     EUCLIDEAN = "euclidean"
     COSINE = "cosine"
 
 
 @unique
-class RipserMetric(StrEnum):
+class RipserMetric(StrEnum):  # type: ignore
     EUCLIDEAN = "euclidean"
     COSINE = "cosine"
 
 
 @unique
-class NeighborhoodsKeyDesc(StrEnum):
+class NeighborhoodsKeyDesc(StrEnum):  # type: ignore
     MULTIWOZ21_TRAIN = "multiwoz21-train"
     SGD_TRAIN = "sgd-train"
     MULTIWOZ21_TRAIN_AND_SGD_TRAIN = "multiwoz21-train-and-sgd-train"
 
 
 @unique
-class WhichEmbeddings(StrEnum):
+class WhichEmbeddings(StrEnum):  # type: ignore
     KEY = "key"
     QUERY = "query"
 
 
 @unique
-class DistancesOrIndices(StrEnum):
+class DistancesOrIndices(StrEnum):  # type: ignore
     DISTANCES = "distances"
     INDICES = "indices"
 
@@ -223,7 +234,7 @@ class DistancesOrIndices(StrEnum):
 
 
 @unique
-class FeatureType(StrEnum):
+class FeatureType(StrEnum):  # type: ignore
     LM = "lm"
     LM_C_PIS_H0 = "lm_C_PIs_H0"
     LM_C_WASSERSTEIN_H0_H1 = "lm_C_wasserstein_H0_H1"
@@ -233,46 +244,46 @@ class FeatureType(StrEnum):
 
 
 @unique
-class AdditionalLayerNormForInProjection(StrEnum):
+class AdditionalLayerNormForInProjection(StrEnum):  # type: ignore
     NONE = "None"
     BEFORE = "before"
     AFTER = "after"
 
 
 @unique
-class EncodedSliceCombinationMode(StrEnum):
+class EncodedSliceCombinationMode(StrEnum):  # type: ignore
     ADD = "add"
     CONCATENATE = "concatenate"
     NONE = "none"
 
 
 @unique
-class InProjectionType(StrEnum):
+class InProjectionType(StrEnum):  # type: ignore
     LINEAR = "linear"
     MLP = "mlp"
     SLICED_MLP = "sliced_mlp"
 
 
 @unique
-class ModelSelectionMetric(StrEnum):
+class ModelSelectionMetric(StrEnum):  # type: ignore
     F1_MACRO = "f1_macro"
     PHRASAL_OVERALL_F1 = "phrasal_overall_f1"
     TRAINING_LOSS = "training_loss"
 
 
 @unique
-class SliceNormType(StrEnum):
+class SliceNormType(StrEnum):  # type: ignore
     NONE = "None"
     INDIVIDUAL = "individual"
     SHARED = "shared"
 
 
 @unique
-class TaggerType(StrEnum):
+class TaggerType(StrEnum):  # type: ignore
     ROBERTA = "roberta"
 
 
 @unique
-class LrSchedulerType(StrEnum):
+class LrSchedulerType(StrEnum):  # type: ignore
     CONSTANT = "constant"
     LINEAR_WITH_WARMUP = "linear_with_warmup"
