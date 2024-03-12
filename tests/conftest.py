@@ -33,6 +33,9 @@
 # System imports
 import logging
 import pathlib
+import tempfile
+import shutil
+from typing import Generator
 
 # Third-party imports
 import pytest
@@ -143,17 +146,29 @@ def repository_base_path() -> pathlib.Path:
 
 
 @pytest.fixture(scope="session")
+def session_tmp_path() -> (
+    Generator[
+        pathlib.Path,
+        None,
+        None,
+    ]
+):
+    # Create a temporary directory for the session
+    temp_dir = tempfile.mkdtemp()
+    yield pathlib.Path(
+        temp_dir,
+    )
+    # Cleanup the temporary directory at the end of the session
+    shutil.rmtree(temp_dir)
+
+
+@pytest.fixture(scope="session")
 def paths_config(
-    tmp_path: pathlib.Path,
+    session_tmp_path: pathlib.Path,
     repository_base_path: pathlib.Path,
 ) -> PathsConfig:
-    """
-    Note that `tmp_path` is a built-in fixture provided by `pytest`,
-    which returns a `pathlib.Path` object pointing to
-    an empty, temporary directory.
-    """
     return PathsConfig(
-        data_dir=tmp_path,
+        data_dir=session_tmp_path,
         repository_base_path=repository_base_path,
     )
 
