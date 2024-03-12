@@ -38,17 +38,7 @@ import pathlib
 import pytest
 
 # Local imports
-from topollm.config_classes.Configs import (
-    DataConfig,
-    EmbeddingsConfig,
-    PathsConfig,
-    TransformationsConfig,
-)
-from topollm.config_classes.enums import DatasetType, Split
 from topollm.config_classes.path_management import EmbeddingsPathManagerProtocol
-from topollm.config_classes.path_management.SeparateDirectoriesEmbeddingsPathManager import (
-    SeparateDirectoriesEmbeddingsPathManager,
-)
 
 # END Imports
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -100,4 +90,17 @@ class TestEmbeddingsPathManager:
 
         return None
 
-    # TODO: Update the tests
+    def test_metadata_dir_absolute_path(
+        self,
+        embeddings_path_manager: EmbeddingsPathManagerProtocol.EmbeddingsPathManager,
+        logger_fixture: logging.Logger,
+    ) -> None:
+        result = embeddings_path_manager.metadata_dir_absolute_path
+        logger_fixture.info(f"metadata_dir_absolute_path: {result = }")
+
+        assert isinstance(
+            result,
+            pathlib.Path,
+        )
+
+        return None

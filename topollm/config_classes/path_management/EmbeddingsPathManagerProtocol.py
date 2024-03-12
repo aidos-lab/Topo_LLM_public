@@ -46,17 +46,14 @@ class EmbeddingsPathManager(Protocol):
     @property
     def data_dir(
         self,
-    ) -> pathlib.Path:
-        ...
+    ) -> pathlib.Path: ...  # pragma: no cover
 
     @property
     def array_dir_absolute_path(
         self,
-    ) -> pathlib.Path:
-        ...
+    ) -> pathlib.Path: ...  # pragma: no cover
 
     @property
     def metadata_dir_absolute_path(
         self,
-    ) -> pathlib.Path:
-        ...
+    ) -> pathlib.Path: ...  # pragma: no cover
