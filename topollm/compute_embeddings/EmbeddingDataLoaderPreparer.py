@@ -140,7 +140,7 @@ class HuggingfaceEmbeddingDataLoaderPreparer(EmbeddingDataLoaderPreparer):
     def sequence_length(
         self,
     ) -> int:
-        return self.preparer_context.embeddings_config.max_length
+        return self.preparer_context.embeddings_config.tokenizer.max_length
 
     def __len__(
         self,

@@ -52,52 +52,6 @@ from topollm.config_classes.Configs import (
 # END Imports
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Configuration of the logging module
-
-logger = logging.getLogger(__name__)
-
-# END Configuration of the logging module
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-
-
-@pytest.fixture(scope="session")
-def data_config() -> DataConfig:
-    return DataConfig(
-        column_name="summary",
-        context="dataset_entry",
-        dataset_description_string="xsum",
-        dataset_identifier="xsum",
-        dataset_type=DatasetType.HUGGINGFACE_DATASET,
-        number_of_samples=5000,
-        split=Split.TRAIN,
-    )
-
-
-# TODO: Fixtures for embeddings_config, paths_config, transformations_config
-
-
-@pytest.fixture(scope="session")
-def logger_fixture() -> logging.Logger:
-    return logger
-
-
-@pytest.fixture(scope="session")
-def embeddings_path_manager(
-    data_config: DataConfig,
-    embeddings_config: EmbeddingsConfig,
-    paths_config: PathsConfig,
-    transformations_config: TransformationsConfig,
-    logger_fixture: logging.Logger,
-) -> SeparateDirectoriesEmbeddingsPathManager:
-    return SeparateDirectoriesEmbeddingsPathManager(
-        data_config=data_config,
-        embeddings_config=embeddings_config,
-        paths_config=paths_config,
-        transformations_config=transformations_config,
-        logger=logger_fixture,
-    )
-
 
 class TestSeparateDirectoriesEmbeddingsPathManager:
     # TODO: Update the tests

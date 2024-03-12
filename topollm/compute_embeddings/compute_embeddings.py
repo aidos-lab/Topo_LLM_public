@@ -180,8 +180,8 @@ def compute_embeddings(
     logger: logging.Logger = logging.getLogger(__name__),
 ):
     tokenizer, model = load_tokenizer_and_model(
-        pretrained_model_name_or_path=main_config.embeddings.language_model_config.huggingface_model_name,
-        tokenizer_config=main_config.embeddings.tokenizer_config,
+        pretrained_model_name_or_path=main_config.embeddings.language_model.huggingface_model_name,
+        tokenizer_config=main_config.embeddings.tokenizer,
         device=device,
         logger=logger,
         verbosity=main_config.verbosity,

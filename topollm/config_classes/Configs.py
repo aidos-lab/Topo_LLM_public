@@ -218,6 +218,12 @@ class TokenizerConfig(ConfigBaseModel):
         description="Whether to add prefix space.",
     )
 
+    max_length: int = Field(
+        ...,
+        title="Maximum length of the input sequence.",
+        description="The maximum length of the input sequence.",
+    )
+
     @property
     def tokenizer_config_description(
         self,
@@ -228,13 +234,17 @@ class TokenizerConfig(ConfigBaseModel):
         Returns:
             str: The description of the tokenizer.
         """
-        return f"{NAME_PREFIXES['add_prefix_space']}{str(self.add_prefix_space)}"
+        return (
+            f"{NAME_PREFIXES['add_prefix_space']}{str(self.add_prefix_space)}"
+            f"_"
+            f"{NAME_PREFIXES['max_length']}{str(self.max_length)}"
+        )
 
 
 class EmbeddingsConfig(ConfigBaseModel):
     """Configurations for specifying embeddings."""
 
-    tokenizer_config: TokenizerConfig = Field(
+    tokenizer: TokenizerConfig = Field(
         ...,
         title="Tokenizer configuration.",
         description="The configuration for specifying tokenizer.",
@@ -252,7 +262,7 @@ class EmbeddingsConfig(ConfigBaseModel):
         description="The batch size for computing embeddings.",
     )
 
-    language_model_config: LanguageModelConfig = Field(
+    language_model: LanguageModelConfig = Field(
         ...,
         title="Model configuration.",
         description="The configuration for specifying model.",
@@ -270,17 +280,20 @@ class EmbeddingsConfig(ConfigBaseModel):
         description="The level to use for computing embeddings.",
     )
 
-    max_length: int = Field(
-        ...,
-        title="Maximum length of the input sequence.",
-        description="The maximum length of the input sequence.",
-    )
-
     num_workers: int = Field(
         ...,
         title="Number of workers for dataloader.",
         description="The number of workers for dataloader.",
     )
+
+    @property
+    def embeddings_config_description(
+        self,
+    ) -> str:
+        desc = f"{NAME_PREFIXES['level']}"
+        desc += f"{self.level}"
+
+        return desc
 
 
 class PathsConfig(ConfigBaseModel):

@@ -100,9 +100,9 @@ class SeparateDirectoriesEmbeddingsPathManager:
 
         path = pathlib.Path(
             self.data_config.data_config_description,
-            f"{NAME_PREFIXES['level']}{self.embeddings_config.level}"
-            f"_{NAME_PREFIXES['max_length']}{self.embeddings_config.max_length}",
-            self.embeddings_config.language_model_config.lanugage_model_config_description,
+            self.embeddings_config.embeddings_config_description,
+            self.embeddings_config.tokenizer.tokenizer_config_description,
+            self.embeddings_config.language_model.lanugage_model_config_description,
             self.embeddings_config.embedding_extraction.embedding_extraction_config_description,
             self.transformations_config.transformation_config_description,
         )

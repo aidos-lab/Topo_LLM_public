@@ -35,8 +35,6 @@ import logging
 import pathlib
 import os
 
-from traitlets import default
-
 # Local imports
 
 
