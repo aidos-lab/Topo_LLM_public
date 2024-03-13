@@ -1,0 +1,1 @@
+These files are here as example data for the storage tests.

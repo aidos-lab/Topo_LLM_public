@@ -40,28 +40,13 @@ import numpy as np
 import pytest
 
 # Local imports
-from topollm.storage import StorageProtocols, ZarrChunkedArrayStorage
+from topollm.storage import StorageProtocols, PickleChunkedMetadataStorage
 
 # END Imports
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
-@pytest.fixture(scope="function")
-def array_properties(
-    request: pytest.FixtureRequest,
-) -> StorageProtocols.ArrayProperties:
-    """
-    Fixture that provides ArrayProperties based on parameterized inputs.
-    """
-    shape = request.param
-    return StorageProtocols.ArrayProperties(
-        shape=shape,
-        dtype="float32",
-        chunks=(5,),
-    )
-
-
-class ChunkedArrayStorageFactory(ABC):
+class ChunkedMetadataStorageFactory(ABC):
     """
     Abstract factory for creating storage instances.
     """
@@ -69,12 +54,15 @@ class ChunkedArrayStorageFactory(ABC):
     @abstractmethod
     def create_storage(
         self,
-    ) -> StorageProtocols.ChunkedArrayStorageProtocol:
+    ) -> StorageProtocols.ChunkedMetadataStorageProtocol:
         """
         Creates and returns a storage instance, with all necessary
         arguments handled internally by the factory.
         """
         pass
+
+
+# TODO Continue here
 
 
 class _ChunkedArrayStorageProtocol(ABC):
@@ -87,7 +75,7 @@ class _ChunkedArrayStorageProtocol(ABC):
     def storage_factory(
         self,
         request,
-    ) -> ChunkedArrayStorageFactory:
+    ) -> ChunkedMetadataStorageFactory:
         """
         Should be overridden by subclasses to provide a concrete storage factory.
         The factory itself should handle all necessary arguments for storage creation.
@@ -97,7 +85,7 @@ class _ChunkedArrayStorageProtocol(ABC):
     @pytest.fixture
     def storage(
         self,
-        storage_factory: ChunkedArrayStorageFactory,
+        storage_factory: ChunkedMetadataStorageFactory,
     ) -> StorageProtocols.ChunkedArrayStorageProtocol:
         """
         Dynamic storage instance creation using the provided factory.
@@ -165,7 +153,7 @@ class _ChunkedArrayStorageProtocol(ABC):
         ), "Read data does not match written data"
 
 
-class ZarrChunkedArrayStorageFactory(ChunkedArrayStorageFactory):
+class ZarrStorageFactory(ChunkedMetadataStorageFactory):
     """
     Factory for creating ZarrChunkedArrayStorage instances.
     """
@@ -206,12 +194,12 @@ class TestZarrChunkedArrayStorage(_ChunkedArrayStorageProtocol):
         array_properties: StorageProtocols.ArrayProperties,
         test_data_dir: pathlib.Path,
         logger_fixture: logging.Logger,
-    ) -> ChunkedArrayStorageFactory:
+    ) -> ChunkedMetadataStorageFactory:
         """
         Provides a concrete factory instance, initialized with all necessary arguments
         for creating a ZarrChunkedArrayStorage instance.
         """
-        return ZarrChunkedArrayStorageFactory(
+        return ZarrStorageFactory(
             array_properties=array_properties,
             tmp_path=test_data_dir,
             logger=logger_fixture,

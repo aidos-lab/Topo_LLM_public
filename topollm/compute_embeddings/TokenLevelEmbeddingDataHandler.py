@@ -57,6 +57,25 @@ from topollm.storage.StorageProtocols import (
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
+def move_batch_to_cpu(
+    batch: dict,
+) -> dict:
+    """
+    Move all tensors in the batch to CPU.
+    """
+
+    batch_cpu = {
+        key: value.cpu()
+        for key, value in batch.items()
+        if isinstance(
+            value,
+            torch.Tensor,
+        )
+    }
+
+    return batch_cpu
+
+
 class TokenLevelEmbeddingDataHandler:
     """
     Create a Data Handler Class with Dependency Injection
@@ -141,9 +160,13 @@ class TokenLevelEmbeddingDataHandler:
             data_chunk=array_data_chunk,
         )
 
+        batch_cpu = move_batch_to_cpu(
+            batch=batch,
+        )
+
         # Write metadata to storage
         metadata_data_chunk = MetadataChunk(
-            batch=batch,
+            batch=batch_cpu,
             chunk_identifier=chunk_identifier,
         )
 
