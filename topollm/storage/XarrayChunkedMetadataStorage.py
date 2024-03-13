@@ -61,11 +61,11 @@ class XarrayChunkedMetadataStorage:
     def __init__(
         self,
         array_properties: ArrayProperties,
-        storage_path: os.PathLike,
+        root_storage_path: os.PathLike,
         logger: logging.Logger = logging.getLogger(__name__),
     ):
         self.array_properties = array_properties
-        self.storage_path = storage_path
+        self.root_storage_path = root_storage_path
         self.logger = logger
 
     def open(
@@ -74,7 +74,7 @@ class XarrayChunkedMetadataStorage:
         # # # #
         # Open xarray (for metadata)
         os.makedirs(
-            self.storage_path,
+            self.root_storage_path,
             exist_ok=True,
         )
 
@@ -101,7 +101,7 @@ class XarrayChunkedMetadataStorage:
             message=f"write_chunk Not implemented yet",
         )
 
-        return  # TODO fake implementation
+        return None  # TODO fake implementation
 
     def read_chunk(
         self,
@@ -109,4 +109,4 @@ class XarrayChunkedMetadataStorage:
     ) -> MetaDataChunk:
         # TODO implement
 
-        raise NotImplementedError
+        raise NotImplementedError  # ! Remove this line

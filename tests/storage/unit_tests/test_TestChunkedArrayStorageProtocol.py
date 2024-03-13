@@ -194,7 +194,7 @@ class ZarrStorageFactory(StorageFactory):
 
         return ZarrChunkedArrayStorage.ZarrChunkedArrayStorage(
             array_properties=self.array_properties,
-            storage_path=storage_path,
+            root_storage_path=storage_path,
             logger=self.logger,
         )
 

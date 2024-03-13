@@ -34,26 +34,33 @@
 import logging
 import os
 import pathlib
+import pickle
 import warnings
 
 # Third party imports
-import zarr
-import zarr.creation
 
 # Local imports
+from tests.config_classes.path_management.unit_tests import test_EmbeddingsPathManager
 from topollm.storage.StorageProtocols import (
-    ArrayDataChunk,
-    ArrayProperties,
+    MetaDataChunk,
     ChunkIdentifier,
+    ArrayProperties,
 )
 
 # END Imports
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
-class ZarrChunkedArrayStorage:
+def chunk_identifier_str(
+    chunk_identifier: ChunkIdentifier,
+    fill_zeros: int = 5,
+) -> str:
+    return str(chunk_identifier.chunk_idx).zfill(fill_zeros)
+
+
+class PickleChunkedMetadataStorage:
     """
-    A storage protocol backend for embedding metadata using Zarr.
+    A storage protocol backend for embedding metadata using Pickles.
 
     Note: We do not need to inherit from the storage protocols,
     since we are not relying on an abstract base class.
@@ -61,59 +68,74 @@ class ZarrChunkedArrayStorage:
 
     def __init__(
         self,
-        array_properties: ArrayProperties,
         root_storage_path: os.PathLike,
         logger: logging.Logger = logging.getLogger(__name__),
     ):
-        self.array_properties = array_properties
-        self.root_storage_path = pathlib.Path(
-            root_storage_path,
+        self.root_storage_path = root_storage_path
+        self.storage_dir = pathlib.Path(
+            self.root_storage_path,
+            "pickle_chunked_metadata_storage",
         )
+
         self.logger = logger
+
+        return None
 
     def open(
         self,
     ) -> None:
         # # # #
-        # Open zarr array (for embeddings)
+        # Create the folder for the storage if it does not exist
         os.makedirs(
-            self.root_storage_path,
+            self.storage_dir,
             exist_ok=True,
         )
 
-        self.zarr_array = zarr.creation.open_array(
-            store=self.root_storage_path,
-            mode="w",
-            shape=self.array_properties.shape,
-            dtype=self.array_properties.dtype,
-            chunks=self.array_properties.chunks,  # type: ignore
+        return None
+
+    @classmethod
+    def chunk_file_name(
+        cls,
+        chunk_identifier: ChunkIdentifier,
+    ) -> str:
+        chunk_id_str = chunk_identifier_str(
+            chunk_identifier=chunk_identifier,
         )
 
-        return
+        return f"chunk_" f"{chunk_id_str}" f".pkl"
+
+    def chunk_file_path(
+        self,
+        chunk_identifier: ChunkIdentifier,
+    ) -> pathlib.Path:
+        return pathlib.Path(
+            self.storage_dir,
+            self.chunk_file_name(chunk_identifier),
+        )
 
     def write_chunk(
         self,
-        data_chunk: ArrayDataChunk,
+        data_chunk: MetaDataChunk,
     ) -> None:
-        start_idx = data_chunk.chunk_identifier.start_idx
-        end_idx = data_chunk.chunk_identifier.end_idx
+        chunk_file_path = self.chunk_file_path(
+            chunk_identifier=data_chunk.chunk_identifier,
+        )
 
-        data = data_chunk.batch_of_sequences_embedding_array
+        with open(
+            file=chunk_file_path,
+            mode="wb",
+        ) as file:
+            pickle.dump(
+                obj=data_chunk.batch,
+                file=file,
+            )
 
-        self.zarr_array[start_idx:end_idx,] = data
-
-        return
+        return None
 
     def read_chunk(
         self,
         chunk_identifier: ChunkIdentifier,
-    ) -> ArrayDataChunk:
-        start_idx = chunk_identifier.start_idx
-        end_idx = chunk_identifier.end_idx
+    ) -> MetaDataChunk:
+        # TODO implement
 
-        data = self.zarr_array[start_idx:end_idx,]
-
-        return ArrayDataChunk(
-            batch_of_sequences_embedding_array=data,
-            chunk_identifier=chunk_identifier,
-        )
+        raise NotImplementedError

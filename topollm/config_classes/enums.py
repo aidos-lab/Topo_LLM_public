@@ -78,6 +78,7 @@ class ArrayStorageType(StrEnum):  # type: ignore
 @unique
 class MetadataStorageType(StrEnum):  # type: ignore
     XARRAY = "xarray"
+    PICKLE = "pickle"
 
 
 @unique

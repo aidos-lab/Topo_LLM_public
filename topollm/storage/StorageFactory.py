@@ -39,13 +39,14 @@ from os import PathLike
 
 # Third party imports
 from topollm.config_classes.enums import ArrayStorageType, MetadataStorageType
+from topollm.storage import PickleChunkedMetadataStorage
+from topollm.storage import XarrayChunkedMetadataStorage
+from topollm.storage import ZarrChunkedArrayStorage
 from topollm.storage.StorageProtocols import (
     ArrayProperties,
     ChunkedArrayStorageProtocol,
     ChunkedMetadataStorageProtocol,
 )
-from topollm.storage.XarrayChunkedMetadataStorage import XarrayChunkedMetadataStorage
-from topollm.storage.ZarrChunkedArrayStorage import ZarrChunkedArrayStorage
 
 
 # END Imports
@@ -85,9 +86,9 @@ class StorageFactory:
         based on the storage type.
         """
         if self.storage_specification.array_storage_type == ArrayStorageType.ZARR:
-            storage_backend = ZarrChunkedArrayStorage(
+            storage_backend = ZarrChunkedArrayStorage.ZarrChunkedArrayStorage(
                 array_properties=self.storage_specification.array_properties,
-                storage_path=self.storage_specification.storage_paths.array_dir,
+                root_storage_path=self.storage_specification.storage_paths.array_dir,
             )
             return storage_backend
         # Extendable to other storage types
@@ -105,12 +106,19 @@ class StorageFactory:
             self.storage_specification.metadata_storage_type
             == MetadataStorageType.XARRAY
         ):
-            storage_backend = XarrayChunkedMetadataStorage(
+            storage_backend = XarrayChunkedMetadataStorage.XarrayChunkedMetadataStorage(
                 array_properties=self.storage_specification.array_properties,
-                storage_path=self.storage_specification.storage_paths.metadata_dir,
+                root_storage_path=self.storage_specification.storage_paths.metadata_dir,
                 logger=self.logger,
             )
-            return storage_backend
+        elif (
+            self.storage_specification.metadata_storage_type
+            == MetadataStorageType.PICKLE
+        ):
+            storage_backend = PickleChunkedMetadataStorage.PickleChunkedMetadataStorage(
+                root_storage_path=self.storage_specification.storage_paths.metadata_dir,
+                logger=self.logger,
+            )
         # Extendable to other storage types
         # elif storage_type == "pandas":
         #     return PandasMetadataStorage(store_dir)
@@ -118,3 +126,5 @@ class StorageFactory:
             raise ValueError(
                 f"Unsupported " f"{self.storage_specification.metadata_storage_type = }"
             )
+
+        return storage_backend
