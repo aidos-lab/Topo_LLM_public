@@ -33,9 +33,7 @@
 # System imports
 import logging
 import pathlib
-import tempfile
-import shutil
-from typing import Generator
+from datetime import datetime
 
 # Third-party imports
 import pytest
@@ -68,6 +66,10 @@ logger = logging.getLogger(__name__)
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# START Configuration of pytest
+
+
 def pytest_addoption(
     parser: pytest.Parser,
 ) -> None:
@@ -78,6 +80,27 @@ def pytest_addoption(
     )
 
     return None
+
+
+def pytest_configure(
+    config: pytest.Config,
+) -> None:
+    """
+    Create a custom path to the log file
+    if log_file is not mentioned in pytest.ini file
+    """
+    if not config.option.log_file:
+        timestamp = datetime.strftime(
+            datetime.now(),
+            "%Y-%m-%d_%H-%M-%S",
+        )
+        config.option.log_file = "temp_files/logs/pytest-logs_" + timestamp + ".log"
+
+    return None
+
+
+# END Configuration of pytest
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
 @pytest.fixture(scope="session")
@@ -104,21 +127,6 @@ def test_data_dir(
             basename="data-",
             numbered=True,
         )
-
-
-# @pytest.fixture(scope="session")
-# def session_tmp_path() -> Generator[
-#     pathlib.Path,
-#     None,
-#     None,
-# ]:
-#     # Create a temporary directory for the session
-#     temp_dir = tempfile.mkdtemp()
-#     yield pathlib.Path(
-#         temp_dir,
-#     )
-#     # Cleanup the temporary directory at the end of the session
-#     shutil.rmtree(temp_dir)
 
 
 @pytest.fixture(scope="session")
@@ -232,3 +240,22 @@ def separate_directories_embeddings_path_manager(
         verbosity=1,
         logger=logger_fixture,
     )
+
+
+# import tempfile
+# import shutil
+# from typing import Generator
+#
+# @pytest.fixture(scope="session")
+# def session_tmp_path() -> Generator[
+#     pathlib.Path,
+#     None,
+#     None,
+# ]:
+#     # Create a temporary directory for the session
+#     temp_dir = tempfile.mkdtemp()
+#     yield pathlib.Path(
+#         temp_dir,
+#     )
+#     # Cleanup the temporary directory at the end of the session
+#     shutil.rmtree(temp_dir)
