@@ -92,24 +92,19 @@ class _ChunkedMetadataStorageProtocol(ABC):
     # TODO Continue here
 
     @pytest.mark.parametrize(
-        "array_properties, chunk_length, start_idx",
+        "batches_list, chunk_idx_list",
         [
-            pytest.param((10, 100), 8, 0, id="2D-size_10x100-start_0"),
-            pytest.param((10, 100), 2, 8, id="2D-size_10x100-start_10"),
-            pytest.param((100, 200), 10, 0, id="2D-size_100x200-start_0"),
-            pytest.param((100, 200), 20, 10, id="2D-size_100x200-start_10"),
-            pytest.param((800, 512, 786), 10, 0, id="3D-size_800x512x786-start_0"),
-            pytest.param((800, 512, 786), 20, 10, id="3D-size_800x512x786-start_10"),
+            pytest.param((10, 100), [4, 5], id="test_batch_length_2"),
             # Add more combinations as needed
         ],
-        indirect=["array_properties"],  # Specifies which parameters are for fixtures
+        indirect=[],  # Specifies which parameters are for fixtures
     )
     def test_write_and_read_chunk(
         self,
-        storage: StorageProtocols.ChunkedArrayStorageProtocol,
-        array_properties: StorageProtocols.ArrayProperties,
-        chunk_length: int,
-        start_idx: int,
+        storage: StorageProtocols.ChunkedMetadataStorageProtocol,
+        batches_list: list[dict],
+        chunk_idx_list: list[int],
+        logger_fixture: logging.Logger,
     ) -> None:
         """
         Test that data written to storage can be read back accurately.
@@ -117,39 +112,31 @@ class _ChunkedMetadataStorageProtocol(ABC):
 
         storage.open()
 
-        # Take the length of the chunk to write from `chunk_length`
-        # and the remaining dimensions from `array_properties.shape`.
-        chunk_shape = (chunk_length,) + array_properties.shape[
-            1:
-        ]  # The '+' here is tuple concatenation
+        for batch, chunk_idx in zip(
+            batches_list,
+            chunk_idx_list,
+        ):
+            logger_fixture.info(f"Testing {batch = } and {chunk_idx = }")
 
-        random_array = np.random.rand(*chunk_shape)
-        data = random_array.astype(
-            dtype=array_properties.dtype,
-        )
+            chunk_identifier = StorageProtocols.ChunkIdentifier(
+                chunk_idx=chunk_idx,
+                start_idx=-1,  # Not used for metadata
+                chunk_length=-1,  # Not used for metadata
+            )
 
-        chunk_identifier = StorageProtocols.ChunkIdentifier(
-            chunk_idx=0,
-            start_idx=start_idx,
-            chunk_length=chunk_length,
-        )
+            metadata_chunk = StorageProtocols.MetadataChunk(
+                batch=batch,
+                chunk_identifier=chunk_identifier,
+            )
 
-        data_chunk = StorageProtocols.ArrayDataChunk(
-            batch_of_sequences_embedding_array=data,
-            chunk_identifier=chunk_identifier,
-        )
+            storage.write_chunk(
+                data_chunk=metadata_chunk,
+            )
+            read_chunk = storage.read_chunk(
+                chunk_identifier=chunk_identifier,
+            )
 
-        storage.write_chunk(
-            data_chunk=data_chunk,
-        )
-        read_chunk = storage.read_chunk(
-            chunk_identifier=chunk_identifier,
-        )
-
-        assert np.array_equal(
-            read_chunk.batch_of_sequences_embedding_array,
-            data,
-        ), "Read data does not match written data"
+            assert read_chunk == metadata_chunk, "Read data does not match written data"
 
 
 class PickleChunkedMetadataStorageFactory(ChunkedMetadataStorageFactory):
@@ -159,11 +146,9 @@ class PickleChunkedMetadataStorageFactory(ChunkedMetadataStorageFactory):
 
     def __init__(
         self,
-        array_properties: StorageProtocols.ArrayProperties,
         tmp_path: pathlib.Path,
         logger: logging.Logger,
     ):
-        self.array_properties = array_properties
         self.tmp_path = tmp_path
         self.logger = logger
 
@@ -172,14 +157,13 @@ class PickleChunkedMetadataStorageFactory(ChunkedMetadataStorageFactory):
     ):
         storage_path = pathlib.Path(
             self.tmp_path,
-            "zarr_test",
+            "pickle_chunked_metadata_storage_test",
         )
         self.logger.info(
-            f"Creating ZarrChunkedArrayStorage storage " f"at {storage_path = }"
+            f"Creating PickleChunkedMetadataStorage storage " f"at {storage_path = }"
         )
 
-        return ZarrChunkedArrayStorage.ZarrChunkedArrayStorage(
-            array_properties=self.array_properties,
+        return PickleChunkedMetadataStorage.PickleChunkedMetadataStorage(
             root_storage_path=storage_path,
             logger=self.logger,
         )
@@ -190,7 +174,6 @@ class TestPickleChunkedMetadataStorage(_ChunkedMetadataStorageProtocol):
     def storage_factory(  # type: ignore
         self,
         request: pytest.FixtureRequest,
-        array_properties: StorageProtocols.ArrayProperties,
         test_data_dir: pathlib.Path,
         logger_fixture: logging.Logger,
     ) -> ChunkedMetadataStorageFactory:
@@ -198,8 +181,7 @@ class TestPickleChunkedMetadataStorage(_ChunkedMetadataStorageProtocol):
         Provides a concrete factory instance, initialized with all necessary arguments
         for creating a ZarrChunkedArrayStorage instance.
         """
-        return ZarrStorageFactory(
-            array_properties=array_properties,
+        return PickleChunkedMetadataStorageFactory(
             tmp_path=test_data_dir,
             logger=logger_fixture,
         )

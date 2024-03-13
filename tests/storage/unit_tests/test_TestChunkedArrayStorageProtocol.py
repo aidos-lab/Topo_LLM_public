@@ -185,7 +185,7 @@ class ZarrChunkedArrayStorageFactory(ChunkedArrayStorageFactory):
     ):
         storage_path = pathlib.Path(
             self.tmp_path,
-            "zarr_test",
+            "zarr_chunked_array_storage_test",
         )
         self.logger.info(
             f"Creating ZarrChunkedArrayStorage storage " f"at {storage_path = }"

@@ -38,6 +38,7 @@ Create embedding vectors from dataset.
 import logging
 import os
 import pathlib
+import pickle
 
 # Third party imports
 import hydra
@@ -132,7 +133,20 @@ def main(
     if not metadata_root_storage_path.exists():
         raise FileNotFoundError(f"{metadata_root_storage_path = } does not exist.")
 
+    # Load pickled metadata
+    metadata_chunk_path = metadata_root_storage_path / "chunk_00000.pkl"
+
+    with open(
+        file=metadata_chunk_path,
+        mode="rb",
+    ) as file:
+        metadata_chunk = pickle.load(
+            file=file,
+        )
+
     # "pickle_chunked_metadata_storage/chunk_00002.pkl"
+
+    # TODO This script is not finished
 
 
 if __name__ == "__main__":
