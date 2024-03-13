@@ -70,7 +70,7 @@ class _ChunkedArrayStorageProtocol(ABC):
     @abstractmethod
     def storage(
         self,
-        *args,
+        **kwargs,
     ) -> StorageProtocols.ChunkedArrayStorageProtocol:
         """
         Should be overridden by subclasses for specific implementations.
@@ -82,12 +82,12 @@ class _ChunkedArrayStorageProtocol(ABC):
     @pytest.mark.parametrize(
         "array_properties, chunk_length, start_idx",
         [
-            pytest.param((10, 100), 10, 0, id="2D-size_10x100-start_0"),
-            pytest.param((10, 100), 20, 10, id="2D-size_10x100-start_10"),
+            pytest.param((10, 100), 8, 0, id="2D-size_10x100-start_0"),
+            pytest.param((10, 100), 2, 8, id="2D-size_10x100-start_10"),
             pytest.param((100, 200), 10, 0, id="2D-size_100x200-start_0"),
             pytest.param((100, 200), 20, 10, id="2D-size_100x200-start_10"),
-            pytest.param((10, 100, 50), 10, 0, id="3D-size_10x100x50-start_0"),
-            pytest.param((10, 100, 50), 20, 10, id="3D-size_10x100x50-start_10"),
+            pytest.param((800, 512, 786), 10, 0, id="3D-size_800x512x786-start_0"),
+            pytest.param((800, 512, 786), 20, 10, id="3D-size_800x512x786-start_10"),
             # Add more combinations as needed
         ],
         indirect=["array_properties"],  # Specifies which parameters are for fixtures
@@ -107,7 +107,9 @@ class _ChunkedArrayStorageProtocol(ABC):
 
         # Take the length of the chunk to write from `chunk_length`
         # and the remaining dimensions from `array_properties.shape`.
-        chunk_shape = (chunk_length,) + array_properties.shape[1:]
+        chunk_shape = (chunk_length,) + array_properties.shape[
+            1:
+        ]  # The '+' here is tuple concatenation
 
         random_array = np.random.rand(*chunk_shape)
         data = random_array.astype(
@@ -140,7 +142,7 @@ class _ChunkedArrayStorageProtocol(ABC):
 
 class TestZarrChunkedArrayStorage(_ChunkedArrayStorageProtocol):
     @pytest.fixture
-    def storage(
+    def storage(  # type: ignore
         self,
         tmp_path: pathlib.Path,
         array_properties: StorageProtocols.ArrayProperties,
