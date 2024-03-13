@@ -1,0 +1,10 @@
+defaults:
+  - dataset_map: batched
+  - embedding_extraction: last_hidden
+  - language_model: roberta-base
+  - tokenizer: basic_tokenizer
+  - _self_
+
+batch_size: 32
+level: token
+num_workers: 0

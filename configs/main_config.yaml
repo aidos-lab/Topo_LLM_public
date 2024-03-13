@@ -1,6 +1,6 @@
 defaults:
   - data: bbc
-  - embeddings: roberta
+  - embeddings: basic_embeddings
   - paths: absolute_repository_base
   # - storage: zarr_vectors_xarray_metadata
   - storage: zarr_vectors_pickle_metadata
@@ -16,7 +16,7 @@ preferred_torch_backend: auto
 #------------------------- Hydra Config ------------------------#
 hydra:
   run:
-    dir: ${paths.repository_base_path}/hydra_output_dir/experiments/${embeddings.language_model.huggingface_model_name}/${now:%Y-%m-%d_%H-%M-%S}
+    dir: ${paths.repository_base_path}/hydra_output_dir/experiments/${embeddings.language_model.short_model_name}/${now:%Y-%m-%d_%H-%M-%S}
   job:
     chdir: False
     env_set:

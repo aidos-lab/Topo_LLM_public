@@ -136,13 +136,13 @@ def compute_embeddings(
     logger: logging.Logger = logging.getLogger(__name__),
 ):
     tokenizer = load_tokenizer(
-        pretrained_model_name_or_path=main_config.embeddings.language_model.huggingface_model_name,
+        pretrained_model_name_or_path=main_config.embeddings.language_model.pretrained_model_name_or_path,
         tokenizer_config=main_config.embeddings.tokenizer,
         logger=logger,
         verbosity=main_config.verbosity,
     )
     model = load_model(
-        pretrained_model_name_or_path=main_config.embeddings.language_model.huggingface_model_name,
+        pretrained_model_name_or_path=main_config.embeddings.language_model.pretrained_model_name_or_path,
         device=device,
         logger=logger,
         verbosity=main_config.verbosity,

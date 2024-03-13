@@ -186,11 +186,17 @@ class EmbeddingExtractionConfig(BaseModel):
 
 
 class LanguageModelConfig(ConfigBaseModel):
-    huggingface_model_name: str = Field(
+    pretrained_model_name_or_path: str | pathlib.Path = Field(
         ...,
         title="Model identifier for huggingface transformers model.",
-        description="The model identifier for the huggingface transformers model "
-        "to use for computing embeddings.",
+        description=f"The model identifier for the huggingface transformers model "
+        f"to use for computing embeddings.",
+    )
+
+    short_model_name: str = Field(
+        ...,
+        title="Short model name.",
+        description="The short model name.",
     )
 
     masking_mode: str = Field(
@@ -206,7 +212,7 @@ class LanguageModelConfig(ConfigBaseModel):
         # Construct and return the model parameters description
 
         return (
-            f"{NAME_PREFIXES['model']}{self.huggingface_model_name}"
+            f"{NAME_PREFIXES['model']}{self.short_model_name}"
             f"_"
             f"{NAME_PREFIXES['masking_mode']}{self.masking_mode}"
         )

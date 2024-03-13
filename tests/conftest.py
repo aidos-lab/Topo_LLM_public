@@ -175,7 +175,7 @@ def dataset_map_config() -> DatasetMapConfig:
 @pytest.fixture(scope="session")
 def language_model_config() -> LanguageModelConfig:
     return LanguageModelConfig(
-        huggingface_model_name="roberta-base",
+        pretrained_model_name_or_path="roberta-base",
         masking_mode="no_masking",
     )
 
