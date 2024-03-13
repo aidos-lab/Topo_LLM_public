@@ -101,7 +101,7 @@ class XarrayChunkedMetadataStorage:
             message=f"write_chunk Not implemented yet",
         )
 
-        return None  # TODO fake implementation
+        return None  # TODO This is still a fake implementation
 
     def read_chunk(
         self,

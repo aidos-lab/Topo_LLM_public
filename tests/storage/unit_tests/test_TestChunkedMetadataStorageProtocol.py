@@ -62,10 +62,7 @@ class ChunkedMetadataStorageFactory(ABC):
         pass
 
 
-# TODO Continue here
-
-
-class _ChunkedArrayStorageProtocol(ABC):
+class _ChunkedMetadataStorageProtocol(ABC):
     """
     Abstract base class for testing implementations of ChunkedArrayStorageProtocol.
     """
@@ -86,11 +83,13 @@ class _ChunkedArrayStorageProtocol(ABC):
     def storage(
         self,
         storage_factory: ChunkedMetadataStorageFactory,
-    ) -> StorageProtocols.ChunkedArrayStorageProtocol:
+    ) -> StorageProtocols.ChunkedMetadataStorageProtocol:
         """
         Dynamic storage instance creation using the provided factory.
         """
         return storage_factory.create_storage()
+
+    # TODO Continue here
 
     @pytest.mark.parametrize(
         "array_properties, chunk_length, start_idx",
@@ -153,7 +152,7 @@ class _ChunkedArrayStorageProtocol(ABC):
         ), "Read data does not match written data"
 
 
-class ZarrStorageFactory(ChunkedMetadataStorageFactory):
+class PickleChunkedMetadataStorageFactory(ChunkedMetadataStorageFactory):
     """
     Factory for creating ZarrChunkedArrayStorage instances.
     """
@@ -186,7 +185,7 @@ class ZarrStorageFactory(ChunkedMetadataStorageFactory):
         )
 
 
-class TestZarrChunkedArrayStorage(_ChunkedArrayStorageProtocol):
+class TestPickleChunkedMetadataStorage(_ChunkedMetadataStorageProtocol):
     @pytest.fixture
     def storage_factory(  # type: ignore
         self,
