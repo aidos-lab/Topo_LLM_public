@@ -68,6 +68,68 @@ logger = logging.getLogger(__name__)
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
+def pytest_addoption(
+    parser: pytest.Parser,
+) -> None:
+    parser.addoption(
+        "--keep-test-data",
+        action="store_true",
+        help="Keep test data after tests are done",
+    )
+
+    return None
+
+
+@pytest.fixture(scope="session")
+def test_data_dir(
+    tmp_path_factory: pytest.TempPathFactory,
+    pytestconfig: pytest.Config,
+) -> pathlib.Path:
+    if pytestconfig.getoption(
+        name="--keep-test-data",
+    ):
+        # Create a more permanent directory
+        base_dir = pathlib.Path(
+            pathlib.Path.cwd(),
+            "temp_files",
+            "test_data",
+        )
+        base_dir.mkdir(
+            exist_ok=True,
+        )
+        return base_dir
+    else:
+        # Use pytest's tmp_path_factory for a truly temporary directory
+        return tmp_path_factory.mktemp(
+            basename="data-",
+            numbered=True,
+        )
+
+
+# @pytest.fixture(scope="session")
+# def session_tmp_path() -> Generator[
+#     pathlib.Path,
+#     None,
+#     None,
+# ]:
+#     # Create a temporary directory for the session
+#     temp_dir = tempfile.mkdtemp()
+#     yield pathlib.Path(
+#         temp_dir,
+#     )
+#     # Cleanup the temporary directory at the end of the session
+#     shutil.rmtree(temp_dir)
+
+
+@pytest.fixture(scope="session")
+def repository_base_path() -> pathlib.Path:
+    return pathlib.Path(
+        pathlib.Path.home(),
+        "git-source",
+        "Topo_LLM",
+    )
+
+
 @pytest.fixture(scope="session")
 def logger_fixture() -> logging.Logger:
     return logger
@@ -137,36 +199,12 @@ def embeddings_config(
 
 
 @pytest.fixture(scope="session")
-def repository_base_path() -> pathlib.Path:
-    return pathlib.Path(
-        pathlib.Path.home(),
-        "git-source",
-        "Topo_LLM",
-    )
-
-
-@pytest.fixture(scope="session")
-def session_tmp_path() -> Generator[
-    pathlib.Path,
-    None,
-    None,
-]:
-    # Create a temporary directory for the session
-    temp_dir = tempfile.mkdtemp()
-    yield pathlib.Path(
-        temp_dir,
-    )
-    # Cleanup the temporary directory at the end of the session
-    shutil.rmtree(temp_dir)
-
-
-@pytest.fixture(scope="session")
 def paths_config(
-    session_tmp_path: pathlib.Path,
+    test_data_dir: pathlib.Path,
     repository_base_path: pathlib.Path,
 ) -> PathsConfig:
     return PathsConfig(
-        data_dir=session_tmp_path,
+        data_dir=test_data_dir,
         repository_base_path=repository_base_path,
     )
 

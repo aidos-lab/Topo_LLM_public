@@ -38,6 +38,7 @@ from abc import ABC, abstractmethod
 # Third-party imports
 import numpy as np
 import pytest
+from pytest import TempPathFactory
 
 # Local imports
 from topollm.storage import StorageProtocols, ZarrChunkedArrayStorage
@@ -48,7 +49,7 @@ from topollm.storage import StorageProtocols, ZarrChunkedArrayStorage
 
 @pytest.fixture(scope="function")
 def array_properties(
-    request,
+    request: pytest.FixtureRequest,
 ) -> StorageProtocols.ArrayProperties:
     """
     Fixture that provides ArrayProperties based on parameterized inputs.
@@ -164,8 +165,6 @@ class _ChunkedArrayStorageProtocol(ABC):
             data,
         ), "Read data does not match written data"
 
-    # Define test methods and parametrization as before
-
 
 class ZarrStorageFactory(StorageFactory):
     """
@@ -174,9 +173,9 @@ class ZarrStorageFactory(StorageFactory):
 
     def __init__(
         self,
-        array_properties,
-        tmp_path,
-        logger,
+        array_properties: StorageProtocols.ArrayProperties,
+        tmp_path: pathlib.Path,
+        logger: logging.Logger,
     ):
         self.array_properties = array_properties
         self.tmp_path = tmp_path
@@ -188,6 +187,9 @@ class ZarrStorageFactory(StorageFactory):
         storage_path = pathlib.Path(
             self.tmp_path,
             "zarr_test",
+        )
+        self.logger.info(
+            f"Creating ZarrChunkedArrayStorage storage " f"at {storage_path = }"
         )
 
         return ZarrChunkedArrayStorage.ZarrChunkedArrayStorage(
@@ -201,17 +203,17 @@ class TestZarrChunkedArrayStorage(_ChunkedArrayStorageProtocol):
     @pytest.fixture
     def storage_factory(  # type: ignore
         self,
-        request,
-        array_properties,
-        tmp_path,
-        logger_fixture,
+        request: pytest.FixtureRequest,
+        array_properties: StorageProtocols.ArrayProperties,
+        test_data_dir: pathlib.Path,
+        logger_fixture: logging.Logger,
     ) -> StorageFactory:
         """
         Provides a concrete factory instance, initialized with all necessary arguments
         for creating a ZarrChunkedArrayStorage instance.
         """
         return ZarrStorageFactory(
-            array_properties,
-            tmp_path,
-            logger_fixture,
+            array_properties=array_properties,
+            tmp_path=test_data_dir,
+            logger=logger_fixture,
         )
