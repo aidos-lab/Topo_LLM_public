@@ -46,6 +46,21 @@ from topollm.storage import StorageProtocols, ZarrChunkedArrayStorage
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
+@pytest.fixture(scope="function")
+def array_properties(
+    request,
+) -> StorageProtocols.ArrayProperties:
+    """
+    Fixture that provides ArrayProperties based on parameterized inputs.
+    """
+    shape = request.param
+    return StorageProtocols.ArrayProperties(
+        shape=shape,
+        dtype="float32",
+        chunks=(5,),
+    )
+
+
 class _ChunkedArrayStorageProtocol(ABC):
     """
     Abstract base class for testing implementations of ChunkedArrayStorageProtocol.
@@ -55,8 +70,8 @@ class _ChunkedArrayStorageProtocol(ABC):
     @abstractmethod
     def storage(
         self,
-        **kwargs,
-    ) -> ZarrChunkedArrayStorage.ZarrChunkedArrayStorage:
+        *args,
+    ) -> StorageProtocols.ChunkedArrayStorageProtocol:
         """
         Should be overridden by subclasses for specific implementations.
         """
@@ -64,46 +79,47 @@ class _ChunkedArrayStorageProtocol(ABC):
             "This method should be implemented by subclasses.",
         )
 
-    @pytest.fixture
-    def array_properties(
-        self,
-    ) -> StorageProtocols.ArrayProperties:
-        """
-        Example fixture that provides ArrayProperties.
-        """
-        return StorageProtocols.ArrayProperties(
-            shape=(100, 100),
-            dtype="float32",
-            chunks=(5,),
-        )
-
-    # ! TODO There is a problem with this test definition (specifically, the chunk_size)
     @pytest.mark.parametrize(
-        "chunk_size, start_idx",
+        "array_properties, chunk_length, start_idx",
         [
-            (10, 0),
-            (20, 10),
-            # Add more combinations as needed.
+            pytest.param((10, 100), 10, 0, id="2D-size_10x100-start_0"),
+            pytest.param((10, 100), 20, 10, id="2D-size_10x100-start_10"),
+            pytest.param((100, 200), 10, 0, id="2D-size_100x200-start_0"),
+            pytest.param((100, 200), 20, 10, id="2D-size_100x200-start_10"),
+            pytest.param((10, 100, 50), 10, 0, id="3D-size_10x100x50-start_0"),
+            pytest.param((10, 100, 50), 20, 10, id="3D-size_10x100x50-start_10"),
+            # Add more combinations as needed
         ],
+        indirect=["array_properties"],  # Specifies which parameters are for fixtures
     )
     def test_write_and_read_chunk(
         self,
         storage: StorageProtocols.ChunkedArrayStorageProtocol,
         array_properties: StorageProtocols.ArrayProperties,
-        chunk_size: int,
+        chunk_length: int,
         start_idx: int,
     ) -> None:
         """
         Test that data written to storage can be read back accurately.
         """
+
         storage.open()
-        chunk_shape = chunk_size
-        data = np.random.rand(*chunk_shape).astype(array_properties.dtype)
+
+        # Take the length of the chunk to write from `chunk_length`
+        # and the remaining dimensions from `array_properties.shape`.
+        chunk_shape = (chunk_length,) + array_properties.shape[1:]
+
+        random_array = np.random.rand(*chunk_shape)
+        data = random_array.astype(
+            dtype=array_properties.dtype,
+        )
+
         chunk_identifier = StorageProtocols.ChunkIdentifier(
             chunk_idx=0,
             start_idx=start_idx,
-            chunk_size=np.product(chunk_size),
+            chunk_length=chunk_length,
         )
+
         data_chunk = StorageProtocols.ArrayDataChunk(
             batch_of_sequences_embedding_array=data,
             chunk_identifier=chunk_identifier,

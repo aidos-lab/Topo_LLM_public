@@ -163,7 +163,7 @@ class TokenLevelEmbeddingDataHandler:
         chunk_identifier = ChunkIdentifier(
             chunk_idx=batch_idx,
             start_idx=batch_idx * batch_len,
-            chunk_size=batch_len,
+            chunk_length=batch_len,
         )
 
         return chunk_identifier

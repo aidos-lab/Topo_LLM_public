@@ -48,13 +48,13 @@ import numpy as np
 class ChunkIdentifier:
     chunk_idx: int
     start_idx: int
-    chunk_size: int
+    chunk_length: int
 
     @property
     def end_idx(
         self,
     ) -> int:
-        return self.start_idx + self.chunk_size
+        return self.start_idx + self.chunk_length
 
 
 @dataclass
