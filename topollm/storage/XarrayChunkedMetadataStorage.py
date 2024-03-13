@@ -39,7 +39,7 @@ import warnings
 
 # Local imports
 from topollm.storage.StorageProtocols import (
-    MetaDataChunk,
+    MetadataChunk,
     ChunkIdentifier,
     ArrayProperties,
 )
@@ -90,7 +90,7 @@ class XarrayChunkedMetadataStorage:
 
     def write_chunk(
         self,
-        data_chunk: MetaDataChunk,
+        data_chunk: MetadataChunk,
     ) -> None:
         # TODO: Update this to work with the DataClass
 
@@ -106,7 +106,7 @@ class XarrayChunkedMetadataStorage:
     def read_chunk(
         self,
         chunk_identifier: ChunkIdentifier,
-    ) -> MetaDataChunk:
+    ) -> MetadataChunk:
         # TODO implement
 
         raise NotImplementedError  # ! Remove this line

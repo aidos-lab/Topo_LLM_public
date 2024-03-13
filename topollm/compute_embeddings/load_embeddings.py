@@ -85,12 +85,18 @@ def main(
         logger=global_logger,
     )
 
+    # # # #
+    # Load the embeddings
+
     array_path = pathlib.Path(
         pathlib.Path.home(),
         "git-source",
         "Topo_LLM",
         "data",
         "embeddings",
+        "arrays",
+        "data-xsum_split-train_ctxt-dataset_entry/lvl-token/add-prefix-space-False_max-len-512/model-roberta-base_mask-no_masking/layer-[-1]_agg-mean/norm-None/",
+        "array_dir",
         "test_array_dir",
     )
 
@@ -105,6 +111,25 @@ def main(
     print(f"{array.shape = }")
     print(f"{array = }")
     print(f"{array[0] = }")
+
+    # # # #
+    # Load the metadata
+
+    metadata_root_storage_path = pathlib.Path(
+        pathlib.Path.home(),
+        "git-source",
+        "Topo_LLM",
+        "data",
+        "embeddings",
+        "metadata",
+        "data-xsum_split-train_ctxt-dataset_entry/lvl-token/add-prefix-space-False_max-len-512/model-roberta-base_mask-no_masking/layer-[-1]_agg-mean/norm-None/",
+        "metadata_dir",
+    )
+
+    if not metadata_root_storage_path.exists():
+        raise FileNotFoundError(f"{metadata_root_storage_path = } does not exist.")
+
+    # "pickle_chunked_metadata_storage/chunk_00002.pkl"
 
 
 if __name__ == "__main__":

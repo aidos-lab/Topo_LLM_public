@@ -68,7 +68,7 @@ class ArrayDataChunk:
 
 
 @dataclass
-class MetaDataChunk:
+class MetadataChunk:
     """
     Dataclass to hold a single metadata chunk.
     """
@@ -117,7 +117,7 @@ class ChunkedMetadataStorageProtocol(Protocol):
 
     def write_chunk(
         self,
-        data_chunk: MetaDataChunk,
+        data_chunk: MetadataChunk,
     ) -> None:
         """Writes a chunk of data starting from a specific index."""
         ...
@@ -125,6 +125,6 @@ class ChunkedMetadataStorageProtocol(Protocol):
     def read_chunk(
         self,
         chunk_identifier: ChunkIdentifier,
-    ) -> MetaDataChunk:
+    ) -> MetadataChunk:
         """Reads a chunk of data determined by the identifier."""
         ...

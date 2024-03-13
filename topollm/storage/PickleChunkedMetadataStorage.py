@@ -31,6 +31,7 @@
 # START Imports
 
 # Standard library imports
+from importlib import metadata
 import logging
 import os
 import pathlib
@@ -42,7 +43,7 @@ import warnings
 # Local imports
 from tests.config_classes.path_management.unit_tests import test_EmbeddingsPathManager
 from topollm.storage.StorageProtocols import (
-    MetaDataChunk,
+    MetadataChunk,
     ChunkIdentifier,
     ArrayProperties,
 )
@@ -115,7 +116,7 @@ class PickleChunkedMetadataStorage:
 
     def write_chunk(
         self,
-        data_chunk: MetaDataChunk,
+        data_chunk: MetadataChunk,
     ) -> None:
         chunk_file_path = self.chunk_file_path(
             chunk_identifier=data_chunk.chunk_identifier,
@@ -135,7 +136,22 @@ class PickleChunkedMetadataStorage:
     def read_chunk(
         self,
         chunk_identifier: ChunkIdentifier,
-    ) -> MetaDataChunk:
-        # TODO implement
+    ) -> MetadataChunk:
+        chunk_file_path = self.chunk_file_path(
+            chunk_identifier=chunk_identifier,
+        )
 
-        raise NotImplementedError
+        with open(
+            file=chunk_file_path,
+            mode="rb",
+        ) as file:
+            batch = pickle.load(
+                file=file,
+            )
+
+        metadata_chunk = MetadataChunk(
+            chunk_identifier=chunk_identifier,
+            batch=batch,
+        )
+
+        return metadata_chunk

@@ -50,7 +50,7 @@ from topollm.storage.StorageProtocols import (
     ChunkIdentifier,
     ChunkedArrayStorageProtocol,
     ChunkedMetadataStorageProtocol,
-    MetaDataChunk,
+    MetadataChunk,
 )
 
 # END Imports
@@ -142,7 +142,7 @@ class TokenLevelEmbeddingDataHandler:
         )
 
         # Write metadata to storage
-        metadata_data_chunk = MetaDataChunk(
+        metadata_data_chunk = MetadataChunk(
             batch=batch,
             chunk_identifier=chunk_identifier,
         )
