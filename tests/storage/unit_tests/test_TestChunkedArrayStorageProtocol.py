@@ -61,6 +61,22 @@ def array_properties(
     )
 
 
+class StorageFactory(ABC):
+    """
+    Abstract factory for creating storage instances.
+    """
+
+    @abstractmethod
+    def create_storage(
+        self,
+    ) -> StorageProtocols.ChunkedArrayStorageProtocol:
+        """
+        Creates and returns a storage instance, with all necessary
+        arguments handled internally by the factory.
+        """
+        pass
+
+
 class _ChunkedArrayStorageProtocol(ABC):
     """
     Abstract base class for testing implementations of ChunkedArrayStorageProtocol.
@@ -68,16 +84,25 @@ class _ChunkedArrayStorageProtocol(ABC):
 
     @pytest.fixture
     @abstractmethod
+    def storage_factory(
+        self,
+        request,
+    ) -> StorageFactory:
+        """
+        Should be overridden by subclasses to provide a concrete storage factory.
+        The factory itself should handle all necessary arguments for storage creation.
+        """
+        pass
+
+    @pytest.fixture
     def storage(
         self,
-        **kwargs,
+        storage_factory: StorageFactory,
     ) -> StorageProtocols.ChunkedArrayStorageProtocol:
         """
-        Should be overridden by subclasses for specific implementations.
+        Dynamic storage instance creation using the provided factory.
         """
-        raise NotImplementedError(
-            "This method should be implemented by subclasses.",
-        )
+        return storage_factory.create_storage()
 
     @pytest.mark.parametrize(
         "array_properties, chunk_length, start_idx",
@@ -139,25 +164,54 @@ class _ChunkedArrayStorageProtocol(ABC):
             data,
         ), "Read data does not match written data"
 
+    # Define test methods and parametrization as before
 
-class TestZarrChunkedArrayStorage(_ChunkedArrayStorageProtocol):
-    @pytest.fixture
-    def storage(  # type: ignore
+
+class ZarrStorageFactory(StorageFactory):
+    """
+    Factory for creating ZarrChunkedArrayStorage instances.
+    """
+
+    def __init__(
         self,
-        tmp_path: pathlib.Path,
-        array_properties: StorageProtocols.ArrayProperties,
-        logger_fixture: logging.Logger,
-    ) -> ZarrChunkedArrayStorage.ZarrChunkedArrayStorage:
-        """
-        Concrete fixture providing a ZarrChunkedArrayStorage instance.
-        """
+        array_properties,
+        tmp_path,
+        logger,
+    ):
+        self.array_properties = array_properties
+        self.tmp_path = tmp_path
+        self.logger = logger
+
+    def create_storage(
+        self,
+    ):
         storage_path = pathlib.Path(
-            tmp_path,
+            self.tmp_path,
             "zarr_test",
         )
 
         return ZarrChunkedArrayStorage.ZarrChunkedArrayStorage(
-            array_properties=array_properties,
+            array_properties=self.array_properties,
             storage_path=storage_path,
-            logger=logger_fixture,
+            logger=self.logger,
+        )
+
+
+class TestZarrChunkedArrayStorage(_ChunkedArrayStorageProtocol):
+    @pytest.fixture
+    def storage_factory(  # type: ignore
+        self,
+        request,
+        array_properties,
+        tmp_path,
+        logger_fixture,
+    ) -> StorageFactory:
+        """
+        Provides a concrete factory instance, initialized with all necessary arguments
+        for creating a ZarrChunkedArrayStorage instance.
+        """
+        return ZarrStorageFactory(
+            array_properties,
+            tmp_path,
+            logger_fixture,
         )
