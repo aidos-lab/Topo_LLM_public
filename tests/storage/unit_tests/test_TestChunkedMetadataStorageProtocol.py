@@ -89,21 +89,11 @@ class _ChunkedMetadataStorageProtocol(ABC):
         """
         return storage_factory.create_storage()
 
-    # TODO Continue here
-
-    @pytest.mark.parametrize(
-        "batches_list, chunk_idx_list",
-        [
-            pytest.param((10, 100), [4, 5], id="test_batch_length_2"),
-            # Add more combinations as needed
-        ],
-        indirect=[],  # Specifies which parameters are for fixtures
-    )
     def test_write_and_read_chunk(
         self,
         storage: StorageProtocols.ChunkedMetadataStorageProtocol,
-        batches_list: list[dict],
-        chunk_idx_list: list[int],
+        example_batch: dict,
+        chunk_idx: int,
         logger_fixture: logging.Logger,
     ) -> None:
         """
@@ -112,31 +102,34 @@ class _ChunkedMetadataStorageProtocol(ABC):
 
         storage.open()
 
-        for batch, chunk_idx in zip(
-            batches_list,
-            chunk_idx_list,
-        ):
-            logger_fixture.info(f"Testing {batch = } and {chunk_idx = }")
+        logger_fixture.info(
+            f"Testing with\n{example_batch = }\n" f"and\n{chunk_idx = }"
+        )
 
-            chunk_identifier = StorageProtocols.ChunkIdentifier(
-                chunk_idx=chunk_idx,
-                start_idx=-1,  # Not used for metadata
-                chunk_length=-1,  # Not used for metadata
-            )
+        chunk_identifier = StorageProtocols.ChunkIdentifier(
+            chunk_idx=chunk_idx,
+            start_idx=-1,  # Not used for metadata
+            chunk_length=-1,  # Not used for metadata
+        )
 
-            metadata_chunk = StorageProtocols.MetadataChunk(
-                batch=batch,
-                chunk_identifier=chunk_identifier,
-            )
+        metadata_chunk = StorageProtocols.MetadataChunk(
+            batch=example_batch,
+            chunk_identifier=chunk_identifier,
+        )
 
-            storage.write_chunk(
-                data_chunk=metadata_chunk,
-            )
-            read_chunk = storage.read_chunk(
-                chunk_identifier=chunk_identifier,
-            )
+        storage.write_chunk(
+            data_chunk=metadata_chunk,
+        )
+        read_chunk = storage.read_chunk(
+            chunk_identifier=chunk_identifier,
+        )
 
-            assert read_chunk == metadata_chunk, "Read data does not match written data"
+        logger_fixture.info(metadata_chunk)
+        logger_fixture.info(read_chunk)
+
+        # FIXME Implement proper comparison for metadata chunks
+        #! Currently this test fails with "RuntimeError: Boolean value of Tensor with more than one value is ambiguous"
+        assert read_chunk == metadata_chunk, "Read data does not match written data"
 
 
 class PickleChunkedMetadataStorageFactory(ChunkedMetadataStorageFactory):
