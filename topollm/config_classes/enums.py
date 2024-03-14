@@ -70,6 +70,9 @@ class DatasetType(StrEnum):  # type: ignore
     HUGGINGFACE_DATASET = "huggingface_dataset"
 
 
+# ==============================
+
+
 @unique
 class ArrayStorageType(StrEnum):  # type: ignore
     ZARR = "zarr"
@@ -79,6 +82,9 @@ class ArrayStorageType(StrEnum):  # type: ignore
 class MetadataStorageType(StrEnum):  # type: ignore
     XARRAY = "xarray"
     PICKLE = "pickle"
+
+
+# ==============================
 
 
 @unique

@@ -53,7 +53,7 @@ from topollm.storage.StorageProtocols import (
 
 class ZarrChunkedArrayStorage:
     """
-    A storage protocol backend for embedding metadata using Zarr.
+    A storage protocol backend for chunked arrays using Zarr.
 
     Note: We do not need to inherit from the storage protocols,
     since we are not relying on an abstract base class.

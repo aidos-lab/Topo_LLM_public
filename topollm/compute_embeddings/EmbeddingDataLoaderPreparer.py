@@ -76,6 +76,18 @@ class EmbeddingDataLoaderPreparer(ABC):
     ):
         self.preparer_context = preparer_context
 
+    @property
+    def logger(
+        self,
+    ) -> logging.Logger:
+        return self.preparer_context.logger
+
+    @property
+    def verbosity(
+        self,
+    ) -> int:
+        return self.preparer_context.verbosity
+
     @abstractmethod
     def prepare_dataloader(
         self,
@@ -122,9 +134,15 @@ class HuggingfaceEmbeddingDataLoaderPreparer(EmbeddingDataLoaderPreparer):
     ) -> datasets.DatasetDict:
         """Loads the dataset based from huggingface datasets based on configuration."""
         dataset_dict = datasets.load_dataset(
-            self.preparer_context.data_config.dataset_identifier,
+            path=self.preparer_context.data_config.dataset_path,
+            name=self.preparer_context.data_config.dataset_name,
             trust_remote_code=True,
         )
+
+        if self.verbosity >= 1:
+            self.logger.info(
+                f"{dataset_dict = }",
+            )
 
         if not isinstance(
             dataset_dict,
@@ -173,6 +191,14 @@ class HuggingfaceEmbeddingDataLoaderPreparer(EmbeddingDataLoaderPreparer):
 
         self.dataset_length = len(dataset)
 
+        if self.verbosity >= 1:
+            self.logger.info(
+                f"{dataset = }",
+            )
+            self.logger.info(
+                f"{self.dataset_length = }",
+            )
+
         return dataset
 
     def create_dataset_tokenized(
@@ -194,6 +220,11 @@ class HuggingfaceEmbeddingDataLoaderPreparer(EmbeddingDataLoaderPreparer):
             batch_size=self.preparer_context.embeddings_config.dataset_map.batch_size,
             num_proc=self.preparer_context.embeddings_config.dataset_map.num_proc,
         )
+
+        if self.verbosity >= 1:
+            self.logger.info(
+                f"{dataset_tokenized = }",
+            )
 
         return dataset_tokenized
 
@@ -236,13 +267,22 @@ class HuggingfaceEmbeddingDataLoaderPreparer(EmbeddingDataLoaderPreparer):
             # ),
         )
 
+        if self.verbosity >= 1:
+            self.logger.info(
+                f"{dataloader = }",
+            )
+
         return dataloader
 
     def prepare_dataloader(
         self,
     ) -> torch.utils.data.DataLoader:
-        """Loads and prepares a dataset."""
+        """
+        Loads and prepares a dataset,
+        returns a dataloader.
+        """
         dataset_dict = self.load_dataset_dict()
+
         dataset = self.select_dataset(
             dataset_dict=dataset_dict,
         )

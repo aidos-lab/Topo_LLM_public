@@ -1,5 +1,6 @@
 defaults:
-  - data: bbc
+  # - data: bbc
+  - data: wikitext
   - embeddings: basic_embeddings
   - paths: absolute_repository_base
   # - storage: zarr_vectors_xarray_metadata

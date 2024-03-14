@@ -84,11 +84,17 @@ class DataConfig(ConfigBaseModel):
         f"This will be used for creating the file paths",
     )
 
-    dataset_identifier: str = Field(
+    dataset_path: str = Field(
         ...,
         title="Dataset identifier for huggingface datasets.",
         description="The dataset identifier for the huggingface datasets "
         "to use for computing embeddings.",
+    )
+
+    dataset_name: str | None = Field(
+        None,
+        title="Dataset name.",
+        description="The dataset name.",
     )
 
     dataset_type: DatasetType = Field(

@@ -134,7 +134,7 @@ def main(
         raise FileNotFoundError(f"{metadata_root_storage_path = } does not exist.")
 
     # Load pickled metadata
-    metadata_chunk_path = metadata_root_storage_path / "chunk_00000.pkl"
+    metadata_chunk_path = metadata_root_storage_path / "chunk_00156.pkl"
 
     with open(
         file=metadata_chunk_path,
