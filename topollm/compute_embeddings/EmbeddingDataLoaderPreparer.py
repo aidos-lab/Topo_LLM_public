@@ -31,21 +31,20 @@
 # START Imports
 
 # Standard library imports
-from dataclasses import dataclass, field
-from functools import partial
 import logging
 from abc import ABC, abstractmethod
-from multiprocessing.spawn import prepare
+from dataclasses import dataclass, field
+from functools import partial
 from typing import Callable
 
 # Third party imports
 import datasets
-from sympy import sequence
 import torch
 import torch.utils.data
 from transformers import BatchEncoding, PreTrainedTokenizer, PreTrainedTokenizerFast
 
 # Local imports
+from topollm.compute_embeddings.log_dataset_info import log_dataset_info
 from topollm.config_classes.Configs import DataConfig, EmbeddingsConfig
 from topollm.config_classes.enums import DatasetType
 
@@ -193,10 +192,12 @@ class HuggingfaceEmbeddingDataLoaderPreparer(EmbeddingDataLoaderPreparer):
 
         if self.verbosity >= 1:
             self.logger.info(
-                f"{dataset = }",
-            )
-            self.logger.info(
                 f"{self.dataset_length = }",
+            )
+            log_dataset_info(
+                dataset=dataset,
+                dataset_name="dataset",
+                logger=self.logger,
             )
 
         return dataset
@@ -224,6 +225,11 @@ class HuggingfaceEmbeddingDataLoaderPreparer(EmbeddingDataLoaderPreparer):
         if self.verbosity >= 1:
             self.logger.info(
                 f"{dataset_tokenized = }",
+            )
+            log_dataset_info(
+                dataset=dataset_tokenized,
+                dataset_name="dataset_tokenized",
+                logger=self.logger,
             )
 
         return dataset_tokenized
