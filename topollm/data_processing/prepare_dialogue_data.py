@@ -42,11 +42,10 @@ import pathlib
 import hydra
 import hydra.core.hydra_config
 import omegaconf
-import pandas as pd
-from sklearn.model_selection import train_test_split
+from tqdm import tqdm
 
 # Local imports
-import convlab
+import convlab  # type: ignore
 import topollm.data_processing.DialogueUtteranceDataset as DialogueUtteranceDataset
 from topollm.config_classes.Configs import MainConfig
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
@@ -89,44 +88,82 @@ def main(
     data_dir = main_config.paths.data_dir
     global_logger.info(f"{data_dir = }")
 
-    convlab_dataset_identifier = "multiwoz21"
-    split = "train"
+    convlab_dataset_identifier_list = [
+        "multiwoz21",
+        "sgd",
+    ]
 
-    # Folder into which we save the dataset files
-    save_dir = pathlib.Path(
-        data_dir, "datasets", "dialogue_datasets", convlab_dataset_identifier
-    )
-    # Create the folder if it does not exist
-    save_dir.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
+    split_list = [
+        "train",
+        "validation",
+        "test",
+    ]
 
-    global_logger.info(
-        f"Loading convlab dataset:\n" f"{convlab_dataset_identifier = }\n..."
-    )
-    convlab_dataset_dict = convlab.util.load_dataset(
-        dataset_name=convlab_dataset_identifier,
-    )
-    global_logger.info(
-        f"Loading convlab dataset:\n" f"{convlab_dataset_identifier = }\nDONE"
-    )
+    for convlab_dataset_identifier in convlab_dataset_identifier_list:
+        # Folder into which we save the dataset files
+        save_dir = pathlib.Path(
+            data_dir,
+            "datasets",
+            "dialogue_datasets",
+            convlab_dataset_identifier,
+        )
+        # Create the folder if it does not exist
+        save_dir.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
 
-    split_data = convlab_dataset_dict[split]
+        global_logger.info(
+            f"Loading convlab dataset:\n" f"{convlab_dataset_identifier = }\n..."
+        )
+        convlab_dataset_dict = convlab.util.load_dataset(
+            dataset_name=convlab_dataset_identifier,
+        )
+        global_logger.info(
+            f"Loading convlab dataset:\n" f"{convlab_dataset_identifier = }\nDONE"
+        )
+        global_logger.info(f"{convlab_dataset_dict.keys() = }")
 
-    split_dataset = DialogueUtteranceDataset.DialogueUtteranceDataset(
-        dialogues=split_data,
-        split=split,
-    )
+        split = "train"
+        split_data = convlab_dataset_dict[split]
 
-    log_torch_dataset_info(
-        dataset=split_dataset,
-        dataset_name=split,
-        num_samples_to_log=5,
-        logger=global_logger,
-    )
+        split_dataset = DialogueUtteranceDataset.DialogueUtteranceDataset(
+            dialogues=split_data,
+            split=split,
+        )
 
-    # TODO Continue here
+        log_torch_dataset_info(
+            dataset=split_dataset,
+            dataset_name=split,
+            num_samples_to_log=5,
+            logger=global_logger,
+        )
+
+        # We want to write the dataset entries to a file in JSONlines format.
+        # Open the file for writing
+        save_file_path = pathlib.Path(
+            save_dir,
+            f"{split}.jsonl",
+        )
+        global_logger.info(
+            f"Writing the dataset to file:\n" f"{save_file_path = }\n..."
+        )
+
+        with open(
+            save_file_path,
+            "w",
+        ) as file:
+            for idx in tqdm(
+                range(
+                    len(split_dataset),
+                )
+            ):
+                sample = split_dataset[idx]
+                file.write(f"{sample}\n")
+
+        global_logger.info(
+            f"Writing the dataset to file:\n" f"{save_file_path = }\nDONE"
+        )
 
     return None
 

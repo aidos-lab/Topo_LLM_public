@@ -170,6 +170,7 @@ cython_debug/
 # Project specific
 # # # # # # # # # # # #
 
+data/datasets/dialogue_datasets/
 data/datasets/iclr_2024_submissions/ICLR_Mistral_Embeddings.csv
 data/datasets/tokenised_datasets_dataframes/
 

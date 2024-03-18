@@ -88,14 +88,24 @@ def log_torch_dataset_info(
         f"{dataset_name}:\n" f"{pprint.pformat(dataset)}",
     )
 
-    # Log the first and last few samples of the dataset
-    logger.info(
-        f"{dataset_name[:num_samples_to_log]}:\n"
-        f"{dataset[:num_samples_to_log]}",  # Do not use pprint here, as it will not be readable
-    )
-    logger.info(
-        f"{dataset[-num_samples_to_log:]}:\n",
-        f"{dataset_name[-num_samples_to_log:]}",  # Do not use pprint here, as it will not be readable
-    )
+    # Log the first and last few samples of the dataset.
+    # Note that torch datasets do not necessarily support slicing, so we cannot use dataset[:num_samples_to_log].
+    # We implement it as a for loop instead.
+    for idx in range(
+        num_samples_to_log,
+    ):
+        logger.info(
+            f"{dataset_name}[{idx}]:\n"
+            f"{(dataset[idx])}",  # Do not use pprint here, as it will not be readable
+        )
+
+    for idx in range(
+        -num_samples_to_log,
+        0,
+    ):
+        logger.info(
+            f"{dataset_name}[{idx}]:\n"
+            f"{(dataset[idx])}",  # Do not use pprint here, as it will not be readable
+        )
 
     return None
