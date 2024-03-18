@@ -41,7 +41,6 @@ import warnings
 # Third party imports
 
 # Local imports
-from tests.config_classes.path_management.unit_tests import test_EmbeddingsPathManager
 from topollm.storage.StorageProtocols import (
     MetadataChunk,
     ChunkIdentifier,

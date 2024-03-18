@@ -35,6 +35,7 @@ Read ICLR text data from 'ICLR_Mistral_Embeddings.csv' and split to train/test/v
 # START Imports
 
 # Standard library imports
+import json
 import logging
 import pathlib
 
@@ -99,7 +100,10 @@ def main(
         "test",
     ]
 
-    for convlab_dataset_identifier in convlab_dataset_identifier_list:
+    for convlab_dataset_identifier in tqdm(
+        convlab_dataset_identifier_list,
+        desc="convlab datasets",
+    ):
         # Folder into which we save the dataset files
         save_dir = pathlib.Path(
             data_dir,
@@ -124,46 +128,63 @@ def main(
         )
         global_logger.info(f"{convlab_dataset_dict.keys() = }")
 
-        split = "train"
-        split_data = convlab_dataset_dict[split]
+        for split in tqdm(
+            split_list,
+            desc="splits",
+        ):
+            write_single_split_to_file(
+                save_dir,
+                convlab_dataset_dict,
+                split,
+            )
 
-        split_dataset = DialogueUtteranceDataset.DialogueUtteranceDataset(
-            dialogues=split_data,
-            split=split,
-        )
+    return None
 
-        log_torch_dataset_info(
-            dataset=split_dataset,
-            dataset_name=split,
-            num_samples_to_log=5,
-            logger=global_logger,
-        )
 
-        # We want to write the dataset entries to a file in JSONlines format.
-        # Open the file for writing
-        save_file_path = pathlib.Path(
-            save_dir,
-            f"{split}.jsonl",
-        )
-        global_logger.info(
-            f"Writing the dataset to file:\n" f"{save_file_path = }\n..."
-        )
+def write_single_split_to_file(
+    save_dir: pathlib.Path,
+    convlab_dataset_dict: dict[str, list[dict]],
+    split: str,
+) -> None:
+    split_data = convlab_dataset_dict[split]
 
-        with open(
-            save_file_path,
-            "w",
-        ) as file:
-            for idx in tqdm(
-                range(
-                    len(split_dataset),
-                )
-            ):
-                sample = split_dataset[idx]
-                file.write(f"{sample}\n")
+    split_dataset = DialogueUtteranceDataset.DialogueUtteranceDataset(
+        dialogues=split_data,
+        split=split,
+    )
 
-        global_logger.info(
-            f"Writing the dataset to file:\n" f"{save_file_path = }\nDONE"
-        )
+    log_torch_dataset_info(
+        dataset=split_dataset,
+        dataset_name=split,
+        num_samples_to_log=5,
+        logger=global_logger,
+    )
+
+    # We want to write the dataset entries to a file in JSONlines format.
+    # Open the file for writing
+    save_file_path = pathlib.Path(
+        save_dir,
+        f"{split}.jsonl",
+    )
+    global_logger.info(f"Writing the dataset to file:\n" f"{save_file_path = }\n...")
+
+    with open(
+        save_file_path,
+        "w",
+    ) as file:
+        for idx in tqdm(
+            range(
+                len(split_dataset),
+            )
+        ):
+            sample: dict = split_dataset[idx]
+            json.dump(
+                obj=sample,
+                fp=file,
+            )
+            file.write("\n")
+
+    global_logger.info(f"Writing the dataset to file:\n" f"{save_file_path = }\nDONE")
 
     return None
 

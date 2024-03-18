@@ -73,18 +73,22 @@ class DialogueUtteranceDataset(Dataset):
                         f"turn_index: {turn_index})"
                     )
 
-    def __len__(self):
+    def __len__(
+        self,
+    ) -> int:
         return len(self.dialogue_turns_utterances)
 
     def __getitem__(
         self,
         idx,
-    ):
+    ) -> dict[str, str]:
         utterance, dialogue_id, turn_index = self.dialogue_turns_utterances[idx]
 
-        return {
+        entry = {
             "text": utterance,
             "dialogue_id": dialogue_id,
             "turn_index": turn_index,
             "split": self.split,
         }
+
+        return entry

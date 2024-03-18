@@ -1,6 +1,8 @@
 defaults:
   # - data: bbc
-  - data: wikitext
+  # - data: wikitext
+  # - data: multiwoz21
+  - data: sgd
   - embeddings: basic_embeddings
   - paths: absolute_repository_base
   # - storage: zarr_vectors_xarray_metadata
