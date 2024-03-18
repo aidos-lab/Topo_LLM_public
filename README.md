@@ -11,7 +11,7 @@ pyenv install 3.10
 pyenv local 3.10
 ```
 
-2. Tell poetry (install poetry for example via pipx) to use the local python version:
+1. Tell poetry (install poetry for example via pipx) to use the local python version:
 
 ```bash
 # Optional: Tell poetry to create a virtual environment for the project
@@ -20,7 +20,7 @@ poetry config virtualenvs.in-project true
 poetry env use 3.10
 ```
 
-3. Install the project with dependencies:
+1. Install the project with dependencies:
 
 ```bash
 poetry install

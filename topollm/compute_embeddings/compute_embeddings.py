@@ -102,7 +102,7 @@ setup_exception_logging(
 )
 def main(
     config: omegaconf.DictConfig,
-):
+) -> None:
     """Run the script."""
 
     print("Running script ...")

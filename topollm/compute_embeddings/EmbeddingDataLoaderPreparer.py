@@ -135,6 +135,7 @@ class HuggingfaceEmbeddingDataLoaderPreparer(EmbeddingDataLoaderPreparer):
         dataset_dict = datasets.load_dataset(
             path=self.preparer_context.data_config.dataset_path,
             name=self.preparer_context.data_config.dataset_name,
+            data_dir=self.preparer_context.data_config.data_dir,  # type: ignore
             trust_remote_code=True,
         )
 

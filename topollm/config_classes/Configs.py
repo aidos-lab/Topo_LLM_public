@@ -84,6 +84,11 @@ class DataConfig(ConfigBaseModel):
         f"This will be used for creating the file paths",
     )
 
+    data_dir: pathlib.Path | None = Field(
+        None,
+        title="data_dir argument will be passed to huggingface datasets.",
+    )
+
     dataset_path: str = Field(
         ...,
         title="Dataset identifier for huggingface datasets.",

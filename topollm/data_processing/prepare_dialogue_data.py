@@ -39,10 +39,15 @@ import logging
 import pathlib
 
 # Third party imports
+import hydra
+import hydra.core.hydra_config
+import omegaconf
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
 # Local imports
+from topollm.config_classes.Configs import MainConfig
+from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -61,62 +66,31 @@ setup_exception_logging(
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
-def main():
-    data_root_dir = pathlib.Path(
-        pathlib.Path.home(),
-        "git-source",
-        "Topo_LLM",
-        "data",
+@hydra.main(
+    config_path="../../configs",
+    config_name="main_config",
+    version_base="1.2",
+)
+def main(
+    config: omegaconf.DictConfig,
+) -> None:
+    """Run the script."""
+
+    print("Running script ...")
+
+    global_logger.info("Running script ...")
+
+    main_config: MainConfig = initialize_configuration(
+        config=config,
+        logger=global_logger,
     )
 
-    print(f"data_root_dir: {data_root_dir}")
+    # TODO Continue here
 
-    current_dataset_dir = pathlib.Path(
-        data_root_dir,
-        "datasets",
-        "iclr_2024_submissions",
-    )
-
-    path_to_csv = pathlib.Path(
-        current_dataset_dir,
-        "ICLR_Mistral_Embeddings.csv",
-    )
-
-    df = pd.read_csv(
-        path_to_csv,
-    )
-    df = df.iloc[:, :5]
-
-    df["text"] = df["title"] + ". " + df["abstract"]
-    df = df.loc[:, ["title", "abstract", "text"]]
-
-    train, test = train_test_split(df, test_size=0.2)
-    test, validation = train_test_split(test, test_size=0.5)
-
-    train.to_csv(
-        pathlib.Path(
-            current_dataset_dir,
-            "ICLR_train.csv",
-        ),
-        index=False,
-    )
-    test.to_csv(
-        pathlib.Path(
-            current_dataset_dir,
-            "ICLR_test.csv",
-        ),
-        index=False,
-    )
-    validation.to_csv(
-        pathlib.Path(
-            current_dataset_dir,
-            "ICLR_validation.csv",
-        ),
-        index=False,
-    )
+    return None
 
 
 if __name__ == "__main__":
     main()
 
-    print("Done")
+    global_logger.info("Script Done.")
