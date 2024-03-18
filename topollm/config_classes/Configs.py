@@ -177,7 +177,7 @@ class StorageConfig(ConfigBaseModel):
 
 class EmbeddingExtractionConfig(BaseModel):
     layer_indices: list[int]
-    aggregation: AggregationType = AggregationType.MEAN
+    aggregation: AggregationType = AggregationType.MEAN  # type: ignore
 
     @property
     def embedding_extraction_config_description(

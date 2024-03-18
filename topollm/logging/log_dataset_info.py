@@ -36,6 +36,7 @@ import pprint
 
 # Third party imports
 import datasets
+import torch.utils.data
 
 # Local imports
 
@@ -43,7 +44,7 @@ import datasets
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
-def log_dataset_info(
+def log_huggingface_dataset_info(
     dataset: datasets.Dataset,
     dataset_name: str = "dataset",
     num_samples_to_log: int = 5,
@@ -55,6 +56,33 @@ def log_dataset_info(
     )
     logger.info(
         f"{dataset_name}.column_names:\n" f"{pprint.pformat(dataset.column_names)}",
+    )
+    logger.info(
+        f"{dataset_name}:\n" f"{pprint.pformat(dataset)}",
+    )
+
+    # Log the first and last few samples of the dataset
+    logger.info(
+        f"{dataset_name[:num_samples_to_log]}:\n"
+        f"{dataset[:num_samples_to_log]}",  # Do not use pprint here, as it will not be readable
+    )
+    logger.info(
+        f"{dataset[-num_samples_to_log:]}:\n",
+        f"{dataset_name[-num_samples_to_log:]}",  # Do not use pprint here, as it will not be readable
+    )
+
+    return None
+
+
+def log_torch_dataset_info(
+    dataset: torch.utils.data.Dataset,
+    dataset_name: str = "dataset",
+    num_samples_to_log: int = 5,
+    logger: logging.Logger = logging.getLogger(__name__),
+) -> None:
+    """Logs information about the dataset."""
+    logger.info(
+        f"{dataset_name = }",
     )
     logger.info(
         f"{dataset_name}:\n" f"{pprint.pformat(dataset)}",

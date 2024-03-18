@@ -44,7 +44,7 @@ import torch.utils.data
 from transformers import BatchEncoding, PreTrainedTokenizer, PreTrainedTokenizerFast
 
 # Local imports
-from topollm.compute_embeddings.log_dataset_info import log_dataset_info
+from topollm.logging.log_dataset_info import log_huggingface_dataset_info
 from topollm.config_classes.Configs import DataConfig, EmbeddingsConfig
 from topollm.config_classes.enums import DatasetType
 
@@ -195,7 +195,7 @@ class HuggingfaceEmbeddingDataLoaderPreparer(EmbeddingDataLoaderPreparer):
             self.logger.info(
                 f"{self.dataset_length = }",
             )
-            log_dataset_info(
+            log_huggingface_dataset_info(
                 dataset=dataset,
                 dataset_name="dataset",
                 logger=self.logger,
@@ -227,7 +227,7 @@ class HuggingfaceEmbeddingDataLoaderPreparer(EmbeddingDataLoaderPreparer):
             self.logger.info(
                 f"{dataset_tokenized = }",
             )
-            log_dataset_info(
+            log_huggingface_dataset_info(
                 dataset=dataset_tokenized,
                 dataset_name="dataset_tokenized",
                 logger=self.logger,
