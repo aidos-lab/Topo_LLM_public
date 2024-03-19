@@ -116,7 +116,9 @@ def main(
     )
     # Note that you cannot use `AutoModel.from_pretrained` here,
     # because it would lead to the error:
-    # `KeyError: 'logits'``
+    # `KeyError: 'logits'`
+    #
+    # See also: https://github.com/huggingface/transformers/issues/16569
     model = AutoModelForMaskedLM.from_pretrained(
         pretrained_model_name_or_path=main_config.embeddings.language_model.pretrained_model_name_or_path,
     )
@@ -126,6 +128,7 @@ def main(
         task="fill-mask",
         model=model,
         tokenizer=tokenizer,
+        device=device,
     )
 
     prompts: list[str] = [
