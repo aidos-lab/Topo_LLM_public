@@ -36,11 +36,14 @@ Create embedding vectors from dataset.
 
 # Standard library imports
 import logging
+import pprint
+import token
 
 # Third party imports
 import hydra
 import hydra.core.hydra_config
 import omegaconf
+import transformers
 from transformers import (
     AutoModelForMaskedLM,
     AutoTokenizer,
@@ -51,7 +54,6 @@ from transformers import (
     PreTrainedTokenizerFast,
     Trainer,
     TrainingArguments,
-    pipeline,
 )
 
 # Local imports
@@ -112,14 +114,32 @@ def main(
         logger=global_logger,
         verbosity=main_config.verbosity,
     )
-    model = load_model(
+    # Note that you cannot use `AutoModel.from_pretrained` here,
+    # because it would lead to the error:
+    # `KeyError: 'logits'``
+    model = AutoModelForMaskedLM.from_pretrained(
         pretrained_model_name_or_path=main_config.embeddings.language_model.pretrained_model_name_or_path,
-        device=device,
-        logger=global_logger,
-        verbosity=main_config.verbosity,
+    )
+    model.to(device)
+
+    fill_pipeline = transformers.pipeline(
+        task="fill-mask",
+        model=model,
+        tokenizer=tokenizer,
     )
 
-    # TODO Continue here
+    prompts: list[str] = [
+        "I am looking for a " + tokenizer.mask_token,
+        "Can you find me a " + tokenizer.mask_token + "?",
+        "I would like a "
+        + tokenizer.mask_token
+        + " hotel in the center of town, please.",
+        tokenizer.mask_token + " is a cheap restaurant in the south of town.",
+    ]
+    global_logger.info(f"prompts:\n" f"{pprint.pformat(prompts)}")
+
+    result = fill_pipeline(prompts)
+    global_logger.info(f"result:\n" f"{pprint.pformat(result)}")
 
     global_logger.info("DONE")
 

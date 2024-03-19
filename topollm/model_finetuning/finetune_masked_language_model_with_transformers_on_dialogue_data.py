@@ -37,12 +37,10 @@ from datetime import datetime
 
 # Third party imports
 import datasets
-import h5py
 import numpy as np
 import pandas as pd
 import torch
 import transformers
-import yaml
 from convlab.util import load_dataset, load_ontology
 from datasets import Dataset
 from DialogueUtteranceDataset import DialogueUtteranceDataset
@@ -160,23 +158,6 @@ tda_base_path = "./"
 
 # END Globals
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-
-
-# # # # # # # # # # # # # #
-#
-
-# Sample list of sentences or dialogues
-sentences = [
-    "Replace me by any text you'd like.",
-    "This is another example sentence.",
-    "Hello, I'm looking for a restaurant in the center of town.",
-    "I'd like a reservation for 2 people at 7pm.",
-    "I've never been there, but I've heard good things.",
-    "Great, I'll make a reservation.",
-]
-
-#
-# # # # # # # # # # # # # #
 
 
 def parse_args():
