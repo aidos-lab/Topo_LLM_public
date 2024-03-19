@@ -23,7 +23,7 @@ Script for fine-tuning language models on dialogue data.
 """
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# Imports
+# START Imports
 
 # System imports
 import argparse
@@ -63,9 +63,11 @@ from transformers import (
 
 # Local imports
 
+# END Imports
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# Configure the logging module
+# START Configure the logging module
 
 # Get the current date and time
 now = datetime.now()
@@ -113,20 +115,12 @@ sys.excepthook = handle_exception
 
 logger.info(f"Logging to file '{logfile_path}' and stdout")
 
-#
+# END Configure the logging module
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# GLOBALS
+# START Globals
 
-# Optional: Set environment variables in script
-#
-# os.environ[
-#     "TERM_EXTRACTION_BASE_PATH"
-# ] = "$HOME/git-source/ConvLab3/convlab/term_extraction"
-# os.environ[
-#     "TDA_BASE_PATH"
-# ] = "$HOME/git-source/ConvLab3/convlab/tda/tda_contextual_embeddings"
 
 # Get the base path from the environment variable
 term_extraction_base_path_env = os.environ.get("TERM_EXTRACTION_BASE_PATH")
@@ -164,7 +158,7 @@ else:
 
 tda_base_path = "./"
 
-#
+# END Globals
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
@@ -570,6 +564,7 @@ def main():
     # Data collator
     data_collator = DataCollatorForLanguageModeling(
         tokenizer=tokenizer,
+        mlm=True,
         mlm_probability=0.15,
     )
 
@@ -628,9 +623,9 @@ def main():
     trainer = Trainer(
         model=model,
         args=training_args,
+        data_collator=data_collator,
         train_dataset=train_dataset,
         eval_dataset=validation_dataset,
-        data_collator=data_collator,
         tokenizer=tokenizer,
     )
 
