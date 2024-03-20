@@ -34,11 +34,9 @@
 import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from functools import partial
 from typing import Callable
 
 # Third party imports
-import datasets
 import torch
 import torch.utils.data
 from transformers import BatchEncoding, PreTrainedTokenizer, PreTrainedTokenizerFast
@@ -46,8 +44,7 @@ from transformers import BatchEncoding, PreTrainedTokenizer, PreTrainedTokenizer
 # Local imports
 from topollm.data_handling.HuggingfaceDatasetPreparer import HuggingfaceDatasetPreparer
 from topollm.config_classes.EmbeddingsConfig import EmbeddingsConfig
-from topollm.logging.log_dataset_info import log_huggingface_dataset_info
-from topollm.config_classes.Configs import DataConfig
+from topollm.config_classes.DataConfig import DataConfig
 
 # END Imports
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -132,128 +129,3 @@ class EmbeddingDataLoaderPreparer(ABC):
     def __len__(self) -> int:
         """Returns the number of samples in the dataset."""
         pass
-
-
-class HuggingfaceEmbeddingDataLoaderPreparer(EmbeddingDataLoaderPreparer):
-    @property
-    def sequence_length(
-        self,
-    ) -> int:
-        return self.preparer_context.embeddings_config.tokenizer.max_length
-
-    def __len__(
-        self,
-    ) -> int:
-        """Returns the number of samples in the dataset."""
-        if not hasattr(
-            self,
-            "dataset_length",
-        ):
-            raise ValueError(
-                "The dataset length is not available. "
-                "Please call prepare_dataloader() first."
-            )
-
-        return self.dataset_preparer.dataset_length
-
-
-
-    def create_dataset_tokenized(
-        self,
-        dataset: datasets.Dataset,
-    ) -> datasets.Dataset:
-        """Tokenizes dataset."""
-        # Make a partial function for mapping tokenizer over the dataset
-        partial_map_fn = partial(
-            self.convert_dataset_entry_to_features,
-            tokenizer=self.preparer_context.tokenizer,
-            column_name=self.preparer_context.data_config.column_name,
-            max_length=self.sequence_length,
-        )
-
-        dataset_tokenized = dataset.map(
-            partial_map_fn,
-            batched=True,
-            batch_size=self.preparer_context.embeddings_config.dataset_map.batch_size,
-            num_proc=self.preparer_context.embeddings_config.dataset_map.num_proc,
-        )
-
-        if self.verbosity >= 1:
-            self.logger.info(
-                f"{dataset_tokenized = }",
-            )
-            log_huggingface_dataset_info(
-                dataset=dataset_tokenized,
-                dataset_name="dataset_tokenized",
-                logger=self.logger,
-            )
-
-        return dataset_tokenized
-
-    def create_dataloader_from_tokenized_dataset(
-        self,
-        dataset_tokenized: datasets.Dataset,
-    ) -> torch.utils.data.DataLoader:
-        # The mapped dataset has the input_ids and attention_mask
-        # as lists of integers, but we want to convert them to torch tensors
-        # to use them as model input.
-        # We will take care of this in the collate function of the DataLoader,
-        # which will also move the data to the appropriate device.
-        #
-        # An alternative way to set the format of the dataset to torch tensors
-        # is given below:
-        #
-        # dataset_tokenized.set_format(
-        #     type="torch",
-        #     columns=[
-        #         "input_ids",
-        #         "attention_mask",
-        #     ],
-        # )
-
-        # The multiprocessing_context argument is the solution taken from:
-        # https://github.com/pytorch/pytorch/issues/87688
-        # But it does not appear to work with the "mps" backend.
-        #
-        # Not that you need to set `num_workers=0` so that the data loading
-        # runs in the main process.
-        # This appears to be necessary with the "mps" backend.
-        dataloader = torch.utils.data.DataLoader(
-            dataset_tokenized,  # type: ignore
-            batch_size=self.preparer_context.embeddings_config.batch_size,
-            shuffle=False,
-            collate_fn=self.preparer_context.collate_fn,
-            num_workers=self.preparer_context.embeddings_config.num_workers,
-            # multiprocessing_context=(
-            #     "fork" if torch.backends.mps.is_available() else None
-            # ),
-        )
-
-        if self.verbosity >= 1:
-            self.logger.info(
-                f"{dataloader = }",
-            )
-
-        return dataloader
-
-    def prepare_dataloader(
-        self,
-    ) -> torch.utils.data.DataLoader:
-        """
-        Loads and prepares a dataset,
-        returns a dataloader.
-        """
-
-        dataset = self.dataset_preparer.prepare_dataset()
-
-        dataset_tokenized = self.create_dataset_tokenized(
-            dataset=dataset,
-        )
-
-        dataloader = self.create_dataloader_from_tokenized_dataset(
-            dataset_tokenized=dataset_tokenized,
-        )
-
-        return dataloader
-
-

@@ -70,8 +70,9 @@ from transformers import (
 )
 
 # Local imports
+from topollm.data_handling.DatasetPreparerFactory import get_dataset_preparer
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
-from topollm.config_classes.Configs import MainConfig
+from topollm.config_classes.MainConfig import MainConfig
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.model_handling.load_tokenizer import load_tokenizer
 from topollm.model_handling.load_model import load_model
@@ -108,6 +109,9 @@ def main(
 
     global_logger.info("Running script ...")
 
+    # Set the transformers logging level
+    transformers.logging.set_verbosity_info()
+
     main_config: MainConfig = initialize_configuration(
         config=config,
         logger=global_logger,
@@ -125,6 +129,7 @@ def run_finetuning(
     main_config: MainConfig,
     logger: logging.Logger = logging.getLogger(__name__),
 ) -> None:
+    finetuning_config = main_config.finetuning
 
     # # # #
     # Use accelerator if available
@@ -133,59 +138,48 @@ def run_finetuning(
         logger=global_logger,
     )
 
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    # Load data
+    train_dataset_preparer = get_dataset_preparer(
+        dataset_type=finetuning_config.finetuning_datasets.train_dataset.dataset_type,
+        data_config=finetuning_config.finetuning_datasets.train_dataset,
+        verbosity=main_config.verbosity,
+        logger=logger,
+    )
+    train_dataset = train_dataset_preparer.prepare_dataset()
+
+    eval_dataset_preparer = get_dataset_preparer(
+        dataset_type=finetuning_config.finetuning_datasets.eval_dataset.dataset_type,
+        data_config=finetuning_config.finetuning_datasets.eval_dataset,
+        verbosity=main_config.verbosity,
+        logger=logger,
+    )
+    eval_dataset = eval_dataset_preparer.prepare_dataset()
     
     # TODO Continue here
     
-    
-    model_identifier = "roberta-base"
-    tokenizer_identifier = "roberta-base"
 
-    max_length: int = args.max_length
-    logging.info(f"max_length: {max_length}")
-
-    dataset_desc_list = args.data_set_desc_list
-    logger.info(f"dataset_desc_list: {dataset_desc_list}")
-
-    # Set the transformers logging level
-    transformers.logging.set_verbosity_info()
-
-
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    logging.info(f"device: {device}")
-
-    # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-    # Load data
-
-    logging.info(f"Loading datasets ...")
-
-    # create the dataset string
-    dataset_string = "_".join(dataset_desc_list)
-
-    datasets_dict = {
-        dataset_desc: load_dataset(
-            dataset_name=dataset_desc,
-        )
-        for dataset_desc in dataset_desc_list
-    }
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Load tokenizer and model
 
-    logger.info(f"Loading tokenizer: {tokenizer_identifier} ...")
+    # ? TODO Do we need to add parameters to the tokenizer here for finetuning?
+
+    logger.info(f"Loading tokenizer " f"{finetuning_config.pretrained_model_name_or_path = } ...")
     tokenizer = AutoTokenizer.from_pretrained(
-        tokenizer_identifier,
+        pretrained_model_name_or_path=finetuning_config.pretrained_model_name_or_path,
     )
-    logger.info(f"Loading tokenizer: {tokenizer_identifier} DONE")
+    logger.info(f"Loading tokenizer " f"{finetuning_config.pretrained_model_name_or_path = } DONE")
 
     # Set the padding token to the eos token
     tokenizer.pad_token = tokenizer.eos_token
-    logging.info(f"tokenizer:\n{tokenizer}")
+    logger.info(f"tokenizer:\n{tokenizer}")
 
-    logging.info(f"Loading model: {model_identifier} ...")
+    logging.info(f"Loading model " f"{model_identifier} ...")
     model = AutoModelForMaskedLM.from_pretrained(
-        model_identifier,
+        pretrained_model_name_or_path=finetuning_config.pretrained_model_name_or_path,
     )
-    logging.info(f"Loading model: {model_identifier} DONE")
+    logging.info(f"Loading model " f"{model_identifier} DONE")
 
     logging.info(f"model:\n{model}")
     logging.info(f"model.config:\n{model.config}")
@@ -201,58 +195,10 @@ def run_finetuning(
     model.to(device)  # type: ignore
     logging.info(f"Moving model to device: {device} DONE")
 
-    # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-    # Create datasets for finetuning and saving files
+ 
 
-    train_dataset_path = pathlib.Path(
-        tda_base_path,
-        "contextual_dialogues",
-        "data",
-        "dialogue_data_text_files",
-        f"dataset_{dataset_string}_train_context_{context}_debug_idx_{debug_index}.txt",
-    )
-    logging.info(f"train_dataset_path: {train_dataset_path} ...")
-
-    # create directory if it does not exist
-    logging.info(f"Creating directory: {train_dataset_path.parent} ...")
-    train_dataset_path.parent.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
-
-    validation_dataset_path = pathlib.Path(
-        tda_base_path,
-        "contextual_dialogues",
-        "data",
-        "dialogue_data_text_files",
-        f"dataset_{dataset_string}_validation_context_{context}_debug_idx_{debug_index}.txt",
-    )
-    logging.info(f"validation_dataset_path: {validation_dataset_path} ...")
-
-    # create directory if it does not exist
-    logging.info(f"Creating directory: {validation_dataset_path.parent} ...")
-    validation_dataset_path.parent.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
-
-    # # # #
-    # Create the datasets from the dialogue utterances
-
-    # Create and open the files for writing
-    logging.info(f"Creating files for writing ...")
-    train_file = open(
-        train_dataset_path,
-        "w",
-    )
-    validation_file = open(
-        validation_dataset_path,
-        "w",
-    )
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-    #
-
     # Tokenize data using the Dataset.map() function
     def tokenize_function(examples):
         return tokenizer(

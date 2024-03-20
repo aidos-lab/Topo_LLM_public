@@ -40,8 +40,8 @@
 from topollm.compute_embeddings.EmbeddingDataLoaderPreparer import (
     EmbeddingDataLoaderPreparer,
     EmbeddingDataLoaderPreparerContext,
-    HuggingfaceEmbeddingDataLoaderPreparer,
 )
+from topollm.compute_embeddings.HuggingfaceEmbeddingDataLoaderPreparer import HuggingfaceEmbeddingDataLoaderPreparer
 from topollm.config_classes.enums import DatasetType
 
 

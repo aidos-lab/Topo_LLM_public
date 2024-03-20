@@ -31,28 +31,29 @@
 # START Imports
 
 # Standard library imports
-import logging
-from typing import Protocol
+import pathlib
 
 # Third party imports
-import datasets
+from pydantic import Field
 
 # Local imports
-from topollm.config_classes.DataConfig import DataConfig
-from topollm.logging.log_dataset_info import log_huggingface_dataset_info
+from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
 
 # END Imports
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
+class PathsConfig(ConfigBaseModel):
+    """Configurations for specifying paths."""
 
-class DatasetPreparer(Protocol):
-    """Protocol for preparing a dataset."""
+    data_dir: pathlib.Path = Field(
+        ...,
+        title="Data path.",
+        description="The path to the data.",
+    )
 
-    def prepare_dataset(
-        self,
-    ) -> datasets.Dataset:
-        """
-        Loads and prepares a dataset.
-        """
-        ... # pragma: no cover
+    repository_base_path: pathlib.Path = Field(
+        ...,
+        title="Repository base path.",
+        description="The base path to the repository.",
+    )

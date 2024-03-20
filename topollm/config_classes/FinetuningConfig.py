@@ -37,6 +37,7 @@ from pydantic import BaseModel, Field
 
 # Local imports
 from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
+from topollm.config_classes.DataConfig import DataConfig
 from topollm.config_classes.constants import NAME_PREFIXES
 from topollm.config_classes.enums import Level
 
@@ -62,6 +63,17 @@ class BatchSizesConfig(ConfigBaseModel):
         description="The batch size for evaluation.",
     )
 
+class FinetuningDatasetsConfig(ConfigBaseModel):
+    train_dataset: DataConfig = Field(
+        ...,
+        description="The configuration for the training dataset.",
+    )
+
+    eval_dataset: DataConfig = Field(
+        ...,
+        description="The configuration for the evaluation dataset.",
+    )
+
 class FinetuningConfig(ConfigBaseModel):
     """Configurations for fine tuning."""
 
@@ -83,6 +95,11 @@ class FinetuningConfig(ConfigBaseModel):
     batch_sizes: BatchSizesConfig = Field(
         ...,
         description="The batch sizes for training and evaluation.",
+    )
+
+    finetuning_datasets: FinetuningDatasetsConfig = Field(
+        ...,
+        description="The configurations for the training and evaluation datasets.",
     )
 
 

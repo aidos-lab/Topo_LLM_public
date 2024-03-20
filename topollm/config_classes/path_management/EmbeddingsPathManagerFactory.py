@@ -35,7 +35,7 @@ import logging
 # External imports
 
 # Local imports
-from topollm.config_classes.Configs import MainConfig
+from topollm.config_classes.MainConfig import MainConfig
 from topollm.config_classes.path_management.EmbeddingsPathManagerProtocol import (
     EmbeddingsPathManager,
 )

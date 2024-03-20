@@ -1,7 +1,7 @@
 defaults:
   # - data: bbc
   # - data: wikitext
-  # - data: multiwoz21
+  # - data: multiwoz21_train_5000
   - data: sgd
   - embeddings: basic_embeddings
   - paths: absolute_repository_base

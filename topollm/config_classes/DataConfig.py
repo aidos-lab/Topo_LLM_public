@@ -31,7 +31,6 @@
 # START Imports
 
 # Standard library imports
-from os import PathLike
 import pathlib
 
 # Third party imports
@@ -39,23 +38,10 @@ from pydantic import Field
 
 # Local imports
 from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
-from topollm.config_classes.EmbeddingsConfig import EmbeddingsConfig
-from topollm.config_classes.enums import (
-    PreferredTorchBackend,
-    Split,
-    DatasetType,
-    ArrayStorageType,
-    MetadataStorageType,
-)
 from topollm.config_classes.constants import NAME_PREFIXES
+from topollm.config_classes.enums import DatasetType, Split
 
 # END Imports
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Globals
-
-# END Globals
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
@@ -130,108 +116,3 @@ class DataConfig(ConfigBaseModel):
             f"_"
             f"{NAME_PREFIXES['context']}{self.context}"
         )
-
-
-class StorageConfig(ConfigBaseModel):
-    """
-    Configurations for specifying storage.
-    """
-
-    array_storage_type: ArrayStorageType = Field(
-        ...,
-        title="Array storage type.",
-        description="The storage type for arrays.",
-    )
-
-    metadata_storage_type: MetadataStorageType = Field(
-        ...,
-        title="Metadata storage type.",
-        description="The storage type for metadata.",
-    )
-
-    chunk_size: int = Field(
-        ...,
-        title="Chunk size for storage.",
-        description="The chunk size for storage.",
-    )
-
-
-class PathsConfig(ConfigBaseModel):
-    """Configurations for specifying paths."""
-
-    data_dir: pathlib.Path = Field(
-        ...,
-        title="Data path.",
-        description="The path to the data.",
-    )
-
-    repository_base_path: pathlib.Path = Field(
-        ...,
-        title="Repository base path.",
-        description="The base path to the repository.",
-    )
-
-
-class TransformationsConfig(ConfigBaseModel):
-    normalization: str = Field(
-        ...,
-        title="Normalization method.",
-        description="The normalization method.",
-    )
-
-    @property
-    def transformation_config_description(
-        self,
-    ) -> str:
-        desc = f"{NAME_PREFIXES['normalization']}"
-        desc += f"{self.normalization}"
-
-        return desc
-
-
-class MainConfig(ConfigBaseModel):
-    """
-    Master configuration for computing embeddings.
-    """
-
-    data: DataConfig = Field(
-        ...,
-        title="Data configuration.",
-        description="The configuration for specifying data.",
-    )
-
-    embeddings: EmbeddingsConfig = Field(
-        ...,
-        title="Embeddings configuration.",
-        description="The configuration for specifying embeddings.",
-    )
-
-    paths: PathsConfig = Field(
-        ...,
-        title="Paths configuration.",
-        description="The configuration for specifying paths.",
-    )
-
-    preferred_torch_backend: PreferredTorchBackend = Field(
-        ...,
-        title="Preferred torch backend.",
-        description="The preferred torch backend.",
-    )
-
-    storage: StorageConfig = Field(
-        ...,
-        title="Storage configuration.",
-        description="The configuration for specifying storage.",
-    )
-
-    transformations: TransformationsConfig = Field(
-        ...,
-        title="Transformations configuration.",
-        description="The configuration for specifying transformations.",
-    )
-
-    verbosity: int = Field(
-        default=1,
-        title="Verbosity level.",
-        description="The verbosity level.",
-    )

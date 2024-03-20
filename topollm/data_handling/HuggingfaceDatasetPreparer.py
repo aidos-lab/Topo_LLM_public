@@ -37,7 +37,7 @@ import logging
 import datasets
 
 # Local imports
-from topollm.config_classes.Configs import DataConfig
+from topollm.config_classes.DataConfig import DataConfig
 from topollm.logging.log_dataset_info import log_huggingface_dataset_info
 
 # END Imports

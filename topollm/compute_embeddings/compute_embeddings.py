@@ -63,7 +63,7 @@ from topollm.compute_embeddings.EmbeddingDataLoaderPreparerFactory import get_em
 from topollm.model_handling.load_tokenizer import load_tokenizer
 from topollm.model_handling.load_model import load_model
 from topollm.model_handling.get_torch_device import get_torch_device
-from topollm.config_classes.Configs import MainConfig
+from topollm.config_classes.MainConfig import MainConfig
 from topollm.config_classes.path_management.EmbeddingsPathManagerFactory import (
     get_embeddings_path_manager,
 )

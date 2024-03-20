@@ -31,28 +31,31 @@
 # START Imports
 
 # Standard library imports
-import logging
-from typing import Protocol
+import pathlib
 
 # Third party imports
-import datasets
+from pydantic import Field
 
 # Local imports
-from topollm.config_classes.DataConfig import DataConfig
-from topollm.logging.log_dataset_info import log_huggingface_dataset_info
+from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
+from topollm.config_classes.constants import NAME_PREFIXES
 
 # END Imports
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
+class TransformationsConfig(ConfigBaseModel):
+    normalization: str = Field(
+        ...,
+        title="Normalization method.",
+        description="The normalization method.",
+    )
 
-class DatasetPreparer(Protocol):
-    """Protocol for preparing a dataset."""
-
-    def prepare_dataset(
+    @property
+    def transformation_config_description(
         self,
-    ) -> datasets.Dataset:
-        """
-        Loads and prepares a dataset.
-        """
-        ... # pragma: no cover
+    ) -> str:
+        desc = f"{NAME_PREFIXES['normalization']}"
+        desc += f"{self.normalization}"
+
+        return desc

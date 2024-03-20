@@ -48,7 +48,7 @@ import zarr
 
 
 # Local imports
-from topollm.config_classes.Configs import MainConfig
+from topollm.config_classes.MainConfig import MainConfig
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
 

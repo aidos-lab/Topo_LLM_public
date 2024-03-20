@@ -31,28 +31,41 @@
 # START Imports
 
 # Standard library imports
-import logging
-from typing import Protocol
 
 # Third party imports
-import datasets
+from pydantic import Field
 
 # Local imports
-from topollm.config_classes.DataConfig import DataConfig
-from topollm.logging.log_dataset_info import log_huggingface_dataset_info
+from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
+from topollm.config_classes.enums import ArrayStorageType, MetadataStorageType
+
 
 # END Imports
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
 
-class DatasetPreparer(Protocol):
-    """Protocol for preparing a dataset."""
 
-    def prepare_dataset(
-        self,
-    ) -> datasets.Dataset:
-        """
-        Loads and prepares a dataset.
-        """
-        ... # pragma: no cover
+
+class StorageConfig(ConfigBaseModel):
+    """
+    Configurations for specifying storage.
+    """
+
+    array_storage_type: ArrayStorageType = Field(
+        ...,
+        title="Array storage type.",
+        description="The storage type for arrays.",
+    )
+
+    metadata_storage_type: MetadataStorageType = Field(
+        ...,
+        title="Metadata storage type.",
+        description="The storage type for metadata.",
+    )
+
+    chunk_size: int = Field(
+        ...,
+        title="Chunk size for storage.",
+        description="The chunk size for storage.",
+    )

@@ -48,7 +48,7 @@ from tqdm import tqdm
 # Local imports
 import convlab  # type: ignore
 import topollm.data_processing.DialogueUtteranceDataset as DialogueUtteranceDataset
-from topollm.config_classes.Configs import MainConfig
+from topollm.config_classes.MainConfig import MainConfig
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.logging.log_dataset_info import log_torch_dataset_info

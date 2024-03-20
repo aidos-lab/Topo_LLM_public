@@ -4,6 +4,6 @@ max_length: 512
 batch_sizes:
   - train: 8
   - eval: 16
-data: 
-  training: ${data.bbc}
-  validation: ${data.bbc}
+finetuning_datasets: 
+  train_dataset: ${data.multiwoz21_train_5000}
+  eval_dataset: ${data.multiwoz21_validation_5000}
