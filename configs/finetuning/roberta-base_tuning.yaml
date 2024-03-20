@@ -4,3 +4,6 @@ max_length: 512
 batch_sizes:
   - train: 8
   - eval: 16
+data: 
+  training: ${data.bbc}
+  validation: ${data.bbc}

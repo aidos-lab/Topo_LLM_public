@@ -35,13 +35,12 @@ from os import PathLike
 import pathlib
 
 # Third party imports
-from pydantic import BaseModel, Field
+from pydantic import Field
 
 # Local imports
 from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
 from topollm.config_classes.EmbeddingsConfig import EmbeddingsConfig
 from topollm.config_classes.enums import (
-    AggregationType,
     PreferredTorchBackend,
     Split,
     DatasetType,
@@ -133,24 +132,6 @@ class DataConfig(ConfigBaseModel):
         )
 
 
-class DatasetMapConfig(ConfigBaseModel):
-    """
-    Configurations for specifying dataset map.
-    """
-
-    batch_size: int = Field(
-        ...,
-        title="Batch size for mapping tokenization on dataset.",
-        description="The batch size for mapping tokenization on dataset.",
-    )
-
-    num_proc: int = Field(
-        ...,
-        title="Number of processes for mapping tokenization on dataset.",
-        description="The number of processes for mapping tokenization on dataset.",
-    )
-
-
 class StorageConfig(ConfigBaseModel):
     """
     Configurations for specifying storage.
@@ -173,90 +154,6 @@ class StorageConfig(ConfigBaseModel):
         title="Chunk size for storage.",
         description="The chunk size for storage.",
     )
-
-
-class EmbeddingExtractionConfig(BaseModel):
-    layer_indices: list[int]
-    aggregation: AggregationType = AggregationType.MEAN  # type: ignore
-
-    @property
-    def embedding_extraction_config_description(
-        self,
-    ) -> str:
-        """
-        Get the description of the embedding extraction.
-
-        Returns:
-            str: The description of the embedding extraction.
-        """
-        return (
-            f"{NAME_PREFIXES['layer']}{str(self.layer_indices)}"
-            f"_"
-            f"{NAME_PREFIXES['aggregation']}{str(self.aggregation)}"
-        )
-
-
-class LanguageModelConfig(ConfigBaseModel):
-    pretrained_model_name_or_path: str | pathlib.Path = Field(
-        ...,
-        title="Model identifier for huggingface transformers model.",
-        description=f"The model identifier for the huggingface transformers model "
-        f"to use for computing embeddings.",
-    )
-
-    short_model_name: str = Field(
-        ...,
-        title="Short model name.",
-        description="The short model name.",
-    )
-
-    masking_mode: str = Field(
-        ...,
-        title="Masking mode.",
-        description="The masking mode.",
-    )
-
-    @property
-    def lanugage_model_config_description(
-        self,
-    ) -> str:
-        # Construct and return the model parameters description
-
-        return (
-            f"{NAME_PREFIXES['model']}{self.short_model_name}"
-            f"_"
-            f"{NAME_PREFIXES['masking_mode']}{self.masking_mode}"
-        )
-
-
-class TokenizerConfig(ConfigBaseModel):
-    add_prefix_space: bool = Field(
-        ...,
-        title="Add prefix space.",
-        description="Whether to add prefix space.",
-    )
-
-    max_length: int = Field(
-        ...,
-        title="Maximum length of the input sequence.",
-        description="The maximum length of the input sequence.",
-    )
-
-    @property
-    def tokenizer_config_description(
-        self,
-    ) -> str:
-        """
-        Get the description of the tokenizer config.
-
-        Returns:
-            str: The description of the tokenizer.
-        """
-        return (
-            f"{NAME_PREFIXES['add_prefix_space']}{str(self.add_prefix_space)}"
-            f"_"
-            f"{NAME_PREFIXES['max_length']}{str(self.max_length)}"
-        )
 
 
 class PathsConfig(ConfigBaseModel):

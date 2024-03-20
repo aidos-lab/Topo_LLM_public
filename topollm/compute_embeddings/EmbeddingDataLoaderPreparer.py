@@ -44,10 +44,10 @@ import torch.utils.data
 from transformers import BatchEncoding, PreTrainedTokenizer, PreTrainedTokenizerFast
 
 # Local imports
+from topollm.data_handling.HuggingfaceDatasetPreparer import HuggingfaceDatasetPreparer
 from topollm.config_classes.EmbeddingsConfig import EmbeddingsConfig
 from topollm.logging.log_dataset_info import log_huggingface_dataset_info
 from topollm.config_classes.Configs import DataConfig
-from topollm.config_classes.enums import DatasetType
 
 # END Imports
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -75,6 +75,12 @@ class EmbeddingDataLoaderPreparer(ABC):
         preparer_context: EmbeddingDataLoaderPreparerContext,
     ):
         self.preparer_context = preparer_context
+
+        self.dataset_preparer = HuggingfaceDatasetPreparer(
+            data_config=self.preparer_context.data_config,
+            verbosity=self.preparer_context.verbosity,
+            logger=self.preparer_context.logger,
+        )
 
     @property
     def logger(
@@ -129,32 +135,6 @@ class EmbeddingDataLoaderPreparer(ABC):
 
 
 class HuggingfaceEmbeddingDataLoaderPreparer(EmbeddingDataLoaderPreparer):
-    def load_dataset_dict(
-        self,
-    ) -> datasets.DatasetDict:
-        """Loads the dataset based from huggingface datasets based on configuration."""
-        dataset_dict = datasets.load_dataset(
-            path=self.preparer_context.data_config.dataset_path,
-            name=self.preparer_context.data_config.dataset_name,
-            data_dir=self.preparer_context.data_config.data_dir,  # type: ignore
-            trust_remote_code=True,
-        )
-
-        if self.verbosity >= 1:
-            self.logger.info(
-                f"{dataset_dict = }",
-            )
-
-        if not isinstance(
-            dataset_dict,
-            datasets.DatasetDict,
-        ):
-            raise ValueError(
-                f"Expected {dataset_dict = } " f"to be a {datasets.DatasetDict = }"
-            )
-
-        return dataset_dict
-
     @property
     def sequence_length(
         self,
@@ -174,35 +154,9 @@ class HuggingfaceEmbeddingDataLoaderPreparer(EmbeddingDataLoaderPreparer):
                 "Please call prepare_dataloader() first."
             )
 
-        return self.dataset_length
+        return self.dataset_preparer.dataset_length
 
-    def select_dataset(
-        self,
-        dataset_dict: datasets.DatasetDict,
-    ) -> datasets.Dataset:
-        # Select the dataset split to use
-        dataset: datasets.Dataset = dataset_dict[
-            self.preparer_context.data_config.split
-        ]
 
-        # Truncate the dataset to the specified number of samples
-        dataset = dataset.select(
-            indices=range(self.preparer_context.data_config.number_of_samples),
-        )
-
-        self.dataset_length = len(dataset)
-
-        if self.verbosity >= 1:
-            self.logger.info(
-                f"{self.dataset_length = }",
-            )
-            log_huggingface_dataset_info(
-                dataset=dataset,
-                dataset_name="dataset",
-                logger=self.logger,
-            )
-
-        return dataset
 
     def create_dataset_tokenized(
         self,
@@ -289,14 +243,13 @@ class HuggingfaceEmbeddingDataLoaderPreparer(EmbeddingDataLoaderPreparer):
         Loads and prepares a dataset,
         returns a dataloader.
         """
-        dataset_dict = self.load_dataset_dict()
 
-        dataset = self.select_dataset(
-            dataset_dict=dataset_dict,
-        )
+        dataset = self.dataset_preparer.prepare_dataset()
+
         dataset_tokenized = self.create_dataset_tokenized(
             dataset=dataset,
         )
+
         dataloader = self.create_dataloader_from_tokenized_dataset(
             dataset_tokenized=dataset_tokenized,
         )
@@ -304,29 +257,3 @@ class HuggingfaceEmbeddingDataLoaderPreparer(EmbeddingDataLoaderPreparer):
         return dataloader
 
 
-def get_embedding_dataloader_preparer(
-    dataset_type: DatasetType,
-    preparer_context: EmbeddingDataLoaderPreparerContext,
-) -> EmbeddingDataLoaderPreparer:
-    """Factory function to instantiate dataset preparers based on the dataset type.
-
-    Args:
-        dataset_type:
-            The type of dataset to prepare.
-        config:
-            Configuration object containing dataset and model settings.
-        tokenizer:
-            Tokenizer object for datasets that require tokenization.
-
-    Returns:
-        An instance of a DatasetPreparer subclass.
-    """
-    if dataset_type == DatasetType.HUGGINGFACE_DATASET:
-        return HuggingfaceEmbeddingDataLoaderPreparer(
-            preparer_context=preparer_context,
-        )
-    # Extendable to other dataset types
-    # elif dataset_type == "unified_format":
-    #     return ImageDatasetPreparer(config)
-    else:
-        raise ValueError(f"Unsupported {dataset_type = }")

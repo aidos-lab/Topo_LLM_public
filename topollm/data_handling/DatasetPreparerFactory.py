@@ -31,60 +31,39 @@
 # START Imports
 
 # Standard library imports
+import logging
 
 # Third party imports
-from pydantic import BaseModel, Field
+import datasets
 
 # Local imports
-from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
-from topollm.config_classes.constants import NAME_PREFIXES
-from topollm.config_classes.enums import Level
+from topollm.config_classes.Configs import DataConfig
+from topollm.config_classes.enums import DatasetType
+import topollm.data_handling.HuggingfaceDatasetPreparer as HuggingfaceDatasetPreparer
+from topollm.data_handling.DatasetPreparerProtocol import DatasetPreparer
+from topollm.logging.log_dataset_info import log_huggingface_dataset_info
 
 # END Imports
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Globals
 
-# END Globals
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-
-
-
-class BatchSizesConfig(ConfigBaseModel):
-    train: int = Field(
-        ...,
-        description="The batch size for training.",
-    )
-
-    eval: int = Field(
-        ...,
-        description="The batch size for evaluation.",
-    )
-
-class FinetuningConfig(ConfigBaseModel):
-    """Configurations for fine tuning."""
-
-    pretrained_model_name_or_path: str = Field(
-        ...,
-        description="The name or path of the base model to use for fine tuning.",
-    )
-
-    short_model_name: str = Field(
-        ...,
-        description="Short name of the base model for file names.",
-    )
-
-    max_length: int = Field(
-        ...,
-        description="The maximum length of the input sequence.",
-    )
-
-    batch_sizes: BatchSizesConfig = Field(
-        ...,
-        description="The batch sizes for training and evaluation.",
-    )
-
-
-
-    # TODO
+def get_dataset_preparer(
+    dataset_type: DatasetType,
+    data_config: DataConfig,
+    verbosity: int = 1,
+    logger: logging.Logger = logging.getLogger(__name__),
+) -> DatasetPreparer:
+    """
+    Factory function to instantiate dataset preparers.
+    """
+    if dataset_type == DatasetType.HUGGINGFACE_DATASET:
+        return HuggingfaceDatasetPreparer.HuggingfaceDatasetPreparer(
+            data_config=data_config,
+            verbosity=verbosity,
+            logger=logger,
+        )
+    # Extendable to other dataset types
+    # elif dataset_type == "unified_format":
+    #     return ImageDatasetPreparer(config)
+    else:
+        raise ValueError(f"Unsupported {dataset_type = }")

@@ -7,7 +7,6 @@
 #
 # Authors:
 # Benjamin Ruppik (ruppik@hhu.de)
-# Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
 # First versions of this code were potentially generated
@@ -31,46 +30,31 @@
 # START Imports
 
 # System imports
-import logging
-import os
-
-# Third-party imports
-from transformers import (
-    AutoTokenizer,
-    PreTrainedTokenizer,
-    PreTrainedTokenizerFast,
-)
 
 # Local imports
-from topollm.config_classes.TokenizerConfig import TokenizerConfig
+from pydantic import Field
 
-# END Imports
+# Third-party imports
+from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
+
+
+# END Globals
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
-def load_tokenizer(
-    pretrained_model_name_or_path: str | os.PathLike,
-    tokenizer_config: TokenizerConfig,
-    logger: logging.Logger = logging.getLogger(__name__),
-    verbosity: int = 1,
-) -> PreTrainedTokenizer | PreTrainedTokenizerFast:
+class DatasetMapConfig(ConfigBaseModel):
     """
-    Loads the tokenizer and model based on the configuration,
-    and puts the model in evaluation mode.
-
-    Args:
-        pretrained_model_name_or_path:
-            The name or path of the pretrained model.
-
+    Configurations for specifying dataset map.
     """
-    tokenizer = AutoTokenizer.from_pretrained(
-        pretrained_model_name_or_path=pretrained_model_name_or_path,
-        add_prefix_space=tokenizer_config.add_prefix_space,
+
+    batch_size: int = Field(
+        ...,
+        title="Batch size for mapping tokenization on dataset.",
+        description="The batch size for mapping tokenization on dataset.",
     )
 
-    if verbosity >= 1:
-        logger.info(
-            f"tokenizer:\n" f"{tokenizer}",
-        )
-
-    return tokenizer
+    num_proc: int = Field(
+        ...,
+        title="Number of processes for mapping tokenization on dataset.",
+        description="The number of processes for mapping tokenization on dataset.",
+    )

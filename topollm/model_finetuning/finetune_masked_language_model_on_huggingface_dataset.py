@@ -113,26 +113,30 @@ def main(
         logger=global_logger,
     )
 
+    run_finetuning(
+        main_config=main_config,
+        logger=global_logger,
+    )
+
+    return None
+
+
+def run_finetuning(
+    main_config: MainConfig,
+    logger: logging.Logger = logging.getLogger(__name__),
+) -> None:
+
+    # # # #
+    # Use accelerator if available
     device = get_torch_device(
         preferred_torch_backend=main_config.preferred_torch_backend,
         logger=global_logger,
     )
-    # ! TODO Define the proper fine-tuning arguments
 
+    
     # TODO Continue here
-    train_batch_size: int = args.train_batch_size
-    logger.info(f"train_batch_size: {train_batch_size}")
-
-    eval_batch_size: int = args.eval_batch_size
-    logger.info(f"eval_batch_size: {eval_batch_size}")
-
-    debug_index: int | None = args.debug_index
-    logger.info(f"debug_index: {debug_index}")
-
-    # context = "utterance"
-    # context = "dialogue"
-    context = args.context
-
+    
+    
     model_identifier = "roberta-base"
     tokenizer_identifier = "roberta-base"
 
@@ -145,8 +149,7 @@ def main(
     # Set the transformers logging level
     transformers.logging.set_verbosity_info()
 
-    # # # #
-    # Use GPU if available
+
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     logging.info(f"device: {device}")
 

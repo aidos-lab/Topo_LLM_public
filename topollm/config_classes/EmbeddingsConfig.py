@@ -37,7 +37,10 @@ from pydantic import BaseModel, Field
 
 # Local imports
 from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
-from topollm.config_classes.Configs import DatasetMapConfig, EmbeddingExtractionConfig, LanguageModelConfig, TokenizerConfig
+from topollm.config_classes.TokenizerConfig import TokenizerConfig
+from topollm.config_classes.DatasetMapConfig import DatasetMapConfig
+from topollm.config_classes.EmbeddingExtractionConfig import EmbeddingExtractionConfig
+from topollm.config_classes.LanguageModelConfig import LanguageModelConfig
 from topollm.config_classes.constants import NAME_PREFIXES
 from topollm.config_classes.enums import Level
 

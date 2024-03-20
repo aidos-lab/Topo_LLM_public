@@ -30,15 +30,25 @@
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # START Imports
 
-# Standard library imports
-
-# Third party imports
-from pydantic import BaseModel, Field
+# System imports
+import logging
+import os
+import pathlib
 
 # Local imports
-from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
+from topollm.config_classes.FinetuningConfig import FinetuningConfig
+from topollm.config_classes.path_management.truncate_length_of_desc import (
+    truncate_length_of_desc,
+)
+from topollm.config_classes.Configs import (
+    DataConfig,
+    PathsConfig,
+    TransformationsConfig,
+)
 from topollm.config_classes.constants import NAME_PREFIXES
-from topollm.config_classes.enums import Level
+
+# Third-party imports
+
 
 # END Imports
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -50,41 +60,39 @@ from topollm.config_classes.enums import Level
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
+class FinetuningPathManager:
+    def __init__(
+        self,
+        data_config: DataConfig,
+        paths_config: PathsConfig,
+        finetuning_config: FinetuningConfig,
+        verbosity: int = 1,
+        logger: logging.Logger = logging.getLogger(__name__),
+    ):
+        self.data_config = data_config
+        self.finetuning_config = finetuning_config
+        self.paths_config = paths_config
 
-class BatchSizesConfig(ConfigBaseModel):
-    train: int = Field(
-        ...,
-        description="The batch size for training.",
-    )
+        self.verbosity = verbosity
+        self.logger = logger
 
-    eval: int = Field(
-        ...,
-        description="The batch size for evaluation.",
-    )
+    @property
+    def data_dir(
+        self,
+    ) -> pathlib.Path:
+        return self.paths_config.data_dir
 
-class FinetuningConfig(ConfigBaseModel):
-    """Configurations for fine tuning."""
+    @property
+    def finetuned_model_dir(
+        self,
+    ) -> pathlib.Path:
+        path = pathlib.Path(
+            self.data_dir,
+            self.data_config.data_config_description,
+        )
 
-    pretrained_model_name_or_path: str = Field(
-        ...,
-        description="The name or path of the base model to use for fine tuning.",
-    )
+        if self.verbosity >= 1:
+            self.logger.info(f"finetuned_model_dir:\n" f"{path}")
 
-    short_model_name: str = Field(
-        ...,
-        description="Short name of the base model for file names.",
-    )
+        return path
 
-    max_length: int = Field(
-        ...,
-        description="The maximum length of the input sequence.",
-    )
-
-    batch_sizes: BatchSizesConfig = Field(
-        ...,
-        description="The batch sizes for training and evaluation.",
-    )
-
-
-
-    # TODO

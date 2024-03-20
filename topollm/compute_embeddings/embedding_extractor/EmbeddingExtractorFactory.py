@@ -49,7 +49,7 @@ from topollm.compute_embeddings.embedding_extractor.LayerExtractor import (
     LayerExtractor,
     LayerExtractorFromIndices,
 )
-from topollm.config_classes.Configs import EmbeddingExtractionConfig
+from topollm.config_classes.EmbeddingExtractionConfig import EmbeddingExtractionConfig
 from topollm.config_classes.enums import AggregationType
 
 # END Imports

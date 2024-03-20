@@ -32,59 +32,46 @@
 
 # Standard library imports
 
+
 # Third party imports
-from pydantic import BaseModel, Field
+
 
 # Local imports
-from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
-from topollm.config_classes.constants import NAME_PREFIXES
-from topollm.config_classes.enums import Level
+from topollm.compute_embeddings.EmbeddingDataLoaderPreparer import (
+    EmbeddingDataLoaderPreparer,
+    EmbeddingDataLoaderPreparerContext,
+    HuggingfaceEmbeddingDataLoaderPreparer,
+)
+from topollm.config_classes.enums import DatasetType
+
 
 # END Imports
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Globals
 
-# END Globals
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+def get_embedding_dataloader_preparer(
+    dataset_type: DatasetType,
+    preparer_context: EmbeddingDataLoaderPreparerContext,
+) -> EmbeddingDataLoaderPreparer:
+    """Factory function to instantiate dataloader preparers based on the dataset type.
 
+    Args:
+        dataset_type:
+            The type of dataset to prepare.
+        config:
+            Configuration object containing dataset and model settings.
+        tokenizer:
+            Tokenizer object for datasets that require tokenization.
 
-
-class BatchSizesConfig(ConfigBaseModel):
-    train: int = Field(
-        ...,
-        description="The batch size for training.",
-    )
-
-    eval: int = Field(
-        ...,
-        description="The batch size for evaluation.",
-    )
-
-class FinetuningConfig(ConfigBaseModel):
-    """Configurations for fine tuning."""
-
-    pretrained_model_name_or_path: str = Field(
-        ...,
-        description="The name or path of the base model to use for fine tuning.",
-    )
-
-    short_model_name: str = Field(
-        ...,
-        description="Short name of the base model for file names.",
-    )
-
-    max_length: int = Field(
-        ...,
-        description="The maximum length of the input sequence.",
-    )
-
-    batch_sizes: BatchSizesConfig = Field(
-        ...,
-        description="The batch sizes for training and evaluation.",
-    )
-
-
-
-    # TODO
+    Returns:
+        An instance of a DatasetPreparer subclass.
+    """
+    if dataset_type == DatasetType.HUGGINGFACE_DATASET:
+        return HuggingfaceEmbeddingDataLoaderPreparer(
+            preparer_context=preparer_context,
+        )
+    # Extendable to other dataset types
+    # elif dataset_type == "unified_format":
+    #     return ImageDatasetPreparer(config)
+    else:
+        raise ValueError(f"Unsupported {dataset_type = }")

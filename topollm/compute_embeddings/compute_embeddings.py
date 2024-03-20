@@ -55,11 +55,11 @@ from topollm.compute_embeddings.embedding_extractor.EmbeddingExtractorFactory im
 )
 from topollm.compute_embeddings.EmbeddingDataLoaderPreparer import (
     EmbeddingDataLoaderPreparerContext,
-    get_embedding_dataloader_preparer,
 )
 from topollm.compute_embeddings.TokenLevelEmbeddingDataHandler import (
     TokenLevelEmbeddingDataHandler,
 )
+from topollm.compute_embeddings.EmbeddingDataLoaderPreparerFactory import get_embedding_dataloader_preparer
 from topollm.model_handling.load_tokenizer import load_tokenizer
 from topollm.model_handling.load_model import load_model
 from topollm.model_handling.get_torch_device import get_torch_device

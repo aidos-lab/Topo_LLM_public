@@ -31,60 +31,28 @@
 # START Imports
 
 # Standard library imports
+import logging
+from typing import Protocol
 
 # Third party imports
-from pydantic import BaseModel, Field
+import datasets
 
 # Local imports
-from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
-from topollm.config_classes.constants import NAME_PREFIXES
-from topollm.config_classes.enums import Level
+from topollm.config_classes.Configs import DataConfig
+from topollm.logging.log_dataset_info import log_huggingface_dataset_info
 
 # END Imports
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Globals
-
-# END Globals
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
+class DatasetPreparer(Protocol):
+    """Protocol for preparing a dataset."""
 
-class BatchSizesConfig(ConfigBaseModel):
-    train: int = Field(
-        ...,
-        description="The batch size for training.",
-    )
-
-    eval: int = Field(
-        ...,
-        description="The batch size for evaluation.",
-    )
-
-class FinetuningConfig(ConfigBaseModel):
-    """Configurations for fine tuning."""
-
-    pretrained_model_name_or_path: str = Field(
-        ...,
-        description="The name or path of the base model to use for fine tuning.",
-    )
-
-    short_model_name: str = Field(
-        ...,
-        description="Short name of the base model for file names.",
-    )
-
-    max_length: int = Field(
-        ...,
-        description="The maximum length of the input sequence.",
-    )
-
-    batch_sizes: BatchSizesConfig = Field(
-        ...,
-        description="The batch sizes for training and evaluation.",
-    )
-
-
-
-    # TODO
+    def prepare_dataset(
+        self,
+    ) -> datasets.Dataset:
+        """
+        Loads and prepares a dataset.
+        """
+        ... # pragma: no cover

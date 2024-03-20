@@ -90,21 +90,21 @@ class ChunkedArrayStorageProtocol(Protocol):
         self,
     ) -> None:
         """Initializes the storage with specified configuration."""
-        ...
+        ... # pragma: no cover
 
     def write_chunk(
         self,
         data_chunk: ArrayDataChunk,
     ) -> None:
         """Writes a chunk of data starting from a specific index."""
-        ...
+        ... # pragma: no cover
 
     def read_chunk(
         self,
         chunk_identifier: ChunkIdentifier,
     ) -> ArrayDataChunk:
         """Reads a chunk of data determined by the identifier."""
-        ...
+        ... # pragma: no cover
 
 
 @runtime_checkable
@@ -113,18 +113,18 @@ class ChunkedMetadataStorageProtocol(Protocol):
         self,
     ) -> None:
         """Initializes the storage with specified configuration."""
-        ...
+        ... # pragma: no cover
 
     def write_chunk(
         self,
         data_chunk: MetadataChunk,
     ) -> None:
         """Writes a chunk of data starting from a specific index."""
-        ...
+        ... # pragma: no cover
 
     def read_chunk(
         self,
         chunk_identifier: ChunkIdentifier,
     ) -> MetadataChunk:
         """Reads a chunk of data determined by the identifier."""
-        ...
+        ... # pragma: no cover
