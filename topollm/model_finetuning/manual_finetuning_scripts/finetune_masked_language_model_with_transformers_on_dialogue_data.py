@@ -43,7 +43,7 @@ import torch
 import transformers
 from convlab.util import load_dataset, load_ontology
 from datasets import Dataset
-from DialogueUtteranceDataset import DialogueUtteranceDataset
+from topollm.data_processing.DialogueUtteranceDataset import DialogueUtteranceDataset
 from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
 from transformers import (

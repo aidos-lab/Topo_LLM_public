@@ -36,12 +36,12 @@ import os
 import pathlib
 
 # Local imports
+from topollm.config_classes.EmbeddingsConfig import EmbeddingsConfig
 from topollm.config_classes.path_management.truncate_length_of_desc import (
     truncate_length_of_desc,
 )
 from topollm.config_classes.Configs import (
     DataConfig,
-    EmbeddingsConfig,
     PathsConfig,
     TransformationsConfig,
 )

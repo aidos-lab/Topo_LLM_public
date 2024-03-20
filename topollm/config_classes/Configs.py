@@ -39,9 +39,9 @@ from pydantic import BaseModel, Field
 
 # Local imports
 from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
+from topollm.config_classes.EmbeddingsConfig import EmbeddingsConfig
 from topollm.config_classes.enums import (
     AggregationType,
-    Level,
     PreferredTorchBackend,
     Split,
     DatasetType,
@@ -257,63 +257,6 @@ class TokenizerConfig(ConfigBaseModel):
             f"_"
             f"{NAME_PREFIXES['max_length']}{str(self.max_length)}"
         )
-
-
-class EmbeddingsConfig(ConfigBaseModel):
-    """Configurations for specifying embeddings."""
-
-    tokenizer: TokenizerConfig = Field(
-        ...,
-        title="Tokenizer configuration.",
-        description="The configuration for specifying tokenizer.",
-    )
-
-    dataset_map: DatasetMapConfig = Field(
-        ...,
-        title="Dataset map configuration.",
-        description="The configuration for specifying dataset map.",
-    )
-
-    batch_size: int = Field(
-        ...,
-        title="Batch size for computing embeddings.",
-        description="The batch size for computing embeddings.",
-    )
-
-    language_model: LanguageModelConfig = Field(
-        ...,
-        title="Model configuration.",
-        description="The configuration for specifying model.",
-    )
-
-    embedding_extraction: EmbeddingExtractionConfig = Field(
-        ...,
-        title="Embedding extraction configuration.",
-        description="The configuration for specifying embedding extraction.",
-    )
-
-    level: Level = Field(
-        default=Level.TOKEN,
-        title="Level to use for computing embeddings.",
-        description="The level to use for computing embeddings.",
-    )
-
-    num_workers: int = Field(
-        ...,
-        title="Number of workers for dataloader.",
-        description=f"The number of workers for dataloader. "
-        f"Note that is appears to be necessary "
-        f"to set this to 0 for the 'mps' backend to work.",
-    )
-
-    @property
-    def embeddings_config_description(
-        self,
-    ) -> str:
-        desc = f"{NAME_PREFIXES['level']}"
-        desc += f"{self.level}"
-
-        return desc
 
 
 class PathsConfig(ConfigBaseModel):

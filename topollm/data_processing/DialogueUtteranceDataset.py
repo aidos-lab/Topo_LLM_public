@@ -33,9 +33,10 @@
 import warnings
 
 # Third-party imports
+from torch.utils.data import Dataset
 from tqdm.auto import tqdm
 
-from torch.utils.data import Dataset
+# Local imports
 
 # END Imports
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #

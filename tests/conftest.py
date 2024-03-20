@@ -42,13 +42,13 @@ import pytest
 from topollm.config_classes.Configs import (
     DataConfig,
     DatasetMapConfig,
-    EmbeddingsConfig,
     EmbeddingExtractionConfig,
     LanguageModelConfig,
     PathsConfig,
     TokenizerConfig,
     TransformationsConfig,
 )
+from topollm.config_classes.EmbeddingsConfig import EmbeddingsConfig
 from topollm.config_classes.enums import DatasetType, Level, Split, AggregationType
 from topollm.config_classes.path_management.SeparateDirectoriesEmbeddingsPathManager import (
     SeparateDirectoriesEmbeddingsPathManager,

@@ -44,8 +44,9 @@ import torch.utils.data
 from transformers import BatchEncoding, PreTrainedTokenizer, PreTrainedTokenizerFast
 
 # Local imports
+from topollm.config_classes.EmbeddingsConfig import EmbeddingsConfig
 from topollm.logging.log_dataset_info import log_huggingface_dataset_info
-from topollm.config_classes.Configs import DataConfig, EmbeddingsConfig
+from topollm.config_classes.Configs import DataConfig
 from topollm.config_classes.enums import DatasetType
 
 # END Imports
