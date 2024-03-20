@@ -47,3 +47,8 @@ class FinetuningPathManager(Protocol):
     def finetuned_model_dir(
         self,
     ) -> pathlib.Path: ...  # pragma: no cover
+
+    @property
+    def logging_dir(
+        self,
+    ) -> pathlib.Path: ... # pragma: no cover

@@ -33,13 +33,11 @@
 # Standard library imports
 
 # Third party imports
-from pydantic import BaseModel, Field
+from pydantic import Field
 
 # Local imports
 from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
 from topollm.config_classes.DataConfig import DataConfig
-from topollm.config_classes.constants import NAME_PREFIXES
-from topollm.config_classes.enums import Level
 
 # END Imports
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -77,6 +75,36 @@ class FinetuningDatasetsConfig(ConfigBaseModel):
 class FinetuningConfig(ConfigBaseModel):
     """Configurations for fine tuning."""
 
+    batch_sizes: BatchSizesConfig = Field(
+        ...,
+        description="The batch sizes for training and evaluation.",
+    )
+
+    finetuning_datasets: FinetuningDatasetsConfig = Field(
+        ...,
+        description="The configurations for the training and evaluation datasets.",
+    )
+
+    fp16: bool = Field(
+        ...,
+        description="Whether to use 16-bit precision.",
+    )
+
+    max_length: int = Field(
+        ...,
+        description="The maximum length of the input sequence.",
+    )
+
+    mlm_probability: float = Field(
+        ...,
+        description="The probability for masked language model.",
+    )
+
+    num_train_epochs: int = Field(
+        ...,
+        description="The number of training epochs.",
+    )
+
     pretrained_model_name_or_path: str = Field(
         ...,
         description="The name or path of the base model to use for fine tuning.",
@@ -87,20 +115,6 @@ class FinetuningConfig(ConfigBaseModel):
         description="Short name of the base model for file names.",
     )
 
-    max_length: int = Field(
-        ...,
-        description="The maximum length of the input sequence.",
-    )
-
-    batch_sizes: BatchSizesConfig = Field(
-        ...,
-        description="The batch sizes for training and evaluation.",
-    )
-
-    finetuning_datasets: FinetuningDatasetsConfig = Field(
-        ...,
-        description="The configurations for the training and evaluation datasets.",
-    )
 
 
 

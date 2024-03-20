@@ -4,6 +4,7 @@ defaults:
   # - data: multiwoz21_train_5000
   - data: sgd
   - embeddings: basic_embeddings
+  - finetuning: roberta-base_tuning
   - paths: absolute_repository_base
   # - storage: zarr_vectors_xarray_metadata
   - storage: zarr_vectors_pickle_metadata

@@ -20,6 +20,7 @@ readme = "README.md"
     zarr = "*"
     gitpython = "*"
     scikit-learn = "^1.4.1.post1"
+accelerate = "^0.28.0"
 
 
 [tool.poetry.group.dev.dependencies]

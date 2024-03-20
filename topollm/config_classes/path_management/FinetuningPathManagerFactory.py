@@ -38,14 +38,10 @@ import pathlib
 # Local imports
 from topollm.config_classes.DataConfig import DataConfig
 from topollm.config_classes.FinetuningConfig import FinetuningConfig
+from topollm.config_classes.MainConfig import MainConfig
 from topollm.config_classes.PathsConfig import PathsConfig
-from topollm.config_classes.path_management.truncate_length_of_desc import (
-    truncate_length_of_desc,
-)
-from topollm.config_classes.TransformationsConfig import (
-    TransformationsConfig,
-)
-from topollm.config_classes.constants import NAME_PREFIXES
+from topollm.config_classes.path_management.BasicFinetuningPathManager import BasicFinetuningPathManager
+from topollm.config_classes.path_management.FinetuningPathManagerProtocol import FinetuningPathManager
 
 # Third-party imports
 
@@ -60,39 +56,17 @@ from topollm.config_classes.constants import NAME_PREFIXES
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
-class FinetuningPathManager:
-    def __init__(
-        self,
-        data_config: DataConfig,
-        paths_config: PathsConfig,
-        finetuning_config: FinetuningConfig,
-        verbosity: int = 1,
-        logger: logging.Logger = logging.getLogger(__name__),
-    ):
-        self.data_config = data_config
-        self.finetuning_config = finetuning_config
-        self.paths_config = paths_config
+def get_finetuning_path_manager(
+    config: MainConfig,
+    logger: logging.Logger = logging.getLogger(__name__),
+) -> FinetuningPathManager:
+    path_manger = BasicFinetuningPathManager(
+        data_config=config.data,
+        paths_config=config.paths,
+        finetuning_config=config.finetuning,
+        verbosity=config.verbosity,
+        logger=logger,
+    )
 
-        self.verbosity = verbosity
-        self.logger = logger
-
-    @property
-    def data_dir(
-        self,
-    ) -> pathlib.Path:
-        return self.paths_config.data_dir
-
-    @property
-    def finetuned_model_dir(
-        self,
-    ) -> pathlib.Path:
-        path = pathlib.Path(
-            self.data_dir,
-            self.data_config.data_config_description,
-        )
-
-        if self.verbosity >= 1:
-            self.logger.info(f"finetuned_model_dir:\n" f"{path}")
-
-        return path
+    return path_manger
 

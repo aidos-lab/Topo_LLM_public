@@ -1,9 +1,30 @@
+finetuning_datasets: 
+  train_dataset:
+    column_name: text
+    context: dataset_entry
+    dataset_description_string: multiwoz21
+    dataset_path: json
+    dataset_name: multiwoz21
+    data_dir: ${paths.data_dir}/datasets/dialogue_datasets/multiwoz21
+    dataset_type: huggingface_dataset
+    number_of_samples: 5000
+    split: train
+  eval_dataset:
+    column_name: text
+    context: dataset_entry
+    dataset_description_string: multiwoz21
+    dataset_path: json
+    dataset_name: multiwoz21
+    data_dir: ${paths.data_dir}/datasets/dialogue_datasets/multiwoz21
+    dataset_type: huggingface_dataset
+    number_of_samples: 5000
+    split: train
+fp16: false
+batch_sizes:
+  train: 8
+  eval: 16
+max_length: 512
+mlm_probability: 0.15
+num_train_epochs: 3
 pretrained_model_name_or_path: roberta-base
 short_model_name: ${finetuning.pretrained_model_name_or_path}
-max_length: 512
-batch_sizes:
-  - train: 8
-  - eval: 16
-finetuning_datasets: 
-  train_dataset: ${data.multiwoz21_train_5000}
-  eval_dataset: ${data.multiwoz21_validation_5000}

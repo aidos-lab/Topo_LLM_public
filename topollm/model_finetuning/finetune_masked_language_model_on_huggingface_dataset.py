@@ -70,6 +70,7 @@ from transformers import (
 )
 
 # Local imports
+from topollm.config_classes.path_management.FinetuningPathManagerFactory import get_finetuning_path_manager
 from topollm.data_handling.DatasetPreparerFactory import get_dataset_preparer
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.config_classes.MainConfig import MainConfig
@@ -155,34 +156,44 @@ def run_finetuning(
         logger=logger,
     )
     eval_dataset = eval_dataset_preparer.prepare_dataset()
-    
-    # TODO Continue here
-    
-
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Load tokenizer and model
 
     # ? TODO Do we need to add parameters to the tokenizer here for finetuning?
 
-    logger.info(f"Loading tokenizer " f"{finetuning_config.pretrained_model_name_or_path = } ...")
+    logger.info(
+        f"Loading tokenizer "
+        f"{finetuning_config.pretrained_model_name_or_path = } ..."
+    )
     tokenizer = AutoTokenizer.from_pretrained(
         pretrained_model_name_or_path=finetuning_config.pretrained_model_name_or_path,
     )
-    logger.info(f"Loading tokenizer " f"{finetuning_config.pretrained_model_name_or_path = } DONE")
+    logger.info(
+        f"Loading tokenizer "
+        f"{finetuning_config.pretrained_model_name_or_path = } DONE"
+    )
 
     # Set the padding token to the eos token
     tokenizer.pad_token = tokenizer.eos_token
     logger.info(f"tokenizer:\n{tokenizer}")
 
-    logging.info(f"Loading model " f"{model_identifier} ...")
+    logger.info(
+        f"Loading model " f"{finetuning_config.pretrained_model_name_or_path = } ..."
+    )
     model = AutoModelForMaskedLM.from_pretrained(
         pretrained_model_name_or_path=finetuning_config.pretrained_model_name_or_path,
     )
-    logging.info(f"Loading model " f"{model_identifier} DONE")
+    logger.info(
+        f"Loading model " f"{finetuning_config.pretrained_model_name_or_path = } DONE"
+    )
 
-    logging.info(f"model:\n{model}")
-    logging.info(f"model.config:\n{model.config}")
+    logger.info(f"model:\n{model}")
+    if hasattr(
+        model,
+        "config",
+    ):
+        logger.info(f"model.config:\n{model.config}")
 
     # Check type of model
     assert isinstance(
@@ -191,40 +202,36 @@ def run_finetuning(
     )
 
     # Move the model to GPU if available
-    logging.info(f"Moving model to device: {device} ...")
-    model.to(device)  # type: ignore
-    logging.info(f"Moving model to device: {device} DONE")
-
- 
-
+    logger.info(f"Moving model to {device = } ...")
+    model.to(
+        device,  # type: ignore
+    )
+    logger.info(f"Moving model to {device = } DONE")
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Tokenize data using the Dataset.map() function
-    def tokenize_function(examples):
-        return tokenizer(
-            examples["text"],
+    
+    def tokenize_function(
+        dataset_entries,
+    ):
+        # NOTE: This assumes that train and eval datasets use the same column name
+        column_name = finetuning_config.finetuning_datasets.train_dataset.column_name
+
+        result = tokenizer(
+            dataset_entries[column_name],
             padding="max_length",
             truncation=True,
-            max_length=max_length,
+            max_length=finetuning_config.max_length,
         )
 
-    # Preparing custom datasets
-    train_dataset = Dataset.from_dict(
-        {
-            "text": open(str(train_dataset_path)).readlines(),
-        }
-    )
-    validation_dataset = Dataset.from_dict(
-        {
-            "text": open(str(validation_dataset_path)).readlines(),
-        }
-    )
+        return result
 
-    train_dataset = train_dataset.map(
+    # TODO: Currently these are unused
+    train_dataset_mapped = train_dataset.map(
         tokenize_function,
         batched=True,
     )
-    validation_dataset = validation_dataset.map(
+    eval_dataset_mapped = eval_dataset.map(
         tokenize_function,
         batched=True,
     )
@@ -233,58 +240,56 @@ def run_finetuning(
     data_collator = DataCollatorForLanguageModeling(
         tokenizer=tokenizer,
         mlm=True,
-        mlm_probability=0.15,
+        mlm_probability=finetuning_config.mlm_probability,
     )
 
-    finetuned_model_output_dir = pathlib.Path(
-        tda_base_path,
-        "contextual_dialogues",
-        "data",
-        "models",
-        f"roberta-base_finetuned_on_{dataset_string}_train_context_{context}_debug_idx_{debug_index}",
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    # Output path
+    finetuning_path_manager = get_finetuning_path_manager(
+        config=main_config,
+        logger=logger,
     )
-    logging.info(f"finetuned_model_output_dir:\n" f"{finetuned_model_output_dir}")
+
+    finetuned_model_dir = finetuning_path_manager.finetuned_model_dir
+    logger.info(f"{finetuned_model_dir = }")
 
     # Create the output directory if it does not exist
-    logging.info(
-        f"Creating finetuned_model_output_dir:\n{finetuned_model_output_dir}\n..."
-    )
-    finetuned_model_output_dir.mkdir(
+    finetuned_model_dir.mkdir(
         parents=True,
         exist_ok=True,
     )
 
-    logging_directory = pathlib.Path(
-        tda_base_path,
-        "contextual_dialogues",
-        "data",
-        "logs",
-        f"roberta-base_finetuned_on_{dataset_string}_train_context_{context}_debug_idx_{debug_index}",
-    )
+    logging_dir = finetuning_path_manager.logging_dir
+    logger.info(f"{logging_dir = }")
 
-    # Create the output directory if it does not exist
-    logging.info(f"Creating logging_directory:\n" f"{logging_directory}\n...")
-    logging_directory.mkdir(
+    # Create the logging directory if it does not exist
+    logging_dir.mkdir(
         parents=True,
         exist_ok=True,
     )
+
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    # Finetuning setup
+
+    # TODO Continue here
+    # ! TODO Make the hardcoded values configurable
 
     training_args = TrainingArguments(
-        output_dir=str(finetuned_model_output_dir),  # The output directory
-        overwrite_output_dir=True,  # overwrite the content of the output directory
-        num_train_epochs=5,  # number of training epochs
+        output_dir=str(finetuned_model_dir),
+        overwrite_output_dir=True,
+        num_train_epochs=finetuning_config.num_train_epochs,
         learning_rate=2e-5,
         weight_decay=0.01,
-        per_device_train_batch_size=train_batch_size,  # batch size for training
-        per_device_eval_batch_size=eval_batch_size,  # batch size for evaluation
+        per_device_train_batch_size=finetuning_config.batch_sizes.train,
+        per_device_eval_batch_size=finetuning_config.batch_sizes.eval,
         gradient_accumulation_steps=2,
         gradient_checkpointing=True,
-        fp16=True,
-        warmup_steps=500,  # number of warmup steps for learning rate scheduler
+        fp16=finetuning_config.fp16,
+        warmup_steps=500,
         evaluation_strategy="steps",
         eval_steps=400,  # Number of update steps between two evaluations.
         save_steps=800,  # after # steps model is saved
-        logging_dir=str(logging_directory),
+        logging_dir=str(logging_dir),
         logging_steps=100,
     )
 
@@ -292,8 +297,8 @@ def run_finetuning(
         model=model,
         args=training_args,
         data_collator=data_collator,
-        train_dataset=train_dataset,
-        eval_dataset=validation_dataset,
+        train_dataset=train_dataset_mapped, # type: ignore
+        eval_dataset=eval_dataset_mapped, # type: ignore
         tokenizer=tokenizer,
     )
 
@@ -307,12 +312,6 @@ def run_finetuning(
     training_call_output = trainer.train(
         resume_from_checkpoint=False,
     )
-
-    # Train the model when resuming from a checkpoint
-    #
-    # training_call_output = trainer.train(
-    #     resume_from_checkpoint="data/models/roberta-base_finetuned_on_{dataset_string}_train_context_dialogue_debug_idx_None/checkpoint-3200",
-    # )
 
     logger.info(f"Calling trainer.train() DONE")
 
@@ -330,7 +329,9 @@ def run_finetuning(
 
     logger.info(f"Evaluating the model ...")
     eval_results = trainer.evaluate()
-    logger.info(f"Perplexity:\n{math.exp(eval_results['eval_loss']):.2f}")
+
+    perplexity = math.exp(eval_results['eval_loss'])
+    logger.info(f"perplexity:\n{perplexity:.2f}")
     logger.info(f"eval_results:\n{eval_results}")
 
     return None
