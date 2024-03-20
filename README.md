@@ -1,29 +1,47 @@
 # Topo_LLM
 
-## Installation instructions
+## Installation instructions with poetry
+
+1. Preparing the environment.
 
 Required Python version: 3.10
+On MacOS, you can install `pyenv` with homebrew: `brew install pyenv`.
+You can install `poetry` with `pipx` for example: `pipx install poetry`.
 
-1. Install python version with `pyenv` (install pyenv via brew on MacOS) and set local python version for the project:
+1. Install python version with `pyenv` and set local python version for the project.
 
 ```bash
 pyenv install 3.10
 pyenv local 3.10
 ```
 
-1. Tell poetry (install poetry for example via pipx) to use the local python version:
+1. Tell poetry to use the local python version.
 
 ```bash
 # Optional: Tell poetry to create a virtual environment for the project
+# inside the project directory.
 poetry config virtualenvs.in-project true
 
 poetry env use 3.10
 ```
 
-1. Install the project with dependencies:
+You can manage the poetry environments with the following commands:
 
 ```bash
-poetry install
+poetry env list --full-path # List all the environments
+poetry env remove <path> # Remove an environment
+poetry env remove --all # Remove all the environments
+```
+
+1. Install the project with dependencies.
+Select the appropriate dependency groups for your system.
+
+```bash
+poetry install --with gpu,dev --without cpu # For GPU
+```
+
+```bash
+poetry install --with cpu,dev --without gpu # For CPU
 ```
 
 ## Project Structure
@@ -31,7 +49,7 @@ poetry install
 ### Config file management
 
 - We want to use Hydra for the config managment:
-  https://hydra.cc/docs/patterns/configuring_experiments/
+  [https://hydra.cc/docs/patterns/configuring_experiments/]
 
 - Overwrite config variable:
   `python run.py run.seed=42`
@@ -44,9 +62,15 @@ poetry install
 - Dialogue data
   - MultiWOZ
   - SGD:
-    https://github.com/google-research-datasets/dstc8-schema-guided-dialogue
+    [https://github.com/google-research-datasets/dstc8-schema-guided-dialogue]
 
 ## Usage
+
+If you run the commands from the command line, make sure to activate the poetry environment:
+
+```bash
+poetry shell
+```
 
 ### Computing and storing embeddings
 
