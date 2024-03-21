@@ -24,6 +24,7 @@ readme = "README.md"
     zarr = "*"
 tensorboard = "^2.16.2"
 seaborn = "^0.13.2"
+giotto-tda = "^0.6.0"
 
 
 [tool.poetry.group.dev.dependencies]
