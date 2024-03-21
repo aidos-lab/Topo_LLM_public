@@ -69,7 +69,9 @@ dim_frame = pd.DataFrame({
                          'lpca':list(lPCA.dimension_pw_)
                          })
 
-sns.boxplot(dim_frame)
+print(dim_frame.corr())
+
+sns.scatterplot(x = list(lPCA.dimension_pw_),y = list(lPCA_finetuned.dimension_pw_))
 plt.show()
 
 dim_frame.to_pickle('dimensions_base_vs_finetuned_'+data_name[:-4])

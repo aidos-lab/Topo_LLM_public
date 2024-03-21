@@ -42,7 +42,8 @@ import gudhi as gd
 import numpy as np
 import pandas as pd
 import joblib
-
+import matplotlib.pyplot as plt
+import seaborn as sns
 from sklearn.neighbors import KDTree
 from gph import ripser_parallel
 
@@ -502,7 +503,9 @@ euc_frame = pd.DataFrame({
                          'euclidicity':scores
                          })
 
-sns.boxplot(euc_frame)
+print(euc_frame.corr())
+
+sns.scatterplot(x = scores,y = scores_finetuned)
 plt.show()
 
 euc_frame.to_pickle('euclidicity_base_vs_finetuned_'+data_name[:-4])
