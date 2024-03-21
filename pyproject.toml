@@ -16,12 +16,12 @@ readme = "README.md"
     pydantic = "*"
     python = "3.10.*"
     scikit-learn = "^1.4.1.post1"
+    scikit-dimension = "^0.3.4"
     StrEnum = {version = "^0.4", markers = "python_version < '3.11'"}
     torch = "*"
     tqdm = "*"
     transformers = "*"
     zarr = "*"
-scikit-dimension = "^0.3.4"
 
 
 [tool.poetry.group.dev.dependencies]
