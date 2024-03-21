@@ -1,0 +1,2 @@
+data_dir: ${paths.repository_base_path}/data
+repository_base_path: ${oc.env:HOME}/git-source/Topo_LLM
