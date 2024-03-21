@@ -48,8 +48,8 @@ from sklearn.neighbors import KDTree
 from gph import ripser_parallel
 
 # provide names of numpy array to be used for dimension estimation
-data_name = "sample_embeddings_data-multiwoz21_split-test_ctxt-dataset_entry_base_no_paddings.npy"
-data_name_finetuned = "sample_embeddings_data-multiwoz21_split-test_ctxt-dataset_entry_finetuned_no_paddings.npy"
+data_name = "sample_embeddings_data-multiwoz21_split-train_ctxt-dataset_entry_model-roberta-base_finetuned-on-multiwoz21-train-5000_context-utterance_ep-3_mask-no_masking_no_paddings.npy"
+data_name_finetuned = "sample_embeddings_data-multiwoz21_split-train_ctxt-dataset_entry_model-roberta-base_finetuned-on-multiwoz21-train-5000_context-utterance_ep-5_mask-no_masking_no_paddings.npy"
 
 arr_no_pad = np.load(data_name)
 arr_no_pad_finetuned = np.load(data_name_finetuned)
@@ -505,7 +505,14 @@ euc_frame = pd.DataFrame({
 
 print(euc_frame.corr())
 
-sns.scatterplot(x = scores,y = scores_finetuned)
+scatter_plot = sns.scatterplot(x = scores,y = scores_finetuned)
+scatter_fig = scatter_plot.get_figure()
+
+# use savefig function to save the plot and give
+# a desired name to the plot.
+save_name = 'euclidicity/euclidicity_'+data_name[:-4]+'_epochs_3_vs_5'
+
+scatter_fig.savefig(save_name+'.png')
 plt.show()
 
-euc_frame.to_pickle('euclidicity_base_vs_finetuned_'+data_name[:-4])
+euc_frame.to_pickle(save_name)

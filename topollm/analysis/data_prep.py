@@ -50,22 +50,31 @@ import os
 import pickle
 import pandas as pd
 
-# choose dataset_name
-dataset_name = "data-multiwoz21_split-test_ctxt-dataset_entry"
-
+# choose dataset name
+#dataset_name = "data-multiwoz21_split-test_ctxt-dataset_entry"
 #dataset_name = "data-xsum_split-train_ctxt-dataset_entry"
-
 #dataset_name = "data-wikitext_split-train_ctxt-dataset_entry"
+dataset_name = "data-multiwoz21_split-train_ctxt-dataset_entry"
 
-#dataset_name = "data-multiwoz21_split-train_ctxt-dataset_entry"
+# choose model name
+#model_name = "model-roberta-base_mask-no_masking"
+model_name = "model-roberta-base_finetuned-on-multiwoz21-train-5000_context-utterance_ep-3_mask-no_masking"
+
+# choose model name of the finetuned model
+#model_name_finetuned = "model-roberta-base_finetuned-on-multiwoz21-train_mask-no_masking"
+model_name_finetuned = "model-roberta-base_finetuned-on-multiwoz21-train-5000_context-utterance_ep-5_mask-no_masking"
 
 # choose sample size of the arrays
 sample_size = 30000
 
+# local path
+local_path = "Documents/LLM-Analysis"
+#local_path = "git-source"
+
 # potentially adapt paths
 array_path = pathlib.Path(
     pathlib.Path.home(),
-    "git-source",
+    local_path,
     "Topo_LLM",
     "data",
     "embeddings",
@@ -73,7 +82,7 @@ array_path = pathlib.Path(
     dataset_name,
     "lvl-token",
     "add-prefix-space-False_max-len-512",
-    "model-roberta-base_mask-no_masking",
+    model_name,
     "layer-[-1]_agg-mean",
     "norm-None",
     "array_dir",
@@ -81,7 +90,7 @@ array_path = pathlib.Path(
 
 array_path_finetuned = pathlib.Path(
     pathlib.Path.home(),
-    "git-source",
+    local_path,
     "Topo_LLM",
     "data",
     "embeddings",
@@ -89,7 +98,7 @@ array_path_finetuned = pathlib.Path(
     dataset_name,
     "lvl-token",
     "add-prefix-space-False_max-len-512",
-    "model-roberta-base_finetuned-on-multiwoz21-train_mask-no_masking",
+    model_name_finetuned,
     "layer-[-1]_agg-mean",
     "norm-None",
     "array_dir",
@@ -97,7 +106,7 @@ array_path_finetuned = pathlib.Path(
 
 meta_path = pathlib.Path(
     pathlib.Path.home(),
-    "git-source",
+    local_path,
     "Topo_LLM",
     "data",
     "embeddings",
@@ -105,7 +114,7 @@ meta_path = pathlib.Path(
     dataset_name,
     "lvl-token",
     "add-prefix-space-False_max-len-512",
-    "model-roberta-base_mask-no_masking",
+    model_name,
     "layer-[-1]_agg-mean",
     "norm-None",
     "metadata_dir",
@@ -114,7 +123,7 @@ meta_path = pathlib.Path(
 
 meta_path_finetuned = pathlib.Path(
     pathlib.Path.home(),
-    "git-source",
+    local_path,
     "Topo_LLM",
     "data",
     "embeddings",
@@ -122,7 +131,7 @@ meta_path_finetuned = pathlib.Path(
     dataset_name,
     "lvl-token",
     "add-prefix-space-False_max-len-512",
-    "model-roberta-base_finetuned-on-multiwoz21-train_mask-no_masking",
+    model_name_finetuned,
     "layer-[-1]_agg-mean",
     "norm-None",
     "metadata_dir",
@@ -223,5 +232,8 @@ arr_no_pad = np.array(list(df[(df['meta'] != 2) & (df['meta'] != 1)].arr))
 df_finetuned = pd.DataFrame({'arr': list(arr_finetuned), 'meta': list(stacked_meta_finetuned_sub)})
 arr_no_pad_finetuned = np.array(list(df_finetuned[(df['meta'] != 2) & (df['meta'] != 1)].arr))
 
-np.save('sample_embeddings_'+dataset_name+'_base_no_paddings',arr_no_pad)
-np.save('sample_embeddings_'+dataset_name+'_finetuned_no_paddings',arr_no_pad_finetuned)
+print(arr_no_pad[0])
+print(arr_no_pad_finetuned[0])
+
+np.save('sample_embeddings_'+dataset_name+'_'+model_name+'_no_paddings',arr_no_pad)
+np.save('sample_embeddings_'+dataset_name+'_'+model_name_finetuned+'_no_paddings',arr_no_pad_finetuned)
