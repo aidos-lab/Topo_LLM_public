@@ -1,0 +1,2 @@
+data_dir: ${paths.repository_base_path}/data
+repository_base_path: ${oc.env:HOME}/Documents/LLM-Analysis/Topo_LLM
