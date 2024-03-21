@@ -35,18 +35,17 @@
 # fine-tuned variant. To obtain these arrays, the
 # `data_prep.py` may be used.
 
-pip install scikit-dimension
-
 # third party imports
 import numpy as np
+import pandas as pd
 import skdim
 
 # provide names of numpy array to be used for dimension estimation
 data_name = "sample_embeddings_data-multiwoz21_split-test_ctxt-dataset_entry_base_no_paddings.npy"
 data_name_finetuned = "sample_embeddings_data-multiwoz21_split-test_ctxt-dataset_entry_finetuned_no_paddings.npy"
 
-arr = np.load(data_name)
-arr_finetuned = np.load(data_name_finetuned)
+arr_no_pad = np.load(data_name)
+arr_no_pad_finetuned = np.load(data_name_finetuned)
 
 lPCA = skdim.id.lPCA().fit_pw(arr_no_pad,
                               n_neighbors = 100,
@@ -62,4 +61,4 @@ dim_frame = pd.DataFrame({
                          'lpca':list(lPCA.dimension_pw_)
                          })
 
-dim_frame.to_pickle('dimensions_base_vs_finetuned_'+data_name)
+dim_frame.to_pickle('dimensions_base_vs_finetuned_'+data_name[:-4])
