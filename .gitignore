@@ -178,5 +178,6 @@ data/embeddings/arrays
 data/embeddings/metadata
 
 data/models/architecture-roberta-base
+data/models/finetuned_models
 
 hydra_output_dir/

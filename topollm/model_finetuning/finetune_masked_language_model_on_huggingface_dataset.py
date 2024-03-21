@@ -59,13 +59,11 @@ from tqdm.auto import tqdm
 from transformers import (
     AutoModelForMaskedLM,
     AutoTokenizer,
-    DataCollatorForLanguageModeling,
     PretrainedConfig,
     PreTrainedModel,
     PreTrainedTokenizer,
     PreTrainedTokenizerFast,
     Trainer,
-    TrainingArguments,
     pipeline,
 )
 
@@ -226,7 +224,6 @@ def run_finetuning(
 
         return result
 
-    # TODO: Currently these are unused
     train_dataset_mapped = train_dataset.map(
         tokenize_function,
         batched=True,
@@ -237,7 +234,7 @@ def run_finetuning(
     )
 
     # Data collator
-    data_collator = DataCollatorForLanguageModeling(
+    data_collator = transformers.DataCollatorForLanguageModeling(
         tokenizer=tokenizer,
         mlm=True,
         mlm_probability=finetuning_config.mlm_probability,
@@ -274,7 +271,7 @@ def run_finetuning(
     # TODO Continue here
     # ! TODO Make the hardcoded values configurable
 
-    training_args = TrainingArguments(
+    training_args = transformers.TrainingArguments(
         output_dir=str(finetuned_model_dir),
         overwrite_output_dir=True,
         num_train_epochs=finetuning_config.num_train_epochs,
@@ -288,7 +285,7 @@ def run_finetuning(
         warmup_steps=500,
         evaluation_strategy="steps",
         eval_steps=400,  # Number of update steps between two evaluations.
-        save_steps=800,  # after # steps model is saved
+        save_steps=400,  # after # steps model is saved
         logging_dir=str(logging_dir),
         logging_steps=100,
     )

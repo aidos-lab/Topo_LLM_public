@@ -7,20 +7,20 @@ license = "Apache 2.0"
 readme = "README.md"
 
 [tool.poetry.dependencies]
+    accelerate = "^0.28.0"
     datasets = "*"
     hydra-core = "*"
+    gitpython = "*"
     gudhi = "*"
     pandas = "*"
     pydantic = "*"
     python = "3.10.*"
+    scikit-learn = "^1.4.1.post1"
     StrEnum = {version = "^0.4", markers = "python_version < '3.11'"}
     torch = "*"
     tqdm = "*"
     transformers = "*"
     zarr = "*"
-    gitpython = "*"
-    scikit-learn = "^1.4.1.post1"
-accelerate = "^0.28.0"
 
 
 [tool.poetry.group.dev.dependencies]
