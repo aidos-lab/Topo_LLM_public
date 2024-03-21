@@ -181,3 +181,6 @@ data/models/architecture-roberta-base
 data/models/finetuned_models
 
 hydra_output_dir/
+
+configs/paths/absolute_repository_base.yaml
+topollm/analysis/data_prep.py
