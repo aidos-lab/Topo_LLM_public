@@ -1,9 +1,10 @@
 defaults:
   - dataset_map: batched
   - embedding_extraction: last_hidden
-  - language_model: roberta-base
-  # - language_model: roberta-base_finetuned-on-multiwoz21-train
-  # - language_model: roberta-base_finetuned-on-multiwoz21-train-and-sgd-train
+  # - language_model: roberta-base
+  # - language_model: roberta-base_finetuned-on-multiwoz21-train_context-dialogue
+  # - language_model: roberta-base_finetuned-on-multiwoz21-train-and-sgd-train_context-dialogue
+  - language_model: roberta-base_finetuned-on-multiwoz21-train-5000_context-utterance
   - tokenizer: basic_tokenizer
   - _self_
 

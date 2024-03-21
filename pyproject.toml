@@ -22,6 +22,7 @@ readme = "README.md"
     tqdm = "*"
     transformers = "*"
     zarr = "*"
+tensorboard = "^2.16.2"
 
 
 [tool.poetry.group.dev.dependencies]

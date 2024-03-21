@@ -1,8 +1,8 @@
 defaults:
   # - data: bbc
   # - data: wikitext
-  # - data: multiwoz21_train_5000
-  - data: sgd
+  - data: multiwoz21_train_5000
+  # - data: sgd
   - embeddings: basic_embeddings
   - finetuning: roberta-base_tuning
   - paths: absolute_repository_base

@@ -46,14 +46,6 @@ import omegaconf
 import transformers
 from transformers import (
     AutoModelForMaskedLM,
-    AutoTokenizer,
-    DataCollatorForLanguageModeling,
-    PretrainedConfig,
-    PreTrainedModel,
-    PreTrainedTokenizer,
-    PreTrainedTokenizerFast,
-    Trainer,
-    TrainingArguments,
 )
 
 # Local imports
@@ -63,9 +55,6 @@ from topollm.model_handling.load_tokenizer import load_tokenizer
 from topollm.model_handling.load_model import load_model
 from topollm.model_handling.get_torch_device import get_torch_device
 from topollm.config_classes.MainConfig import MainConfig
-from topollm.config_classes.path_management.EmbeddingsPathManagerFactory import (
-    get_embeddings_path_manager,
-)
 
 # END Imports
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -138,6 +127,8 @@ def main(
         + tokenizer.mask_token
         + " hotel in the center of town, please.",
         tokenizer.mask_token + " is a cheap restaurant in the south of town.",
+        "The train should go to " + tokenizer.mask_token + ".",
+        "No, it should be " + tokenizer.mask_token + ", look again!",
     ]
     global_logger.info(f"prompts:\n" f"{pprint.pformat(prompts)}")
 

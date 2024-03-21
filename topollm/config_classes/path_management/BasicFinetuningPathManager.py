@@ -40,6 +40,7 @@ import pathlib
 from topollm.config_classes.DataConfig import DataConfig
 from topollm.config_classes.FinetuningConfig import FinetuningConfig
 from topollm.config_classes.PathsConfig import PathsConfig
+from topollm.config_classes.constants import NAME_PREFIXES
 
 # END Imports
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -82,6 +83,7 @@ class BasicFinetuningPathManager:
             "models",
             "finetuned_models",
             self.finetuning_config.finetuning_datasets.train_dataset.data_config_description,
+            f"{NAME_PREFIXES['epoch']}{self.finetuning_config.num_train_epochs}",
         )
 
         return path

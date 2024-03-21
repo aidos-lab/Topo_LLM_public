@@ -266,6 +266,9 @@ def run_finetuning(
         per_device_eval_batch_size=finetuning_config.batch_sizes.eval,
         gradient_accumulation_steps=finetuning_config.gradient_accumulation_steps,
         gradient_checkpointing=finetuning_config.gradient_checkpointing,
+        gradient_checkpointing_kwargs={
+            "use_reentrant": False,
+        },
         fp16=finetuning_config.fp16,
         warmup_steps=finetuning_config.warmup_steps,
         evaluation_strategy="steps",
