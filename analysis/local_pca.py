@@ -39,6 +39,8 @@
 import numpy as np
 import pandas as pd
 import skdim
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 # provide names of numpy array to be used for dimension estimation
 data_name = "sample_embeddings_data-multiwoz21_split-test_ctxt-dataset_entry_base_no_paddings.npy"
@@ -66,5 +68,8 @@ dim_frame = pd.DataFrame({
                          'lpca_finetuned':list(lPCA_finetuned.dimension_pw_),
                          'lpca':list(lPCA.dimension_pw_)
                          })
+
+sns.boxplot(dim_frame)
+plt.show()
 
 dim_frame.to_pickle('dimensions_base_vs_finetuned_'+data_name[:-4])

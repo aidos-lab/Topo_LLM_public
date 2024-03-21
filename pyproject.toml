@@ -23,6 +23,7 @@ readme = "README.md"
     transformers = "*"
     zarr = "*"
 tensorboard = "^2.16.2"
+seaborn = "^0.13.2"
 
 
 [tool.poetry.group.dev.dependencies]
