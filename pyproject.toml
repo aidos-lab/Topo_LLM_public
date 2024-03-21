@@ -21,6 +21,7 @@ readme = "README.md"
     tqdm = "*"
     transformers = "*"
     zarr = "*"
+scikit-dimension = "^0.3.4"
 
 
 [tool.poetry.group.dev.dependencies]
