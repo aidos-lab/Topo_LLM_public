@@ -44,17 +44,23 @@ import skdim
 data_name = "sample_embeddings_data-multiwoz21_split-test_ctxt-dataset_entry_base_no_paddings.npy"
 data_name_finetuned = "sample_embeddings_data-multiwoz21_split-test_ctxt-dataset_entry_finetuned_no_paddings.npy"
 
+# provide number of jobs for the computation
+n_jobs = 1
+
+# provide number of neighbors which are used for the computation
+n_neighbors = 100
+
 arr_no_pad = np.load(data_name)
 arr_no_pad_finetuned = np.load(data_name_finetuned)
 
 lPCA = skdim.id.lPCA().fit_pw(arr_no_pad,
-                              n_neighbors = 100,
-                              n_jobs = 1)
+                              n_neighbors = n_neighbors,
+                              n_jobs = n_jobs)
 
 
 lPCA_finetuned = skdim.id.lPCA().fit_pw(arr_no_pad_finetuned,
-                              n_neighbors = 100,
-                              n_jobs = 1)
+                              n_neighbors = n_neighbors,
+                              n_jobs = n_jobs)
 
 dim_frame = pd.DataFrame({
                          'lpca_finetuned':list(lPCA_finetuned.dimension_pw_),
