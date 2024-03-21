@@ -34,6 +34,8 @@
 
 # Third party imports
 from pydantic import Field
+from regex import F
+from torch import log_
 
 # Local imports
 from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
@@ -49,7 +51,6 @@ from topollm.config_classes.DataConfig import DataConfig
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
-
 class BatchSizesConfig(ConfigBaseModel):
     train: int = Field(
         ...,
@@ -60,6 +61,7 @@ class BatchSizesConfig(ConfigBaseModel):
         ...,
         description="The batch size for evaluation.",
     )
+
 
 class FinetuningDatasetsConfig(ConfigBaseModel):
     train_dataset: DataConfig = Field(
@@ -72,12 +74,18 @@ class FinetuningDatasetsConfig(ConfigBaseModel):
         description="The configuration for the evaluation dataset.",
     )
 
+
 class FinetuningConfig(ConfigBaseModel):
     """Configurations for fine tuning."""
 
     batch_sizes: BatchSizesConfig = Field(
         ...,
         description="The batch sizes for training and evaluation.",
+    )
+
+    eval_steps: int = Field(
+        400,
+        description="The number of steps between two evaluations.",
     )
 
     finetuning_datasets: FinetuningDatasetsConfig = Field(
@@ -88,6 +96,31 @@ class FinetuningConfig(ConfigBaseModel):
     fp16: bool = Field(
         ...,
         description="Whether to use 16-bit precision.",
+    )
+
+    gradient_accumulation_steps: int = Field(
+        ...,
+        description="The number of gradient accumulation steps.",
+    )
+
+    gradient_checkpointing: bool = Field(
+        ...,
+        description="Whether to use gradient checkpointing.",
+    )
+
+    learning_rate: float = Field(
+        ...,
+        description="The learning rate.",
+    )
+
+    log_level: str = Field(
+        "info",
+        description="The log level.",
+    )
+
+    logging_steps: int = Field(
+        100,
+        description="The number of steps between two logging.",
     )
 
     max_length: int = Field(
@@ -110,12 +143,32 @@ class FinetuningConfig(ConfigBaseModel):
         description="The name or path of the base model to use for fine tuning.",
     )
 
+    save_steps: int = Field(
+        400,
+        description="The number of steps between two saves.",
+    )
+
+    seed: int = Field(
+        ...,
+        description="The seed for the random number generator.",
+    )
+
     short_model_name: str = Field(
         ...,
         description="Short name of the base model for file names.",
     )
 
+    use_cpu: bool = Field(
+        False,
+        description="Whether to use the CPU.",
+    )
 
+    warmup_steps: int = Field(
+        ...,
+        description="The number of warmup steps.",
+    )
 
-
-    # TODO
+    weight_decay: float = Field(
+        ...,
+        description="The weight decay.",
+    )

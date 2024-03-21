@@ -35,47 +35,29 @@ Script for fine-tuning language model on huggingface datasets.
 # START Imports
 
 # System imports
-import argparse
-import json
 import logging
 import math
-import os
-import pathlib
-import sys
-from datetime import datetime
 
 # Third party imports
 import hydra
 import hydra.core.hydra_config
 import omegaconf
-import datasets
-import numpy as np
-import pandas as pd
-import torch
 import transformers
-import datasets
-from torch.utils.data import DataLoader
-from tqdm.auto import tqdm
-from transformers import (
-    AutoModelForMaskedLM,
-    AutoTokenizer,
-    PretrainedConfig,
-    PreTrainedModel,
-    PreTrainedTokenizer,
-    PreTrainedTokenizerFast,
-    Trainer,
-    pipeline,
-)
+from tqdm import tqdm
+from transformers import AutoModelForMaskedLM, AutoTokenizer, PreTrainedModel
+
 
 # Local imports
-from topollm.config_classes.path_management.FinetuningPathManagerFactory import get_finetuning_path_manager
+from topollm.config_classes.MainConfig import MainConfig
+from topollm.config_classes.path_management.FinetuningPathManagerFactory import (
+    get_finetuning_path_manager,
+)
 from topollm.data_handling.DatasetPreparerFactory import get_dataset_preparer
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
-from topollm.config_classes.MainConfig import MainConfig
 from topollm.logging.setup_exception_logging import setup_exception_logging
-from topollm.model_handling.load_tokenizer import load_tokenizer
-from topollm.model_handling.load_model import load_model
 from topollm.model_handling.get_torch_device import get_torch_device
+from topollm.model_handling.load_model import load_model
+from topollm.model_handling.load_tokenizer import load_tokenizer
 
 # END Imports
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -89,6 +71,9 @@ global_logger = logging.getLogger(__name__)
 setup_exception_logging(
     logger=global_logger,
 )
+
+# Set the transformers logging level
+transformers.logging.set_verbosity_info()
 
 # torch.set_num_threads(1)
 
@@ -107,9 +92,6 @@ def main(
     """Run the script."""
 
     global_logger.info("Running script ...")
-
-    # Set the transformers logging level
-    transformers.logging.set_verbosity_info()
 
     main_config: MainConfig = initialize_configuration(
         config=config,
@@ -208,7 +190,7 @@ def run_finetuning(
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Tokenize data using the Dataset.map() function
-    
+
     def tokenize_function(
         dataset_entries,
     ):
@@ -260,42 +242,48 @@ def run_finetuning(
     logger.info(f"{logging_dir = }")
 
     # Create the logging directory if it does not exist
-    logging_dir.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
+    if logging_dir is not None:
+        logging_dir.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+    else:
+        logger.info(
+            f"No logging directory specified. "
+            f"Using default logging from transformers.Trainer."
+        )
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Finetuning setup
-
-    # TODO Continue here
-    # ! TODO Make the hardcoded values configurable
 
     training_args = transformers.TrainingArguments(
         output_dir=str(finetuned_model_dir),
         overwrite_output_dir=True,
         num_train_epochs=finetuning_config.num_train_epochs,
-        learning_rate=2e-5,
-        weight_decay=0.01,
+        learning_rate=finetuning_config.learning_rate,
+        weight_decay=finetuning_config.weight_decay,
         per_device_train_batch_size=finetuning_config.batch_sizes.train,
         per_device_eval_batch_size=finetuning_config.batch_sizes.eval,
-        gradient_accumulation_steps=2,
-        gradient_checkpointing=True,
+        gradient_accumulation_steps=finetuning_config.gradient_accumulation_steps,
+        gradient_checkpointing=finetuning_config.gradient_checkpointing,
         fp16=finetuning_config.fp16,
-        warmup_steps=500,
+        warmup_steps=finetuning_config.warmup_steps,
         evaluation_strategy="steps",
-        eval_steps=400,  # Number of update steps between two evaluations.
-        save_steps=400,  # after # steps model is saved
-        logging_dir=str(logging_dir),
-        logging_steps=100,
+        eval_steps=finetuning_config.eval_steps,
+        save_steps=finetuning_config.save_steps,
+        logging_dir=logging_dir,  # type: ignore
+        log_level=finetuning_config.log_level,
+        logging_steps=finetuning_config.logging_steps,
+        use_cpu=finetuning_config.use_cpu,
+        seed=finetuning_config.seed,
     )
 
-    trainer = Trainer(
+    trainer = transformers.Trainer(
         model=model,
         args=training_args,
         data_collator=data_collator,
-        train_dataset=train_dataset_mapped, # type: ignore
-        eval_dataset=eval_dataset_mapped, # type: ignore
+        train_dataset=train_dataset_mapped,  # type: ignore
+        eval_dataset=eval_dataset_mapped,  # type: ignore
         tokenizer=tokenizer,
     )
 
@@ -327,7 +315,7 @@ def run_finetuning(
     logger.info(f"Evaluating the model ...")
     eval_results = trainer.evaluate()
 
-    perplexity = math.exp(eval_results['eval_loss'])
+    perplexity = math.exp(eval_results["eval_loss"])
     logger.info(f"perplexity:\n{perplexity:.2f}")
     logger.info(f"eval_results:\n{eval_results}")
 

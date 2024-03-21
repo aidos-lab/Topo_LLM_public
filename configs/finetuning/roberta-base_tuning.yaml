@@ -1,3 +1,7 @@
+batch_sizes:
+  train: 8
+  eval: 16
+eval_steps: 400
 finetuning_datasets: 
   train_dataset:
     column_name: text
@@ -18,13 +22,20 @@ finetuning_datasets:
     data_dir: ${paths.data_dir}/datasets/dialogue_datasets/multiwoz21
     dataset_type: huggingface_dataset
     number_of_samples: 5000
-    split: train
+    split: validation
 fp16: false
-batch_sizes:
-  train: 8
-  eval: 16
+gradient_accumulation_steps: 2
+gradient_checkpointing: true
+learning_rate: 5e-5
+log_level: info
+logging_steps: 100
 max_length: 512
 mlm_probability: 0.15
 num_train_epochs: 3
 pretrained_model_name_or_path: roberta-base
+save_steps: 400
+seed: 42
 short_model_name: ${finetuning.pretrained_model_name_or_path}
+use_cpu: false
+warmup_steps: 500
+weight_decay: 0.01

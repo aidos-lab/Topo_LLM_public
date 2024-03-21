@@ -74,14 +74,14 @@ class BasicFinetuningPathManager:
         return self.paths_config.data_dir
 
     @property
-    def base_dir(
+    def finetuned_base_dir(
         self,
     ) -> pathlib.Path:
         path = pathlib.Path(
             self.data_dir,
             "models",
             "finetuned_models",
-            self.data_config.data_config_description,
+            self.finetuning_config.finetuning_datasets.train_dataset.data_config_description,
         )
 
         return path
@@ -91,7 +91,7 @@ class BasicFinetuningPathManager:
         self,
     ) -> pathlib.Path:
         path = pathlib.Path(
-            self.base_dir,
+            self.finetuned_base_dir,
             "model_files",
         )
 
@@ -99,18 +99,19 @@ class BasicFinetuningPathManager:
             self.logger.info(f"finetuned_model_dir:\n" f"{path}")
 
         return path
-    
+
     @property
     def logging_dir(
         self,
-    ) -> pathlib.Path:
-        path = pathlib.Path(
-            self.base_dir,
-            "logging",
-        )
+    ) -> pathlib.Path | None:
+        # path = pathlib.Path(
+        #     self.finetuned_model_dir,
+        #     "runs",
+        # )
+
+        path = None
 
         if self.verbosity >= 1:
             self.logger.info(f"logging_dir:\n" f"{path}")
 
         return path
-

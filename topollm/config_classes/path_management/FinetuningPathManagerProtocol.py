@@ -51,4 +51,4 @@ class FinetuningPathManager(Protocol):
     @property
     def logging_dir(
         self,
-    ) -> pathlib.Path: ... # pragma: no cover
+    ) -> pathlib.Path | None: ...  # pragma: no cover
