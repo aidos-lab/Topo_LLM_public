@@ -153,10 +153,9 @@ def run_finetuning(
         f"Loading tokenizer "
         f"{finetuning_config.pretrained_model_name_or_path = } DONE"
     )
-
-    # Set the padding token to the eos token
-    tokenizer.pad_token = tokenizer.eos_token
     logger.info(f"tokenizer:\n{tokenizer}")
+    # Make sure not to accidentally modify the tokenizer pad token (tokenizer.pad_token) here.
+    # In particular, it is not custom to set the pad token to the eos token for masked language model training.
 
     logger.info(
         f"Loading model " f"{finetuning_config.pretrained_model_name_or_path = } ..."

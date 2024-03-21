@@ -59,16 +59,8 @@ class HuggingfaceEmbeddingDataLoaderPreparer(EmbeddingDataLoaderPreparer):
         self,
     ) -> int:
         """Returns the number of samples in the dataset."""
-        if not hasattr(
-            self,
-            "dataset_length",
-        ):
-            raise ValueError(
-                "The dataset length is not available. "
-                "Please call prepare_dataloader() first."
-            )
 
-        return self.dataset_preparer.dataset_length
+        return len(self.dataset_preparer)
 
     def create_dataset_tokenized(
         self,

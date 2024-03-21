@@ -44,10 +44,8 @@ from topollm.logging.log_dataset_info import log_huggingface_dataset_info
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
-
 class HuggingfaceDatasetPreparer:
     """Prepares a dataset from huggingface datasets."""
-
 
     def __init__(
         self,
@@ -64,6 +62,21 @@ class HuggingfaceDatasetPreparer:
 
         return None
 
+    def __len__(
+        self,
+    ) -> int:
+        """Returns the number of samples in the dataset."""
+        if not hasattr(
+            self,
+            "dataset_length",
+        ):
+            raise ValueError("The dataset length is not available.")
+
+        if self.dataset_length < 0:
+            raise ValueError("The dataset length was not properly set.")
+
+        return self.dataset_length
+
     def load_dataset_dict(
         self,
     ) -> datasets.DatasetDict:
@@ -71,7 +84,7 @@ class HuggingfaceDatasetPreparer:
         dataset_dict = datasets.load_dataset(
             path=self.data_config.dataset_path,
             name=self.data_config.dataset_name,
-            data_dir=self.data_config.data_dir, # type: ignore
+            data_dir=self.data_config.data_dir,  # type: ignore
             trust_remote_code=True,
         )
 
@@ -95,9 +108,7 @@ class HuggingfaceDatasetPreparer:
         dataset_dict: datasets.DatasetDict,
     ) -> datasets.Dataset:
         # Select the dataset split to use
-        dataset: datasets.Dataset = dataset_dict[
-            self.data_config.split
-        ]
+        dataset: datasets.Dataset = dataset_dict[self.data_config.split]
 
         # Truncate the dataset to the specified number of samples
         dataset = dataset.select(

@@ -1,3 +1,0 @@
-pretrained_model_name_or_path: ${paths.data_dir}/models/finetuned_models/data-multiwoz21_split-train_ctxt-dataset_entry/model_files
-short_model_name: roberta-base_finetuned-on-multiwoz21-train-5000_context-utterance
-masking_mode: no_masking
