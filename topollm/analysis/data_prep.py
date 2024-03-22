@@ -58,11 +58,11 @@ dataset_name = "data-multiwoz21_split-train_ctxt-dataset_entry"
 
 # choose model name
 #model_name = "model-roberta-base_mask-no_masking"
-model_name = "model-roberta-base_finetuned-on-multiwoz21-train-5000_context-utterance_ep-3_mask-no_masking"
+model_name = "model-roberta-base_mask-no_masking"
 
 # choose model name of the finetuned model
 #model_name_finetuned = "model-roberta-base_finetuned-on-multiwoz21-train_mask-no_masking"
-model_name_finetuned = "model-roberta-base_finetuned-on-multiwoz21-train-5000_context-utterance_ep-5_mask-no_masking"
+model_name_finetuned = "model-roberta-base_finetuned-on-multiwoz21-train_mask-no_masking"
 
 # choose sample size of the arrays
 sample_size = 30000

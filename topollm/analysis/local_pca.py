@@ -43,8 +43,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 # provide names of numpy array to be used for dimension estimation
-data_name = "sample_embeddings_data-multiwoz21_split-train_ctxt-dataset_entry_model-roberta-base_finetuned-on-multiwoz21-train-5000_context-utterance_ep-3_mask-no_masking_no_paddings.npy"
-data_name_finetuned = "sample_embeddings_data-multiwoz21_split-train_ctxt-dataset_entry_model-roberta-base_finetuned-on-multiwoz21-train-5000_context-utterance_ep-5_mask-no_masking_no_paddings.npy"
+data_name = "sample_embeddings_data-multiwoz21_split-train_ctxt-dataset_entry_model-roberta-base_mask-no_masking_no_paddings.npy"
+data_name_finetuned = "sample_embeddings_data-multiwoz21_split-train_ctxt-dataset_entry_model-roberta-base_finetuned-on-multiwoz21-train_mask-no_masking_no_paddings.npy"
 
 # provide number of jobs for the computation
 n_jobs = 1
@@ -71,7 +71,15 @@ dim_frame = pd.DataFrame({
 
 print(dim_frame.corr())
 
-sns.scatterplot(x = list(lPCA.dimension_pw_),y = list(lPCA_finetuned.dimension_pw_))
+scatter_plot = sns.scatterplot(x = list(lPCA.dimension_pw_),y = list(lPCA_finetuned.dimension_pw_))
+scatter_fig = scatter_plot.get_figure()
+
+# use savefig function to save the plot and give
+# a desired name to the plot.
+save_name = 'lpca/lpca'+data_name[:-4]+'_roberta_vs_finetuned(multiwoz)'
+
+scatter_fig.savefig(save_name+'.png')
+dim_frame.to_pickle(save_name)
+
 plt.show()
 
-dim_frame.to_pickle('lpca/lpca_'+data_name[:-4]+'_epochs_3_vs_5')

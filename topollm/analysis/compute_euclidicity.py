@@ -48,8 +48,8 @@ from sklearn.neighbors import KDTree
 from gph import ripser_parallel
 
 # provide names of numpy array to be used for dimension estimation
-data_name = "sample_embeddings_data-multiwoz21_split-train_ctxt-dataset_entry_model-roberta-base_finetuned-on-multiwoz21-train-5000_context-utterance_ep-3_mask-no_masking_no_paddings.npy"
-data_name_finetuned = "sample_embeddings_data-multiwoz21_split-train_ctxt-dataset_entry_model-roberta-base_finetuned-on-multiwoz21-train-5000_context-utterance_ep-5_mask-no_masking_no_paddings.npy"
+data_name = "sample_embeddings_data-multiwoz21_split-train_ctxt-dataset_entry_model-roberta-base_mask-no_masking_no_paddings.npy"
+data_name_finetuned = "sample_embeddings_data-multiwoz21_split-train_ctxt-dataset_entry_model-roberta-base_finetuned-on-multiwoz21-train_mask-no_masking_no_paddings.npy"
 
 arr_no_pad = np.load(data_name)
 arr_no_pad_finetuned = np.load(data_name_finetuned)
@@ -510,7 +510,7 @@ scatter_fig = scatter_plot.get_figure()
 
 # use savefig function to save the plot and give
 # a desired name to the plot.
-save_name = 'euclidicity/euclidicity_'+data_name[:-4]+'_epochs_3_vs_5'
+save_name = 'euclidicity/euclidicity_'+data_name[:-4]+'_roberta_vs_finetuned(multiwoz)'
 
 scatter_fig.savefig(save_name+'.png')
 euc_frame.to_pickle(save_name)
