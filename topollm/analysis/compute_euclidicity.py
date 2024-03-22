@@ -48,8 +48,8 @@ from sklearn.neighbors import KDTree
 from gph import ripser_parallel
 
 # provide names of numpy array to be used for dimension estimation
-data_name = "sample_embeddings_data-multiwoz21_split-train_ctxt-dataset_entry_model-roberta-base_mask-no_masking_no_paddings.npy"
-data_name_finetuned = "sample_embeddings_data-multiwoz21_split-train_ctxt-dataset_entry_model-roberta-base_finetuned-on-multiwoz21-train_mask-no_masking_no_paddings.npy"
+data_name = "sample_embeddings_data-multiwoz21_split-test_ctxt-dataset_entry_model-roberta-base_mask-no_masking_no_paddings.npy"
+data_name_finetuned = "sample_embeddings_data-multiwoz21_split-test_ctxt-dataset_entry_model-roberta-base_finetuned-on-multiwoz21-train_mask-no_masking_no_paddings.npy"
 
 arr_no_pad = np.load(data_name)
 arr_no_pad_finetuned = np.load(data_name_finetuned)

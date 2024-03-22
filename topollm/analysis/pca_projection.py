@@ -28,58 +28,44 @@
 # limitations under the License.
 
 ########################################################
-
-# This is a script to calculate and store lPCA dimension
-# estimates for two given arrays for a comparison
-# of embeddings of a base model and a corresponding
-# fine-tuned variant. To obtain these arrays, the
-# `data_prep.py` may be used.
-
-# third party imports
 import numpy as np
 import pandas as pd
-import skdim
-import matplotlib.pyplot as plt
-import seaborn as sns
+import plotly.express as px
+from sklearn.decomposition import PCA
 
 # provide names of numpy array to be used for dimension estimation
 data_name = "sample_embeddings_data-multiwoz21_split-test_ctxt-dataset_entry_model-roberta-base_mask-no_masking_no_paddings.npy"
 data_name_finetuned = "sample_embeddings_data-multiwoz21_split-test_ctxt-dataset_entry_model-roberta-base_finetuned-on-multiwoz21-train_mask-no_masking_no_paddings.npy"
 
-# provide number of jobs for the computation
-n_jobs = 1
-
-# provide number of neighbors which are used for the computation
-n_neighbors = 100
-
 arr_no_pad = np.load(data_name)
 arr_no_pad_finetuned = np.load(data_name_finetuned)
 
-lPCA = skdim.id.lPCA().fit_pw(arr_no_pad,
-                              n_neighbors = n_neighbors,
-                              n_jobs = n_jobs)
+dataset = pd.DataFrame({f'Column{i+1}': arr_no_pad[:,i] for i in range(arr_no_pad.shape[1])})
+dataset['class'] = 'base'
 
+dataset_finetuned = pd.DataFrame({f'Column{i+1}': arr_no_pad_finetuned[:,i] for i in
+                                  range(arr_no_pad_finetuned.shape[1])})
+dataset_finetuned['class'] = 'finetuned'
 
-lPCA_finetuned = skdim.id.lPCA().fit_pw(arr_no_pad_finetuned,
-                              n_neighbors = n_neighbors,
-                              n_jobs = n_jobs)
+df = pd.concat((dataset,dataset_finetuned))
 
-dim_frame = pd.DataFrame({
-                         'lpca_finetuned':list(lPCA_finetuned.dimension_pw_),
-                         'lpca':list(lPCA.dimension_pw_)
-                         })
+df.reset_index(inplace=True)
+df.drop(columns='index',inplace=True)
 
-print(dim_frame.corr())
+features = list(df.columns)[:-1]
 
-scatter_plot = sns.scatterplot(x = list(lPCA.dimension_pw_),y = list(lPCA_finetuned.dimension_pw_))
-scatter_fig = scatter_plot.get_figure()
+pca = PCA(n_components=10)
+components = pca.fit_transform(df[features])
+labels = {
+    str(i): f"PC{i+1}"
+    for i, var in enumerate(pca.explained_variance_ratio_ * 100)
+}
 
-# use savefig function to save the plot and give
-# a desired name to the plot.
-save_name = 'lpca/lpca'+data_name[:-4]+'_roberta_vs_finetuned(multiwoz)'
-
-scatter_fig.savefig(save_name+'.png')
-dim_frame.to_pickle(save_name)
-
-plt.show()
-
+fig = px.scatter_matrix(
+    components,
+    labels=labels,
+    dimensions=range(10),
+    color=df["class"]
+)
+fig.update_traces(diagonal_visible=False)
+fig.show()
