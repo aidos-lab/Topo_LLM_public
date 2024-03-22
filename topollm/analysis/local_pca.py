@@ -74,4 +74,4 @@ print(dim_frame.corr())
 sns.scatterplot(x = list(lPCA.dimension_pw_),y = list(lPCA_finetuned.dimension_pw_))
 plt.show()
 
-dim_frame.to_pickle('dimensions_base_vs_finetuned_'+data_name[:-4])
+dim_frame.to_pickle('lpca/lpca_'+data_name[:-4]+'_epochs_3_vs_5')

@@ -513,6 +513,6 @@ scatter_fig = scatter_plot.get_figure()
 save_name = 'euclidicity/euclidicity_'+data_name[:-4]+'_epochs_3_vs_5'
 
 scatter_fig.savefig(save_name+'.png')
-plt.show()
-
 euc_frame.to_pickle(save_name)
+
+plt.show()
