@@ -44,6 +44,13 @@ poetry install --with gpu,dev --without cpu # For GPU
 poetry install --with cpu,dev --without gpu # For CPU
 ```
 
+1. Set the correct environment variables used in the project config.
+Edit the script `setup_environment.sh` with the correct paths and run it once.
+
+```bash
+./setup_environment.sh
+```
+
 ## Project Structure
 
 ### Config file management
