@@ -171,7 +171,7 @@ cython_debug/
 # # # # # # # # # # # #
 
 data/datasets/dialogue_datasets/
-data/datasets/iclr_2024_submissions/ICLR_Mistral_Embeddings.csv
+data/datasets/iclr_2024_submissions/csv_format/ICLR_Mistral_Embeddings.csv
 data/datasets/tokenised_datasets_dataframes/
 
 data/embeddings/arrays

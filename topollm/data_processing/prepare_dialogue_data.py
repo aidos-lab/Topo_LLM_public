@@ -28,7 +28,8 @@
 # limitations under the License.
 
 """
-Read ICLR text data from 'ICLR_Mistral_Embeddings.csv' and split to train/test/validation
+Load dialogue data from the convlab unified dataset format
+and save it in the huggingface datasets format.
 """
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
