@@ -40,6 +40,7 @@ import json
 import logging
 import os
 import pathlib
+from typing import IO
 
 # Third party imports
 import hydra
@@ -49,13 +50,11 @@ import pandas as pd
 from tqdm import tqdm
 
 # Local imports
-import convlab  # type: ignore
-import topollm.data_processing.DialogueUtteranceDataset as DialogueUtteranceDataset
 from topollm.config_classes.MainConfig import MainConfig
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
-from topollm.logging.log_dataset_info import log_torch_dataset_info
 from topollm.logging.log_dataframe_info import log_dataframe_info
+from topollm.logging.log_list_info import log_list_info
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # START Globals
@@ -138,50 +137,81 @@ def process_dataset(
         split_list,
         desc="Iterating over splits",
     ):
+        logger.info(f"Processing {split = } ...")
+        
         csv_file_path = pathlib.Path(
             dataset_load_dir,
-            get_csv_file_name(split=split,),
+            get_csv_file_name(
+                split=split,
+            ),
         )
-        
-        # TODO: Continue here
-        logger.info(
-            f"Loading data from:\n" f"{csv_file_path = }\n..."
+
+        logger.info(f"Loading data from:\n" f"{csv_file_path = }\n...")
+        # The argument
+        # `keep_default_na=False`
+        # makes sur that string 'nan' is not interpreted as NaN
+        dataframe = pd.read_csv(
+            filepath_or_buffer=csv_file_path,
+            # dtype=dtypes, # Optional: Specify the data types of the columns
+            keep_default_na=False,
+            low_memory=False,
         )
-        
-        # TODO load the dataset
+        logger.info(f"Loading data from:\n" f"{csv_file_path = }\nDONE")
 
-        global_logger.info(
-            f"Loading convlab dataset:\n" f"{csv_file_path = }\nDONE"
+        # Add additional columns.
+        # Here: Combining title and abstract into additional column.
+        dataframe_augmented = add_additional_columns(
+            dataframe=dataframe,
         )
-        global_logger.info(f"{convlab_dataset_dict.keys() = }")
 
-        # TODO: Make an extra column with concatenated title and abstract
-
-        write_single_split_to_file(
+        write_single_split_dataframe_to_file(
             save_dir=dataset_save_dir,
-            split_dataframe=convlab_dataset_dict,
+            split_dataframe=dataframe_augmented,
             split=split,
         )
 
+        logger.info(f"Processing {split = } DONE")
+
     return None
 
-def get_csv_file_name(split: str,) -> str:
+
+def get_csv_file_name(
+    split: str,
+) -> str:
     return f"ICLR_{split}" f".csv"
 
 
-def write_single_split_to_file(
+def add_additional_columns(
+    dataframe: pd.DataFrame,
+    separator: str = ". ",
+) -> pd.DataFrame:
+    """
+    Add additional columns to the dataframe.
+    We combine the title and abstract into a new column.
+    """
+
+    # Make a copy of the dataframe
+    dataframe_augmented = dataframe.copy()
+
+    # Add additional columns
+    dataframe_augmented["text"] = (
+        dataframe_augmented["title"] + separator + dataframe_augmented["abstract"]
+    )
+
+    return dataframe_augmented
+
+
+def write_single_split_dataframe_to_file(
     save_dir: pathlib.Path,
     split_dataframe: pd.DataFrame,
     split: str,
     logger: logging.Logger = logging.getLogger(__name__),
 ) -> None:
-    
-    # ! TODO Update this
-
     log_dataframe_info(
-        dataset=split_dataframe,
-        dataset_name=split,
-        num_samples_to_log=5,
+        df=split_dataframe,
+        df_name=split,
+        max_log_rows=20,
+        check_for_nan=True,
         logger=logger,
     )
 
@@ -191,25 +221,49 @@ def write_single_split_to_file(
         save_dir,
         f"{split}.jsonl",
     )
-    global_logger.info(f"Writing the dataset to file:\n" f"{save_file_path = }\n...")
+    logger.info(f"Writing the dataset to file:\n" f"{save_file_path = }\n...")
 
     with open(
         save_file_path,
-        "w",
+        mode="w",
+        encoding="utf-8",
     ) as file:
-        for idx in tqdm(
-            range(
-                len(split_dataset),
-            )
-        ):
-            sample: dict = split_dataset[idx]
-            json.dump(
-                obj=sample,
-                fp=file,
-            )
-            file.write("\n")
+        iterate_over_dataframe(
+            df=split_dataframe,
+            file=file,
+            logger=logger,
+        )
 
-    global_logger.info(f"Writing the dataset to file:\n" f"{save_file_path = }\nDONE")
+    logger.info(f"Writing the dataset to file:\n" f"{save_file_path = }\nDONE")
+
+    return None
+
+
+def iterate_over_dataframe(
+    df: pd.DataFrame,
+    file: IO,
+    logger: logging.Logger = logging.getLogger(__name__),
+) -> None:
+    # Convert the DataFrame to a list of dictionaries
+    records: list[dict] = df.to_dict(
+        orient="records",
+    )
+
+    log_list_info(
+        list_=records,
+        list_name="records",
+        max_log_elements=20,
+        logger=logger,
+    )
+
+    # Write each record as a JSON-formatted string
+    for record in tqdm(records):
+        json_record = json.dumps(
+            obj=record,
+        )
+        file.write(
+            json_record + "\n",
+        )
 
     return None
 

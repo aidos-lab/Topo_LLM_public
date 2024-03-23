@@ -101,47 +101,6 @@ def log_dataframe_info(
     return
 
 
-def log_list_info(
-    list_: list,
-    list_name: str,
-    max_log_elements: int = 20,
-    logger: logging.Logger = logging.getLogger(__name__),
-) -> None:
-    """
-    Logs information about a list.
-
-    Args:
-        list_ (list):
-            The list to log information about.
-        list_name (str):
-            The name of the list.
-        max_log_elements (int, optional):
-            The maximum number of elements to log for the head and tail of the list.
-            Defaults to 20.
-        logger (logging.Logger, optional):
-            The logger to log information to.
-            Defaults to logging.getLogger(__name__).
-
-    Returns:
-        None
-
-    Side effects:
-        Logs information about the list to the logger.
-    """
-
-    logger.info(f"len({list_name}):\n" f"{len(list_)}")
-    logger.info(
-        f"{list_name}[:{max_log_elements}]:\n"
-        f"{pprint.pformat(list_[:max_log_elements])}"
-    )
-    logger.info(
-        f"{list_name}[-{max_log_elements}:]:\n"
-        f"{pprint.pformat(list_[-max_log_elements:])}"
-    )
-
-    return
-
-
 def log_array_info(
     array_: np.ndarray,
     array_name: str,
