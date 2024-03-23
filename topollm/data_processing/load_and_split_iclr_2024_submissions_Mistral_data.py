@@ -90,8 +90,14 @@ def main():
     df["text"] = df["title"] + ". " + df["abstract"]
     df = df.loc[:, ["title", "abstract", "text"]]
 
-    train, test = train_test_split(df, test_size=0.2)
-    test, validation = train_test_split(test, test_size=0.5)
+    train, test = train_test_split(
+        df,
+        test_size=0.2,
+    )
+    test, validation = train_test_split(
+        test,
+        test_size=0.5,
+    )
 
     train.to_csv(
         pathlib.Path(

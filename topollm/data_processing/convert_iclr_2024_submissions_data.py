@@ -28,8 +28,8 @@
 # limitations under the License.
 
 """
-Load dialogue data from the convlab unified dataset format
-and save it in the huggingface datasets format.
+Convert the split ICLR 2024 submissions data
+into huggingface datasets format.
 """
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -38,12 +38,14 @@ and save it in the huggingface datasets format.
 # Standard library imports
 import json
 import logging
+import os
 import pathlib
 
 # Third party imports
 import hydra
 import hydra.core.hydra_config
 import omegaconf
+import pandas as pd
 from tqdm import tqdm
 
 # Local imports
@@ -53,6 +55,7 @@ from topollm.config_classes.MainConfig import MainConfig
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.logging.log_dataset_info import log_torch_dataset_info
+from topollm.logging.log_dataframe_info import log_dataframe_info
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # START Globals
@@ -90,10 +93,40 @@ def main(
     data_dir = main_config.paths.data_dir
     global_logger.info(f"{data_dir = }")
 
-    convlab_dataset_identifier_list = [
-        "multiwoz21",
-        "sgd",
-    ]
+    process_dataset(
+        data_dir=data_dir,
+        logger=global_logger,
+    )
+
+    return None
+
+
+def process_dataset(
+    data_dir: os.PathLike,
+    logger: logging.Logger = logging.getLogger(__name__),
+) -> None:
+    dataset_load_dir = pathlib.Path(
+        data_dir,
+        "datasets",
+        "iclr_2024_submissions",
+        "csv_format",
+    )
+
+    # Folder into which we save the dataset files
+    dataset_save_dir = pathlib.Path(
+        data_dir,
+        "datasets",
+        "iclr_2024_submissions",
+        "jsonl_format",
+    )
+    # Create the folder if it does not exist
+    dataset_save_dir.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    logger.info(f"{dataset_load_dir = }")
+    logger.info(f"{dataset_save_dir = }")
 
     split_list = [
         "train",
@@ -101,64 +134,55 @@ def main(
         "test",
     ]
 
-    for convlab_dataset_identifier in tqdm(
-        convlab_dataset_identifier_list,
-        desc="convlab datasets",
+    for split in tqdm(
+        split_list,
+        desc="Iterating over splits",
     ):
-        # Folder into which we save the dataset files
-        save_dir = pathlib.Path(
-            data_dir,
-            "datasets",
-            "dialogue_datasets",
-            convlab_dataset_identifier,
+        csv_file_path = pathlib.Path(
+            dataset_load_dir,
+            get_csv_file_name(split=split,),
         )
-        # Create the folder if it does not exist
-        save_dir.mkdir(
-            parents=True,
-            exist_ok=True,
+        
+        # TODO: Continue here
+        logger.info(
+            f"Loading data from:\n" f"{csv_file_path = }\n..."
         )
+        
+        # TODO load the dataset
 
         global_logger.info(
-            f"Loading convlab dataset:\n" f"{convlab_dataset_identifier = }\n..."
-        )
-        convlab_dataset_dict = convlab.util.load_dataset(
-            dataset_name=convlab_dataset_identifier,
-        )
-        global_logger.info(
-            f"Loading convlab dataset:\n" f"{convlab_dataset_identifier = }\nDONE"
+            f"Loading convlab dataset:\n" f"{csv_file_path = }\nDONE"
         )
         global_logger.info(f"{convlab_dataset_dict.keys() = }")
 
-        for split in tqdm(
-            split_list,
-            desc="splits",
-        ):
-            write_single_split_to_file(
-                save_dir,
-                convlab_dataset_dict,
-                split,
-            )
+        # TODO: Make an extra column with concatenated title and abstract
+
+        write_single_split_to_file(
+            save_dir=dataset_save_dir,
+            split_dataframe=convlab_dataset_dict,
+            split=split,
+        )
 
     return None
+
+def get_csv_file_name(split: str,) -> str:
+    return f"ICLR_{split}" f".csv"
 
 
 def write_single_split_to_file(
     save_dir: pathlib.Path,
-    convlab_dataset_dict: dict[str, list[dict]],
+    split_dataframe: pd.DataFrame,
     split: str,
+    logger: logging.Logger = logging.getLogger(__name__),
 ) -> None:
-    split_data = convlab_dataset_dict[split]
+    
+    # ! TODO Update this
 
-    split_dataset = DialogueUtteranceDataset.DialogueUtteranceDataset(
-        dialogues=split_data,
-        split=split,
-    )
-
-    log_torch_dataset_info(
-        dataset=split_dataset,
+    log_dataframe_info(
+        dataset=split_dataframe,
         dataset_name=split,
         num_samples_to_log=5,
-        logger=global_logger,
+        logger=logger,
     )
 
     # We want to write the dataset entries to a file in JSONlines format.
