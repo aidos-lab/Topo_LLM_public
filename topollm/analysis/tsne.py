@@ -45,14 +45,14 @@ import plotly.express as px
 from sklearn.manifold import TSNE
 
 # provide number of components of the projection
-n_components = 2
+n_components = 3
 
 # provide names of numpy array to be used for dimension estimation
-data_name = "sample_embeddings_data-iclr_2024_submissions_split-train_ctxt-dataset_entry_model-roberta-base_mask-no_masking_no_paddings.npy"
-data_name_finetuned = "sample_embeddings_data-iclr_2024_submissions_split-train_ctxt-dataset_entry_model-roberta-base_finetuned-on-multiwoz21-train_context-dialogue_mask-no_masking_no_paddings.npy"
+#data_name = "sample_embeddings_data-iclr_2024_submissions_split-train_ctxt-dataset_entry_model-roberta-base_mask-no_masking_no_paddings.npy"
+#data_name_finetuned = "sample_embeddings_data-iclr_2024_submissions_split-train_ctxt-dataset_entry_model-roberta-base_finetuned-on-multiwoz21-train_context-dialogue_mask-no_masking_no_paddings.npy"
 
-#data_name = "sample_embeddings_data-multiwoz21_split-train_ctxt-dataset_entry_model-roberta-base_mask-no_masking_no_paddings.npy"
-#data_name_finetuned = "sample_embeddings_data-multiwoz21_split-train_ctxt-dataset_entry_model-roberta-base_finetuned-on-multiwoz21-train_mask-no_masking_no_paddings.npy"
+data_name = "sample_embeddings_data-multiwoz21_split-train_ctxt-dataset_entry_model-roberta-base_mask-no_masking_no_paddings.npy"
+data_name_finetuned = "sample_embeddings_data-multiwoz21_split-train_ctxt-dataset_entry_model-roberta-base_finetuned-on-multiwoz21-train_mask-no_masking_no_paddings.npy"
 
 arr_no_pad = np.load(data_name)
 arr_no_pad_finetuned = np.load(data_name_finetuned)
@@ -69,9 +69,14 @@ df = pd.concat((dataset,dataset_finetuned))
 df.reset_index(inplace=True)
 df.drop(columns='index',inplace=True)
 
+
 tsne = TSNE(n_components=n_components, random_state=0)
-embedding = tsne.fit_transform(dataset.iloc[:,:-1])
-embedding_finetuned = tsne.fit_transform(dataset_finetuned.iloc[:,:-1])
+embedding_concat = tsne.fit_transform(df.iloc[:,:-1])
+
+idx = round(len(embedding_concat)/2)
+
+embedding = embedding_concat[:idx]
+embedding_finetuned = embedding_concat[idx:]
 
 if n_components==3:
     fig = plt.figure(figsize = (10, 7))
