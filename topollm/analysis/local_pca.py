@@ -43,8 +43,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 # provide names of numpy array to be used for dimension estimation
-data_name = "sample_embeddings_data-xsum_split-train_ctxt-dataset_entry_model-roberta-base_mask-no_masking_no_paddings.npy"
-data_name_finetuned = "sample_embeddings_data-xsum_split-train_ctxt-dataset_entry_model-roberta-base_finetuned-on-multiwoz21-train_mask-no_masking_no_paddings.npy"
+data_name = "sample_embeddings_data-iclr_2024_submissions_split-train_ctxt-dataset_entry_model-roberta-base_mask-no_masking_no_paddings.npy"
+data_name_finetuned = "sample_embeddings_data-iclr_2024_submissions_split-train_ctxt-dataset_entry_model-roberta-base_finetuned-on-multiwoz21-train_context-dialogue_mask-no_masking_no_paddings.npy"
 
 # provide number of jobs for the computation
 n_jobs = 1

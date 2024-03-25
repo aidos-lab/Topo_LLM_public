@@ -54,15 +54,16 @@ import pandas as pd
 #dataset_name = "data-multiwoz21_split-test_ctxt-dataset_entry"
 #dataset_name = "data-xsum_split-train_ctxt-dataset_entry"
 #dataset_name = "data-wikitext_split-train_ctxt-dataset_entry"
-dataset_name = "data-xsum_split-train_ctxt-dataset_entry"
+#dataset_name = "data-xsum_split-train_ctxt-dataset_entry"
+dataset_name = "data-iclr_2024_submissions_split-train_ctxt-dataset_entry"
 
 # choose model name
 #model_name = "model-roberta-base_mask-no_masking"
 model_name = "model-roberta-base_mask-no_masking"
 
 # choose model name of the finetuned model
-model_name_finetuned = "model-roberta-base_finetuned-on-multiwoz21-train_mask-no_masking"
-#model_name_finetuned = "model-roberta-base_finetuned-on-multiwoz21-train_context-dialogue_mask-no_masking"
+#model_name_finetuned = "model-roberta-base_finetuned-on-multiwoz21-train_mask-no_masking"
+model_name_finetuned = "model-roberta-base_finetuned-on-multiwoz21-train_context-dialogue_mask-no_masking"
 
 # choose sample size of the arrays
 sample_size = 30000
