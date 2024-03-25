@@ -43,198 +43,255 @@
 # (often ~5% of the specified size).
 
 # third party imports
+import logging
 import pathlib
+import hydra
+import omegaconf
 import zarr
 import numpy as np
 import os
 import pickle
 import pandas as pd
 
-# choose dataset name
-#dataset_name = "data-multiwoz21_split-test_ctxt-dataset_entry"
-#dataset_name = "data-xsum_split-train_ctxt-dataset_entry"
-#dataset_name = "data-wikitext_split-train_ctxt-dataset_entry"
-#dataset_name = "data-xsum_split-train_ctxt-dataset_entry"
-dataset_name = "data-iclr_2024_submissions_split-train_ctxt-dataset_entry"
+from topollm.logging.initialize_configuration_and_log import initialize_configuration
+from topollm.config_classes.MainConfig import MainConfig
+from topollm.logging.setup_exception_logging import setup_exception_logging
 
-# choose model name
-#model_name = "model-roberta-base_mask-no_masking"
-model_name = "model-roberta-base_mask-no_masking"
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# START Globals
 
-# choose model name of the finetuned model
-#model_name_finetuned = "model-roberta-base_finetuned-on-multiwoz21-train_mask-no_masking"
-model_name_finetuned = "model-roberta-base_finetuned-on-multiwoz21-train_context-dialogue_mask-no_masking"
+# A logger for this file
+global_logger = logging.getLogger(__name__)
 
-# choose sample size of the arrays
-sample_size = 30000
-
-# local path
-local_path = "Documents/LLM-Analysis"
-#local_path = "git-source"
-
-# potentially adapt paths
-array_path = pathlib.Path(
-    pathlib.Path.home(),
-    local_path,
-    "Topo_LLM",
-    "data",
-    "embeddings",
-    "arrays",
-    dataset_name,
-    "lvl-token",
-    "add-prefix-space-False_max-len-512",
-    model_name,
-    "layer-[-1]_agg-mean",
-    "norm-None",
-    "array_dir",
+setup_exception_logging(
+    logger=global_logger,
 )
 
-array_path_finetuned = pathlib.Path(
-    pathlib.Path.home(),
-    local_path,
-    "Topo_LLM",
-    "data",
-    "embeddings",
-    "arrays",
-    dataset_name,
-    "lvl-token",
-    "add-prefix-space-False_max-len-512",
-    model_name_finetuned,
-    "layer-[-1]_agg-mean",
-    "norm-None",
-    "array_dir",
+# torch.set_num_threads(1)
+
+# END Globals
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+
+@hydra.main(
+    config_path="../../configs",
+    config_name="main_config",
+    version_base="1.2",
 )
+def main(
+    config: omegaconf.DictConfig,
+) -> None:
+    main_config: MainConfig = initialize_configuration(
+        config=config,
+        logger=global_logger,
+    )
 
-meta_path = pathlib.Path(
-    pathlib.Path.home(),
-    local_path,
-    "Topo_LLM",
-    "data",
-    "embeddings",
-    "metadata",
-    dataset_name,
-    "lvl-token",
-    "add-prefix-space-False_max-len-512",
-    model_name,
-    "layer-[-1]_agg-mean",
-    "norm-None",
-    "metadata_dir",
-    "pickle_chunked_metadata_storage",
-)
+    pass
 
-meta_path_finetuned = pathlib.Path(
-    pathlib.Path.home(),
-    local_path,
-    "Topo_LLM",
-    "data",
-    "embeddings",
-    "metadata",
-    dataset_name,
-    "lvl-token",
-    "add-prefix-space-False_max-len-512",
-    model_name_finetuned,
-    "layer-[-1]_agg-mean",
-    "norm-None",
-    "metadata_dir",
-    "pickle_chunked_metadata_storage",
-)
+    # choose dataset name
+    # dataset_name = "data-multiwoz21_split-test_ctxt-dataset_entry"
+    # dataset_name = "data-xsum_split-train_ctxt-dataset_entry"
+    # dataset_name = "data-wikitext_split-train_ctxt-dataset_entry"
+    # dataset_name = "data-xsum_split-train_ctxt-dataset_entry"
+    dataset_name = "data-iclr_2024_submissions_split-train_ctxt-dataset_entry"
 
-print(array_path)
+    # choose model name
+    # model_name = "model-roberta-base_mask-no_masking"
+    model_name = "model-roberta-base_mask-no_masking"
 
-if not array_path.exists():
-    raise FileNotFoundError(f"{array_path = } does not exist.")
+    # choose model name of the finetuned model
+    # model_name_finetuned = "model-roberta-base_finetuned-on-multiwoz21-train_mask-no_masking"
+    model_name_finetuned = "model-roberta-base_finetuned-on-multiwoz21-train_context-dialogue_mask-no_masking"
 
-print(array_path_finetuned)
+    # choose sample size of the arrays
+    sample_size = 30000
 
-if not array_path_finetuned.exists():
-    raise FileNotFoundError(f"{array_path_finetuned = } does not exist.")
+    # local path
+    local_path = "Documents/LLM-Analysis"
+    # local_path = "git-source"
 
-print(meta_path)
+    # potentially adapt paths
+    array_path = pathlib.Path(
+        pathlib.Path.home(),
+        local_path,
+        "Topo_LLM",
+        "data",
+        "embeddings",
+        "arrays",
+        dataset_name,
+        "lvl-token",
+        "add-prefix-space-False_max-len-512",
+        model_name,
+        "layer-[-1]_agg-mean",
+        "norm-None",
+        "array_dir",
+    )
 
-if not meta_path.exists():
-    raise FileNotFoundError(f"{meta_path = } does not exist.")
+    array_path_finetuned = pathlib.Path(
+        pathlib.Path.home(),
+        local_path,
+        "Topo_LLM",
+        "data",
+        "embeddings",
+        "arrays",
+        dataset_name,
+        "lvl-token",
+        "add-prefix-space-False_max-len-512",
+        model_name_finetuned,
+        "layer-[-1]_agg-mean",
+        "norm-None",
+        "array_dir",
+    )
 
-print(meta_path_finetuned)
+    meta_path = pathlib.Path(
+        pathlib.Path.home(),
+        local_path,
+        "Topo_LLM",
+        "data",
+        "embeddings",
+        "metadata",
+        dataset_name,
+        "lvl-token",
+        "add-prefix-space-False_max-len-512",
+        model_name,
+        "layer-[-1]_agg-mean",
+        "norm-None",
+        "metadata_dir",
+        "pickle_chunked_metadata_storage",
+    )
 
-if not meta_path_finetuned.exists():
-    raise FileNotFoundError(f"{meta_path_finetuned = } does not exist.")
+    meta_path_finetuned = pathlib.Path(
+        pathlib.Path.home(),
+        local_path,
+        "Topo_LLM",
+        "data",
+        "embeddings",
+        "metadata",
+        dataset_name,
+        "lvl-token",
+        "add-prefix-space-False_max-len-512",
+        model_name_finetuned,
+        "layer-[-1]_agg-mean",
+        "norm-None",
+        "metadata_dir",
+        "pickle_chunked_metadata_storage",
+    )
 
-array = zarr.open(
-    store=array_path,  # type: ignore
-    mode="r",
-)
+    print(array_path)
 
-array_finetuned = zarr.open(
-    store=array_path_finetuned,  # type: ignore
-    mode="r",
-)
+    if not array_path.exists():
+        raise FileNotFoundError(f"{array_path = } does not exist.")
 
-arr = np.array(array)
-arr = arr.reshape(arr.shape[0]*arr.shape[1],arr.shape[2])
+    print(array_path_finetuned)
 
-arr_finetuned = np.array(array_finetuned)
-arr_finetuned = arr_finetuned.reshape(arr_finetuned.shape[0]*arr_finetuned.shape[1],arr_finetuned.shape[2])
+    if not array_path_finetuned.exists():
+        raise FileNotFoundError(f"{array_path_finetuned = } does not exist.")
 
-idx = np.random.choice(range(len(arr)),replace=False,size=sample_size)
+    print(meta_path)
 
-arr = arr[idx]
-arr_finetuned = arr_finetuned[idx]
+    if not meta_path.exists():
+        raise FileNotFoundError(f"{meta_path = } does not exist.")
 
-# function to load pickle files stored in the respective directory
-def load_pickle_files(directory):
-    data = []
-    chunk_list = []
-    for i in range(len(os.listdir(meta_path))):
-        if i >=10000:
-            chunk_list.append('chunk_'+str(i)+'.pkl')
-        elif i >=1000:
-            chunk_list.append('chunk_0'+str(i)+'.pkl')
-        elif i >=100:
-            chunk_list.append('chunk_00'+str(i)+'.pkl')
-        elif i >=10:
-            chunk_list.append('chunk_000'+str(i)+'.pkl')
-        else:
-            chunk_list.append('chunk_0000'+str(i)+'.pkl')
-    for filename in chunk_list:
-        if filename.endswith(".pkl"):
-            filepath = os.path.join(directory, filename)
-            with open(filepath, "rb") as f:
-                chunk = pickle.load(f)
-                data.append(chunk)
-    return data
+    print(meta_path_finetuned)
+
+    if not meta_path_finetuned.exists():
+        raise FileNotFoundError(f"{meta_path_finetuned = } does not exist.")
+
+    array = zarr.open(
+        store=array_path,  # type: ignore
+        mode="r",
+    )
+
+    array_finetuned = zarr.open(
+        store=array_path_finetuned,  # type: ignore
+        mode="r",
+    )
+
+    arr = np.array(array)
+    arr = arr.reshape(arr.shape[0] * arr.shape[1], arr.shape[2])
+
+    arr_finetuned = np.array(array_finetuned)
+    arr_finetuned = arr_finetuned.reshape(
+        arr_finetuned.shape[0] * arr_finetuned.shape[1], arr_finetuned.shape[2]
+    )
+
+    idx = np.random.choice(range(len(arr)), replace=False, size=sample_size)
+
+    arr = arr[idx]
+    arr_finetuned = arr_finetuned[idx]
+
+    # function to load pickle files stored in the respective directory
+    def load_pickle_files(directory):
+        data = []
+        chunk_list = []
+        for i in range(len(os.listdir(meta_path))):
+            if i >= 10000:
+                chunk_list.append("chunk_" + str(i) + ".pkl")
+            elif i >= 1000:
+                chunk_list.append("chunk_0" + str(i) + ".pkl")
+            elif i >= 100:
+                chunk_list.append("chunk_00" + str(i) + ".pkl")
+            elif i >= 10:
+                chunk_list.append("chunk_000" + str(i) + ".pkl")
+            else:
+                chunk_list.append("chunk_0000" + str(i) + ".pkl")
+        for filename in chunk_list:
+            if filename.endswith(".pkl"):
+                filepath = os.path.join(directory, filename)
+                with open(filepath, "rb") as f:
+                    chunk = pickle.load(f)
+                    data.append(chunk)
+        return data
+
+    loaded_data = load_pickle_files(meta_path)
+    loaded_data_finetuned = load_pickle_files(meta_path_finetuned)
+    print("Loaded pickle files:", loaded_data)
+
+    input_ids = []
+    for i in range(len(loaded_data)):
+        input_ids.append(loaded_data[i]["input_ids"].tolist())
+
+    stacked_meta = np.vstack(input_ids)
+    stacked_meta = stacked_meta.reshape(stacked_meta.shape[0] * stacked_meta.shape[1])
+
+    input_ids_finetuned = []
+    for i in range(len(loaded_data_finetuned)):
+        input_ids_finetuned.append(loaded_data_finetuned[i]["input_ids"].numpy())
+
+    stacked_meta_finetuned = np.vstack(input_ids_finetuned)
+    stacked_meta_finetuned = stacked_meta_finetuned.reshape(
+        stacked_meta_finetuned.shape[0] * stacked_meta_finetuned.shape[1]
+    )
+
+    stacked_meta_sub = stacked_meta[idx]
+    stacked_meta_finetuned_sub = stacked_meta_finetuned[idx]
+
+    df = pd.DataFrame({"arr": list(arr), "meta": list(stacked_meta_sub)})
+    arr_no_pad = np.array(list(df[(df["meta"] != 2) & (df["meta"] != 1)].arr))
+
+    df_finetuned = pd.DataFrame(
+        {"arr": list(arr_finetuned), "meta": list(stacked_meta_finetuned_sub)}
+    )
+    arr_no_pad_finetuned = np.array(
+        list(df_finetuned[(df["meta"] != 2) & (df["meta"] != 1)].arr)
+    )
+
+    print(arr_no_pad[0])
+    print(arr_no_pad_finetuned[0])
+
+    np.save(
+        "sample_embeddings_" + dataset_name + "_" + model_name + "_no_paddings",
+        arr_no_pad,
+    )
+    np.save(
+        "sample_embeddings_"
+        + dataset_name
+        + "_"
+        + model_name_finetuned
+        + "_no_paddings",
+        arr_no_pad_finetuned,
+    )
 
 
-loaded_data = load_pickle_files(meta_path)
-loaded_data_finetuned = load_pickle_files(meta_path_finetuned)
-print("Loaded pickle files:", loaded_data)
-
-input_ids = []
-for i in range(len(loaded_data)):
-    input_ids.append(loaded_data[i]['input_ids'].tolist())
-
-stacked_meta = np.vstack(input_ids)
-stacked_meta = stacked_meta.reshape(stacked_meta.shape[0] *
-                                    stacked_meta.shape[1])
-
-input_ids_finetuned = []
-for i in range(len(loaded_data_finetuned)):
-    input_ids_finetuned.append(loaded_data_finetuned[i]['input_ids'].numpy())
-
-stacked_meta_finetuned = np.vstack(input_ids_finetuned)
-stacked_meta_finetuned = stacked_meta_finetuned.reshape(stacked_meta_finetuned.shape[0] *
-                                                        stacked_meta_finetuned.shape[1])
-
-stacked_meta_sub = stacked_meta[idx]
-stacked_meta_finetuned_sub = stacked_meta_finetuned[idx]
-
-df = pd.DataFrame({'arr': list(arr), 'meta': list(stacked_meta_sub)})
-arr_no_pad = np.array(list(df[(df['meta'] != 2) & (df['meta'] != 1)].arr))
-
-df_finetuned = pd.DataFrame({'arr': list(arr_finetuned), 'meta': list(stacked_meta_finetuned_sub)})
-arr_no_pad_finetuned = np.array(list(df_finetuned[(df['meta'] != 2) & (df['meta'] != 1)].arr))
-
-print(arr_no_pad[0])
-print(arr_no_pad_finetuned[0])
-
-np.save('sample_embeddings_'+dataset_name+'_'+model_name+'_no_paddings',arr_no_pad)
-np.save('sample_embeddings_'+dataset_name+'_'+model_name_finetuned+'_no_paddings',arr_no_pad_finetuned)
+if __name__ == "__main__":
+    main()  # type: ignore
