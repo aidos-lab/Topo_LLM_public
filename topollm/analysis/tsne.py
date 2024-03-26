@@ -36,6 +36,8 @@
 # `data_prep.py` may be used.
 
 # third party imports
+import pathlib
+import hydra
 import numpy as np
 import pandas as pd
 import skdim
@@ -44,51 +46,79 @@ import seaborn as sns
 import plotly.express as px
 from sklearn.manifold import TSNE
 
-# provide number of components of the projection
-n_components = 3
+@hydra.main(
+    config_path="../../configs/analysis",
+    config_name="comparison",
+    version_base="1.2",
+)
+def main(cfg):
+    array_name_1 = 'embeddings_' + str(cfg.embedding_level_1) + '_' + str(cfg.samples_1) + '_samples_paddings_removed.npy'
+    array_name_2 = 'embeddings_' + str(cfg.embedding_level_2) + '_' + str(cfg.samples_2) + '_samples_paddings_removed.npy'
 
-# provide names of numpy array to be used for dimension estimation
-#data_name = "sample_embeddings_data-iclr_2024_submissions_split-train_ctxt-dataset_entry_model-roberta-base_mask-no_masking_no_paddings.npy"
-#data_name_finetuned = "sample_embeddings_data-iclr_2024_submissions_split-train_ctxt-dataset_entry_model-roberta-base_finetuned-on-multiwoz21-train_context-dialogue_mask-no_masking_no_paddings.npy"
+    path_1 = pathlib.Path('prepared',
+                          cfg.data_name_1,
+                          cfg.level_1,
+                          cfg.prefix_1,
+                          cfg.model_1,
+                          cfg.layer_1,
+                          cfg.norm_1,
+                          cfg.array_dir_1,
+                          array_name_1
+                          )
 
-data_name = "sample_embeddings_data-multiwoz21_split-train_ctxt-dataset_entry_model-roberta-base_mask-no_masking_no_paddings.npy"
-data_name_finetuned = "sample_embeddings_data-multiwoz21_split-train_ctxt-dataset_entry_model-roberta-base_finetuned-on-multiwoz21-train_mask-no_masking_no_paddings.npy"
+    path_2 = pathlib.Path('prepared',
+                          cfg.data_name_2,
+                          cfg.level_2,
+                          cfg.prefix_2,
+                          cfg.model_2,
+                          cfg.layer_2,
+                          cfg.norm_2,
+                          cfg.array_dir_2,
+                          array_name_2
+                          )
 
-arr_no_pad = np.load(data_name)
-arr_no_pad_finetuned = np.load(data_name_finetuned)
+    arr_no_pad = np.load(path_1)
+    arr_no_pad_finetuned = np.load(path_2)
 
-dataset = pd.DataFrame({f'Column{i+1}': arr_no_pad[:,i] for i in range(arr_no_pad.shape[1])})
-dataset['class'] = 'base'
+    # provide number of components of the projection
+    n_components = 3
 
-dataset_finetuned = pd.DataFrame({f'Column{i+1}': arr_no_pad_finetuned[:,i] for i in
-                                  range(arr_no_pad_finetuned.shape[1])})
-dataset_finetuned['class'] = 'finetuned'
+    dataset = pd.DataFrame({f'Column{i+1}': arr_no_pad[:,i] for i in range(arr_no_pad.shape[1])})
+    dataset['class'] = 'base'
 
-df = pd.concat((dataset,dataset_finetuned))
+    dataset_finetuned = pd.DataFrame({f'Column{i+1}': arr_no_pad_finetuned[:,i] for i in
+                                      range(arr_no_pad_finetuned.shape[1])})
+    dataset_finetuned['class'] = 'finetuned'
 
-df.reset_index(inplace=True)
-df.drop(columns='index',inplace=True)
+    df = pd.concat((dataset,dataset_finetuned))
+
+    df.reset_index(inplace=True)
+    df.drop(columns='index',inplace=True)
 
 
-tsne = TSNE(n_components=n_components, random_state=0)
-embedding_concat = tsne.fit_transform(df.iloc[:,:-1])
+    tsne = TSNE(n_components=n_components, random_state=0)
+    embedding_concat = tsne.fit_transform(df.iloc[:,:-1])
 
-idx = round(len(embedding_concat)/2)
+    idx = round(len(embedding_concat)/2)
 
-embedding = embedding_concat[:idx]
-embedding_finetuned = embedding_concat[idx:]
+    embedding = embedding_concat[:idx]
+    embedding_finetuned = embedding_concat[idx:]
 
-if n_components==3:
-    fig = plt.figure(figsize = (10, 7))
-    ax = plt.axes(projection ="3d")
-    ax.set_title('t-SNE embedding')
-    ax.scatter3D(embedding[:, 0], embedding[:, 1], embedding[:, 2])
-    ax.scatter3D(embedding_finetuned[:, 0], embedding_finetuned[:, 1], embedding_finetuned[:, 2])
-    plt.show()
-elif n_components == 2:
-    fig = plt.figure(figsize=(10, 7))
-    ax = plt.axes()
-    ax.set_title('t-SNE embedding')
-    ax.scatter(embedding[:, 0], embedding[:, 1])
-    ax.scatter(embedding_finetuned[:, 0], embedding_finetuned[:, 1])
-    plt.show()
+    if n_components==3:
+        fig = plt.figure(figsize = (10, 7))
+        ax = plt.axes(projection ="3d")
+        ax.set_title('t-SNE embedding')
+        ax.scatter3D(embedding[:, 0], embedding[:, 1], embedding[:, 2])
+        ax.scatter3D(embedding_finetuned[:, 0], embedding_finetuned[:, 1], embedding_finetuned[:, 2])
+        plt.show()
+    elif n_components == 2:
+        fig = plt.figure(figsize=(10, 7))
+        ax = plt.axes()
+        ax.set_title('t-SNE embedding')
+        ax.scatter(embedding[:, 0], embedding[:, 1])
+        ax.scatter(embedding_finetuned[:, 0], embedding_finetuned[:, 1])
+        plt.show()
+    return None
+
+if __name__ == "__main__":
+    main()  # type: ignore
