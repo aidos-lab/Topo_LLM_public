@@ -204,8 +204,6 @@ def main(
     tokenizer = transformers.AutoTokenizer.from_pretrained(main_config.embeddings.language_model.pretrained_model_name_or_path)
     token_names_no_pad = [tokenizer.decode(x) for x in meta_no_pad]
 
-    print(token_names_no_pad[:100])
-
     meta_frame = pd.DataFrame({'token_id':list(meta_no_pad),'token_name':list(token_names_no_pad)})
 
     meta_name = file_name + '_meta'
