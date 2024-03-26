@@ -166,7 +166,7 @@ def main(
     if not os.path.exists(save_path):
         os.makedirs(save_path)
 
-    file_name = "embeddings_cls_lvl_"+str(sample_size)+"_samples"
+    file_name = "embeddings_cls_lvl_"+str(sample_size)+"_samples_paddings_removed"
     np.save(
         pathlib.Path(save_path,file_name),
         arr_no_pad,

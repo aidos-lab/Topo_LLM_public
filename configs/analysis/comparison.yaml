@@ -25,10 +25,10 @@ array_dir_2: array_dir
 
 #embedding_level_1: token_lvl
 #embedding_level_2: token_lvl
-embedding_level_1: sentence_lvl_mean
-embedding_level_2: sentence_lvl_mean
-#embedding_level_1: cls_lvl
-#embedding_level_2: cls_lvl
+#embedding_level_1: sentence_lvl_mean
+#embedding_level_2: sentence_lvl_mean
+embedding_level_1: cls_lvl
+embedding_level_2: cls_lvl
 
 # default for embedding_level_1: token_lvl
 #samples_1: 30000
