@@ -122,10 +122,15 @@ def main(
     # potentially adapt paths
     array_path = embeddings_path_manager.array_dir_absolute_path
 
+    save_path = pathlib.Path(*list(array_path.parts)[-7:])
+    save_path = pathlib.Path("prepared",save_path)
+
+
     meta_path = pathlib.Path(
         embeddings_path_manager.metadata_dir_absolute_path,
         "pickle_chunked_metadata_storage",
     )
+
 
     global_logger.info(f"{array_path = }")
 
@@ -176,22 +181,23 @@ def main(
 
     print(arr_no_pad[0])
 
-    # TODO Create these paths and names automatically
-    # ! TODO This is currently wrong because it is constant
-
     # choose dataset name
     # dataset_name = "data-multiwoz21_split-test_ctxt-dataset_entry"
     # dataset_name = "data-xsum_split-train_ctxt-dataset_entry"
     # dataset_name = "data-wikitext_split-train_ctxt-dataset_entry"
     # dataset_name = "data-xsum_split-train_ctxt-dataset_entry"
-    dataset_name = "data-iclr_2024_submissions_split-train_ctxt-dataset_entry"
+    #dataset_name = "data-iclr_2024_submissions_split-train_ctxt-dataset_entry"
 
     # choose model name
     # model_name = "model-roberta-base_mask-no_masking"
-    model_name = "model-roberta-base_mask-no_masking"
+    #model_name = "model-roberta-base_mask-no_masking"
 
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
+
+    file_name = "embeddings_token_lvl_"+str(sample_size)+"_samples_paddings_removed"
     np.save(
-        "sample_embeddings_" + dataset_name + "_" + model_name + "_no_paddings",
+        pathlib.Path(save_path,file_name),
         arr_no_pad,
     )
 
