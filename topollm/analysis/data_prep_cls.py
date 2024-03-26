@@ -150,7 +150,7 @@ def main(
 
     # choose sample size of the arrays
     sample_size = len(arr)
-
+    np.random.seed(42)
     idx = np.random.choice(
         range(len(arr)),
         replace=False,

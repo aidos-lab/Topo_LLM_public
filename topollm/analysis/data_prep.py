@@ -52,6 +52,7 @@ import numpy as np
 import os
 import pickle
 import pandas as pd
+import transformers
 
 from topollm.config_classes.path_management.EmbeddingsPathManagerFactory import (
     get_embeddings_path_manager,
@@ -152,7 +153,7 @@ def main(
         arr.shape[0] * arr.shape[1],
         arr.shape[2],
     )
-
+    np.random.seed(42)
     idx = np.random.choice(
         range(len(arr)),
         replace=False,
@@ -178,8 +179,7 @@ def main(
 
     df = pd.DataFrame({"arr": list(arr), "meta": list(stacked_meta_sub)})
     arr_no_pad = np.array(list(df[(df["meta"] != 2) & (df["meta"] != 1)].arr))
-
-    print(arr_no_pad[0])
+    meta_no_pad = np.array(list(df[(df["meta"] != 2) & (df["meta"] != 1)].meta))
 
     # choose dataset name
     # dataset_name = "data-multiwoz21_split-test_ctxt-dataset_entry"
@@ -200,6 +200,16 @@ def main(
         pathlib.Path(save_path,file_name),
         arr_no_pad,
     )
+
+    tokenizer = transformers.AutoTokenizer.from_pretrained(main_config.embeddings.language_model.pretrained_model_name_or_path)
+    token_names_no_pad = [tokenizer.decode(x) for x in meta_no_pad]
+
+    print(token_names_no_pad[:100])
+
+    meta_frame = pd.DataFrame({'token_id':list(meta_no_pad),'token_name':list(token_names_no_pad)})
+
+    meta_name = file_name + '_meta'
+    meta_frame.to_pickle(pathlib.Path(save_path, meta_name))
 
     return None
 
