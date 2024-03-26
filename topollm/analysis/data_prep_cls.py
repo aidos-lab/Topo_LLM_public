@@ -158,7 +158,7 @@ def main(
     )
 
     arr_no_pad = arr[idx]
-    
+
     print(arr_no_pad.shape)
 
     if not os.path.exists(save_path):
