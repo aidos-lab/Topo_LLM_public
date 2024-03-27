@@ -40,11 +40,9 @@ import pathlib
 import hydra
 import numpy as np
 import pandas as pd
-import skdim
-import matplotlib.pyplot as plt
-import seaborn as sns
 import plotly.express as px
 from sklearn.manifold import TSNE
+import plotly.graph_objs as go
 
 @hydra.main(
     config_path="../../configs/analysis",
@@ -76,12 +74,17 @@ def main(cfg):
                           cfg.array_dir_2,
                           array_name_2
                           )
+    meta_path_1 = str(path_1)[:-4] + '_meta'
+    meta_path_2 = str(path_2)[:-4] + '_meta'
+
+    tokens_1 = list(pd.read_pickle(meta_path_1).token_name)
+    tokens_2 = list(pd.read_pickle(meta_path_2).token_name)
 
     arr_no_pad = np.load(path_1)
     arr_no_pad_finetuned = np.load(path_2)
 
     # provide number of components of the projection
-    n_components = 3
+    n_components = 2
 
     dataset = pd.DataFrame({f'Column{i+1}': arr_no_pad[:,i] for i in range(arr_no_pad.shape[1])})
     dataset['class'] = 'base'
@@ -95,30 +98,53 @@ def main(cfg):
     df.reset_index(inplace=True)
     df.drop(columns='index',inplace=True)
 
-
     tsne = TSNE(n_components=n_components, random_state=0)
     embedding_concat = tsne.fit_transform(df.iloc[:,:-1])
 
-    idx = round(len(embedding_concat)/2)
+    idx = len(dataset)
 
     embedding = embedding_concat[:idx]
     embedding_finetuned = embedding_concat[idx:]
 
     if n_components==3:
-        fig = plt.figure(figsize = (10, 7))
-        ax = plt.axes(projection ="3d")
-        ax.set_title('t-SNE embedding')
-        ax.scatter3D(embedding[:, 0], embedding[:, 1], embedding[:, 2])
-        ax.scatter3D(embedding_finetuned[:, 0], embedding_finetuned[:, 1], embedding_finetuned[:, 2])
-        plt.show()
+        fig = px.scatter_3d(x=embedding[:, 0], y=embedding[:, 1], z=embedding[:, 2], title='t-SNE embedding')
+        fig.add_trace(px.scatter_3d(x=embedding_finetuned[:, 0], y=embedding_finetuned[:, 1], z=embedding_finetuned[:, 2]).data[0])
+        fig.show()
     elif n_components == 2:
-        fig = plt.figure(figsize=(10, 7))
-        ax = plt.axes()
-        ax.set_title('t-SNE embedding')
-        ax.scatter(embedding[:, 0], embedding[:, 1])
-        ax.scatter(embedding_finetuned[:, 0], embedding_finetuned[:, 1])
-        plt.show()
-    return None
+        # Create a Plotly scatter plot with text annotations for tokens
+        trace1 = go.Scatter(
+            x=embedding[:, 0],
+            y=embedding[:, 1],
+            mode='markers+text',
+            marker=dict(size=5, color='rgba(31, 119, 180, 0.7)'),
+            text=tokens_1,
+            textposition='bottom center',
+            name='base'
+        )
+
+        trace2 = go.Scatter(
+            x=embedding_finetuned[:, 0],
+            y=embedding_finetuned[:, 1],
+            mode='markers+text',
+            marker=dict(size=5, color='rgba(255, 127, 14, 0.7)'),
+            text=tokens_2,
+            textposition='bottom center',
+            name='finetuned'
+        )
+
+        layout = go.Layout(title='t-SNE Projection of Embeddings with Tokens',
+                           xaxis=dict(title='t-SNE Dimension 1'),
+                           yaxis=dict(title='t-SNE Dimension 2'),
+                           hovermode='closest',
+                           plot_bgcolor='rgba(0,0,0,0)'  # Set plot background color to transparent
+                           )
+
+        fig = go.Figure(data=[trace1, trace2], layout=layout)
+        fig.update_layout(template='plotly_white')  # Set plot template to white background
+        fig.update_traces(marker=dict(line=dict(width=0.5, color='rgba(255, 255, 255, 0.7)')))  # Set marker line color and width
+        fig.update_layout(xaxis=dict(showgrid=False, zeroline=False),
+                          yaxis=dict(showgrid=False, zeroline=False))  # Hide gridlines and zero lines
+        fig.show()
 
 if __name__ == "__main__":
     main()  # type: ignore
