@@ -535,6 +535,7 @@ def main(cfg):
 
     print(euc_frame.corr())
 
+    plt.ioff()
     scatter_plot = sns.scatterplot(x = scores,y = scores_finetuned)
     scatter_fig = scatter_plot.get_figure()
 
@@ -561,7 +562,7 @@ def main(cfg):
     euc_frame.to_pickle(save_name)
 
     #plt.show()
-
+    plt.close()
     return None
 
 if __name__ == "__main__":

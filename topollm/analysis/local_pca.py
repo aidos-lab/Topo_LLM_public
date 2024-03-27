@@ -101,6 +101,7 @@ def main(cfg):
 
     print(dim_frame.corr())
 
+    plt.ioff()
     scatter_plot = sns.scatterplot(x = list(lPCA.dimension_pw_),y = list(lPCA_finetuned.dimension_pw_))
     scatter_fig = scatter_plot.get_figure()
 
@@ -127,7 +128,7 @@ def main(cfg):
     dim_frame.to_pickle(save_name)
 
     #plt.show()
-
+    plt.close()
     return None
 
 if __name__ == "__main__":
