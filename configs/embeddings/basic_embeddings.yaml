@@ -1,6 +1,6 @@
 defaults:
   - dataset_map: batched
-  - embedding_extraction: last_hidden
+  - embedding_extraction: 2_last_hidden
   - language_model: roberta-base
   #- language_model: roberta-base_finetuned-on-multiwoz21-train_context-dialogue
   # - language_model: roberta-base_finetuned-on-multiwoz21-train-and-sgd-train_context-dialogue
