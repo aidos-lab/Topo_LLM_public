@@ -1,9 +1,9 @@
 defaults:
   # - data: bbc
-  - data: iclr_2024_submissions
+  #- data: iclr_2024_submissions
   #- data: multiwoz21_validation_5000
   #- data: sgd
-  #- data: wikitext
+  - data: wikitext
   - embeddings: basic_embeddings
   - finetuning: roberta-base_tuning
   - paths: absolute_repository_base
