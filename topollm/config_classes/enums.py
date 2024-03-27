@@ -294,3 +294,15 @@ class TaggerType(StrEnum):  # type: ignore
 class LrSchedulerType(StrEnum):  # type: ignore
     CONSTANT = "constant"
     LINEAR_WITH_WARMUP = "linear_with_warmup"
+
+
+# ==============================
+# Enums used for finetuning parameters
+# ==============================
+
+
+class FinetuningMode(StrEnum):
+    """The different modes for finetuning."""
+
+    STANDARD = "standard"
+    LORA = "lora"

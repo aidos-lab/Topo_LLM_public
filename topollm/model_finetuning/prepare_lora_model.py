@@ -32,52 +32,52 @@
 
 # Standard library imports
 import logging
-import pprint
 
 # Third party imports
+import peft.mapping
+import peft.peft_model
+import torch
+from peft.tuners.lora.config import LoraConfig
+from transformers import PreTrainedModel
 
 # Local imports
+
+from topollm.logging.log_model_info import log_model_info
 
 # END Imports
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
-def log_list_info(
-    list_: list,
-    list_name: str,
-    max_log_elements: int = 20,
+def prepare_lora_model(
+    base_model: PreTrainedModel,
+    lora_config: LoraConfig,
+    device: torch.device,
     logger: logging.Logger = logging.getLogger(__name__),
-) -> None:
-    """
-    Logs information about a list.
+) -> peft.peft_model.PeftModel:
 
-    Args:
-        list_ (list):
-            The list to log information about.
-        list_name (str):
-            The name of the list.
-        max_log_elements (int, optional):
-            The maximum number of elements to log for the head and tail of the list.
-            Defaults to 20.
-        logger (logging.Logger, optional):
-            The logger to log information to.
-            Defaults to logging.getLogger(__name__).
-
-    Returns:
-        None
-
-    Side effects:
-        Logs information about the list to the logger.
-    """
-
-    logger.info(f"len({list_name}):\n" f"{len(list_)}")
-    logger.info(
-        f"{list_name}[:{max_log_elements}]:\n"
-        f"{pprint.pformat(list_[:max_log_elements])}"
+    # Get the model prepared with PEFT (LoRA + LOFT-Q)
+    lora_model = peft.mapping.get_peft_model(
+        model=base_model,
+        peft_config=lora_config,
+        adapter_name="default",
     )
-    logger.info(
-        f"{list_name}[-{max_log_elements}:]:\n"
-        f"{pprint.pformat(list_[-max_log_elements:])}"
+    lora_model.print_trainable_parameters()
+
+    assert isinstance(
+        lora_model,
+        peft.peft_model.PeftModel,
     )
 
-    return
+    log_model_info(
+        model=lora_model,
+        logger=logger,
+    )
+
+    # Move the model to GPU if available
+    logger.info(f"Moving model to {device = } ...")
+    lora_model.to(
+        device,  # type: ignore
+    )
+    logger.info(f"Moving model to {device = } DONE")
+
+    return lora_model
