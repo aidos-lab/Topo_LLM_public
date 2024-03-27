@@ -46,6 +46,12 @@ import hydra.core.hydra_config
 import omegaconf
 import torch
 import transformers
+import peft
+import peft.utils.peft_types
+import peft.config
+import peft.peft_model
+import peft.mapping
+from peft.tuners.lora.config import LoraConfig
 from tqdm import tqdm
 from transformers import AutoModelForMaskedLM, AutoTokenizer, PreTrainedModel
 
@@ -157,6 +163,20 @@ def run_finetuning(
     )
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    # Modification of the model
+
+    # TODO: Change this back/make arguments configurable
+    # TODO: Log the modified model
+
+    # modified_model = prepare_lora_model(
+    #     base_model=base_model,
+    #     device=device,
+    #     logger=logger,
+    # )
+
+    modified_model = base_model
+
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Prepare model input
 
     train_dataset_mapped, eval_dataset_mapped = prepare_model_input(
@@ -200,7 +220,7 @@ def run_finetuning(
     )
 
     trainer = transformers.Trainer(
-        model=base_model,
+        model=modified_model,
         args=training_args,
         data_collator=data_collator,
         train_dataset=train_dataset_mapped,  # type: ignore
@@ -241,17 +261,15 @@ def load_base_model(
         f"Loading model " f"{finetuning_config.pretrained_model_name_or_path = } DONE"
     )
 
-    logger.info(f"model:\n{model}")
-    if hasattr(
-        model,
-        "config",
-    ):
-        logger.info(f"model.config:\n{model.config}")
-
     # Check type of model
     assert isinstance(
         model,
         PreTrainedModel,
+    )
+
+    log_model_info(
+        model=model,
+        logger=logger,
     )
 
     # Move the model to GPU if available
@@ -262,6 +280,65 @@ def load_base_model(
     logger.info(f"Moving model to {device = } DONE")
 
     return model
+
+
+def log_model_info(
+    model,
+    logger: logging.Logger = logging.getLogger(__name__),
+) -> None:
+    logger.info(f"model:\n{model}")
+    if hasattr(
+        model,
+        "config",
+    ):
+        logger.info(f"model.config:\n" f"{model.config}")
+
+    return None
+
+
+def prepare_lora_model(
+    base_model: PreTrainedModel,
+    device: torch.device,
+    logger: logging.Logger = logging.getLogger(__name__),
+) -> peft.peft_model.PeftModel:
+    lora_config = LoraConfig(
+        r=8,
+        lora_alpha=32,
+        target_modules=[
+            "query",
+            "key",
+            "value",
+        ],
+        lora_dropout=0.01,
+        # task_type=peft.utils.peft_types.TaskType.CAUSAL_LM, # This argument is not necessary
+    )
+
+    # Get the model prepared with PEFT (LoRA + LOFT-Q)
+    lora_model = peft.mapping.get_peft_model(
+        model=base_model,
+        peft_config=lora_config,
+        adapter_name="default",
+    )
+    lora_model.print_trainable_parameters()
+
+    assert isinstance(
+        lora_model,
+        peft.peft_model.PeftModel,
+    )
+
+    log_model_info(
+        model=lora_model,
+        logger=logger,
+    )
+
+    # Move the model to GPU if available
+    logger.info(f"Moving model to {device = } ...")
+    lora_model.to(
+        device,  # type: ignore
+    )
+    logger.info(f"Moving model to {device = } DONE")
+
+    return lora_model
 
 
 def prepare_finetuned_model_dir(
