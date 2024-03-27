@@ -29,46 +29,15 @@
 
 import logging
 
-import peft.mapping
-import peft.peft_model
-import torch
-from peft.tuners.lora.config import LoraConfig
-from transformers import PreTrainedModel
-
-from topollm.logging.log_model_info import log_model_info
+import transformers
 
 
-def prepare_lora_model(
-    base_model: PreTrainedModel,
-    lora_config: LoraConfig,
-    device: torch.device,
+def save_tuned_model(
+    trainer: transformers.Trainer,
     logger: logging.Logger = logging.getLogger(__name__),
-) -> peft.peft_model.PeftModel:
+) -> None:
+    logger.info(f"Calling trainer.save_model() ...")
+    trainer.save_model()
+    logger.info(f"Calling trainer.save_model() DONE")
 
-    # Get the model prepared with PEFT
-    # (here: LoRA)
-    lora_model = peft.mapping.get_peft_model(
-        model=base_model,
-        peft_config=lora_config,
-        adapter_name="default",
-    )
-    lora_model.print_trainable_parameters()
-
-    assert isinstance(
-        lora_model,
-        peft.peft_model.PeftModel,
-    )
-
-    log_model_info(
-        model=lora_model,
-        logger=logger,
-    )
-
-    # Move the model to GPU if available
-    logger.info(f"Moving model to {device = } ...")
-    lora_model.to(
-        device,  # type: ignore
-    )
-    logger.info(f"Moving model to {device = } DONE")
-
-    return lora_model
+    return None

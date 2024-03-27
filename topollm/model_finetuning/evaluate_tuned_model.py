@@ -28,47 +28,23 @@
 # limitations under the License.
 
 import logging
+import math
 
-import peft.mapping
-import peft.peft_model
-import torch
-from peft.tuners.lora.config import LoraConfig
-from transformers import PreTrainedModel
-
-from topollm.logging.log_model_info import log_model_info
+import transformers
 
 
-def prepare_lora_model(
-    base_model: PreTrainedModel,
-    lora_config: LoraConfig,
-    device: torch.device,
+def evaluate_tuned_model(
+    trainer: transformers.Trainer,
     logger: logging.Logger = logging.getLogger(__name__),
-) -> peft.peft_model.PeftModel:
+) -> None:
+    logger.info(f"Evaluating the model ...")
 
-    # Get the model prepared with PEFT
-    # (here: LoRA)
-    lora_model = peft.mapping.get_peft_model(
-        model=base_model,
-        peft_config=lora_config,
-        adapter_name="default",
-    )
-    lora_model.print_trainable_parameters()
+    eval_results = trainer.evaluate()
 
-    assert isinstance(
-        lora_model,
-        peft.peft_model.PeftModel,
-    )
+    perplexity = math.exp(eval_results["eval_loss"])
+    logger.info(f"perplexity:\n{perplexity:.2f}")
+    logger.info(f"eval_results:\n{eval_results}")
 
-    log_model_info(
-        model=lora_model,
-        logger=logger,
-    )
+    logger.info(f"Evaluating the model DONE")
 
-    # Move the model to GPU if available
-    logger.info(f"Moving model to {device = } ...")
-    lora_model.to(
-        device,  # type: ignore
-    )
-    logger.info(f"Moving model to {device = } DONE")
-
-    return lora_model
+    return None

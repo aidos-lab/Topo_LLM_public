@@ -22,10 +22,6 @@
 Script for fine-tuning language models on dialogue data.
 """
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# Imports
-
-# System imports
 import argparse
 import json
 import logging
@@ -33,23 +29,12 @@ import math
 import os
 import pathlib
 import sys
-import traceback
-import warnings
 from datetime import datetime
 
-# Third party imports
-import h5py
-import numpy as np
-import pandas as pd
 import torch
 import transformers
-import yaml
-from convlab.tda.tda_contextual_embeddings.compute_contextual_embeddings.DialogueUtteranceDataset import (
-    DialogueUtteranceDataset,
-)
 from convlab.util import load_dataset, load_ontology
 from datasets import Dataset
-from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
 from transformers import (
     AutoModelForCausalLM,
@@ -63,8 +48,6 @@ from transformers import (
     TrainingArguments,
     pipeline,
 )
-
-# Local imports
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #

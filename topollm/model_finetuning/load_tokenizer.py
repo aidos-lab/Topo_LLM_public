@@ -29,46 +29,32 @@
 
 import logging
 
-import peft.mapping
-import peft.peft_model
-import torch
-from peft.tuners.lora.config import LoraConfig
-from transformers import PreTrainedModel
+import transformers
+from transformers import AutoTokenizer
 
-from topollm.logging.log_model_info import log_model_info
+from topollm.config_classes.FinetuningConfig import FinetuningConfig
 
 
-def prepare_lora_model(
-    base_model: PreTrainedModel,
-    lora_config: LoraConfig,
-    device: torch.device,
+def load_tokenizer(
+    finetuning_config: FinetuningConfig,
     logger: logging.Logger = logging.getLogger(__name__),
-) -> peft.peft_model.PeftModel:
+) -> transformers.PreTrainedTokenizer | transformers.PreTrainedTokenizerFast:
+    # ? Do we need other config arguments for the tokenizer for finetuning here?
 
-    # Get the model prepared with PEFT
-    # (here: LoRA)
-    lora_model = peft.mapping.get_peft_model(
-        model=base_model,
-        peft_config=lora_config,
-        adapter_name="default",
+    logger.info(
+        f"Loading tokenizer "
+        f"{finetuning_config.pretrained_model_name_or_path = } ..."
     )
-    lora_model.print_trainable_parameters()
-
-    assert isinstance(
-        lora_model,
-        peft.peft_model.PeftModel,
+    tokenizer = AutoTokenizer.from_pretrained(
+        pretrained_model_name_or_path=finetuning_config.pretrained_model_name_or_path,
     )
-
-    log_model_info(
-        model=lora_model,
-        logger=logger,
+    logger.info(
+        f"Loading tokenizer "
+        f"{finetuning_config.pretrained_model_name_or_path = } DONE"
     )
+    logger.info(f"tokenizer:\n{tokenizer}")
 
-    # Move the model to GPU if available
-    logger.info(f"Moving model to {device = } ...")
-    lora_model.to(
-        device,  # type: ignore
-    )
-    logger.info(f"Moving model to {device = } DONE")
+    # Make sure not to accidentally modify the tokenizer pad token (tokenizer.pad_token) here.
+    # In particular, it is not custom to set the pad token to the eos token for masked language model training.
 
-    return lora_model
+    return tokenizer

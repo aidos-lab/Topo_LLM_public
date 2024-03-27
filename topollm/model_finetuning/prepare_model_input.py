@@ -27,46 +27,46 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
-
-import torch
-from transformers import AutoModelForMaskedLM, PreTrainedModel
+import datasets
+import transformers
 
 from topollm.config_classes.FinetuningConfig import FinetuningConfig
-from topollm.logging.log_model_info import log_model_info
 
 
-def load_base_model(
+def prepare_model_input(
+    train_dataset: datasets.Dataset,
+    eval_dataset: datasets.Dataset,
+    tokenizer: transformers.PreTrainedTokenizer | transformers.PreTrainedTokenizerFast,
     finetuning_config: FinetuningConfig,
-    device: torch.device,
-    logger: logging.Logger = logging.getLogger(__name__),
-):
-    logger.info(
-        f"Loading model " f"{finetuning_config.pretrained_model_name_or_path = } ..."
+) -> tuple[
+    datasets.Dataset,
+    datasets.Dataset,
+]:
+    def tokenize_function(
+        dataset_entries: dict[
+            str,
+            list,
+        ],
+    ) -> transformers.tokenization_utils_base.BatchEncoding:
+        # NOTE: This assumes that train and eval datasets use the same column name
+        column_name = finetuning_config.finetuning_datasets.train_dataset.column_name
+
+        result = tokenizer(
+            dataset_entries[column_name],
+            padding="max_length",
+            truncation=True,
+            max_length=finetuning_config.max_length,
+        )
+
+        return result
+
+    train_dataset_mapped = train_dataset.map(
+        tokenize_function,
+        batched=True,
     )
-    model = AutoModelForMaskedLM.from_pretrained(
-        pretrained_model_name_or_path=finetuning_config.pretrained_model_name_or_path,
-    )
-    logger.info(
-        f"Loading model " f"{finetuning_config.pretrained_model_name_or_path = } DONE"
+    eval_dataset_mapped = eval_dataset.map(
+        tokenize_function,
+        batched=True,
     )
 
-    # Check type of model
-    assert isinstance(
-        model,
-        PreTrainedModel,
-    )
-
-    log_model_info(
-        model=model,
-        logger=logger,
-    )
-
-    # Move the model to GPU if available
-    logger.info(f"Moving model to {device = } ...")
-    model.to(
-        device,  # type: ignore
-    )
-    logger.info(f"Moving model to {device = } DONE")
-
-    return model
+    return train_dataset_mapped, eval_dataset_mapped
