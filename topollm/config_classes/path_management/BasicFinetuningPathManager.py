@@ -38,7 +38,7 @@ import pathlib
 
 # Local imports
 from topollm.config_classes.DataConfig import DataConfig
-from topollm.config_classes.FinetuningConfig import FinetuningConfig
+from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
 from topollm.config_classes.PathsConfig import PathsConfig
 from topollm.config_classes.constants import NAME_PREFIXES
 

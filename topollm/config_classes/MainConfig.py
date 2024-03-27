@@ -38,7 +38,7 @@ from pydantic import Field
 
 # Local imports
 from topollm.config_classes.DataConfig import DataConfig
-from topollm.config_classes.FinetuningConfig import FinetuningConfig
+from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
 from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
 from topollm.config_classes.EmbeddingsConfig import EmbeddingsConfig
 from topollm.config_classes.PathsConfig import PathsConfig
@@ -56,7 +56,6 @@ from topollm.config_classes.enums import (
 
 # END Globals
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-
 
 
 class MainConfig(ConfigBaseModel):
@@ -111,4 +110,3 @@ class MainConfig(ConfigBaseModel):
         title="Verbosity level.",
         description="The verbosity level.",
     )
-

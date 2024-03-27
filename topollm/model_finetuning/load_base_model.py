@@ -32,7 +32,7 @@ import logging
 import torch
 from transformers import AutoModelForMaskedLM, PreTrainedModel
 
-from topollm.config_classes.FinetuningConfig import FinetuningConfig
+from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
 from topollm.logging.log_model_info import log_model_info
 
 
@@ -40,7 +40,7 @@ def load_base_model(
     finetuning_config: FinetuningConfig,
     device: torch.device,
     logger: logging.Logger = logging.getLogger(__name__),
-):
+) -> PreTrainedModel:
     logger.info(
         f"Loading model " f"{finetuning_config.pretrained_model_name_or_path = } ..."
     )

@@ -30,7 +30,7 @@
 import datasets
 import transformers
 
-from topollm.config_classes.FinetuningConfig import FinetuningConfig
+from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
 
 
 def prepare_model_input(

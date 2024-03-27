@@ -27,52 +27,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
-
-# Standard library imports
-
-# Third party imports
 from pydantic import Field
-from regex import F
-from torch import log_
 
-# Local imports
 from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
-from topollm.config_classes.DataConfig import DataConfig
-
-# END Imports
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Globals
-
-# END Globals
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-
-
-class BatchSizesConfig(ConfigBaseModel):
-    train: int = Field(
-        ...,
-        description="The batch size for training.",
-    )
-
-    eval: int = Field(
-        ...,
-        description="The batch size for evaluation.",
-    )
-
-
-class FinetuningDatasetsConfig(ConfigBaseModel):
-    train_dataset: DataConfig = Field(
-        ...,
-        description="The configuration for the training dataset.",
-    )
-
-    eval_dataset: DataConfig = Field(
-        ...,
-        description="The configuration for the evaluation dataset.",
-    )
+from topollm.config_classes.finetuning.BatchSizesConfig import BatchSizesConfig
+from topollm.config_classes.finetuning.FinetuningDatasetsConfig import (
+    FinetuningDatasetsConfig,
+)
 
 
 class FinetuningConfig(ConfigBaseModel):

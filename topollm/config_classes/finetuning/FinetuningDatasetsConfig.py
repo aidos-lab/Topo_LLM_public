@@ -27,34 +27,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
-
-import transformers
-from transformers import AutoTokenizer
-
-from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
+from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
+from topollm.config_classes.DataConfig import DataConfig
 
 
-def load_tokenizer(
-    finetuning_config: FinetuningConfig,
-    logger: logging.Logger = logging.getLogger(__name__),
-) -> transformers.PreTrainedTokenizer | transformers.PreTrainedTokenizerFast:
-    # ? Do we need other config arguments for the tokenizer for finetuning here?
+from pydantic import Field
 
-    logger.info(
-        f"Loading tokenizer "
-        f"{finetuning_config.pretrained_model_name_or_path = } ..."
+
+class FinetuningDatasetsConfig(ConfigBaseModel):
+    train_dataset: DataConfig = Field(
+        ...,
+        description="The configuration for the training dataset.",
     )
-    tokenizer = AutoTokenizer.from_pretrained(
-        pretrained_model_name_or_path=finetuning_config.pretrained_model_name_or_path,
-    )
-    logger.info(
-        f"Loading tokenizer "
-        f"{finetuning_config.pretrained_model_name_or_path = } DONE"
-    )
-    logger.info(f"tokenizer:\n{tokenizer}")
 
-    # Make sure not to accidentally modify the tokenizer pad token (tokenizer.pad_token) here.
-    # In particular, it is not custom to set the pad token to the eos token for masked language model training.
-
-    return tokenizer
+    eval_dataset: DataConfig = Field(
+        ...,
+        description="The configuration for the evaluation dataset.",
+    )

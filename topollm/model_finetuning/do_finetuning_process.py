@@ -34,7 +34,7 @@ import transformers
 from peft.tuners.lora.config import LoraConfig
 
 from topollm.config_classes.enums import FinetuningMode
-from topollm.config_classes.FinetuningConfig import FinetuningConfig
+from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
 from topollm.config_classes.MainConfig import MainConfig
 from topollm.config_classes.path_management.FinetuningPathManagerFactory import (
     get_finetuning_path_manager,

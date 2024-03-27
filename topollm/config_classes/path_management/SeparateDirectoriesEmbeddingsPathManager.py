@@ -38,7 +38,7 @@ import pathlib
 # Local imports
 from topollm.config_classes.DataConfig import DataConfig
 from topollm.config_classes.EmbeddingsConfig import EmbeddingsConfig
-from topollm.config_classes.FinetuningConfig import FinetuningConfig
+from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
 from topollm.config_classes.PathsConfig import PathsConfig
 from topollm.config_classes.path_management.truncate_length_of_desc import (
     truncate_length_of_desc,

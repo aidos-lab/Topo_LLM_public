@@ -37,11 +37,15 @@ import pathlib
 
 # Local imports
 from topollm.config_classes.DataConfig import DataConfig
-from topollm.config_classes.FinetuningConfig import FinetuningConfig
+from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
 from topollm.config_classes.MainConfig import MainConfig
 from topollm.config_classes.PathsConfig import PathsConfig
-from topollm.config_classes.path_management.BasicFinetuningPathManager import BasicFinetuningPathManager
-from topollm.config_classes.path_management.FinetuningPathManagerProtocol import FinetuningPathManager
+from topollm.config_classes.path_management.BasicFinetuningPathManager import (
+    BasicFinetuningPathManager,
+)
+from topollm.config_classes.path_management.FinetuningPathManagerProtocol import (
+    FinetuningPathManager,
+)
 
 # Third-party imports
 
@@ -69,4 +73,3 @@ def get_finetuning_path_manager(
     )
 
     return path_manger
-
