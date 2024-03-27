@@ -1,3 +1,6 @@
+defaults:
+  - peft: standard
+
 batch_sizes:
   train: 8
   eval: 16

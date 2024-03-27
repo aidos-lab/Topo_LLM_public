@@ -98,7 +98,7 @@ class HuggingfaceDatasetPreparer:
             datasets.DatasetDict,
         ):
             raise ValueError(
-                f"Expected {dataset_dict = } " f"to be a {datasets.DatasetDict = }"
+                f"Expected {dataset_dict = } " f"to be a datasets.DatasetDict"
             )
 
         return dataset_dict
