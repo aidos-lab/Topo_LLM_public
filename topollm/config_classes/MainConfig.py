@@ -27,16 +27,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
-
-# Standard library imports
 from os import PathLike
 
-# Third party imports
 from pydantic import Field
 
-# Local imports
 from topollm.config_classes.DataConfig import DataConfig
 from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
 from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
@@ -47,9 +41,6 @@ from topollm.config_classes.TransformationsConfig import TransformationsConfig
 from topollm.config_classes.enums import (
     PreferredTorchBackend,
 )
-
-# END Imports
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # START Globals

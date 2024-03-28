@@ -1,5 +1,6 @@
 defaults:
-  - peft: standard
+  # - peft: standard
+  - peft: lora
 
 batch_sizes:
   train: 8

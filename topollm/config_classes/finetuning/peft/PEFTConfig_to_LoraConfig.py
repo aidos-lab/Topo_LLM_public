@@ -38,6 +38,8 @@ def PEFTConfig_to_LoraConfig(
 ) -> LoraConfig:
     """
     Convert a PEFTConfig to a LoraConfig.
+
+    https://huggingface.co/docs/peft/v0.10.0/en/package_reference/lora#peft.LoraConfig
     """
 
     # Note: The 'task_type' argument is not necessary.

@@ -36,6 +36,9 @@ from peft.tuners.lora.config import LoraConfig
 from topollm.config_classes.enums import FinetuningMode
 from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
 from topollm.config_classes.MainConfig import MainConfig
+from topollm.config_classes.finetuning.peft.PEFTConfig_to_LoraConfig import (
+    PEFTConfig_to_LoraConfig,
+)
 from topollm.config_classes.path_management.FinetuningPathManagerFactory import (
     get_finetuning_path_manager,
 )
@@ -190,24 +193,21 @@ def do_finetuning_process(
     # This allows for variations of the training process,
     # e.g. using LoRA or other model modifications.
 
-    finetuning_mode = FinetuningMode.LORA
+    finetuning_mode = finetuning_config.peft.finetuning_mode
+    logger.info(f"{finetuning_mode = }")
 
-    # TODO: Make arguments configurable
     # TODO: Include the training information into the model save path
 
     if finetuning_mode == FinetuningMode.STANDARD:
+        logger.info(f"Using base model without modifications.")
         modified_model = base_model
     elif finetuning_mode == FinetuningMode.LORA:
-        lora_config = LoraConfig(
-            r=8,
-            lora_alpha=32,
-            target_modules=[
-                "query",
-                "key",
-                "value",
-            ],
-            lora_dropout=0.01,
+        logger.info(f"Preparing LoRA adapter ...")
+
+        lora_config = PEFTConfig_to_LoraConfig(
+            peft_config=finetuning_config.peft,
         )
+        logger.info(f"{lora_config = }")
 
         modified_model = prepare_lora_model(
             base_model=base_model,
@@ -215,6 +215,8 @@ def do_finetuning_process(
             device=device,
             logger=logger,
         )
+
+        logger.info(f"Preparing LoRA adapter DONE.")
     else:
         raise ValueError(f"Unknown training mode: " f"{finetuning_mode = }")
 
