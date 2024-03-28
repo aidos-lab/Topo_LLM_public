@@ -34,6 +34,7 @@ learning_rate: 5e-5
 log_level: info
 logging_steps: 100
 max_length: 512
+max_steps: 50 # TODO: Remove this to train on the full dataset
 mlm_probability: 0.15
 num_train_epochs: 5
 pretrained_model_name_or_path: roberta-base

@@ -47,4 +47,10 @@ def evaluate_tuned_model(
 
     logger.info(f"Evaluating the model DONE")
 
+    # ! TODO Fix this bug
+    #
+    # File "/Users/ruppik/git-source/Topo_LLM/topollm/model_finetuning/evaluate_tuned_model.py", line 44, in evaluate_tuned_model
+    # perplexity = math.exp(eval_results["eval_loss"])
+    # KeyError: 'eval_loss'
+
     return None

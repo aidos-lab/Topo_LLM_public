@@ -95,6 +95,11 @@ class FinetuningConfig(ConfigBaseModel):
         description="The maximum length of the input sequence.",
     )
 
+    max_steps: int = Field(
+        default=-1,
+        description=f"The maximum number of steps. " f"Overrides num_train_epochs.",
+    )
+
     mlm_probability: float = Field(
         ...,
         description="The probability for masked language model.",
