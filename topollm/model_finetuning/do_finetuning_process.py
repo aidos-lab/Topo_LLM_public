@@ -32,13 +32,8 @@ import os
 
 import transformers
 
-
-from topollm.config_classes.enums import FinetuningMode
 from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
 from topollm.config_classes.MainConfig import MainConfig
-from topollm.config_classes.finetuning.peft.PEFTConfig_to_LoraConfig import (
-    PEFTConfig_to_LoraConfig,
-)
 from topollm.config_classes.path_management.FinetuningPathManagerFactory import (
     get_finetuning_path_manager,
 )
@@ -50,6 +45,9 @@ from topollm.model_finetuning.evaluate_tuned_model import evaluate_tuned_model
 from topollm.model_finetuning.load_base_model import load_base_model
 from topollm.model_finetuning.load_tokenizer import load_tokenizer
 
+from topollm.model_finetuning.model_modifiers.ModelModifierFactory import (
+    get_model_modifier,
+)
 from topollm.model_finetuning.prepare_model_input import prepare_model_input
 from topollm.model_finetuning.save_tuned_model import save_tuned_model
 from topollm.model_handling.get_torch_device import get_torch_device
@@ -193,32 +191,16 @@ def do_finetuning_process(
     # This allows for variations of the training process,
     # e.g. using LoRA or other model modifications.
 
-    finetuning_mode = finetuning_config.peft.finetuning_mode
-    logger.info(f"{finetuning_mode = }")
-
     # TODO: Include the training information into the model save path
 
-    if finetuning_mode == FinetuningMode.STANDARD:
-        logger.info(f"Using base model without modifications.")
-        modified_model = base_model
-    elif finetuning_mode == FinetuningMode.LORA:
-        logger.info(f"Preparing LoRA adapter ...")
-
-        lora_config = PEFTConfig_to_LoraConfig(
-            peft_config=finetuning_config.peft,
-        )
-        logger.info(f"{lora_config = }")
-
-        modified_model = prepare_lora_model(
-            base_model=base_model,
-            lora_config=lora_config,
-            device=device,
-            logger=logger,
-        )
-
-        logger.info(f"Preparing LoRA adapter DONE.")
-    else:
-        raise ValueError(f"Unknown training mode: " f"{finetuning_mode = }")
+    model_modifier = get_model_modifier(
+        peft_config=finetuning_config.peft,
+        device=device,
+        logger=logger,
+    )
+    modified_model = model_modifier.modify_model(
+        model=base_model,
+    )
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Prepare model input

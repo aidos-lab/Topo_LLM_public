@@ -38,7 +38,7 @@ from topollm.logging.log_model_info import log_model_info
 
 def load_base_model(
     finetuning_config: FinetuningConfig,
-    device: torch.device,
+    device: torch.device = torch.device("cpu"),
     logger: logging.Logger = logging.getLogger(__name__),
 ) -> PreTrainedModel:
     logger.info(

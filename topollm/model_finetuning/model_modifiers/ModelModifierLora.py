@@ -34,14 +34,16 @@ import torch
 from peft.tuners.lora.config import LoraConfig
 from transformers import PreTrainedModel
 
-from topollm.model_finetuning.peft.prepare_lora_model import prepare_lora_model
+from topollm.model_finetuning.model_modifiers.prepare_lora_model import (
+    prepare_lora_model,
+)
 
 
 class ModelModifierLora:
     def __init__(
         self,
         lora_config: LoraConfig,
-        device: torch.device,
+        device: torch.device = torch.device("cpu"),
         logger: logging.Logger = logging.getLogger(__name__),
     ) -> None:
         self.lora_config = lora_config
@@ -63,5 +65,7 @@ class ModelModifierLora:
             device=self.device,
             logger=self.logger,
         )
+
+        self.logger.info(f"Preparing LoRA adapter DONE.")
 
         return modified_model
