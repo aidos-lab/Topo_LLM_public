@@ -34,10 +34,16 @@ from topollm.config_classes.finetuning.BatchSizesConfig import BatchSizesConfig
 from topollm.config_classes.finetuning.FinetuningDatasetsConfig import (
     FinetuningDatasetsConfig,
 )
+from topollm.config_classes.finetuning.peft.PEFTConfig import PEFTConfig
 
 
 class FinetuningConfig(ConfigBaseModel):
     """Configurations for fine tuning."""
+
+    peft: PEFTConfig = Field(
+        ...,
+        description="The configurations for the PEFT model.",
+    )
 
     batch_sizes: BatchSizesConfig = Field(
         ...,

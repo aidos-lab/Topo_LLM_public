@@ -1,2 +1,8 @@
-training_mode: lora
-# TODO
+finetuning_mode: lora
+r: 16
+lora_alpha: 32
+target_modules:
+  - "query"
+  - "key"
+  - "value"
+lora_dropout: 0.01

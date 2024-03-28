@@ -190,16 +190,14 @@ def do_finetuning_process(
     # This allows for variations of the training process,
     # e.g. using LoRA or other model modifications.
 
-    training_mode = FinetuningMode.LORA
+    finetuning_mode = FinetuningMode.LORA
 
     # TODO: Make arguments configurable
     # TODO: Include the training information into the model save path
 
-    if training_mode == FinetuningMode.STANDARD:
+    if finetuning_mode == FinetuningMode.STANDARD:
         modified_model = base_model
-    elif training_mode == FinetuningMode.LORA:
-        # Note: The 'task_type' argument is not necessary.
-        # task_type=peft.utils.peft_types.TaskType.CAUSAL_LM
+    elif finetuning_mode == FinetuningMode.LORA:
         lora_config = LoraConfig(
             r=8,
             lora_alpha=32,
@@ -218,7 +216,7 @@ def do_finetuning_process(
             logger=logger,
         )
     else:
-        raise ValueError(f"Unknown training mode: " f"{training_mode = }")
+        raise ValueError(f"Unknown training mode: " f"{finetuning_mode = }")
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Prepare model input
