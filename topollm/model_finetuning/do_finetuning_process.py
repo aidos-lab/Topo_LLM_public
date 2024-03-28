@@ -31,7 +31,7 @@ import logging
 import os
 
 import transformers
-from peft.tuners.lora.config import LoraConfig
+
 
 from topollm.config_classes.enums import FinetuningMode
 from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
@@ -49,7 +49,7 @@ from topollm.data_handling.DatasetPreparerFactory import get_dataset_preparer
 from topollm.model_finetuning.evaluate_tuned_model import evaluate_tuned_model
 from topollm.model_finetuning.load_base_model import load_base_model
 from topollm.model_finetuning.load_tokenizer import load_tokenizer
-from topollm.model_finetuning.prepare_lora_model import prepare_lora_model
+
 from topollm.model_finetuning.prepare_model_input import prepare_model_input
 from topollm.model_finetuning.save_tuned_model import save_tuned_model
 from topollm.model_handling.get_torch_device import get_torch_device
