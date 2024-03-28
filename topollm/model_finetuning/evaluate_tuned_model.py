@@ -40,17 +40,18 @@ def evaluate_tuned_model(
     logger.info(f"Evaluating the model ...")
 
     eval_results = trainer.evaluate()
-
-    perplexity = math.exp(eval_results["eval_loss"])
-    logger.info(f"perplexity:\n{perplexity:.2f}")
     logger.info(f"eval_results:\n{eval_results}")
 
-    logger.info(f"Evaluating the model DONE")
+    # Since the model evaluation might not return the 'eval_loss' key, we need to check for it
+    if "eval_loss" in eval_results:
+        perplexity = math.exp(eval_results["eval_loss"])
+        logger.info(f"perplexity:\n{perplexity:.2f}")
+    else:
+        logger.warning(
+            f"Could not calculate perplexity, "
+            f"because 'eval_loss' was not in eval_results"
+        )
 
-    # ! TODO Fix this bug
-    #
-    # File "/Users/ruppik/git-source/Topo_LLM/topollm/model_finetuning/evaluate_tuned_model.py", line 44, in evaluate_tuned_model
-    # perplexity = math.exp(eval_results["eval_loss"])
-    # KeyError: 'eval_loss'
+    logger.info(f"Evaluating the model DONE")
 
     return None
