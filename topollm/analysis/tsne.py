@@ -131,8 +131,17 @@ def main(cfg):
             textposition='bottom center',
             name='finetuned'
         )
+        title_name = ''
+        if cfg.model_1 != cfg.model_2:
+            title_name += str(cfg.model_1)+' vs. ' + str(cfg.model_2) + '_'
+        elif cfg.model_1 == cfg.model_2:
+            title_name += str(cfg.model_1) + '_'
+        if cfg.data_name_1 != cfg.data_name_2:
+            title_name += str(cfg.data_name_1)+' vs. ' + str(cfg.data_name_2)
+        elif cfg.data_name_1 == cfg.data_name_2:
+            title_name += str(cfg.data_name_1) + ' '
 
-        layout = go.Layout(title='t-SNE Projection of Embeddings with Tokens',
+        layout = go.Layout(title='t-SNE Projection of Embeddings with Tokens, ' + title_name,
                            xaxis=dict(title='t-SNE Dimension 1'),
                            yaxis=dict(title='t-SNE Dimension 2'),
                            hovermode='closest',
