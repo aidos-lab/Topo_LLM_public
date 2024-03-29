@@ -129,8 +129,7 @@ class _ChunkedMetadataStorageProtocol(ABC):
         logger_fixture.info(metadata_chunk)
         logger_fixture.info(read_chunk)
 
-        # FIXME Implement proper comparison for metadata chunks
-        #! Currently this test fails with "RuntimeError: Boolean value of Tensor with more than one value is ambiguous"
+        # This assertion uses the __eq__ method of MetadataChunk
         assert read_chunk == metadata_chunk, "Read data does not match written data"
 
 
