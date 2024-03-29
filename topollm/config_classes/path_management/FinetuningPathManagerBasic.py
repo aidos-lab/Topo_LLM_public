@@ -52,7 +52,7 @@ from topollm.config_classes.constants import NAME_PREFIXES
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
-class BasicFinetuningPathManager:
+class FinetuningPathManagerBasic:
     def __init__(
         self,
         data_config: DataConfig,
