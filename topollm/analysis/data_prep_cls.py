@@ -55,7 +55,7 @@ import os
 import pickle
 import pandas as pd
 
-from topollm.config_classes.path_management.EmbeddingsPathManagerFactory import (
+from topollm.path_management.EmbeddingsPathManagerFactory import (
     get_embeddings_path_manager,
 )
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
@@ -118,7 +118,6 @@ def main(
         logger=global_logger,
     )
 
-
     # potentially adapt paths
     array_path = embeddings_path_manager.array_dir_absolute_path
 
@@ -129,7 +128,6 @@ def main(
         embeddings_path_manager.metadata_dir_absolute_path,
         "pickle_chunked_metadata_storage",
     )
-
 
     global_logger.info(f"{array_path = }")
 
@@ -147,7 +145,7 @@ def main(
     )
 
     arr = np.array(array)
-    arr = arr[:,0,:]
+    arr = arr[:, 0, :]
 
     # choose sample size of the arrays
     sample_size = len(arr)
@@ -165,9 +163,9 @@ def main(
     if not os.path.exists(save_path):
         os.makedirs(save_path)
 
-    file_name = "embeddings_cls_lvl_"+str(sample_size)+"_samples_paddings_removed"
+    file_name = "embeddings_cls_lvl_" + str(sample_size) + "_samples_paddings_removed"
     np.save(
-        pathlib.Path(save_path,file_name),
+        pathlib.Path(save_path, file_name),
         arr_no_pad,
     )
 

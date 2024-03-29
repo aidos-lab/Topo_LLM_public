@@ -49,7 +49,7 @@ from topollm.compute_embeddings.TokenLevelEmbeddingDataHandler import (
     TokenLevelEmbeddingDataHandler,
 )
 from topollm.config_classes.MainConfig import MainConfig
-from topollm.config_classes.path_management.EmbeddingsPathManagerFactory import (
+from topollm.path_management.EmbeddingsPathManagerFactory import (
     get_embeddings_path_manager,
 )
 from topollm.model_handling.load_model import load_model

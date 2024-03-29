@@ -46,7 +46,7 @@ from topollm.config_classes.LanguageModelConfig import LanguageModelConfig
 from topollm.config_classes.PathsConfig import PathsConfig
 from topollm.config_classes.TokenizerConfig import TokenizerConfig
 from topollm.config_classes.enums import DatasetType, Level, Split, AggregationType
-from topollm.config_classes.path_management.EmbeddingsPathManagerSeparateDirectories import (
+from topollm.path_management.EmbeddingsPathManagerSeparateDirectories import (
     EmbeddingsPathManagerSeparateDirectories,
 )
 

@@ -53,7 +53,7 @@ import os
 import pickle
 import pandas as pd
 
-from topollm.config_classes.path_management.EmbeddingsPathManagerFactory import (
+from topollm.path_management.EmbeddingsPathManagerFactory import (
     get_embeddings_path_manager,
 )
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
@@ -122,12 +122,10 @@ def main(
     save_path = pathlib.Path(*list(array_path.parts)[-7:])
     save_path = pathlib.Path("..", "..", "data", "analysis", "prepared", save_path)
 
-
     meta_path = pathlib.Path(
         embeddings_path_manager.metadata_dir_absolute_path,
         "pickle_chunked_metadata_storage",
     )
-
 
     global_logger.info(f"{array_path = }")
 
@@ -173,14 +171,18 @@ def main(
 
     non_paddings = (stacked_meta != 1) & (stacked_meta != 2)
 
-    mean_no_paddings = np.array([np.mean(arr[i][non_paddings[i]], axis=0) for i in range(arr.shape[0])])
+    mean_no_paddings = np.array(
+        [np.mean(arr[i][non_paddings[i]], axis=0) for i in range(arr.shape[0])]
+    )
 
     if not os.path.exists(save_path):
         os.makedirs(save_path)
 
-    file_name = "embeddings_sentence_lvl_mean_"+str(sample_size)+"_samples_paddings_removed"
+    file_name = (
+        "embeddings_sentence_lvl_mean_" + str(sample_size) + "_samples_paddings_removed"
+    )
     np.save(
-        pathlib.Path(save_path,file_name),
+        pathlib.Path(save_path, file_name),
         mean_no_paddings,
     )
 

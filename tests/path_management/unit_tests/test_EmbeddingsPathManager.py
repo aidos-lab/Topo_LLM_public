@@ -27,21 +27,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
-
-# System imports
 import logging
 import pathlib
 
-# Third-party imports
 import pytest
 
-# Local imports
-from topollm.config_classes.path_management import EmbeddingsPathManagerProtocol
-
-# END Imports
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+from topollm.path_management import EmbeddingsPathManagerProtocol
 
 
 @pytest.fixture
