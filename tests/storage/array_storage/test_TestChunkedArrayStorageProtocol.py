@@ -27,35 +27,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
-
-# System imports
 import logging
 import pathlib
 from abc import ABC, abstractmethod
 
-# Third-party imports
 import numpy as np
 import pytest
 
-# Local imports
-from topollm.storage import StorageProtocols
+import topollm.storage.array_storage.ChunkedArrayStorageProtocol
+from topollm.storage import StorageDataclasses
 from topollm.storage.array_storage import ChunkedArrayStorageZarr
-
-# END Imports
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
 @pytest.fixture(scope="function")
 def array_properties(
     request: pytest.FixtureRequest,
-) -> StorageProtocols.ArrayProperties:
+) -> StorageDataclasses.ArrayProperties:
     """
     Fixture that provides ArrayProperties based on parameterized inputs.
     """
     shape = request.param
-    return StorageProtocols.ArrayProperties(
+    return StorageDataclasses.ArrayProperties(
         shape=shape,
         dtype="float32",
         chunks=(5,),
@@ -70,7 +62,9 @@ class ChunkedArrayStorageFactory(ABC):
     @abstractmethod
     def create_storage(
         self,
-    ) -> StorageProtocols.ChunkedArrayStorageProtocol:
+    ) -> (
+        topollm.storage.array_storage.ChunkedArrayStorageProtocol.ChunkedArrayStorageProtocol
+    ):
         """
         Creates and returns a storage instance, with all necessary
         arguments handled internally by the factory.
@@ -99,7 +93,9 @@ class _ChunkedArrayStorageProtocol(ABC):
     def storage(
         self,
         storage_factory: ChunkedArrayStorageFactory,
-    ) -> StorageProtocols.ChunkedArrayStorageProtocol:
+    ) -> (
+        topollm.storage.array_storage.ChunkedArrayStorageProtocol.ChunkedArrayStorageProtocol
+    ):
         """
         Dynamic storage instance creation using the provided factory.
         """
@@ -120,8 +116,8 @@ class _ChunkedArrayStorageProtocol(ABC):
     )
     def test_write_and_read_chunk(
         self,
-        storage: StorageProtocols.ChunkedArrayStorageProtocol,
-        array_properties: StorageProtocols.ArrayProperties,
+        storage: topollm.storage.array_storage.ChunkedArrayStorageProtocol.ChunkedArrayStorageProtocol,
+        array_properties: StorageDataclasses.ArrayProperties,
         chunk_length: int,
         start_idx: int,
     ) -> None:
@@ -142,13 +138,13 @@ class _ChunkedArrayStorageProtocol(ABC):
             dtype=array_properties.dtype,
         )
 
-        chunk_identifier = StorageProtocols.ChunkIdentifier(
+        chunk_identifier = StorageDataclasses.ChunkIdentifier(
             chunk_idx=0,
             start_idx=start_idx,
             chunk_length=chunk_length,
         )
 
-        data_chunk = StorageProtocols.ArrayDataChunk(
+        data_chunk = StorageDataclasses.ArrayDataChunk(
             batch_of_sequences_embedding_array=data,
             chunk_identifier=chunk_identifier,
         )
@@ -166,14 +162,14 @@ class _ChunkedArrayStorageProtocol(ABC):
         ), "Read data does not match written data"
 
 
-class ZarrChunkedArrayStorageFactory(ChunkedArrayStorageFactory):
+class ChunkedArrayStorageZarrFactory(ChunkedArrayStorageFactory):
     """
     Factory for creating ZarrChunkedArrayStorage instances.
     """
 
     def __init__(
         self,
-        array_properties: StorageProtocols.ArrayProperties,
+        array_properties: StorageDataclasses.ArrayProperties,
         tmp_path: pathlib.Path,
         logger: logging.Logger,
     ):
@@ -199,12 +195,12 @@ class ZarrChunkedArrayStorageFactory(ChunkedArrayStorageFactory):
         )
 
 
-class TestZarrChunkedArrayStorage(_ChunkedArrayStorageProtocol):
+class TestChunkedArrayStorageZarr(_ChunkedArrayStorageProtocol):
     @pytest.fixture
     def storage_factory(  # type: ignore
         self,
         request: pytest.FixtureRequest,
-        array_properties: StorageProtocols.ArrayProperties,
+        array_properties: StorageDataclasses.ArrayProperties,
         test_data_dir: pathlib.Path,
         logger_fixture: logging.Logger,
     ) -> ChunkedArrayStorageFactory:
@@ -212,7 +208,7 @@ class TestZarrChunkedArrayStorage(_ChunkedArrayStorageProtocol):
         Provides a concrete factory instance, initialized with all necessary arguments
         for creating a ZarrChunkedArrayStorage instance.
         """
-        return ZarrChunkedArrayStorageFactory(
+        return ChunkedArrayStorageZarrFactory(
             array_properties=array_properties,
             tmp_path=test_data_dir,
             logger=logger_fixture,

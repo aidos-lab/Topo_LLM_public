@@ -27,17 +27,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Standard library imports
 import logging
 import os
 import pathlib
 
-# Third party imports
 import zarr
 import zarr.creation
 
-# Local imports
-from topollm.storage.StorageProtocols import (
+from topollm.storage.StorageDataclasses import (
     ArrayDataChunk,
     ArrayProperties,
     ChunkIdentifier,

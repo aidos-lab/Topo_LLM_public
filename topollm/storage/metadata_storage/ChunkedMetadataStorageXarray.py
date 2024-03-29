@@ -38,7 +38,7 @@ import warnings
 # Third party imports
 
 # Local imports
-from topollm.storage.StorageProtocols import (
+from topollm.storage.StorageDataclasses import (
     MetadataChunk,
     ChunkIdentifier,
     ArrayProperties,

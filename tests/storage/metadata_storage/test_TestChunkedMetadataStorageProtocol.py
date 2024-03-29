@@ -27,25 +27,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
-
-# System imports
 import logging
 import pathlib
 import pprint
 from abc import ABC, abstractmethod
 
-# Third-party imports
-import numpy as np
 import pytest
 
-# Local imports
-from topollm.storage import StorageProtocols
+import topollm.storage.metadata_storage.ChunkedMetadataStorageProtocol
+from topollm.storage import StorageDataclasses
 from topollm.storage.metadata_storage import ChunkedMetadataStoragePickle
-
-# END Imports
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
 class ChunkedMetadataStorageFactory(ABC):
@@ -56,7 +47,9 @@ class ChunkedMetadataStorageFactory(ABC):
     @abstractmethod
     def create_storage(
         self,
-    ) -> StorageProtocols.ChunkedMetadataStorageProtocol:
+    ) -> (
+        topollm.storage.metadata_storage.ChunkedMetadataStorageProtocol.ChunkedMetadataStorageProtocol
+    ):
         """
         Creates and returns a storage instance, with all necessary
         arguments handled internally by the factory.
@@ -85,7 +78,9 @@ class _ChunkedMetadataStorageProtocol(ABC):
     def storage(
         self,
         storage_factory: ChunkedMetadataStorageFactory,
-    ) -> StorageProtocols.ChunkedMetadataStorageProtocol:
+    ) -> (
+        topollm.storage.metadata_storage.ChunkedMetadataStorageProtocol.ChunkedMetadataStorageProtocol
+    ):
         """
         Dynamic storage instance creation using the provided factory.
         """
@@ -93,7 +88,7 @@ class _ChunkedMetadataStorageProtocol(ABC):
 
     def test_write_and_read_chunk(
         self,
-        storage: StorageProtocols.ChunkedMetadataStorageProtocol,
+        storage: topollm.storage.metadata_storage.ChunkedMetadataStorageProtocol.ChunkedMetadataStorageProtocol,
         example_batch: dict,
         chunk_idx: int,
         logger_fixture: logging.Logger,
@@ -110,13 +105,13 @@ class _ChunkedMetadataStorageProtocol(ABC):
             f"and\n{chunk_idx = }"
         )
 
-        chunk_identifier = StorageProtocols.ChunkIdentifier(
+        chunk_identifier = StorageDataclasses.ChunkIdentifier(
             chunk_idx=chunk_idx,
             start_idx=-1,  # Not used for metadata
             chunk_length=-1,  # Not used for metadata
         )
 
-        metadata_chunk = StorageProtocols.MetadataChunk(
+        metadata_chunk = StorageDataclasses.MetadataChunk(
             batch=example_batch,
             chunk_identifier=chunk_identifier,
         )
@@ -124,7 +119,7 @@ class _ChunkedMetadataStorageProtocol(ABC):
         storage.write_chunk(
             data_chunk=metadata_chunk,
         )
-        read_chunk: StorageProtocols.MetadataChunk = storage.read_chunk(
+        read_chunk: StorageDataclasses.MetadataChunk = storage.read_chunk(
             chunk_identifier=chunk_identifier,
         )
 
@@ -136,7 +131,7 @@ class _ChunkedMetadataStorageProtocol(ABC):
         assert read_chunk == metadata_chunk, "Read data does not match written data"
 
 
-class PickleChunkedMetadataStorageFactory(ChunkedMetadataStorageFactory):
+class ChunkedMetadataStoragePickleFactory(ChunkedMetadataStorageFactory):
     """
     Factory for creating ZarrChunkedArrayStorage instances.
     """
@@ -166,7 +161,7 @@ class PickleChunkedMetadataStorageFactory(ChunkedMetadataStorageFactory):
         )
 
 
-class TestPickleChunkedMetadataStorage(_ChunkedMetadataStorageProtocol):
+class TestChunkedMetadataStoragePickle(_ChunkedMetadataStorageProtocol):
     @pytest.fixture
     def storage_factory(  # type: ignore
         self,
@@ -178,7 +173,7 @@ class TestPickleChunkedMetadataStorage(_ChunkedMetadataStorageProtocol):
         Provides a concrete factory instance, initialized with all necessary arguments
         for creating a ZarrChunkedArrayStorage instance.
         """
-        return PickleChunkedMetadataStorageFactory(
+        return ChunkedMetadataStoragePickleFactory(
             tmp_path=test_data_dir,
             logger=logger_fixture,
         )

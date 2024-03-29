@@ -27,28 +27,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
-
-# Standard library imports
-from importlib import metadata
 import logging
 import os
 import pathlib
 import pickle
-import warnings
 
-# Third party imports
-
-# Local imports
-from topollm.storage.StorageProtocols import (
-    MetadataChunk,
-    ChunkIdentifier,
-    ArrayProperties,
-)
-
-# END Imports
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+from topollm.storage.StorageDataclasses import ChunkIdentifier, MetadataChunk
 
 
 def chunk_identifier_str(

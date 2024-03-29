@@ -27,30 +27,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
-
-# Standard library imports
 import logging
-
-# Local imports
 from dataclasses import dataclass
 from os import PathLike
 
-# Third party imports
 from topollm.config_classes.enums import ArrayStorageType, MetadataStorageType
-from topollm.storage.metadata_storage import ChunkedMetadataStoragePickle
-from topollm.storage.metadata_storage import ChunkedMetadataStorageXarray
-from topollm.storage.array_storage import ChunkedArrayStorageZarr
-from topollm.storage.StorageProtocols import (
-    ArrayProperties,
+from topollm.storage.array_storage.ChunkedArrayStorageProtocol import (
     ChunkedArrayStorageProtocol,
+)
+from topollm.storage.array_storage import ChunkedArrayStorageZarr
+from topollm.storage.metadata_storage import (
+    ChunkedMetadataStoragePickle,
+    ChunkedMetadataStorageXarray,
+)
+from topollm.storage.metadata_storage.ChunkedMetadataStorageProtocol import (
     ChunkedMetadataStorageProtocol,
 )
-
-
-# END Imports
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+from topollm.storage.StorageDataclasses import (
+    ArrayProperties,
+)
 
 
 @dataclass

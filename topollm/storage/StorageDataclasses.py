@@ -27,21 +27,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
-
-# Standard library imports
 from dataclasses import dataclass
-from typing import Protocol, runtime_checkable
 
-# Third party imports
 import numpy as np
-
-# Local imports
-
-
-# END Imports
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
 @dataclass
@@ -82,49 +70,3 @@ class ArrayProperties:
     shape: tuple[int, ...]
     dtype: str  # e.g. "float32"
     chunks: tuple[int, ...]
-
-
-@runtime_checkable
-class ChunkedArrayStorageProtocol(Protocol):
-    def open(
-        self,
-    ) -> None:
-        """Initializes the storage with specified configuration."""
-        ...  # pragma: no cover
-
-    def write_chunk(
-        self,
-        data_chunk: ArrayDataChunk,
-    ) -> None:
-        """Writes a chunk of data starting from a specific index."""
-        ...  # pragma: no cover
-
-    def read_chunk(
-        self,
-        chunk_identifier: ChunkIdentifier,
-    ) -> ArrayDataChunk:
-        """Reads a chunk of data determined by the identifier."""
-        ...  # pragma: no cover
-
-
-@runtime_checkable
-class ChunkedMetadataStorageProtocol(Protocol):
-    def open(
-        self,
-    ) -> None:
-        """Initializes the storage with specified configuration."""
-        ...  # pragma: no cover
-
-    def write_chunk(
-        self,
-        data_chunk: MetadataChunk,
-    ) -> None:
-        """Writes a chunk of data starting from a specific index."""
-        ...  # pragma: no cover
-
-    def read_chunk(
-        self,
-        chunk_identifier: ChunkIdentifier,
-    ) -> MetadataChunk:
-        """Reads a chunk of data determined by the identifier."""
-        ...  # pragma: no cover
