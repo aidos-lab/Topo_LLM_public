@@ -64,8 +64,22 @@ class PEFTPathManagerBasic:
         if self.peft_config.finetuning_mode == FinetuningMode.STANDARD:
             description = f"{NAME_PREFIXES['FinetuningMode']}" f"standard"
         elif self.peft_config.finetuning_mode == FinetuningMode.LORA:
-            description = f"{NAME_PREFIXES['FinetuningMode']}" f"lora"
-            # TODO: Update this
+            description = (
+                f"{NAME_PREFIXES['FinetuningMode']}"
+                f"lora"
+                f"_"
+                f"{NAME_PREFIXES['lora_r']}"
+                f"{self.peft_config.r}"
+                f"_"
+                f"{NAME_PREFIXES['lora_alpha']}"
+                f"{self.peft_config.lora_alpha}"
+                f"_"
+                f"{NAME_PREFIXES['lora_target_modules']}"
+                f"{self.peft_config.target_modules}"
+                f"_"
+                f"{NAME_PREFIXES['lora_dropout']}"
+                f"{self.peft_config.lora_dropout}"
+            )
         else:
             raise ValueError(
                 f"Unknown finetuning_mode: " f"{self.peft_config.finetuning_mode = }"

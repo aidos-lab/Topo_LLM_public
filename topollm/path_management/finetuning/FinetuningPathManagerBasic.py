@@ -34,6 +34,9 @@ from topollm.config_classes.constants import NAME_PREFIXES
 from topollm.config_classes.DataConfig import DataConfig
 from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
 from topollm.config_classes.PathsConfig import PathsConfig
+from topollm.path_management.finetuning.peft.PEFTPathManagerFactory import (
+    get_peft_path_manager,
+)
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # START Globals
@@ -55,6 +58,12 @@ class FinetuningPathManagerBasic:
         self.finetuning_config = finetuning_config
         self.paths_config = paths_config
 
+        self.peft_path_manager = get_peft_path_manager(
+            peft_config=self.finetuning_config.peft,
+            verbosity=verbosity,
+            logger=logger,
+        )
+
         self.verbosity = verbosity
         self.logger = logger
 
@@ -73,6 +82,7 @@ class FinetuningPathManagerBasic:
             "models",
             "finetuned_models",
             self.finetuning_config.finetuning_datasets.train_dataset.data_config_description,
+            self.peft_path_manager.peft_description,
             self.epoch_description,
         )
 
