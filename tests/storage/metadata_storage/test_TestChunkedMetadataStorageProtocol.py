@@ -34,6 +34,7 @@ from abc import ABC, abstractmethod
 
 import pytest
 
+import topollm.storage.metadata_storage.MetadataChunk
 import topollm.storage.metadata_storage.ChunkedMetadataStorageProtocol
 from topollm.storage import StorageDataclasses
 from topollm.storage.metadata_storage import ChunkedMetadataStoragePickle
@@ -111,7 +112,7 @@ class _ChunkedMetadataStorageProtocol(ABC):
             chunk_length=-1,  # Not used for metadata
         )
 
-        metadata_chunk = StorageDataclasses.MetadataChunk(
+        metadata_chunk = topollm.storage.metadata_storage.MetadataChunk.MetadataChunk(
             batch=example_batch,
             chunk_identifier=chunk_identifier,
         )
@@ -119,8 +120,10 @@ class _ChunkedMetadataStorageProtocol(ABC):
         storage.write_chunk(
             data_chunk=metadata_chunk,
         )
-        read_chunk: StorageDataclasses.MetadataChunk = storage.read_chunk(
-            chunk_identifier=chunk_identifier,
+        read_chunk: topollm.storage.metadata_storage.MetadataChunk.MetadataChunk = (
+            storage.read_chunk(
+                chunk_identifier=chunk_identifier,
+            )
         )
 
         logger_fixture.info(metadata_chunk)
@@ -133,7 +136,7 @@ class _ChunkedMetadataStorageProtocol(ABC):
 
 class ChunkedMetadataStoragePickleFactory(ChunkedMetadataStorageFactory):
     """
-    Factory for creating ZarrChunkedArrayStorage instances.
+    Factory for creating ChunkedArrayStoragePickle instances.
     """
 
     def __init__(
@@ -152,7 +155,7 @@ class ChunkedMetadataStoragePickleFactory(ChunkedMetadataStorageFactory):
             "pickle_chunked_metadata_storage_test",
         )
         self.logger.info(
-            f"Creating PickleChunkedMetadataStorage storage " f"at {storage_path = }"
+            f"Creating ChunkedMetadataStoragePickle storage " f"at {storage_path = }"
         )
 
         return ChunkedMetadataStoragePickle.ChunkedMetadataStoragePickle(

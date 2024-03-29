@@ -38,8 +38,8 @@ import warnings
 # Third party imports
 
 # Local imports
+from topollm.storage.metadata_storage.MetadataChunk import MetadataChunk
 from topollm.storage.StorageDataclasses import (
-    MetadataChunk,
     ChunkIdentifier,
     ArrayProperties,
 )

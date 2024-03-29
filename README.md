@@ -96,5 +96,5 @@ poetry shell
 In the directory `topollm/compute_embeddings`, call the embedding script:
 
 ```bash
-python3 compute_embeddings.py
+python3 run_compute_embeddings.py
 ```

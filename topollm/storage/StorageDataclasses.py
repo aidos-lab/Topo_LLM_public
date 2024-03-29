@@ -56,16 +56,6 @@ class ArrayDataChunk:
 
 
 @dataclass
-class MetadataChunk:
-    """
-    Dataclass to hold a single metadata chunk.
-    """
-
-    batch: dict
-    chunk_identifier: ChunkIdentifier
-
-
-@dataclass
 class ArrayProperties:
     shape: tuple[int, ...]
     dtype: str  # e.g. "float32"

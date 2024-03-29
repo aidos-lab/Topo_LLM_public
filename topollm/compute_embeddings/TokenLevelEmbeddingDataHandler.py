@@ -40,6 +40,7 @@ from topollm.compute_embeddings.embedding_extractor.EmbeddingExtractorProtocol i
     EmbeddingExtractor,
 )
 from topollm.compute_embeddings.move_batch_to_cpu import move_batch_to_cpu
+from topollm.storage.metadata_storage.MetadataChunk import MetadataChunk
 from topollm.storage.array_storage.ChunkedArrayStorageProtocol import (
     ChunkedArrayStorageProtocol,
 )
@@ -49,7 +50,6 @@ from topollm.storage.metadata_storage.ChunkedMetadataStorageProtocol import (
 from topollm.storage.StorageDataclasses import (
     ArrayDataChunk,
     ChunkIdentifier,
-    MetadataChunk,
 )
 
 

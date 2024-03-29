@@ -32,7 +32,8 @@ import os
 import pathlib
 import pickle
 
-from topollm.storage.StorageDataclasses import ChunkIdentifier, MetadataChunk
+from topollm.storage.metadata_storage.MetadataChunk import MetadataChunk
+from topollm.storage.StorageDataclasses import ChunkIdentifier
 
 
 def chunk_identifier_str(
