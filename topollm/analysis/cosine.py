@@ -54,7 +54,7 @@ def main(cfg):
     array_name_1 = 'embeddings_' + str(cfg.embedding_level_1) + '_' + str(cfg.samples_1) + '_samples_paddings_removed.npy'
     array_name_2 = 'embeddings_' + str(cfg.embedding_level_2) + '_' + str(cfg.samples_2) + '_samples_paddings_removed.npy'
 
-    path_1 = pathlib.Path('prepared',
+    path_1 = pathlib.Path("..", "..", "data", "analysis", "prepared",
                           cfg.data_name_1,
                           cfg.level_1,
                           cfg.prefix_1,
@@ -65,7 +65,7 @@ def main(cfg):
                           array_name_1
                           )
 
-    path_2 = pathlib.Path('prepared',
+    path_2 = pathlib.Path("..", "..", "data", "analysis", "prepared",
                           cfg.data_name_2,
                           cfg.level_2,
                           cfg.prefix_2,
@@ -104,7 +104,7 @@ def main(cfg):
             additional_string = str(cfg[name + str(1)]) + '_vs_' + str(cfg[name + str(2)] + '_')
             file_name += additional_string
 
-    save_path = 'cosine/' + str(cfg.embedding_level_1) + '/'
+    save_path = '../../data/analysis/cosine/' + str(cfg.embedding_level_1) + '/'
     if not os.path.exists(save_path):
         os.makedirs(save_path)
 

@@ -53,7 +53,7 @@ def main(cfg):
     array_name_1 = 'embeddings_' + str(cfg.embedding_level_1) + '_' + str(cfg.samples_1) + '_samples_paddings_removed.npy'
     array_name_2 = 'embeddings_' + str(cfg.embedding_level_2) + '_' + str(cfg.samples_2) + '_samples_paddings_removed.npy'
 
-    path_1 = pathlib.Path('prepared',
+    path_1 = pathlib.Path("..", "..", "data", "analysis", "prepared",
                           cfg.data_name_1,
                           cfg.level_1,
                           cfg.prefix_1,
@@ -64,7 +64,7 @@ def main(cfg):
                           array_name_1
                           )
 
-    path_2 = pathlib.Path('prepared',
+    path_2 = pathlib.Path("..", "..", "data", "analysis", "prepared",
                           cfg.data_name_2,
                           cfg.level_2,
                           cfg.prefix_2,

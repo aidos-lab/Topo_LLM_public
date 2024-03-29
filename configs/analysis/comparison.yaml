@@ -34,10 +34,10 @@ embedding_level_2: token_lvl
 #embedding_level_2: cls_lvl
 
 # default for embedding_level_1: token_lvl
-#samples_1: 30000
-#samples_2: 30000
-samples_1: 200000
-samples_2: 200000
+samples_1: 30000
+samples_2: 30000
+#samples_1: 200000
+#samples_2: 200000
 # default for embedding_level_1: sentence_level, cls_level
 #samples_1: 5000
 #samples_2: 5000

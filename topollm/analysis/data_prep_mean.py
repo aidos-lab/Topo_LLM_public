@@ -120,7 +120,7 @@ def main(
     array_path = embeddings_path_manager.array_dir_absolute_path
 
     save_path = pathlib.Path(*list(array_path.parts)[-7:])
-    save_path = pathlib.Path("prepared",save_path)
+    save_path = pathlib.Path("..", "..", "data", "analysis", "prepared", save_path)
 
 
     meta_path = pathlib.Path(
