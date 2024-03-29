@@ -47,7 +47,9 @@ def embeddings_path_manager(
 
 @pytest.mark.parametrize(
     "embeddings_path_manager",
-    ["separate_directories_embeddings_path_manager"],
+    [
+        "embeddings_path_manager_separate_directories",
+    ],
     indirect=True,
 )
 class TestEmbeddingsPathManager:
@@ -57,7 +59,7 @@ class TestEmbeddingsPathManager:
         logger_fixture: logging.Logger,
     ) -> None:
         result = embeddings_path_manager.data_dir
-        logger_fixture.info(f"data_dir: {result = }")
+        logger_fixture.info(f"data_dir:\n" f"{result = }")
 
         assert isinstance(
             result,
@@ -72,7 +74,7 @@ class TestEmbeddingsPathManager:
         logger_fixture: logging.Logger,
     ) -> None:
         result = embeddings_path_manager.array_dir_absolute_path
-        logger_fixture.info(f"array_dir_absolute_path: {result = }")
+        logger_fixture.info(f"array_dir_absolute_path:\n" f"{result = }")
 
         assert isinstance(
             result,
@@ -87,7 +89,7 @@ class TestEmbeddingsPathManager:
         logger_fixture: logging.Logger,
     ) -> None:
         result = embeddings_path_manager.metadata_dir_absolute_path
-        logger_fixture.info(f"metadata_dir_absolute_path: {result = }")
+        logger_fixture.info(f"metadata_dir_absolute_path:\n" f"{result = }")
 
         assert isinstance(
             result,

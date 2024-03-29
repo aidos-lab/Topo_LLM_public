@@ -31,27 +31,20 @@ import logging
 import os
 import pathlib
 from datetime import datetime
-import re
 
 import pytest
-from dotenv import load_dotenv, find_dotenv
+from dotenv import find_dotenv, load_dotenv
 
-from topollm.config_classes.TransformationsConfig import (
-    TransformationsConfig,
-)
 from topollm.config_classes.DataConfig import DataConfig
 from topollm.config_classes.DatasetMapConfig import DatasetMapConfig
 from topollm.config_classes.EmbeddingExtractionConfig import EmbeddingExtractionConfig
 from topollm.config_classes.EmbeddingsConfig import EmbeddingsConfig
-from topollm.config_classes.LanguageModelConfig import LanguageModelConfig
-from topollm.config_classes.PathsConfig import PathsConfig
-from topollm.config_classes.TokenizerConfig import TokenizerConfig
 from topollm.config_classes.enums import (
+    AggregationType,
     DatasetType,
     FinetuningMode,
     Level,
     Split,
-    AggregationType,
 )
 from topollm.config_classes.finetuning.BatchSizesConfig import BatchSizesConfig
 from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
@@ -59,9 +52,17 @@ from topollm.config_classes.finetuning.FinetuningDatasetsConfig import (
     FinetuningDatasetsConfig,
 )
 from topollm.config_classes.finetuning.peft.PEFTConfig import PEFTConfig
+from topollm.config_classes.LanguageModelConfig import LanguageModelConfig
+from topollm.config_classes.PathsConfig import PathsConfig
+from topollm.config_classes.TokenizerConfig import TokenizerConfig
+from topollm.config_classes.TransformationsConfig import TransformationsConfig
 from topollm.path_management.EmbeddingsPathManagerSeparateDirectories import (
     EmbeddingsPathManagerSeparateDirectories,
 )
+from topollm.path_management.FinetuningPathManagerBasic import (
+    FinetuningPathManagerBasic,
+)
+from topollm.path_management.FinetuningPathManagerProtocol import FinetuningPathManager
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # START Configuration of the logging module
@@ -340,15 +341,17 @@ def finetuning_config(
     return config
 
 
-@pytest.fixture(scope="session")
-def separate_directories_embeddings_path_manager(
+@pytest.fixture(
+    scope="session",
+)
+def embeddings_path_manager_separate_directories(
     data_config: DataConfig,
     embeddings_config: EmbeddingsConfig,
     paths_config: PathsConfig,
     transformations_config: TransformationsConfig,
     logger_fixture: logging.Logger,
 ) -> EmbeddingsPathManagerSeparateDirectories:
-    return EmbeddingsPathManagerSeparateDirectories(
+    path_manager = EmbeddingsPathManagerSeparateDirectories(
         data_config=data_config,
         embeddings_config=embeddings_config,
         paths_config=paths_config,
@@ -356,3 +359,25 @@ def separate_directories_embeddings_path_manager(
         verbosity=1,
         logger=logger_fixture,
     )
+
+    return path_manager
+
+
+@pytest.fixture(
+    scope="session",
+)
+def finetuning_path_manager_basic(
+    data_config: DataConfig,
+    paths_config: PathsConfig,
+    finetuning_config: FinetuningConfig,
+    logger_fixture: logging.Logger,
+) -> FinetuningPathManager:
+    path_manager = FinetuningPathManagerBasic(
+        data_config=data_config,
+        paths_config=paths_config,
+        finetuning_config=finetuning_config,
+        verbosity=1,
+        logger=logger_fixture,
+    )
+
+    return path_manager
