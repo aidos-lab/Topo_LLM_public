@@ -112,10 +112,11 @@ class FinetuningPathManagerBasic:
     def logging_dir(
         self,
     ) -> pathlib.Path | None:
-        # path = pathlib.Path(
-        #     self.finetuned_model_dir,
-        #     "runs",
-        # )
+        """
+        We decide to return None here,
+        because this will mean the logging_dir will be handled
+        by the Trainer class.
+        """
 
         path = None
 

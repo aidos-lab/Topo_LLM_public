@@ -133,7 +133,9 @@ def pytest_configure(
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(
+    scope="session",
+)
 def repository_base_path() -> pathlib.Path:
     # Get the values from the
     # 'TOPO_LLM_REPOSITORY_BASE_PATH' environment variable
@@ -153,7 +155,9 @@ def repository_base_path() -> pathlib.Path:
     return path
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(
+    scope="session",
+)
 def temp_files_dir() -> pathlib.Path:
     # Get the values from the 'TEMP_FILES_DIR' environment variable
     temp_files_dir = os.getenv("TEMP_FILES_DIR")
@@ -168,7 +172,9 @@ def temp_files_dir() -> pathlib.Path:
     return path
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(
+    scope="session",
+)
 def test_data_dir(
     repository_base_path: pathlib.Path,
     temp_files_dir: pathlib.Path,
@@ -195,12 +201,16 @@ def test_data_dir(
         )
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(
+    scope="session",
+)
 def logger_fixture() -> logging.Logger:
     return logger
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(
+    scope="session",
+)
 def data_config() -> DataConfig:
     config = DataConfig(
         column_name="summary",
@@ -217,7 +227,9 @@ def data_config() -> DataConfig:
     return config
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(
+    scope="session",
+)
 def tokenizer_config() -> TokenizerConfig:
     config = TokenizerConfig(
         add_prefix_space=False,
@@ -227,7 +239,9 @@ def tokenizer_config() -> TokenizerConfig:
     return config
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(
+    scope="session",
+)
 def dataset_map_config() -> DatasetMapConfig:
     config = DatasetMapConfig(
         batch_size=1000,
@@ -237,7 +251,9 @@ def dataset_map_config() -> DatasetMapConfig:
     return config
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(
+    scope="session",
+)
 def language_model_config() -> LanguageModelConfig:
     config = LanguageModelConfig(
         pretrained_model_name_or_path="roberta-base",
@@ -248,7 +264,9 @@ def language_model_config() -> LanguageModelConfig:
     return config
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(
+    scope="session",
+)
 def embedding_extraction_config() -> EmbeddingExtractionConfig:
     config = EmbeddingExtractionConfig(
         layer_indices=[-1],
@@ -258,7 +276,9 @@ def embedding_extraction_config() -> EmbeddingExtractionConfig:
     return config
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(
+    scope="session",
+)
 def embeddings_config(
     tokenizer_config: TokenizerConfig,
     dataset_map_config: DatasetMapConfig,
@@ -276,7 +296,9 @@ def embeddings_config(
     )
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(
+    scope="session",
+)
 def paths_config(
     test_data_dir: pathlib.Path,
     repository_base_path: pathlib.Path,
@@ -287,14 +309,18 @@ def paths_config(
     )
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(
+    scope="session",
+)
 def transformations_config() -> TransformationsConfig:
     return TransformationsConfig(
         normalization="None",
     )
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(
+    scope="session",
+)
 def peft_config() -> PEFTConfig:
     config = PEFTConfig(
         finetuning_mode=FinetuningMode.LORA,
@@ -303,6 +329,9 @@ def peft_config() -> PEFTConfig:
     return config
 
 
+@pytest.fixture(
+    scope="session",
+)
 def finetuning_datasets_config(
     data_config: DataConfig,
 ) -> FinetuningDatasetsConfig:
@@ -314,7 +343,9 @@ def finetuning_datasets_config(
     return config
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(
+    scope="session",
+)
 def batch_sizes_config() -> BatchSizesConfig:
     config = BatchSizesConfig(
         train=8,
@@ -324,7 +355,9 @@ def batch_sizes_config() -> BatchSizesConfig:
     return config
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(
+    scope="session",
+)
 def finetuning_config(
     peft_config: PEFTConfig,
     batch_sizes_config: BatchSizesConfig,
