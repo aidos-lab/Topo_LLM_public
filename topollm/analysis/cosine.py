@@ -109,6 +109,7 @@ def main(cfg):
         os.makedirs(save_path)
 
     save_name = save_path + file_name + str(len(arr_no_pad)) + '_samples'
+    print(save_name)
     np.save(save_name,similarities)
     return None
 
