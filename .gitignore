@@ -180,4 +180,6 @@ data/embeddings/metadata
 data/models/architecture-roberta-base
 data/models/finetuned_models
 
+data/analysis/prepared
+
 hydra_output_dir/
