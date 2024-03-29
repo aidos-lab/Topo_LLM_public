@@ -27,18 +27,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
-
-# System imports
 import logging
 import pathlib
 from datetime import datetime
 
-# Third-party imports
 import pytest
+from dotenv import load_dotenv, find_dotenv
 
-# Local imports
 from topollm.config_classes.TransformationsConfig import (
     TransformationsConfig,
 )
@@ -54,9 +49,6 @@ from topollm.config_classes.path_management.SeparateDirectoriesEmbeddingsPathMan
     SeparateDirectoriesEmbeddingsPathManager,
 )
 
-# END Imports
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # START Configuration of the logging module
 
@@ -68,6 +60,28 @@ logger = logging.getLogger(__name__)
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # START Configuration of pytest
+
+
+@pytest.fixture(
+    scope="session",
+    autouse=True,
+)
+def load_env() -> None:
+    """
+    https://stackoverflow.com/questions/48211784/best-way-to-use-python-dotenv-with-pytest-or-best-way-to-have-a-pytest-test-dev
+    """
+    env_file = find_dotenv(".test.env")
+    result = load_dotenv(
+        dotenv_path=env_file,
+        verbose=True,
+    )
+
+    if result:
+        logger.info(f"Loaded environment variables from {env_file = }")
+    else:
+        logger.warning(f"No environment variables loaded from {env_file = }")
+
+    return None
 
 
 def pytest_addoption(
@@ -149,8 +163,10 @@ def data_config() -> DataConfig:
         column_name="summary",
         context="dataset_entry",
         dataset_description_string="xsum",
-        dataset_identifier="xsum",
         dataset_type=DatasetType.HUGGINGFACE_DATASET,
+        data_dir=None,
+        dataset_path="xsum",
+        dataset_name=None,
         number_of_samples=5000,
         split=Split.TRAIN,
     )
@@ -176,6 +192,7 @@ def dataset_map_config() -> DatasetMapConfig:
 def language_model_config() -> LanguageModelConfig:
     return LanguageModelConfig(
         pretrained_model_name_or_path="roberta-base",
+        short_model_name="roberta-base",
         masking_mode="no_masking",
     )
 

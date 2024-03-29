@@ -51,6 +51,7 @@ def log_huggingface_dataset_info(
     logger: logging.Logger = logging.getLogger(__name__),
 ) -> None:
     """Logs information about the dataset."""
+
     logger.info(
         f"{dataset_name}.info:\n" f"{pprint.pformat(dataset.info)}",
     )
@@ -63,12 +64,12 @@ def log_huggingface_dataset_info(
 
     # Log the first and last few samples of the dataset
     logger.info(
-        f"{dataset_name[:num_samples_to_log]}:\n"
+        f"{dataset_name}[:{num_samples_to_log}]:\n"
         f"{dataset[:num_samples_to_log]}",  # Do not use pprint here, as it will not be readable
     )
     logger.info(
-        f"{dataset[-num_samples_to_log:]}:\n",
-        f"{dataset_name[-num_samples_to_log:]}",  # Do not use pprint here, as it will not be readable
+        f"{dataset_name}[-{num_samples_to_log}:]:\n"
+        f"{dataset[-num_samples_to_log:]}",  # Do not use pprint here, as it will not be readable
     )
 
     return None

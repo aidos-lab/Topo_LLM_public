@@ -27,49 +27,48 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
-
-# System imports
 import logging
-import os
-import pathlib
 
-# Local imports
-from topollm.config_classes.DataConfig import DataConfig
-from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
-from topollm.config_classes.MainConfig import MainConfig
-from topollm.config_classes.PathsConfig import PathsConfig
-from topollm.config_classes.path_management.BasicFinetuningPathManager import (
-    BasicFinetuningPathManager,
-)
-from topollm.config_classes.path_management.FinetuningPathManagerProtocol import (
-    FinetuningPathManager,
-)
+import peft.mapping
+import peft.peft_model
+import torch
+from peft.tuners.lora.config import LoraConfig
+from transformers import PreTrainedModel
 
-# Third-party imports
+from topollm.logging.log_model_info import log_model_info
 
 
-# END Imports
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Globals
-
-# END Globals
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-
-
-def get_finetuning_path_manager(
-    config: MainConfig,
+def prepare_lora_model(
+    base_model: PreTrainedModel,
+    lora_config: LoraConfig,
+    device: torch.device,
     logger: logging.Logger = logging.getLogger(__name__),
-) -> FinetuningPathManager:
-    path_manger = BasicFinetuningPathManager(
-        data_config=config.data,
-        paths_config=config.paths,
-        finetuning_config=config.finetuning,
-        verbosity=config.verbosity,
+) -> peft.peft_model.PeftModel:
+
+    # Get the model prepared with PEFT
+    # (here: LoRA)
+    lora_model = peft.mapping.get_peft_model(
+        model=base_model,
+        peft_config=lora_config,
+        adapter_name="default",
+    )
+    lora_model.print_trainable_parameters()
+
+    assert isinstance(
+        lora_model,
+        peft.peft_model.PeftModel,
+    )
+
+    log_model_info(
+        model=lora_model,
         logger=logger,
     )
 
-    return path_manger
+    # Move the model to GPU if available
+    logger.info(f"Moving model to {device = } ...")
+    lora_model.to(
+        device,  # type: ignore
+    )
+    logger.info(f"Moving model to {device = } DONE")
+
+    return lora_model

@@ -28,33 +28,22 @@
 # limitations under the License.
 
 """
-Create embedding vectors from dataset.
+Load embeddings and metadata.
 """
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
-
-# Standard library imports
 import logging
 import os
 import pathlib
 import pickle
 
-# Third party imports
 import hydra
 import hydra.core.hydra_config
 import omegaconf
 import zarr
 
-
-# Local imports
 from topollm.config_classes.MainConfig import MainConfig
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
-
-# END Imports
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # START Globals

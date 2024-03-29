@@ -27,49 +27,46 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
+import datasets
+import transformers
 
-# System imports
-import logging
-import os
-import pathlib
-
-# Local imports
-from topollm.config_classes.DataConfig import DataConfig
 from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
-from topollm.config_classes.MainConfig import MainConfig
-from topollm.config_classes.PathsConfig import PathsConfig
-from topollm.config_classes.path_management.BasicFinetuningPathManager import (
-    BasicFinetuningPathManager,
-)
-from topollm.config_classes.path_management.FinetuningPathManagerProtocol import (
-    FinetuningPathManager,
-)
-
-# Third-party imports
 
 
-# END Imports
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+def prepare_model_input(
+    train_dataset: datasets.Dataset,
+    eval_dataset: datasets.Dataset,
+    tokenizer: transformers.PreTrainedTokenizer | transformers.PreTrainedTokenizerFast,
+    finetuning_config: FinetuningConfig,
+) -> tuple[
+    datasets.Dataset,
+    datasets.Dataset,
+]:
+    def tokenize_function(
+        dataset_entries: dict[
+            str,
+            list,
+        ],
+    ) -> transformers.tokenization_utils_base.BatchEncoding:
+        # NOTE: This assumes that train and eval datasets use the same column name
+        column_name = finetuning_config.finetuning_datasets.train_dataset.column_name
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Globals
+        result = tokenizer(
+            dataset_entries[column_name],
+            padding="max_length",
+            truncation=True,
+            max_length=finetuning_config.max_length,
+        )
 
-# END Globals
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+        return result
 
-
-def get_finetuning_path_manager(
-    config: MainConfig,
-    logger: logging.Logger = logging.getLogger(__name__),
-) -> FinetuningPathManager:
-    path_manger = BasicFinetuningPathManager(
-        data_config=config.data,
-        paths_config=config.paths,
-        finetuning_config=config.finetuning,
-        verbosity=config.verbosity,
-        logger=logger,
+    train_dataset_mapped = train_dataset.map(
+        tokenize_function,
+        batched=True,
+    )
+    eval_dataset_mapped = eval_dataset.map(
+        tokenize_function,
+        batched=True,
     )
 
-    return path_manger
+    return train_dataset_mapped, eval_dataset_mapped

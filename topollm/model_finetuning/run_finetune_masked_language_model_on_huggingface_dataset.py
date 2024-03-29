@@ -27,49 +27,68 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
+"""
+Script for fine-tuning language model on huggingface datasets.
+"""
 
-# System imports
 import logging
-import os
-import pathlib
 
-# Local imports
-from topollm.config_classes.DataConfig import DataConfig
-from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
+import hydra
+import hydra.core.hydra_config
+import omegaconf
+import transformers
+
 from topollm.config_classes.MainConfig import MainConfig
-from topollm.config_classes.PathsConfig import PathsConfig
-from topollm.config_classes.path_management.BasicFinetuningPathManager import (
-    BasicFinetuningPathManager,
-)
-from topollm.config_classes.path_management.FinetuningPathManagerProtocol import (
-    FinetuningPathManager,
-)
-
-# Third-party imports
-
-
-# END Imports
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+from topollm.logging.initialize_configuration_and_log import initialize_configuration
+from topollm.logging.setup_exception_logging import setup_exception_logging
+from topollm.model_finetuning.do_finetuning_process import do_finetuning_process
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # START Globals
+
+# A logger for this file
+global_logger = logging.getLogger(__name__)
+
+setup_exception_logging(
+    logger=global_logger,
+)
+
+# Set the transformers logging level
+transformers.logging.set_verbosity_info()
+
+
+# torch.set_num_threads(1)
 
 # END Globals
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
-def get_finetuning_path_manager(
-    config: MainConfig,
-    logger: logging.Logger = logging.getLogger(__name__),
-) -> FinetuningPathManager:
-    path_manger = BasicFinetuningPathManager(
-        data_config=config.data,
-        paths_config=config.paths,
-        finetuning_config=config.finetuning,
-        verbosity=config.verbosity,
-        logger=logger,
+@hydra.main(
+    config_path="../../configs",
+    config_name="main_config",
+    version_base="1.2",
+)
+def main(
+    config: omegaconf.DictConfig,
+) -> None:
+    """Run the script."""
+
+    global_logger.info("Running script ...")
+
+    main_config: MainConfig = initialize_configuration(
+        config=config,
+        logger=global_logger,
     )
 
-    return path_manger
+    do_finetuning_process(
+        main_config=main_config,
+        logger=global_logger,
+    )
+
+    global_logger.info("Running script DONE")
+
+    return None
+
+
+if __name__ == "__main__":
+    main()

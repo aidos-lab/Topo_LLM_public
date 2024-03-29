@@ -1,12 +1,22 @@
 # Topo_LLM
 
-## Installation instructions with poetry
+## Overview
 
-1. Preparing the environment.
+This repository contains code for analyzing the representations produced by contextual language models from a topological perspective.
 
-Required Python version: 3.10
-On MacOS, you can install `pyenv` with homebrew: `brew install pyenv`.
-You can install `poetry` with `pipx` for example: `pipx install poetry`.
+## Installation
+
+### Prerequisites
+
+- Python 3.10
+- `pyenv` for managing Python versions
+- `pipx` for managing Python packages
+- `poetry` package manager
+
+On MacOS, you can install `pyenv` with homebrew: `brew install pyenv` and `pipx` with homebrew: `brew install pipx`.
+You can install `poetry` with `pipx` via: `pipx install poetry`.
+
+### Installation instructions with poetry
 
 1. Install python version with `pyenv` and set local python version for the project.
 
@@ -29,7 +39,7 @@ You can manage the poetry environments with the following commands:
 
 ```bash
 poetry env list --full-path # List all the environments
-poetry env remove <path> # Remove an environment
+poetry env remove '<path>' # Remove an environment
 poetry env remove --all # Remove all the environments
 ```
 
@@ -37,18 +47,20 @@ poetry env remove --all # Remove all the environments
 Select the appropriate dependency groups for your system.
 
 ```bash
-poetry install --with gpu,dev --without cpu # For GPU
+# For GPU
+poetry install --with gpu,dev --without cpu
 ```
 
 ```bash
-poetry install --with cpu,dev --without gpu # For CPU
+# For CPU
+poetry install --with cpu,dev --without gpu
 ```
 
 1. Set the correct environment variables used in the project config.
-Edit the script `setup_environment.sh` with the correct paths and run it once.
+Edit the script `scripts/setup_environment.sh` with the correct paths and run it once.
 
 ```bash
-./setup_environment.sh
+./scripts/setup_environment.sh
 ```
 
 ## Project Structure
