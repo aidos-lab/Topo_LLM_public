@@ -7,6 +7,7 @@
 #
 # Authors:
 # Benjamin Ruppik (ruppik@hhu.de)
+# Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
 # First versions of this code were potentially generated
@@ -26,18 +27,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
 
-import pathlib
-from typing import Protocol
+from topollm.config_classes.finetuning.peft.PEFTConfig import PEFTConfig
+from topollm.path_management.finetuning.peft.PEFTPathManagerBasic import (
+    PEFTPathManagerBasic,
+)
+from topollm.path_management.finetuning.peft.PEFTPathManagerProtocol import (
+    PEFTPathManager,
+)
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# START Globals
+
+# END Globals
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
-class FinetuningPathManager(Protocol):
-    @property
-    def finetuned_model_dir(
-        self,
-    ) -> pathlib.Path: ...  # pragma: no cover
+def get_peft_path_manager(
+    peft_config: PEFTConfig,
+    verbosity: int = 1,
+    logger: logging.Logger = logging.getLogger(__name__),
+) -> PEFTPathManager:
+    path_manger = PEFTPathManagerBasic(
+        peft_config=peft_config,
+        verbosity=verbosity,
+        logger=logger,
+    )
 
-    @property
-    def logging_dir(
-        self,
-    ) -> pathlib.Path | None: ...  # pragma: no cover
+    return path_manger

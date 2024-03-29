@@ -27,60 +27,48 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-Script for setting global variables for the config files.
-"""
+import logging
+import pathlib
 
+from topollm.config_classes.finetuning.peft.PEFTConfig import PEFTConfig
+from topollm.config_classes.enums import FinetuningMode
+from topollm.config_classes.constants import NAME_PREFIXES
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
-
-# System imports
-
-# Third-party imports
-
-
-# END Imports
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # START Globals
 
-# This dictionary of prefixes allows us to
-# easily change the prefixes for file paths and names
-# in one place without modifying the functions itself,
-# enhancing the maintainability of the code.
-NAME_PREFIXES: dict[
-    str,
-    str,
-] = {
-    "aggregation": "agg-",
-    "add_prefix_space": "add-prefix-space-",
-    "center": "center-",
-    "context": "ctxt-",
-    "data": "data-",
-    "dataloader_desc": "dataloader-",
-    "epoch": "ep-",
-    "FinetuningMode": "ftm-",
-    "global_step": "gs-",
-    "label_map_description": "labelmap-",
-    "layer": "layer-",
-    "level": "lvl-",
-    "metric": "metric-",
-    "model": "model-",
-    "model_parameters": "mparam-",
-    "masking_mode": "mask-",
-    "max_length": "max-len-",
-    "normalization": "norm-",
-    "n_neighbors": "n-neighbors-",
-    "query": "query-",
-    "split": "split-",
-    "transformation": "trans-",
-    "use_canonical_values_from_dataset": "use-canonical-val-",
-}
-
-FILE_NAME_TRUNCATION_LENGTH: int = 200
-
-
 # END Globals
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+
+class PEFTPathManagerBasic:
+    def __init__(
+        self,
+        peft_config: PEFTConfig,
+        verbosity: int = 1,
+        logger: logging.Logger = logging.getLogger(__name__),
+    ) -> None:
+        self.peft_config = peft_config
+
+        self.verbosity = verbosity
+        self.logger = logger
+
+        return None
+
+    @property
+    def peft_description(
+        self,
+    ) -> str:
+
+        if self.peft_config.finetuning_mode == FinetuningMode.STANDARD:
+            description = f"{NAME_PREFIXES['FinetuningMode']}" f"standard"
+        elif self.peft_config.finetuning_mode == FinetuningMode.LORA:
+            description = f"{NAME_PREFIXES['FinetuningMode']}" f"lora"
+            # TODO: Update this
+        else:
+            raise ValueError(
+                f"Unknown finetuning_mode: " f"{self.peft_config.finetuning_mode = }"
+            )
+
+        return description

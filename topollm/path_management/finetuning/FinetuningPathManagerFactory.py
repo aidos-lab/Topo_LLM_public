@@ -28,8 +28,6 @@
 # limitations under the License.
 
 import logging
-import os
-import pathlib
 
 from topollm.config_classes.DataConfig import DataConfig
 from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig

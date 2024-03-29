@@ -26,18 +26,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-import pathlib
 from typing import Protocol
 
 
-class FinetuningPathManager(Protocol):
+class PEFTPathManager(Protocol):
     @property
-    def finetuned_model_dir(
+    def peft_description(
         self,
-    ) -> pathlib.Path: ...  # pragma: no cover
-
-    @property
-    def logging_dir(
-        self,
-    ) -> pathlib.Path | None: ...  # pragma: no cover
+    ) -> str: ...  # pragma: no cover

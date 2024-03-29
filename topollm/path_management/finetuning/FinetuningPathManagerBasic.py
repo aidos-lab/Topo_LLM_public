@@ -27,23 +27,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
-
-# System imports
 import logging
 import pathlib
 
-# Third-party imports
-
-# Local imports
+from topollm.config_classes.constants import NAME_PREFIXES
 from topollm.config_classes.DataConfig import DataConfig
 from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
 from topollm.config_classes.PathsConfig import PathsConfig
-from topollm.config_classes.constants import NAME_PREFIXES
-
-# END Imports
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # START Globals
@@ -92,7 +82,11 @@ class FinetuningPathManagerBasic:
     def epoch_description(
         self,
     ):
-        return f"{NAME_PREFIXES['epoch']}{self.finetuning_config.num_train_epochs}"
+        description = (
+            f"{NAME_PREFIXES['epoch']}" f"{self.finetuning_config.num_train_epochs}"
+        )
+
+        return description
 
     @property
     def finetuned_model_dir(

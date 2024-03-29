@@ -35,7 +35,7 @@ from topollm.config_classes.enums import FinetuningMode
 
 class PEFTConfig(ConfigBaseModel):
     finetuning_mode: FinetuningMode = Field(
-        ...,
+        default=FinetuningMode.STANDARD,
         description="The finetuning mode of the PEFT model.",
     )
 
