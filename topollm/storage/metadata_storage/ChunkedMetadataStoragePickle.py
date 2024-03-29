@@ -58,7 +58,7 @@ def chunk_identifier_str(
     return str(chunk_identifier.chunk_idx).zfill(fill_zeros)
 
 
-class PickleChunkedMetadataStorage:
+class ChunkedMetadataStoragePickle:
     """
     A storage protocol backend for embedding metadata using Pickles.
 

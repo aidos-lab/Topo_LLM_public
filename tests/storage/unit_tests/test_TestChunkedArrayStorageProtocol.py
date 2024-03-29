@@ -40,7 +40,8 @@ import numpy as np
 import pytest
 
 # Local imports
-from topollm.storage import StorageProtocols, ZarrChunkedArrayStorage
+from topollm.storage import StorageProtocols
+from topollm.storage.array_storage import ChunkedArrayStorageZarr
 
 # END Imports
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -191,7 +192,7 @@ class ZarrChunkedArrayStorageFactory(ChunkedArrayStorageFactory):
             f"Creating ZarrChunkedArrayStorage storage " f"at {storage_path = }"
         )
 
-        return ZarrChunkedArrayStorage.ZarrChunkedArrayStorage(
+        return ChunkedArrayStorageZarr.ChunkedArrayStorageZarr(
             array_properties=self.array_properties,
             root_storage_path=storage_path,
             logger=self.logger,

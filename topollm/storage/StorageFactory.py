@@ -39,9 +39,9 @@ from os import PathLike
 
 # Third party imports
 from topollm.config_classes.enums import ArrayStorageType, MetadataStorageType
-from topollm.storage import PickleChunkedMetadataStorage
-from topollm.storage import XarrayChunkedMetadataStorage
-from topollm.storage import ZarrChunkedArrayStorage
+from topollm.storage.metadata_storage import ChunkedMetadataStoragePickle
+from topollm.storage.metadata_storage import ChunkedMetadataStorageXarray
+from topollm.storage.array_storage import ChunkedArrayStorageZarr
 from topollm.storage.StorageProtocols import (
     ArrayProperties,
     ChunkedArrayStorageProtocol,
@@ -86,7 +86,7 @@ class StorageFactory:
         based on the storage type.
         """
         if self.storage_specification.array_storage_type == ArrayStorageType.ZARR:
-            storage_backend = ZarrChunkedArrayStorage.ZarrChunkedArrayStorage(
+            storage_backend = ChunkedArrayStorageZarr.ChunkedArrayStorageZarr(
                 array_properties=self.storage_specification.array_properties,
                 root_storage_path=self.storage_specification.storage_paths.array_dir,
             )
@@ -106,7 +106,7 @@ class StorageFactory:
             self.storage_specification.metadata_storage_type
             == MetadataStorageType.XARRAY
         ):
-            storage_backend = XarrayChunkedMetadataStorage.XarrayChunkedMetadataStorage(
+            storage_backend = ChunkedMetadataStorageXarray.ChunkedMetadataStorageXarray(
                 array_properties=self.storage_specification.array_properties,
                 root_storage_path=self.storage_specification.storage_paths.metadata_dir,
                 logger=self.logger,
@@ -115,7 +115,7 @@ class StorageFactory:
             self.storage_specification.metadata_storage_type
             == MetadataStorageType.PICKLE
         ):
-            storage_backend = PickleChunkedMetadataStorage.PickleChunkedMetadataStorage(
+            storage_backend = ChunkedMetadataStoragePickle.ChunkedMetadataStoragePickle(
                 root_storage_path=self.storage_specification.storage_paths.metadata_dir,
                 logger=self.logger,
             )

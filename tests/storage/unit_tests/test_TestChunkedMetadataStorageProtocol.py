@@ -33,6 +33,7 @@
 # System imports
 import logging
 import pathlib
+import pprint
 from abc import ABC, abstractmethod
 
 # Third-party imports
@@ -40,7 +41,8 @@ import numpy as np
 import pytest
 
 # Local imports
-from topollm.storage import StorageProtocols, PickleChunkedMetadataStorage
+from topollm.storage import StorageProtocols
+from topollm.storage.metadata_storage import ChunkedMetadataStoragePickle
 
 # END Imports
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -103,7 +105,9 @@ class _ChunkedMetadataStorageProtocol(ABC):
         storage.open()
 
         logger_fixture.info(
-            f"Testing with\n{example_batch = }\n" f"and\n{chunk_idx = }"
+            f"Testing with example_batch:\n"
+            f"{pprint.pformat(example_batch)}\n"
+            f"and\n{chunk_idx = }"
         )
 
         chunk_identifier = StorageProtocols.ChunkIdentifier(
@@ -120,7 +124,7 @@ class _ChunkedMetadataStorageProtocol(ABC):
         storage.write_chunk(
             data_chunk=metadata_chunk,
         )
-        read_chunk = storage.read_chunk(
+        read_chunk: StorageProtocols.MetadataChunk = storage.read_chunk(
             chunk_identifier=chunk_identifier,
         )
 
@@ -156,7 +160,7 @@ class PickleChunkedMetadataStorageFactory(ChunkedMetadataStorageFactory):
             f"Creating PickleChunkedMetadataStorage storage " f"at {storage_path = }"
         )
 
-        return PickleChunkedMetadataStorage.PickleChunkedMetadataStorage(
+        return ChunkedMetadataStoragePickle.ChunkedMetadataStoragePickle(
             root_storage_path=storage_path,
             logger=self.logger,
         )

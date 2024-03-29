@@ -27,36 +27,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
-
 # Standard library imports
 import logging
 import os
-import warnings
+import pathlib
 
 # Third party imports
+import zarr
+import zarr.creation
 
 # Local imports
 from topollm.storage.StorageProtocols import (
-    MetadataChunk,
-    ChunkIdentifier,
+    ArrayDataChunk,
     ArrayProperties,
+    ChunkIdentifier,
 )
 
-# END Imports
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-
-class XarrayChunkedMetadataStorage:
+class ChunkedArrayStorageZarr:
     """
-    A storage protocol backend for embedding metadata using Xarray.
+    A storage protocol backend for chunked arrays using Zarr.
 
     Note: We do not need to inherit from the storage protocols,
     since we are not relying on an abstract base class.
     """
-
-    # TODO Implement this class
 
     def __init__(
         self,
@@ -65,48 +59,54 @@ class XarrayChunkedMetadataStorage:
         logger: logging.Logger = logging.getLogger(__name__),
     ):
         self.array_properties = array_properties
-        self.root_storage_path = root_storage_path
+        self.root_storage_path = pathlib.Path(
+            root_storage_path,
+        )
         self.logger = logger
 
     def open(
         self,
     ) -> None:
         # # # #
-        # Open xarray (for metadata)
+        # Open zarr array (for embeddings)
         os.makedirs(
             self.root_storage_path,
             exist_ok=True,
         )
 
-        file_name = "metadata.nc"  # TODO: Might not be neccessary
-
-        warnings.warn(
-            message=f"xarray Not implemented yet",
+        self.zarr_array = zarr.creation.open_array(
+            store=self.root_storage_path,
+            mode="w",
+            shape=self.array_properties.shape,
+            dtype=self.array_properties.dtype,
+            chunks=self.array_properties.chunks,  # type: ignore
         )
-
-        # TODO 2: Continue here
 
         return
 
     def write_chunk(
         self,
-        data_chunk: MetadataChunk,
+        data_chunk: ArrayDataChunk,
     ) -> None:
-        # TODO: Update this to work with the DataClass
+        start_idx = data_chunk.chunk_identifier.start_idx
+        end_idx = data_chunk.chunk_identifier.end_idx
 
-        # TODO 1: Implement saving of the embeddings
-        # TODO 2: Implement saving of the metadata
+        data = data_chunk.batch_of_sequences_embedding_array
 
-        warnings.warn(
-            message=f"write_chunk Not implemented yet",
-        )
+        self.zarr_array[start_idx:end_idx,] = data
 
-        return None  # TODO This is still a fake implementation
+        return
 
     def read_chunk(
         self,
         chunk_identifier: ChunkIdentifier,
-    ) -> MetadataChunk:
-        # TODO implement
+    ) -> ArrayDataChunk:
+        start_idx = chunk_identifier.start_idx
+        end_idx = chunk_identifier.end_idx
 
-        raise NotImplementedError  # ! Remove this line
+        data = self.zarr_array[start_idx:end_idx,]
+
+        return ArrayDataChunk(
+            batch_of_sequences_embedding_array=data,
+            chunk_identifier=chunk_identifier,
+        )
