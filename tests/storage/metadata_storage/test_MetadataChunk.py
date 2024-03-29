@@ -27,13 +27,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
+
 import torch
-from hypothesis import given
+from hypothesis import given, settings, Verbosity
 from hypothesis import strategies as st
-from hypothesis.strategies import dictionaries, integers
+from hypothesis.strategies import dictionaries
 
 from topollm.storage.StorageDataclasses import ChunkIdentifier
 from topollm.storage.metadata_storage.MetadataChunk import MetadataChunk
+
+logger = logging.getLogger(__name__)
 
 
 def tensors(
@@ -67,7 +71,10 @@ chunk_identifier_strategy = st.builds(
 
 metadata_chunk_strategy = st.builds(
     MetadataChunk,
-    batch=dictionaries(keys=st.text(), values=tensors()).map(dict),
+    batch=dictionaries(
+        keys=st.text(),
+        values=tensors(),
+    ).map(dict),
     chunk_identifier=chunk_identifier_strategy,
 )
 
@@ -76,6 +83,9 @@ metadata_chunk_strategy = st.builds(
     metadata_chunk_strategy,
     metadata_chunk_strategy,
 )
+@settings(
+    verbosity=Verbosity.verbose,
+)
 def test_metadata_chunk_equality(
     chunk1: MetadataChunk,
     chunk2: MetadataChunk,
@@ -83,6 +93,11 @@ def test_metadata_chunk_equality(
     """
     Test that MetadataChunk equality works as expected
     """
+    # Note: This logging produces a lot of output when run with Hypothesis,
+    # because it will print all the generated examples.
+    #
+    # logger.info(f"{chunk1 = }")
+    # logger.info(f"{chunk2 = }")
 
     # Check reflexivity
     assert chunk1 == chunk1

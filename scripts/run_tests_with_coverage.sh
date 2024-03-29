@@ -22,4 +22,5 @@ python3 -m pytest $KEEP_TEST_DATA_FLAG \
     -m "not slow" \
     tests/ \
     --cov=topollm/ \
-    --cov-report=html:tests/temp_files/coverage_report
+    --cov-report=html:tests/temp_files/coverage_report \
+    --hypothesis-show-statistics
