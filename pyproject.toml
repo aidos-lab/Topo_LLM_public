@@ -22,17 +22,17 @@ readme = "README.md"
     tqdm = "*"
     transformers = "*"
     zarr = "*"
-tensorboard = "^2.16.2"
-seaborn = "^0.13.2"
-giotto-tda = "^0.6.0"
-umap-learn = "^0.5.5"
-peft = "^0.10.0"
+    tensorboard = "^2.16.2"
+    seaborn = "^0.13.2"
+    giotto-tda = "^0.6.0"
+    umap-learn = "^0.5.5"
+    peft = "^0.10.0"
+    python-dotenv = "^1.0.1"
 
 
 [tool.poetry.group.dev.dependencies]
     pytest = "^8.0.1"
     pytest-cov = "*"
-    pytest-env = "*"
 
 [tool.poetry.group.cpu]
     optional = true
@@ -46,6 +46,13 @@ peft = "^0.10.0"
 [tool.poetry.group.gpu.dependencies]
     faiss-gpu = "*"
     gpustat = "^1.1.1"
+
+# This section is for using the PyPI mirror on hilbert (HHU internal)
+#
+# [[tool.poetry.source]]
+#     name = "hhu"
+#     url = "http://pypi.repo.test.hhu.de/simple/"
+#     priority = "default"
 
 [build-system]
 requires = ["poetry-core"]
