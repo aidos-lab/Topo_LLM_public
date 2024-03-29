@@ -27,29 +27,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
-
-# Standard library imports
 import logging
+from typing import Any
 
-# Third party imports
-
-# Local imports
-
-# END Imports
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+from transformers import PreTrainedModel
 
 
 def log_model_info(
-    model,
+    model: PreTrainedModel | Any,
+    model_name: str = "model",
     logger: logging.Logger = logging.getLogger(__name__),
 ) -> None:
-    logger.info(f"model:\n{model}")
+    logger.info(f"{model_name}:\n" f"{model}")
     if hasattr(
         model,
         "config",
     ):
-        logger.info(f"model.config:\n" f"{model.config}")
+        logger.info(f"{model_name}.config:\n" f"{model.config}")
 
     return None
