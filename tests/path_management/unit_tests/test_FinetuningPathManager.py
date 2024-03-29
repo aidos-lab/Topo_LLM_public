@@ -32,7 +32,7 @@ import pathlib
 
 import pytest
 
-from topollm.path_management import FinetuningPathManagerProtocol
+from topollm.path_management.finetuning import FinetuningPathManagerProtocol
 
 
 @pytest.fixture

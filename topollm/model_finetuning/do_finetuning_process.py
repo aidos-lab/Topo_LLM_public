@@ -34,10 +34,10 @@ import transformers
 
 from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
 from topollm.config_classes.MainConfig import MainConfig
-from topollm.path_management.FinetuningPathManagerFactory import (
+from topollm.path_management.finetuning.FinetuningPathManagerFactory import (
     get_finetuning_path_manager,
 )
-from topollm.path_management.FinetuningPathManagerProtocol import (
+from topollm.path_management.finetuning.FinetuningPathManagerProtocol import (
     FinetuningPathManager,
 )
 from topollm.data_handling.DatasetPreparerFactory import get_dataset_preparer

@@ -35,10 +35,12 @@ from topollm.config_classes.DataConfig import DataConfig
 from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
 from topollm.config_classes.MainConfig import MainConfig
 from topollm.config_classes.PathsConfig import PathsConfig
-from topollm.path_management.FinetuningPathManagerBasic import (
+from topollm.path_management.finetuning.FinetuningPathManagerBasic import (
     FinetuningPathManagerBasic,
 )
-from topollm.path_management.FinetuningPathManagerProtocol import FinetuningPathManager
+from topollm.path_management.finetuning.FinetuningPathManagerProtocol import (
+    FinetuningPathManager,
+)
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # START Globals

@@ -59,10 +59,12 @@ from topollm.config_classes.TransformationsConfig import TransformationsConfig
 from topollm.path_management.EmbeddingsPathManagerSeparateDirectories import (
     EmbeddingsPathManagerSeparateDirectories,
 )
-from topollm.path_management.FinetuningPathManagerBasic import (
+from topollm.path_management.finetuning.FinetuningPathManagerBasic import (
     FinetuningPathManagerBasic,
 )
-from topollm.path_management.FinetuningPathManagerProtocol import FinetuningPathManager
+from topollm.path_management.finetuning.FinetuningPathManagerProtocol import (
+    FinetuningPathManager,
+)
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # START Configuration of the logging module
