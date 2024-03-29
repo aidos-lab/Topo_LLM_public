@@ -27,26 +27,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-Create embedding vectors from dataset.
-"""
-
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
-
-# Standard library imports
 import logging
 from functools import partial
 
-# Third party imports
-import hydra
-import hydra.core.hydra_config
-import omegaconf
 import torch
-import torch.utils.data
 import transformers
 
-# Local imports
 from topollm.compute_embeddings.collate_batch_for_embedding import (
     collate_batch_and_move_to_device,
 )
@@ -56,81 +42,27 @@ from topollm.compute_embeddings.embedding_extractor.EmbeddingExtractorFactory im
 from topollm.compute_embeddings.EmbeddingDataLoaderPreparer import (
     EmbeddingDataLoaderPreparerContext,
 )
+from topollm.compute_embeddings.EmbeddingDataLoaderPreparerFactory import (
+    get_embedding_dataloader_preparer,
+)
 from topollm.compute_embeddings.TokenLevelEmbeddingDataHandler import (
     TokenLevelEmbeddingDataHandler,
 )
-from topollm.compute_embeddings.EmbeddingDataLoaderPreparerFactory import get_embedding_dataloader_preparer
-from topollm.model_handling.load_tokenizer import load_tokenizer
-from topollm.model_handling.load_model import load_model
-from topollm.model_handling.get_torch_device import get_torch_device
 from topollm.config_classes.MainConfig import MainConfig
 from topollm.config_classes.path_management.EmbeddingsPathManagerFactory import (
     get_embeddings_path_manager,
 )
-from topollm.logging.initialize_configuration_and_log import initialize_configuration
-from topollm.logging.setup_exception_logging import setup_exception_logging
+from topollm.model_handling.load_model import load_model
+from topollm.model_handling.load_tokenizer import load_tokenizer
+from topollm.storage.StorageDataclasses import ArrayProperties
 from topollm.storage.StorageFactory import (
     StorageFactory,
     StoragePaths,
     StorageSpecification,
 )
-from topollm.storage.StorageProtocols import ArrayProperties
-
-# END Imports
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Globals
-
-# A logger for this file
-global_logger = logging.getLogger(__name__)
-
-setup_exception_logging(
-    logger=global_logger,
-)
-
-# torch.set_num_threads(1)
-
-# END Globals
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
-@hydra.main(
-    config_path="../../configs",
-    config_name="main_config",
-    version_base="1.2",
-)
-def main(
-    config: omegaconf.DictConfig,
-) -> None:
-    """Run the script."""
-
-    print("Running script ...")
-
-    global_logger.info("Running script ...")
-
-    main_config: MainConfig = initialize_configuration(
-        config=config,
-        logger=global_logger,
-    )
-
-    device = get_torch_device(
-        preferred_torch_backend=main_config.preferred_torch_backend,
-        logger=global_logger,
-    )
-
-    compute_embeddings(
-        main_config=main_config,
-        device=device,
-        logger=global_logger,
-    )
-
-    global_logger.info("Running script DONE")
-
-    return
-
-
-def compute_embeddings(
+def compute_and_store_embeddings(
     main_config: MainConfig,
     device: torch.device,
     logger: logging.Logger = logging.getLogger(__name__),
@@ -233,7 +165,3 @@ def compute_embeddings(
     data_handler.process_data()
 
     return
-
-
-if __name__ == "__main__":
-    main()

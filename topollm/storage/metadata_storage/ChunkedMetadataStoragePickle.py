@@ -27,28 +27,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
-
-# Standard library imports
-from importlib import metadata
 import logging
 import os
 import pathlib
 import pickle
-import warnings
 
-# Third party imports
-
-# Local imports
-from topollm.storage.StorageProtocols import (
-    MetadataChunk,
-    ChunkIdentifier,
-    ArrayProperties,
-)
-
-# END Imports
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+from topollm.storage.metadata_storage.MetadataChunk import MetadataChunk
+from topollm.storage.StorageDataclasses import ChunkIdentifier
 
 
 def chunk_identifier_str(
@@ -58,7 +43,7 @@ def chunk_identifier_str(
     return str(chunk_identifier.chunk_idx).zfill(fill_zeros)
 
 
-class PickleChunkedMetadataStorage:
+class ChunkedMetadataStoragePickle:
     """
     A storage protocol backend for embedding metadata using Pickles.
 

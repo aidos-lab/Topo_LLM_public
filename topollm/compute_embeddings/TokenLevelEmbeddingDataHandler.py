@@ -27,53 +27,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
-
-# Standard library imports
 import logging
 
-# Third party imports
 import numpy as np
 import torch
 import torch.utils.data
+import transformers.modeling_outputs
 from tqdm import tqdm
 from transformers import PreTrainedModel
-import transformers.modeling_outputs
 
-# Local imports
 from topollm.compute_embeddings.embedding_extractor.EmbeddingExtractorProtocol import (
     EmbeddingExtractor,
 )
-from topollm.storage.StorageProtocols import (
+from topollm.compute_embeddings.move_batch_to_cpu import move_batch_to_cpu
+from topollm.storage.metadata_storage.MetadataChunk import MetadataChunk
+from topollm.storage.array_storage.ChunkedArrayStorageProtocol import (
+    ChunkedArrayStorageProtocol,
+)
+from topollm.storage.metadata_storage.ChunkedMetadataStorageProtocol import (
+    ChunkedMetadataStorageProtocol,
+)
+from topollm.storage.StorageDataclasses import (
     ArrayDataChunk,
     ChunkIdentifier,
-    ChunkedArrayStorageProtocol,
-    ChunkedMetadataStorageProtocol,
-    MetadataChunk,
 )
-
-# END Imports
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-
-
-def move_batch_to_cpu(
-    batch: dict,
-) -> dict:
-    """
-    Move all tensors in the batch to CPU.
-    """
-
-    batch_cpu = {
-        key: value.cpu()
-        for key, value in batch.items()
-        if isinstance(
-            value,
-            torch.Tensor,
-        )
-    }
-
-    return batch_cpu
 
 
 class TokenLevelEmbeddingDataHandler:

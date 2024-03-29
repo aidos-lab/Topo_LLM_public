@@ -38,8 +38,8 @@ import warnings
 # Third party imports
 
 # Local imports
-from topollm.storage.StorageProtocols import (
-    MetadataChunk,
+from topollm.storage.metadata_storage.MetadataChunk import MetadataChunk
+from topollm.storage.StorageDataclasses import (
     ChunkIdentifier,
     ArrayProperties,
 )
@@ -48,7 +48,7 @@ from topollm.storage.StorageProtocols import (
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
-class XarrayChunkedMetadataStorage:
+class ChunkedMetadataStorageXarray:
     """
     A storage protocol backend for embedding metadata using Xarray.
 

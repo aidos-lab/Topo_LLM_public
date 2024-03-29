@@ -27,26 +27,34 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
-
-# System imports
 import logging
 import pathlib
 from abc import ABC, abstractmethod
 
-# Third-party imports
 import numpy as np
 import pytest
 
-# Local imports
-from topollm.storage import StorageProtocols, PickleChunkedMetadataStorage
-
-# END Imports
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+import topollm.storage.array_storage.ChunkedArrayStorageProtocol
+from topollm.storage import StorageDataclasses
+from topollm.storage.array_storage import ChunkedArrayStorageZarr
 
 
-class ChunkedMetadataStorageFactory(ABC):
+@pytest.fixture(scope="function")
+def array_properties(
+    request: pytest.FixtureRequest,
+) -> StorageDataclasses.ArrayProperties:
+    """
+    Fixture that provides ArrayProperties based on parameterized inputs.
+    """
+    shape = request.param
+    return StorageDataclasses.ArrayProperties(
+        shape=shape,
+        dtype="float32",
+        chunks=(5,),
+    )
+
+
+class ChunkedArrayStorageFactory(ABC):
     """
     Abstract factory for creating storage instances.
     """
@@ -54,7 +62,9 @@ class ChunkedMetadataStorageFactory(ABC):
     @abstractmethod
     def create_storage(
         self,
-    ) -> StorageProtocols.ChunkedMetadataStorageProtocol:
+    ) -> (
+        topollm.storage.array_storage.ChunkedArrayStorageProtocol.ChunkedArrayStorageProtocol
+    ):
         """
         Creates and returns a storage instance, with all necessary
         arguments handled internally by the factory.
@@ -62,7 +72,7 @@ class ChunkedMetadataStorageFactory(ABC):
         pass
 
 
-class _ChunkedMetadataStorageProtocol(ABC):
+class _ChunkedArrayStorageProtocol(ABC):
     """
     Abstract base class for testing implementations of ChunkedArrayStorageProtocol.
     """
@@ -72,7 +82,7 @@ class _ChunkedMetadataStorageProtocol(ABC):
     def storage_factory(
         self,
         request,
-    ) -> ChunkedMetadataStorageFactory:
+    ) -> ChunkedArrayStorageFactory:
         """
         Should be overridden by subclasses to provide a concrete storage factory.
         The factory itself should handle all necessary arguments for storage creation.
@@ -82,19 +92,34 @@ class _ChunkedMetadataStorageProtocol(ABC):
     @pytest.fixture
     def storage(
         self,
-        storage_factory: ChunkedMetadataStorageFactory,
-    ) -> StorageProtocols.ChunkedMetadataStorageProtocol:
+        storage_factory: ChunkedArrayStorageFactory,
+    ) -> (
+        topollm.storage.array_storage.ChunkedArrayStorageProtocol.ChunkedArrayStorageProtocol
+    ):
         """
         Dynamic storage instance creation using the provided factory.
         """
         return storage_factory.create_storage()
 
+    @pytest.mark.parametrize(
+        "array_properties, chunk_length, start_idx",
+        [
+            pytest.param((10, 100), 8, 0, id="2D-size_10x100-start_0"),
+            pytest.param((10, 100), 2, 8, id="2D-size_10x100-start_10"),
+            pytest.param((100, 200), 10, 0, id="2D-size_100x200-start_0"),
+            pytest.param((100, 200), 20, 10, id="2D-size_100x200-start_10"),
+            pytest.param((800, 512, 786), 10, 0, id="3D-size_800x512x786-start_0"),
+            pytest.param((800, 512, 786), 20, 10, id="3D-size_800x512x786-start_10"),
+            # Add more combinations as needed
+        ],
+        indirect=["array_properties"],  # Specifies which parameters are for fixtures
+    )
     def test_write_and_read_chunk(
         self,
-        storage: StorageProtocols.ChunkedMetadataStorageProtocol,
-        example_batch: dict,
-        chunk_idx: int,
-        logger_fixture: logging.Logger,
+        storage: topollm.storage.array_storage.ChunkedArrayStorageProtocol.ChunkedArrayStorageProtocol,
+        array_properties: StorageDataclasses.ArrayProperties,
+        chunk_length: int,
+        start_idx: int,
     ) -> None:
         """
         Test that data written to storage can be read back accurately.
@@ -102,46 +127,53 @@ class _ChunkedMetadataStorageProtocol(ABC):
 
         storage.open()
 
-        logger_fixture.info(
-            f"Testing with\n{example_batch = }\n" f"and\n{chunk_idx = }"
+        # Take the length of the chunk to write from `chunk_length`
+        # and the remaining dimensions from `array_properties.shape`.
+        chunk_shape = (chunk_length,) + array_properties.shape[
+            1:
+        ]  # The '+' here is tuple concatenation
+
+        random_array = np.random.rand(*chunk_shape)
+        data = random_array.astype(
+            dtype=array_properties.dtype,
         )
 
-        chunk_identifier = StorageProtocols.ChunkIdentifier(
-            chunk_idx=chunk_idx,
-            start_idx=-1,  # Not used for metadata
-            chunk_length=-1,  # Not used for metadata
+        chunk_identifier = StorageDataclasses.ChunkIdentifier(
+            chunk_idx=0,
+            start_idx=start_idx,
+            chunk_length=chunk_length,
         )
 
-        metadata_chunk = StorageProtocols.MetadataChunk(
-            batch=example_batch,
+        data_chunk = StorageDataclasses.ArrayDataChunk(
+            batch_of_sequences_embedding_array=data,
             chunk_identifier=chunk_identifier,
         )
 
         storage.write_chunk(
-            data_chunk=metadata_chunk,
+            data_chunk=data_chunk,
         )
         read_chunk = storage.read_chunk(
             chunk_identifier=chunk_identifier,
         )
 
-        logger_fixture.info(metadata_chunk)
-        logger_fixture.info(read_chunk)
-
-        # FIXME Implement proper comparison for metadata chunks
-        #! Currently this test fails with "RuntimeError: Boolean value of Tensor with more than one value is ambiguous"
-        assert read_chunk == metadata_chunk, "Read data does not match written data"
+        assert np.array_equal(
+            read_chunk.batch_of_sequences_embedding_array,
+            data,
+        ), "Read data does not match written data"
 
 
-class PickleChunkedMetadataStorageFactory(ChunkedMetadataStorageFactory):
+class ChunkedArrayStorageZarrFactory(ChunkedArrayStorageFactory):
     """
     Factory for creating ZarrChunkedArrayStorage instances.
     """
 
     def __init__(
         self,
+        array_properties: StorageDataclasses.ArrayProperties,
         tmp_path: pathlib.Path,
         logger: logging.Logger,
     ):
+        self.array_properties = array_properties
         self.tmp_path = tmp_path
         self.logger = logger
 
@@ -150,31 +182,34 @@ class PickleChunkedMetadataStorageFactory(ChunkedMetadataStorageFactory):
     ):
         storage_path = pathlib.Path(
             self.tmp_path,
-            "pickle_chunked_metadata_storage_test",
+            "zarr_chunked_array_storage_test",
         )
         self.logger.info(
-            f"Creating PickleChunkedMetadataStorage storage " f"at {storage_path = }"
+            f"Creating ZarrChunkedArrayStorage storage " f"at {storage_path = }"
         )
 
-        return PickleChunkedMetadataStorage.PickleChunkedMetadataStorage(
+        return ChunkedArrayStorageZarr.ChunkedArrayStorageZarr(
+            array_properties=self.array_properties,
             root_storage_path=storage_path,
             logger=self.logger,
         )
 
 
-class TestPickleChunkedMetadataStorage(_ChunkedMetadataStorageProtocol):
+class TestChunkedArrayStorageZarr(_ChunkedArrayStorageProtocol):
     @pytest.fixture
     def storage_factory(  # type: ignore
         self,
         request: pytest.FixtureRequest,
+        array_properties: StorageDataclasses.ArrayProperties,
         test_data_dir: pathlib.Path,
         logger_fixture: logging.Logger,
-    ) -> ChunkedMetadataStorageFactory:
+    ) -> ChunkedArrayStorageFactory:
         """
         Provides a concrete factory instance, initialized with all necessary arguments
         for creating a ZarrChunkedArrayStorage instance.
         """
-        return PickleChunkedMetadataStorageFactory(
+        return ChunkedArrayStorageZarrFactory(
+            array_properties=array_properties,
             tmp_path=test_data_dir,
             logger=logger_fixture,
         )

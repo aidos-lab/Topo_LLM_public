@@ -28,11 +28,11 @@ readme = "README.md"
     umap-learn = "^0.5.5"
     peft = "^0.10.0"
     python-dotenv = "^1.0.1"
-graphriccicurvature = "^0.5.3.1"
-networkx = "^3.2.1"
-
+    graphriccicurvature = "^0.5.3.1"
+    networkx = "^3.2.1"
 
 [tool.poetry.group.dev.dependencies]
+    hypothesis = "^6.99.13"
     pytest = "^8.0.1"
     pytest-cov = "*"
 
