@@ -34,11 +34,11 @@ from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
 
 class BatchSizesConfig(ConfigBaseModel):
     train: int = Field(
-        ...,
+        default=8,
         description="The batch size for training.",
     )
 
     eval: int = Field(
-        ...,
+        default=16,
         description="The batch size for evaluation.",
     )

@@ -27,11 +27,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from pydantic import Field
+
 from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
 from topollm.config_classes.DataConfig import DataConfig
-
-
-from pydantic import Field
 
 
 class FinetuningDatasetsConfig(ConfigBaseModel):
