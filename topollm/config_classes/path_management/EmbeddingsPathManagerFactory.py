@@ -39,8 +39,8 @@ from topollm.config_classes.MainConfig import MainConfig
 from topollm.config_classes.path_management.EmbeddingsPathManagerProtocol import (
     EmbeddingsPathManager,
 )
-from topollm.config_classes.path_management.SeparateDirectoriesEmbeddingsPathManager import (
-    SeparateDirectoriesEmbeddingsPathManager,
+from topollm.config_classes.path_management.EmbeddingsPathManagerSeparateDirectories import (
+    EmbeddingsPathManagerSeparateDirectories,
 )
 
 # END Imports
@@ -51,7 +51,7 @@ def get_embeddings_path_manager(
     config: MainConfig,
     logger: logging.Logger = logging.getLogger(__name__),
 ) -> EmbeddingsPathManager:
-    path_manger = SeparateDirectoriesEmbeddingsPathManager(
+    path_manger = EmbeddingsPathManagerSeparateDirectories(
         data_config=config.data,
         embeddings_config=config.embeddings,
         paths_config=config.paths,

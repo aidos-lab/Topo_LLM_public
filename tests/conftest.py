@@ -28,6 +28,7 @@
 # limitations under the License.
 
 import logging
+import os
 import pathlib
 from datetime import datetime
 
@@ -45,8 +46,8 @@ from topollm.config_classes.LanguageModelConfig import LanguageModelConfig
 from topollm.config_classes.PathsConfig import PathsConfig
 from topollm.config_classes.TokenizerConfig import TokenizerConfig
 from topollm.config_classes.enums import DatasetType, Level, Split, AggregationType
-from topollm.config_classes.path_management.SeparateDirectoriesEmbeddingsPathManager import (
-    SeparateDirectoriesEmbeddingsPathManager,
+from topollm.config_classes.path_management.EmbeddingsPathManagerSeparateDirectories import (
+    EmbeddingsPathManagerSeparateDirectories,
 )
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -108,7 +109,8 @@ def pytest_configure(
             datetime.now(),
             "%Y-%m-%d_%H-%M-%S",
         )
-        config.option.log_file = "temp_files/logs/pytest-logs_" + timestamp + ".log"
+        # Note: the doubling {{ and }} is necessary to escape the curly braces
+        config.option.log_file = f"logs/pytest-logs_{timestamp}.log"
 
     return None
 
@@ -118,7 +120,41 @@ def pytest_configure(
 
 
 @pytest.fixture(scope="session")
+def repository_base_path() -> pathlib.Path:
+    # Get the values from the 'TOPO_LLM_REPOSITORY_BASE_PATH' environment variable
+    topo_llm_repository_base_path = os.getenv("TOPO_LLM_REPOSITORY_BASE_PATH")
+
+    if topo_llm_repository_base_path is None:
+        raise ValueError(
+            "The 'TOPO_LLM_REPOSITORY_BASE_PATH' environment variable is not set."
+        )
+
+    path = pathlib.Path(
+        topo_llm_repository_base_path,
+    )
+
+    return path
+
+
+@pytest.fixture(scope="session")
+def temp_files_dir() -> pathlib.Path:
+    # Get the values from the 'TEMP_FILES_DIR' environment variable
+    temp_files_dir = os.getenv("TEMP_FILES_DIR")
+
+    if temp_files_dir is None:
+        raise ValueError("The 'TEMP_FILES_DIR' environment variable is not set.")
+
+    path = pathlib.Path(
+        temp_files_dir,
+    )
+
+    return path
+
+
+@pytest.fixture(scope="session")
 def test_data_dir(
+    repository_base_path: pathlib.Path,
+    temp_files_dir: pathlib.Path,
     tmp_path_factory: pytest.TempPathFactory,
     pytestconfig: pytest.Config,
 ) -> pathlib.Path:
@@ -127,9 +163,8 @@ def test_data_dir(
     ):
         # Create a more permanent directory
         base_dir = pathlib.Path(
-            pathlib.Path.cwd(),
-            "temp_files",
-            "test_data",
+            repository_base_path,
+            temp_files_dir,
         )
         base_dir.mkdir(
             exist_ok=True,
@@ -141,15 +176,6 @@ def test_data_dir(
             basename="data-",
             numbered=True,
         )
-
-
-@pytest.fixture(scope="session")
-def repository_base_path() -> pathlib.Path:
-    return pathlib.Path(
-        pathlib.Path.home(),
-        "git-source",
-        "Topo_LLM",
-    )
 
 
 @pytest.fixture(scope="session")
@@ -248,8 +274,8 @@ def separate_directories_embeddings_path_manager(
     paths_config: PathsConfig,
     transformations_config: TransformationsConfig,
     logger_fixture: logging.Logger,
-) -> SeparateDirectoriesEmbeddingsPathManager:
-    return SeparateDirectoriesEmbeddingsPathManager(
+) -> EmbeddingsPathManagerSeparateDirectories:
+    return EmbeddingsPathManagerSeparateDirectories(
         data_config=data_config,
         embeddings_config=embeddings_config,
         paths_config=paths_config,
