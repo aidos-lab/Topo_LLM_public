@@ -82,7 +82,17 @@ class FinetuningPathManagerBasic:
             "models",
             "finetuned_models",
             self.finetuning_config.finetuning_datasets.train_dataset.data_config_description,
-            self.peft_path_manager.peft_description,
+            self.peft_path_manager.peft_description_subdir,
+            self.training_progress_subdir,
+        )
+
+        return path
+
+    @property
+    def training_progress_subdir(
+        self,
+    ) -> pathlib.Path:
+        path = pathlib.Path(
             self.epoch_description,
         )
 
@@ -91,7 +101,7 @@ class FinetuningPathManagerBasic:
     @property
     def epoch_description(
         self,
-    ):
+    ) -> str:
         description = (
             f"{NAME_PREFIXES['epoch']}" f"{self.finetuning_config.num_train_epochs}"
         )

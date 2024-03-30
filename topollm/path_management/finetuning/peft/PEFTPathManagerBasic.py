@@ -57,17 +57,39 @@ class PEFTPathManagerBasic:
         return None
 
     @property
-    def peft_description(
+    def peft_description_subdir(
+        self,
+    ) -> pathlib.Path:
+        path = pathlib.Path(
+            self.finetuning_mode_description,
+            self.lora_description,
+        )
+
+        return path
+
+    @property
+    def finetuning_mode_description(
         self,
     ) -> str:
-
         if self.peft_config.finetuning_mode == FinetuningMode.STANDARD:
             description = f"{NAME_PREFIXES['FinetuningMode']}" f"standard"
         elif self.peft_config.finetuning_mode == FinetuningMode.LORA:
+            description = f"{NAME_PREFIXES['FinetuningMode']}" f"lora"
+        else:
+            raise ValueError(
+                f"Unknown finetuning_mode: " f"{self.peft_config.finetuning_mode = }"
+            )
+
+        return description
+
+    @property
+    def lora_description(
+        self,
+    ) -> str:
+        if self.peft_config.finetuning_mode == FinetuningMode.STANDARD:
+            description = f"lora-None"
+        elif self.peft_config.finetuning_mode == FinetuningMode.LORA:
             description = (
-                f"{NAME_PREFIXES['FinetuningMode']}"
-                f"lora"
-                f"_"
                 f"{NAME_PREFIXES['lora_r']}"
                 f"{self.peft_config.r}"
                 f"_"

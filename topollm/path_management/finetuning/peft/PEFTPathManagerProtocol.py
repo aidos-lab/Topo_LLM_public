@@ -26,11 +26,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pathlib
 from typing import Protocol
 
 
 class PEFTPathManager(Protocol):
     @property
-    def peft_description(
+    def peft_description_subdir(
         self,
-    ) -> str: ...  # pragma: no cover
+    ) -> pathlib.Path: ...  # pragma: no cover
