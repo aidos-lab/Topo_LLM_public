@@ -1,32 +1,14 @@
 defaults:
   # - peft: standard
   - peft: lora
+  - finetuning_datasets: train_and_eval_on_bbc
+  # - finetuning_datasets: train_and_eval_on_bbc_manual
+  - _self_
 
 batch_sizes:
   train: 8
   eval: 16
 eval_steps: 400
-finetuning_datasets: 
-  train_dataset:
-    column_name: text
-    context: dataset_entry
-    dataset_description_string: multiwoz21
-    dataset_path: json
-    dataset_name: multiwoz21
-    data_dir: ${paths.data_dir}/datasets/dialogue_datasets/multiwoz21
-    dataset_type: huggingface_dataset
-    number_of_samples: 5000
-    split: train
-  eval_dataset:
-    column_name: text
-    context: dataset_entry
-    dataset_description_string: multiwoz21
-    dataset_path: json
-    dataset_name: multiwoz21
-    data_dir: ${paths.data_dir}/datasets/dialogue_datasets/multiwoz21
-    dataset_type: huggingface_dataset
-    number_of_samples: 5000
-    split: validation
 fp16: false
 gradient_accumulation_steps: 2
 gradient_checkpointing: true
