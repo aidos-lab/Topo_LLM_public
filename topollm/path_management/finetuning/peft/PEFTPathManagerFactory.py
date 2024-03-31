@@ -7,6 +7,7 @@
 #
 # Authors:
 # Benjamin Ruppik (ruppik@hhu.de)
+# Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
 # First versions of this code were potentially generated
@@ -26,37 +27,31 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
-
-# System imports
 import logging
 
-# External imports
-
-# Local imports
-from topollm.config_classes.MainConfig import MainConfig
-from topollm.config_classes.path_management.EmbeddingsPathManagerProtocol import (
-    EmbeddingsPathManager,
+from topollm.config_classes.finetuning.peft.PEFTConfig import PEFTConfig
+from topollm.path_management.finetuning.peft.PEFTPathManagerBasic import (
+    PEFTPathManagerBasic,
 )
-from topollm.config_classes.path_management.EmbeddingsPathManagerSeparateDirectories import (
-    EmbeddingsPathManagerSeparateDirectories,
+from topollm.path_management.finetuning.peft.PEFTPathManagerProtocol import (
+    PEFTPathManager,
 )
 
-# END Imports
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# START Globals
+
+# END Globals
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
-def get_embeddings_path_manager(
-    config: MainConfig,
+def get_peft_path_manager(
+    peft_config: PEFTConfig,
+    verbosity: int = 1,
     logger: logging.Logger = logging.getLogger(__name__),
-) -> EmbeddingsPathManager:
-    path_manger = EmbeddingsPathManagerSeparateDirectories(
-        data_config=config.data,
-        embeddings_config=config.embeddings,
-        paths_config=config.paths,
-        transformations_config=config.transformations,
-        verbosity=config.verbosity,
+) -> PEFTPathManager:
+    path_manger = PEFTPathManagerBasic(
+        peft_config=peft_config,
+        verbosity=verbosity,
         logger=logger,
     )
 

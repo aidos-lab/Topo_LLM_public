@@ -26,29 +26,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
+import logging
 
-# System imports
-import pathlib
-from typing import Protocol
-
-# Local imports
-
-# Third-party imports
-
-
-# END Globals
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+from topollm.config_classes.MainConfig import MainConfig
+from topollm.path_management.EmbeddingsPathManagerProtocol import (
+    EmbeddingsPathManager,
+)
+from topollm.path_management.EmbeddingsPathManagerSeparateDirectories import (
+    EmbeddingsPathManagerSeparateDirectories,
+)
 
 
-class FinetuningPathManager(Protocol):
-    @property
-    def finetuned_model_dir(
-        self,
-    ) -> pathlib.Path: ...  # pragma: no cover
+def get_embeddings_path_manager(
+    config: MainConfig,
+    logger: logging.Logger = logging.getLogger(__name__),
+) -> EmbeddingsPathManager:
+    path_manger = EmbeddingsPathManagerSeparateDirectories(
+        data_config=config.data,
+        embeddings_config=config.embeddings,
+        paths_config=config.paths,
+        transformations_config=config.transformations,
+        verbosity=config.verbosity,
+        logger=logger,
+    )
 
-    @property
-    def logging_dir(
-        self,
-    ) -> pathlib.Path | None: ...  # pragma: no cover
+    return path_manger

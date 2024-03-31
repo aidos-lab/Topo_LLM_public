@@ -32,15 +32,24 @@
 
 # System imports
 import logging
+import os
 import pathlib
-
-# Third-party imports
 
 # Local imports
 from topollm.config_classes.DataConfig import DataConfig
+from topollm.config_classes.EmbeddingsConfig import EmbeddingsConfig
 from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
 from topollm.config_classes.PathsConfig import PathsConfig
+from topollm.path_management.truncate_length_of_desc import (
+    truncate_length_of_desc,
+)
+from topollm.config_classes.TransformationsConfig import (
+    TransformationsConfig,
+)
 from topollm.config_classes.constants import NAME_PREFIXES
+
+# Third-party imports
+
 
 # END Imports
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -52,18 +61,20 @@ from topollm.config_classes.constants import NAME_PREFIXES
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
-class FinetuningPathManagerBasic:
+class EmbeddingsPathManagerSeparateDirectories:
     def __init__(
         self,
         data_config: DataConfig,
+        embeddings_config: EmbeddingsConfig,
         paths_config: PathsConfig,
-        finetuning_config: FinetuningConfig,
+        transformations_config: TransformationsConfig,
         verbosity: int = 1,
         logger: logging.Logger = logging.getLogger(__name__),
     ):
         self.data_config = data_config
-        self.finetuning_config = finetuning_config
+        self.embeddings_config = embeddings_config
         self.paths_config = paths_config
+        self.transformations_config = transformations_config
 
         self.verbosity = verbosity
         self.logger = logger
@@ -74,52 +85,99 @@ class FinetuningPathManagerBasic:
     ) -> pathlib.Path:
         return self.paths_config.data_dir
 
+    def get_nested_subfolder_path(
+        self,
+    ) -> pathlib.Path:
+        """
+        Constructs a nested subfolder path based on specific attributes.
+
+        Args:
+            include_data:
+                Whether to include the data prefix in the path.
+
+        Returns:
+            pathlib.Path: The constructed nested subfolder path.
+        """
+
+        path = pathlib.Path(
+            self.data_config.data_config_description,
+            self.embeddings_config.embeddings_config_description,
+            self.embeddings_config.tokenizer.tokenizer_config_description,
+            self.embeddings_config.language_model.lanugage_model_config_description,
+            self.embeddings_config.embedding_extraction.embedding_extraction_config_description,
+            self.transformations_config.transformation_config_description,
+        )
+
+        return path
+
+    # # # #
+    # array_dir
+
     @property
-    def finetuned_base_dir(
+    def array_dir_absolute_path(
         self,
     ) -> pathlib.Path:
         path = pathlib.Path(
             self.data_dir,
-            "models",
-            "finetuned_models",
-            self.finetuning_config.finetuning_datasets.train_dataset.data_config_description,
-            self.epoch_description,
+            self.array_dir_relative_path,
         )
+
+        if self.verbosity >= 1:
+            self.logger.info(f"array_dir_absolute_path:\n" f"{path}")
 
         return path
 
     @property
-    def epoch_description(
-        self,
-    ):
-        return f"{NAME_PREFIXES['epoch']}{self.finetuning_config.num_train_epochs}"
-
-    @property
-    def finetuned_model_dir(
+    def array_dir_relative_path(
         self,
     ) -> pathlib.Path:
         path = pathlib.Path(
-            self.finetuned_base_dir,
-            "model_files",
+            "embeddings",
+            "arrays",
+            self.get_nested_subfolder_path(),
+            self.array_dir_name,
         )
-
-        if self.verbosity >= 1:
-            self.logger.info(f"finetuned_model_dir:\n" f"{path}")
 
         return path
 
     @property
-    def logging_dir(
+    def array_dir_name(
         self,
-    ) -> pathlib.Path | None:
-        # path = pathlib.Path(
-        #     self.finetuned_model_dir,
-        #     "runs",
-        # )
+    ) -> str:
+        return "array_dir"
 
-        path = None
+    # # # #
+    # metadata_dir
+
+    @property
+    def metadata_dir_absolute_path(
+        self,
+    ) -> pathlib.Path:
+        path = pathlib.Path(
+            self.data_dir,
+            self.metadata_dir_relative_path,
+        )
 
         if self.verbosity >= 1:
-            self.logger.info(f"logging_dir:\n" f"{path}")
+            self.logger.info(f"metadata_dir_absolute_path:\n" f"{path}")
 
         return path
+
+    @property
+    def metadata_dir_relative_path(
+        self,
+    ) -> pathlib.Path:
+        path = pathlib.Path(
+            "embeddings",
+            "metadata",
+            self.get_nested_subfolder_path(),
+            self.metadata_dir_name,
+        )
+
+        return path
+
+    @property
+    def metadata_dir_name(
+        self,
+    ) -> str:
+        return "metadata_dir"

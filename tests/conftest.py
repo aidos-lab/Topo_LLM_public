@@ -33,21 +33,37 @@ import pathlib
 from datetime import datetime
 
 import pytest
-from dotenv import load_dotenv, find_dotenv
+from dotenv import find_dotenv, load_dotenv
 
-from topollm.config_classes.TransformationsConfig import (
-    TransformationsConfig,
-)
 from topollm.config_classes.DataConfig import DataConfig
 from topollm.config_classes.DatasetMapConfig import DatasetMapConfig
 from topollm.config_classes.EmbeddingExtractionConfig import EmbeddingExtractionConfig
 from topollm.config_classes.EmbeddingsConfig import EmbeddingsConfig
+from topollm.config_classes.enums import (
+    AggregationType,
+    DatasetType,
+    FinetuningMode,
+    Level,
+    Split,
+)
+from topollm.config_classes.finetuning.BatchSizesConfig import BatchSizesConfig
+from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
+from topollm.config_classes.finetuning.FinetuningDatasetsConfig import (
+    FinetuningDatasetsConfig,
+)
+from topollm.config_classes.finetuning.peft.PEFTConfig import PEFTConfig
 from topollm.config_classes.LanguageModelConfig import LanguageModelConfig
 from topollm.config_classes.PathsConfig import PathsConfig
 from topollm.config_classes.TokenizerConfig import TokenizerConfig
-from topollm.config_classes.enums import DatasetType, Level, Split, AggregationType
-from topollm.config_classes.path_management.EmbeddingsPathManagerSeparateDirectories import (
+from topollm.config_classes.TransformationsConfig import TransformationsConfig
+from topollm.path_management.EmbeddingsPathManagerSeparateDirectories import (
     EmbeddingsPathManagerSeparateDirectories,
+)
+from topollm.path_management.finetuning.FinetuningPathManagerBasic import (
+    FinetuningPathManagerBasic,
+)
+from topollm.path_management.finetuning.FinetuningPathManagerProtocol import (
+    FinetuningPathManager,
 )
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -78,9 +94,9 @@ def load_env() -> None:
     )
 
     if result:
-        logger.info(f"Loaded environment variables from {env_file = }")
+        logger.info(f"Loaded environment variables " f"from {env_file = }")
     else:
-        logger.warning(f"No environment variables loaded from {env_file = }")
+        logger.warning(f"No environment variables loaded " f"from {env_file = }")
 
     return None
 
@@ -119,14 +135,19 @@ def pytest_configure(
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(
+    scope="session",
+)
 def repository_base_path() -> pathlib.Path:
-    # Get the values from the 'TOPO_LLM_REPOSITORY_BASE_PATH' environment variable
-    topo_llm_repository_base_path = os.getenv("TOPO_LLM_REPOSITORY_BASE_PATH")
+    # Get the values from the
+    # 'TOPO_LLM_REPOSITORY_BASE_PATH' environment variable
+    topo_llm_repository_base_path = os.getenv(
+        key="TOPO_LLM_REPOSITORY_BASE_PATH",
+    )
 
     if topo_llm_repository_base_path is None:
         raise ValueError(
-            "The 'TOPO_LLM_REPOSITORY_BASE_PATH' environment variable is not set."
+            f"The 'TOPO_LLM_REPOSITORY_BASE_PATH' " f"environment variable is not set."
         )
 
     path = pathlib.Path(
@@ -136,7 +157,9 @@ def repository_base_path() -> pathlib.Path:
     return path
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(
+    scope="session",
+)
 def temp_files_dir() -> pathlib.Path:
     # Get the values from the 'TEMP_FILES_DIR' environment variable
     temp_files_dir = os.getenv("TEMP_FILES_DIR")
@@ -151,7 +174,9 @@ def temp_files_dir() -> pathlib.Path:
     return path
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(
+    scope="session",
+)
 def test_data_dir(
     repository_base_path: pathlib.Path,
     temp_files_dir: pathlib.Path,
@@ -178,14 +203,18 @@ def test_data_dir(
         )
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(
+    scope="session",
+)
 def logger_fixture() -> logging.Logger:
     return logger
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(
+    scope="session",
+)
 def data_config() -> DataConfig:
-    return DataConfig(
+    config = DataConfig(
         column_name="summary",
         context="dataset_entry",
         dataset_description_string="xsum",
@@ -197,41 +226,61 @@ def data_config() -> DataConfig:
         split=Split.TRAIN,
     )
 
+    return config
 
-@pytest.fixture(scope="session")
+
+@pytest.fixture(
+    scope="session",
+)
 def tokenizer_config() -> TokenizerConfig:
-    return TokenizerConfig(
+    config = TokenizerConfig(
         add_prefix_space=False,
         max_length=512,
     )
 
+    return config
 
-@pytest.fixture(scope="session")
+
+@pytest.fixture(
+    scope="session",
+)
 def dataset_map_config() -> DatasetMapConfig:
-    return DatasetMapConfig(
+    config = DatasetMapConfig(
         batch_size=1000,
         num_proc=2,
     )
 
+    return config
 
-@pytest.fixture(scope="session")
+
+@pytest.fixture(
+    scope="session",
+)
 def language_model_config() -> LanguageModelConfig:
-    return LanguageModelConfig(
+    config = LanguageModelConfig(
         pretrained_model_name_or_path="roberta-base",
         short_model_name="roberta-base",
         masking_mode="no_masking",
     )
 
+    return config
 
-@pytest.fixture(scope="session")
+
+@pytest.fixture(
+    scope="session",
+)
 def embedding_extraction_config() -> EmbeddingExtractionConfig:
-    return EmbeddingExtractionConfig(
+    config = EmbeddingExtractionConfig(
         layer_indices=[-1],
         aggregation=AggregationType.MEAN,
     )
 
+    return config
 
-@pytest.fixture(scope="session")
+
+@pytest.fixture(
+    scope="session",
+)
 def embeddings_config(
     tokenizer_config: TokenizerConfig,
     dataset_map_config: DatasetMapConfig,
@@ -249,7 +298,9 @@ def embeddings_config(
     )
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(
+    scope="session",
+)
 def paths_config(
     test_data_dir: pathlib.Path,
     repository_base_path: pathlib.Path,
@@ -260,22 +311,82 @@ def paths_config(
     )
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(
+    scope="session",
+)
 def transformations_config() -> TransformationsConfig:
     return TransformationsConfig(
         normalization="None",
     )
 
 
-@pytest.fixture(scope="session")
-def separate_directories_embeddings_path_manager(
+@pytest.fixture(
+    scope="session",
+)
+def peft_config() -> PEFTConfig:
+    config = PEFTConfig(
+        finetuning_mode=FinetuningMode.LORA,
+    )
+
+    return config
+
+
+@pytest.fixture(
+    scope="session",
+)
+def finetuning_datasets_config(
+    data_config: DataConfig,
+) -> FinetuningDatasetsConfig:
+    config = FinetuningDatasetsConfig(
+        train_dataset=data_config,
+        eval_dataset=data_config,
+    )
+
+    return config
+
+
+@pytest.fixture(
+    scope="session",
+)
+def batch_sizes_config() -> BatchSizesConfig:
+    config = BatchSizesConfig(
+        train=8,
+        eval=16,
+    )
+
+    return config
+
+
+@pytest.fixture(
+    scope="session",
+)
+def finetuning_config(
+    peft_config: PEFTConfig,
+    batch_sizes_config: BatchSizesConfig,
+    finetuning_datasets_config: FinetuningDatasetsConfig,
+) -> FinetuningConfig:
+    config = FinetuningConfig(
+        peft=peft_config,
+        batch_sizes=batch_sizes_config,
+        finetuning_datasets=finetuning_datasets_config,
+        pretrained_model_name_or_path="roberta-base",
+        short_model_name="roberta-base",
+    )
+
+    return config
+
+
+@pytest.fixture(
+    scope="session",
+)
+def embeddings_path_manager_separate_directories(
     data_config: DataConfig,
     embeddings_config: EmbeddingsConfig,
     paths_config: PathsConfig,
     transformations_config: TransformationsConfig,
     logger_fixture: logging.Logger,
 ) -> EmbeddingsPathManagerSeparateDirectories:
-    return EmbeddingsPathManagerSeparateDirectories(
+    path_manager = EmbeddingsPathManagerSeparateDirectories(
         data_config=data_config,
         embeddings_config=embeddings_config,
         paths_config=paths_config,
@@ -284,21 +395,24 @@ def separate_directories_embeddings_path_manager(
         logger=logger_fixture,
     )
 
+    return path_manager
 
-# import tempfile
-# import shutil
-# from typing import Generator
-#
-# @pytest.fixture(scope="session")
-# def session_tmp_path() -> Generator[
-#     pathlib.Path,
-#     None,
-#     None,
-# ]:
-#     # Create a temporary directory for the session
-#     temp_dir = tempfile.mkdtemp()
-#     yield pathlib.Path(
-#         temp_dir,
-#     )
-#     # Cleanup the temporary directory at the end of the session
-#     shutil.rmtree(temp_dir)
+
+@pytest.fixture(
+    scope="session",
+)
+def finetuning_path_manager_basic(
+    data_config: DataConfig,
+    paths_config: PathsConfig,
+    finetuning_config: FinetuningConfig,
+    logger_fixture: logging.Logger,
+) -> FinetuningPathManager:
+    path_manager = FinetuningPathManagerBasic(
+        data_config=data_config,
+        paths_config=paths_config,
+        finetuning_config=finetuning_config,
+        verbosity=1,
+        logger=logger_fixture,
+    )
+
+    return path_manager

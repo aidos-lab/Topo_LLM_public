@@ -27,49 +27,46 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
-
-# System imports
 import logging
-import os
-import pathlib
 
-# Local imports
-from topollm.config_classes.DataConfig import DataConfig
-from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
-from topollm.config_classes.MainConfig import MainConfig
-from topollm.config_classes.PathsConfig import PathsConfig
-from topollm.config_classes.path_management.FinetuningPathManagerBasic import (
-    FinetuningPathManagerBasic,
-)
-from topollm.config_classes.path_management.FinetuningPathManagerProtocol import (
-    FinetuningPathManager,
+import pytest
+import torch
+from peft.tuners.lora.config import LoraConfig
+from transformers import PreTrainedModel
+
+from topollm.model_finetuning.model_modifiers.prepare_lora_model import (
+    prepare_lora_model,
 )
 
-# Third-party imports
-
-
-# END Imports
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# START Configuration of the logging module
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Globals
+logger = logging.getLogger(__name__)
 
-# END Globals
+# END Configuration of the logging module
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
-def get_finetuning_path_manager(
-    config: MainConfig,
-    logger: logging.Logger = logging.getLogger(__name__),
-) -> FinetuningPathManager:
-    path_manger = FinetuningPathManagerBasic(
-        data_config=config.data,
-        paths_config=config.paths,
-        finetuning_config=config.finetuning,
-        verbosity=config.verbosity,
+@pytest.mark.uses_transformers_models
+def test_prepare_lora_model_integration(
+    base_model: PreTrainedModel,
+    lora_config: LoraConfig,
+    device: torch.device,
+    logger: logging.Logger = logger,
+) -> None:
+
+    modified_model = prepare_lora_model(
+        base_model=base_model,
+        lora_config=lora_config,
+        device=device,
         logger=logger,
     )
 
-    return path_manger
+    # Assertions to validate integration
+    assert modified_model is not None, "The modified model should not be None"
+
+    # You can add more specific assertions here depending on the expected behavior,
+    # such as checking for the addition of specific LoRA parameters
+    # or changes in parameter count.
+
+    return None

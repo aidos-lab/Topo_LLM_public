@@ -50,48 +50,48 @@ class FinetuningConfig(ConfigBaseModel):
         description="The batch sizes for training and evaluation.",
     )
 
-    eval_steps: int = Field(
-        400,
-        description="The number of steps between two evaluations.",
-    )
-
     finetuning_datasets: FinetuningDatasetsConfig = Field(
         ...,
         description="The configurations for the training and evaluation datasets.",
     )
 
+    eval_steps: int = Field(
+        default=400,
+        description="The number of steps between two evaluations.",
+    )
+
     fp16: bool = Field(
-        ...,
+        default=False,
         description="Whether to use 16-bit precision.",
     )
 
     gradient_accumulation_steps: int = Field(
-        ...,
+        default=2,
         description="The number of gradient accumulation steps.",
     )
 
     gradient_checkpointing: bool = Field(
-        ...,
+        default=True,
         description="Whether to use gradient checkpointing.",
     )
 
     learning_rate: float = Field(
-        ...,
+        default=5e-5,
         description="The learning rate.",
     )
 
     log_level: str = Field(
-        "info",
+        default="info",
         description="The log level.",
     )
 
     logging_steps: int = Field(
-        100,
+        default=100,
         description="The number of steps between two logging.",
     )
 
     max_length: int = Field(
-        ...,
+        default=512,
         description="The maximum length of the input sequence.",
     )
 
@@ -101,12 +101,12 @@ class FinetuningConfig(ConfigBaseModel):
     )
 
     mlm_probability: float = Field(
-        ...,
+        default=0.15,
         description="The probability for masked language model.",
     )
 
     num_train_epochs: int = Field(
-        ...,
+        default=5,
         description="The number of training epochs.",
     )
 
@@ -116,12 +116,12 @@ class FinetuningConfig(ConfigBaseModel):
     )
 
     save_steps: int = Field(
-        400,
+        default=400,
         description="The number of steps between two saves.",
     )
 
     seed: int = Field(
-        ...,
+        default=42,
         description="The seed for the random number generator.",
     )
 
@@ -131,16 +131,16 @@ class FinetuningConfig(ConfigBaseModel):
     )
 
     use_cpu: bool = Field(
-        False,
+        default=False,
         description="Whether to use the CPU.",
     )
 
     warmup_steps: int = Field(
-        ...,
+        default=500,
         description="The number of warmup steps.",
     )
 
     weight_decay: float = Field(
-        ...,
+        default=0.01,
         description="The weight decay.",
     )

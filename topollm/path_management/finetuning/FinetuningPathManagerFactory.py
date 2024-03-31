@@ -27,19 +27,36 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from pydantic import Field
+import logging
 
-from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
 from topollm.config_classes.DataConfig import DataConfig
+from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
+from topollm.config_classes.MainConfig import MainConfig
+from topollm.config_classes.PathsConfig import PathsConfig
+from topollm.path_management.finetuning.FinetuningPathManagerBasic import (
+    FinetuningPathManagerBasic,
+)
+from topollm.path_management.finetuning.FinetuningPathManagerProtocol import (
+    FinetuningPathManager,
+)
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# START Globals
+
+# END Globals
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
-class FinetuningDatasetsConfig(ConfigBaseModel):
-    train_dataset: DataConfig = Field(
-        ...,
-        description="The configuration for the training dataset.",
+def get_finetuning_path_manager(
+    config: MainConfig,
+    logger: logging.Logger = logging.getLogger(__name__),
+) -> FinetuningPathManager:
+    path_manger = FinetuningPathManagerBasic(
+        data_config=config.data,
+        paths_config=config.paths,
+        finetuning_config=config.finetuning,
+        verbosity=config.verbosity,
+        logger=logger,
     )
 
-    eval_dataset: DataConfig = Field(
-        ...,
-        description="The configuration for the evaluation dataset.",
-    )
+    return path_manger

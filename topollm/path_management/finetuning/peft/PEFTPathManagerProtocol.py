@@ -7,7 +7,6 @@
 #
 # Authors:
 # Benjamin Ruppik (ruppik@hhu.de)
-# Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
 # First versions of this code were potentially generated
@@ -27,19 +26,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from pydantic import Field
-
-from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
-from topollm.config_classes.DataConfig import DataConfig
+import pathlib
+from typing import Protocol
 
 
-class FinetuningDatasetsConfig(ConfigBaseModel):
-    train_dataset: DataConfig = Field(
-        ...,
-        description="The configuration for the training dataset.",
-    )
-
-    eval_dataset: DataConfig = Field(
-        ...,
-        description="The configuration for the evaluation dataset.",
-    )
+class PEFTPathManager(Protocol):
+    @property
+    def peft_description_subdir(
+        self,
+    ) -> pathlib.Path: ...  # pragma: no cover

@@ -27,19 +27,43 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from pydantic import Field
+import pytest
+import torch
+from peft.tuners.lora.config import LoraConfig
+from transformers import AutoModel
 
-from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
-from topollm.config_classes.DataConfig import DataConfig
 
-
-class FinetuningDatasetsConfig(ConfigBaseModel):
-    train_dataset: DataConfig = Field(
-        ...,
-        description="The configuration for the training dataset.",
+@pytest.fixture(scope="session")
+def base_model():
+    """
+    Load a lightweight model for testing.
+    """
+    base_model = AutoModel.from_pretrained(
+        "google/bert_uncased_L-2_H-128_A-2",
+        torchscript=True,
     )
 
-    eval_dataset: DataConfig = Field(
-        ...,
-        description="The configuration for the evaluation dataset.",
+    return base_model
+
+
+@pytest.fixture(scope="session")
+def device():
+    # Use a simple device selection for testing
+    return torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
+@pytest.fixture(scope="session")
+def lora_config():
+    # Create a test LoRA configuration. Adjust parameters as needed.
+    config = LoraConfig(
+        r=8,
+        lora_alpha=8,
+        lora_dropout=0.01,
+        target_modules=[
+            "query",
+            "key",
+            "value",
+        ],
     )
+
+    return config

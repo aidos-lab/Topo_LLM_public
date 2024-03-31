@@ -44,6 +44,11 @@ def prepare_lora_model(
     device: torch.device,
     logger: logging.Logger = logging.getLogger(__name__),
 ) -> peft.peft_model.PeftModel:
+    log_model_info(
+        model=base_model,
+        model_name="base_model",
+        logger=logger,
+    )
 
     # Get the model prepared with PEFT
     # (here: LoRA)
@@ -61,6 +66,7 @@ def prepare_lora_model(
 
     log_model_info(
         model=lora_model,
+        model_name="lora_model",
         logger=logger,
     )
 
