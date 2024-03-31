@@ -126,7 +126,7 @@ class FinetuningConfig(ConfigBaseModel):
     )
 
     short_model_name: str = Field(
-        ...,
+        default="default-short-model-name",
         description="Short name of the base model for file names.",
     )
 

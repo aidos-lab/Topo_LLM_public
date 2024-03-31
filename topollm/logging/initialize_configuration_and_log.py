@@ -60,7 +60,7 @@ def setup_main_config(
     """
 
     main_config = MainConfig.model_validate(
-        config,
+        obj=config,
     )
 
     return main_config
