@@ -39,11 +39,27 @@
 import os
 import pathlib
 import hydra
-import numpy as np
 import pandas as pd
-import skdim
-import matplotlib.pyplot as plt
 import seaborn as sns
+
+import networkx as nx
+import numpy as np
+import math
+import importlib
+import matplotlib.pyplot as plt
+
+# to print logs in jupyter notebook
+import logging
+logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.ERROR)
+
+# load GraphRicciCuravture package
+from GraphRicciCurvature.OllivierRicci import OllivierRicci
+
+# load python-louvain for modularity computation
+import community as community_louvain
+
+# for ARI computation
+from sklearn import preprocessing, metrics
 
 @hydra.main(
     config_path="../../configs/analysis",
@@ -79,30 +95,35 @@ def main(cfg):
     arr_no_pad = np.load(path_1)
     arr_no_pad_finetuned = np.load(path_2)
 
-    # provide number of jobs for the computation
-    n_jobs = 1
+    num_neighbours = 5
 
-    # provide number of neighbors which are used for the computation
-    n_neighbors = 100
+    from sklearn.neighbors import kneighbors_graph
+    A = kneighbors_graph(arr_no_pad, num_neighbours, mode='connectivity', include_self=False)
+    edgelist = list(zip(A.tocoo().row,A.tocoo().col))
+    G = nx.from_edgelist(edgelist)
+    orc = OllivierRicci(G, alpha=0.5, verbose="TRACE")
+    orc.compute_ricci_curvature()
+    G_orc = orc.G.copy()
+    ricci_curvtures = nx.get_edge_attributes(G_orc, "ricciCurvature").values()
 
-    lPCA = skdim.id.lPCA().fit_pw(arr_no_pad,
-                                  n_neighbors = n_neighbors,
-                                  n_jobs = n_jobs)
+    df = pd.DataFrame({'edges':list(G_orc.edges()),'ricci':list(ricci_curvtures)})
 
+    A = kneighbors_graph(arr_no_pad_finetuned, num_neighbours, mode='connectivity', include_self=False)
+    edgelist = list(zip(A.tocoo().row,A.tocoo().col))
+    G = nx.from_edgelist(edgelist)
+    orc = OllivierRicci(G, alpha=0.5, verbose="TRACE")
+    orc.compute_ricci_curvature()
+    G_orc = orc.G.copy()
 
-    lPCA_finetuned = skdim.id.lPCA().fit_pw(arr_no_pad_finetuned,
-                                  n_neighbors = n_neighbors,
-                                  n_jobs = n_jobs)
+    ricci_curvtures_finetuned = nx.get_edge_attributes(G_orc, "ricciCurvature").values()
 
-    dim_frame = pd.DataFrame({
-                             'lpca_finetuned':list(lPCA_finetuned.dimension_pw_),
-                             'lpca':list(lPCA.dimension_pw_)
-                             })
+    df_finetuned = pd.DataFrame({'edges': list(G_orc.edges()), 'ricci_finetuned': list(ricci_curvtures_finetuned)})
+    ricci_frame = pd.merge(left=df, right=df_finetuned, left_on=['edges'], right_on=['edges'])
 
-    print(dim_frame.corr())
+    #print(ricci_frame.corr())
 
     plt.ioff()
-    scatter_plot = sns.scatterplot(x = list(lPCA.dimension_pw_),y = list(lPCA_finetuned.dimension_pw_))
+    scatter_plot = sns.scatterplot(x = list(ricci_frame.ricci),y = list(ricci_frame.ricci_finetuned))
     scatter_fig = scatter_plot.get_figure()
 
     # use savefig function to save the plot and give
@@ -125,9 +146,9 @@ def main(cfg):
 
     save_name = save_path + file_name + str(len(arr_no_pad)) + '_samples'
     scatter_fig.savefig(save_name+'.png')
-    dim_frame.to_pickle(save_name)
+    ricci_frame.to_pickle(save_name)
 
-    #plt.show()
+    plt.show()
     plt.close()
     return None
 

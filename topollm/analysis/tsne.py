@@ -41,6 +41,7 @@ import hydra
 import numpy as np
 import pandas as pd
 import plotly.express as px
+import skdim
 from sklearn.manifold import TSNE
 import plotly.graph_objs as go
 
@@ -85,6 +86,7 @@ def main(cfg):
 
     # provide number of components of the projection
     n_components = 2
+    dimension_vis = True
 
     dataset = pd.DataFrame({f'Column{i+1}': arr_no_pad[:,i] for i in range(arr_no_pad.shape[1])})
     dataset['class'] = 'base'
@@ -111,49 +113,91 @@ def main(cfg):
         fig.add_trace(px.scatter_3d(x=embedding_finetuned[:, 0], y=embedding_finetuned[:, 1], z=embedding_finetuned[:, 2]).data[0])
         fig.show()
     elif n_components == 2:
-        # Create a Plotly scatter plot with text annotations for tokens
-        trace1 = go.Scatter(
-            x=embedding[:, 0],
-            y=embedding[:, 1],
-            mode='markers+text',
-            marker=dict(size=5, color='rgba(31, 119, 180, 0.7)'),
-            text=tokens_1,
-            textposition='bottom center',
-            name='base'
-        )
 
-        trace2 = go.Scatter(
-            x=embedding_finetuned[:, 0],
-            y=embedding_finetuned[:, 1],
-            mode='markers+text',
-            marker=dict(size=5, color='rgba(255, 127, 14, 0.7)'),
-            text=tokens_2,
-            textposition='bottom center',
-            name='finetuned'
-        )
         title_name = ''
         if cfg.model_1 != cfg.model_2:
-            title_name += str(cfg.model_1)+' vs. ' + str(cfg.model_2) + '_'
+            title_name += str(cfg.model_1) + ' vs. ' + str(cfg.model_2) + '_'
         elif cfg.model_1 == cfg.model_2:
             title_name += str(cfg.model_1) + '_'
         if cfg.data_name_1 != cfg.data_name_2:
-            title_name += str(cfg.data_name_1)+' vs. ' + str(cfg.data_name_2)
+            title_name += str(cfg.data_name_1) + ' vs. ' + str(cfg.data_name_2)
         elif cfg.data_name_1 == cfg.data_name_2:
             title_name += str(cfg.data_name_1) + ' '
 
-        layout = go.Layout(title='t-SNE Projection of Embeddings with Tokens, ' + title_name,
-                           xaxis=dict(title='t-SNE Dimension 1'),
-                           yaxis=dict(title='t-SNE Dimension 2'),
-                           hovermode='closest',
-                           plot_bgcolor='rgba(0,0,0,0)'  # Set plot background color to transparent
-                           )
+        if dimension_vis == False:
+        # Create a Plotly scatter plot with text annotations for tokens
+            trace1 = go.Scatter(
+                x=embedding[:, 0],
+                y=embedding[:, 1],
+                mode='markers+text',
+                marker=dict(size=5, color='rgba(255, 127, 14, 0.7)'),
+                text=tokens_1,
+                textposition='bottom center',
+                name='base'
+            )
 
-        fig = go.Figure(data=[trace1, trace2], layout=layout)
-        fig.update_layout(template='plotly_white')  # Set plot template to white background
-        fig.update_traces(marker=dict(line=dict(width=0.5, color='rgba(255, 255, 255, 0.7)')))  # Set marker line color and width
-        fig.update_layout(xaxis=dict(showgrid=False, zeroline=False),
-                          yaxis=dict(showgrid=False, zeroline=False))  # Hide gridlines and zero lines
-        fig.show()
+            trace2 = go.Scatter(
+                x=embedding_finetuned[:, 0],
+                y=embedding_finetuned[:, 1],
+                mode='markers+text',
+                marker=dict(size=5, color='rgba(255, 127, 14, 0.7)'),
+                text=tokens_2,
+                textposition='bottom center',
+                name='finetuned'
+            )
+
+            layout = go.Layout(title='t-SNE Projection of Embeddings with Tokens, ' + title_name,
+                               xaxis=dict(title='t-SNE Dimension 1'),
+                               yaxis=dict(title='t-SNE Dimension 2'),
+                               hovermode='closest',
+                               plot_bgcolor='rgba(0,0,0,0)'  # Set plot background color to transparent
+                               )
+
+            fig = go.Figure(data=[trace1, trace2], layout=layout)
+            fig.update_layout(template='plotly_white')  # Set plot template to white background
+            fig.update_traces(marker=dict(line=dict(width=0.5, color='rgba(255, 255, 255, 0.7)')))  # Set marker line color and width
+            fig.update_layout(xaxis=dict(showgrid=False, zeroline=False),
+                              yaxis=dict(showgrid=False, zeroline=False))  # Hide gridlines and zero lines
+            fig.show()
+
+        else:
+            n_jobs = 1
+
+            # provide number of neighbors which are used for the computation
+            n_neighbors = 100
+
+            lPCA = skdim.id.lPCA().fit_pw(arr_no_pad,
+                                          n_neighbors=n_neighbors,
+                                          n_jobs=n_jobs)
+
+            trace1 = go.Scatter(
+                x=embedding[:, 0],
+                y=embedding[:, 1],
+                mode='markers+text',
+                marker=dict(size=5,
+                            color=list(lPCA.dimension_pw_),
+                            colorscale='Viridis',
+                            showscale=True
+                            ),
+                text=tokens_1,
+                textposition='bottom center',
+                name='base'
+            )
+
+            layout = go.Layout(title='t-SNE Projection of Embeddings with Tokens, ' + title_name,
+                               xaxis=dict(title='t-SNE Dimension 1'),
+                               yaxis=dict(title='t-SNE Dimension 2'),
+                               hovermode='closest',
+                               plot_bgcolor='rgba(0,0,0,0)'  # Set plot background color to transparent
+                               )
+
+            fig = go.Figure(data=[trace1], layout=layout)
+            fig.update_layout(template='plotly_white')  # Set plot template to white background
+            fig.update_traces(
+                marker=dict(line=dict(width=0.5, color='rgba(255, 255, 255, 0.7)')))  # Set marker line color and width
+            fig.update_layout(xaxis=dict(showgrid=False, zeroline=False),
+                              yaxis=dict(showgrid=False, zeroline=False))  # Hide gridlines and zero lines
+            fig.show()
 
 if __name__ == "__main__":
     main()  # type: ignore
