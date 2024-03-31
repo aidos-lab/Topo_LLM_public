@@ -1,3 +1,12 @@
 defaults:
- - ../../data@train_dataset: bbc
  - ../../data@eval_dataset: bbc
+ - ../../data@train_dataset: bbc
+ - _self_
+
+# Note: We should override the 'split' key of the datasets separately,
+# to make sure that they are set correctly for the training and evaluation datasets.
+
+eval_dataset:
+  split: validation
+train_dataset:
+  split: train
