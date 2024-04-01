@@ -40,11 +40,9 @@ import os
 import pathlib
 import hydra
 import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
 from sklearn.neighbors import KernelDensity
 from scipy.special import kl_div
+
 
 @hydra.main(
     config_path="../../configs/analysis",
@@ -80,7 +78,6 @@ def main(cfg):
     arr_no_pad = np.load(path_1)
     arr_no_pad_finetuned = np.load(path_2)
 
-    # provide bandwidth for the computation
     bandwidth = 0.2
 
     kde = KernelDensity(kernel='gaussian', bandwidth=bandwidth).fit(arr_no_pad)
@@ -89,22 +86,7 @@ def main(cfg):
     x = kde.score_samples(arr_no_pad)
     y = kde_finetuned.score_samples(arr_no_pad_finetuned)
 
-    print(f"KL divergence: {sum(kl_div(x,y)}")
-    print(sum(kl_div(x,y)))
-
-    density_frame = pd.DataFrame({
-                             'kernel_density_finetuned':list(y),
-                             'kernel_density':list(x)
-                             })
-
-    print(density_frame.corr())
-
-    plt.ioff()
-    scatter_plot = sns.scatterplot(x = list(x),y = list(y))
-    scatter_fig = scatter_plot.get_figure()
-
-    # use savefig function to save the plot and give
-    # a desired name to the plot.
+    similarities = kl_div(x,y)
 
     file_name = ''
     if cfg.data_name_1 == cfg.data_name_2:
@@ -117,16 +99,12 @@ def main(cfg):
             additional_string = str(cfg[name + str(1)]) + '_vs_' + str(cfg[name + str(2)] + '_')
             file_name += additional_string
 
-    save_path = '../../data/analysis/density/' + str(cfg.embedding_level_1) + '/'
+    save_path = '../../data/analysis/kl/' + str(cfg.embedding_level_1) + '/'
     if not os.path.exists(save_path):
         os.makedirs(save_path)
 
     save_name = save_path + file_name + str(len(arr_no_pad)) + '_samples'
-    scatter_fig.savefig(save_name+'.png')
-    density_frame.to_pickle(save_name)
-
-    #plt.show()
-    plt.close()
+    np.save(save_name,similarities)
     return None
 
 if __name__ == "__main__":
