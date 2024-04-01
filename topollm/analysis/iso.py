@@ -41,8 +41,10 @@ import pathlib
 import hydra
 import numpy as np
 import pandas as pd
+import skdim
 import matplotlib.pyplot as plt
 import seaborn as sns
+from sklearn.ensemble import IsolationForest
 
 @hydra.main(
     config_path="../../configs/analysis",
@@ -78,28 +80,21 @@ def main(cfg):
     arr_no_pad = np.load(path_1)
     arr_no_pad_finetuned = np.load(path_2)
 
-    # provide bandwidth for the computation
-    bandwidth = 0.2
+    clf = IsolationForest(random_state=0).fit(arr_no_pad)
+    scores = clf.score_samples(arr_no_pad)
 
+    clf = IsolationForest(random_state=0).fit(arr_no_pad_finetuned)
+    scores_finetuned = clf.score_samples(arr_no_pad_finetuned)
 
-    from sklearn.neighbors import KernelDensity
-
-    kde = KernelDensity(kernel='gaussian', bandwidth=bandwidth).fit(arr_no_pad)
-    kde_finetuned = KernelDensity(kernel='gaussian', bandwidth=bandwidth).fit(arr_no_pad_finetuned)
-
-    x = kde.score_samples(arr_no_pad)
-    y = kde_finetuned.score_samples(arr_no_pad_finetuned)
-
-
-    density_frame = pd.DataFrame({
-                             'kernel_density_finetuned':list(y),
-                             'kernel_density':list(x)
+    iso_frame = pd.DataFrame({
+                             'iso_finetuned':list(scores_finetuned),
+                             'iso':list(scores)
                              })
 
-    print(density_frame.corr())
+    print(iso_frame.corr())
 
     plt.ioff()
-    scatter_plot = sns.scatterplot(x = list(x),y = list(y))
+    scatter_plot = sns.scatterplot(x = list(scores),y = list(scores_finetuned))
     scatter_fig = scatter_plot.get_figure()
 
     # use savefig function to save the plot and give
@@ -116,13 +111,13 @@ def main(cfg):
             additional_string = str(cfg[name + str(1)]) + '_vs_' + str(cfg[name + str(2)] + '_')
             file_name += additional_string
 
-    save_path = '../../data/analysis/density/' + str(cfg.embedding_level_1) + '/'
+    save_path = '../../data/analysis/iso/' + str(cfg.embedding_level_1) + '/'
     if not os.path.exists(save_path):
         os.makedirs(save_path)
 
     save_name = save_path + file_name + str(len(arr_no_pad)) + '_samples'
     scatter_fig.savefig(save_name+'.png')
-    density_frame.to_pickle(save_name)
+    iso_frame.to_pickle(save_name)
 
     #plt.show()
     plt.close()
