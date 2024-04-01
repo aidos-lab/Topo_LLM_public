@@ -30,7 +30,8 @@
 import logging
 import pprint
 
-from hydra import compose, initialize, initialize_config_module
+import pytest
+from hydra import compose, initialize
 import omegaconf
 
 from topollm.config_classes.MainConfig import DataConfig
@@ -38,14 +39,28 @@ from topollm.config_classes.MainConfig import DataConfig
 logger = logging.getLogger(__name__)
 
 
-def test_hydra_with_DataConfig() -> None:
+@pytest.mark.parametrize(
+    "config_name",
+    [
+        "bbc",
+        "iclr_2024_submissions",
+        "multiwoz21",
+        "multiwoz21_train",
+        "multiwoz21_validation",
+        "sgd",
+        "wikitext",
+    ],
+)
+def test_hydra_with_DataConfig(
+    config_name: str,
+) -> None:
     with initialize(
         config_path="../../configs/data/",
         version_base=None,
     ):
         # config is relative to a module
         cfg: omegaconf.DictConfig = compose(
-            config_name="bbc",
+            config_name=config_name,
             overrides=[
                 "dataset_description_string=overwritten_dataset_desc",
             ],
