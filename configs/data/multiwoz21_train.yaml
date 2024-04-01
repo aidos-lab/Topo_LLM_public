@@ -1,0 +1,9 @@
+column_name: text
+context: dataset_entry
+dataset_description_string: multiwoz21
+dataset_path: json
+dataset_name: multiwoz21
+data_dir: ${paths.data_dir}/datasets/dialogue_datasets/multiwoz21
+dataset_type: huggingface_dataset
+number_of_samples: 5000
+split: train
