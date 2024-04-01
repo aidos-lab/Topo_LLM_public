@@ -43,6 +43,7 @@ import pandas as pd
 import plotly.express as px
 import skdim
 from sklearn.manifold import TSNE
+from sklearn.neighbors import KernelDensity
 import plotly.graph_objs as go
 
 @hydra.main(
@@ -86,7 +87,7 @@ def main(cfg):
 
     # provide number of components of the projection
     n_components = 2
-    dimension_vis = True
+    vis_type = 'dimension'
 
     dataset = pd.DataFrame({f'Column{i+1}': arr_no_pad[:,i] for i in range(arr_no_pad.shape[1])})
     dataset['class'] = 'base'
@@ -124,7 +125,7 @@ def main(cfg):
         elif cfg.data_name_1 == cfg.data_name_2:
             title_name += str(cfg.data_name_1) + ' '
 
-        if dimension_vis == False:
+        if vis_type == 'comparison':
         # Create a Plotly scatter plot with text annotations for tokens
             trace1 = go.Scatter(
                 x=embedding[:, 0],
@@ -159,7 +160,37 @@ def main(cfg):
             fig.update_layout(xaxis=dict(showgrid=False, zeroline=False),
                               yaxis=dict(showgrid=False, zeroline=False))  # Hide gridlines and zero lines
             fig.show()
+        elif vis_type == 'density':
+            kde = KernelDensity(kernel='gaussian', bandwidth=0.2).fit(arr_no_pad)
+            density = kde.score_samples(arr_no_pad)
+            trace1 = go.Scatter(
+                x=embedding[:, 0],
+                y=embedding[:, 1],
+                mode='markers+text',
+                marker=dict(size=5,
+                            color=list(density),
+                            colorscale='Viridis',
+                            showscale=True
+                            ),
+                text=tokens_1,
+                textposition='bottom center',
+                name='base'
+            )
 
+            layout = go.Layout(title='t-SNE Projection of Embeddings with Tokens, ' + title_name,
+                               xaxis=dict(title='t-SNE Dimension 1'),
+                               yaxis=dict(title='t-SNE Dimension 2'),
+                               hovermode='closest',
+                               plot_bgcolor='rgba(0,0,0,0)'  # Set plot background color to transparent
+                               )
+
+            fig = go.Figure(data=[trace1], layout=layout)
+            fig.update_layout(template='plotly_white')  # Set plot template to white background
+            fig.update_traces(
+                marker=dict(line=dict(width=0.5, color='rgba(255, 255, 255, 0.7)')))  # Set marker line color and width
+            fig.update_layout(xaxis=dict(showgrid=False, zeroline=False),
+                              yaxis=dict(showgrid=False, zeroline=False))  # Hide gridlines and zero lines
+            fig.show()
         else:
             n_jobs = 1
 
