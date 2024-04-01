@@ -1,8 +1,10 @@
+defaults:
+  - subset@_here_: train_split_and_truncation
+  - _self_
+
 column_name: text
 context: dataset_entry
 dataset_description_string: wikitext
 dataset_path: wikitext
 dataset_name: wikitext-103-v1
 dataset_type: huggingface_dataset
-number_of_samples: 5000
-split: train
