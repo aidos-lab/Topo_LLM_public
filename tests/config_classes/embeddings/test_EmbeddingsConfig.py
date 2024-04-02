@@ -30,49 +30,34 @@
 import logging
 import pprint
 
-import pytest
-from hydra import compose, initialize
+from hydra import compose, initialize_config_module
 import omegaconf
 
-from topollm.config_classes.MainConfig import DataConfig
+from topollm.config_classes.EmbeddingsConfig import EmbeddingsConfig
 
 logger = logging.getLogger(__name__)
 
 
-@pytest.mark.parametrize(
-    "config_name",
-    [
-        "bbc",
-        "iclr_2024_submissions",
-        "multiwoz21",
-        "multiwoz21_train",
-        "multiwoz21_validation",
-        "sgd",
-        "wikitext",
-    ],
-)
-def test_hydra_with_DataConfig(
-    config_name: str,
-) -> None:
-    with initialize(
-        config_path="../../configs/data/",
+def test_hydra_with_EmbeddingsConfig() -> None:
+    with initialize_config_module(
         version_base=None,
+        config_module="configs.embeddings",
     ):
         # config is relative to a module
         cfg: omegaconf.DictConfig = compose(
-            config_name=config_name,
-            # overrides=[
-            #     "dataset_description_string=overwritten_dataset_desc",
-            # ],
+            config_name="basic_embeddings",
+            overrides=[
+                "language_model.short_model_name=overridden_short_model_name",
+            ],
         )
 
         logger.info(f"cfg:\n" f"{pprint.pformat(cfg)}")
 
         # This tests whether the configuration is valid
-        data_config = DataConfig.model_validate(
+        embeddings_config = EmbeddingsConfig.model_validate(
             obj=cfg,
         )
 
-        logger.info(f"data_config:\n" f"{pprint.pformat(data_config)}")
+        logger.info(f"embeddings_config:\n" f"{pprint.pformat(embeddings_config)}")
 
     return None
