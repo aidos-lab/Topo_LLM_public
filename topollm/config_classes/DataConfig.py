@@ -115,4 +115,6 @@ class DataConfig(ConfigBaseModel):
             f"{NAME_PREFIXES['split']}{self.split}"
             f"_"
             f"{NAME_PREFIXES['context']}{self.context}"
+            f"_"
+            f"{NAME_PREFIXES['number_of_samples']}{self.number_of_samples}"
         )

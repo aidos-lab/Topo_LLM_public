@@ -76,6 +76,7 @@ NAME_PREFIXES: dict[
     "masking_mode": "mask-",
     "max_length": "max-len-",
     "normalization": "norm-",
+    "number_of_samples": "samples-",
     "n_neighbors": "n-neighbors-",
     "query": "query-",
     "split": "split-",
