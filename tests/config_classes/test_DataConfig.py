@@ -30,31 +30,46 @@
 import logging
 import pprint
 
-from hydra import compose, initialize, initialize_config_module
+import pytest
+from hydra import compose, initialize
 import omegaconf
 
-from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
+from topollm.config_classes.MainConfig import DataConfig
 
 logger = logging.getLogger(__name__)
 
 
-def test_hydra_with_FinetuningConfig() -> None:
-    with initialize_config_module(
+@pytest.mark.parametrize(
+    "config_name",
+    [
+        "bbc",
+        "iclr_2024_submissions",
+        "multiwoz21",
+        "multiwoz21_train",
+        "multiwoz21_validation",
+        "sgd",
+        "wikitext",
+    ],
+)
+def test_hydra_with_DataConfig(
+    config_name: str,
+) -> None:
+    with initialize(
+        config_path="../../configs/data/",
         version_base=None,
-        config_module="configs.finetuning",
     ):
         # config is relative to a module
         cfg: omegaconf.DictConfig = compose(
-            config_name="roberta-base_tuning",
-            overrides=[
-                "batch_sizes.eval=42",
-            ],
+            config_name=config_name,
+            # overrides=[
+            #     "dataset_description_string=overwritten_dataset_desc",
+            # ],
         )
 
         logger.info(f"cfg:\n" f"{pprint.pformat(cfg)}")
 
         # This tests whether the configuration is valid
-        config = FinetuningConfig.model_validate(
+        config = DataConfig.model_validate(
             obj=cfg,
         )
 

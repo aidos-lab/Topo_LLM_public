@@ -30,31 +30,31 @@
 import logging
 import pprint
 
-from hydra import compose, initialize, initialize_config_module
+from hydra import compose, initialize_config_module
 import omegaconf
 
-from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
+from topollm.config_classes.EmbeddingsConfig import EmbeddingsConfig
 
 logger = logging.getLogger(__name__)
 
 
-def test_hydra_with_FinetuningConfig() -> None:
+def test_hydra_with_EmbeddingsConfig() -> None:
     with initialize_config_module(
         version_base=None,
-        config_module="configs.finetuning",
+        config_module="configs.embeddings",
     ):
         # config is relative to a module
         cfg: omegaconf.DictConfig = compose(
-            config_name="roberta-base_tuning",
+            config_name="basic_embeddings",
             overrides=[
-                "batch_sizes.eval=42",
+                "language_model.short_model_name=overridden_short_model_name",
             ],
         )
 
         logger.info(f"cfg:\n" f"{pprint.pformat(cfg)}")
 
         # This tests whether the configuration is valid
-        config = FinetuningConfig.model_validate(
+        config = EmbeddingsConfig.model_validate(
             obj=cfg,
         )
 

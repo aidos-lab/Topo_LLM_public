@@ -4,8 +4,8 @@ defaults:
 
 column_name: text
 context: dataset_entry
-dataset_description_string: iclr_2024_submissions
+dataset_description_string: multiwoz21
 dataset_path: json
-dataset_name: iclr_2024_submissions
-data_dir: ${paths.data_dir}/datasets/iclr_2024_submissions/jsonl_format
+dataset_name: multiwoz21
+data_dir: ${paths.data_dir}/datasets/dialogue_datasets/multiwoz21
 dataset_type: huggingface_dataset
