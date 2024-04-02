@@ -53,7 +53,7 @@ import os
 import pickle
 import pandas as pd
 
-from topollm.path_management.EmbeddingsPathManagerFactory import (
+from topollm.path_management.embeddings.EmbeddingsPathManagerFactory import (
     get_embeddings_path_manager,
 )
 from topollm.logging.initialize_configuration_and_log import initialize_configuration

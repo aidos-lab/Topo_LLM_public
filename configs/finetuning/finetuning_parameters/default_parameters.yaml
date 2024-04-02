@@ -1,10 +1,3 @@
-defaults:
-  # - peft: standard
-  - peft: lora
-  - finetuning_datasets: train_and_eval_on_bbc
-  # - finetuning_datasets: train_and_eval_on_bbc_manual
-  - _self_
-
 batch_sizes:
   train: 8
   eval: 16
@@ -19,10 +12,8 @@ max_length: 512
 max_steps: -1 # '-1' for no 'max_steps' limit
 mlm_probability: 0.15
 num_train_epochs: 5
-pretrained_model_name_or_path: roberta-base
 save_steps: 400
 seed: 42
-short_model_name: ${finetuning.pretrained_model_name_or_path}
 use_cpu: false
 warmup_steps: 500
 weight_decay: 0.01
