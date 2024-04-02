@@ -1,6 +1,6 @@
 defaults:
-  - peft: standard
-  # - peft: lora
+  # - peft: standard
+  - peft: lora
   # - finetuning_datasets: train_and_eval_on_bbc
   - finetuning_datasets: train_and_eval_on_wikitext
   - finetuning_parameters@_here_: default_parameters
