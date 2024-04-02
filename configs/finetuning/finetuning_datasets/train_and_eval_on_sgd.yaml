@@ -1,6 +1,6 @@
 defaults:
- - ../../data@eval_dataset: bbc
- - ../../data@train_dataset: bbc
+ - ../../data@eval_dataset: sgd
+ - ../../data@train_dataset: sgd
  - _self_
 
 # Note: We should override the 'split' key of the datasets separately,

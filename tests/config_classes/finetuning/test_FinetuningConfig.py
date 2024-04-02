@@ -45,7 +45,7 @@ def test_hydra_with_FinetuningConfig() -> None:
     ):
         # config is relative to a module
         cfg: omegaconf.DictConfig = compose(
-            config_name="roberta-base_tuning",
+            config_name="finetuning",
             overrides=[
                 "batch_sizes.eval=42",
             ],
