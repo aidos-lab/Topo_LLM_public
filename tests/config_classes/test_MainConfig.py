@@ -59,10 +59,11 @@ def test_hydra_with_MainConfig() -> None:
         logger.info(f"cfg:\n" f"{pprint.pformat(cfg)}")
 
         # This tests whether the configuration is valid
-        main_config = MainConfig.model_validate(
+        config = MainConfig.model_validate(
             obj=cfg,
         )
 
-        logger.info(f"main_config:\n" f"{pprint.pformat(main_config)}")
+        logger.info(f"{type(config) = }")
+        logger.info(f"config:\n" f"{pprint.pformat(config)}")
 
     return None

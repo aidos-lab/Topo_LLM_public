@@ -54,10 +54,11 @@ def test_hydra_with_EmbeddingsConfig() -> None:
         logger.info(f"cfg:\n" f"{pprint.pformat(cfg)}")
 
         # This tests whether the configuration is valid
-        embeddings_config = EmbeddingsConfig.model_validate(
+        config = EmbeddingsConfig.model_validate(
             obj=cfg,
         )
 
-        logger.info(f"embeddings_config:\n" f"{pprint.pformat(embeddings_config)}")
+        logger.info(f"{type(config) = }")
+        logger.info(f"config:\n" f"{pprint.pformat(config)}")
 
     return None
