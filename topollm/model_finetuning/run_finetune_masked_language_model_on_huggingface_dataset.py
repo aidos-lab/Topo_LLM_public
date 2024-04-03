@@ -39,10 +39,10 @@ import omegaconf
 import transformers
 
 from topollm.config_classes.MainConfig import MainConfig
+from topollm.config_classes.setup_OmegaConf import setup_OmegaConf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.model_finetuning.do_finetuning_process import do_finetuning_process
-from topollm.model_finetuning.sanitize_dirname import sanitize_dirname
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # START Globals
@@ -57,15 +57,12 @@ setup_exception_logging(
 # Set the transformers logging level
 transformers.logging.set_verbosity_info()
 
+setup_OmegaConf()
+
 # torch.set_num_threads(1)
 
 # END Globals
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-
-omegaconf.OmegaConf.register_new_resolver(
-    "sanitize_override_dirname",
-    sanitize_dirname,
-)
 
 
 @hydra.main(
