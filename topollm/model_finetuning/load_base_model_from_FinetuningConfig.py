@@ -36,7 +36,7 @@ from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
 from topollm.logging.log_model_info import log_model_info
 
 
-def load_base_model(
+def load_base_model_from_FinetuningConfig(
     finetuning_config: FinetuningConfig,
     device: torch.device = torch.device("cpu"),
     logger: logging.Logger = logging.getLogger(__name__),

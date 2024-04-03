@@ -27,28 +27,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
+from typing import Protocol
 
-import transformers
-
-from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
-from topollm.model_handling.tokenizer.load_tokenizer import load_tokenizer
+from transformers import PreTrainedTokenizer, PreTrainedTokenizerFast
 
 
-def load_tokenizer_from_FinetuningConfig(
-    finetuning_config: FinetuningConfig,
-    verbosity: int = 1,
-    logger: logging.Logger = logging.getLogger(__name__),
-) -> transformers.PreTrainedTokenizer | transformers.PreTrainedTokenizerFast:
-
-    tokenizer = load_tokenizer(
-        pretrained_model_name_or_path=finetuning_config.pretrained_model_name_or_path,
-        tokenizer_config=finetuning_config.tokenizer,
-        verbosity=verbosity,
-        logger=logger,
-    )
-
-    # Make sure not to accidentally modify the tokenizer pad token (tokenizer.pad_token) here.
-    # In particular, it is not custom to set the pad token to the eos token for masked language model training.
-
-    return tokenizer
+class TokenizerModifier(Protocol):
+    def modify_tokenizer(
+        self,
+        tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast,
+    ) -> PreTrainedTokenizer | PreTrainedTokenizerFast: ...  # pragma: no cover

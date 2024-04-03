@@ -43,7 +43,9 @@ from topollm.path_management.finetuning.FinetuningPathManagerFactory import (
 )
 from topollm.data_handling.DatasetPreparerFactory import get_dataset_preparer
 from topollm.model_finetuning.evaluate_tuned_model import evaluate_tuned_model
-from topollm.model_finetuning.load_base_model import load_base_model
+from topollm.model_finetuning.load_base_model_from_FinetuningConfig import (
+    load_base_model_from_FinetuningConfig,
+)
 from topollm.model_finetuning.load_tokenizer_from_FinetuningConfig import (
     load_tokenizer_from_FinetuningConfig,
 )
@@ -147,7 +149,7 @@ def do_finetuning_process(
         logger=logger,
     )
 
-    base_model = load_base_model(
+    base_model = load_base_model_from_FinetuningConfig(
         finetuning_config=finetuning_config,
         device=device,
         logger=logger,

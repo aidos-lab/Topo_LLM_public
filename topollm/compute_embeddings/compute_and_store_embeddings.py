@@ -52,8 +52,8 @@ from topollm.config_classes.MainConfig import MainConfig
 from topollm.path_management.embeddings.EmbeddingsPathManagerFactory import (
     get_embeddings_path_manager,
 )
-from topollm.model_handling.load_model import load_model
-from topollm.model_handling.load_tokenizer import load_tokenizer
+from topollm.model_handling.model.load_model import load_model
+from topollm.model_handling.tokenizer.load_tokenizer import load_tokenizer
 from topollm.storage.StorageDataclasses import ArrayProperties
 from topollm.storage.StorageFactory import (
     StorageFactory,

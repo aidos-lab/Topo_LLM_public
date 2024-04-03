@@ -35,7 +35,7 @@ import transformers
 from transformers import AutoModelForMaskedLM
 
 from topollm.config_classes.MainConfig import MainConfig
-from topollm.model_handling.load_tokenizer import load_tokenizer
+from topollm.model_handling.tokenizer.load_tokenizer import load_tokenizer
 
 
 def do_fill_mask(
@@ -46,8 +46,8 @@ def do_fill_mask(
     tokenizer = load_tokenizer(
         pretrained_model_name_or_path=main_config.embeddings.language_model.pretrained_model_name_or_path,
         tokenizer_config=main_config.embeddings.tokenizer,
-        logger=logger,
         verbosity=main_config.verbosity,
+        logger=logger,
     )
 
     # Note that you cannot use `AutoModel.from_pretrained` here,
