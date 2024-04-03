@@ -7,7 +7,6 @@ defaults:
   - embeddings: basic_embeddings
   - finetuning: finetuning
   - paths: absolute_repository_base
-  # - storage: zarr_vectors_xarray_metadata
   - storage: zarr_vectors_pickle_metadata
   - transformations: none
   - override hydra/job_logging: custom
@@ -19,11 +18,25 @@ verbosity: 1
 preferred_torch_backend: auto
 
 #------------------------- Hydra Config ------------------------#
+# Instructions for setting up the output directory paths:
+# https://hydra.cc/docs/configure_hydra/workdir/
+#
+# Workaround for taking care of slashes '/' in 'hydra.job.override_dirname'
+# by adding an OmegaConf resolver 'sanitize_override_dirname':
+# https://github.com/facebookresearch/hydra/discussions/2409
+
 hydra:
   run:
-    dir: ${paths.repository_base_path}/hydra_output_dir/experiments/${embeddings.language_model.short_model_name}/${now:%Y-%m-%d_%H-%M-%S}
+    dir: ${paths.repository_base_path}/hydra_output_dir/run/${hydra.job.name}/${now:%Y-%m-%d}/${now:%H-%M-%S}/${sanitize_override_dirname:${hydra.job.override_dirname}}/seed=${seed}/
+  sweep:
+    dir: ${paths.repository_base_path}/hydra_output_dir/multirun/${hydra.job.name}/${now:%Y-%m-%d}/${now:%H-%M-%S}/
+    subdir: ${sanitize_override_dirname:${hydra.job.override_dirname}}/seed=${seed}
   job:
     chdir: False
     env_set:
       # HYDRA_FULL_ERROR: 1 # NOTE: This will not work for setting the environment variable, set in code instead
       CUDA_VISIBLE_DEVICES: 0
+    config:
+      override_dirname:
+        exclude_keys:
+          - seed

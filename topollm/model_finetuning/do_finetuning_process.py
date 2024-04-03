@@ -93,6 +93,7 @@ def prepare_logging_dir(
 
 def prepare_training_args(
     finetuning_config: FinetuningConfig,
+    seed: int,
     finetuned_model_dir: os.PathLike,
     logging_dir: os.PathLike | None = None,
 ):
@@ -119,7 +120,7 @@ def prepare_training_args(
         log_level=finetuning_config.log_level,
         logging_steps=finetuning_config.logging_steps,
         use_cpu=finetuning_config.use_cpu,
-        seed=finetuning_config.seed,
+        seed=seed,
     )
 
     return training_args
@@ -242,6 +243,7 @@ def do_finetuning_process(
 
     training_args = prepare_training_args(
         finetuning_config=finetuning_config,
+        seed=main_config.seed,
         finetuned_model_dir=finetuned_model_dir,
         logging_dir=logging_dir,
     )
