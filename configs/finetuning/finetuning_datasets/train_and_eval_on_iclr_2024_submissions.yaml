@@ -8,7 +8,7 @@ defaults:
 
 eval_dataset:
   split: validation
-  number_of_samples: 10000
+  number_of_samples: 500
 train_dataset:
   split: train
-  number_of_samples: 10000
+  number_of_samples: 5000

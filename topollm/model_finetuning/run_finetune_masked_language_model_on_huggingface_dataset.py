@@ -42,6 +42,7 @@ from topollm.config_classes.MainConfig import MainConfig
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.model_finetuning.do_finetuning_process import do_finetuning_process
+from topollm.model_finetuning.sanitize_dirname import sanitize_dirname
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # START Globals
@@ -56,7 +57,6 @@ setup_exception_logging(
 # Set the transformers logging level
 transformers.logging.set_verbosity_info()
 
-
 # torch.set_num_threads(1)
 
 # END Globals
@@ -64,7 +64,7 @@ transformers.logging.set_verbosity_info()
 
 omegaconf.OmegaConf.register_new_resolver(
     "sanitize_override_dirname",
-    lambda x: x.replace("/", "_").replace("\\", "_"),
+    sanitize_dirname,
 )
 
 

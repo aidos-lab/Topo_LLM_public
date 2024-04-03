@@ -21,9 +21,9 @@ preferred_torch_backend: auto
 #------------------------- Hydra Config ------------------------#
 hydra:
   run:
-    dir: ${paths.repository_base_path}/hydra_output_dir/run/${sanitize_override_dirname:${hydra.job.override_dirname}}/seed=${seed}/${now:%Y-%m-%d}/${now:%H-%M-%S}
+    dir: ${paths.repository_base_path}/hydra_output_dir/run/${hydra.job.name}/${now:%Y-%m-%d}/${now:%H-%M-%S}/${sanitize_override_dirname:${hydra.job.override_dirname}}/seed=${seed}/
   sweep:
-    dir: ${paths.repository_base_path}/hydra_output_dir/multirun
+    dir: ${paths.repository_base_path}/hydra_output_dir/multirun/${hydra.job.name}/${now:%Y-%m-%d}/${now:%H-%M-%S}/
     subdir: ${sanitize_override_dirname:${hydra.job.override_dirname}}/seed=${seed}
   job:
     chdir: False
