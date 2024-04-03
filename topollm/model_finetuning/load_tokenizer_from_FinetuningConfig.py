@@ -35,7 +35,7 @@ from transformers import AutoTokenizer
 from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
 
 
-def load_tokenizer(
+def load_tokenizer_from_FinetuningConfig(
     finetuning_config: FinetuningConfig,
     logger: logging.Logger = logging.getLogger(__name__),
 ) -> transformers.PreTrainedTokenizer | transformers.PreTrainedTokenizerFast:
