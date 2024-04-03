@@ -21,9 +21,16 @@ preferred_torch_backend: auto
 #------------------------- Hydra Config ------------------------#
 hydra:
   run:
-    dir: ${paths.repository_base_path}/hydra_output_dir/experiments/${embeddings.language_model.short_model_name}/${now:%Y-%m-%d_%H-%M-%S}
+    dir: ${paths.repository_base_path}/hydra_output_dir/run/${sanitize_override_dirname:${hydra.job.override_dirname}}/seed=${seed}/${now:%Y-%m-%d}/${now:%H-%M-%S}
+  sweep:
+    dir: ${paths.repository_base_path}/hydra_output_dir/multirun
+    subdir: ${sanitize_override_dirname:${hydra.job.override_dirname}}/seed=${seed}
   job:
     chdir: False
     env_set:
       # HYDRA_FULL_ERROR: 1 # NOTE: This will not work for setting the environment variable, set in code instead
       CUDA_VISIBLE_DEVICES: 0
+    config:
+      override_dirname:
+        exclude_keys:
+          - seed

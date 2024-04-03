@@ -62,6 +62,11 @@ transformers.logging.set_verbosity_info()
 # END Globals
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
+omegaconf.OmegaConf.register_new_resolver(
+    "sanitize_override_dirname",
+    lambda x: x.replace("/", "_").replace("\\", "_"),
+)
+
 
 @hydra.main(
     config_path="../../configs",
