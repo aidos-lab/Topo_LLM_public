@@ -1,0 +1,3 @@
+pretrained_model_name_or_path: ${paths.data_dir}/models/finetuned_models/data-wikitext_split-train_ctxt-dataset_entry_samples-10000/ftm-standard/lora-None/ep-5/model_files/checkpoint-800
+short_model_name: roberta-base_finetuned-on-wikitext_ftm-standard
+masking_mode: no_masking

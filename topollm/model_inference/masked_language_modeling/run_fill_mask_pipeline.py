@@ -31,33 +31,18 @@
 Create embedding vectors from dataset.
 """
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
-
-# Standard library imports
 import logging
-import pprint
-import token
 
-# Third party imports
 import hydra
 import hydra.core.hydra_config
 import omegaconf
-import transformers
-from transformers import (
-    AutoModelForMaskedLM,
-)
 
-# Local imports
+from topollm.config_classes.MainConfig import MainConfig
+from topollm.config_classes.setup_OmegaConf import setup_OmegaConf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
-from topollm.model_handling.load_tokenizer import load_tokenizer
-from topollm.model_handling.load_model import load_model
 from topollm.model_handling.get_torch_device import get_torch_device
-from topollm.config_classes.MainConfig import MainConfig
-
-# END Imports
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+from topollm.model_inference.masked_language_modeling.do_fill_mask import do_fill_mask
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # START Globals
@@ -70,6 +55,8 @@ setup_exception_logging(
 )
 
 # torch.set_num_threads(1)
+
+setup_OmegaConf()
 
 # END Globals
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -97,43 +84,11 @@ def main(
         logger=global_logger,
     )
 
-    tokenizer = load_tokenizer(
-        pretrained_model_name_or_path=main_config.embeddings.language_model.pretrained_model_name_or_path,
-        tokenizer_config=main_config.embeddings.tokenizer,
-        logger=global_logger,
-        verbosity=main_config.verbosity,
-    )
-    # Note that you cannot use `AutoModel.from_pretrained` here,
-    # because it would lead to the error:
-    # `KeyError: 'logits'`
-    #
-    # See also: https://github.com/huggingface/transformers/issues/16569
-    model = AutoModelForMaskedLM.from_pretrained(
-        pretrained_model_name_or_path=main_config.embeddings.language_model.pretrained_model_name_or_path,
-    )
-    model.to(device)
-
-    fill_pipeline = transformers.pipeline(
-        task="fill-mask",
-        model=model,
-        tokenizer=tokenizer,
+    do_fill_mask(
+        main_config=main_config,
         device=device,
+        logger=global_logger,
     )
-
-    prompts: list[str] = [
-        "I am looking for a " + tokenizer.mask_token,
-        "Can you find me a " + tokenizer.mask_token + "?",
-        "I would like a "
-        + tokenizer.mask_token
-        + " hotel in the center of town, please.",
-        tokenizer.mask_token + " is a cheap restaurant in the south of town.",
-        "The train should go to " + tokenizer.mask_token + ".",
-        "No, it should be " + tokenizer.mask_token + ", look again!",
-    ]
-    global_logger.info(f"prompts:\n" f"{pprint.pformat(prompts)}")
-
-    result = fill_pipeline(prompts)
-    global_logger.info(f"result:\n" f"{pprint.pformat(result)}")
 
     global_logger.info("DONE")
 

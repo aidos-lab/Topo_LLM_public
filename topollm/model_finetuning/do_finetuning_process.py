@@ -193,8 +193,6 @@ def do_finetuning_process(
     # This allows for variations of the training process,
     # e.g. using LoRA or other model modifications.
 
-    # TODO: Include the training information into the model save path
-
     model_modifier = get_model_modifier(
         peft_config=finetuning_config.peft,
         device=device,
