@@ -361,9 +361,10 @@ def batch_sizes_config() -> BatchSizesConfig:
     scope="session",
 )
 def finetuning_config(
-    peft_config: PEFTConfig,
     batch_sizes_config: BatchSizesConfig,
     finetuning_datasets_config: FinetuningDatasetsConfig,
+    peft_config: PEFTConfig,
+    tokenizer_config: TokenizerConfig,
 ) -> FinetuningConfig:
     config = FinetuningConfig(
         peft=peft_config,
@@ -371,6 +372,7 @@ def finetuning_config(
         finetuning_datasets=finetuning_datasets_config,
         pretrained_model_name_or_path="roberta-base",
         short_model_name="roberta-base",
+        tokenizer=tokenizer_config,
     )
 
     return config

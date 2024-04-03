@@ -51,8 +51,8 @@ from topollm.config_classes.TokenizerConfig import TokenizerConfig
 def load_tokenizer(
     pretrained_model_name_or_path: str | os.PathLike,
     tokenizer_config: TokenizerConfig,
-    logger: logging.Logger = logging.getLogger(__name__),
     verbosity: int = 1,
+    logger: logging.Logger = logging.getLogger(__name__),
 ) -> PreTrainedTokenizer | PreTrainedTokenizerFast:
     """
     Loads the tokenizer and model based on the configuration,
@@ -63,12 +63,16 @@ def load_tokenizer(
             The name or path of the pretrained model.
 
     """
+    if verbosity >= 1:
+        logger.info(f"Loading tokenizer " f"{pretrained_model_name_or_path = } ...")
+
     tokenizer = AutoTokenizer.from_pretrained(
         pretrained_model_name_or_path=pretrained_model_name_or_path,
         add_prefix_space=tokenizer_config.add_prefix_space,
     )
 
     if verbosity >= 1:
+        logger.info(f"Loading tokenizer " f"{pretrained_model_name_or_path = } DONE")
         logger.info(
             f"tokenizer:\n" f"{tokenizer}",
         )

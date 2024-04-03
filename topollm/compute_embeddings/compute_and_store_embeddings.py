@@ -79,6 +79,9 @@ def compute_and_store_embeddings(
         logger=logger,
         verbosity=main_config.verbosity,
     )
+    # Put the model in evaluation mode.
+    # For example, dropout layers behave differently during evaluation.
+    model.eval()
 
     model_config: transformers.PretrainedConfig = model.config
     if model_config is None:

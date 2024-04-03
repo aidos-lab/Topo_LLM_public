@@ -46,13 +46,12 @@ from transformers import AutoModel, PreTrainedModel
 
 def load_model(
     pretrained_model_name_or_path: str | os.PathLike,
-    device: torch.device,
+    device: torch.device = torch.device("cpu"),
     logger: logging.Logger = logging.getLogger(__name__),
     verbosity: int = 1,
 ) -> PreTrainedModel:
     """
-    Loads the model based on the configuration,
-    and puts the model in evaluation mode.
+    Loads the model based on the configuration.
 
     Args:
         pretrained_model_name_or_path:
@@ -62,7 +61,6 @@ def load_model(
         pretrained_model_name_or_path=pretrained_model_name_or_path,
     )
 
-    model.eval()  # Disable dropout layers
     model.to(device)  # type: ignore
 
     if verbosity >= 1:
