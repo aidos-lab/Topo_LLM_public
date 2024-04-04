@@ -10,7 +10,7 @@ defaults:
   # - ../language_model@language_model: roberta-base_finetuned-on-multiwoz21-train-5000_context-utterance_ep-5
   # - ../language_model@language_model: roberta-base_finetuned-on-wikitext_ftm-standard
   # - ../language_model@language_model: roberta-base_finetuned-on-wikitext_ftm-lora
-  # - ../tokenizer@tokenizer: basic_tokenizer
+  - ../tokenizer@tokenizer: basic_tokenizer
   - _self_
 
 batch_size: 32
