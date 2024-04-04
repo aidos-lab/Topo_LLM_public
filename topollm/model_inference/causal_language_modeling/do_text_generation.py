@@ -65,9 +65,7 @@ def do_text_generation(
         task="text-generation",
         model=model,
         tokenizer=tokenizer,
-        device=(
-            device.index if device else -1
-        ),  # Use device index for compatibility, -1 for CPU
+        device=device,
         max_length=max_length,
         num_return_sequences=num_return_sequences,
     )

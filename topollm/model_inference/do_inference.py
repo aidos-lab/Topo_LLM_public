@@ -104,8 +104,8 @@ def do_inference(
             tokenizer=tokenizer,
             model=model,
             prompts=prompts,
-            max_length=100,
-            num_return_sequences=3,
+            max_length=main_config.inference.max_length,
+            num_return_sequences=main_config.inference.num_return_sequences,
             device=device,
             logger=logger,
         )
