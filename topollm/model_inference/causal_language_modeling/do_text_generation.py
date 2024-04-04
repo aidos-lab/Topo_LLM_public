@@ -32,6 +32,7 @@ import pprint
 
 import torch
 import transformers
+from tqdm import tqdm
 
 
 def do_text_generation(
@@ -74,15 +75,26 @@ def do_text_generation(
     logger.info(f"prompts:\n{pprint.pformat(prompts)}")
 
     all_generated_texts: list[list[str]] = []
-    for prompt in prompts:
-        results = text_generation_pipeline(
+
+    for prompt in tqdm(
+        prompts,
+        desc="Iterating over prompts",
+    ):
+        results: list[dict] = text_generation_pipeline(
             prompt,
-        )
+        )  # type: ignore
 
         if results is None:
             raise ValueError("No results were generated.")
+        if not isinstance(
+            results,
+            list,
+        ):
+            raise ValueError(f"{results = } must be a list.")
 
-        generated_texts = [result["generated_text"] for result in results]
+        generated_texts: list[str] = [result["generated_text"] for result in results]
+
+        # Appending the generated texts for the current prompt to the list of lists
         all_generated_texts.append(
             generated_texts,
         )

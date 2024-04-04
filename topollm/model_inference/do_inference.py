@@ -79,12 +79,9 @@ def do_inference(
     )
     model.eval()
 
-    # lm_mode = LMmode.MLM
-    lm_mode = LMmode.CLM
-
-    # TODO: Find out if the model is a
-    # masked language model (MLM) or a causal language model (CLM)
-    # and run the corresponding inference function.
+    # Case distinction for different language model modes
+    # (Masked Language Modeling, Causal Language Modeling).
+    lm_mode = main_config.embeddings.language_model.lm_mode
 
     if lm_mode == LMmode.MLM:
         prompts = get_default_mlm_prompts(
@@ -113,6 +110,6 @@ def do_inference(
             logger=logger,
         )
     else:
-        raise ValueError(f"Invalid lm_mode: {lm_mode = }")
+        raise ValueError(f"Invalid lm_mode: " f"{lm_mode = }")
 
     return None
