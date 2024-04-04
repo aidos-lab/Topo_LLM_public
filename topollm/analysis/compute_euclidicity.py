@@ -557,7 +557,7 @@ def main(cfg):
     if not os.path.exists(save_path):
         os.makedirs(save_path)
 
-    save_name = save_path + file_name + str(len(arr_no_pad)) + '_samples'
+    save_name = save_path + file_name + str(len(arr_no_pad)) + '_samples_'+str(cfg.layer_1) + '.pkl'
     scatter_fig.savefig(save_name+'.png')
     euc_frame.to_pickle(save_name)
 

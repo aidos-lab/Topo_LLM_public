@@ -1,6 +1,4 @@
-import data_prep
-import data_prep_cls
-import data_prep_mean
+from topollm.analysis import data_prep, data_prep_cls, data_prep_mean
 import hydra
 import omegaconf
 
