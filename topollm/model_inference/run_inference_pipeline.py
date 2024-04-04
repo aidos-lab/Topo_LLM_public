@@ -84,6 +84,9 @@ def main(
         logger=global_logger,
     )
 
+    # TODO: Select the correct function to run (fill mask, causal language modeling)
+    # based on the type of language model that was trained.
+
     do_fill_mask(
         main_config=main_config,
         device=device,
