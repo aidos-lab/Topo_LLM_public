@@ -31,6 +31,7 @@ import logging
 import os
 
 import torch
+import transformers
 from transformers import AutoModelForPreTraining, PreTrainedModel
 
 from topollm.logging.log_model_info import log_model_info
@@ -38,10 +39,11 @@ from topollm.logging.log_model_info import log_model_info
 
 def load_model(
     pretrained_model_name_or_path: str | os.PathLike,
+    model_loading_class: type = transformers.AutoModelForPreTraining,
     device: torch.device = torch.device("cpu"),
     verbosity: int = 1,
     logger: logging.Logger = logging.getLogger(__name__),
-) -> PreTrainedModel:
+) -> transformers.PreTrainedModel:
     """
     Loads the model based on the configuration.
 
@@ -52,7 +54,17 @@ def load_model(
 
     if verbosity >= 1:
         logger.info(f"Loading model " f"{pretrained_model_name_or_path = } ...")
-    model: PreTrainedModel = AutoModelForPreTraining.from_pretrained(
+
+    if not hasattr(
+        model_loading_class,
+        "from_pretrained",
+    ):
+        raise ValueError(
+            f"model_loading_class does not have a from_pretrained method: "
+            f"{model_loading_class = }",
+        )
+
+    model: transformers.PreTrainedModel = model_loading_class.from_pretrained(
         pretrained_model_name_or_path=pretrained_model_name_or_path,
     )
     if verbosity >= 1:
@@ -60,7 +72,7 @@ def load_model(
 
     if not isinstance(
         model,
-        PreTrainedModel,
+        transformers.PreTrainedModel,
     ):
         raise ValueError(
             f"model is not of type PreTrainedModel: " f"{type(model) = }",

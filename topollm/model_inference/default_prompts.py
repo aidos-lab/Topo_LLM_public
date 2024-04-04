@@ -27,33 +27,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
-import pprint
 
-import torch
-import transformers
+def get_default_mlm_prompts(
+    mask_token: str,
+) -> list[str]:
+    prompts = [
+        f"I am looking for a {mask_token}",
+        f"Can you find me a {mask_token}?",
+        f"I would like a {mask_token} hotel in the center of town, please.",
+        f"{mask_token} is a cheap restaurant in the south of town.",
+        f"The train should go to {mask_token}.",
+        f"No, it should be {mask_token}, look again!",
+    ]
 
-
-def do_fill_mask(
-    tokenizer: transformers.PreTrainedTokenizer | transformers.PreTrainedTokenizerFast,
-    model: transformers.PreTrainedModel,
-    prompts: list[str],
-    device: torch.device = torch.device("cpu"),
-    logger: logging.Logger = logging.getLogger(__name__),
-) -> None:
-
-    fill_pipeline = transformers.pipeline(
-        task="fill-mask",
-        model=model,
-        tokenizer=tokenizer,
-        device=device,
-    )
-
-    logger.info(f"prompts:\n" f"{pprint.pformat(prompts)}")
-
-    result = fill_pipeline(
-        prompts,
-    )
-    logger.info(f"result:\n" f"{pprint.pformat(result)}")
-
-    return None
+    return prompts

@@ -45,6 +45,7 @@ from topollm.config_classes.enums import PreferredTorchBackend
 
 def get_torch_device(
     preferred_torch_backend: PreferredTorchBackend,
+    verbosity: int = 1,
     logger: logging.Logger = logging.getLogger(__name__),
 ) -> torch.device:
     # Directly select 'cpu' if preferred,
@@ -75,6 +76,7 @@ def get_torch_device(
         else:
             device = torch.device("cpu")
 
-    logger.info(f"{device = }")
+    if verbosity >= 1:
+        logger.info(f"{device = }")
 
     return device
