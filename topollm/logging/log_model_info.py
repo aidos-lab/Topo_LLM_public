@@ -38,7 +38,10 @@ def log_model_info(
     model_name: str = "model",
     logger: logging.Logger = logging.getLogger(__name__),
 ) -> None:
+
+    logger.info(f"{type(model) = }")
     logger.info(f"{model_name}:\n" f"{model}")
+
     if hasattr(
         model,
         "config",

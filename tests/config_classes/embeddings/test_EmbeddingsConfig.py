@@ -47,6 +47,7 @@ def test_hydra_with_EmbeddingsConfig() -> None:
         cfg: omegaconf.DictConfig = compose(
             config_name="basic_embeddings",
             overrides=[
+                "language_model.pretrained_model_name_or_path=overridden_pretrained_model_name_or_path",
                 "language_model.short_model_name=overridden_short_model_name",
             ],
         )

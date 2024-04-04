@@ -34,16 +34,21 @@ import transformers
 
 from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
 from topollm.config_classes.MainConfig import MainConfig
+from topollm.model_finetuning.prepare_finetuned_model_dir import (
+    prepare_finetuned_model_dir,
+)
+from topollm.model_finetuning.prepare_logging_dir import prepare_logging_dir
 from topollm.path_management.finetuning.FinetuningPathManagerFactory import (
     get_finetuning_path_manager,
 )
-from topollm.path_management.finetuning.FinetuningPathManagerProtocol import (
-    FinetuningPathManager,
-)
 from topollm.data_handling.DatasetPreparerFactory import get_dataset_preparer
 from topollm.model_finetuning.evaluate_tuned_model import evaluate_tuned_model
-from topollm.model_finetuning.load_base_model import load_base_model
-from topollm.model_finetuning.load_tokenizer import load_tokenizer
+from topollm.model_finetuning.load_base_model_from_FinetuningConfig import (
+    load_base_model_from_FinetuningConfig,
+)
+from topollm.model_finetuning.load_tokenizer_from_FinetuningConfig import (
+    load_tokenizer_from_FinetuningConfig,
+)
 
 from topollm.model_finetuning.model_modifiers.ModelModifierFactory import (
     get_model_modifier,
@@ -51,44 +56,6 @@ from topollm.model_finetuning.model_modifiers.ModelModifierFactory import (
 from topollm.model_finetuning.prepare_model_input import prepare_model_input
 from topollm.model_finetuning.save_tuned_model import save_tuned_model
 from topollm.model_handling.get_torch_device import get_torch_device
-
-
-def prepare_finetuned_model_dir(
-    finetuning_path_manager: FinetuningPathManager,
-    logger: logging.Logger = logging.getLogger(__name__),
-) -> os.PathLike:
-    finetuned_model_dir = finetuning_path_manager.finetuned_model_dir
-    logger.info(f"{finetuned_model_dir = }")
-
-    # Create the output directory if it does not exist
-    finetuned_model_dir.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
-
-    return finetuned_model_dir
-
-
-def prepare_logging_dir(
-    finetuning_path_manager: FinetuningPathManager,
-    logger: logging.Logger = logging.getLogger(__name__),
-) -> os.PathLike | None:
-    logging_dir = finetuning_path_manager.logging_dir
-    logger.info(f"{logging_dir = }")
-
-    # Create the logging directory if it does not exist
-    if logging_dir is not None:
-        logging_dir.mkdir(
-            parents=True,
-            exist_ok=True,
-        )
-    else:
-        logger.info(
-            f"No logging directory specified. "
-            f"Using default logging from transformers.Trainer."
-        )
-
-    return logging_dir
 
 
 def prepare_training_args(
@@ -177,12 +144,12 @@ def do_finetuning_process(
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Load tokenizer and model
 
-    tokenizer = load_tokenizer(
+    tokenizer = load_tokenizer_from_FinetuningConfig(
         finetuning_config=finetuning_config,
         logger=logger,
     )
 
-    base_model = load_base_model(
+    base_model = load_base_model_from_FinetuningConfig(
         finetuning_config=finetuning_config,
         device=device,
         logger=logger,
@@ -192,8 +159,6 @@ def do_finetuning_process(
     # Potential modification of the model.
     # This allows for variations of the training process,
     # e.g. using LoRA or other model modifications.
-
-    # TODO: Include the training information into the model save path
 
     model_modifier = get_model_modifier(
         peft_config=finetuning_config.peft,

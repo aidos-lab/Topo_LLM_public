@@ -30,6 +30,7 @@
 from pydantic import Field
 
 from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
+from topollm.config_classes.TokenizerConfig import TokenizerConfig
 from topollm.config_classes.finetuning.BatchSizesConfig import BatchSizesConfig
 from topollm.config_classes.finetuning.FinetuningDatasetsConfig import (
     FinetuningDatasetsConfig,
@@ -123,6 +124,12 @@ class FinetuningConfig(ConfigBaseModel):
     short_model_name: str = Field(
         default="default-short-model-name",
         description="Short name of the base model for file names.",
+    )
+
+    tokenizer: TokenizerConfig = Field(
+        ...,
+        title="Tokenizer configuration.",
+        description="The configuration for specifying tokenizer.",
     )
 
     use_cpu: bool = Field(

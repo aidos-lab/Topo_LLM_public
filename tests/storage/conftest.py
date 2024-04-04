@@ -27,23 +27,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
-
-# System imports
 import pathlib
 
-# Third-party imports
 import pytest
 import pickle
 
-# Local imports
 
-# END Imports
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-
-
-@pytest.fixture(scope="session")
+@pytest.fixture(
+    scope="session",
+)
 def example_batch() -> dict:
     example_data_pickle_path = pathlib.Path(
         pathlib.Path(__file__).parent,
@@ -62,6 +54,8 @@ def example_batch() -> dict:
         return example_data
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(
+    scope="session",
+)
 def chunk_idx() -> int:
     return 7

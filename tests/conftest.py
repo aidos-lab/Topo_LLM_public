@@ -33,6 +33,7 @@ import pathlib
 from datetime import datetime
 
 import pytest
+import torch
 from dotenv import find_dotenv, load_dotenv
 
 from topollm.config_classes.DataConfig import DataConfig
@@ -361,9 +362,10 @@ def batch_sizes_config() -> BatchSizesConfig:
     scope="session",
 )
 def finetuning_config(
-    peft_config: PEFTConfig,
     batch_sizes_config: BatchSizesConfig,
     finetuning_datasets_config: FinetuningDatasetsConfig,
+    peft_config: PEFTConfig,
+    tokenizer_config: TokenizerConfig,
 ) -> FinetuningConfig:
     config = FinetuningConfig(
         peft=peft_config,
@@ -371,6 +373,7 @@ def finetuning_config(
         finetuning_datasets=finetuning_datasets_config,
         pretrained_model_name_or_path="roberta-base",
         short_model_name="roberta-base",
+        tokenizer=tokenizer_config,
     )
 
     return config
@@ -416,3 +419,16 @@ def finetuning_path_manager_basic(
     )
 
     return path_manager
+
+
+@pytest.fixture(
+    scope="session",
+)
+def device_fixture() -> torch.device:
+    device = torch.device(
+        "cuda"
+        if torch.cuda.is_available()
+        else "mps" if torch.backends.mps.is_available() else "cpu"
+    )
+
+    return device
