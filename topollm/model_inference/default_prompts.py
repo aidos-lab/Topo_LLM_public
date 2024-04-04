@@ -38,6 +38,21 @@ def get_default_mlm_prompts(
         f"{mask_token} is a cheap restaurant in the south of town.",
         f"The train should go to {mask_token}.",
         f"No, it should be {mask_token}, look again!",
+        f"{mask_token} is a city in the south of England.",
+    ]
+
+    return prompts
+
+
+def get_default_clm_prompts() -> list[str]:
+    prompts = [
+        "I am looking for a",
+        "Can you find me a",
+        "I would like a hotel in the",
+        "Nandos is a",
+        "The train should go to",
+        "No, it should be",
+        "Cambridge is",
     ]
 
     return prompts

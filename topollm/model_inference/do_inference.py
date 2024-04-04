@@ -30,13 +30,25 @@
 import logging
 
 import transformers
+from strenum import StrEnum
 
 from topollm.config_classes.MainConfig import MainConfig
 from topollm.model_handling.get_torch_device import get_torch_device
 from topollm.model_handling.model.load_model import load_model
 from topollm.model_handling.tokenizer.load_tokenizer import load_tokenizer
-from topollm.model_inference.default_prompts import get_default_mlm_prompts
+from topollm.model_inference.causal_language_modeling.do_text_generation import (
+    do_text_generation,
+)
+from topollm.model_inference.default_prompts import (
+    get_default_clm_prompts,
+    get_default_mlm_prompts,
+)
 from topollm.model_inference.masked_language_modeling.do_fill_mask import do_fill_mask
+
+
+class LMmode(StrEnum):
+    MLM = "MLM"
+    CLM = "CLM"
 
 
 def do_inference(
@@ -63,25 +75,52 @@ def do_inference(
     # because it would lead to the error:
     # `KeyError: 'logits'`
     # See also: https://github.com/huggingface/transformers/issues/16569
+    #
+    # We use the `AutoModelForPreTraining` class instead,
+    # which will load the model correctly for inference.
     model = load_model(
         pretrained_model_name_or_path=main_config.embeddings.language_model.pretrained_model_name_or_path,
-        model_loading_class=transformers.AutoModelForMaskedLM,
+        model_loading_class=transformers.AutoModelForPreTraining,
         device=device,
         verbosity=main_config.verbosity,
         logger=logger,
     )
     model.eval()
 
-    prompts = get_default_mlm_prompts(
-        mask_token=tokenizer.mask_token,
-    )
+    # lm_mode = LMmode.MLM
+    lm_mode = LMmode.CLM
 
-    do_fill_mask(
-        tokenizer=tokenizer,
-        model=model,
-        prompts=prompts,
-        device=device,
-        logger=logger,
-    )
+    # TODO: Find out if the model is a
+    # masked language model (MLM) or a causal language model (CLM)
+    # and run the corresponding inference function.
+
+    if lm_mode == LMmode.MLM:
+        prompts = get_default_mlm_prompts(
+            mask_token=tokenizer.mask_token,
+        )
+        logger.info(f"{prompts = }")
+
+        do_fill_mask(
+            tokenizer=tokenizer,
+            model=model,
+            prompts=prompts,
+            device=device,
+            logger=logger,
+        )
+    elif lm_mode == LMmode.CLM:
+        prompts = get_default_clm_prompts()
+        logger.info(f"{prompts = }")
+
+        do_text_generation(
+            tokenizer=tokenizer,
+            model=model,
+            prompts=prompts,
+            max_length=100,
+            num_return_sequences=3,
+            device=device,
+            logger=logger,
+        )
+    else:
+        raise ValueError(f"Invalid LM mode: {lm_mode = }")
 
     return None
