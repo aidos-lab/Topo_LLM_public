@@ -30,38 +30,37 @@
 import logging
 import os
 
-from transformers import AutoTokenizer, PreTrainedTokenizer, PreTrainedTokenizerFast
+import pytest
+from transformers import PreTrainedTokenizer, PreTrainedTokenizerFast
 
 from topollm.config_classes.TokenizerConfig import TokenizerConfig
+from topollm.model_handling.tokenizer.load_tokenizer import load_tokenizer
 
 
-def load_tokenizer(
+@pytest.mark.parametrize(
+    "pretrained_model_name_or_path",
+    [
+        "roberta-base",
+        "gpt2-large",
+    ],
+)
+@pytest.mark.uses_transformers_models
+def test_load_tokenizer(
     pretrained_model_name_or_path: str | os.PathLike,
     tokenizer_config: TokenizerConfig,
-    verbosity: int = 1,
-    logger: logging.Logger = logging.getLogger(__name__),
-) -> PreTrainedTokenizer | PreTrainedTokenizerFast:
-    """
-    Loads the tokenizer and model based on the configuration,
-    and puts the model in evaluation mode.
-
-    Args:
-        pretrained_model_name_or_path:
-            The name or path of the pretrained model.
-
-    """
-    if verbosity >= 1:
-        logger.info(f"Loading tokenizer " f"{pretrained_model_name_or_path = } ...")
-
-    tokenizer = AutoTokenizer.from_pretrained(
+    logger_fixture: logging.Logger,
+) -> None:
+    tokenizer = load_tokenizer(
         pretrained_model_name_or_path=pretrained_model_name_or_path,
-        add_prefix_space=tokenizer_config.add_prefix_space,
+        tokenizer_config=tokenizer_config,
+        verbosity=1,
+        logger=logger_fixture,
     )
 
-    if verbosity >= 1:
-        logger.info(f"Loading tokenizer " f"{pretrained_model_name_or_path = } DONE")
-        logger.info(
-            f"tokenizer:\n" f"{tokenizer}",
-        )
+    assert tokenizer is not None
+    assert isinstance(
+        tokenizer,
+        PreTrainedTokenizer | PreTrainedTokenizerFast,
+    )
 
-    return tokenizer
+    return None
