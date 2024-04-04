@@ -27,35 +27,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 import pathlib
 
-import pytest
-import pickle
-
-
-@pytest.fixture(
-    scope="session",
-)
-def example_batch() -> dict:
-    example_data_pickle_path = pathlib.Path(
+example_pretrained_model_name_or_path_list: list[str | os.PathLike] = [
+    "roberta-base",
+    "gpt2-large",
+    pathlib.Path(
         pathlib.Path(__file__).parent,
-        "example_data",
-        "example_data_batch.pkl",
-    )
-
-    with open(
-        file=example_data_pickle_path,
-        mode="rb",
-    ) as file:
-        example_data = pickle.load(
-            file=file,
-        )
-
-        return example_data
-
-
-@pytest.fixture(
-    scope="session",
-)
-def chunk_idx() -> int:
-    return 7
+        "example_model_files",
+        "example_lora_finetuning_data-multiwoz21-10000_checkpoint-1200",
+    ),
+]

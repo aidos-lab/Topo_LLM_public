@@ -33,16 +33,16 @@ import os
 import pytest
 from transformers import PreTrainedTokenizer, PreTrainedTokenizerFast
 
+from tests.model_handling.parameter_lists import (
+    example_pretrained_model_name_or_path_list,
+)
 from topollm.config_classes.TokenizerConfig import TokenizerConfig
 from topollm.model_handling.tokenizer.load_tokenizer import load_tokenizer
 
 
 @pytest.mark.parametrize(
     "pretrained_model_name_or_path",
-    [
-        "roberta-base",
-        "gpt2-large",
-    ],
+    example_pretrained_model_name_or_path_list,
 )
 @pytest.mark.uses_transformers_models
 def test_load_tokenizer(

@@ -27,35 +27,40 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pathlib
+import logging
+import os
 
 import pytest
-import pickle
+from transformers import PreTrainedModel
+import torch
 
-
-@pytest.fixture(
-    scope="session",
+from tests.model_handling.parameter_lists import (
+    example_pretrained_model_name_or_path_list,
 )
-def example_batch() -> dict:
-    example_data_pickle_path = pathlib.Path(
-        pathlib.Path(__file__).parent,
-        "example_data",
-        "example_data_batch.pkl",
+from topollm.model_handling.model.load_model import load_model
+
+
+@pytest.mark.parametrize(
+    "pretrained_model_name_or_path",
+    example_pretrained_model_name_or_path_list,
+)
+@pytest.mark.uses_transformers_models
+def test_load_model(
+    pretrained_model_name_or_path: str | os.PathLike,
+    device_fixture: torch.device,
+    logger_fixture: logging.Logger,
+) -> None:
+    model = load_model(
+        pretrained_model_name_or_path=pretrained_model_name_or_path,
+        device=device_fixture,
+        verbosity=1,
+        logger=logger_fixture,
     )
 
-    with open(
-        file=example_data_pickle_path,
-        mode="rb",
-    ) as file:
-        example_data = pickle.load(
-            file=file,
-        )
+    assert model is not None
+    assert isinstance(
+        model,
+        PreTrainedModel,
+    )
 
-        return example_data
-
-
-@pytest.fixture(
-    scope="session",
-)
-def chunk_idx() -> int:
-    return 7
+    return None
