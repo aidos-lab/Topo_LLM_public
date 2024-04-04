@@ -1,3 +1,4 @@
 pretrained_model_name_or_path: roberta-base
 short_model_name: ${embeddings.language_model.pretrained_model_name_or_path}
 masking_mode: no_masking
+lm_mode: MLM

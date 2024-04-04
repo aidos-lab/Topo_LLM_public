@@ -39,6 +39,7 @@ from pydantic import Field
 # Local imports
 from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
 from topollm.config_classes.constants import NAME_PREFIXES
+from topollm.config_classes.enums import LMmode
 
 # END Imports
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -62,6 +63,12 @@ class LanguageModelConfig(ConfigBaseModel):
         ...,
         title="Masking mode.",
         description="The masking mode.",
+    )
+
+    lm_mode: LMmode = Field(
+        ...,
+        title="Language model mode.",
+        description="The language model mode.",
     )
 
     @property

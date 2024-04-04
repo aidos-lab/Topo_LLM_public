@@ -30,9 +30,9 @@
 import logging
 
 import transformers
-from strenum import StrEnum
 
 from topollm.config_classes.MainConfig import MainConfig
+from topollm.config_classes.enums import LMmode
 from topollm.model_handling.get_torch_device import get_torch_device
 from topollm.model_handling.model.load_model import load_model
 from topollm.model_handling.tokenizer.load_tokenizer import load_tokenizer
@@ -44,11 +44,6 @@ from topollm.model_inference.default_prompts import (
     get_default_mlm_prompts,
 )
 from topollm.model_inference.masked_language_modeling.do_fill_mask import do_fill_mask
-
-
-class LMmode(StrEnum):
-    MLM = "MLM"
-    CLM = "CLM"
 
 
 def do_inference(
@@ -67,9 +62,6 @@ def do_inference(
         verbosity=main_config.verbosity,
         logger=logger,
     )
-
-    # TODO: Select the correct function to run (fill mask, causal language modeling)
-    # based on the type of language model that was trained.
 
     # Note that you cannot use `AutoModel.from_pretrained` to load a model for inference,
     # because it would lead to the error:
@@ -121,6 +113,6 @@ def do_inference(
             logger=logger,
         )
     else:
-        raise ValueError(f"Invalid LM mode: {lm_mode = }")
+        raise ValueError(f"Invalid lm_mode: {lm_mode = }")
 
     return None

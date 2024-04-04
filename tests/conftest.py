@@ -44,6 +44,7 @@ from topollm.config_classes.enums import (
     AggregationType,
     DatasetType,
     FinetuningMode,
+    LMmode,
     Level,
     Split,
 )
@@ -262,6 +263,7 @@ def language_model_config() -> LanguageModelConfig:
         pretrained_model_name_or_path="roberta-base",
         short_model_name="roberta-base",
         masking_mode="no_masking",
+        lm_mode=LMmode.MLM,
     )
 
     return config

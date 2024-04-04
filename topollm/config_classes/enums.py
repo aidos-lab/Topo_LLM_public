@@ -33,6 +33,8 @@
 # System imports
 from enum import Enum, unique
 
+from strenum import StrEnum
+
 # Third-party imports
 
 try:
@@ -306,3 +308,8 @@ class FinetuningMode(StrEnum):
 
     STANDARD = "standard"
     LORA = "lora"
+
+
+class LMmode(StrEnum):
+    MLM = "MLM"
+    CLM = "CLM"
