@@ -26,20 +26,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
-
-# System imports
-
-# Local imports
 from pydantic import Field
 
-# Third-party imports
 from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
-
-
-# END Globals
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
 class DatasetMapConfig(ConfigBaseModel):

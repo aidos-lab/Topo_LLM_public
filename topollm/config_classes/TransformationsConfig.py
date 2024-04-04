@@ -27,21 +27,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
-
-# Standard library imports
-import pathlib
-
-# Third party imports
 from pydantic import Field
 
-# Local imports
 from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
 from topollm.config_classes.constants import NAME_PREFIXES
-
-# END Imports
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
 class TransformationsConfig(ConfigBaseModel):

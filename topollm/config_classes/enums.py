@@ -27,15 +27,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
-
-# System imports
 from enum import Enum, unique
 
 from strenum import StrEnum
-
-# Third-party imports
 
 try:
     # Try to import StrEnum from the standard library (Python 3.11 and later)
@@ -50,12 +44,8 @@ assert issubclass(
     Enum,
 ), "StrEnum should be a subclass of Enum"
 
-# END Imports
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 # ==============================
-
-
 @unique
 class PreferredTorchBackend(StrEnum):  # type: ignore
     CPU = "cpu"
