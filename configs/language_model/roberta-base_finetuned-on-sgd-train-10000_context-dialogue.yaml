@@ -1,3 +1,4 @@
 pretrained_model_name_or_path: ${paths.data_dir}/models/finetuned_models/data-sgd_split-train_ctxt-dataset_entry_samples-10000/ftm-standard/lora-None/ep-5/model_files
 short_model_name: roberta-base_finetuned-on-sgd-train-10000_context-dialogue
 masking_mode: no_masking
+lm_mode: MLM

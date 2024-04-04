@@ -40,11 +40,16 @@ from topollm.config_classes.DataConfig import DataConfig
 from topollm.config_classes.DatasetMapConfig import DatasetMapConfig
 from topollm.config_classes.EmbeddingExtractionConfig import EmbeddingExtractionConfig
 from topollm.config_classes.EmbeddingsConfig import EmbeddingsConfig
+from topollm.config_classes.StorageConfig import StorageConfig
 from topollm.config_classes.enums import (
     AggregationType,
+    ArrayStorageType,
     DatasetType,
     FinetuningMode,
     Level,
+    LMmode,
+    MetadataStorageType,
+    PreferredTorchBackend,
     Split,
 )
 from topollm.config_classes.finetuning.BatchSizesConfig import BatchSizesConfig
@@ -53,7 +58,9 @@ from topollm.config_classes.finetuning.FinetuningDatasetsConfig import (
     FinetuningDatasetsConfig,
 )
 from topollm.config_classes.finetuning.peft.PEFTConfig import PEFTConfig
+from topollm.config_classes.inference.InferenceConfig import InferenceConfig
 from topollm.config_classes.LanguageModelConfig import LanguageModelConfig
+from topollm.config_classes.MainConfig import MainConfig
 from topollm.config_classes.PathsConfig import PathsConfig
 from topollm.config_classes.TokenizerConfig import TokenizerConfig
 from topollm.config_classes.TransformationsConfig import TransformationsConfig
@@ -262,6 +269,7 @@ def language_model_config() -> LanguageModelConfig:
         pretrained_model_name_or_path="roberta-base",
         short_model_name="roberta-base",
         masking_mode="no_masking",
+        lm_mode=LMmode.MLM,
     )
 
     return config
@@ -432,3 +440,66 @@ def device_fixture() -> torch.device:
     )
 
     return device
+
+
+@pytest.fixture(
+    scope="session",
+)
+def inference_config() -> InferenceConfig:
+    config = InferenceConfig(
+        max_length=50,
+        num_return_sequences=3,
+    )
+
+    return config
+
+
+@pytest.fixture(
+    scope="session",
+)
+def storage_config() -> StorageConfig:
+    config = StorageConfig(
+        array_storage_type=ArrayStorageType.ZARR,
+        metadata_storage_type=MetadataStorageType.PICKLE,
+        chunk_size=1000,
+    )
+
+    return config
+
+
+@pytest.fixture(
+    scope="session",
+)
+def transformers_config() -> TransformationsConfig:
+    config = TransformationsConfig(
+        normalization="None",
+    )
+
+    return config
+
+
+@pytest.fixture(
+    scope="session",
+)
+def main_config(
+    data_config: DataConfig,
+    embeddings_config: EmbeddingsConfig,
+    finetuning_config: FinetuningConfig,
+    inference_config: InferenceConfig,
+    paths_config: PathsConfig,
+    storage_config: StorageConfig,
+    transformations_config: TransformationsConfig,
+) -> MainConfig:
+    config = MainConfig(
+        data=data_config,
+        embeddings=embeddings_config,
+        finetuning=finetuning_config,
+        inference=inference_config,
+        paths=paths_config,
+        preferred_torch_backend=PreferredTorchBackend.CPU,
+        storage=storage_config,
+        transformations=transformations_config,
+        verbosity=1,
+    )
+
+    return config

@@ -7,7 +7,6 @@
 #
 # Authors:
 # Benjamin Ruppik (ruppik@hhu.de)
-# Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
 # First versions of this code were potentially generated
@@ -30,28 +29,21 @@
 from pydantic import Field
 
 from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
-from topollm.config_classes.enums import ArrayStorageType, MetadataStorageType
 
 
-class StorageConfig(ConfigBaseModel):
+class InferenceConfig(ConfigBaseModel):
     """
-    Configurations for specifying storage.
+    Configurations for running model inference.
     """
 
-    array_storage_type: ArrayStorageType = Field(
-        ...,
-        title="Array storage type.",
-        description="The storage type for arrays.",
+    max_length: int = Field(
+        default=100,
+        title="Maximum length of generated text.",
+        description="The maximum length of generated text.",
     )
 
-    metadata_storage_type: MetadataStorageType = Field(
-        ...,
-        title="Metadata storage type.",
-        description="The storage type for metadata.",
-    )
-
-    chunk_size: int = Field(
-        ...,
-        title="Chunk size for storage.",
-        description="The chunk size for storage.",
+    num_return_sequences: int = Field(
+        default=3,
+        title="Number of returned sequences.",
+        description="The number of returned sequences.",
     )

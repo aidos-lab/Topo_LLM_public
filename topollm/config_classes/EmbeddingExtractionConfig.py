@@ -24,20 +24,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
-
-# Standard library imports
-
-# Third party imports
 from pydantic import BaseModel
 
-# Local imports
 from topollm.config_classes.constants import NAME_PREFIXES
 from topollm.config_classes.enums import AggregationType
-
-# END Imports
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
 class EmbeddingExtractionConfig(BaseModel):

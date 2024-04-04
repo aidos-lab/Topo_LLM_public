@@ -27,31 +27,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from pydantic import Field
 
-from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
-from topollm.config_classes.enums import ArrayStorageType, MetadataStorageType
+def get_default_mlm_prompts(
+    mask_token: str,
+) -> list[str]:
+    prompts = [
+        f"I am looking for a {mask_token}",
+        f"Can you find me a {mask_token}?",
+        f"I would like a {mask_token} hotel in the center of town, please.",
+        f"{mask_token} is a cheap restaurant in the south of town.",
+        f"The train should go to {mask_token}.",
+        f"No, it should be {mask_token}, look again!",
+        f"{mask_token} is a city in the south of England.",
+    ]
+
+    return prompts
 
 
-class StorageConfig(ConfigBaseModel):
-    """
-    Configurations for specifying storage.
-    """
+def get_default_clm_prompts() -> list[str]:
+    prompts = [
+        "I am looking for a",
+        "Can you find me a",
+        "I would like a hotel in the",
+        "Nandos is a",
+        "The train should go to",
+        "No, it should be",
+        "Cambridge is",
+    ]
 
-    array_storage_type: ArrayStorageType = Field(
-        ...,
-        title="Array storage type.",
-        description="The storage type for arrays.",
-    )
-
-    metadata_storage_type: MetadataStorageType = Field(
-        ...,
-        title="Metadata storage type.",
-        description="The storage type for metadata.",
-    )
-
-    chunk_size: int = Field(
-        ...,
-        title="Chunk size for storage.",
-        description="The chunk size for storage.",
-    )
+    return prompts

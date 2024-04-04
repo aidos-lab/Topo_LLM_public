@@ -27,32 +27,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
+from pydantic import Field
 
-# Standard library imports
-
-# Third party imports
-from pydantic import BaseModel, Field
-
-# Local imports
 from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
-from topollm.config_classes.TokenizerConfig import TokenizerConfig
+from topollm.config_classes.constants import NAME_PREFIXES
 from topollm.config_classes.DatasetMapConfig import DatasetMapConfig
 from topollm.config_classes.EmbeddingExtractionConfig import EmbeddingExtractionConfig
-from topollm.config_classes.LanguageModelConfig import LanguageModelConfig
-from topollm.config_classes.constants import NAME_PREFIXES
 from topollm.config_classes.enums import Level
-
-# END Imports
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+from topollm.config_classes.LanguageModelConfig import LanguageModelConfig
+from topollm.config_classes.TokenizerConfig import TokenizerConfig
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # START Globals
 
 # END Globals
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-
 
 
 class EmbeddingsConfig(ConfigBaseModel):

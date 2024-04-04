@@ -31,18 +31,6 @@
 Script for setting global variables for the config files.
 """
 
-
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
-
-# System imports
-
-# Third-party imports
-
-
-# END Imports
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # START Globals
 

@@ -41,8 +41,7 @@ from topollm.config_classes.MainConfig import MainConfig
 from topollm.config_classes.setup_OmegaConf import setup_OmegaConf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
-from topollm.model_handling.get_torch_device import get_torch_device
-from topollm.model_inference.masked_language_modeling.do_fill_mask import do_fill_mask
+from topollm.model_inference.do_inference import do_inference
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # START Globals
@@ -63,7 +62,7 @@ setup_OmegaConf()
 
 
 @hydra.main(
-    config_path="../../../configs",
+    config_path="../../configs",
     config_name="main_config",
     version_base="1.2",
 )
@@ -79,20 +78,14 @@ def main(
         logger=global_logger,
     )
 
-    device = get_torch_device(
-        preferred_torch_backend=main_config.preferred_torch_backend,
-        logger=global_logger,
-    )
-
-    do_fill_mask(
+    do_inference(
         main_config=main_config,
-        device=device,
         logger=global_logger,
     )
 
-    global_logger.info("DONE")
+    global_logger.info("Running script DONE")
 
-    return
+    return None
 
 
 if __name__ == "__main__":

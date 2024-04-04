@@ -27,24 +27,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
-
-# Standard library imports
 import json
-from os import PathLike
 import pathlib
 import pprint
 from abc import ABC
+from os import PathLike
 from typing import IO
 
-# Third party imports
 from pydantic import BaseModel
-
-# Local imports
-
-# END Imports
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # START Globals
