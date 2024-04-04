@@ -2,14 +2,14 @@ defaults:
   - dataset_map: batched
   - embedding_extraction: last_hidden
   # - ../language_model@language_model: gpt2-large
-  # - ../language_model@language_model: roberta-base
+  - ../language_model@language_model: roberta-base
   # - ../language_model@language_model: roberta-base_finetuned-on-multiwoz21_ftm-lora
   # - ../language_model@language_model: roberta-base_finetuned-on-multiwoz21-train_context-dialogue
   # - ../language_model@language_model: roberta-base_finetuned-on-multiwoz21-train-and-sgd-train_context-dialogue
   # - ../language_model@language_model: roberta-base_finetuned-on-multiwoz21-train-5000_context-utterance_ep-3
   # - ../language_model@language_model: roberta-base_finetuned-on-multiwoz21-train-5000_context-utterance_ep-5
   # - ../language_model@language_model: roberta-base_finetuned-on-wikitext_ftm-standard
-  - ../language_model@language_model: roberta-base_finetuned-on-wikitext_ftm-lora
+  # - ../language_model@language_model: roberta-base_finetuned-on-wikitext_ftm-lora
   - ../tokenizer@tokenizer: basic_tokenizer
   - _self_
 

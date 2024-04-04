@@ -30,10 +30,10 @@
 import logging
 
 import torch
-from transformers import AutoModelForMaskedLM, PreTrainedModel
+from transformers import PreTrainedModel
 
 from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
-from topollm.logging.log_model_info import log_model_info
+from topollm.model_handling.model.load_model import load_model
 
 
 def load_base_model_from_FinetuningConfig(
@@ -41,32 +41,15 @@ def load_base_model_from_FinetuningConfig(
     device: torch.device = torch.device("cpu"),
     logger: logging.Logger = logging.getLogger(__name__),
 ) -> PreTrainedModel:
-    logger.info(
-        f"Loading model " f"{finetuning_config.pretrained_model_name_or_path = } ..."
-    )
-    model = AutoModelForMaskedLM.from_pretrained(
+    """
+    Interface function to load a model from a FinetuningConfig object.
+    """
+
+    model = load_model(
         pretrained_model_name_or_path=finetuning_config.pretrained_model_name_or_path,
-    )
-    logger.info(
-        f"Loading model " f"{finetuning_config.pretrained_model_name_or_path = } DONE"
-    )
-
-    # Check type of model
-    assert isinstance(
-        model,
-        PreTrainedModel,
-    )
-
-    log_model_info(
-        model=model,
+        device=device,
+        verbosity=1,
         logger=logger,
     )
-
-    # Move the model to GPU if available
-    logger.info(f"Moving model to {device = } ...")
-    model.to(
-        device,  # type: ignore
-    )
-    logger.info(f"Moving model to {device = } DONE")
 
     return model

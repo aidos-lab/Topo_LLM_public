@@ -27,28 +27,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
-
-# System imports
 import logging
 import os
 
-# Third-party imports
 import torch
-from transformers import AutoModel, PreTrainedModel
+from transformers import AutoModelForPreTraining, PreTrainedModel
 
-# Local imports
-
-# END Imports
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+from topollm.logging.log_model_info import log_model_info
 
 
 def load_model(
     pretrained_model_name_or_path: str | os.PathLike,
     device: torch.device = torch.device("cpu"),
-    logger: logging.Logger = logging.getLogger(__name__),
     verbosity: int = 1,
+    logger: logging.Logger = logging.getLogger(__name__),
 ) -> PreTrainedModel:
     """
     Loads the model based on the configuration.
@@ -57,18 +49,44 @@ def load_model(
         pretrained_model_name_or_path:
             The name or path of the pretrained model.
     """
-    model: PreTrainedModel = AutoModel.from_pretrained(
+
+    if verbosity >= 1:
+        logger.info(f"Loading model " f"{pretrained_model_name_or_path = } ...")
+    model: PreTrainedModel = AutoModelForPreTraining.from_pretrained(
         pretrained_model_name_or_path=pretrained_model_name_or_path,
     )
+    if verbosity >= 1:
+        logger.info(f"Loading model " f"{pretrained_model_name_or_path = } DONE")
 
-    model.to(device)  # type: ignore
+    if not isinstance(
+        model,
+        PreTrainedModel,
+    ):
+        raise ValueError(
+            f"model is not of type PreTrainedModel: " f"{type(model) = }",
+        )
 
     if verbosity >= 1:
         logger.info(
-            f"model:\n" f"{model}",
+            f"Moving model to {device = } ...",
+        )
+
+    # Move the model to GPU if available
+    model.to(
+        device,  # type: ignore
+    )
+
+    if verbosity >= 1:
+        logger.info(
+            f"Moving model to {device = } DONE",
         )
         logger.info(
             f"{device = }",
+        )
+        log_model_info(
+            model=model,
+            model_name="model",
+            logger=logger,
         )
 
     return model
