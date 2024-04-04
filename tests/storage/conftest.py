@@ -43,7 +43,9 @@ import pickle
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(
+    scope="session",
+)
 def example_batch() -> dict:
     example_data_pickle_path = pathlib.Path(
         pathlib.Path(__file__).parent,
@@ -62,6 +64,8 @@ def example_batch() -> dict:
         return example_data
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(
+    scope="session",
+)
 def chunk_idx() -> int:
     return 7
