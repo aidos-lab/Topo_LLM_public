@@ -32,7 +32,7 @@ import pathlib
 
 import pytest
 
-from topollm.path_management import EmbeddingsPathManagerProtocol
+from topollm.path_management.embeddings import EmbeddingsPathManagerProtocol
 
 
 @pytest.fixture

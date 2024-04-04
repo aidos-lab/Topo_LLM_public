@@ -1,0 +1,13 @@
+defaults:
+  # - peft: standard
+  - peft: lora
+  # - finetuning_datasets: train_and_eval_on_bbc
+  - finetuning_datasets: train_and_eval_on_wikitext
+  - finetuning_parameters@_here_: default_parameters
+  - _self_
+
+# pretrained_model_name_or_path: gpt2-large # TODO: Finetuning not implemented for autoregressive models yet
+# pretrained_model_name_or_path: google-bert/bert-base-uncased
+pretrained_model_name_or_path: roberta-base
+# pretrained_model_name_or_path: roberta-large
+short_model_name: ${finetuning.pretrained_model_name_or_path}

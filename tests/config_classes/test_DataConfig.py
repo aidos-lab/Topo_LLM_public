@@ -27,39 +27,49 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-Inspired by the examples from the hydra repository:
-https://github.com/facebookresearch/hydra/blob/main/examples/advanced/hydra_app_example/tests/test_example.py
-"""
-
 import logging
 import pprint
 
-from hydra import compose, initialize, initialize_config_module
+import pytest
+from hydra import compose, initialize
 import omegaconf
 
-from topollm.config_classes.MainConfig import MainConfig
+from topollm.config_classes.MainConfig import DataConfig
 
 logger = logging.getLogger(__name__)
 
 
-def test_hydra_with_MainConfig() -> None:
+@pytest.mark.parametrize(
+    "config_name",
+    [
+        "bbc",
+        "iclr_2024_submissions",
+        "multiwoz21",
+        "multiwoz21_train",
+        "multiwoz21_validation",
+        "sgd",
+        "wikitext",
+    ],
+)
+def test_hydra_with_DataConfig(
+    config_name: str,
+) -> None:
     with initialize(
-        config_path="../../configs",
+        config_path="../../configs/data/",
         version_base=None,
     ):
         # config is relative to a module
         cfg: omegaconf.DictConfig = compose(
-            config_name="main_config",
-            overrides=[
-                "data.number_of_samples=6000",
-            ],
+            config_name=config_name,
+            # overrides=[
+            #     "dataset_description_string=overwritten_dataset_desc",
+            # ],
         )
 
         logger.info(f"cfg:\n" f"{pprint.pformat(cfg)}")
 
         # This tests whether the configuration is valid
-        config = MainConfig.model_validate(
+        config = DataConfig.model_validate(
             obj=cfg,
         )
 

@@ -120,11 +120,6 @@ class FinetuningConfig(ConfigBaseModel):
         description="The number of steps between two saves.",
     )
 
-    seed: int = Field(
-        default=42,
-        description="The seed for the random number generator.",
-    )
-
     short_model_name: str = Field(
         default="default-short-model-name",
         description="Short name of the base model for file names.",

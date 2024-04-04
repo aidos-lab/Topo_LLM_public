@@ -37,6 +37,7 @@ import hydra
 import hydra.core.hydra_config
 import omegaconf
 
+from topollm.config_classes.setup_OmegaConf import setup_OmegaConf
 from topollm.compute_embeddings.compute_and_store_embeddings import (
     compute_and_store_embeddings,
 )
@@ -56,6 +57,8 @@ setup_exception_logging(
 )
 
 # torch.set_num_threads(1)
+
+setup_OmegaConf()
 
 # END Globals
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #

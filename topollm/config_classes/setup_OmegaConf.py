@@ -7,6 +7,7 @@
 #
 # Authors:
 # Benjamin Ruppik (ruppik@hhu.de)
+# Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
 # First versions of this code were potentially generated
@@ -26,28 +27,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
+import omegaconf
 
-from topollm.config_classes.MainConfig import MainConfig
-from topollm.path_management.EmbeddingsPathManagerProtocol import (
-    EmbeddingsPathManager,
-)
-from topollm.path_management.EmbeddingsPathManagerSeparateDirectories import (
-    EmbeddingsPathManagerSeparateDirectories,
-)
+from topollm.config_classes.sanitize_dirname import sanitize_dirname
 
 
-def get_embeddings_path_manager(
-    config: MainConfig,
-    logger: logging.Logger = logging.getLogger(__name__),
-) -> EmbeddingsPathManager:
-    path_manger = EmbeddingsPathManagerSeparateDirectories(
-        data_config=config.data,
-        embeddings_config=config.embeddings,
-        paths_config=config.paths,
-        transformations_config=config.transformations,
-        verbosity=config.verbosity,
-        logger=logger,
+def setup_OmegaConf() -> None:
+    omegaconf.OmegaConf.register_new_resolver(
+        "sanitize_override_dirname",
+        sanitize_dirname,
     )
 
-    return path_manger
+    return None

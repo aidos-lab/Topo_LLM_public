@@ -84,6 +84,12 @@ class MainConfig(ConfigBaseModel):
         description="The preferred torch backend.",
     )
 
+    seed: int = Field(
+        default=1234,
+        title="Seed.",
+        description="The random seed.",
+    )
+
     storage: StorageConfig = Field(
         ...,
         title="Storage configuration.",

@@ -27,39 +27,34 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-Inspired by the examples from the hydra repository:
-https://github.com/facebookresearch/hydra/blob/main/examples/advanced/hydra_app_example/tests/test_example.py
-"""
-
 import logging
 import pprint
 
-from hydra import compose, initialize, initialize_config_module
+from hydra import compose, initialize_config_module
 import omegaconf
 
-from topollm.config_classes.MainConfig import MainConfig
+from topollm.config_classes.EmbeddingsConfig import EmbeddingsConfig
 
 logger = logging.getLogger(__name__)
 
 
-def test_hydra_with_MainConfig() -> None:
-    with initialize(
-        config_path="../../configs",
+def test_hydra_with_EmbeddingsConfig() -> None:
+    with initialize_config_module(
         version_base=None,
+        config_module="configs.embeddings",
     ):
         # config is relative to a module
         cfg: omegaconf.DictConfig = compose(
-            config_name="main_config",
+            config_name="basic_embeddings",
             overrides=[
-                "data.number_of_samples=6000",
+                "language_model.short_model_name=overridden_short_model_name",
             ],
         )
 
         logger.info(f"cfg:\n" f"{pprint.pformat(cfg)}")
 
         # This tests whether the configuration is valid
-        config = MainConfig.model_validate(
+        config = EmbeddingsConfig.model_validate(
             obj=cfg,
         )
 

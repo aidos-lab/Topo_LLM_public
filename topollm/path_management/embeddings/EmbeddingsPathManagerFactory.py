@@ -7,7 +7,6 @@
 #
 # Authors:
 # Benjamin Ruppik (ruppik@hhu.de)
-# Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
 # First versions of this code were potentially generated
@@ -27,43 +26,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-Inspired by the examples from the hydra repository:
-https://github.com/facebookresearch/hydra/blob/main/examples/advanced/hydra_app_example/tests/test_example.py
-"""
-
 import logging
-import pprint
-
-from hydra import compose, initialize, initialize_config_module
-import omegaconf
 
 from topollm.config_classes.MainConfig import MainConfig
+from topollm.path_management.embeddings.EmbeddingsPathManagerProtocol import (
+    EmbeddingsPathManager,
+)
+from topollm.path_management.embeddings.EmbeddingsPathManagerSeparateDirectories import (
+    EmbeddingsPathManagerSeparateDirectories,
+)
 
-logger = logging.getLogger(__name__)
 
+def get_embeddings_path_manager(
+    config: MainConfig,
+    logger: logging.Logger = logging.getLogger(__name__),
+) -> EmbeddingsPathManager:
+    path_manger = EmbeddingsPathManagerSeparateDirectories(
+        data_config=config.data,
+        embeddings_config=config.embeddings,
+        paths_config=config.paths,
+        transformations_config=config.transformations,
+        verbosity=config.verbosity,
+        logger=logger,
+    )
 
-def test_hydra_with_MainConfig() -> None:
-    with initialize(
-        config_path="../../configs",
-        version_base=None,
-    ):
-        # config is relative to a module
-        cfg: omegaconf.DictConfig = compose(
-            config_name="main_config",
-            overrides=[
-                "data.number_of_samples=6000",
-            ],
-        )
-
-        logger.info(f"cfg:\n" f"{pprint.pformat(cfg)}")
-
-        # This tests whether the configuration is valid
-        config = MainConfig.model_validate(
-            obj=cfg,
-        )
-
-        logger.info(f"{type(config) = }")
-        logger.info(f"config:\n" f"{pprint.pformat(config)}")
-
-    return None
+    return path_manger

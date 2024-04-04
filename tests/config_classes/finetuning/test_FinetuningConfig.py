@@ -45,17 +45,20 @@ def test_hydra_with_FinetuningConfig() -> None:
     ):
         # config is relative to a module
         cfg: omegaconf.DictConfig = compose(
-            config_name="roberta-base_tuning",
-            overrides=["batch_sizes.eval=42"],
+            config_name="finetuning",
+            overrides=[
+                "batch_sizes.eval=42",
+            ],
         )
 
         logger.info(f"cfg:\n" f"{pprint.pformat(cfg)}")
 
         # This tests whether the configuration is valid
-        finetuning_config = FinetuningConfig.model_validate(
+        config = FinetuningConfig.model_validate(
             obj=cfg,
         )
 
-        logger.info(f"finetuning_config:\n" f"{pprint.pformat(finetuning_config)}")
+        logger.info(f"{type(config) = }")
+        logger.info(f"config:\n" f"{pprint.pformat(config)}")
 
     return None

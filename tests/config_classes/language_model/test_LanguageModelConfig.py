@@ -27,39 +27,48 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-Inspired by the examples from the hydra repository:
-https://github.com/facebookresearch/hydra/blob/main/examples/advanced/hydra_app_example/tests/test_example.py
-"""
-
 import logging
 import pprint
 
-from hydra import compose, initialize, initialize_config_module
+import pytest
+from hydra import compose, initialize_config_module
 import omegaconf
 
-from topollm.config_classes.MainConfig import MainConfig
+from topollm.config_classes.LanguageModelConfig import LanguageModelConfig
 
 logger = logging.getLogger(__name__)
 
 
-def test_hydra_with_MainConfig() -> None:
-    with initialize(
-        config_path="../../configs",
+@pytest.mark.parametrize(
+    "config_name",
+    [
+        "roberta-base",
+        "roberta-base_finetuned-on-multiwoz21-train-5000_context-utterance_ep-3",
+        "roberta-base_finetuned-on-multiwoz21-train-5000_context-utterance_ep-5",
+        "roberta-base_finetuned-on-multiwoz21-train_context-dialogue",
+        "roberta-base_finetuned-on-multiwoz21-train-and-sgd-train_context-dialogue",
+    ],
+)
+def test_hydra_with_LanguageModelConfig(
+    config_name: str,
+) -> None:
+    with initialize_config_module(
         version_base=None,
+        config_module="configs.language_model",
     ):
         # config is relative to a module
         cfg: omegaconf.DictConfig = compose(
-            config_name="main_config",
+            config_name=config_name,
             overrides=[
-                "data.number_of_samples=6000",
+                "pretrained_model_name_or_path=overridden_pretrained_model_name_or_path",
+                "short_model_name=overridden_short_model_name",
             ],
         )
 
         logger.info(f"cfg:\n" f"{pprint.pformat(cfg)}")
 
         # This tests whether the configuration is valid
-        config = MainConfig.model_validate(
+        config = LanguageModelConfig.model_validate(
             obj=cfg,
         )
 

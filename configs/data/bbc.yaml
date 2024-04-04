@@ -1,7 +1,9 @@
+defaults:
+  - subset@_here_: train_split_and_truncation
+  - _self_
+
 column_name: summary
 context: dataset_entry
 dataset_description_string: xsum
 dataset_path: xsum
 dataset_type: huggingface_dataset
-number_of_samples: 5000
-split: train

@@ -27,43 +27,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-Inspired by the examples from the hydra repository:
-https://github.com/facebookresearch/hydra/blob/main/examples/advanced/hydra_app_example/tests/test_example.py
-"""
 
-import logging
-import pprint
+def sanitize_dirname(
+    dir_name: str,
+) -> str:
+    """
+    Sanitizes a directory name by replacing all slashes with underscores.
 
-from hydra import compose, initialize, initialize_config_module
-import omegaconf
+    Args:
+        dir_name: The directory name to sanitize.
 
-from topollm.config_classes.MainConfig import MainConfig
+    Returns:
+        The sanitized directory name.
+    """
+    result = dir_name.replace(
+        "/",
+        "_",
+    ).replace(
+        "\\",
+        "_",
+    )
 
-logger = logging.getLogger(__name__)
-
-
-def test_hydra_with_MainConfig() -> None:
-    with initialize(
-        config_path="../../configs",
-        version_base=None,
-    ):
-        # config is relative to a module
-        cfg: omegaconf.DictConfig = compose(
-            config_name="main_config",
-            overrides=[
-                "data.number_of_samples=6000",
-            ],
-        )
-
-        logger.info(f"cfg:\n" f"{pprint.pformat(cfg)}")
-
-        # This tests whether the configuration is valid
-        config = MainConfig.model_validate(
-            obj=cfg,
-        )
-
-        logger.info(f"{type(config) = }")
-        logger.info(f"config:\n" f"{pprint.pformat(config)}")
-
-    return None
+    return result

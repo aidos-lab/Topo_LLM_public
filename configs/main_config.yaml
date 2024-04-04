@@ -2,11 +2,6 @@ defaults:
   # - data: bbc
   # - data: iclr_2024_submissions
   # - data: multiwoz21_validation
-   # - data: bbc
-    #- data: iclr_2024_submissions
-    #- data: multiwoz21_validation_5000
-    #- data: sgd
-  #- data: sgd_validation_5000
   - data: sgd
   # - data: wikitext
   - embeddings: basic_embeddings

@@ -56,7 +56,7 @@ from topollm.config_classes.LanguageModelConfig import LanguageModelConfig
 from topollm.config_classes.PathsConfig import PathsConfig
 from topollm.config_classes.TokenizerConfig import TokenizerConfig
 from topollm.config_classes.TransformationsConfig import TransformationsConfig
-from topollm.path_management.EmbeddingsPathManagerSeparateDirectories import (
+from topollm.path_management.embeddings.EmbeddingsPathManagerSeparateDirectories import (
     EmbeddingsPathManagerSeparateDirectories,
 )
 from topollm.path_management.finetuning.FinetuningPathManagerBasic import (

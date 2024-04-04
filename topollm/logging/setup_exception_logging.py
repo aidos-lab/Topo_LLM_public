@@ -44,7 +44,7 @@ import sys
 
 def setup_exception_logging(
     logger: logging.Logger = logging.getLogger(__name__),
-):
+) -> None:
     """
     Sets up a custom exception handler that logs uncaught exceptions using the provided logger.
 
@@ -98,7 +98,13 @@ def setup_exception_logging(
         else:
             logger.critical(
                 "Uncaught exception",
-                exc_info=(exc_type, exc_value, exc_traceback),
+                exc_info=(
+                    exc_type,
+                    exc_value,
+                    exc_traceback,
+                ),
             )
 
     sys.excepthook = handle_exception
+
+    return None
