@@ -27,13 +27,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from topollm.compute_embeddings.EmbeddingDataLoaderPreparer import (
+from topollm.compute_embeddings.embedding_dataloader_preparer.EmbeddingDataLoaderPreparer import (
     EmbeddingDataLoaderPreparer,
 )
-from topollm.compute_embeddings.EmbeddingDataLoaderPreparerContext import (
+from topollm.compute_embeddings.embedding_dataloader_preparer.EmbeddingDataLoaderPreparerContext import (
     EmbeddingDataLoaderPreparerContext,
 )
-from topollm.compute_embeddings.EmbeddingDataLoaderPreparerHuggingface import (
+from topollm.compute_embeddings.embedding_dataloader_preparer.EmbeddingDataLoaderPreparerHuggingface import (
     EmbeddingDataLoaderPreparerHuggingface,
 )
 from topollm.config_classes.enums import DatasetType

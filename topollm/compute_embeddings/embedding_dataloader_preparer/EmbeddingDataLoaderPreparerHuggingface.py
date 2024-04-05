@@ -39,7 +39,7 @@ import datasets
 import torch.utils.data
 
 # Local imports
-from topollm.compute_embeddings.EmbeddingDataLoaderPreparer import (
+from topollm.compute_embeddings.embedding_dataloader_preparer.EmbeddingDataLoaderPreparer import (
     EmbeddingDataLoaderPreparer,
 )
 from topollm.logging.log_dataset_info import log_huggingface_dataset_info

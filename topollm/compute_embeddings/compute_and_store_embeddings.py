@@ -39,10 +39,10 @@ from topollm.compute_embeddings.collate_batch_for_embedding import (
 from topollm.compute_embeddings.embedding_extractor.EmbeddingExtractorFactory import (
     get_embedding_extractor,
 )
-from topollm.compute_embeddings.EmbeddingDataLoaderPreparerContext import (
+from topollm.compute_embeddings.embedding_dataloader_preparer.EmbeddingDataLoaderPreparerContext import (
     EmbeddingDataLoaderPreparerContext,
 )
-from topollm.compute_embeddings.EmbeddingDataLoaderPreparerFactory import (
+from topollm.compute_embeddings.embedding_dataloader_preparer.EmbeddingDataLoaderPreparerFactory import (
     get_embedding_dataloader_preparer,
 )
 from topollm.compute_embeddings.TokenLevelEmbeddingDataHandler import (
