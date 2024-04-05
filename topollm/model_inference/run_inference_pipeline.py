@@ -80,6 +80,7 @@ def main(
 
     do_inference(
         main_config=main_config,
+        prompts=None,
         logger=global_logger,
     )
 

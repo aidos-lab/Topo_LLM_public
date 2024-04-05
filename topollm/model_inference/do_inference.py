@@ -48,8 +48,13 @@ from topollm.model_inference.masked_language_modeling.do_fill_mask import do_fil
 
 def do_inference(
     main_config: MainConfig,
+    prompts: list[str] | None = None,
     logger: logging.Logger = logging.getLogger(__name__),
 ) -> None:
+    """
+    If `prompts` is `None`, default prompts are used.
+    Make sure to not accidentally use an empty list as the default argument.
+    """
     device = get_torch_device(
         preferred_torch_backend=main_config.preferred_torch_backend,
         verbosity=main_config.verbosity,
@@ -84,9 +89,10 @@ def do_inference(
     lm_mode = main_config.embeddings.language_model.lm_mode
 
     if lm_mode == LMmode.MLM:
-        prompts: list[str] = get_default_mlm_prompts(
-            mask_token=tokenizer.mask_token,
-        )
+        if prompts is None:
+            prompts = get_default_mlm_prompts(
+                mask_token=tokenizer.mask_token,
+            )
         logger.info(f"{prompts = }")
 
         do_fill_mask(
@@ -97,7 +103,8 @@ def do_inference(
             logger=logger,
         )
     elif lm_mode == LMmode.CLM:
-        prompts: list[str] = get_default_clm_prompts()
+        if prompts is None:
+            prompts = get_default_clm_prompts()
         logger.info(f"{prompts = }")
 
         do_text_generation(
