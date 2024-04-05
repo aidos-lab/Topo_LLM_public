@@ -27,25 +27,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
-
-# Standard library imports
-import logging
 from functools import partial
 
-# Third party imports
 import datasets
 import torch.utils.data
 
-# Local imports
 from topollm.compute_embeddings.embedding_dataloader_preparer.EmbeddingDataLoaderPreparerABC import (
     EmbeddingDataLoaderPreparer,
 )
 from topollm.logging.log_dataset_info import log_huggingface_dataset_info
-
-# END Imports
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
 class EmbeddingDataLoaderPreparerHuggingface(EmbeddingDataLoaderPreparer):

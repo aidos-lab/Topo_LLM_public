@@ -30,14 +30,7 @@
 """
 """
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
-
-# Third party imports
 import torch
-
-# END Imports
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
 def collate_batch(

@@ -34,6 +34,7 @@ from datetime import datetime
 
 import pytest
 import torch
+import transformers
 from dotenv import find_dotenv, load_dotenv
 
 from topollm.config_classes.data.DataConfig import DataConfig
@@ -234,7 +235,7 @@ def data_config() -> DataConfig:
         data_dir=None,
         dataset_path="xsum",
         dataset_name=None,
-        number_of_samples=5000,
+        number_of_samples=10,
         split=Split.TRAIN,
     )
 
@@ -509,3 +510,23 @@ def main_config(
     )
 
     return config
+
+
+from topollm.model_handling.tokenizer.load_tokenizer import load_tokenizer
+
+
+@pytest.fixture(
+    scope="session",
+)
+def tokenizer(
+    main_config: MainConfig,
+    logger_fixture: logging.Logger,
+) -> transformers.PreTrainedTokenizer | transformers.PreTrainedTokenizerFast:
+    tokenizer = load_tokenizer(
+        pretrained_model_name_or_path=main_config.embeddings.language_model.pretrained_model_name_or_path,
+        tokenizer_config=main_config.tokenizer,
+        verbosity=1,
+        logger=logger_fixture,
+    )
+
+    return tokenizer

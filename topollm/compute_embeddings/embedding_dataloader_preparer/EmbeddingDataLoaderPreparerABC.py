@@ -32,13 +32,12 @@ from abc import ABC, abstractmethod
 
 import torch
 import torch.utils.data
-from transformers import (BatchEncoding, PreTrainedTokenizer,
-                          PreTrainedTokenizerFast)
+from transformers import BatchEncoding, PreTrainedTokenizer, PreTrainedTokenizerFast
 
-from topollm.compute_embeddings.embedding_dataloader_preparer.EmbeddingDataLoaderPreparerContext import \
-    EmbeddingDataLoaderPreparerContext
-from topollm.data_handling.HuggingfaceDatasetPreparer import \
-    HuggingfaceDatasetPreparer
+from topollm.compute_embeddings.embedding_dataloader_preparer.EmbeddingDataLoaderPreparerContext import (
+    EmbeddingDataLoaderPreparerContext,
+)
+from topollm.data_handling.HuggingfaceDatasetPreparer import HuggingfaceDatasetPreparer
 
 
 class EmbeddingDataLoaderPreparer(ABC):
