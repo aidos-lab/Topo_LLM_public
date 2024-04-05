@@ -84,7 +84,7 @@ def do_inference(
     lm_mode = main_config.embeddings.language_model.lm_mode
 
     if lm_mode == LMmode.MLM:
-        prompts = get_default_mlm_prompts(
+        prompts: list[str] = get_default_mlm_prompts(
             mask_token=tokenizer.mask_token,
         )
         logger.info(f"{prompts = }")
@@ -97,7 +97,7 @@ def do_inference(
             logger=logger,
         )
     elif lm_mode == LMmode.CLM:
-        prompts = get_default_clm_prompts()
+        prompts: list[str] = get_default_clm_prompts()
         logger.info(f"{prompts = }")
 
         do_text_generation(

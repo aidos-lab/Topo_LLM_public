@@ -35,23 +35,6 @@ import pytest
 from topollm.path_management.embeddings import EmbeddingsPathManagerProtocol
 
 
-@pytest.fixture
-def embeddings_path_manager(
-    request: pytest.FixtureRequest,
-) -> EmbeddingsPathManagerProtocol.EmbeddingsPathManager:
-    # This uses the request fixture to dynamically get a fixture by name.
-    return request.getfixturevalue(
-        argname=request.param,
-    )
-
-
-@pytest.mark.parametrize(
-    "embeddings_path_manager",
-    [
-        "embeddings_path_manager_separate_directories",
-    ],
-    indirect=True,
-)
 class TestEmbeddingsPathManager:
     def test_data_dir(
         self,

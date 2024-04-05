@@ -43,7 +43,6 @@ from topollm.config_classes.embeddings.EmbeddingExtractionConfig import (
     EmbeddingExtractionConfig,
 )
 from topollm.config_classes.embeddings.EmbeddingsConfig import EmbeddingsConfig
-from topollm.config_classes.StorageConfig import StorageConfig
 from topollm.config_classes.enums import (
     AggregationType,
     ArrayStorageType,
@@ -67,8 +66,10 @@ from topollm.config_classes.language_model.LanguageModelConfig import (
 )
 from topollm.config_classes.MainConfig import MainConfig
 from topollm.config_classes.PathsConfig import PathsConfig
+from topollm.config_classes.StorageConfig import StorageConfig
 from topollm.config_classes.tokenizer.TokenizerConfig import TokenizerConfig
 from topollm.config_classes.TransformationsConfig import TransformationsConfig
+from topollm.model_handling.tokenizer.load_tokenizer import load_tokenizer
 from topollm.path_management.embeddings.EmbeddingsPathManagerSeparateDirectories import (
     EmbeddingsPathManagerSeparateDirectories,
 )
@@ -268,13 +269,31 @@ def dataset_map_config() -> DatasetMapConfig:
 
 @pytest.fixture(
     scope="session",
+    params=[
+        (
+            "roberta-base",
+            "roberta-base",
+            LMmode.MLM,
+        ),
+        (
+            "bert-base-uncased",
+            "bert-base-uncased",
+            LMmode.MLM,
+        ),
+        # ("gpt2-large", "gpt2-large", LMmode.CLM), # ! TODO The code does not work for this yet
+        # TODO For the gpt2-large model, a padding token is missing:
+        # "ValueError: Asking to pad but the tokenizer does not have a padding token. Please select a token to use as `pad_token` `(tokenizer.pad_token = tokenizer.eos_token e.g.)` or add a new pad token..."
+    ],
 )
-def language_model_config() -> LanguageModelConfig:
+def language_model_config(
+    request: pytest.FixtureRequest,
+) -> LanguageModelConfig:
+    pretrained_model_name_or_path, short_model_name, lm_mode = request.param
     config = LanguageModelConfig(
-        pretrained_model_name_or_path="roberta-base",
-        short_model_name="roberta-base",
+        pretrained_model_name_or_path=pretrained_model_name_or_path,
+        short_model_name=short_model_name,
         masking_mode="no_masking",
-        lm_mode=LMmode.MLM,
+        lm_mode=lm_mode,
     )
 
     return config
@@ -393,50 +412,6 @@ def finetuning_config(
 @pytest.fixture(
     scope="session",
 )
-def embeddings_path_manager_separate_directories(
-    data_config: DataConfig,
-    embeddings_config: EmbeddingsConfig,
-    paths_config: PathsConfig,
-    tokenizer_config: TokenizerConfig,
-    transformations_config: TransformationsConfig,
-    logger_fixture: logging.Logger,
-) -> EmbeddingsPathManagerSeparateDirectories:
-    path_manager = EmbeddingsPathManagerSeparateDirectories(
-        data_config=data_config,
-        embeddings_config=embeddings_config,
-        paths_config=paths_config,
-        tokenizer_config=tokenizer_config,
-        transformations_config=transformations_config,
-        verbosity=1,
-        logger=logger_fixture,
-    )
-
-    return path_manager
-
-
-@pytest.fixture(
-    scope="session",
-)
-def finetuning_path_manager_basic(
-    data_config: DataConfig,
-    paths_config: PathsConfig,
-    finetuning_config: FinetuningConfig,
-    logger_fixture: logging.Logger,
-) -> FinetuningPathManager:
-    path_manager = FinetuningPathManagerBasic(
-        data_config=data_config,
-        paths_config=paths_config,
-        finetuning_config=finetuning_config,
-        verbosity=1,
-        logger=logger_fixture,
-    )
-
-    return path_manager
-
-
-@pytest.fixture(
-    scope="session",
-)
 def device_fixture() -> torch.device:
     device = torch.device(
         "cuda"
@@ -512,9 +487,6 @@ def main_config(
     return config
 
 
-from topollm.model_handling.tokenizer.load_tokenizer import load_tokenizer
-
-
 @pytest.fixture(
     scope="session",
 )
@@ -530,3 +502,47 @@ def tokenizer(
     )
 
     return tokenizer
+
+
+@pytest.fixture(
+    scope="session",
+)
+def embeddings_path_manager(
+    data_config: DataConfig,
+    embeddings_config: EmbeddingsConfig,
+    paths_config: PathsConfig,
+    tokenizer_config: TokenizerConfig,
+    transformations_config: TransformationsConfig,
+    logger_fixture: logging.Logger,
+) -> EmbeddingsPathManagerSeparateDirectories:
+    path_manager = EmbeddingsPathManagerSeparateDirectories(
+        data_config=data_config,
+        embeddings_config=embeddings_config,
+        paths_config=paths_config,
+        tokenizer_config=tokenizer_config,
+        transformations_config=transformations_config,
+        verbosity=1,
+        logger=logger_fixture,
+    )
+
+    return path_manager
+
+
+@pytest.fixture(
+    scope="session",
+)
+def finetuning_path_manager_basic(
+    data_config: DataConfig,
+    paths_config: PathsConfig,
+    finetuning_config: FinetuningConfig,
+    logger_fixture: logging.Logger,
+) -> FinetuningPathManager:
+    path_manager = FinetuningPathManagerBasic(
+        data_config=data_config,
+        paths_config=paths_config,
+        finetuning_config=finetuning_config,
+        verbosity=1,
+        logger=logger_fixture,
+    )
+
+    return path_manager

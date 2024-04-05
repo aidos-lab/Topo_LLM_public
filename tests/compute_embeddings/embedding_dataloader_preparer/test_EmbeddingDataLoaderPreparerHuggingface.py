@@ -29,11 +29,14 @@
 
 import logging
 
+import pytest
+
 from topollm.compute_embeddings.embedding_dataloader_preparer.EmbeddingDataLoaderPreparerHuggingface import (
     EmbeddingDataLoaderPreparerHuggingface,
 )
 
 
+@pytest.mark.uses_transformers_models
 def test_EmbeddingDataLoaderPreparerHuggingface(
     embedding_dataloader_preparer_huggingface: EmbeddingDataLoaderPreparerHuggingface,
     logger_fixture: logging.Logger,
