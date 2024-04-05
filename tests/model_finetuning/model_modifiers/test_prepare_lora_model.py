@@ -51,14 +51,14 @@ logger = logging.getLogger(__name__)
 def test_prepare_lora_model_integration(
     base_model: PreTrainedModel,
     lora_config: LoraConfig,
-    device: torch.device,
+    device_fixture: torch.device,
     logger: logging.Logger = logger,
 ) -> None:
 
     modified_model = prepare_lora_model(
         base_model=base_model,
         lora_config=lora_config,
-        device=device,
+        device=device_fixture,
         logger=logger,
     )
 

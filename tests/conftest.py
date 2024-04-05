@@ -361,10 +361,18 @@ def transformations_config() -> TransformationsConfig:
 
 @pytest.fixture(
     scope="session",
+    params=[
+        FinetuningMode.STANDARD,
+        FinetuningMode.LORA,
+    ],
 )
-def peft_config() -> PEFTConfig:
+def peft_config(
+    request: pytest.FixtureRequest,
+) -> PEFTConfig:
+    finetuning_mode = request.param
+
     config = PEFTConfig(
-        finetuning_mode=FinetuningMode.LORA,
+        finetuning_mode=finetuning_mode,
     )
 
     return config

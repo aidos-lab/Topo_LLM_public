@@ -51,14 +51,6 @@ def base_model():
 @pytest.fixture(
     scope="session",
 )
-def device():
-    # Use a simple device selection for testing
-    return torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-
-@pytest.fixture(
-    scope="session",
-)
 def lora_config():
     # Create a test LoRA configuration. Adjust parameters as needed.
     config = LoraConfig(
