@@ -29,11 +29,11 @@
 
 from pydantic import Field
 
-from topollm.config_classes.DataConfig import DataConfig
-from topollm.config_classes.TokenizerConfig import TokenizerConfig
+from topollm.config_classes.data.DataConfig import DataConfig
+from topollm.config_classes.tokenizer.TokenizerConfig import TokenizerConfig
 from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
 from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
-from topollm.config_classes.EmbeddingsConfig import EmbeddingsConfig
+from topollm.config_classes.embeddings.EmbeddingsConfig import EmbeddingsConfig
 from topollm.config_classes.inference.InferenceConfig import InferenceConfig
 from topollm.config_classes.PathsConfig import PathsConfig
 from topollm.config_classes.StorageConfig import StorageConfig

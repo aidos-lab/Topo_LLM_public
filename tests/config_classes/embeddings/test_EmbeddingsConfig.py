@@ -33,7 +33,7 @@ import pprint
 from hydra import compose, initialize_config_module
 import omegaconf
 
-from topollm.config_classes.EmbeddingsConfig import EmbeddingsConfig
+from topollm.config_classes.embeddings.EmbeddingsConfig import EmbeddingsConfig
 
 logger = logging.getLogger(__name__)
 

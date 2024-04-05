@@ -36,10 +36,12 @@ import pytest
 import torch
 from dotenv import find_dotenv, load_dotenv
 
-from topollm.config_classes.DataConfig import DataConfig
-from topollm.config_classes.DatasetMapConfig import DatasetMapConfig
-from topollm.config_classes.EmbeddingExtractionConfig import EmbeddingExtractionConfig
-from topollm.config_classes.EmbeddingsConfig import EmbeddingsConfig
+from topollm.config_classes.data.DataConfig import DataConfig
+from topollm.config_classes.data.DatasetMapConfig import DatasetMapConfig
+from topollm.config_classes.embeddings.EmbeddingExtractionConfig import (
+    EmbeddingExtractionConfig,
+)
+from topollm.config_classes.embeddings.EmbeddingsConfig import EmbeddingsConfig
 from topollm.config_classes.StorageConfig import StorageConfig
 from topollm.config_classes.enums import (
     AggregationType,
@@ -59,10 +61,12 @@ from topollm.config_classes.finetuning.FinetuningDatasetsConfig import (
 )
 from topollm.config_classes.finetuning.peft.PEFTConfig import PEFTConfig
 from topollm.config_classes.inference.InferenceConfig import InferenceConfig
-from topollm.config_classes.LanguageModelConfig import LanguageModelConfig
+from topollm.config_classes.language_model.LanguageModelConfig import (
+    LanguageModelConfig,
+)
 from topollm.config_classes.MainConfig import MainConfig
 from topollm.config_classes.PathsConfig import PathsConfig
-from topollm.config_classes.TokenizerConfig import TokenizerConfig
+from topollm.config_classes.tokenizer.TokenizerConfig import TokenizerConfig
 from topollm.config_classes.TransformationsConfig import TransformationsConfig
 from topollm.path_management.embeddings.EmbeddingsPathManagerSeparateDirectories import (
     EmbeddingsPathManagerSeparateDirectories,

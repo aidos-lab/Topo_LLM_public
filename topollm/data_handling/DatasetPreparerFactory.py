@@ -37,7 +37,7 @@ import logging
 import datasets
 
 # Local imports
-from topollm.config_classes.DataConfig import DataConfig
+from topollm.config_classes.data.DataConfig import DataConfig
 from topollm.config_classes.enums import DatasetType
 import topollm.data_handling.HuggingfaceDatasetPreparer as HuggingfaceDatasetPreparer
 from topollm.data_handling.DatasetPreparerProtocol import DatasetPreparer

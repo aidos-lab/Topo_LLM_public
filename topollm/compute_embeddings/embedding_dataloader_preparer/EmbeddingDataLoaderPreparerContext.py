@@ -33,9 +33,9 @@ from typing import Callable
 
 from transformers import PreTrainedTokenizer, PreTrainedTokenizerFast
 
-from topollm.config_classes.DataConfig import DataConfig
-from topollm.config_classes.EmbeddingsConfig import EmbeddingsConfig
-from topollm.config_classes.TokenizerConfig import TokenizerConfig
+from topollm.config_classes.data.DataConfig import DataConfig
+from topollm.config_classes.embeddings.EmbeddingsConfig import EmbeddingsConfig
+from topollm.config_classes.tokenizer.TokenizerConfig import TokenizerConfig
 
 
 @dataclass

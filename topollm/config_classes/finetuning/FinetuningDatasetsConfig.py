@@ -30,7 +30,7 @@
 from pydantic import Field
 
 from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
-from topollm.config_classes.DataConfig import DataConfig
+from topollm.config_classes.data.DataConfig import DataConfig
 
 
 class FinetuningDatasetsConfig(ConfigBaseModel):
