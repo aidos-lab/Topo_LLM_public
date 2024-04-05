@@ -32,12 +32,13 @@ from abc import ABC, abstractmethod
 
 import torch
 import torch.utils.data
-from transformers import BatchEncoding, PreTrainedTokenizer, PreTrainedTokenizerFast
+from transformers import (BatchEncoding, PreTrainedTokenizer,
+                          PreTrainedTokenizerFast)
 
-from topollm.compute_embeddings.embedding_dataloader_preparer.EmbeddingDataLoaderPreparerContext import (
-    EmbeddingDataLoaderPreparerContext,
-)
-from topollm.data_handling.HuggingfaceDatasetPreparer import HuggingfaceDatasetPreparer
+from topollm.compute_embeddings.embedding_dataloader_preparer.EmbeddingDataLoaderPreparerContext import \
+    EmbeddingDataLoaderPreparerContext
+from topollm.data_handling.HuggingfaceDatasetPreparer import \
+    HuggingfaceDatasetPreparer
 
 
 class EmbeddingDataLoaderPreparer(ABC):
@@ -97,11 +98,15 @@ class EmbeddingDataLoaderPreparer(ABC):
 
     @property
     @abstractmethod
-    def sequence_length(self) -> int:
+    def sequence_length(
+        self,
+    ) -> int:
         """Returns the sequence length of the dataset."""
         pass
 
     @abstractmethod
-    def __len__(self) -> int:
+    def __len__(
+        self,
+    ) -> int:
         """Returns the number of samples in the dataset."""
         pass

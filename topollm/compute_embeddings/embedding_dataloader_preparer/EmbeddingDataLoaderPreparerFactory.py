@@ -27,7 +27,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from topollm.compute_embeddings.embedding_dataloader_preparer.EmbeddingDataLoaderPreparer import (
+from topollm.compute_embeddings.embedding_dataloader_preparer.EmbeddingDataLoaderPreparerABC import (
     EmbeddingDataLoaderPreparer,
 )
 from topollm.compute_embeddings.embedding_dataloader_preparer.EmbeddingDataLoaderPreparerContext import (
