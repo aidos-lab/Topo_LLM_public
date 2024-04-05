@@ -48,4 +48,6 @@ def test_do_inference(
         logger=logger_fixture,
     )
 
+    logger_fixture.info(f"results:\n" f"{results = }")
+
     return None

@@ -18,13 +18,14 @@ else
     KEEP_TEST_DATA_FLAG=""
 fi
 
-# Initialize an array
+# Use the following array to select specific test cases to run.
+# Initialize the array:
 SELECTED_TEST_CASES=()
 # SELECTED_TEST_CASES+=(-m "not slow")
 
 # Add the following options to pytest to show the output of print statements:
-# ADDITIONAL_PYTEST_OPTIONS="--capture=no"
 #
+# ADDITIONAL_PYTEST_OPTIONS="--capture=no"
 ADDITIONAL_PYTEST_OPTIONS=""
 
 

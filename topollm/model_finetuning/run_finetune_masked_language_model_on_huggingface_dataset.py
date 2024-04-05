@@ -43,6 +43,7 @@ from topollm.config_classes.setup_OmegaConf import setup_OmegaConf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.model_finetuning.do_finetuning_process import do_finetuning_process
+from topollm.model_handling.get_torch_device import get_torch_device
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # START Globals
@@ -82,8 +83,16 @@ def main(
         logger=global_logger,
     )
 
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    # Use accelerator if available
+    device = get_torch_device(
+        preferred_torch_backend=main_config.preferred_torch_backend,
+        logger=global_logger,
+    )
+
     do_finetuning_process(
         main_config=main_config,
+        device=device,
         logger=global_logger,
     )
 

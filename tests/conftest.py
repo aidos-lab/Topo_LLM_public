@@ -304,7 +304,9 @@ def language_model_config(
 )
 def embedding_extraction_config() -> EmbeddingExtractionConfig:
     config = EmbeddingExtractionConfig(
-        layer_indices=[-1],
+        layer_indices=[
+            -1,
+        ],
         aggregation=AggregationType.MEAN,
     )
 
@@ -417,6 +419,7 @@ def finetuning_config(
         peft=peft_config,
         batch_sizes=batch_sizes_config,
         finetuning_datasets=finetuning_datasets_config,
+        max_steps=2,
         pretrained_model_name_or_path="roberta-base",
         short_model_name="roberta-base",
         tokenizer=tokenizer_config,
