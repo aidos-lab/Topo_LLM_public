@@ -28,6 +28,7 @@
 # limitations under the License.
 
 import logging
+from typing import Any
 
 import transformers
 
@@ -50,7 +51,7 @@ def do_inference(
     main_config: MainConfig,
     prompts: list[str] | None = None,
     logger: logging.Logger = logging.getLogger(__name__),
-) -> None:
+) -> list[list[str]] | Any:
     """
     If `prompts` is `None`, default prompts are used.
     Make sure to not accidentally use an empty list as the default argument.
@@ -75,6 +76,8 @@ def do_inference(
     #
     # We use the `AutoModelForPreTraining` class instead,
     # which will load the model correctly for inference.
+
+    # TODO: This does not appear to work with the BERT model
     model = load_model(
         pretrained_model_name_or_path=main_config.embeddings.language_model.pretrained_model_name_or_path,
         model_loading_class=transformers.AutoModelForPreTraining,
@@ -95,7 +98,7 @@ def do_inference(
             )
         logger.info(f"{prompts = }")
 
-        do_fill_mask(
+        results = do_fill_mask(
             tokenizer=tokenizer,
             model=model,
             prompts=prompts,
@@ -107,7 +110,7 @@ def do_inference(
             prompts = get_default_clm_prompts()
         logger.info(f"{prompts = }")
 
-        do_text_generation(
+        results = do_text_generation(
             tokenizer=tokenizer,
             model=model,
             prompts=prompts,
@@ -119,4 +122,4 @@ def do_inference(
     else:
         raise ValueError(f"Invalid lm_mode: " f"{lm_mode = }")
 
-    return None
+    return results
