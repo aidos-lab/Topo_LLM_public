@@ -69,13 +69,6 @@ class EmbeddingDataLoaderPreparer(ABC):
     ) -> int:
         return self.preparer_context.verbosity
 
-    @abstractmethod
-    def prepare_dataloader(
-        self,
-    ) -> torch.utils.data.DataLoader:
-        """Loads a dataset and prepares a dataloader."""
-        pass
-
     @staticmethod
     def convert_dataset_entry_to_features(
         dataset_entry: dict,
@@ -97,17 +90,24 @@ class EmbeddingDataLoaderPreparer(ABC):
 
         return features
 
+    @abstractmethod
+    def prepare_dataloader(
+        self,
+    ) -> torch.utils.data.DataLoader:
+        """Loads a dataset and prepares a dataloader."""
+        pass  # pragma: no cover
+
     @property
     @abstractmethod
     def sequence_length(
         self,
     ) -> int:
         """Returns the sequence length of the dataset."""
-        pass
+        pass  # pragma: no cover
 
     @abstractmethod
     def __len__(
         self,
     ) -> int:
         """Returns the number of samples in the dataset."""
-        pass
+        pass  # pragma: no cover
