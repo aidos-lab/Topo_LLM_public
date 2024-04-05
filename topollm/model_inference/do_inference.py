@@ -58,7 +58,7 @@ def do_inference(
 
     tokenizer = load_tokenizer(
         pretrained_model_name_or_path=main_config.embeddings.language_model.pretrained_model_name_or_path,
-        tokenizer_config=main_config.embeddings.tokenizer,
+        tokenizer_config=main_config.tokenizer,
         verbosity=main_config.verbosity,
         logger=logger,
     )

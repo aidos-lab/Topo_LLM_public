@@ -113,7 +113,7 @@ def main(
     )
 
     embeddings_path_manager = get_embeddings_path_manager(
-        config=main_config,
+        main_config=main_config,
         logger=global_logger,
     )
 

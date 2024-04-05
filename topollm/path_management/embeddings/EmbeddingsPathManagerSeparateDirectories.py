@@ -38,6 +38,7 @@ import pathlib
 # Local imports
 from topollm.config_classes.DataConfig import DataConfig
 from topollm.config_classes.EmbeddingsConfig import EmbeddingsConfig
+from topollm.config_classes.TokenizerConfig import TokenizerConfig
 from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
 from topollm.config_classes.PathsConfig import PathsConfig
 from topollm.path_management.truncate_length_of_desc import (
@@ -68,12 +69,14 @@ class EmbeddingsPathManagerSeparateDirectories:
         embeddings_config: EmbeddingsConfig,
         paths_config: PathsConfig,
         transformations_config: TransformationsConfig,
+        tokenizer_config: TokenizerConfig,
         verbosity: int = 1,
         logger: logging.Logger = logging.getLogger(__name__),
     ):
         self.data_config = data_config
         self.embeddings_config = embeddings_config
         self.paths_config = paths_config
+        self.tokenizer_config = tokenizer_config
         self.transformations_config = transformations_config
 
         self.verbosity = verbosity
@@ -102,7 +105,7 @@ class EmbeddingsPathManagerSeparateDirectories:
         path = pathlib.Path(
             self.data_config.data_config_description,
             self.embeddings_config.embeddings_config_description,
-            self.embeddings_config.tokenizer.tokenizer_config_description,
+            self.tokenizer_config.tokenizer_config_description,
             self.embeddings_config.language_model.lanugage_model_config_description,
             self.embeddings_config.embedding_extraction.embedding_extraction_config_description,
             self.transformations_config.transformation_config_description,

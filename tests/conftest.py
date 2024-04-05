@@ -291,13 +291,11 @@ def embedding_extraction_config() -> EmbeddingExtractionConfig:
     scope="session",
 )
 def embeddings_config(
-    tokenizer_config: TokenizerConfig,
     dataset_map_config: DatasetMapConfig,
     language_model_config: LanguageModelConfig,
     embedding_extraction_config: EmbeddingExtractionConfig,
 ) -> EmbeddingsConfig:
     return EmbeddingsConfig(
-        tokenizer=tokenizer_config,
         dataset_map=dataset_map_config,
         batch_size=32,
         language_model=language_model_config,
@@ -394,6 +392,7 @@ def embeddings_path_manager_separate_directories(
     data_config: DataConfig,
     embeddings_config: EmbeddingsConfig,
     paths_config: PathsConfig,
+    tokenizer_config: TokenizerConfig,
     transformations_config: TransformationsConfig,
     logger_fixture: logging.Logger,
 ) -> EmbeddingsPathManagerSeparateDirectories:
@@ -401,6 +400,7 @@ def embeddings_path_manager_separate_directories(
         data_config=data_config,
         embeddings_config=embeddings_config,
         paths_config=paths_config,
+        tokenizer_config=tokenizer_config,
         transformations_config=transformations_config,
         verbosity=1,
         logger=logger_fixture,
@@ -488,6 +488,7 @@ def main_config(
     inference_config: InferenceConfig,
     paths_config: PathsConfig,
     storage_config: StorageConfig,
+    tokenizer_config: TokenizerConfig,
     transformations_config: TransformationsConfig,
 ) -> MainConfig:
     config = MainConfig(
@@ -498,6 +499,7 @@ def main_config(
         paths=paths_config,
         preferred_torch_backend=PreferredTorchBackend.CPU,
         storage=storage_config,
+        tokenizer=tokenizer_config,
         transformations=transformations_config,
         verbosity=1,
     )

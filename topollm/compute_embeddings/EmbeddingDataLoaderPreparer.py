@@ -27,41 +27,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
-
-# Standard library imports
 import logging
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
-from typing import Callable
 
-# Third party imports
 import torch
 import torch.utils.data
 from transformers import BatchEncoding, PreTrainedTokenizer, PreTrainedTokenizerFast
 
-# Local imports
+from topollm.compute_embeddings.EmbeddingDataLoaderPreparerContext import (
+    EmbeddingDataLoaderPreparerContext,
+)
 from topollm.data_handling.HuggingfaceDatasetPreparer import HuggingfaceDatasetPreparer
-from topollm.config_classes.EmbeddingsConfig import EmbeddingsConfig
-from topollm.config_classes.DataConfig import DataConfig
-
-# END Imports
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-
-
-@dataclass
-class EmbeddingDataLoaderPreparerContext:
-    """Encapsulates the context needed for preparing dataloaders."""
-
-    data_config: DataConfig
-    embeddings_config: EmbeddingsConfig
-    tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast
-    collate_fn: Callable[[list], dict]
-    logger: logging.Logger = field(
-        default_factory=lambda: logging.getLogger(__name__),
-    )
-    verbosity: int = 1
 
 
 class EmbeddingDataLoaderPreparer(ABC):

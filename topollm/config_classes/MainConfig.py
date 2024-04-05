@@ -30,6 +30,7 @@
 from pydantic import Field
 
 from topollm.config_classes.DataConfig import DataConfig
+from topollm.config_classes.TokenizerConfig import TokenizerConfig
 from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
 from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
 from topollm.config_classes.EmbeddingsConfig import EmbeddingsConfig
@@ -99,6 +100,12 @@ class MainConfig(ConfigBaseModel):
         ...,
         title="Storage configuration.",
         description="The configuration for specifying storage.",
+    )
+
+    tokenizer: TokenizerConfig = Field(
+        ...,
+        title="Tokenizer configuration.",
+        description="The configuration for specifying tokenizer.",
     )
 
     transformations: TransformationsConfig = Field(

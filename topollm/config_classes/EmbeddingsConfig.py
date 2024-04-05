@@ -47,12 +47,6 @@ from topollm.config_classes.TokenizerConfig import TokenizerConfig
 class EmbeddingsConfig(ConfigBaseModel):
     """Configurations for specifying embeddings."""
 
-    tokenizer: TokenizerConfig = Field(
-        ...,
-        title="Tokenizer configuration.",
-        description="The configuration for specifying tokenizer.",
-    )
-
     dataset_map: DatasetMapConfig = Field(
         ...,
         title="Dataset map configuration.",

@@ -7,6 +7,7 @@
 #
 # Authors:
 # Benjamin Ruppik (ruppik@hhu.de)
+# Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
 # First versions of this code were potentially generated
@@ -27,28 +28,26 @@
 # limitations under the License.
 
 import logging
+from dataclasses import dataclass, field
+from typing import Callable
 
-from topollm.config_classes.MainConfig import MainConfig
-from topollm.path_management.embeddings.EmbeddingsPathManagerProtocol import (
-    EmbeddingsPathManager,
-)
-from topollm.path_management.embeddings.EmbeddingsPathManagerSeparateDirectories import (
-    EmbeddingsPathManagerSeparateDirectories,
-)
+from transformers import PreTrainedTokenizer, PreTrainedTokenizerFast
+
+from topollm.config_classes.DataConfig import DataConfig
+from topollm.config_classes.EmbeddingsConfig import EmbeddingsConfig
+from topollm.config_classes.TokenizerConfig import TokenizerConfig
 
 
-def get_embeddings_path_manager(
-    main_config: MainConfig,
-    logger: logging.Logger = logging.getLogger(__name__),
-) -> EmbeddingsPathManager:
-    path_manger = EmbeddingsPathManagerSeparateDirectories(
-        data_config=main_config.data,
-        embeddings_config=main_config.embeddings,
-        paths_config=main_config.paths,
-        tokenizer_config=main_config.tokenizer,
-        transformations_config=main_config.transformations,
-        verbosity=main_config.verbosity,
-        logger=logger,
+@dataclass
+class EmbeddingDataLoaderPreparerContext:
+    """Encapsulates the context needed for preparing dataloaders."""
+
+    data_config: DataConfig
+    embeddings_config: EmbeddingsConfig
+    tokenizer_config: TokenizerConfig
+    tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast
+    collate_fn: Callable[[list], dict]
+    logger: logging.Logger = field(
+        default_factory=lambda: logging.getLogger(__name__),
     )
-
-    return path_manger
+    verbosity: int = 1

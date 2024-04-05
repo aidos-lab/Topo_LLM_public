@@ -48,12 +48,12 @@ from topollm.logging.log_dataset_info import log_huggingface_dataset_info
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
-class HuggingfaceEmbeddingDataLoaderPreparer(EmbeddingDataLoaderPreparer):
+class EmbeddingDataLoaderPreparerHuggingface(EmbeddingDataLoaderPreparer):
     @property
     def sequence_length(
         self,
     ) -> int:
-        return self.preparer_context.embeddings_config.tokenizer.max_length
+        return self.preparer_context.tokenizer_config.max_length
 
     def __len__(
         self,
