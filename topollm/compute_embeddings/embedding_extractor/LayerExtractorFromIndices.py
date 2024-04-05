@@ -24,19 +24,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import numpy as np
-
-from typing import Protocol
+import torch
 
 
-class EmbeddingExtractor(Protocol):
-    embedding_dimension: int
+class LayerExtractorFromIndices:
+    """
+    Implementation of the LayerExtractor protocol
+    which is configured from a list of layer indices.
+    """
 
-    def extract_embeddings_from_model_outputs(
+    def __init__(
         self,
-        model_outputs,
-    ) -> np.ndarray:
-        """
-        This method extracts embeddings from the model outputs.
-        """
-        ...
+        layer_indices: list[int],
+    ):
+        self.layer_indices = layer_indices
+
+    def extract_layers_from_model_outputs(
+        self,
+        hidden_states,
+    ) -> list[torch.Tensor]:
+        layers_to_extract = [hidden_states[i] for i in self.layer_indices]
+        return layers_to_extract

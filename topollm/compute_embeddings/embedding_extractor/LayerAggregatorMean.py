@@ -24,19 +24,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import numpy as np
-
-from typing import Protocol
+import torch
 
 
-class EmbeddingExtractor(Protocol):
-    embedding_dimension: int
+class LayerAggregatorMean:
+    """
+    Implementation of the LayerAggregator protocol
+    which computes the mean of the layers to be extracted.
+    """
 
-    def extract_embeddings_from_model_outputs(
+    def aggregate_layers(
         self,
-        model_outputs,
-    ) -> np.ndarray:
-        """
-        This method extracts embeddings from the model outputs.
-        """
-        ...
+        layers_to_extract: list[torch.Tensor],
+    ) -> torch.Tensor:
+        # Mean across the layers
+        aggregated_layers = torch.mean(
+            torch.stack(
+                layers_to_extract,
+                dim=0,
+            ),
+            dim=0,
+        )
+        return aggregated_layers

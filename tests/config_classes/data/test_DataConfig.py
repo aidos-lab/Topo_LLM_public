@@ -55,7 +55,7 @@ def test_hydra_with_DataConfig(
     config_name: str,
 ) -> None:
     with initialize(
-        config_path="../../configs/data/",
+        config_path="../../../configs/data/",
         version_base=None,
     ):
         # config is relative to a module
