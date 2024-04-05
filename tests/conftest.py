@@ -280,7 +280,12 @@ def dataset_map_config() -> DatasetMapConfig:
             "bert-base-uncased",
             LMmode.MLM,
         ),
-        # ("gpt2-large", "gpt2-large", LMmode.CLM), # ! TODO The code does not work for this yet
+        # (
+        #     "gpt2-large",
+        #     "gpt2-large",
+        #     LMmode.CLM,
+        # ),
+        # ! TODO The code does not work for causal language models yet
         # TODO For the gpt2-large model, a padding token is missing:
         # "ValueError: Asking to pad but the tokenizer does not have a padding token. Please select a token to use as `pad_token` `(tokenizer.pad_token = tokenizer.eos_token e.g.)` or add a new pad token..."
     ],
@@ -408,20 +413,42 @@ def batch_sizes_config() -> BatchSizesConfig:
 
 @pytest.fixture(
     scope="session",
+    params=[
+        (
+            "roberta-base",
+            "roberta-base",
+            LMmode.MLM,
+        ),
+        (
+            "bert-base-uncased",
+            "bert-base-uncased",
+            LMmode.MLM,
+        ),
+        (
+            "gpt2-large",
+            "gpt2-large",
+            LMmode.CLM,
+        ),
+    ],
 )
 def finetuning_config(
+    request: pytest.FixtureRequest,
     batch_sizes_config: BatchSizesConfig,
     finetuning_datasets_config: FinetuningDatasetsConfig,
     peft_config: PEFTConfig,
     tokenizer_config: TokenizerConfig,
 ) -> FinetuningConfig:
+    pretrained_model_name_or_path, short_model_name, lm_mode = request.param
+    # TODO: The finetuning script is not updated for causal language models yet
+
     config = FinetuningConfig(
         peft=peft_config,
         batch_sizes=batch_sizes_config,
         finetuning_datasets=finetuning_datasets_config,
+        lm_mode=lm_mode,
         max_steps=2,
-        pretrained_model_name_or_path="roberta-base",
-        short_model_name="roberta-base",
+        pretrained_model_name_or_path=pretrained_model_name_or_path,
+        short_model_name=short_model_name,
         tokenizer=tokenizer_config,
     )
 

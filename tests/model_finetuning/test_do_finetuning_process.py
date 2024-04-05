@@ -37,6 +37,7 @@ from topollm.model_finetuning.do_finetuning_process import do_finetuning_process
 
 
 @pytest.mark.uses_transformers_models
+@pytest.mark.high_memory_usage
 @pytest.mark.slow
 @pytest.mark.very_slow
 def test_do_finetuning_process(
