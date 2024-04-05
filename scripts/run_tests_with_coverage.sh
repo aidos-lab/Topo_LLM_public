@@ -18,14 +18,19 @@ else
     KEEP_TEST_DATA_FLAG=""
 fi
 
+# Initialize an array
+SELECTED_TEST_CASES=()
+# SELECTED_TEST_CASES+=(-m "not slow")
+
 # Add the following options to pytest to show the output of print statements:
 # ADDITIONAL_PYTEST_OPTIONS="--capture=no"
 #
 ADDITIONAL_PYTEST_OPTIONS=""
 
 
-python3 -m pytest $KEEP_TEST_DATA_FLAG \
-    -m "not slow" \
+python3 -m pytest \
+    $KEEP_TEST_DATA_FLAG \
+    "${SELECTED_TEST_CASES[@]}" \
     tests/ \
     --cov=topollm/ \
     --cov-report=html:tests/temp_files/coverage_report \

@@ -74,22 +74,30 @@ def do_inference(
     # `KeyError: 'logits'`
     # See also: https://github.com/huggingface/transformers/issues/16569
     #
-    # We use the `AutoModelForPreTraining` class instead,
+    # We use the `AutoModelFor...` class instead,
     # which will load the model correctly for inference.
+    # Note: The `AutoModelForPreTraining` class appears to work for the
+    # "roberta"-models, but not for the "bert"-models.
 
-    # TODO: This does not appear to work with the BERT model
+    # Case distinction for different language model modes
+    # (Masked Language Modeling, Causal Language Modeling).
+    lm_mode = main_config.embeddings.language_model.lm_mode
+
+    if lm_mode == LMmode.MLM:
+        model_loading_class = transformers.AutoModelForMaskedLM
+    elif lm_mode == LMmode.CLM:
+        model_loading_class = transformers.AutoModelForCausalLM
+    else:
+        raise ValueError(f"Invalid lm_mode: " f"{lm_mode = }")
+
     model = load_model(
         pretrained_model_name_or_path=main_config.embeddings.language_model.pretrained_model_name_or_path,
-        model_loading_class=transformers.AutoModelForPreTraining,
+        model_loading_class=model_loading_class,
         device=device,
         verbosity=main_config.verbosity,
         logger=logger,
     )
     model.eval()
-
-    # Case distinction for different language model modes
-    # (Masked Language Modeling, Causal Language Modeling).
-    lm_mode = main_config.embeddings.language_model.lm_mode
 
     if lm_mode == LMmode.MLM:
         if prompts is None:
