@@ -36,15 +36,23 @@ import transformers
 from topollm.compute_embeddings.collate_batch_for_embedding import (
     collate_batch_and_move_to_device,
 )
+from topollm.compute_embeddings.embedding_dataloader_preparer.EmbeddingDataLoaderPreparerABC import (
+    EmbeddingDataLoaderPreparer,
+)
 from topollm.compute_embeddings.embedding_dataloader_preparer.EmbeddingDataLoaderPreparerContext import (
     EmbeddingDataLoaderPreparerContext,
+)
+from topollm.compute_embeddings.embedding_dataloader_preparer.EmbeddingDataLoaderPreparerHuggingface import (
+    EmbeddingDataLoaderPreparerHuggingface,
 )
 from topollm.config_classes.data.DataConfig import DataConfig
 from topollm.config_classes.embeddings.EmbeddingsConfig import EmbeddingsConfig
 from topollm.config_classes.tokenizer.TokenizerConfig import TokenizerConfig
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(
+    scope="session",
+)
 def preparer_context(
     device_fixture: torch.device,
     data_config: DataConfig,
@@ -64,6 +72,19 @@ def preparer_context(
         tokenizer_config=tokenizer_config,
         tokenizer=tokenizer,
         collate_fn=partial_collate_fn,
+    )
+
+    return result
+
+
+@pytest.fixture(
+    scope="session",
+)
+def embedding_dataloader_preparer_huggingface(
+    preparer_context: EmbeddingDataLoaderPreparerContext,
+) -> EmbeddingDataLoaderPreparer:
+    result = EmbeddingDataLoaderPreparerHuggingface(
+        preparer_context=preparer_context,
     )
 
     return result

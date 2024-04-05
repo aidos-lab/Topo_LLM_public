@@ -46,7 +46,7 @@ class EmbeddingDataLoaderPreparer(ABC):
     def __init__(
         self,
         preparer_context: EmbeddingDataLoaderPreparerContext,
-    ):
+    ) -> None:
         self.preparer_context = preparer_context
 
         self.dataset_preparer = HuggingfaceDatasetPreparer(
@@ -54,6 +54,8 @@ class EmbeddingDataLoaderPreparer(ABC):
             verbosity=self.preparer_context.verbosity,
             logger=self.preparer_context.logger,
         )
+
+        return None
 
     @property
     def logger(
