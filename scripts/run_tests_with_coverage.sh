@@ -18,9 +18,16 @@ else
     KEEP_TEST_DATA_FLAG=""
 fi
 
+# Add the following options to pytest to show the output of print statements:
+# ADDITIONAL_PYTEST_OPTIONS="--capture=no"
+#
+ADDITIONAL_PYTEST_OPTIONS=""
+
+
 python3 -m pytest $KEEP_TEST_DATA_FLAG \
     -m "not slow" \
     tests/ \
     --cov=topollm/ \
     --cov-report=html:tests/temp_files/coverage_report \
-    --hypothesis-show-statistics
+    --hypothesis-show-statistics \
+    $ADDITIONAL_PYTEST_OPTIONS

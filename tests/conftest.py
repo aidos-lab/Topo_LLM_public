@@ -261,7 +261,7 @@ def tokenizer_config() -> TokenizerConfig:
 def dataset_map_config() -> DatasetMapConfig:
     config = DatasetMapConfig(
         batch_size=1000,
-        num_proc=2,
+        num_proc=1,
     )
 
     return config
@@ -319,14 +319,22 @@ def embeddings_config(
     language_model_config: LanguageModelConfig,
     embedding_extraction_config: EmbeddingExtractionConfig,
 ) -> EmbeddingsConfig:
-    return EmbeddingsConfig(
+    # Note: You should set 'num_workers=0' to avoid the following multiprocessing error
+    # on the torch.device("mps") backend:
+    # "RuntimeError: _share_filename_: only available on CPU"
+    # Setting 'num_workers=1', while only starting a single process,
+    # does use the multiprocessing module and can lead to the error.
+
+    config = EmbeddingsConfig(
         dataset_map=dataset_map_config,
         batch_size=32,
         language_model=language_model_config,
         embedding_extraction=embedding_extraction_config,
         level=Level.TOKEN,
-        num_workers=1,
+        num_workers=0,
     )
+
+    return config
 
 
 @pytest.fixture(
@@ -428,7 +436,7 @@ def device_fixture() -> torch.device:
 def inference_config() -> InferenceConfig:
     config = InferenceConfig(
         max_length=50,
-        num_return_sequences=3,
+        num_return_sequences=2,
     )
 
     return config

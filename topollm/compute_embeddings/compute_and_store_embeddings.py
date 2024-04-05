@@ -66,7 +66,7 @@ def compute_and_store_embeddings(
     main_config: MainConfig,
     device: torch.device,
     logger: logging.Logger = logging.getLogger(__name__),
-):
+) -> None:
     tokenizer = load_tokenizer(
         pretrained_model_name_or_path=main_config.embeddings.language_model.pretrained_model_name_or_path,
         tokenizer_config=main_config.tokenizer,
@@ -168,4 +168,4 @@ def compute_and_store_embeddings(
     )
     data_handler.process_data()
 
-    return
+    return None
