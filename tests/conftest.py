@@ -424,11 +424,12 @@ def batch_sizes_config() -> BatchSizesConfig:
             "bert-base-uncased",
             LMmode.MLM,
         ),
-        (
-            "gpt2-large",
-            "gpt2-large",
-            LMmode.CLM,
-        ),
+        # TODO: The finetuning script is not updated for causal language models yet
+        # (
+        #     "gpt2-large",
+        #     "gpt2-large",
+        #     LMmode.CLM,
+        # ),
     ],
 )
 def finetuning_config(
@@ -439,7 +440,6 @@ def finetuning_config(
     tokenizer_config: TokenizerConfig,
 ) -> FinetuningConfig:
     pretrained_model_name_or_path, short_model_name, lm_mode = request.param
-    # TODO: The finetuning script is not updated for causal language models yet
 
     config = FinetuningConfig(
         peft=peft_config,
