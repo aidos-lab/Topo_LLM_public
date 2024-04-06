@@ -24,86 +24,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
-
-# Standard library imports
-
-# Third party imports
-import numpy as np
 from topollm.compute_embeddings.embedding_extractor.EmbeddingExtractorProtocol import (
     EmbeddingExtractor,
 )
 from transformers.configuration_utils import PretrainedConfig
-import transformers.modeling_outputs
 
-# Local imports
-
-# Local imports
-from topollm.compute_embeddings.embedding_extractor.LayerAggregator import (
-    ConcatenateLayerAggregator,
-    LayerAggregator,
-    MeanLayerAggregator,
+from topollm.compute_embeddings.embedding_extractor.EmbeddingExtractorTokenLevel import (
+    EmbeddingExtractorTokenLevel,
 )
-from topollm.compute_embeddings.embedding_extractor.LayerExtractor import (
-    LayerExtractor,
+from topollm.compute_embeddings.embedding_extractor.LayerAggregatorConcatenate import (
+    LayerAggregatorConcatenate,
+)
+from topollm.compute_embeddings.embedding_extractor.LayerExtractorFromIndices import (
     LayerExtractorFromIndices,
 )
-from topollm.config_classes.EmbeddingExtractionConfig import EmbeddingExtractionConfig
+from topollm.compute_embeddings.embedding_extractor.LayerAggregatorMean import (
+    LayerAggregatorMean,
+)
+from topollm.config_classes.embeddings.EmbeddingExtractionConfig import (
+    EmbeddingExtractionConfig,
+)
 from topollm.config_classes.enums import AggregationType
-
-# END Imports
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-
-
-class TokenLevelEmbeddingExtractor:
-    """
-    Implementation of the EmbeddingExtractor protocol
-    which extracts token level embeddings.
-    """
-
-    def __init__(
-        self,
-        layer_extractor: LayerExtractor,
-        layer_aggregator: LayerAggregator,
-        embedding_dimension: int,
-    ):
-        self.layer_extractor = layer_extractor
-        self.layer_aggregator = layer_aggregator
-        self.embedding_dimension = embedding_dimension
-
-    def extract_embeddings_from_model_outputs(
-        self,
-        model_outputs: transformers.modeling_outputs.BaseModelOutput,
-    ) -> np.ndarray:
-        # Ensure the model outputs hidden states
-        if not hasattr(
-            model_outputs,
-            "hidden_states",
-        ):
-            raise ValueError("Model outputs do not contain 'hidden_states'")
-
-        hidden_states = (
-            model_outputs.hidden_states
-        )  # Assuming this is a tuple of tensors
-
-        if hidden_states is None:
-            raise ValueError(
-                f"'hidden_states' is None. "
-                f"Did you call the model with 'output_hidden_states=True'?"
-            )
-
-        # Extract specified layers
-        layers_to_extract = self.layer_extractor.extract_layers_from_model_outputs(
-            hidden_states=hidden_states,
-        )
-
-        # Aggregate the extracted layers
-        embeddings = self.layer_aggregator.aggregate_layers(
-            layers_to_extract=layers_to_extract,
-        )
-
-        return embeddings.cpu().numpy()
 
 
 def get_embedding_extractor(
@@ -115,10 +56,10 @@ def get_embedding_extractor(
     )
 
     if embedding_extraction_config.aggregation == AggregationType.MEAN:
-        layer_aggregator = MeanLayerAggregator()
+        layer_aggregator = LayerAggregatorMean()
         embedding_dimension = model_hidden_size
     elif embedding_extraction_config.aggregation == AggregationType.CONCATENATE:
-        layer_aggregator = ConcatenateLayerAggregator()
+        layer_aggregator = LayerAggregatorConcatenate()
 
         # Note that the following dimension computation assumes that the
         # hidden size of the model is the same for all layers.
@@ -131,7 +72,7 @@ def get_embedding_extractor(
             f"{embedding_extraction_config.aggregation = }",
         )
 
-    embedding_extractor = TokenLevelEmbeddingExtractor(
+    embedding_extractor = EmbeddingExtractorTokenLevel(
         layer_extractor=layer_extractor,
         layer_aggregator=layer_aggregator,
         embedding_dimension=embedding_dimension,

@@ -27,26 +27,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
-
-# Standard library imports
-
-
-# Third party imports
-
-
-# Local imports
-from topollm.compute_embeddings.EmbeddingDataLoaderPreparer import (
+from topollm.compute_embeddings.embedding_dataloader_preparer.EmbeddingDataLoaderPreparerABC import (
     EmbeddingDataLoaderPreparer,
+)
+from topollm.compute_embeddings.embedding_dataloader_preparer.EmbeddingDataLoaderPreparerContext import (
     EmbeddingDataLoaderPreparerContext,
 )
-from topollm.compute_embeddings.HuggingfaceEmbeddingDataLoaderPreparer import HuggingfaceEmbeddingDataLoaderPreparer
+from topollm.compute_embeddings.embedding_dataloader_preparer.EmbeddingDataLoaderPreparerHuggingface import (
+    EmbeddingDataLoaderPreparerHuggingface,
+)
 from topollm.config_classes.enums import DatasetType
-
-
-# END Imports
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
 def get_embedding_dataloader_preparer(
@@ -67,7 +57,7 @@ def get_embedding_dataloader_preparer(
         An instance of a DatasetPreparer subclass.
     """
     if dataset_type == DatasetType.HUGGINGFACE_DATASET:
-        return HuggingfaceEmbeddingDataLoaderPreparer(
+        return EmbeddingDataLoaderPreparerHuggingface(
             preparer_context=preparer_context,
         )
     # Extendable to other dataset types

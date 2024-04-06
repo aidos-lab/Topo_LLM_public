@@ -33,7 +33,9 @@ from peft.tuners.lora.config import LoraConfig
 from transformers import AutoModel
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(
+    scope="session",
+)
 def base_model():
     """
     Load a lightweight model for testing.
@@ -46,13 +48,9 @@ def base_model():
     return base_model
 
 
-@pytest.fixture(scope="session")
-def device():
-    # Use a simple device selection for testing
-    return torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-
-@pytest.fixture(scope="session")
+@pytest.fixture(
+    scope="session",
+)
 def lora_config():
     # Create a test LoRA configuration. Adjust parameters as needed.
     config = LoraConfig(

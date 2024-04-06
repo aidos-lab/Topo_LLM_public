@@ -1,0 +1,4 @@
+lm_mode: MLM
+masking_mode: no_masking
+pretrained_model_name_or_path: bert-base-uncased
+short_model_name: ${language_model.pretrained_model_name_or_path}

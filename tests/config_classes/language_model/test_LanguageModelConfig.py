@@ -34,7 +34,9 @@ import pytest
 from hydra import compose, initialize_config_module
 import omegaconf
 
-from topollm.config_classes.LanguageModelConfig import LanguageModelConfig
+from topollm.config_classes.language_model.LanguageModelConfig import (
+    LanguageModelConfig,
+)
 
 logger = logging.getLogger(__name__)
 

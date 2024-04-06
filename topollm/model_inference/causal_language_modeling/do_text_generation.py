@@ -100,4 +100,5 @@ def do_text_generation(
         # Logging each generated text for the current prompt
         logger.info(f"{prompt = }")
         logger.info(f"generated_texts:\n" f"{pprint.pformat(generated_texts)}")
+
     return all_generated_texts

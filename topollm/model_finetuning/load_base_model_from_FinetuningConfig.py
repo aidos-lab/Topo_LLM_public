@@ -30,10 +30,12 @@
 import logging
 
 import torch
+import transformers
 from transformers import PreTrainedModel
 
 from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
 from topollm.model_handling.model.load_model import load_model
+from topollm.config_classes.enums import LMmode
 
 
 def load_base_model_from_FinetuningConfig(
@@ -44,9 +46,18 @@ def load_base_model_from_FinetuningConfig(
     """
     Interface function to load a model from a FinetuningConfig object.
     """
+    lm_mode = finetuning_config.lm_mode
+
+    if lm_mode == LMmode.MLM:
+        model_loading_class = transformers.AutoModelForMaskedLM
+    elif lm_mode == LMmode.CLM:
+        model_loading_class = transformers.AutoModelForCausalLM
+    else:
+        raise ValueError(f"Invalid lm_mode: " f"{lm_mode = }")
 
     model = load_model(
         pretrained_model_name_or_path=finetuning_config.pretrained_model_name_or_path,
+        model_loading_class=model_loading_class,
         device=device,
         verbosity=1,
         logger=logger,

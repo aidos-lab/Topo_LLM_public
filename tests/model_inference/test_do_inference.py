@@ -28,52 +28,26 @@
 # limitations under the License.
 
 import logging
-import pprint
 
 import pytest
-from hydra import compose, initialize
-import omegaconf
 
-from topollm.config_classes.MainConfig import DataConfig
-
-logger = logging.getLogger(__name__)
+from topollm.config_classes.MainConfig import MainConfig
+from topollm.model_inference.do_inference import do_inference
 
 
-@pytest.mark.parametrize(
-    "config_name",
-    [
-        "bbc",
-        "iclr_2024_submissions",
-        "multiwoz21",
-        "multiwoz21_train",
-        "multiwoz21_validation",
-        "sgd",
-        "wikitext",
-    ],
-)
-def test_hydra_with_DataConfig(
-    config_name: str,
+@pytest.mark.uses_transformers_models
+@pytest.mark.slow
+def test_do_inference(
+    main_config: MainConfig,
+    logger_fixture: logging.Logger,
 ) -> None:
-    with initialize(
-        config_path="../../configs/data/",
-        version_base=None,
-    ):
-        # config is relative to a module
-        cfg: omegaconf.DictConfig = compose(
-            config_name=config_name,
-            # overrides=[
-            #     "dataset_description_string=overwritten_dataset_desc",
-            # ],
-        )
 
-        logger.info(f"cfg:\n" f"{pprint.pformat(cfg)}")
+    results = do_inference(
+        main_config=main_config,
+        prompts=None,
+        logger=logger_fixture,
+    )
 
-        # This tests whether the configuration is valid
-        config = DataConfig.model_validate(
-            obj=cfg,
-        )
-
-        logger.info(f"{type(config) = }")
-        logger.info(f"config:\n" f"{pprint.pformat(config)}")
+    logger_fixture.info(f"results:\n" f"{results = }")
 
     return None

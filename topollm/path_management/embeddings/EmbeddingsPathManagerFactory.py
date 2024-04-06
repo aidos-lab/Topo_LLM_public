@@ -38,15 +38,17 @@ from topollm.path_management.embeddings.EmbeddingsPathManagerSeparateDirectories
 
 
 def get_embeddings_path_manager(
-    config: MainConfig,
+    main_config: MainConfig,
     logger: logging.Logger = logging.getLogger(__name__),
 ) -> EmbeddingsPathManager:
     path_manger = EmbeddingsPathManagerSeparateDirectories(
-        data_config=config.data,
-        embeddings_config=config.embeddings,
-        paths_config=config.paths,
-        transformations_config=config.transformations,
-        verbosity=config.verbosity,
+        data_config=main_config.data,
+        embeddings_config=main_config.embeddings,
+        language_model_config=main_config.language_model,
+        paths_config=main_config.paths,
+        tokenizer_config=main_config.tokenizer,
+        transformations_config=main_config.transformations,
+        verbosity=main_config.verbosity,
         logger=logger,
     )
 

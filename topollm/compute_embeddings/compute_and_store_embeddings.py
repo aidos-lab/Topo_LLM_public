@@ -39,10 +39,10 @@ from topollm.compute_embeddings.collate_batch_for_embedding import (
 from topollm.compute_embeddings.embedding_extractor.EmbeddingExtractorFactory import (
     get_embedding_extractor,
 )
-from topollm.compute_embeddings.EmbeddingDataLoaderPreparer import (
+from topollm.compute_embeddings.embedding_dataloader_preparer.EmbeddingDataLoaderPreparerContext import (
     EmbeddingDataLoaderPreparerContext,
 )
-from topollm.compute_embeddings.EmbeddingDataLoaderPreparerFactory import (
+from topollm.compute_embeddings.embedding_dataloader_preparer.EmbeddingDataLoaderPreparerFactory import (
     get_embedding_dataloader_preparer,
 )
 from topollm.compute_embeddings.TokenLevelEmbeddingDataHandler import (
@@ -66,15 +66,15 @@ def compute_and_store_embeddings(
     main_config: MainConfig,
     device: torch.device,
     logger: logging.Logger = logging.getLogger(__name__),
-):
+) -> None:
     tokenizer = load_tokenizer(
-        pretrained_model_name_or_path=main_config.embeddings.language_model.pretrained_model_name_or_path,
-        tokenizer_config=main_config.embeddings.tokenizer,
+        pretrained_model_name_or_path=main_config.language_model.pretrained_model_name_or_path,
+        tokenizer_config=main_config.tokenizer,
         logger=logger,
         verbosity=main_config.verbosity,
     )
     model = load_model(
-        pretrained_model_name_or_path=main_config.embeddings.language_model.pretrained_model_name_or_path,
+        pretrained_model_name_or_path=main_config.language_model.pretrained_model_name_or_path,
         device=device,
         logger=logger,
         verbosity=main_config.verbosity,
@@ -102,6 +102,7 @@ def compute_and_store_embeddings(
     preparer_context = EmbeddingDataLoaderPreparerContext(
         data_config=main_config.data,
         embeddings_config=main_config.embeddings,
+        tokenizer_config=main_config.tokenizer,
         tokenizer=tokenizer,
         collate_fn=partial_collate_fn,
         logger=logger,
@@ -129,7 +130,7 @@ def compute_and_store_embeddings(
     )
 
     embeddings_path_manager = get_embeddings_path_manager(
-        config=main_config,
+        main_config=main_config,
         logger=logger,
     )
     storage_paths = StoragePaths(
@@ -167,4 +168,4 @@ def compute_and_store_embeddings(
     )
     data_handler.process_data()
 
-    return
+    return None

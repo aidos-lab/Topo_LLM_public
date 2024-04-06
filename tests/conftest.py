@@ -34,13 +34,15 @@ from datetime import datetime
 
 import pytest
 import torch
+import transformers
 from dotenv import find_dotenv, load_dotenv
 
-from topollm.config_classes.DataConfig import DataConfig
-from topollm.config_classes.DatasetMapConfig import DatasetMapConfig
-from topollm.config_classes.EmbeddingExtractionConfig import EmbeddingExtractionConfig
-from topollm.config_classes.EmbeddingsConfig import EmbeddingsConfig
-from topollm.config_classes.StorageConfig import StorageConfig
+from topollm.config_classes.data.DataConfig import DataConfig
+from topollm.config_classes.data.DatasetMapConfig import DatasetMapConfig
+from topollm.config_classes.embeddings.EmbeddingExtractionConfig import (
+    EmbeddingExtractionConfig,
+)
+from topollm.config_classes.embeddings.EmbeddingsConfig import EmbeddingsConfig
 from topollm.config_classes.enums import (
     AggregationType,
     ArrayStorageType,
@@ -59,11 +61,15 @@ from topollm.config_classes.finetuning.FinetuningDatasetsConfig import (
 )
 from topollm.config_classes.finetuning.peft.PEFTConfig import PEFTConfig
 from topollm.config_classes.inference.InferenceConfig import InferenceConfig
-from topollm.config_classes.LanguageModelConfig import LanguageModelConfig
+from topollm.config_classes.language_model.LanguageModelConfig import (
+    LanguageModelConfig,
+)
 from topollm.config_classes.MainConfig import MainConfig
 from topollm.config_classes.PathsConfig import PathsConfig
-from topollm.config_classes.TokenizerConfig import TokenizerConfig
+from topollm.config_classes.StorageConfig import StorageConfig
+from topollm.config_classes.tokenizer.TokenizerConfig import TokenizerConfig
 from topollm.config_classes.TransformationsConfig import TransformationsConfig
+from topollm.model_handling.tokenizer.load_tokenizer import load_tokenizer
 from topollm.path_management.embeddings.EmbeddingsPathManagerSeparateDirectories import (
     EmbeddingsPathManagerSeparateDirectories,
 )
@@ -230,7 +236,7 @@ def data_config() -> DataConfig:
         data_dir=None,
         dataset_path="xsum",
         dataset_name=None,
-        number_of_samples=5000,
+        number_of_samples=10,
         split=Split.TRAIN,
     )
 
@@ -255,7 +261,7 @@ def tokenizer_config() -> TokenizerConfig:
 def dataset_map_config() -> DatasetMapConfig:
     config = DatasetMapConfig(
         batch_size=1000,
-        num_proc=2,
+        num_proc=1,
     )
 
     return config
@@ -263,13 +269,36 @@ def dataset_map_config() -> DatasetMapConfig:
 
 @pytest.fixture(
     scope="session",
+    params=[
+        (
+            "roberta-base",
+            "roberta-base",
+            LMmode.MLM,
+        ),
+        (
+            "bert-base-uncased",
+            "bert-base-uncased",
+            LMmode.MLM,
+        ),
+        # (
+        #     "gpt2-large",
+        #     "gpt2-large",
+        #     LMmode.CLM,
+        # ),
+        # ! TODO The code does not work for causal language models yet
+        # TODO For the gpt2-large model, a padding token is missing:
+        # "ValueError: Asking to pad but the tokenizer does not have a padding token. Please select a token to use as `pad_token` `(tokenizer.pad_token = tokenizer.eos_token e.g.)` or add a new pad token..."
+    ],
 )
-def language_model_config() -> LanguageModelConfig:
+def language_model_config(
+    request: pytest.FixtureRequest,
+) -> LanguageModelConfig:
+    pretrained_model_name_or_path, short_model_name, lm_mode = request.param
     config = LanguageModelConfig(
-        pretrained_model_name_or_path="roberta-base",
-        short_model_name="roberta-base",
+        pretrained_model_name_or_path=pretrained_model_name_or_path,
+        short_model_name=short_model_name,
         masking_mode="no_masking",
-        lm_mode=LMmode.MLM,
+        lm_mode=lm_mode,
     )
 
     return config
@@ -280,7 +309,9 @@ def language_model_config() -> LanguageModelConfig:
 )
 def embedding_extraction_config() -> EmbeddingExtractionConfig:
     config = EmbeddingExtractionConfig(
-        layer_indices=[-1],
+        layer_indices=[
+            -1,
+        ],
         aggregation=AggregationType.MEAN,
     )
 
@@ -291,20 +322,24 @@ def embedding_extraction_config() -> EmbeddingExtractionConfig:
     scope="session",
 )
 def embeddings_config(
-    tokenizer_config: TokenizerConfig,
     dataset_map_config: DatasetMapConfig,
-    language_model_config: LanguageModelConfig,
     embedding_extraction_config: EmbeddingExtractionConfig,
 ) -> EmbeddingsConfig:
-    return EmbeddingsConfig(
-        tokenizer=tokenizer_config,
+    # Note: You should set 'num_workers=0' to avoid the following multiprocessing error
+    # on the torch.device("mps") backend:
+    # "RuntimeError: _share_filename_: only available on CPU"
+    # Setting 'num_workers=1', while only starting a single process,
+    # does use the multiprocessing module and can lead to the error.
+
+    config = EmbeddingsConfig(
         dataset_map=dataset_map_config,
         batch_size=32,
-        language_model=language_model_config,
         embedding_extraction=embedding_extraction_config,
         level=Level.TOKEN,
-        num_workers=1,
+        num_workers=0,
     )
+
+    return config
 
 
 @pytest.fixture(
@@ -331,10 +366,18 @@ def transformations_config() -> TransformationsConfig:
 
 @pytest.fixture(
     scope="session",
+    params=[
+        FinetuningMode.STANDARD,
+        FinetuningMode.LORA,
+    ],
 )
-def peft_config() -> PEFTConfig:
+def peft_config(
+    request: pytest.FixtureRequest,
+) -> PEFTConfig:
+    finetuning_mode = request.param
+
     config = PEFTConfig(
-        finetuning_mode=FinetuningMode.LORA,
+        finetuning_mode=finetuning_mode,
     )
 
     return config
@@ -368,65 +411,46 @@ def batch_sizes_config() -> BatchSizesConfig:
 
 @pytest.fixture(
     scope="session",
+    params=[
+        (
+            "roberta-base",
+            "roberta-base",
+            LMmode.MLM,
+        ),
+        (
+            "bert-base-uncased",
+            "bert-base-uncased",
+            LMmode.MLM,
+        ),
+        # TODO: The finetuning script is not updated for causal language models yet
+        # (
+        #     "gpt2-large",
+        #     "gpt2-large",
+        #     LMmode.CLM,
+        # ),
+    ],
 )
 def finetuning_config(
+    request: pytest.FixtureRequest,
     batch_sizes_config: BatchSizesConfig,
     finetuning_datasets_config: FinetuningDatasetsConfig,
     peft_config: PEFTConfig,
     tokenizer_config: TokenizerConfig,
 ) -> FinetuningConfig:
+    pretrained_model_name_or_path, short_model_name, lm_mode = request.param
+
     config = FinetuningConfig(
         peft=peft_config,
         batch_sizes=batch_sizes_config,
         finetuning_datasets=finetuning_datasets_config,
-        pretrained_model_name_or_path="roberta-base",
-        short_model_name="roberta-base",
+        lm_mode=lm_mode,
+        max_steps=2,
+        pretrained_model_name_or_path=pretrained_model_name_or_path,
+        short_model_name=short_model_name,
         tokenizer=tokenizer_config,
     )
 
     return config
-
-
-@pytest.fixture(
-    scope="session",
-)
-def embeddings_path_manager_separate_directories(
-    data_config: DataConfig,
-    embeddings_config: EmbeddingsConfig,
-    paths_config: PathsConfig,
-    transformations_config: TransformationsConfig,
-    logger_fixture: logging.Logger,
-) -> EmbeddingsPathManagerSeparateDirectories:
-    path_manager = EmbeddingsPathManagerSeparateDirectories(
-        data_config=data_config,
-        embeddings_config=embeddings_config,
-        paths_config=paths_config,
-        transformations_config=transformations_config,
-        verbosity=1,
-        logger=logger_fixture,
-    )
-
-    return path_manager
-
-
-@pytest.fixture(
-    scope="session",
-)
-def finetuning_path_manager_basic(
-    data_config: DataConfig,
-    paths_config: PathsConfig,
-    finetuning_config: FinetuningConfig,
-    logger_fixture: logging.Logger,
-) -> FinetuningPathManager:
-    path_manager = FinetuningPathManagerBasic(
-        data_config=data_config,
-        paths_config=paths_config,
-        finetuning_config=finetuning_config,
-        verbosity=1,
-        logger=logger_fixture,
-    )
-
-    return path_manager
 
 
 @pytest.fixture(
@@ -448,7 +472,7 @@ def device_fixture() -> torch.device:
 def inference_config() -> InferenceConfig:
     config = InferenceConfig(
         max_length=50,
-        num_return_sequences=3,
+        num_return_sequences=2,
     )
 
     return config
@@ -486,8 +510,10 @@ def main_config(
     embeddings_config: EmbeddingsConfig,
     finetuning_config: FinetuningConfig,
     inference_config: InferenceConfig,
+    language_model_config: LanguageModelConfig,
     paths_config: PathsConfig,
     storage_config: StorageConfig,
+    tokenizer_config: TokenizerConfig,
     transformations_config: TransformationsConfig,
 ) -> MainConfig:
     config = MainConfig(
@@ -495,11 +521,76 @@ def main_config(
         embeddings=embeddings_config,
         finetuning=finetuning_config,
         inference=inference_config,
+        language_model=language_model_config,
         paths=paths_config,
         preferred_torch_backend=PreferredTorchBackend.CPU,
         storage=storage_config,
+        tokenizer=tokenizer_config,
         transformations=transformations_config,
         verbosity=1,
     )
 
     return config
+
+
+@pytest.fixture(
+    scope="session",
+)
+def tokenizer(
+    main_config: MainConfig,
+    logger_fixture: logging.Logger,
+) -> transformers.PreTrainedTokenizer | transformers.PreTrainedTokenizerFast:
+    tokenizer = load_tokenizer(
+        pretrained_model_name_or_path=main_config.language_model.pretrained_model_name_or_path,
+        tokenizer_config=main_config.tokenizer,
+        verbosity=1,
+        logger=logger_fixture,
+    )
+
+    return tokenizer
+
+
+@pytest.fixture(
+    scope="session",
+)
+def embeddings_path_manager(
+    data_config: DataConfig,
+    embeddings_config: EmbeddingsConfig,
+    language_model_config: LanguageModelConfig,
+    paths_config: PathsConfig,
+    tokenizer_config: TokenizerConfig,
+    transformations_config: TransformationsConfig,
+    logger_fixture: logging.Logger,
+) -> EmbeddingsPathManagerSeparateDirectories:
+    path_manager = EmbeddingsPathManagerSeparateDirectories(
+        data_config=data_config,
+        embeddings_config=embeddings_config,
+        language_model_config=language_model_config,
+        paths_config=paths_config,
+        tokenizer_config=tokenizer_config,
+        transformations_config=transformations_config,
+        verbosity=1,
+        logger=logger_fixture,
+    )
+
+    return path_manager
+
+
+@pytest.fixture(
+    scope="session",
+)
+def finetuning_path_manager_basic(
+    data_config: DataConfig,
+    paths_config: PathsConfig,
+    finetuning_config: FinetuningConfig,
+    logger_fixture: logging.Logger,
+) -> FinetuningPathManager:
+    path_manager = FinetuningPathManagerBasic(
+        data_config=data_config,
+        paths_config=paths_config,
+        finetuning_config=finetuning_config,
+        verbosity=1,
+        logger=logger_fixture,
+    )
+
+    return path_manager

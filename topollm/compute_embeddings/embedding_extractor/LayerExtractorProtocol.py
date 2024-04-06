@@ -24,21 +24,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
-
-# Standard library imports
-
-# Third party imports
 import torch
 
-# Local imports
 from typing import Protocol
-
-# Local imports
-
-# END Imports
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
 class LayerExtractor(Protocol):
@@ -50,23 +38,3 @@ class LayerExtractor(Protocol):
         This method extracts layers from the model outputs.
         """
         ...
-
-
-class LayerExtractorFromIndices:
-    """
-    Implementation of the LayerExtractor protocol
-    which is configured from a list of layer indices.
-    """
-
-    def __init__(
-        self,
-        layer_indices: list[int],
-    ):
-        self.layer_indices = layer_indices
-
-    def extract_layers_from_model_outputs(
-        self,
-        hidden_states,
-    ) -> list[torch.Tensor]:
-        layers_to_extract = [hidden_states[i] for i in self.layer_indices]
-        return layers_to_extract

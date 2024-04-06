@@ -36,7 +36,7 @@ from transformers import PreTrainedTokenizer, PreTrainedTokenizerFast
 from tests.model_handling.parameter_lists import (
     example_pretrained_model_name_or_path_list,
 )
-from topollm.config_classes.TokenizerConfig import TokenizerConfig
+from topollm.config_classes.tokenizer.TokenizerConfig import TokenizerConfig
 from topollm.model_handling.tokenizer.load_tokenizer import load_tokenizer
 
 

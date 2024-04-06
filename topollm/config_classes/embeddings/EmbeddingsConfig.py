@@ -31,11 +31,11 @@ from pydantic import Field
 
 from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
 from topollm.config_classes.constants import NAME_PREFIXES
-from topollm.config_classes.DatasetMapConfig import DatasetMapConfig
-from topollm.config_classes.EmbeddingExtractionConfig import EmbeddingExtractionConfig
+from topollm.config_classes.data.DatasetMapConfig import DatasetMapConfig
+from topollm.config_classes.embeddings.EmbeddingExtractionConfig import (
+    EmbeddingExtractionConfig,
+)
 from topollm.config_classes.enums import Level
-from topollm.config_classes.LanguageModelConfig import LanguageModelConfig
-from topollm.config_classes.TokenizerConfig import TokenizerConfig
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # START Globals
@@ -47,12 +47,6 @@ from topollm.config_classes.TokenizerConfig import TokenizerConfig
 class EmbeddingsConfig(ConfigBaseModel):
     """Configurations for specifying embeddings."""
 
-    tokenizer: TokenizerConfig = Field(
-        ...,
-        title="Tokenizer configuration.",
-        description="The configuration for specifying tokenizer.",
-    )
-
     dataset_map: DatasetMapConfig = Field(
         ...,
         title="Dataset map configuration.",
@@ -63,12 +57,6 @@ class EmbeddingsConfig(ConfigBaseModel):
         ...,
         title="Batch size for computing embeddings.",
         description="The batch size for computing embeddings.",
-    )
-
-    language_model: LanguageModelConfig = Field(
-        ...,
-        title="Model configuration.",
-        description="The configuration for specifying model.",
     )
 
     embedding_extraction: EmbeddingExtractionConfig = Field(

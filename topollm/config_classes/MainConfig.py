@@ -29,17 +29,19 @@
 
 from pydantic import Field
 
-from topollm.config_classes.DataConfig import DataConfig
-from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
 from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
-from topollm.config_classes.EmbeddingsConfig import EmbeddingsConfig
+from topollm.config_classes.data.DataConfig import DataConfig
+from topollm.config_classes.embeddings.EmbeddingsConfig import EmbeddingsConfig
+from topollm.config_classes.enums import PreferredTorchBackend
+from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
 from topollm.config_classes.inference.InferenceConfig import InferenceConfig
+from topollm.config_classes.language_model.LanguageModelConfig import (
+    LanguageModelConfig,
+)
 from topollm.config_classes.PathsConfig import PathsConfig
 from topollm.config_classes.StorageConfig import StorageConfig
+from topollm.config_classes.tokenizer.TokenizerConfig import TokenizerConfig
 from topollm.config_classes.TransformationsConfig import TransformationsConfig
-from topollm.config_classes.enums import (
-    PreferredTorchBackend,
-)
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # START Globals
@@ -77,6 +79,12 @@ class MainConfig(ConfigBaseModel):
         description="The configuration for specifying inference.",
     )
 
+    language_model: LanguageModelConfig = Field(
+        ...,
+        title="Model configuration.",
+        description="The configuration for specifying model.",
+    )
+
     paths: PathsConfig = Field(
         ...,
         title="Paths configuration.",
@@ -99,6 +107,12 @@ class MainConfig(ConfigBaseModel):
         ...,
         title="Storage configuration.",
         description="The configuration for specifying storage.",
+    )
+
+    tokenizer: TokenizerConfig = Field(
+        ...,
+        title="Tokenizer configuration.",
+        description="The configuration for specifying tokenizer.",
     )
 
     transformations: TransformationsConfig = Field(

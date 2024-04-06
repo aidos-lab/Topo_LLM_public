@@ -33,7 +33,7 @@ import pprint
 from hydra import compose, initialize_config_module
 import omegaconf
 
-from topollm.config_classes.EmbeddingsConfig import EmbeddingsConfig
+from topollm.config_classes.embeddings.EmbeddingsConfig import EmbeddingsConfig
 
 logger = logging.getLogger(__name__)
 
@@ -46,10 +46,7 @@ def test_hydra_with_EmbeddingsConfig() -> None:
         # config is relative to a module
         cfg: omegaconf.DictConfig = compose(
             config_name="basic_embeddings",
-            overrides=[
-                "language_model.pretrained_model_name_or_path=overridden_pretrained_model_name_or_path",
-                "language_model.short_model_name=overridden_short_model_name",
-            ],
+            overrides=[],
         )
 
         logger.info(f"cfg:\n" f"{pprint.pformat(cfg)}")

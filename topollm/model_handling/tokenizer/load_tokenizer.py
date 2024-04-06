@@ -32,7 +32,7 @@ import os
 
 from transformers import AutoTokenizer, PreTrainedTokenizer, PreTrainedTokenizerFast
 
-from topollm.config_classes.TokenizerConfig import TokenizerConfig
+from topollm.config_classes.tokenizer.TokenizerConfig import TokenizerConfig
 
 
 def load_tokenizer(

@@ -113,7 +113,7 @@ def main(
     )
 
     embeddings_path_manager = get_embeddings_path_manager(
-        config=main_config,
+        main_config=main_config,
         logger=global_logger,
     )
 
@@ -201,7 +201,7 @@ def main(
     )
 
     tokenizer = transformers.AutoTokenizer.from_pretrained(
-        main_config.embeddings.language_model.pretrained_model_name_or_path
+        main_config.language_model.pretrained_model_name_or_path
     )
     token_names_no_pad = [tokenizer.decode(x) for x in meta_no_pad]
 

@@ -27,41 +27,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
-
-# Standard library imports
 import logging
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
-from typing import Callable
 
-# Third party imports
 import torch
 import torch.utils.data
 from transformers import BatchEncoding, PreTrainedTokenizer, PreTrainedTokenizerFast
 
-# Local imports
+from topollm.compute_embeddings.embedding_dataloader_preparer.EmbeddingDataLoaderPreparerContext import (
+    EmbeddingDataLoaderPreparerContext,
+)
 from topollm.data_handling.HuggingfaceDatasetPreparer import HuggingfaceDatasetPreparer
-from topollm.config_classes.EmbeddingsConfig import EmbeddingsConfig
-from topollm.config_classes.DataConfig import DataConfig
-
-# END Imports
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-
-
-@dataclass
-class EmbeddingDataLoaderPreparerContext:
-    """Encapsulates the context needed for preparing dataloaders."""
-
-    data_config: DataConfig
-    embeddings_config: EmbeddingsConfig
-    tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast
-    collate_fn: Callable[[list], dict]
-    logger: logging.Logger = field(
-        default_factory=lambda: logging.getLogger(__name__),
-    )
-    verbosity: int = 1
 
 
 class EmbeddingDataLoaderPreparer(ABC):
@@ -70,7 +46,7 @@ class EmbeddingDataLoaderPreparer(ABC):
     def __init__(
         self,
         preparer_context: EmbeddingDataLoaderPreparerContext,
-    ):
+    ) -> None:
         self.preparer_context = preparer_context
 
         self.dataset_preparer = HuggingfaceDatasetPreparer(
@@ -78,6 +54,8 @@ class EmbeddingDataLoaderPreparer(ABC):
             verbosity=self.preparer_context.verbosity,
             logger=self.preparer_context.logger,
         )
+
+        return None
 
     @property
     def logger(
@@ -90,13 +68,6 @@ class EmbeddingDataLoaderPreparer(ABC):
         self,
     ) -> int:
         return self.preparer_context.verbosity
-
-    @abstractmethod
-    def prepare_dataloader(
-        self,
-    ) -> torch.utils.data.DataLoader:
-        """Loads a dataset and prepares a dataloader."""
-        pass
 
     @staticmethod
     def convert_dataset_entry_to_features(
@@ -119,13 +90,24 @@ class EmbeddingDataLoaderPreparer(ABC):
 
         return features
 
+    @abstractmethod
+    def prepare_dataloader(
+        self,
+    ) -> torch.utils.data.DataLoader:
+        """Loads a dataset and prepares a dataloader."""
+        pass  # pragma: no cover
+
     @property
     @abstractmethod
-    def sequence_length(self) -> int:
+    def sequence_length(
+        self,
+    ) -> int:
         """Returns the sequence length of the dataset."""
-        pass
+        pass  # pragma: no cover
 
     @abstractmethod
-    def __len__(self) -> int:
+    def __len__(
+        self,
+    ) -> int:
         """Returns the number of samples in the dataset."""
-        pass
+        pass  # pragma: no cover

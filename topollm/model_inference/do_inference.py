@@ -28,6 +28,7 @@
 # limitations under the License.
 
 import logging
+from typing import Any
 
 import transformers
 
@@ -48,8 +49,13 @@ from topollm.model_inference.masked_language_modeling.do_fill_mask import do_fil
 
 def do_inference(
     main_config: MainConfig,
+    prompts: list[str] | None = None,
     logger: logging.Logger = logging.getLogger(__name__),
-) -> None:
+) -> list[list[str]] | Any:
+    """
+    If `prompts` is `None`, default prompts are used.
+    Make sure to not accidentally use an empty list as the default argument.
+    """
     device = get_torch_device(
         preferred_torch_backend=main_config.preferred_torch_backend,
         verbosity=main_config.verbosity,
@@ -57,8 +63,8 @@ def do_inference(
     )
 
     tokenizer = load_tokenizer(
-        pretrained_model_name_or_path=main_config.embeddings.language_model.pretrained_model_name_or_path,
-        tokenizer_config=main_config.embeddings.tokenizer,
+        pretrained_model_name_or_path=main_config.language_model.pretrained_model_name_or_path,
+        tokenizer_config=main_config.tokenizer,
         verbosity=main_config.verbosity,
         logger=logger,
     )
@@ -68,28 +74,39 @@ def do_inference(
     # `KeyError: 'logits'`
     # See also: https://github.com/huggingface/transformers/issues/16569
     #
-    # We use the `AutoModelForPreTraining` class instead,
+    # We use the `AutoModelFor...` class instead,
     # which will load the model correctly for inference.
+    # Note: The `AutoModelForPreTraining` class appears to work for the
+    # "roberta"-models, but not for the "bert"-models.
+
+    # Case distinction for different language model modes
+    # (Masked Language Modeling, Causal Language Modeling).
+    lm_mode = main_config.language_model.lm_mode
+
+    if lm_mode == LMmode.MLM:
+        model_loading_class = transformers.AutoModelForMaskedLM
+    elif lm_mode == LMmode.CLM:
+        model_loading_class = transformers.AutoModelForCausalLM
+    else:
+        raise ValueError(f"Invalid lm_mode: " f"{lm_mode = }")
+
     model = load_model(
-        pretrained_model_name_or_path=main_config.embeddings.language_model.pretrained_model_name_or_path,
-        model_loading_class=transformers.AutoModelForPreTraining,
+        pretrained_model_name_or_path=main_config.language_model.pretrained_model_name_or_path,
+        model_loading_class=model_loading_class,
         device=device,
         verbosity=main_config.verbosity,
         logger=logger,
     )
     model.eval()
 
-    # Case distinction for different language model modes
-    # (Masked Language Modeling, Causal Language Modeling).
-    lm_mode = main_config.embeddings.language_model.lm_mode
-
     if lm_mode == LMmode.MLM:
-        prompts = get_default_mlm_prompts(
-            mask_token=tokenizer.mask_token,
-        )
+        if prompts is None:
+            prompts = get_default_mlm_prompts(
+                mask_token=tokenizer.mask_token,
+            )
         logger.info(f"{prompts = }")
 
-        do_fill_mask(
+        results = do_fill_mask(
             tokenizer=tokenizer,
             model=model,
             prompts=prompts,
@@ -97,10 +114,11 @@ def do_inference(
             logger=logger,
         )
     elif lm_mode == LMmode.CLM:
-        prompts = get_default_clm_prompts()
+        if prompts is None:
+            prompts = get_default_clm_prompts()
         logger.info(f"{prompts = }")
 
-        do_text_generation(
+        results = do_text_generation(
             tokenizer=tokenizer,
             model=model,
             prompts=prompts,
@@ -112,4 +130,4 @@ def do_inference(
     else:
         raise ValueError(f"Invalid lm_mode: " f"{lm_mode = }")
 
-    return None
+    return results

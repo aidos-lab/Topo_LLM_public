@@ -31,7 +31,7 @@ import logging
 import pathlib
 
 from topollm.config_classes.constants import NAME_PREFIXES
-from topollm.config_classes.DataConfig import DataConfig
+from topollm.config_classes.data.DataConfig import DataConfig
 from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
 from topollm.config_classes.PathsConfig import PathsConfig
 from topollm.path_management.finetuning.peft.PEFTPathManagerFactory import (

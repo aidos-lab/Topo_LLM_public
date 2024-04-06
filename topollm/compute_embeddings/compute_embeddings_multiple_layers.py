@@ -23,8 +23,8 @@ def main(
             yaml.dump(hidden_state, outfile)
 
         config.embeddings.embedding_extraction.layer_indices = [-i]
-        config.embeddings.language_model.pretrained_model_name_or_path = 'roberta-base'
-        config.embeddings.language_model.short_model_name = '${embeddings.language_model.pretrained_model_name_or_path}'
+        config.language_model.pretrained_model_name_or_path = 'roberta-base'
+        config.language_model.short_model_name = '${embeddings.language_model.pretrained_model_name_or_path}'
 
         run_compute_embeddings.main(config)
         data_prep_all.main(config)
@@ -40,8 +40,8 @@ def main(
             yaml.dump(basic, outfile)
 
         config.embeddings.embedding_extraction.layer_indices = [-i]
-        config.embeddings.language_model.pretrained_model_name_or_path = '${paths.data_dir}/models/finetuned_models/data-sgd_split-train_ctxt-dataset_entry_samples-10000/ftm-standard/lora-None/ep-5/model_files'
-        config.embeddings.language_model.short_model_name = 'roberta-base_finetuned-on-sgd-train-10000_context-dialogue'
+        config.language_model.pretrained_model_name_or_path = '${paths.data_dir}/models/finetuned_models/data-sgd_split-train_ctxt-dataset_entry_samples-10000/ftm-standard/lora-None/ep-5/model_files'
+        config.language_model.short_model_name = 'roberta-base_finetuned-on-sgd-train-10000_context-dialogue'
 
         run_compute_embeddings.main(config)
         data_prep_all.main(config)

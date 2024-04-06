@@ -24,21 +24,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
-
-# Standard library imports
-
-# Third party imports
 import torch
 
-# Local imports
 from typing import Protocol
-
-# Local imports
-
-# END Imports
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
 class LayerAggregator(Protocol):
@@ -50,42 +38,3 @@ class LayerAggregator(Protocol):
         This method aggregates the layers to be extracted into a single tensor.
         """
         ...
-
-
-class MeanLayerAggregator:
-    """
-    Implementation of the LayerAggregator protocol
-    which computes the mean of the layers to be extracted.
-    """
-
-    def aggregate_layers(
-        self,
-        layers_to_extract: list[torch.Tensor],
-    ) -> torch.Tensor:
-        # Mean across the layers
-        aggregated_layers = torch.mean(
-            torch.stack(
-                layers_to_extract,
-                dim=0,
-            ),
-            dim=0,
-        )
-        return aggregated_layers
-
-
-class ConcatenateLayerAggregator:
-    """
-    Implementation of the LayerAggregator protocol
-    which concatenates the layers to be extracted.
-    """
-
-    def aggregate_layers(
-        self,
-        layers_to_extract: list[torch.Tensor],
-    ) -> torch.Tensor:
-        # Concatenate across the last dimension
-        aggregated_layers = torch.cat(
-            layers_to_extract,
-            dim=-1,
-        )
-        return aggregated_layers

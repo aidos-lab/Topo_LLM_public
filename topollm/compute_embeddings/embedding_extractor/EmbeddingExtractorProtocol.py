@@ -24,21 +24,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
-
-# Standard library imports
-
-# Third party imports
 import numpy as np
 
-# Local imports
 from typing import Protocol
-
-# Local imports
-
-# END Imports
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
 class EmbeddingExtractor(Protocol):

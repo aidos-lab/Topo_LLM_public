@@ -30,35 +30,16 @@
 import logging
 import pathlib
 
-import pytest
-
 from topollm.path_management.finetuning import FinetuningPathManagerProtocol
 
 
-@pytest.fixture
-def finetuning_path_manager(
-    request: pytest.FixtureRequest,
-) -> FinetuningPathManagerProtocol.FinetuningPathManager:
-    # This uses the request fixture to dynamically get a fixture by name.
-    return request.getfixturevalue(
-        argname=request.param,
-    )
-
-
-@pytest.mark.parametrize(
-    "finetuning_path_manager",
-    [
-        "finetuning_path_manager_basic",
-    ],
-    indirect=True,
-)
-class TestEmbeddingsPathManager:
+class TestFinetuningPathManager:
     def test_finetuned_model_dir(
         self,
-        finetuning_path_manager: FinetuningPathManagerProtocol.FinetuningPathManager,
+        finetuning_path_manager_basic: FinetuningPathManagerProtocol.FinetuningPathManager,
         logger_fixture: logging.Logger,
     ) -> None:
-        result = finetuning_path_manager.finetuned_model_dir
+        result = finetuning_path_manager_basic.finetuned_model_dir
         logger_fixture.info(f"finetuned_model_dir:\n" f"{result = }")
 
         assert isinstance(
@@ -70,10 +51,10 @@ class TestEmbeddingsPathManager:
 
     def test_logging_dir(
         self,
-        finetuning_path_manager: FinetuningPathManagerProtocol.FinetuningPathManager,
+        finetuning_path_manager_basic: FinetuningPathManagerProtocol.FinetuningPathManager,
         logger_fixture: logging.Logger,
     ) -> None:
-        result = finetuning_path_manager.logging_dir
+        result = finetuning_path_manager_basic.logging_dir
         logger_fixture.info(f"logging_dir:\n" f"{result = }")
 
         assert isinstance(
