@@ -36,10 +36,6 @@ from topollm.config_classes.embeddings.EmbeddingExtractionConfig import (
     EmbeddingExtractionConfig,
 )
 from topollm.config_classes.enums import Level
-from topollm.config_classes.language_model.LanguageModelConfig import (
-    LanguageModelConfig,
-)
-from topollm.config_classes.tokenizer.TokenizerConfig import TokenizerConfig
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # START Globals
@@ -61,12 +57,6 @@ class EmbeddingsConfig(ConfigBaseModel):
         ...,
         title="Batch size for computing embeddings.",
         description="The batch size for computing embeddings.",
-    )
-
-    language_model: LanguageModelConfig = Field(
-        ...,
-        title="Model configuration.",
-        description="The configuration for specifying model.",
     )
 
     embedding_extraction: EmbeddingExtractionConfig = Field(

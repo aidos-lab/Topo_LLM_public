@@ -44,6 +44,7 @@ def get_embeddings_path_manager(
     path_manger = EmbeddingsPathManagerSeparateDirectories(
         data_config=main_config.data,
         embeddings_config=main_config.embeddings,
+        language_model_config=main_config.language_model,
         paths_config=main_config.paths,
         tokenizer_config=main_config.tokenizer,
         transformations_config=main_config.transformations,

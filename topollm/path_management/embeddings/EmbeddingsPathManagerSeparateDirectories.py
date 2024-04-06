@@ -35,19 +35,17 @@ import logging
 import os
 import pathlib
 
+from topollm.config_classes.constants import NAME_PREFIXES
+
 # Local imports
 from topollm.config_classes.data.DataConfig import DataConfig
 from topollm.config_classes.embeddings.EmbeddingsConfig import EmbeddingsConfig
-from topollm.config_classes.tokenizer.TokenizerConfig import TokenizerConfig
-from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
+from topollm.config_classes.language_model.LanguageModelConfig import (
+    LanguageModelConfig,
+)
 from topollm.config_classes.PathsConfig import PathsConfig
-from topollm.path_management.truncate_length_of_desc import (
-    truncate_length_of_desc,
-)
-from topollm.config_classes.TransformationsConfig import (
-    TransformationsConfig,
-)
-from topollm.config_classes.constants import NAME_PREFIXES
+from topollm.config_classes.tokenizer.TokenizerConfig import TokenizerConfig
+from topollm.config_classes.TransformationsConfig import TransformationsConfig
 
 # Third-party imports
 
@@ -67,6 +65,7 @@ class EmbeddingsPathManagerSeparateDirectories:
         self,
         data_config: DataConfig,
         embeddings_config: EmbeddingsConfig,
+        language_model_config: LanguageModelConfig,
         paths_config: PathsConfig,
         transformations_config: TransformationsConfig,
         tokenizer_config: TokenizerConfig,
@@ -75,6 +74,7 @@ class EmbeddingsPathManagerSeparateDirectories:
     ):
         self.data_config = data_config
         self.embeddings_config = embeddings_config
+        self.language_model_config = language_model_config
         self.paths_config = paths_config
         self.tokenizer_config = tokenizer_config
         self.transformations_config = transformations_config
@@ -106,7 +106,7 @@ class EmbeddingsPathManagerSeparateDirectories:
             self.data_config.data_config_description,
             self.embeddings_config.embeddings_config_description,
             self.tokenizer_config.tokenizer_config_description,
-            self.embeddings_config.language_model.lanugage_model_config_description,
+            self.language_model_config.lanugage_model_config_description,
             self.embeddings_config.embedding_extraction.embedding_extraction_config_description,
             self.transformations_config.transformation_config_description,
         )

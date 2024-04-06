@@ -323,7 +323,6 @@ def embedding_extraction_config() -> EmbeddingExtractionConfig:
 )
 def embeddings_config(
     dataset_map_config: DatasetMapConfig,
-    language_model_config: LanguageModelConfig,
     embedding_extraction_config: EmbeddingExtractionConfig,
 ) -> EmbeddingsConfig:
     # Note: You should set 'num_workers=0' to avoid the following multiprocessing error
@@ -335,7 +334,6 @@ def embeddings_config(
     config = EmbeddingsConfig(
         dataset_map=dataset_map_config,
         batch_size=32,
-        language_model=language_model_config,
         embedding_extraction=embedding_extraction_config,
         level=Level.TOKEN,
         num_workers=0,
@@ -512,6 +510,7 @@ def main_config(
     embeddings_config: EmbeddingsConfig,
     finetuning_config: FinetuningConfig,
     inference_config: InferenceConfig,
+    language_model_config: LanguageModelConfig,
     paths_config: PathsConfig,
     storage_config: StorageConfig,
     tokenizer_config: TokenizerConfig,
@@ -522,6 +521,7 @@ def main_config(
         embeddings=embeddings_config,
         finetuning=finetuning_config,
         inference=inference_config,
+        language_model=language_model_config,
         paths=paths_config,
         preferred_torch_backend=PreferredTorchBackend.CPU,
         storage=storage_config,
@@ -541,7 +541,7 @@ def tokenizer(
     logger_fixture: logging.Logger,
 ) -> transformers.PreTrainedTokenizer | transformers.PreTrainedTokenizerFast:
     tokenizer = load_tokenizer(
-        pretrained_model_name_or_path=main_config.embeddings.language_model.pretrained_model_name_or_path,
+        pretrained_model_name_or_path=main_config.language_model.pretrained_model_name_or_path,
         tokenizer_config=main_config.tokenizer,
         verbosity=1,
         logger=logger_fixture,
@@ -556,6 +556,7 @@ def tokenizer(
 def embeddings_path_manager(
     data_config: DataConfig,
     embeddings_config: EmbeddingsConfig,
+    language_model_config: LanguageModelConfig,
     paths_config: PathsConfig,
     tokenizer_config: TokenizerConfig,
     transformations_config: TransformationsConfig,
@@ -564,6 +565,7 @@ def embeddings_path_manager(
     path_manager = EmbeddingsPathManagerSeparateDirectories(
         data_config=data_config,
         embeddings_config=embeddings_config,
+        language_model_config=language_model_config,
         paths_config=paths_config,
         tokenizer_config=tokenizer_config,
         transformations_config=transformations_config,
