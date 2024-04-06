@@ -30,13 +30,14 @@
 from pydantic import Field
 
 from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
-from topollm.config_classes.tokenizer.TokenizerConfig import TokenizerConfig
+from topollm.config_classes.constants import NAME_PREFIXES
+from topollm.config_classes.enums import LMmode
 from topollm.config_classes.finetuning.BatchSizesConfig import BatchSizesConfig
 from topollm.config_classes.finetuning.FinetuningDatasetsConfig import (
     FinetuningDatasetsConfig,
 )
 from topollm.config_classes.finetuning.peft.PEFTConfig import PEFTConfig
-from topollm.config_classes.enums import LMmode
+from topollm.config_classes.tokenizer.TokenizerConfig import TokenizerConfig
 
 
 class FinetuningConfig(ConfigBaseModel):
@@ -152,3 +153,13 @@ class FinetuningConfig(ConfigBaseModel):
         default=0.01,
         description="The weight decay.",
     )
+
+    @property
+    def base_model_config_description(
+        self,
+    ) -> str:
+        # Construct and return the model parameters description
+
+        description = f"{NAME_PREFIXES['model']}{self.short_model_name}"
+
+        return description

@@ -68,8 +68,10 @@ class LanguageModelConfig(ConfigBaseModel):
     ) -> str:
         # Construct and return the model parameters description
 
-        return (
+        description = (
             f"{NAME_PREFIXES['model']}{self.short_model_name}"
             f"_"
             f"{NAME_PREFIXES['masking_mode']}{self.masking_mode}"
         )
+
+        return description

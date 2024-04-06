@@ -82,6 +82,7 @@ class FinetuningPathManagerBasic:
             "models",
             "finetuned_models",
             self.finetuning_config.finetuning_datasets.train_dataset.data_config_description,
+            self.finetuning_config.base_model_config_description,
             self.peft_path_manager.peft_description_subdir,
             self.training_progress_subdir,
         )

@@ -7,8 +7,9 @@ defaults:
   - embeddings: basic_embeddings
   - finetuning: finetuning
   - inference: default
+  - language_model: bert-base-uncased_finetuned-on-xsum_ftm-standard
   # - language_model: gpt2-large
-  - language_model: roberta-base
+  # - language_model: roberta-base
   # - language_model: roberta-base_finetuned-on-multiwoz21_ftm-lora
   # - language_model: roberta-base_finetuned-on-multiwoz21-train_context-dialogue
   # - language_model: roberta-base_finetuned-on-multiwoz21-train-and-sgd-train_context-dialogue
