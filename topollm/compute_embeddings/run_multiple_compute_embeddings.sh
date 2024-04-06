@@ -7,7 +7,8 @@ PYTHON_SCRIPT_NAME="run_compute_embeddings.py"
 # ==================================================== #
 # Select the parameters here
 
-DATA_LIST="bbc,multiwoz21,sgd,wikitext"
+# DATA_LIST="bbc,multiwoz21,sgd,wikitext"
+DATA_LIST="sgd"
 
 # LANGUAGE_MODEL_LIST="bert-base-uncased,roberta-base"
 LANGUAGE_MODEL_LIST="roberta-base,roberta-base_finetuned-on-multiwoz21_ftm-lora"
