@@ -27,40 +27,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from os import path
 import pathlib
 
 import zarr
 
 
 
-def main():
-    # array_path = pathlib.Path(
-    #     pathlib.Path.home(),
-    #     "git-source",
-    #     "Topo_LLM",
-    #     "data",
-    #     "embeddings",
-    #     "test_array_dir",
-    # )
-
-    array_path = pathlib.Path(
-        "/Users/ruppik/Downloads/Topo_LLM/data/embeddings/test_array_dir",
+def main() -> None:
+    path_1 = pathlib.Path(
+        # TODO
+    )
+    path_2 = pathlib.Path(
+        # TODO
     )
 
-    print(f"{array_path = }")
+    # TODO Implement the comparison script
+    raise NotImplementedError("This script is not implemented yet.")
 
-    if not array_path.exists():
-        raise FileNotFoundError(f"{array_path = } does not exist.")
-
-    array = zarr.open(
-        store=array_path,  # type: ignore
-        mode="r",
-    )
-
-    print(f"{array.shape = }")
-    print(f"{array = }")
-    print(f"{array[0] = }")
-
+    return None
 
 if __name__ == "__main__":
     main()
