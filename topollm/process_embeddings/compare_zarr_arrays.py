@@ -30,6 +30,7 @@
 import logging
 import pathlib
 
+import numpy as np
 import zarr
 import zarr.core
 
@@ -40,8 +41,46 @@ logger.setLevel(logging.INFO)
 # Add stdout handler
 logger.addHandler(logging.StreamHandler())
 
+
+def compare_zarr_arrays(
+    zarr1: zarr.core.Array,
+    zarr2: zarr.core.Array,
+    rtol: float =1e-05,
+    atol: float=1e-08,
+) -> bool:
+    """
+    Compare two Zarr arrays for equality within a tolerance.
+
+    Parameters:
+    zarr1: First Zarr array.
+    zarr2: Second Zarr array.
+    rtol: Relative tolerance parameter for np.allclose().
+    atol: Absolute tolerance parameter for np.allclose().
+
+    Returns:
+    bool: True if arrays are equal within the given tolerance, False otherwise.
+    """
+    # First, compare the shapes of the arrays
+    if zarr1.shape != zarr2.shape:
+        return False
+
+    # Convert Zarr arrays to NumPy arrays
+    np_array1 = zarr1[:]
+    np_array2 = zarr2[:]
+
+    # Use numpy.allclose() to compare the arrays within a tolerance
+    return np.allclose(
+        np_array1,
+        np_array2,
+        rtol=rtol,
+        atol=atol,
+    )
+
+
 def main() -> None:
-    repository_base_path = pathlib.Path("/home/benjamin_ruppik/git-source/Topo_LLM/",)
+    repository_base_path = pathlib.Path(
+        "/home/benjamin_ruppik/git-source/Topo_LLM/",
+    )
 
     # Path to base model embeddings
     path_1 = pathlib.Path(
@@ -90,17 +129,17 @@ def main() -> None:
     # Check if the zarr arrays have the same shape
 
     if array_1.shape != array_2.shape:
-        logger.error(
-            f"{array_1.shape = } != " f"{array_2.shape = }"
-        )
+        logger.error(f"{array_1.shape = } != " f"{array_2.shape = }")
         return None
-    
+
     # # # #
     # Check if the zarr arrays contain the same values
 
-    if not (array_1 == array_2).all():
-        logger.error("Arrays are not equal.")
-        return None
+    result = compare_zarr_arrays(
+        zarr1=array_1, # type: ignore
+        zarr2=array_2, # type: ignore
+    )
+    logger.info(f"{result = }")
 
     return None
 
