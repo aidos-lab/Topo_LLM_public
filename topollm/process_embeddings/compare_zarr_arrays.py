@@ -27,25 +27,83 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from os import path
+import logging
 import pathlib
 
 import zarr
+import zarr.core
 
+from topollm.logging.log_array_info import log_array_info
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+# Add stdout handler
+logger.addHandler(logging.StreamHandler())
 
 def main() -> None:
+    repository_base_path = pathlib.Path("/home/benjamin_ruppik/git-source/Topo_LLM/",)
+
+    # Path to base model embeddings
     path_1 = pathlib.Path(
-        # TODO
+        repository_base_path,
+        "data/embeddings/arrays/data-multiwoz21_split-train_ctxt-dataset_entry_samples-100/lvl-token/add-prefix-space-False_max-len-512/model-roberta-base_mask-no_masking/layer-[11]_agg-mean/norm-None/array_dir",
     )
+    # Path to the finetuned model embeddings
     path_2 = pathlib.Path(
-        # TODO
+        repository_base_path,
+        "data/embeddings/arrays/data-multiwoz21_split-train_ctxt-dataset_entry_samples-100/lvl-token/add-prefix-space-False_max-len-512/model-roberta-base_finetuned-on-multiwoz21_ftm-lora_mask-no_masking/layer-[11]_agg-mean/norm-None/array_dir",
     )
 
-    # TODO Implement the comparison script
-    raise NotImplementedError("This script is not implemented yet.")
+    logger.info(f"{path_1 = }")
+    logger.info(f"{path_2 = }")
+
+    array_1 = zarr.open(
+        str(path_1),
+        mode="r",
+    )
+    array_2 = zarr.open(
+        str(path_2),
+        mode="r",
+    )
+
+    for array_name, array in zip(
+        ["array_1", "array_2"],
+        [array_1, array_2],
+    ):
+        if not isinstance(
+            array,
+            zarr.core.Array,
+        ):
+            raise ValueError(f"{array_name = } " f"is not a zarr.core.Array")
+
+        log_array_info(
+            array_=array,
+            array_name=array_name,
+            slice_size_to_log=20,
+            log_array_size=True,
+            log_row_l2_norms=True,
+            log_chunks=True,
+            logger=logger,
+        )
+
+    # # # #
+    # Check if the zarr arrays have the same shape
+
+    if array_1.shape != array_2.shape:
+        logger.error(
+            f"{array_1.shape = } != " f"{array_2.shape = }"
+        )
+        return None
+    
+    # # # #
+    # Check if the zarr arrays contain the same values
+
+    if not (array_1 == array_2).all():
+        logger.error("Arrays are not equal.")
+        return None
 
     return None
+
 
 if __name__ == "__main__":
     main()

@@ -27,21 +27,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
-
-# Standard library imports
 import logging
 import pprint
 
-# Third party imports
 import datasets
 import torch.utils.data
-
-# Local imports
-
-# END Imports
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
 def log_huggingface_dataset_info(

@@ -1,16 +1,17 @@
 defaults:
   # - data: bbc
   # - data: iclr_2024_submissions
-  # - data: multiwoz21_validation
-  - data: sgd
+  - data: multiwoz21
+  # - data: sgd
   # - data: wikitext
   - embeddings: basic_embeddings
   - finetuning: finetuning
   - inference: default
-  - language_model: bert-base-uncased_finetuned-on-xsum_ftm-standard
+  # - language_model: bert-base-uncased_finetuned-on-xsum_ftm-standard
   # - language_model: gpt2-large
   # - language_model: roberta-base
   # - language_model: roberta-base_finetuned-on-multiwoz21_ftm-lora
+  - language_model: roberta-base_finetuned-on-multiwoz21_ftm-standard
   # - language_model: roberta-base_finetuned-on-multiwoz21-train_context-dialogue
   # - language_model: roberta-base_finetuned-on-multiwoz21-train-and-sgd-train_context-dialogue
   # - language_model: roberta-base_finetuned-on-multiwoz21-train-5000_context-utterance_ep-3

@@ -29,70 +29,18 @@
 
 import logging
 import pprint
-import warnings
+from typing import Any, TypeAlias
 
 import numpy as np
-import pandas as pd
+import zarr
+import zarr.core
 
-
-def log_dataframe_info(
-    df: pd.DataFrame,
-    df_name: str,
-    max_log_rows: int = 20,
-    check_for_nan: bool = True,
-    logger: logging.Logger = logging.getLogger(__name__),
-) -> None:
-    """
-    Logs information about a pandas DataFrame.
-
-    Args:
-        df (pd.DataFrame):
-            The DataFrame to log information about.
-        df_name (str):
-            The name of the DataFrame.
-        max_log_rows (int, optional):
-            The maximum number of rows to log for the head and tail of the DataFrame.
-            Defaults to 20.
-        check_for_nan (bool, optional):
-            Whether to check for NaN values in the DataFrame.
-            Defaults to True.
-        logger (logging.Logger, optional):
-            The logger to log information to.
-            Defaults to logging.getLogger(__name__).
-
-    Returns:
-        None
-
-    Side effects:
-        Logs information about the DataFrame to the logger.
-    """
-
-    logger.info(f"{df_name}.shape:\n" f"{df.shape}")
-    logger.info(f"{df_name}.info():\n" f"{df.info()}")
-    logger.info(
-        f"{df_name}.head({max_log_rows}):\n" f"{df.head(max_log_rows).to_string()}"
-    )
-    logger.info(
-        f"{df_name}.tail({max_log_rows}):\n" f"{df.tail(max_log_rows).to_string()}"
-    )
-
-    if check_for_nan:
-        # Check if the dataframe contains NaN values
-        has_nan = df.isna().any().any()
-        logger.info(f"has_nan:\n" f"{has_nan}")
-
-        if has_nan:
-            logger.warning(f"{df_name}.isna().sum():\n" f"{df.isna().sum()}")
-            warnings.warn(
-                f"The dataframe contains NaN values. "
-                f"Please make sure that this is intended.",
-            )
-
-    return
+ArrayLike: TypeAlias = np.ndarray | zarr.core.Array
+DType = Any
 
 
 def log_array_info(
-    array_: np.ndarray,
+    array_: ArrayLike,
     array_name: str,
     slice_size_to_log: int = 20,
     log_array_size: bool = False,
