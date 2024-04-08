@@ -23,7 +23,7 @@ FINETUNING_DATASETS_LIST="train_and_eval_on_multiwoz21"
 python3 $PYTHON_SCRIPT_NAME \
     --multirun \
     finetuning.pretrained_model_name_or_path=$PRETRAINED_MODEL_NAME_OR_PATH_LIST \
-    finetuning.num_train_epochs=15 \
+    finetuning.num_train_epochs=50 \
     finetuning/finetuning_datasets=$FINETUNING_DATASETS_LIST \
     finetuning/peft=standard,lora \
     $ADDITIONAL_OVERRIDES

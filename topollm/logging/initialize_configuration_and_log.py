@@ -25,25 +25,15 @@
 # limitations under the License.
 
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
-
-# Standard library imports
 import logging
 import os
 import pprint
 
-# Third party imports
 import hydra.core.hydra_config
 import omegaconf
 
-# Local imports
-
 from topollm.config_classes.MainConfig import MainConfig
 from topollm.logging.get_git_info import get_git_info
-
-# END Imports
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
 def setup_main_config(

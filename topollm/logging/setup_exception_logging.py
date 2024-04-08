@@ -24,23 +24,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
-
-# Standard library imports
 import logging
 import os
-import pprint
 import sys
-
-# Third party imports
-
-# Local imports
-
-# END Imports
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-
 
 def setup_exception_logging(
     logger: logging.Logger = logging.getLogger(__name__),

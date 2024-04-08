@@ -23,21 +23,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
-
-# System imports
 import os
 
-# Third-party imports
 from git import Repo
 
-# END Imports
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-
-
 def get_git_info() -> str:
-    """Get the git info of the current branch and commit hash"""
+    """
+    Get the git info of the current branch and commit hash.
+    """
+    
     repo = Repo(
         os.path.dirname(os.path.realpath(__file__)),
         search_parent_directories=True,
@@ -46,4 +40,5 @@ def get_git_info() -> str:
     commit_hex = repo.head.object.hexsha
 
     info = f"{branch_name}/{commit_hex}"
+
     return info
