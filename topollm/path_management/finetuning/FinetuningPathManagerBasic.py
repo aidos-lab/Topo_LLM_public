@@ -30,7 +30,7 @@
 import logging
 import pathlib
 
-from topollm.config_classes.constants import NAME_PREFIXES
+from topollm.config_classes.constants import NAME_PREFIXES, KV_SEP, ITEM_SEP
 from topollm.config_classes.data.DataConfig import DataConfig
 from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
 from topollm.config_classes.PathsConfig import PathsConfig
@@ -84,10 +84,24 @@ class FinetuningPathManagerBasic:
             self.finetuning_config.finetuning_datasets.train_dataset.data_config_description,
             self.finetuning_config.base_model_config_description,
             self.peft_path_manager.peft_description_subdir,
+            self.finetuning_parameters_description,
             self.training_progress_subdir,
         )
 
         return path
+
+    @property
+    def finetuning_parameters_description(
+        self,
+    ) -> str:
+        # TODO Update this
+        description = (
+            f"{NAME_PREFIXES['learning_rate']}"
+            f"{KV_SEP}"
+            f"{self.finetuning_config.learning_rate}"
+        )
+
+        return description
 
     @property
     def training_progress_subdir(

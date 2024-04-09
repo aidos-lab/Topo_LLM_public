@@ -30,7 +30,7 @@
 from pydantic import Field
 
 from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
-from topollm.config_classes.constants import NAME_PREFIXES
+from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
 
 
 class TransformationsConfig(ConfigBaseModel):
@@ -45,6 +45,7 @@ class TransformationsConfig(ConfigBaseModel):
         self,
     ) -> str:
         desc = f"{NAME_PREFIXES['normalization']}"
+        desc += f"{KV_SEP}"
         desc += f"{self.normalization}"
 
         return desc

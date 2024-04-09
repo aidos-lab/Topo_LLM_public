@@ -59,6 +59,6 @@ class TokenizerConfig(ConfigBaseModel):
         """
         return (
             f"{NAME_PREFIXES['add_prefix_space']}{str(self.add_prefix_space)}"
-            f"_"
+            f"{ITEM_SEP}"
             f"{NAME_PREFIXES['max_length']}{str(self.max_length)}"
         )

@@ -32,7 +32,7 @@ import pathlib
 from pydantic import Field
 
 from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
-from topollm.config_classes.constants import NAME_PREFIXES
+from topollm.config_classes.constants import NAME_PREFIXES, KV_SEP, ITEM_SEP
 from topollm.config_classes.enums import DatasetType, Split
 
 
@@ -100,12 +100,22 @@ class DataConfig(ConfigBaseModel):
     def data_config_description(
         self,
     ) -> str:
-        return (
-            f"{NAME_PREFIXES['data']}{self.dataset_description_string}"
-            f"_"
-            f"{NAME_PREFIXES['split']}{self.split}"
-            f"_"
-            f"{NAME_PREFIXES['context']}{self.context}"
-            f"_"
-            f"{NAME_PREFIXES['number_of_samples']}{self.number_of_samples}"
+        desc = (
+            f"{NAME_PREFIXES['data']}"
+            f"{KV_SEP}"
+            f"{self.dataset_description_string}"
+            f"{ITEM_SEP}"
+            f"{NAME_PREFIXES['split']}"
+            f"{KV_SEP}"
+            f"{self.split}"
+            f"{ITEM_SEP}"
+            f"{NAME_PREFIXES['context']}"
+            f"{KV_SEP}"
+            f"{self.context}"
+            f"{ITEM_SEP}"
+            f"{NAME_PREFIXES['number_of_samples']}"
+            f"{KV_SEP}"
+            f"{self.number_of_samples}"
         )
+
+        return desc

@@ -92,13 +92,13 @@ class PEFTPathManagerBasic:
             description = (
                 f"{NAME_PREFIXES['lora_r']}"
                 f"{self.peft_config.r}"
-                f"_"
+                f"{ITEM_SEP}"
                 f"{NAME_PREFIXES['lora_alpha']}"
                 f"{self.peft_config.lora_alpha}"
-                f"_"
+                f"{ITEM_SEP}"
                 f"{NAME_PREFIXES['lora_target_modules']}"
                 f"{self.peft_config.target_modules}"
-                f"_"
+                f"{ITEM_SEP}"
                 f"{NAME_PREFIXES['lora_dropout']}"
                 f"{self.peft_config.lora_dropout}"
             )

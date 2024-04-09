@@ -70,7 +70,7 @@ class LanguageModelConfig(ConfigBaseModel):
 
         description = (
             f"{NAME_PREFIXES['model']}{self.short_model_name}"
-            f"_"
+            f"{ITEM_SEP}"
             f"{NAME_PREFIXES['masking_mode']}{self.masking_mode}"
         )
 

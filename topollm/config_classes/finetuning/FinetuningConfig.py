@@ -160,6 +160,6 @@ class FinetuningConfig(ConfigBaseModel):
     ) -> str:
         # Construct and return the model parameters description
 
-        description = f"{NAME_PREFIXES['model']}{self.short_model_name}"
+        description = f"{NAME_PREFIXES['model']}" f"{self.short_model_name}"
 
         return description
