@@ -29,7 +29,6 @@
 
 
 from pydantic import Field
-from torch import K
 
 from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
 from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES

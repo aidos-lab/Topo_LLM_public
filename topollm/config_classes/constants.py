@@ -68,6 +68,7 @@ NAME_PREFIXES: dict[
     "label_map_description": "labelmap",
     "layer": "layer",
     "learning_rate": "lr",
+    "lr_scheduler_type": "lr_scheduler_type",
     "level": "lvl",
     "lora_alpha": "alpha",
     "lora_dropout": "lora-dropout",
@@ -85,6 +86,7 @@ NAME_PREFIXES: dict[
     "split": "split",
     "transformation": "trans",
     "use_canonical_values_from_dataset": "use-canonical-val",
+    "weight_decay": "wd",
 }
 
 # Limit for length of file names

@@ -94,14 +94,21 @@ class FinetuningPathManagerBasic:
     def finetuning_parameters_description(
         self,
     ) -> str:
-        # TODO Update this
-        description = (
+        desc = (
             f"{NAME_PREFIXES['learning_rate']}"
             f"{KV_SEP}"
             f"{self.finetuning_config.learning_rate}"
+            f"{ITEM_SEP}"
+            f"{NAME_PREFIXES['lr_scheduler_type']}"
+            f"{KV_SEP}"
+            f"{self.finetuning_config.lr_scheduler_type}"
+            f"{ITEM_SEP}"
+            f"{NAME_PREFIXES['weight_decay']}"
+            f"{KV_SEP}"
+            f"{self.finetuning_config.weight_decay}"
         )
 
-        return description
+        return desc
 
     @property
     def training_progress_subdir(
