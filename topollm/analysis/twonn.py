@@ -54,23 +54,25 @@ def main(cfg):
     array_name_1 = 'embeddings_' + str(cfg.embedding_level_1) + '_' + str(cfg.samples_1) + '_samples_paddings_removed.npy'
     array_name_2 = 'embeddings_' + str(cfg.embedding_level_2) + '_' + str(cfg.samples_2) + '_samples_paddings_removed.npy'
 
+    layer_1 = 'layer-'+str(cfg.layer)+'_agg-mean'
+    layer_2 = layer_1
     path_1 = pathlib.Path("..", "..", "data", "analysis", "prepared",
-                          cfg.data_name_1,
+                          cfg.data_name,
                           cfg.level_1,
                           cfg.prefix_1,
                           cfg.model_1,
-                          cfg.layer_1,
+                          layer_1,
                           cfg.norm_1,
                           cfg.array_dir_1,
                           array_name_1
                           )
 
     path_2 = pathlib.Path("..", "..", "data", "analysis", "prepared",
-                          cfg.data_name_2,
+                          cfg.data_name,
                           cfg.level_2,
                           cfg.prefix_2,
                           cfg.model_2,
-                          cfg.layer_2,
+                          layer_2,
                           cfg.norm_2,
                           cfg.array_dir_2,
                           array_name_2
@@ -83,7 +85,7 @@ def main(cfg):
 
     # provide number of neighbors which are used for the computation
     n_neighbors = 300
-
+    print(arr_no_pad[:10])
     lPCA = skdim.id.TwoNN().fit_pw(arr_no_pad,
                                   n_neighbors = n_neighbors,
                                   n_jobs = n_jobs)
@@ -108,21 +110,16 @@ def main(cfg):
     # a desired name to the plot.
 
     file_name = ''
-    if cfg.data_name_1 == cfg.data_name_2:
-        file_name += str(cfg.data_name_1) + '_'
-    if cfg.model_1 == cfg.model_2:
-        file_name += str(cfg.model_1) + '_'
-    names = set([name[:-1] for name in cfg.keys()])
-    for name in names:
-        if cfg[name + str(1)] != cfg[name + str(2)]:
-            additional_string = str(cfg[name + str(1)]) + '_vs_' + str(cfg[name + str(2)] + '_')
-            file_name += additional_string
+    file_name += str(cfg.data_name) + '_'
+    file_name += str(cfg.model_1) + '_'
+    file_name += str(cfg.model_2) + '_'
+
 
     save_path = '../../data/analysis/twonn/' + str(cfg.embedding_level_1) + '/'
     if not os.path.exists(save_path):
         os.makedirs(save_path)
 
-    save_name = save_path + file_name + str(len(arr_no_pad)) + '_samples_'+str(cfg.layer_1) + '.pkl'
+    save_name = save_path + file_name + '_'+str(cfg.layer) + '.pkl'
     scatter_fig.savefig(save_name+'.png')
     dim_frame.to_pickle(save_name)
 

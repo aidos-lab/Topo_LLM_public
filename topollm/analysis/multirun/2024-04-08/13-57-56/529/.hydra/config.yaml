@@ -1,0 +1,20 @@
+data_name_1: iclr_2024_submissions
+data_name_2: multiwoz21_validation
+level_1: lvl-token
+level_2: lvl-token
+prefix_1: add-prefix-space-False_max-len-512
+prefix_2: add-prefix-space-False_max-len-512
+model_1: model-roberta-base_mask-no_masking
+model_2: model-roberta-base_finetuned-on-sgd-train-10000_context-dialogue_mask-no_masking
+layer_1:
+- -9
+layer_2:
+- -2
+norm_1: norm-None
+norm_2: norm-None
+array_dir_1: array_dir
+array_dir_2: array_dir
+embedding_level_1: token_lvl
+embedding_level_2: token_lvl
+samples_1: 30000
+samples_2: 30000
