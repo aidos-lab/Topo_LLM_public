@@ -30,18 +30,12 @@
 from pydantic import Field
 
 from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
-from topollm.config_classes.constants import NAME_PREFIXES
+from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
 from topollm.config_classes.data.DatasetMapConfig import DatasetMapConfig
 from topollm.config_classes.embeddings.EmbeddingExtractionConfig import (
     EmbeddingExtractionConfig,
 )
 from topollm.config_classes.enums import Level
-
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Globals
-
-# END Globals
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
 class EmbeddingsConfig(ConfigBaseModel):
@@ -84,6 +78,7 @@ class EmbeddingsConfig(ConfigBaseModel):
         self,
     ) -> str:
         desc = f"{NAME_PREFIXES['level']}"
+        desc += f"{KV_SEP}"
         desc += f"{self.level}"
 
         return desc

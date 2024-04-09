@@ -24,6 +24,7 @@ python3 $PYTHON_SCRIPT_NAME \
     --multirun \
     finetuning.pretrained_model_name_or_path=$PRETRAINED_MODEL_NAME_OR_PATH_LIST \
     finetuning.num_train_epochs=50 \
+    finetuning.lr_scheduler_type=constant \
     finetuning/finetuning_datasets=$FINETUNING_DATASETS_LIST \
     finetuning/peft=standard,lora \
     $ADDITIONAL_OVERRIDES

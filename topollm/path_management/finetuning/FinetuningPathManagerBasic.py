@@ -30,7 +30,7 @@
 import logging
 import pathlib
 
-from topollm.config_classes.constants import NAME_PREFIXES
+from topollm.config_classes.constants import NAME_PREFIXES, KV_SEP, ITEM_SEP
 from topollm.config_classes.data.DataConfig import DataConfig
 from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
 from topollm.config_classes.PathsConfig import PathsConfig
@@ -84,10 +84,31 @@ class FinetuningPathManagerBasic:
             self.finetuning_config.finetuning_datasets.train_dataset.data_config_description,
             self.finetuning_config.base_model_config_description,
             self.peft_path_manager.peft_description_subdir,
+            self.finetuning_parameters_description,
             self.training_progress_subdir,
         )
 
         return path
+
+    @property
+    def finetuning_parameters_description(
+        self,
+    ) -> str:
+        desc = (
+            f"{NAME_PREFIXES['learning_rate']}"
+            f"{KV_SEP}"
+            f"{self.finetuning_config.learning_rate}"
+            f"{ITEM_SEP}"
+            f"{NAME_PREFIXES['lr_scheduler_type']}"
+            f"{KV_SEP}"
+            f"{self.finetuning_config.lr_scheduler_type}"
+            f"{ITEM_SEP}"
+            f"{NAME_PREFIXES['weight_decay']}"
+            f"{KV_SEP}"
+            f"{self.finetuning_config.weight_decay}"
+        )
+
+        return desc
 
     @property
     def training_progress_subdir(
@@ -103,11 +124,13 @@ class FinetuningPathManagerBasic:
     def epoch_description(
         self,
     ) -> str:
-        description = (
-            f"{NAME_PREFIXES['epoch']}" f"{self.finetuning_config.num_train_epochs}"
+        desc = (
+            f"{NAME_PREFIXES['epoch']}"
+            f"{KV_SEP}"
+            f"{self.finetuning_config.num_train_epochs}"
         )
 
-        return description
+        return desc
 
     @property
     def finetuned_model_dir(

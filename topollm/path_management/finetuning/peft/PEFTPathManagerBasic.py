@@ -30,16 +30,9 @@
 import logging
 import pathlib
 
-from topollm.config_classes.finetuning.peft.PEFTConfig import PEFTConfig
+from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
 from topollm.config_classes.enums import FinetuningMode
-from topollm.config_classes.constants import NAME_PREFIXES
-
-
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Globals
-
-# END Globals
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+from topollm.config_classes.finetuning.peft.PEFTConfig import PEFTConfig
 
 
 class PEFTPathManagerBasic:
@@ -72,15 +65,15 @@ class PEFTPathManagerBasic:
         self,
     ) -> str:
         if self.peft_config.finetuning_mode == FinetuningMode.STANDARD:
-            description = f"{NAME_PREFIXES['FinetuningMode']}" f"standard"
+            desc = f"{NAME_PREFIXES['FinetuningMode']}" f"{KV_SEP}" f"standard"
         elif self.peft_config.finetuning_mode == FinetuningMode.LORA:
-            description = f"{NAME_PREFIXES['FinetuningMode']}" f"lora"
+            desc = f"{NAME_PREFIXES['FinetuningMode']}" f"{KV_SEP}" f"lora"
         else:
             raise ValueError(
                 f"Unknown finetuning_mode: " f"{self.peft_config.finetuning_mode = }"
             )
 
-        return description
+        return desc
 
     @property
     def lora_description(
@@ -91,15 +84,19 @@ class PEFTPathManagerBasic:
         elif self.peft_config.finetuning_mode == FinetuningMode.LORA:
             description = (
                 f"{NAME_PREFIXES['lora_r']}"
+                f"{KV_SEP}"
                 f"{self.peft_config.r}"
-                f"_"
+                f"{ITEM_SEP}"
                 f"{NAME_PREFIXES['lora_alpha']}"
+                f"{KV_SEP}"
                 f"{self.peft_config.lora_alpha}"
-                f"_"
+                f"{ITEM_SEP}"
                 f"{NAME_PREFIXES['lora_target_modules']}"
+                f"{KV_SEP}"
                 f"{self.peft_config.target_modules}"
-                f"_"
+                f"{ITEM_SEP}"
                 f"{NAME_PREFIXES['lora_dropout']}"
+                f"{KV_SEP}"
                 f"{self.peft_config.lora_dropout}"
             )
         else:

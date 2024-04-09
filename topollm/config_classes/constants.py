@@ -34,46 +34,63 @@ Script for setting global variables for the config files.
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # START Globals
 
+# # # #
+# The following options are inspired by the hydra framework
+# for customizing the output directory.
+# https://hydra.cc/docs/configure_hydra/workdir/
+#
+# key-value separator for paths
+KV_SEP: str = "-"
+# item separator for paths
+ITEM_SEP: str = "_"
+
+# # # #
 # This dictionary of prefixes allows us to
 # easily change the prefixes for file paths and names
 # in one place without modifying the functions itself,
 # enhancing the maintainability of the code.
+#
+# Note: This should NOT come with key-value separators,
+# which we keep separate to make them configurable.
 NAME_PREFIXES: dict[
     str,
     str,
 ] = {
-    "aggregation": "agg-",
-    "add_prefix_space": "add-prefix-space-",
-    "center": "center-",
-    "context": "ctxt-",
-    "data": "data-",
-    "dataloader_desc": "dataloader-",
-    "epoch": "ep-",
-    "FinetuningMode": "ftm-",
-    "global_step": "gs-",
-    "label_map_description": "labelmap-",
-    "layer": "layer-",
-    "level": "lvl-",
-    "lora_alpha": "alpha-",
-    "lora_dropout": "lora-dropout-",
-    "lora_r": "r-",
-    "lora_target_modules": "lora-target-",
-    "metric": "metric-",
-    "model": "model-",
-    "model_parameters": "mparam-",
-    "masking_mode": "mask-",
-    "max_length": "max-len-",
-    "normalization": "norm-",
-    "number_of_samples": "samples-",
-    "n_neighbors": "n-neighbors-",
-    "query": "query-",
-    "split": "split-",
-    "transformation": "trans-",
-    "use_canonical_values_from_dataset": "use-canonical-val-",
+    "aggregation": "agg",
+    "add_prefix_space": "add-prefix-space",
+    "center": "center",
+    "context": "ctxt",
+    "data": "data",
+    "dataloader_desc": "dataloader",
+    "epoch": "ep",
+    "FinetuningMode": "ftm",
+    "global_step": "gs",
+    "label_map_description": "labelmap",
+    "layer": "layer",
+    "learning_rate": "lr",
+    "lr_scheduler_type": "lr_scheduler_type",
+    "level": "lvl",
+    "lora_alpha": "alpha",
+    "lora_dropout": "lora-dropout",
+    "lora_r": "r",
+    "lora_target_modules": "lora-target",
+    "metric": "metric",
+    "model": "model",
+    "model_parameters": "mparam",
+    "masking_mode": "mask",
+    "max_length": "max-len",
+    "normalization": "norm",
+    "number_of_samples": "samples",
+    "n_neighbors": "n-neighbors",
+    "query": "query",
+    "split": "split",
+    "transformation": "trans",
+    "use_canonical_values_from_dataset": "use-canonical-val",
+    "weight_decay": "wd",
 }
 
+# Limit for length of file names
 FILE_NAME_TRUNCATION_LENGTH: int = 200
-
 
 # END Globals
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #

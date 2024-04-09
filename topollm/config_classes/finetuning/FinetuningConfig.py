@@ -29,8 +29,12 @@
 
 from pydantic import Field
 
+from transformers.trainer_utils import (
+    SchedulerType,
+)
+
 from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
-from topollm.config_classes.constants import NAME_PREFIXES
+from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
 from topollm.config_classes.enums import LMmode
 from topollm.config_classes.finetuning.BatchSizesConfig import BatchSizesConfig
 from topollm.config_classes.finetuning.FinetuningDatasetsConfig import (
@@ -81,6 +85,11 @@ class FinetuningConfig(ConfigBaseModel):
     learning_rate: float = Field(
         default=5e-5,
         description="The learning rate.",
+    )
+
+    lr_scheduler_type: SchedulerType = Field(
+        default=SchedulerType.LINEAR,
+        description="The learning rate scheduler type.",
     )
 
     lm_mode: LMmode = Field(
@@ -160,6 +169,6 @@ class FinetuningConfig(ConfigBaseModel):
     ) -> str:
         # Construct and return the model parameters description
 
-        description = f"{NAME_PREFIXES['model']}{self.short_model_name}"
+        desc = f"{NAME_PREFIXES['model']}" f"{KV_SEP}" f"{self.short_model_name}"
 
-        return description
+        return desc

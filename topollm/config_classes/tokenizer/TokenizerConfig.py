@@ -31,7 +31,7 @@
 from pydantic import Field
 
 from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
-from topollm.config_classes.constants import NAME_PREFIXES
+from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
 
 
 class TokenizerConfig(ConfigBaseModel):
@@ -57,8 +57,14 @@ class TokenizerConfig(ConfigBaseModel):
         Returns:
             str: The description of the tokenizer.
         """
-        return (
-            f"{NAME_PREFIXES['add_prefix_space']}{str(self.add_prefix_space)}"
-            f"_"
-            f"{NAME_PREFIXES['max_length']}{str(self.max_length)}"
+        desc = (
+            f"{NAME_PREFIXES['add_prefix_space']}"
+            f"{KV_SEP}"
+            f"{str(self.add_prefix_space)}"
+            f"{ITEM_SEP}"
+            f"{NAME_PREFIXES['max_length']}"
+            f"{KV_SEP}"
+            f"{str(self.max_length)}"
         )
+
+        return desc

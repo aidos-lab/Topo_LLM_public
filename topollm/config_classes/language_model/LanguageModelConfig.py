@@ -32,7 +32,7 @@ import pathlib
 from pydantic import Field
 
 from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
-from topollm.config_classes.constants import NAME_PREFIXES
+from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
 from topollm.config_classes.enums import LMmode
 
 
@@ -68,10 +68,14 @@ class LanguageModelConfig(ConfigBaseModel):
     ) -> str:
         # Construct and return the model parameters description
 
-        description = (
-            f"{NAME_PREFIXES['model']}{self.short_model_name}"
-            f"_"
-            f"{NAME_PREFIXES['masking_mode']}{self.masking_mode}"
+        desc = (
+            f"{NAME_PREFIXES['model']}"
+            f"{KV_SEP}"
+            f"{self.short_model_name}"
+            f"{ITEM_SEP}"
+            f"{NAME_PREFIXES['masking_mode']}"
+            f"{KV_SEP}"
+            f"{self.masking_mode}"
         )
 
-        return description
+        return desc

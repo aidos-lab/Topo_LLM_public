@@ -27,17 +27,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
-
-# System imports
 import logging
 import os
 import pathlib
 
-from topollm.config_classes.constants import NAME_PREFIXES
-
-# Local imports
 from topollm.config_classes.data.DataConfig import DataConfig
 from topollm.config_classes.embeddings.EmbeddingsConfig import EmbeddingsConfig
 from topollm.config_classes.language_model.LanguageModelConfig import (
@@ -46,18 +39,6 @@ from topollm.config_classes.language_model.LanguageModelConfig import (
 from topollm.config_classes.PathsConfig import PathsConfig
 from topollm.config_classes.tokenizer.TokenizerConfig import TokenizerConfig
 from topollm.config_classes.TransformationsConfig import TransformationsConfig
-
-# Third-party imports
-
-
-# END Imports
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Globals
-
-# END Globals
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
 class EmbeddingsPathManagerSeparateDirectories:

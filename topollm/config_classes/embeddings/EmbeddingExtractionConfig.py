@@ -26,7 +26,7 @@
 
 from pydantic import BaseModel
 
-from topollm.config_classes.constants import NAME_PREFIXES
+from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
 from topollm.config_classes.enums import AggregationType
 
 
@@ -44,8 +44,10 @@ class EmbeddingExtractionConfig(BaseModel):
         Returns:
             str: The description of the embedding extraction.
         """
-        return (
+        desc: str = (
             f"{NAME_PREFIXES['layer']}{str(self.layer_indices)}"
-            f"_"
+            f"{ITEM_SEP}"
             f"{NAME_PREFIXES['aggregation']}{str(self.aggregation)}"
         )
+
+        return desc

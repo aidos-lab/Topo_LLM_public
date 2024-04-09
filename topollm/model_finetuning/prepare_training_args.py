@@ -46,6 +46,7 @@ def prepare_training_args(
         num_train_epochs=finetuning_config.num_train_epochs,
         max_steps=finetuning_config.max_steps,
         learning_rate=finetuning_config.learning_rate,
+        lr_scheduler_type=finetuning_config.lr_scheduler_type,
         weight_decay=finetuning_config.weight_decay,
         per_device_train_batch_size=finetuning_config.batch_sizes.train,
         per_device_eval_batch_size=finetuning_config.batch_sizes.eval,
