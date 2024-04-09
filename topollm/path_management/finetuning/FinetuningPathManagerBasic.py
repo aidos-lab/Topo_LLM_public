@@ -117,11 +117,13 @@ class FinetuningPathManagerBasic:
     def epoch_description(
         self,
     ) -> str:
-        description = (
-            f"{NAME_PREFIXES['epoch']}" f"{self.finetuning_config.num_train_epochs}"
+        desc = (
+            f"{NAME_PREFIXES['epoch']}"
+            f"{KV_SEP}"
+            f"{self.finetuning_config.num_train_epochs}"
         )
 
-        return description
+        return desc
 
     @property
     def finetuned_model_dir(

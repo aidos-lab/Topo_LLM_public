@@ -30,7 +30,7 @@
 from pydantic import Field
 
 from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
-from topollm.config_classes.constants import NAME_PREFIXES
+from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
 from topollm.config_classes.enums import LMmode
 from topollm.config_classes.finetuning.BatchSizesConfig import BatchSizesConfig
 from topollm.config_classes.finetuning.FinetuningDatasetsConfig import (
@@ -160,6 +160,6 @@ class FinetuningConfig(ConfigBaseModel):
     ) -> str:
         # Construct and return the model parameters description
 
-        description = f"{NAME_PREFIXES['model']}" f"{self.short_model_name}"
+        desc = f"{NAME_PREFIXES['model']}" f"{KV_SEP}" f"{self.short_model_name}"
 
-        return description
+        return desc
