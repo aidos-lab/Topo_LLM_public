@@ -101,7 +101,7 @@ def main(cfg):
     arr_no_pad_finetuned = np.load(path_2)
 
     # Number of nearest neighbors to consider
-    k = 3
+    k = 10
 
     # Calculate k nearest neighbor distances
     knn_distances = k_nearest_neighbor_distances(arr_no_pad, k)
@@ -137,7 +137,7 @@ def main(cfg):
     if not os.path.exists(save_path):
         os.makedirs(save_path)
 
-    save_name = save_path + file_name + '_'+str(cfg.layer) + '.pkl'
+    save_name = save_path + file_name + '_'+str(cfg.layer) +'_'+str(k)+ '.pkl'
     scatter_fig.savefig(save_name+'.png')
     neigh_frame.to_pickle(save_name)
 

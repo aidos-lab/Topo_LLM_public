@@ -23,14 +23,12 @@ ADDITIONAL_OVERRIDES=""
 ADDITIONAL_OVERRIDES="data.number_of_samples=5000"
 
 
-
 python3 $PYTHON_SCRIPT_NAME \
     --multirun \
     data=$DATA_LIST \
     language_model=$LANGUAGE_MODEL_LIST \
     embeddings.embedding_extraction.layer_indices=$LAYER_INDICES_LIST \
     $ADDITIONAL_OVERRIDES
-
 
 python3 $PYTHON_SCRIPT_NAME_DATA_PREP \
     --multirun \
