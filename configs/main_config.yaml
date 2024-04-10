@@ -26,7 +26,7 @@ defaults:
   - override hydra/job_logging: custom
   - _self_
 
-
+data_prep_samples: 30000
 seed: 1234
 verbosity: 1
 preferred_torch_backend: auto

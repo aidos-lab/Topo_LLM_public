@@ -119,7 +119,7 @@ def main(
 
     # choose sample size of the arrays
     # sample_size = 200000
-    sample_size = 30000
+    sample_size = config.data_prep_samples
 
     # potentially adapt paths
     array_path = embeddings_path_manager.array_dir_absolute_path
