@@ -34,8 +34,8 @@ import transformers
 
 from topollm.config_classes.MainConfig import MainConfig
 from topollm.data_handling.DatasetPreparerFactory import get_dataset_preparer
-from topollm.logging.log_model_info import log_model_info
 from topollm.model_finetuning.evaluate_tuned_model import evaluate_tuned_model
+from topollm.model_finetuning.finetune_model import finetune_model
 from topollm.model_finetuning.load_base_model_from_FinetuningConfig import (
     load_base_model_from_FinetuningConfig,
 )
@@ -53,26 +53,12 @@ from topollm.model_finetuning.prepare_logging_dir import prepare_logging_dir
 from topollm.model_finetuning.prepare_model_input import prepare_model_input
 from topollm.model_finetuning.prepare_training_args import prepare_training_args
 from topollm.model_finetuning.save_tuned_model import save_tuned_model
+from topollm.model_handling.tokenizer.tokenizer_modifier.TokenizerModifierFactory import (
+    get_tokenizer_modifier,
+)
 from topollm.path_management.finetuning.FinetuningPathManagerFactory import (
     get_finetuning_path_manager,
 )
-
-
-def finetune_model(
-    trainer: transformers.Trainer,
-    logger: logging.Logger = logging.getLogger(__name__),
-) -> None:
-    logger.info(f"Calling trainer.train() ...")
-
-    training_call_output = trainer.train(
-        resume_from_checkpoint=False,
-    )
-
-    logger.info(f"Calling trainer.train() DONE")
-
-    logger.info(f"training_call_output:\n" f"{training_call_output}")
-
-    return None
 
 
 def do_finetuning_process(
@@ -104,7 +90,7 @@ def do_finetuning_process(
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Load tokenizer and model
 
-    tokenizer = load_tokenizer_from_FinetuningConfig(
+    base_tokenizer = load_tokenizer_from_FinetuningConfig(
         finetuning_config=finetuning_config,
         verbosity=verbosity,
         logger=logger,
@@ -118,13 +104,28 @@ def do_finetuning_process(
     )
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    # Potential modification of the tokenizer
+    # (and the model if this is necessary for compatibility).
+    # For instance, for some autoregressive models, the tokenizer
+    # needs to be modified to add a padding token.
+
+    tokenizer_modifier = get_tokenizer_modifier(
+        tokenizer_modifier_config=finetuning_config.tokenizer_modifier,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+    tokenizer = tokenizer_modifier.modify_tokenizer(
+        tokenizer=base_tokenizer,
+    )
+    base_model = tokenizer_modifier.update_model(
+        model=base_model,
+    )
+
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Potential modification of the model.
     # This allows for variations of the training process,
     # e.g. using LoRA or other model modifications.
-
-    # TODO: Apply tokenizer modifier
-
-    # TODO Make model compatible with modified tokenizer
 
     model_modifier = get_model_modifier(
         peft_config=finetuning_config.peft,
@@ -192,11 +193,13 @@ def do_finetuning_process(
 
     finetune_model(
         trainer=trainer,
+        verbosity=verbosity,
         logger=logger,
     )
 
     save_tuned_model(
         trainer=trainer,
+        verbosity=verbosity,
         logger=logger,
     )
 
