@@ -45,9 +45,13 @@ class EmbeddingExtractionConfig(BaseModel):
             str: The description of the embedding extraction.
         """
         desc: str = (
-            f"{NAME_PREFIXES['layer']}{str(self.layer_indices)}"
+            f"{NAME_PREFIXES['layer']}"
+            f"{KV_SEP}"
+            f"{str(self.layer_indices)}"
             f"{ITEM_SEP}"
-            f"{NAME_PREFIXES['aggregation']}{str(self.aggregation)}"
+            f"{NAME_PREFIXES['aggregation']}"
+            f"{KV_SEP}"
+            f"{str(self.aggregation)}"
         )
 
         return desc
