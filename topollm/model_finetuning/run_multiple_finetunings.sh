@@ -20,6 +20,14 @@ FINETUNING_DATASETS_LIST="train_and_eval_on_multiwoz21"
 LR_SCHEDULER_TYPE="linear"
 # LR_SCHEDULER_TYPE="constant"
 
+
+# TODO: For "gpt2-medium" using LoRA training, get the following error:
+# TODO: ValueError: Target modules {'key', 'value', 'query'} not found in the base model. Please check the target modules and try again.
+#
+# PEFT_LIST="lora"
+PEFT_LIST="standard"
+# PEFT_LIST="standard,lora"
+
 # ADDITIONAL_OVERRIDES=""
 # ADDITIONAL_OVERRIDES="finetuning.max_steps=10"
 
@@ -31,5 +39,5 @@ python3 $PYTHON_SCRIPT_NAME \
     finetuning.num_train_epochs=$NUM_TRAIN_EPOCHS \
     finetuning.lr_scheduler_type=$LR_SCHEDULER_TYPE \
     finetuning/finetuning_datasets=$FINETUNING_DATASETS_LIST \
-    finetuning/peft=standard,lora \
+    finetuning/peft=$PEFT_LIST \
     $ADDITIONAL_OVERRIDES
