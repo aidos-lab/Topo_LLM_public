@@ -36,8 +36,10 @@ from transformers import PreTrainedModel
 class ModelModifierStandard:
     def __init__(
         self,
+        verbosity: int = 1,
         logger: logging.Logger = logging.getLogger(__name__),
     ) -> None:
+        self.verbosity = verbosity
         self.logger = logger
 
         return None
@@ -46,6 +48,8 @@ class ModelModifierStandard:
         self,
         model: PreTrainedModel,
     ) -> peft.peft_model.PeftModel | PreTrainedModel:
-        self.logger.info(f"Using base model without modifications.")
+        if self.verbosity >= 1:
+            self.logger.info(f"Using base model without modifications.")
+            self.logger.info(f"Returning model.")
 
         return model

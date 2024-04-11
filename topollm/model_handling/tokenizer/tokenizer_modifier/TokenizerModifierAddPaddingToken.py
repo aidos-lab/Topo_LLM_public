@@ -32,18 +32,18 @@ from typing import Protocol
 from transformers import PreTrainedModel, PreTrainedTokenizer, PreTrainedTokenizerFast
 
 
-class TokenizerModifier(Protocol):
+class TokenizerModifierAddPaddingToken(Protocol):
     def modify_tokenizer(
         self,
         tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast,
-    ) -> PreTrainedTokenizer | PreTrainedTokenizerFast: ...  # pragma: no cover
+    ) -> PreTrainedTokenizer | PreTrainedTokenizerFast:
+        # TODO implement
+        raise NotImplementedError
 
     def update_model(
         self,
         model: PreTrainedModel,
     ) -> PreTrainedModel:
-        """
-        When modifying the tokenizer, the model might need to be updated as well.
-        This method should return the updated model.
-        """
-        ...  # pragma: no cover
+        # TODO implement
+        """ """
+        raise NotImplementedError
