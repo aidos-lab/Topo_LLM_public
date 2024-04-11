@@ -32,34 +32,29 @@ import logging
 from transformers import PreTrainedModel, PreTrainedTokenizer, PreTrainedTokenizerFast
 
 
-class TokenizerModifierAddPaddingToken:
+class TokenizerModifierDoNothing:
     def __init__(
         self,
-        padding_token: str = "<|pad|>",
         verbosity: int = 1,
         logger: logging.Logger = logging.getLogger(__name__),
     ) -> None:
-        self.padding_token = padding_token
         self.verbosity = verbosity
         self.logger = logger
-
-        self.modified_tokenizer: (
-            None | PreTrainedTokenizer | PreTrainedTokenizerFast
-        ) = None
-
-        return None
 
     def modify_tokenizer(
         self,
         tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast,
     ) -> PreTrainedTokenizer | PreTrainedTokenizerFast:
-        # TODO implement
-        raise NotImplementedError
+        if self.verbosity >= 1:
+            self.logger.info(f"Returning unmodified tokenizer.")
+
+        return tokenizer
 
     def update_model(
         self,
         model: PreTrainedModel,
     ) -> PreTrainedModel:
-        # TODO implement
-        """ """
-        raise NotImplementedError
+        if self.verbosity >= 1:
+            self.logger.info(f"Returning unmodified model.")
+
+        return model

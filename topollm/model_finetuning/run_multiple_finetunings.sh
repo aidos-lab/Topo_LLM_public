@@ -19,7 +19,7 @@ LR_SCHEDULER_TYPE="linear"
 # LR_SCHEDULER_TYPE="constant"
 
 # ADDITIONAL_OVERRIDES=""
-# ADDITIONAL_OVERRIDES="finetuning.max_steps=10"
+ADDITIONAL_OVERRIDES="finetuning.max_steps=10"
 
 # ==================================================== #
 
