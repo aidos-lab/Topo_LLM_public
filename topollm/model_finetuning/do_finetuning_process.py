@@ -126,6 +126,10 @@ def do_finetuning_process(
         model=base_model,
     )
 
+    modified_model.resize_token_embeddings(len(tokenizer))  # TODO: Make configurable
+
+    print(modified_model)
+
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Prepare model input
 
@@ -138,7 +142,8 @@ def do_finetuning_process(
 
     data_collator = transformers.DataCollatorForLanguageModeling(
         tokenizer=tokenizer,
-        mlm=True,
+        # mlm=True, # TODO: Get this from config
+        mlm=False,
         mlm_probability=finetuning_config.mlm_probability,
     )
 

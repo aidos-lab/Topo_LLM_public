@@ -56,6 +56,7 @@ def load_tokenizer(
     tokenizer = AutoTokenizer.from_pretrained(
         pretrained_model_name_or_path=pretrained_model_name_or_path,
         add_prefix_space=tokenizer_config.add_prefix_space,
+        pad_token="<|pad|>",  # TODO: Make configurable
     )
 
     if verbosity >= 1:
