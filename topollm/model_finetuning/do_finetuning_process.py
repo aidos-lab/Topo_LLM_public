@@ -117,6 +117,11 @@ def do_finetuning_process(
     # This allows for variations of the training process,
     # e.g. using LoRA or other model modifications.
 
+    # TODO: Apply tokenizer modifier
+
+    # TODO Make model compatible with modified tokenizer
+    base_model.resize_token_embeddings(len(tokenizer))  # TODO: Make configurable
+
     model_modifier = get_model_modifier(
         peft_config=finetuning_config.peft,
         device=device,
@@ -125,10 +130,6 @@ def do_finetuning_process(
     modified_model = model_modifier.modify_model(
         model=base_model,
     )
-
-    modified_model.resize_token_embeddings(len(tokenizer))  # TODO: Make configurable
-
-    print(modified_model)
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Prepare model input
