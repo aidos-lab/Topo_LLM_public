@@ -44,10 +44,12 @@ from topollm.model_finetuning.model_modifiers.ModelModifierProtocol import Model
 def get_model_modifier(
     peft_config: PEFTConfig,
     device: torch.device,
+    verbosity: int = 1,
     logger: logging.Logger = logging.getLogger(__name__),
 ) -> ModelModifier:
     finetuning_mode = peft_config.finetuning_mode
-    logger.info(f"{finetuning_mode = }")
+    if verbosity >= 1:
+        logger.info(f"{finetuning_mode = }")
 
     if finetuning_mode == FinetuningMode.STANDARD:
         model_modifier = ModelModifierStandard.ModelModifierStandard(
@@ -57,14 +59,20 @@ def get_model_modifier(
         lora_config = PEFTConfig_to_LoraConfig(
             peft_config=peft_config,
         )
-        logger.info(f"{lora_config = }")
+
+        if verbosity >= 1:
+            logger.info(f"Preparing LoRA adapter ...")
+            logger.info(f"{lora_config = }")
 
         model_modifier = ModelModifierLora.ModelModifierLora(
             lora_config=lora_config,
+            device=device,
+            verbosity=verbosity,
             logger=logger,
         )
 
-        logger.info(f"Preparing LoRA adapter DONE.")
+        if verbosity >= 1:
+            logger.info(f"Preparing LoRA adapter DONE.")
     else:
         raise ValueError(f"Unknown training mode: " f"{finetuning_mode = }")
 

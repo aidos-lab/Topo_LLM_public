@@ -29,39 +29,23 @@
 
 import logging
 
-import torch
 import transformers
-from transformers import PreTrainedModel
-
-from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
-from topollm.model_handling.model.load_model import load_model
-from topollm.config_classes.enums import LMmode
 
 
-def load_base_model_from_FinetuningConfig(
-    finetuning_config: FinetuningConfig,
-    device: torch.device = torch.device("cpu"),
+def finetune_model(
+    trainer: transformers.Trainer,
     verbosity: int = 1,
     logger: logging.Logger = logging.getLogger(__name__),
-) -> PreTrainedModel:
-    """
-    Interface function to load a model from a FinetuningConfig object.
-    """
-    lm_mode = finetuning_config.lm_mode
+) -> None:
+    if verbosity >= 1:
+        logger.info(f"Calling trainer.train() ...")
 
-    if lm_mode == LMmode.MLM:
-        model_loading_class = transformers.AutoModelForMaskedLM
-    elif lm_mode == LMmode.CLM:
-        model_loading_class = transformers.AutoModelForCausalLM
-    else:
-        raise ValueError(f"Invalid lm_mode: " f"{lm_mode = }")
-
-    model = load_model(
-        pretrained_model_name_or_path=finetuning_config.pretrained_model_name_or_path,
-        model_loading_class=model_loading_class,
-        device=device,
-        verbosity=verbosity,
-        logger=logger,
+    training_call_output = trainer.train(
+        resume_from_checkpoint=False,
     )
 
-    return model
+    if verbosity >= 1:
+        logger.info(f"Calling trainer.train() DONE")
+        logger.info(f"training_call_output:\n" f"{training_call_output}")
+
+    return None

@@ -27,23 +27,34 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Protocol
+import logging
 
 from transformers import PreTrainedModel, PreTrainedTokenizer, PreTrainedTokenizerFast
 
 
-class TokenizerModifier(Protocol):
+class TokenizerModifierDoNothing:
+    def __init__(
+        self,
+        verbosity: int = 1,
+        logger: logging.Logger = logging.getLogger(__name__),
+    ) -> None:
+        self.verbosity = verbosity
+        self.logger = logger
+
     def modify_tokenizer(
         self,
         tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast,
-    ) -> PreTrainedTokenizer | PreTrainedTokenizerFast: ...  # pragma: no cover
+    ) -> PreTrainedTokenizer | PreTrainedTokenizerFast:
+        if self.verbosity >= 1:
+            self.logger.info(f"Returning unmodified tokenizer.")
+
+        return tokenizer
 
     def update_model(
         self,
         model: PreTrainedModel,
     ) -> PreTrainedModel:
-        """
-        When modifying the tokenizer, the model might need to be updated as well.
-        This method should return the updated model.
-        """
-        ...  # pragma: no cover
+        if self.verbosity >= 1:
+            self.logger.info(f"Returning unmodified model.")
+
+        return model

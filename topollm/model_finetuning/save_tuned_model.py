@@ -34,10 +34,15 @@ import transformers
 
 def save_tuned_model(
     trainer: transformers.Trainer,
+    verbosity: int = 1,
     logger: logging.Logger = logging.getLogger(__name__),
 ) -> None:
-    logger.info(f"Calling trainer.save_model() ...")
+    if verbosity >= 1:
+        logger.info(f"Calling trainer.save_model() ...")
+
     trainer.save_model()
-    logger.info(f"Calling trainer.save_model() DONE")
+
+    if verbosity >= 1:
+        logger.info(f"Calling trainer.save_model() DONE")
 
     return None

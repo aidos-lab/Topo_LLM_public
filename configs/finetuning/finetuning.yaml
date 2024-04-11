@@ -1,4 +1,5 @@
 defaults:
+  - base_model@_here_: gpt2-medium
   - peft: standard
   # - peft: lora
   # - finetuning_datasets: train_and_eval_on_bbc
@@ -6,10 +7,3 @@ defaults:
   - finetuning_parameters@_here_: default_parameters
   - ../tokenizer@tokenizer: basic_tokenizer
   - _self_
-
-# pretrained_model_name_or_path: gpt2-large # TODO: Finetuning not implemented for autoregressive models yet
-pretrained_model_name_or_path: bert-base-uncased
-# pretrained_model_name_or_path: roberta-base
-# pretrained_model_name_or_path: roberta-large
-short_model_name: ${finetuning.pretrained_model_name_or_path}
-lm_mode: MLM

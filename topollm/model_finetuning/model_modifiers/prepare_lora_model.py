@@ -42,13 +42,17 @@ def prepare_lora_model(
     base_model: PreTrainedModel,
     lora_config: LoraConfig,
     device: torch.device,
+    verbosity: int = 1,
     logger: logging.Logger = logging.getLogger(__name__),
 ) -> peft.peft_model.PeftModel:
-    log_model_info(
-        model=base_model,
-        model_name="base_model",
-        logger=logger,
-    )
+    if verbosity >= 1:
+        logger.info(f"Preparing LoRA adapter ...")
+        logger.info(f"base_model before modification:")
+        log_model_info(
+            model=base_model,
+            model_name="base_model",
+            logger=logger,
+        )
 
     # Get the model prepared with PEFT
     # (here: LoRA)
@@ -59,22 +63,28 @@ def prepare_lora_model(
     )
     lora_model.print_trainable_parameters()
 
-    assert isinstance(
+    if not isinstance(
         lora_model,
         peft.peft_model.PeftModel,
-    )
+    ):
+        raise ValueError(
+            f"Expected peft.peft_model.PeftModel, " f"but got {type(lora_model) = }"
+        )
 
-    log_model_info(
-        model=lora_model,
-        model_name="lora_model",
-        logger=logger,
-    )
+    if verbosity >= 1:
+        logger.info(f"lora_model after modification:")
+        log_model_info(
+            model=lora_model,
+            model_name="lora_model",
+            logger=logger,
+        )
 
-    # Move the model to GPU if available
-    logger.info(f"Moving model to {device = } ...")
+    if verbosity >= 1:
+        logger.info(f"Moving model to {device = } ...")
     lora_model.to(
         device,  # type: ignore
     )
-    logger.info(f"Moving model to {device = } DONE")
+    if verbosity >= 1:
+        logger.info(f"Moving model to {device = } DONE")
 
     return lora_model

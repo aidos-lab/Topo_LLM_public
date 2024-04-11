@@ -1,0 +1,27 @@
+GPT2LMHeadModel(
+  (transformer): GPT2Model(
+    (wte): Embedding(50257, 1280)
+    (wpe): Embedding(1024, 1280)
+    (drop): Dropout(p=0.1, inplace=False)
+    (h): ModuleList(
+      (0-35): 36 x GPT2Block(
+        (ln_1): LayerNorm((1280,), eps=1e-05, elementwise_affine=True)
+        (attn): GPT2Attention(
+          (c_attn): Conv1D()
+          (c_proj): Conv1D()
+          (attn_dropout): Dropout(p=0.1, inplace=False)
+          (resid_dropout): Dropout(p=0.1, inplace=False)
+        )
+        (ln_2): LayerNorm((1280,), eps=1e-05, elementwise_affine=True)
+        (mlp): GPT2MLP(
+          (c_fc): Conv1D()
+          (c_proj): Conv1D()
+          (act): NewGELUActivation()
+          (dropout): Dropout(p=0.1, inplace=False)
+        )
+      )
+    )
+    (ln_f): LayerNorm((1280,), eps=1e-05, elementwise_affine=True)
+  )
+  (lm_head): Linear(in_features=1280, out_features=50257, bias=False)
+)

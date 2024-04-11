@@ -27,23 +27,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Protocol
 
-from transformers import PreTrainedModel, PreTrainedTokenizer, PreTrainedTokenizerFast
+from pydantic import Field
+
+from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
+from topollm.config_classes.enums import TokenizerModifierMode
 
 
-class TokenizerModifier(Protocol):
-    def modify_tokenizer(
-        self,
-        tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast,
-    ) -> PreTrainedTokenizer | PreTrainedTokenizerFast: ...  # pragma: no cover
+class TokenizerModifierConfig(ConfigBaseModel):
+    """Configurations for modifying the tokenizer."""
 
-    def update_model(
-        self,
-        model: PreTrainedModel,
-    ) -> PreTrainedModel:
-        """
-        When modifying the tokenizer, the model might need to be updated as well.
-        This method should return the updated model.
-        """
-        ...  # pragma: no cover
+    mode: TokenizerModifierMode = Field(
+        default=TokenizerModifierMode.DO_NOTHING,
+        description="The mode of the tokenizer modifier.",
+    )
+
+    padding_token: str = Field(
+        default="<|pad|>",
+        description="The string representation of the padding token.",
+    )
