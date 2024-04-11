@@ -148,10 +148,6 @@ def main(
         logger=global_logger,
     )
 
-    # choose sample size of the arrays
-    # sample_size = 200000
-    sample_size = config.data_prep_samples
-
     # potentially adapt paths
     array_path = embeddings_path_manager.array_dir_absolute_path
 
@@ -183,12 +179,27 @@ def main(
         arr.shape[0] * arr.shape[1],
         arr.shape[2],
     )
+
+    # choose size of a meta sample which is used to take subsets for a point-wise
+    # comparison of local estimators.
     np.random.seed(42)
-    idx = np.random.choice(
-        range(len(arr)),
-        replace=False,
-        size=sample_size,
-    )
+    meta_sample_size = 200000
+    if meta_sample_size>=len(arr):
+        idx = np.random.choice(
+            range(len(arr)),
+            replace=False,
+            size=len(arr),
+        )
+    else:
+        idx = np.random.choice(
+            range(len(arr)),
+            replace=False,
+            size=meta_sample_size,
+        )
+
+    # choose sample size of the arrays
+    sample_size = config.data_prep_samples
+    idx = idx[:sample_size]
 
     arr = arr[idx]
 
