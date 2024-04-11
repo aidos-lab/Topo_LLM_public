@@ -28,10 +28,7 @@
 # limitations under the License.
 
 from pydantic import Field
-
-from transformers.trainer_utils import (
-    SchedulerType,
-)
+from transformers.trainer_utils import SchedulerType
 
 from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
 from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
@@ -41,7 +38,13 @@ from topollm.config_classes.finetuning.FinetuningDatasetsConfig import (
     FinetuningDatasetsConfig,
 )
 from topollm.config_classes.finetuning.peft.PEFTConfig import PEFTConfig
+from topollm.config_classes.finetuning.TokenizerModifierConfig import (
+    TokenizerModifierConfig,
+)
 from topollm.config_classes.tokenizer.TokenizerConfig import TokenizerConfig
+from topollm.model_handling.tokenizer.tokenizer_modifier.TokenizerModifierProtocol import (
+    TokenizerModifier,
+)
 
 
 class FinetuningConfig(ConfigBaseModel):
@@ -146,6 +149,11 @@ class FinetuningConfig(ConfigBaseModel):
         ...,
         title="Tokenizer configuration.",
         description="The configuration for specifying tokenizer.",
+    )
+
+    tokenizer_modifier: TokenizerModifierConfig = Field(
+        ...,
+        description="The configuration for modifying the tokenizer.",
     )
 
     use_cpu: bool = Field(

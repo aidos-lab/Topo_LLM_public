@@ -293,6 +293,7 @@ class LrSchedulerType(StrEnum):  # type: ignore
 # ==============================
 
 
+@unique
 class FinetuningMode(StrEnum):
     """The different modes for finetuning."""
 
@@ -300,6 +301,13 @@ class FinetuningMode(StrEnum):
     LORA = "lora"
 
 
+@unique
 class LMmode(StrEnum):
     MLM = "MLM"
     CLM = "CLM"
+
+
+@unique
+class TokenizerModifierMode(StrEnum):
+    DO_NOTHING = "do_nothing"
+    ADD_PADDING_TOKEN = "add_padding_token"

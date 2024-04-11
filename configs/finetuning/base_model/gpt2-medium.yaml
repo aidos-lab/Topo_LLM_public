@@ -1,3 +1,6 @@
+lm_mode: CLM
 pretrained_model_name_or_path: gpt2-medium
 short_model_name: ${finetuning.pretrained_model_name_or_path}
-lm_mode: CLM
+tokenizer_modifier:
+  mode: add_padding_token
+  padding_token: "<|pad|>"

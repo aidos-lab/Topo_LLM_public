@@ -29,47 +29,37 @@
 
 import logging
 
-import torch
-
-import topollm.model_finetuning.model_modifiers.ModelModifierLora as ModelModifierLora
-import topollm.model_finetuning.model_modifiers.ModelModifierStandard as ModelModifierStandard
-from topollm.config_classes.enums import FinetuningMode
-from topollm.config_classes.finetuning.peft.PEFTConfig import PEFTConfig
-from topollm.model_finetuning.model_modifiers.ModelModifierProtocol import ModelModifier
+import topollm.model_handling.tokenizer.tokenizer_modifier.TokenizerModifierAddPaddingToken as TokenizerModifierAddPaddingToken
+import topollm.model_handling.tokenizer.tokenizer_modifier.TokenizerModifierDoNothing as TokenizerModifierDoNothing
+import topollm.model_handling.tokenizer.tokenizer_modifier.TokenizerModifierProtocol as TokenizerModifierProtocol
+from topollm.config_classes.enums import TokenizerModifierMode
+from topollm.config_classes.finetuning.TokenizerModifierConfig import (
+    TokenizerModifierConfig,
+)
 
 
 def get_tokenizer_modifier(
+    tokenizer_modifier_config: TokenizerModifierConfig,
     verbosity: int = 1,
     logger: logging.Logger = logging.getLogger(__name__),
-) -> ModelModifier:
-    # TODO Update this
+) -> TokenizerModifierProtocol.TokenizerModifier:
+    mode: TokenizerModifierMode = tokenizer_modifier_config.mode
 
     if verbosity >= 1:
-        logger.info(f"{finetuning_mode = }")
+        logger.info(f"{mode = }")
 
-    if finetuning_mode == FinetuningMode.STANDARD:
-        model_modifier = ModelModifierStandard.ModelModifierStandard(
-            logger=logger,
-        )
-    elif finetuning_mode == FinetuningMode.LORA:
-        lora_config = PEFTConfig_to_LoraConfig(
-            peft_config=peft_config,
-        )
-
-        if verbosity >= 1:
-            logger.info(f"Preparing LoRA adapter ...")
-            logger.info(f"{lora_config = }")
-
-        model_modifier = ModelModifierLora.ModelModifierLora(
-            lora_config=lora_config,
-            device=device,
+    if mode == TokenizerModifierMode.DO_NOTHING:
+        modifier = TokenizerModifierDoNothing.TokenizerModifierDoNothing(
             verbosity=verbosity,
             logger=logger,
         )
-
-        if verbosity >= 1:
-            logger.info(f"Preparing LoRA adapter DONE.")
+    elif mode == TokenizerModifierMode.ADD_PADDING_TOKEN:
+        modifier = TokenizerModifierAddPaddingToken.TokenizerModifierAddPaddingToken(
+            padding_token=tokenizer_modifier_config.padding_token,
+            verbosity=verbosity,
+            logger=logger,
+        )
     else:
-        raise ValueError(f"Unknown training mode: " f"{finetuning_mode = }")
+        raise ValueError(f"Unknown " f"{mode = }")
 
-    return model_modifier
+    return modifier

@@ -1,3 +1,6 @@
+lm_mode: MLM
 pretrained_model_name_or_path: roberta-base
 short_model_name: ${finetuning.pretrained_model_name_or_path}
-lm_mode: MLM
+tokenizer_modifier:
+  mode: do_nothing
+  padding_token: "<pad>"
