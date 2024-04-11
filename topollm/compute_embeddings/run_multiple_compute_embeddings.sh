@@ -23,7 +23,7 @@ LAYER_INDICES_LIST="[-1],[-2],[-3],[-4],[-5],[-6],[-7],[-8],[-9],[-10],[-11],[-1
 DATA_PREP_SAMPLES="10000,20000,50000"
 
 # ADDITIONAL_OVERRIDES=""
-ADDITIONAL_OVERRIDES="data.number_of_samples=1000"
+ADDITIONAL_OVERRIDES="data.number_of_samples=5000"
 # ==================================================== #
 
 
