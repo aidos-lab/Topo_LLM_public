@@ -31,6 +31,8 @@ import logging
 
 from transformers import PreTrainedModel, PreTrainedTokenizer, PreTrainedTokenizerFast
 
+from topollm.logging.log_model_info import log_model_info
+
 
 class TokenizerModifierAddPaddingToken:
     def __init__(
@@ -53,13 +55,86 @@ class TokenizerModifierAddPaddingToken:
         self,
         tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast,
     ) -> PreTrainedTokenizer | PreTrainedTokenizerFast:
-        # TODO implement
-        raise NotImplementedError
+        if self.verbosity >= 1:
+            self.logger.info(
+                f"Modifying tokenizer {tokenizer = } "
+                f"by adding padding token {self.padding_token = } ..."
+            )
+
+        # Check if the tokenizer already has the padding token.
+        if self.padding_token in tokenizer.all_special_tokens:
+            if self.verbosity >= 1:
+                self.logger.info(
+                    f"The tokenizer already has the padding token "
+                    f"{self.padding_token = }. "
+                    f"Nothing to do."
+                )
+
+            return tokenizer
+
+        num_added_tokens = tokenizer.add_special_tokens(
+            {"pad_token": self.padding_token},
+        )
+
+        if self.verbosity >= 1:
+            self.logger.info(f"Added {num_added_tokens = } token(s).")
+            self.logger.info(f"{tokenizer = }")
+            self.logger.info(
+                f"Important: Make sure to also resize "
+                f"the token embedding matrix "
+                f"of the model so that its embedding matrix "
+                f"matches the tokenizer."
+            )
+
+        self.modified_tokenizer = tokenizer
+
+        return tokenizer
 
     def update_model(
         self,
         model: PreTrainedModel,
     ) -> PreTrainedModel:
-        # TODO implement
-        """ """
-        raise NotImplementedError
+        if self.verbosity >= 1:
+            self.logger.info(
+                f"Updating model "
+                f"to match the modified tokenizer "
+                f"{self.modified_tokenizer = } ..."
+            )
+            log_model_info(
+                model=model,
+                model_name="model",
+                logger=self.logger,
+            )
+
+        if self.modified_tokenizer is None:
+            raise ValueError(
+                "The tokenizer has not been modified yet. "
+                "Please call 'modify_tokenizer' first."
+            )
+
+        if self.verbosity >= 1:
+            self.logger.info(f"{len(self.modified_tokenizer) = }")
+
+        # The return value from 'resize_token_embeddings' is a pointer
+        # to the model's token embeddings module,
+        # which we only need for logging.
+        #
+        # Note: We could use 'pad_to_multiple_of'
+        # in the future to speed up training.
+        embeddings_module = model.resize_token_embeddings(
+            new_num_tokens=len(self.modified_tokenizer),
+            pad_to_multiple_of=None,
+        )
+
+        if self.verbosity >= 1:
+            self.logger.info(
+                f"Logging 'model' after potentially " f"resizing token embeddings:"
+            )
+            self.logger.info(f"embeddings_module:\n" f"{embeddings_module}")
+            log_model_info(
+                model=model,
+                model_name="model",
+                logger=self.logger,
+            )
+
+        return model

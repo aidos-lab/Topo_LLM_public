@@ -125,21 +125,6 @@ def do_finetuning_process(
     # TODO: Apply tokenizer modifier
 
     # TODO Make model compatible with modified tokenizer
-    # The return value here is a pointer to the model's token embeddings module,
-    # which we only need for logging.
-    embeddings_module = base_model.resize_token_embeddings(
-        new_num_tokens=len(tokenizer),
-        pad_to_multiple_of=None,  # Could use this in the future to speed up training
-    )
-
-    if verbosity >= 1:
-        logger.info(f"base_model after potentially resizing token embeddings:")
-        logger.info(f"embeddings_module:\n" f"{embeddings_module}")
-        log_model_info(
-            model=base_model,
-            model_name="base_model",
-            logger=logger,
-        )
 
     model_modifier = get_model_modifier(
         peft_config=finetuning_config.peft,
