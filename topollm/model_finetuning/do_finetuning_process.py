@@ -34,6 +34,7 @@ import transformers
 
 from topollm.config_classes.MainConfig import MainConfig
 from topollm.data_handling.DatasetPreparerFactory import get_dataset_preparer
+from topollm.logging.log_model_info import log_model_info
 from topollm.model_finetuning.evaluate_tuned_model import evaluate_tuned_model
 from topollm.model_finetuning.load_base_model_from_FinetuningConfig import (
     load_base_model_from_FinetuningConfig,
@@ -44,6 +45,7 @@ from topollm.model_finetuning.load_tokenizer_from_FinetuningConfig import (
 from topollm.model_finetuning.model_modifiers.ModelModifierFactory import (
     get_model_modifier,
 )
+from topollm.model_finetuning.prepare_data_collator import prepare_data_collator
 from topollm.model_finetuning.prepare_finetuned_model_dir import (
     prepare_finetuned_model_dir,
 )
@@ -76,6 +78,7 @@ def finetune_model(
 def do_finetuning_process(
     main_config: MainConfig,
     device: torch.device,
+    verbosity: int = 1,
     logger: logging.Logger = logging.getLogger(__name__),
 ) -> None:
     finetuning_config = main_config.finetuning
@@ -103,12 +106,14 @@ def do_finetuning_process(
 
     tokenizer = load_tokenizer_from_FinetuningConfig(
         finetuning_config=finetuning_config,
+        verbosity=verbosity,
         logger=logger,
     )
 
     base_model = load_base_model_from_FinetuningConfig(
         finetuning_config=finetuning_config,
         device=device,
+        verbosity=verbosity,
         logger=logger,
     )
 
@@ -120,11 +125,26 @@ def do_finetuning_process(
     # TODO: Apply tokenizer modifier
 
     # TODO Make model compatible with modified tokenizer
-    base_model.resize_token_embeddings(len(tokenizer))  # TODO: Make configurable
+    # The return value here is a pointer to the model's token embeddings module,
+    # which we only need for logging.
+    embeddings_module = base_model.resize_token_embeddings(
+        new_num_tokens=len(tokenizer),
+        pad_to_multiple_of=None,  # Could use this in the future to speed up training
+    )
+
+    if verbosity >= 1:
+        logger.info(f"base_model after potentially resizing token embeddings:")
+        logger.info(f"embeddings_module:\n" f"{embeddings_module}")
+        log_model_info(
+            model=base_model,
+            model_name="base_model",
+            logger=logger,
+        )
 
     model_modifier = get_model_modifier(
         peft_config=finetuning_config.peft,
         device=device,
+        verbosity=verbosity,
         logger=logger,
     )
     modified_model = model_modifier.modify_model(
@@ -141,11 +161,11 @@ def do_finetuning_process(
         finetuning_config=finetuning_config,
     )
 
-    data_collator = transformers.DataCollatorForLanguageModeling(
+    data_collator = prepare_data_collator(
+        finetuning_config=finetuning_config,
         tokenizer=tokenizer,
-        # mlm=True, # TODO: Get this from config
-        mlm=False,
-        mlm_probability=finetuning_config.mlm_probability,
+        verbosity=verbosity,
+        logger=logger,
     )
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # #

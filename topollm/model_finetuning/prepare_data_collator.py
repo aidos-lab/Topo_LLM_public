@@ -29,39 +29,36 @@
 
 import logging
 
-import torch
 import transformers
-from transformers import PreTrainedModel
 
-from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
-from topollm.model_handling.model.load_model import load_model
 from topollm.config_classes.enums import LMmode
+from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
 
 
-def load_base_model_from_FinetuningConfig(
+def prepare_data_collator(
     finetuning_config: FinetuningConfig,
-    device: torch.device = torch.device("cpu"),
+    tokenizer: transformers.PreTrainedTokenizerBase,
     verbosity: int = 1,
     logger: logging.Logger = logging.getLogger(__name__),
-) -> PreTrainedModel:
-    """
-    Interface function to load a model from a FinetuningConfig object.
-    """
+):
     lm_mode = finetuning_config.lm_mode
 
     if lm_mode == LMmode.MLM:
-        model_loading_class = transformers.AutoModelForMaskedLM
+        mlm = True
     elif lm_mode == LMmode.CLM:
-        model_loading_class = transformers.AutoModelForCausalLM
+        mlm = False
     else:
-        raise ValueError(f"Invalid lm_mode: " f"{lm_mode = }")
+        raise ValueError(f"Unknown LMmode: " f"{lm_mode = }")
 
-    model = load_model(
-        pretrained_model_name_or_path=finetuning_config.pretrained_model_name_or_path,
-        model_loading_class=model_loading_class,
-        device=device,
-        verbosity=verbosity,
-        logger=logger,
+    data_collator = transformers.DataCollatorForLanguageModeling(
+        tokenizer=tokenizer,
+        mlm=mlm,
+        mlm_probability=finetuning_config.mlm_probability,
     )
 
-    return model
+    if verbosity >= 1:
+        logger.info(f"{lm_mode = }")
+        logger.info(f"{mlm = }")
+        logger.info(f"{data_collator = }")
+
+    return data_collator
