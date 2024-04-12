@@ -38,6 +38,8 @@ python3 $PYTHON_SCRIPT_NAME \
     finetuning/base_model@finetuning=$BASE_MODEL_LIST \
     finetuning.num_train_epochs=$NUM_TRAIN_EPOCHS \
     finetuning.lr_scheduler_type=$LR_SCHEDULER_TYPE \
+    finetuning.batch_sizes.train=8 \
+    finetuning.batch_sizes.eval=8 \
     finetuning/finetuning_datasets=$FINETUNING_DATASETS_LIST \
     finetuning/peft=$PEFT_LIST \
     $ADDITIONAL_OVERRIDES

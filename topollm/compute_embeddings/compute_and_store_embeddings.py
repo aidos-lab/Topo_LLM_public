@@ -49,6 +49,9 @@ from topollm.compute_embeddings.TokenLevelEmbeddingDataHandler import (
     TokenLevelEmbeddingDataHandler,
 )
 from topollm.config_classes.MainConfig import MainConfig
+from topollm.model_handling.tokenizer.tokenizer_modifier.TokenizerModifierFactory import (
+    get_tokenizer_modifier,
+)
 from topollm.path_management.embeddings.EmbeddingsPathManagerFactory import (
     get_embeddings_path_manager,
 )
@@ -85,8 +88,6 @@ def compute_and_store_embeddings(
     # For example, dropout layers behave differently during evaluation.
     model.eval()
 
-    # TODO: Potentially modify tokenizer (and update model)
-
     model_config: transformers.PretrainedConfig = model.config
     if model_config is None:
         raise ValueError(
@@ -97,6 +98,28 @@ def compute_and_store_embeddings(
             f"{model_config = }",
         )
 
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    # Potential modification of the tokenizer
+    # (and the model if this is necessary for compatibility).
+    # For instance, for some autoregressive models, the tokenizer
+    # needs to be modified to add a padding token.
+
+    # TODO: Potentially modify tokenizer (and update model)
+    tokenizer_modifier = get_tokenizer_modifier(
+        tokenizer_modifier_config=finetuning_config.tokenizer_modifier,
+        verbosity=main_config.verbosity,
+        logger=logger,
+    )
+
+    tokenizer = tokenizer_modifier.modify_tokenizer(
+        tokenizer=base_tokenizer,
+    )
+    base_model = tokenizer_modifier.update_model(
+        model=base_model,
+    )
+
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    # Prepare data collator
     partial_collate_fn = partial(
         collate_batch_and_move_to_device,
         device=device,
