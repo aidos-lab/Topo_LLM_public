@@ -2,3 +2,6 @@ lm_mode: CLM
 masking_mode: no_masking
 pretrained_model_name_or_path: gpt2-large
 short_model_name: ${language_model.pretrained_model_name_or_path}
+tokenizer_modifier:
+  mode: add_padding_token
+  padding_token: "<|pad|>"
