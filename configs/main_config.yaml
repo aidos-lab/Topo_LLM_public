@@ -9,7 +9,8 @@ defaults:
   - inference: default
   # - language_model: bert-base-uncased_finetuned-on-xsum_ftm-standard
   # - language_model: gpt2-large
-  - language_model: gpt2-medium
+  # - language_model: gpt2-medium
+  - language_model: gpt2-medium_finetuned-on-multiwoz21_ftm-standard
   # - language_model: roberta-base
   # - language_model: roberta-base_finetuned-on-wikitext_ftm-lora
   # - language_model: roberta-base_finetuned-on-multiwoz21_ftm-lora

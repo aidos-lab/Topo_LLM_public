@@ -1,3 +1,7 @@
+defaults:
+  - tokenizer_modifier: roberta
+  - _self_
+
 lm_mode: MLM
 masking_mode: no_masking
 pretrained_model_name_or_path: ${paths.data_dir}/models/finetuned_models/data-multiwoz21_split-train_ctxt-dataset_entry_samples-10000/model-roberta-base/ftm-standard/lora-None/ep-15/model_files/checkpoint-1200

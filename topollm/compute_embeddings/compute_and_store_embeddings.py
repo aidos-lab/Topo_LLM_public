@@ -82,21 +82,12 @@ def compute_and_store_embeddings(
         logger=logger,
         verbosity=main_config.verbosity,
     )
+    # Logging of the model happens in the 'load_model' function
 
     # # # #
     # Put the model in evaluation mode.
     # For example, dropout layers behave differently during evaluation.
     model.eval()
-
-    model_config: transformers.PretrainedConfig = model.config
-    if model_config is None:
-        raise ValueError(
-            "Model does not have a configuration",
-        )
-    if main_config.verbosity >= 1:
-        logger.info(
-            f"{model_config = }",
-        )
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Potential modification of the tokenizer
@@ -104,19 +95,28 @@ def compute_and_store_embeddings(
     # For instance, for some autoregressive models, the tokenizer
     # needs to be modified to add a padding token.
 
-    # TODO: Potentially modify tokenizer (and update model)
     tokenizer_modifier = get_tokenizer_modifier(
-        tokenizer_modifier_config=finetuning_config.tokenizer_modifier,
+        tokenizer_modifier_config=main_config.language_model.tokenizer_modifier,
         verbosity=main_config.verbosity,
         logger=logger,
     )
 
     tokenizer = tokenizer_modifier.modify_tokenizer(
-        tokenizer=base_tokenizer,
+        tokenizer=tokenizer,
     )
-    base_model = tokenizer_modifier.update_model(
-        model=base_model,
+    model = tokenizer_modifier.update_model(
+        model=model,
     )
+
+    # Check that the model config exists as an attribute of the model object.
+    if not hasattr(
+        model,
+        "config",
+    ):
+        raise ValueError(
+            "The model object does not have an attribute 'model_config'."
+            " This is necessary to access the hidden size of the model."
+        )
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Prepare data collator
@@ -148,7 +148,7 @@ def compute_and_store_embeddings(
     # Length of each sequence
     S = embedding_dataloader_preparer.sequence_length
     # Dimension of the embeddings
-    D: int = model_config.hidden_size
+    D: int = model.config.hidden_size
 
     array_properties = ArrayProperties(
         shape=(N, S, D),
