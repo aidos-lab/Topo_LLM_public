@@ -28,6 +28,9 @@
 # limitations under the License.
 
 
+from topollm.path_management.truncate_length_of_desc import truncate_length_of_desc
+
+
 def sanitize_dirname(
     dir_name: str,
 ) -> str:
@@ -46,6 +49,10 @@ def sanitize_dirname(
     ).replace(
         "\\",
         "_",
+    )
+
+    result = truncate_length_of_desc(
+        desc=result,
     )
 
     return result

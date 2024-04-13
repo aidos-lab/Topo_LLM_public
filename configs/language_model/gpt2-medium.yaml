@@ -1,3 +1,7 @@
+defaults:
+  - tokenizer_modifier: gpt2
+  - _self_
+
 lm_mode: CLM
 masking_mode: no_masking
 pretrained_model_name_or_path: gpt2-medium

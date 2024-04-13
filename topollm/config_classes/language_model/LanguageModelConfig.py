@@ -34,9 +34,24 @@ from pydantic import Field
 from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
 from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
 from topollm.config_classes.enums import LMmode
+from topollm.config_classes.finetuning.TokenizerModifierConfig import (
+    TokenizerModifierConfig,
+)
 
 
 class LanguageModelConfig(ConfigBaseModel):
+    lm_mode: LMmode = Field(
+        ...,
+        title="Language model mode.",
+        description="The language model mode.",
+    )
+
+    masking_mode: str = Field(
+        ...,
+        title="Masking mode.",
+        description="The masking mode.",
+    )
+
     pretrained_model_name_or_path: str | pathlib.Path = Field(
         ...,
         title="Model identifier for huggingface transformers model.",
@@ -50,16 +65,9 @@ class LanguageModelConfig(ConfigBaseModel):
         description="The short model name.",
     )
 
-    masking_mode: str = Field(
+    tokenizer_modifier: TokenizerModifierConfig = Field(
         ...,
-        title="Masking mode.",
-        description="The masking mode.",
-    )
-
-    lm_mode: LMmode = Field(
-        ...,
-        title="Language model mode.",
-        description="The language model mode.",
+        description="The configuration for modifying the tokenizer.",
     )
 
     @property

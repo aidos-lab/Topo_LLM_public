@@ -69,22 +69,20 @@ class TokenizerModifierAddPaddingToken:
                     f"{self.padding_token = }. "
                     f"Nothing to do."
                 )
-
-            return tokenizer
-
-        num_added_tokens = tokenizer.add_special_tokens(
-            {"pad_token": self.padding_token},
-        )
-
-        if self.verbosity >= 1:
-            self.logger.info(f"Added {num_added_tokens = } token(s).")
-            self.logger.info(f"{tokenizer = }")
-            self.logger.info(
-                f"Important: Make sure to also resize "
-                f"the token embedding matrix "
-                f"of the model so that its embedding matrix "
-                f"matches the tokenizer."
+        else:
+            num_added_tokens = tokenizer.add_special_tokens(
+                {"pad_token": self.padding_token},
             )
+
+            if self.verbosity >= 1:
+                self.logger.info(f"Added {num_added_tokens = } " f"token(s).")
+                self.logger.info(f"{tokenizer = }")
+                self.logger.info(
+                    f"Important: Make sure to also resize "
+                    f"the token embedding matrix "
+                    f"of the model so that its embedding matrix "
+                    f"matches the tokenizer."
+                )
 
         self.modified_tokenizer = tokenizer
 

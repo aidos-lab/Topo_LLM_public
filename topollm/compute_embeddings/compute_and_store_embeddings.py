@@ -49,6 +49,9 @@ from topollm.compute_embeddings.TokenLevelEmbeddingDataHandler import (
     TokenLevelEmbeddingDataHandler,
 )
 from topollm.config_classes.MainConfig import MainConfig
+from topollm.model_handling.tokenizer.tokenizer_modifier.TokenizerModifierFactory import (
+    get_tokenizer_modifier,
+)
 from topollm.path_management.embeddings.EmbeddingsPathManagerFactory import (
     get_embeddings_path_manager,
 )
@@ -79,20 +82,44 @@ def compute_and_store_embeddings(
         logger=logger,
         verbosity=main_config.verbosity,
     )
+    # Logging of the model happens in the 'load_model' function
+
+    # # # #
     # Put the model in evaluation mode.
     # For example, dropout layers behave differently during evaluation.
     model.eval()
 
-    model_config: transformers.PretrainedConfig = model.config
-    if model_config is None:
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    # Potential modification of the tokenizer
+    # (and the model if this is necessary for compatibility).
+    # For instance, for some autoregressive models, the tokenizer
+    # needs to be modified to add a padding token.
+
+    tokenizer_modifier = get_tokenizer_modifier(
+        tokenizer_modifier_config=main_config.language_model.tokenizer_modifier,
+        verbosity=main_config.verbosity,
+        logger=logger,
+    )
+
+    tokenizer = tokenizer_modifier.modify_tokenizer(
+        tokenizer=tokenizer,
+    )
+    model = tokenizer_modifier.update_model(
+        model=model,
+    )
+
+    # Check that the model config exists as an attribute of the model object.
+    if not hasattr(
+        model,
+        "config",
+    ):
         raise ValueError(
-            "Model does not have a configuration",
-        )
-    if main_config.verbosity >= 1:
-        logger.info(
-            f"{model_config = }",
+            "The model object does not have an attribute 'model_config'."
+            " This is necessary to access the hidden size of the model."
         )
 
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    # Prepare data collator
     partial_collate_fn = partial(
         collate_batch_and_move_to_device,
         device=device,
@@ -121,7 +148,7 @@ def compute_and_store_embeddings(
     # Length of each sequence
     S = embedding_dataloader_preparer.sequence_length
     # Dimension of the embeddings
-    D: int = model_config.hidden_size
+    D: int = model.config.hidden_size
 
     array_properties = ArrayProperties(
         shape=(N, S, D),
