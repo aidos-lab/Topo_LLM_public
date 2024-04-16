@@ -9,8 +9,8 @@ defaults:
   - inference: default
   # - language_model: bert-base-uncased_finetuned-on-xsum_ftm-standard
   # - language_model: gpt2-large
-  # - language_model: gpt2-medium
-  - language_model: gpt2-medium_finetuned-on-multiwoz21_ftm-standard
+  - language_model: gpt2-medium
+  # - language_model: gpt2-medium_finetuned-on-multiwoz21_ftm-standard
   # - language_model: roberta-base
   # - language_model: roberta-base_finetuned-on-wikitext_ftm-lora
   # - language_model: roberta-base_finetuned-on-multiwoz21_ftm-lora
@@ -20,7 +20,7 @@ defaults:
   # - language_model: roberta-base_finetuned-on-multiwoz21-train-5000_context-utterance_ep-3
   # - language_model: roberta-base_finetuned-on-multiwoz21-train-5000_context-utterance_ep-5
   # - language_model: roberta-base_finetuned-on-wikitext_ftm-standard
-  #- language_model: roberta-base_finetuned-on-wikitext_ftm-lora
+  # - language_model: roberta-base_finetuned-on-wikitext_ftm-lora
   - paths: absolute_repository_base
   - storage: zarr_vectors_pickle_metadata
   - tokenizer: basic_tokenizer
@@ -53,7 +53,8 @@ hydra:
     chdir: False
     env_set:
       # HYDRA_FULL_ERROR: 1 # NOTE: This will not work for setting the environment variable, set in code instead
-      CUDA_VISIBLE_DEVICES: 0
+      # CUDA_VISIBLE_DEVICES: 0
+      CUDA_VISIBLE_DEVICES: 1
     config:
       override_dirname:
         exclude_keys:

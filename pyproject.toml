@@ -1,3 +1,24 @@
+[tool.ruff]
+# extend = "$HOME/.config/ruff.toml"
+target-version = "py310"
+# Set the maximum line length.
+line-length = 120
+
+[tool.ruff.lint]
+select = ["ALL"]
+# Add the `line-too-long` rule to the enforced rule set. By default, Ruff omits rules that
+# overlap with the use of a formatter, like Black, but we can override this behavior by
+# explicitly adding the rule.
+# extend-select = ["E501"]
+ignore = ["ANN101", "RET504", "D102"]
+
+[tool.ruff.lint.pylint]
+max-args = 7
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
 [tool.poetry]
 name = "topollm"
 version = "0.1.0"
