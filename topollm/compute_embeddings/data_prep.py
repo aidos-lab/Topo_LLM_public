@@ -238,7 +238,7 @@ def main(
         },
     )
 
-    meta_name = file_name + "_meta"
+    meta_name = f"{file_name}_meta.pkl"
     meta_frame.to_pickle(
         path=pathlib.Path(
             save_path,
