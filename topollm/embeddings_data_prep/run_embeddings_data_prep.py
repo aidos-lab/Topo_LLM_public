@@ -25,7 +25,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Prepare the embedding data of a model and its corresopnding fine-tuned variant.
+"""Prepare the embedding data of a model and its metadata for further analysis.
 
 The script outputs two numpy arrays of subsamples
 of the respective arrays that correspond to the
@@ -105,6 +105,7 @@ def data_prep_worker(
     device: torch.device,
     logger: logging.Logger,
 ) -> None:
+    """Prepare the embedding data of a model and its metadata for further analysis."""
     embeddings_path_manager = get_embeddings_path_manager(
         main_config=main_config,
         logger=logger,
@@ -112,6 +113,11 @@ def data_prep_worker(
 
     # potentially adapt paths
     array_path = embeddings_path_manager.array_dir_absolute_path
+    logger.info(f"{array_path = }")
+
+    if not array_path.exists():
+        msg = f"{array_path = } does not exist."
+        raise FileNotFoundError(msg)
 
     save_path = pathlib.Path(*list(array_path.parts)[-7:])
     save_path = pathlib.Path(
@@ -127,12 +133,6 @@ def data_prep_worker(
         embeddings_path_manager.metadata_dir_absolute_path,
         "pickle_chunked_metadata_storage",
     )
-
-    logger.info(f"{array_path = }")
-
-    if not array_path.exists():
-        msg = f"{array_path = } does not exist."
-        raise FileNotFoundError(msg)
 
     logger.info(f"{meta_path = }")
 
@@ -154,6 +154,7 @@ def data_prep_worker(
     # choose size of a meta sample which is used to take subsets for a point-wise
     # comparison of local estimators.
     np.random.seed(42)
+
     meta_sample_size = 200000
     if meta_sample_size >= len(arr):
         idx = np.random.choice(
@@ -195,10 +196,12 @@ def data_prep_worker(
             "meta": list(stacked_meta_sub),
         },
     )
+    # ! TODO Currently, this hard-coded pad_token_id does not work for the GPT-2 tokenizer
+    # TODO(Ben) Make this flexible so that we automatically extract the padding token index
     arr_no_pad = np.array(list(df[(df["meta"] != 2) & (df["meta"] != 1)].arr))
     meta_no_pad = np.array(list(df[(df["meta"] != 2) & (df["meta"] != 1)].meta))
 
-    if not os.path.exists(save_path):
+    if not pathlib.Path(save_path).exists():
         os.makedirs(save_path)
 
     file_name = "embeddings_token_lvl_" + str(sample_size) + "_samples_paddings_removed"
