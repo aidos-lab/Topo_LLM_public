@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -27,62 +25,50 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-########################################################
+"""Prepare the embedding data of a model and its corresopnding fine-tuned variant.
 
-# This is a script to prepare the embedding data of a
-# model and its corresopnding fine-tuned variant.
-# The script outputs two numpy arrays of subsamples
-# of the respective arrays that correspond to the
-# embeddings of the base model and the fine-tuned model,
-# respectively.
-# The arrays are stored in the directory where this
-# script is executed.
-# Since paddings are removed from the embeddings,
-# the resulting size of the arrays will usually be
-# significantly lower than the specified sample size
-# (often ~5% of the specified size).
+The script outputs two numpy arrays of subsamples
+of the respective arrays that correspond to the
+embeddings of the base model and the fine-tuned model,
+respectively.
+The arrays are stored in the directory where this
+script is executed.
+Since paddings are removed from the embeddings,
+the resulting size of the arrays will usually be
+significantly lower than the specified sample size
+(often ~5% of the specified size).
+"""
 
-# third party imports
 import logging
-import pathlib
-import hydra
-import omegaconf
-import zarr
-import numpy as np
 import os
+import pathlib
 import pickle
-import pandas as pd
-import transformers
-
-from topollm.path_management.embeddings.EmbeddingsPathManagerFactory import (
-    get_embeddings_path_manager,
-)
-import logging
+from typing import TYPE_CHECKING
 
 import hydra
 import hydra.core.hydra_config
+import numpy as np
 import omegaconf
+import pandas as pd
+import transformers
+import zarr
 
 from topollm.config_classes.setup_OmegaConf import setup_OmegaConf
-from topollm.compute_embeddings.compute_and_store_embeddings import (
-    compute_and_store_embeddings,
-)
-from topollm.config_classes.MainConfig import MainConfig
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.model_handling.get_torch_device import get_torch_device
+from topollm.path_management.embeddings.EmbeddingsPathManagerFactory import (
+    get_embeddings_path_manager,
+)
+
+if TYPE_CHECKING:
+    from topollm.config_classes.MainConfig import MainConfig
 
 
-# torch.set_num_threads(1)
-
-# END Globals
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-
-
-# function to load pickle files stored in the respective directory
 def load_pickle_files(
-    meta_path,
-):
+    meta_path: os.PathLike,
+) -> list:
+    """Load pickle files stored in the respective directory."""
     data = []
     chunk_list = []
 
@@ -98,25 +84,18 @@ def load_pickle_files(
             with open(filepath, "rb") as f:
                 chunk = pickle.load(f)
                 data.append(chunk)
+
     return data
 
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Globals
-
-# A logger for this file
+# logger for this file
 global_logger = logging.getLogger(__name__)
 
 setup_exception_logging(
     logger=global_logger,
 )
 
-# torch.set_num_threads(1)
-
 setup_OmegaConf()
-
-# END Globals
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
 @hydra.main(
@@ -128,7 +107,6 @@ def main(
     config: omegaconf.DictConfig,
 ) -> None:
     """Run the script."""
-
     print("Running script ...")
 
     global_logger.info("Running script ...")
@@ -152,7 +130,14 @@ def main(
     array_path = embeddings_path_manager.array_dir_absolute_path
 
     save_path = pathlib.Path(*list(array_path.parts)[-7:])
-    save_path = pathlib.Path("..", "..", "data", "analysis", "prepared", save_path)
+    save_path = pathlib.Path(
+        "..",
+        "..",
+        "data",
+        "analysis",
+        "prepared",
+        save_path,
+    )
 
     meta_path = pathlib.Path(
         embeddings_path_manager.metadata_dir_absolute_path,
@@ -162,12 +147,14 @@ def main(
     global_logger.info(f"{array_path = }")
 
     if not array_path.exists():
-        raise FileNotFoundError(f"{array_path = } does not exist.")
+        msg = f"{array_path = } does not exist."
+        raise FileNotFoundError(msg)
 
     global_logger.info(f"{meta_path = }")
 
     if not meta_path.exists():
-        raise FileNotFoundError(f"{meta_path = } does not exist.")
+        msg = f"{meta_path = } does not exist."
+        raise FileNotFoundError(msg)
 
     array = zarr.open(
         store=array_path,  # type: ignore
@@ -184,7 +171,7 @@ def main(
     # comparison of local estimators.
     np.random.seed(42)
     meta_sample_size = 200000
-    if meta_sample_size>=len(arr):
+    if meta_sample_size >= len(arr):
         idx = np.random.choice(
             range(len(arr)),
             replace=False,
@@ -218,44 +205,47 @@ def main(
 
     stacked_meta_sub = stacked_meta[idx]
 
-    df = pd.DataFrame({"arr": list(arr), "meta": list(stacked_meta_sub)})
+    df = pd.DataFrame(
+        {
+            "arr": list(arr),
+            "meta": list(stacked_meta_sub),
+        },
+    )
     arr_no_pad = np.array(list(df[(df["meta"] != 2) & (df["meta"] != 1)].arr))
     meta_no_pad = np.array(list(df[(df["meta"] != 2) & (df["meta"] != 1)].meta))
-
-    # choose dataset name
-    # dataset_name = "data-multiwoz21_split-test_ctxt-dataset_entry"
-    # dataset_name = "data-xsum_split-train_ctxt-dataset_entry"
-    # dataset_name = "data-wikitext_split-train_ctxt-dataset_entry"
-    # dataset_name = "data-xsum_split-train_ctxt-dataset_entry"
-    # dataset_name = "data-iclr_2024_submissions_split-train_ctxt-dataset_entry"
-
-    # choose model name
-    # model_name = "model-roberta-base_mask-no_masking"
-    # model_name = "model-roberta-base_mask-no_masking"
 
     if not os.path.exists(save_path):
         os.makedirs(save_path)
 
     file_name = "embeddings_token_lvl_" + str(sample_size) + "_samples_paddings_removed"
     np.save(
-        pathlib.Path(save_path, file_name),
-        arr_no_pad,
+        file=pathlib.Path(
+            save_path,
+            file_name,
+        ),
+        arr=arr_no_pad,
     )
 
     tokenizer = transformers.AutoTokenizer.from_pretrained(
-        main_config.language_model.pretrained_model_name_or_path
+        pretrained_model_name_or_path=main_config.language_model.pretrained_model_name_or_path,
     )
     token_names_no_pad = [tokenizer.decode(x) for x in meta_no_pad]
 
     meta_frame = pd.DataFrame(
-        {"token_id": list(meta_no_pad), "token_name": list(token_names_no_pad)}
+        {
+            "token_id": list(meta_no_pad),
+            "token_name": list(token_names_no_pad),
+        },
     )
 
-    meta_name = file_name + "_meta"
-    meta_frame.to_pickle(pathlib.Path(save_path, meta_name))
-
-    return None
+    meta_name = f"{file_name}_meta.pkl"
+    meta_frame.to_pickle(
+        path=pathlib.Path(
+            save_path,
+            meta_name,
+        ),
+    )
 
 
 if __name__ == "__main__":
-    main()  # type: ignore
+    main()
