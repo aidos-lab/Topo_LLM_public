@@ -31,6 +31,7 @@ import logging
 from functools import partial
 
 import torch
+from transformers import PreTrainedTokenizer, PreTrainedTokenizerFast
 
 from topollm.compute_embeddings.collate_batch_for_embedding import (
     collate_batch_and_move_to_device,
@@ -50,9 +51,10 @@ from topollm.compute_embeddings.TokenLevelEmbeddingDataHandler import (
 from topollm.config_classes.MainConfig import MainConfig
 from topollm.model_handling.model.load_model import load_model
 from topollm.model_handling.tokenizer.load_tokenizer import load_tokenizer
-from topollm.model_handling.tokenizer.tokenizer_modifier.TokenizerModifierFactory import (
+from topollm.model_handling.tokenizer.tokenizer_modifier.factory import (
     get_tokenizer_modifier,
 )
+from topollm.model_handling.tokenizer.tokenizer_modifier.protocol import TokenizerModifier
 from topollm.path_management.embeddings.EmbeddingsPathManagerFactory import (
     get_embeddings_path_manager,
 )
@@ -72,40 +74,25 @@ def compute_and_store_embeddings(
     logger: logging.Logger = logger,
 ) -> None:
     """Compute and store embedding vectors."""
-    tokenizer = load_tokenizer(
-        pretrained_model_name_or_path=main_config.language_model.pretrained_model_name_or_path,
-        tokenizer_config=main_config.tokenizer,
+    tokenizer, tokenizer_modifier = load_modified_tokenizer(
+        main_config=main_config,
         logger=logger,
-        verbosity=main_config.verbosity,
     )
+
+    # Logging of the model happens in the 'load_model' function
     model = load_model(
         pretrained_model_name_or_path=main_config.language_model.pretrained_model_name_or_path,
         device=device,
         logger=logger,
         verbosity=main_config.verbosity,
     )
-    # Logging of the model happens in the 'load_model' function
 
-    # # # #
     # Put the model in evaluation mode.
     # For example, dropout layers behave differently during evaluation.
     model.eval()
 
-    # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-    # Potential modification of the tokenizer
-    # (and the model if this is necessary for compatibility).
-    # For instance, for some autoregressive models, the tokenizer
-    # needs to be modified to add a padding token.
-
-    tokenizer_modifier = get_tokenizer_modifier(
-        tokenizer_modifier_config=main_config.language_model.tokenizer_modifier,
-        verbosity=main_config.verbosity,
-        logger=logger,
-    )
-
-    tokenizer = tokenizer_modifier.modify_tokenizer(
-        tokenizer=tokenizer,
-    )
+    # Potential modification of the tokenizer and the model if this is necessary for compatibility.
+    # For instance, for some autoregressive models, the tokenizer needs to be modified to add a padding token.
     model = tokenizer_modifier.update_model(
         model=model,
     )
@@ -199,3 +186,30 @@ def compute_and_store_embeddings(
         logger=logger,
     )
     data_handler.process_data()
+
+
+def load_modified_tokenizer(
+    main_config: MainConfig,
+    logger: logging.Logger = logger,
+) -> tuple[
+    PreTrainedTokenizer | PreTrainedTokenizerFast,
+    TokenizerModifier,
+]:
+    """Load the tokenizer and modify it if necessary."""
+    tokenizer = load_tokenizer(
+        pretrained_model_name_or_path=main_config.language_model.pretrained_model_name_or_path,
+        tokenizer_config=main_config.tokenizer,
+        logger=logger,
+        verbosity=main_config.verbosity,
+    )
+    tokenizer_modifier = get_tokenizer_modifier(
+        tokenizer_modifier_config=main_config.language_model.tokenizer_modifier,
+        verbosity=main_config.verbosity,
+        logger=logger,
+    )
+
+    tokenizer_modified = tokenizer_modifier.modify_tokenizer(
+        tokenizer=tokenizer,
+    )
+
+    return tokenizer_modified, tokenizer_modifier

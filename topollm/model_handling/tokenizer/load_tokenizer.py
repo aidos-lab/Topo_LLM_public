@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -27,6 +25,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Load the tokenizer for a model."""
+
 import logging
 import os
 
@@ -34,24 +34,18 @@ from transformers import AutoTokenizer, PreTrainedTokenizer, PreTrainedTokenizer
 
 from topollm.config_classes.tokenizer.TokenizerConfig import TokenizerConfig
 
+logger = logging.getLogger(__name__)
+
 
 def load_tokenizer(
     pretrained_model_name_or_path: str | os.PathLike,
     tokenizer_config: TokenizerConfig,
     verbosity: int = 1,
-    logger: logging.Logger = logging.getLogger(__name__),
+    logger: logging.Logger = logger,
 ) -> PreTrainedTokenizer | PreTrainedTokenizerFast:
-    """
-    Loads the tokenizer and model based on the configuration,
-    and puts the model in evaluation mode.
-
-    Args:
-        pretrained_model_name_or_path:
-            The name or path of the pretrained model.
-
-    """
+    """Load the tokenizer based on the configuration."""
     if verbosity >= 1:
-        logger.info(f"Loading tokenizer " f"{pretrained_model_name_or_path = } ...")
+        logger.info(f"Loading tokenizer {pretrained_model_name_or_path = } ...")
 
     tokenizer = AutoTokenizer.from_pretrained(
         pretrained_model_name_or_path=pretrained_model_name_or_path,
@@ -59,9 +53,9 @@ def load_tokenizer(
     )
 
     if verbosity >= 1:
-        logger.info(f"Loading tokenizer " f"{pretrained_model_name_or_path = } DONE")
+        logger.info(f"Loading tokenizer {pretrained_model_name_or_path = } DONE")
         logger.info(
-            f"tokenizer:\n" f"{tokenizer}",
+            f"tokenizer:\n{tokenizer}",
         )
 
     return tokenizer

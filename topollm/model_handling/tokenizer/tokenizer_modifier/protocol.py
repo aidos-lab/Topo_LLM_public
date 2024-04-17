@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -27,12 +25,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Protocol for a tokenizer modifier."""
+
 from typing import Protocol
 
 from transformers import PreTrainedModel, PreTrainedTokenizer, PreTrainedTokenizerFast
 
 
 class TokenizerModifier(Protocol):
+    """Protocol for a tokenizer modifier."""
+
     def modify_tokenizer(
         self,
         tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast,
@@ -42,8 +44,8 @@ class TokenizerModifier(Protocol):
         self,
         model: PreTrainedModel,
     ) -> PreTrainedModel:
-        """
+        """Return the updated model after modifying the tokenizer, to make it compatible with the new tokenizer.
+
         When modifying the tokenizer, the model might need to be updated as well.
-        This method should return the updated model.
         """
         ...  # pragma: no cover

@@ -42,9 +42,6 @@ from topollm.config_classes.finetuning.TokenizerModifierConfig import (
     TokenizerModifierConfig,
 )
 from topollm.config_classes.tokenizer.TokenizerConfig import TokenizerConfig
-from topollm.model_handling.tokenizer.tokenizer_modifier.TokenizerModifierProtocol import (
-    TokenizerModifier,
-)
 
 
 class FinetuningConfig(ConfigBaseModel):
@@ -117,7 +114,7 @@ class FinetuningConfig(ConfigBaseModel):
 
     max_steps: int = Field(
         default=-1,
-        description=f"The maximum number of steps. " f"Overrides num_train_epochs.",
+        description="The maximum number of steps. Overrides num_train_epochs.",
     )
 
     mlm_probability: float = Field(
@@ -177,6 +174,6 @@ class FinetuningConfig(ConfigBaseModel):
     ) -> str:
         # Construct and return the model parameters description
 
-        desc = f"{NAME_PREFIXES['model']}" f"{KV_SEP}" f"{self.short_model_name}"
+        desc = f"{NAME_PREFIXES['model']}{KV_SEP}{self.short_model_name}"
 
         return desc
