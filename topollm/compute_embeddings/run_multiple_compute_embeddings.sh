@@ -15,10 +15,11 @@ DATA_LIST="multiwoz21_validation"
 # DATA_LIST="wikitext"
 
 # LANGUAGE_MODEL_LIST="roberta-base,roberta-base_finetuned-on-multiwoz21_ftm-lora"
-# LANGUAGE_MODEL_LIST="gpt2-medium,gpt2-medium_finetuned-on-multiwoz21_ftm-standard,roberta-base_finetuned-on-multiwoz21_ftm-standard_overfitted"
+LANGUAGE_MODEL_LIST="gpt2-medium,gpt2-medium_finetuned-on-multiwoz21_ftm-standard"
+# LANGUAGE_MODEL_LIST="roberta-base_finetuned-on-multiwoz21_ftm-standard_overfitted"
 # LANGUAGE_MODEL_LIST="bert-base-uncased,roberta-base"
 # LANGUAGE_MODEL_LIST="roberta-base"
-LANGUAGE_MODEL_LIST="gpt2-medium"
+# LANGUAGE_MODEL_LIST="gpt2-medium"
 # LANGUAGE_MODEL_LIST="gpt2-medium_finetuned-on-multiwoz21_ftm-standard"
 # LANGUAGE_MODEL_LIST="roberta-base_finetuned-on-multiwoz21_ftm-standard_overfitted"
 
