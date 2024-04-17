@@ -10,8 +10,8 @@ PYTHON_SCRIPT_NAME_DATA_PREP="../embeddings_data_prep/run_embeddings_data_prep.p
 
 # DATA_LIST="bbc,multiwoz21,sgd,wikitext"
 # DATA_LIST="multiwoz21_validation,iclr_2024_submissions,wikitext"
-DATA_LIST="multiwoz21_validation"
-# DATA_LIST="iclr_2024_submissions"
+# DATA_LIST="multiwoz21_validation"
+DATA_LIST="iclr_2024_submissions"
 # DATA_LIST="wikitext"
 
 # LANGUAGE_MODEL_LIST="roberta-base,roberta-base_finetuned-on-multiwoz21_ftm-lora"
@@ -28,7 +28,7 @@ LANGUAGE_MODEL_LIST="gpt2-medium,gpt2-medium_finetuned-on-multiwoz21_ftm-standar
 LAYER_INDICES_LIST="[-1],[-3],[-5],[-7],[-9],[-11],[-13],[-15],[-17],[-19],[-21],[-23]"
 
 #EMBEDDINGS_DATA_PREP_NUM_SAMPLES="10000,20000"
-EMBEDDINGS_DATA_PREP_NUM_SAMPLES="5000,10000,15000,20000,25000,30000,50000"
+EMBEDDINGS_DATA_PREP_NUM_SAMPLES="5000,10000,15000,20000,25000,30000,50000,75000,100000"
 
 # ADDITIONAL_OVERRIDES=""
 ADDITIONAL_OVERRIDES="data.number_of_samples=1000"
@@ -50,3 +50,7 @@ python3 $PYTHON_SCRIPT_NAME_DATA_PREP \
     embeddings.embedding_extraction.layer_indices=$LAYER_INDICES_LIST \
     embeddings_data_prep.num_samples=$EMBEDDINGS_DATA_PREP_NUM_SAMPLES \
     $ADDITIONAL_OVERRIDES
+
+# ==================================================== #
+
+exit 0
