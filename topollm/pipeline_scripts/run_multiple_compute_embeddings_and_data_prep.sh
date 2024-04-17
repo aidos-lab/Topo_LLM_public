@@ -2,16 +2,16 @@
 
 # https://hydra.cc/docs/tutorials/basic/running_your_app/multi-run/
 
-PYTHON_SCRIPT_NAME="run_compute_embeddings.py"
-PYTHON_SCRIPT_NAME_DATA_PREP="data_prep.py"
+PYTHON_SCRIPT_NAME="../compute_embeddings/run_compute_embeddings.py"
+PYTHON_SCRIPT_NAME_DATA_PREP="../embedding_data_prep/data_prep.py"
 
 # ==================================================== #
 # Select the parameters here
 
 # DATA_LIST="bbc,multiwoz21,sgd,wikitext"
 # DATA_LIST="multiwoz21_validation,iclr_2024_submissions,wikitext"
-DATA_LIST="multiwoz21_validation"
-# DATA_LIST="iclr_2024_submissions"
+# DATA_LIST="multiwoz21_validation"
+DATA_LIST="iclr_2024_submissions"
 # DATA_LIST="wikitext"
 
 # LANGUAGE_MODEL_LIST="roberta-base,roberta-base_finetuned-on-multiwoz21_ftm-lora"
