@@ -1,3 +1,7 @@
+defaults:
+  - tokenizer_modifier: roberta
+  - _self_
+
 pretrained_model_name_or_path: ${paths.data_dir}/models/finetuned_models/data-iclr_2024_submissions_split-train_ctxt-dataset_entry_samples-5000/model-roberta-base/ftm-standard/lora-None/ep-5/model_files
 short_model_name: roberta-base_finetuned-on-iclr_ftm-standard
 masking_mode: no_masking
