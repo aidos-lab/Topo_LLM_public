@@ -28,17 +28,17 @@
 """Prepare the embedding data of a model and its metadata for further analysis."""
 
 import logging
-import os
 import pathlib
 
 import numpy as np
 import pandas as pd
 import torch
-import transformers
 import zarr
 
 from topollm.config_classes.MainConfig import MainConfig
 from topollm.embeddings_data_prep.load_pickle_files_from_meta_path import load_pickle_files_from_meta_path
+from topollm.logging.log_dataframe_info import log_dataframe_info
+from topollm.model_handling.tokenizer.load_tokenizer import load_modified_tokenizer
 from topollm.path_management.embeddings.EmbeddingsPathManagerFactory import get_embeddings_path_manager
 
 logger = logging.getLogger(__name__)
@@ -69,14 +69,20 @@ def embeddings_data_prep_worker(
         msg = f"{array_path = } does not exist."
         raise FileNotFoundError(msg)
 
-    save_path = pathlib.Path(*list(array_path.parts)[-7:])
-    save_path = pathlib.Path(
+    partial_save_path = pathlib.Path(*list(array_path.parts)[-7:])
+    prepared_save_path = pathlib.Path(
         "..",
         "..",
         "data",
         "analysis",
         "prepared",
-        save_path,
+        partial_save_path,
+    )
+
+    # Make sure the save path exists
+    pathlib.Path(prepared_save_path).mkdir(
+        parents=True,
+        exist_ok=True,
     )
 
     meta_path = pathlib.Path(
@@ -84,7 +90,8 @@ def embeddings_data_prep_worker(
         "pickle_chunked_metadata_storage",
     )
 
-    logger.info(f"{meta_path = }")
+    if verbosity >= 1:
+        logger.info(f"{meta_path = }")
 
     if not meta_path.exists():
         msg = f"{meta_path = } does not exist."
@@ -148,11 +155,11 @@ def embeddings_data_prep_worker(
         },
     )
 
-    tokenizer = transformers.AutoTokenizer.from_pretrained(
-        pretrained_model_name_or_path=main_config.language_model.pretrained_model_name_or_path,
+    tokenizer, _ = load_modified_tokenizer(
+        main_config=main_config,
+        logger=logger,
     )
-    # ! TODO Currently, this hard-coded pad_token_id does not work for the GPT-2 tokenizer
-    # TODO(Ben) Make this flexible so that we automatically extract the padding token index
+
     eos_token_id = tokenizer.eos_token_id
     pad_token_id = tokenizer.pad_token_id
 
@@ -171,19 +178,16 @@ def embeddings_data_prep_worker(
         list(full_df[(full_df["meta"] != eos_token_id) & (full_df["meta"] != pad_token_id)].meta),
     )
 
-    if not pathlib.Path(save_path).exists():
-        os.makedirs(save_path)
-
     file_name = "embeddings_token_lvl_" + str(sample_size) + "_samples_paddings_removed"
     np.save(
         file=pathlib.Path(
-            save_path,
+            prepared_save_path,
             file_name,
         ),
         arr=arr_no_pad,
     )
 
-    token_names_no_pad = [tokenizer.decode(x) for x in meta_no_pad]
+    token_names_no_pad = [tokenizer.convert_ids_to_tokens(x) for x in meta_no_pad]
 
     meta_frame = pd.DataFrame(
         {
@@ -192,10 +196,17 @@ def embeddings_data_prep_worker(
         },
     )
 
+    if verbosity >= 1:
+        log_dataframe_info(
+            meta_frame,
+            df_name="meta_frame",
+            logger=logger,
+        )
+
     meta_name = f"{file_name}_meta.pkl"
     meta_frame.to_pickle(
         path=pathlib.Path(
-            save_path,
+            prepared_save_path,
             meta_name,
         ),
     )

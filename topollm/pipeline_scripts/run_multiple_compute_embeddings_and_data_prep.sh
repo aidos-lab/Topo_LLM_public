@@ -10,8 +10,8 @@ PYTHON_SCRIPT_NAME_DATA_PREP="../embeddings_data_prep/run_embeddings_data_prep.p
 
 # DATA_LIST="bbc,multiwoz21,sgd,wikitext"
 # DATA_LIST="multiwoz21_validation,iclr_2024_submissions,wikitext"
-# DATA_LIST="multiwoz21_validation"
-DATA_LIST="iclr_2024_submissions"
+DATA_LIST="multiwoz21_validation"
+# DATA_LIST="iclr_2024_submissions"
 # DATA_LIST="wikitext"
 
 # LANGUAGE_MODEL_LIST="roberta-base,roberta-base_finetuned-on-multiwoz21_ftm-lora"

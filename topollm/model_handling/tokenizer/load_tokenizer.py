@@ -32,7 +32,10 @@ import os
 
 from transformers import AutoTokenizer, PreTrainedTokenizer, PreTrainedTokenizerFast
 
+from topollm.config_classes.MainConfig import MainConfig
 from topollm.config_classes.tokenizer.TokenizerConfig import TokenizerConfig
+from topollm.model_handling.tokenizer.tokenizer_modifier.factory import get_tokenizer_modifier
+from topollm.model_handling.tokenizer.tokenizer_modifier.protocol import TokenizerModifier
 
 logger = logging.getLogger(__name__)
 
@@ -59,3 +62,30 @@ def load_tokenizer(
         )
 
     return tokenizer
+
+
+def load_modified_tokenizer(
+    main_config: MainConfig,
+    logger: logging.Logger = logger,
+) -> tuple[
+    PreTrainedTokenizer | PreTrainedTokenizerFast,
+    TokenizerModifier,
+]:
+    """Load the tokenizer and modify it if necessary."""
+    tokenizer = load_tokenizer(
+        pretrained_model_name_or_path=main_config.language_model.pretrained_model_name_or_path,
+        tokenizer_config=main_config.tokenizer,
+        logger=logger,
+        verbosity=main_config.verbosity,
+    )
+    tokenizer_modifier = get_tokenizer_modifier(
+        tokenizer_modifier_config=main_config.language_model.tokenizer_modifier,
+        verbosity=main_config.verbosity,
+        logger=logger,
+    )
+
+    tokenizer_modified = tokenizer_modifier.modify_tokenizer(
+        tokenizer=tokenizer,
+    )
+
+    return tokenizer_modified, tokenizer_modifier
