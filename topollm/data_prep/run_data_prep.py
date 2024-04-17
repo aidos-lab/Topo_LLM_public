@@ -70,20 +70,19 @@ def load_pickle_files(
 ) -> list:
     """Load pickle files stored in the respective directory."""
     data = []
-    chunk_list = []
-
-    for i in range(len(os.listdir(meta_path))):
-        chunk_list.append(f"chunk_{str(i).zfill(5)}.pkl")
+    chunk_list = [f"chunk_{str(i).zfill(5)}.pkl" for i in range(len(os.listdir(meta_path)))]
 
     for filename in chunk_list:
         if filename.endswith(".pkl"):
-            filepath = os.path.join(
+            filepath = pathlib.Path(
                 meta_path,
                 filename,
             )
             with open(filepath, "rb") as f:
                 chunk = pickle.load(f)
-                data.append(chunk)
+                data.append(
+                    chunk,
+                )
 
     return data
 
@@ -107,8 +106,6 @@ def main(
     config: omegaconf.DictConfig,
 ) -> None:
     """Run the script."""
-    print("Running script ...")
-
     global_logger.info("Running script ...")
 
     main_config: MainConfig = initialize_configuration(

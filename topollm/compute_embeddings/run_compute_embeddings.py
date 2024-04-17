@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -27,41 +25,34 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-Create embedding vectors from dataset.
-"""
+"""Run script to create embedding vectors from dataset based on config."""
 
 import logging
+from typing import TYPE_CHECKING
 
 import hydra
 import hydra.core.hydra_config
 import omegaconf
 
-from topollm.config_classes.setup_OmegaConf import setup_OmegaConf
 from topollm.compute_embeddings.compute_and_store_embeddings import (
     compute_and_store_embeddings,
 )
-from topollm.config_classes.MainConfig import MainConfig
+from topollm.config_classes.setup_OmegaConf import setup_OmegaConf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.model_handling.get_torch_device import get_torch_device
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Globals
+if TYPE_CHECKING:
+    from topollm.config_classes.MainConfig import MainConfig
 
-# A logger for this file
+# logger for this file
 global_logger = logging.getLogger(__name__)
 
 setup_exception_logging(
     logger=global_logger,
 )
 
-# torch.set_num_threads(1)
-
 setup_OmegaConf()
-
-# END Globals
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
 @hydra.main(
@@ -73,9 +64,6 @@ def main(
     config: omegaconf.DictConfig,
 ) -> None:
     """Run the script."""
-
-    print("Running script ...")
-
     global_logger.info("Running script ...")
 
     main_config: MainConfig = initialize_configuration(
@@ -95,8 +83,6 @@ def main(
     )
 
     global_logger.info("Running script DONE")
-
-    return
 
 
 if __name__ == "__main__":
