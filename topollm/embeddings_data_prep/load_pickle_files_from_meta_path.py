@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -27,25 +25,34 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from pydantic import Field
+"""Load pickle files from a given directory."""
 
-from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
-from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
+import os
+import pathlib
+import pickle
 
 
-class TransformationsConfig(ConfigBaseModel):
-    normalization: str = Field(
-        ...,
-        title="Normalization method.",
-        description="The normalization method.",
-    )
+def load_pickle_files_from_meta_path(
+    meta_path: os.PathLike,
+) -> list:
+    """Load pickle files stored in the respective directory."""
+    data = []
+    chunk_list = [f"chunk_{str(i).zfill(5)}.pkl" for i in range(len(os.listdir(meta_path)))]
 
-    @property
-    def transformation_config_description(
-        self,
-    ) -> str:
-        desc = f"{NAME_PREFIXES['normalization']}"
-        desc += f"{KV_SEP}"
-        desc += f"{self.normalization}"
+    for filename in chunk_list:
+        if filename.endswith(".pkl"):
+            filepath = pathlib.Path(
+                meta_path,
+                filename,
+            )
+            with pathlib.Path(filepath).open(
+                mode="rb",
+            ) as f:
+                chunk = pickle.load(  # noqa: S301 - This is a trusted source
+                    file=f,
+                )
+                data.append(
+                    chunk,
+                )
 
-        return desc
+    return data

@@ -28,8 +28,8 @@ defaults:
   - override hydra/job_logging: custom
   - _self_
 
-# data preparation
-data_prep_samples: 30000
+embeddings_data_prep:
+  num_samples: 30000
 
 seed: 1234
 verbosity: 1

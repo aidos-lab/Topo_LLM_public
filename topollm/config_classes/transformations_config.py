@@ -25,36 +25,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
-import pprint
+"""Configuration class for specifying transformations."""
 
-import omegaconf
-from hydra import compose, initialize_config_module
+from pydantic import Field
 
-from topollm.config_classes.embeddings.embeddings_config import EmbeddingsConfig
-
-logger = logging.getLogger(__name__)
+from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
+from topollm.config_classes.constants import KV_SEP, NAME_PREFIXES
 
 
-def test_hydra_with_EmbeddingsConfig() -> None:
-    with initialize_config_module(
-        version_base=None,
-        config_module="configs.embeddings",
-    ):
-        # config is relative to a module
-        cfg: omegaconf.DictConfig = compose(
-            config_name="basic_embeddings",
-            overrides=[],
-        )
+class TransformationsConfig(ConfigBaseModel):
+    """Configurations for specifying transformations."""
 
-        logger.info(f"cfg:\n" f"{pprint.pformat(cfg)}")
+    normalization: str = Field(
+        ...,
+        title="Normalization method.",
+        description="The normalization method.",
+    )
 
-        # This tests whether the configuration is valid
-        config = EmbeddingsConfig.model_validate(
-            obj=cfg,
-        )
+    @property
+    def transformation_config_description(
+        self,
+    ) -> str:
+        desc = f"{NAME_PREFIXES['normalization']}"
+        desc += f"{KV_SEP}"
+        desc += f"{self.normalization}"
 
-        logger.info(f"{type(config) = }")
-        logger.info(f"config:\n" f"{pprint.pformat(config)}")
-
-    return None
+        return desc

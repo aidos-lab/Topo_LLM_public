@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -27,10 +25,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Configuration class for specifying embeddings."""
+
 from pydantic import Field
 
 from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
-from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
+from topollm.config_classes.constants import KV_SEP, NAME_PREFIXES
 from topollm.config_classes.data.DatasetMapConfig import DatasetMapConfig
 from topollm.config_classes.embeddings.EmbeddingExtractionConfig import (
     EmbeddingExtractionConfig,
@@ -68,9 +68,11 @@ class EmbeddingsConfig(ConfigBaseModel):
     num_workers: int = Field(
         ...,
         title="Number of workers for dataloader.",
-        description=f"The number of workers for dataloader. "
-        f"Note that is appears to be necessary "
-        f"to set this to 0 for the 'mps' backend to work.",
+        description=(
+            "The number of workers for dataloader. "
+            "Note that is appears to be necessary "
+            "to set this to 0 for the 'mps' backend to work."
+        ),
     )
 
     @property

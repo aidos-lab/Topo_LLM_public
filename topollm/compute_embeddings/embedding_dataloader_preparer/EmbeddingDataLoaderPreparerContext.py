@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -27,14 +25,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Context for preparing dataloaders."""
+
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Callable
 
 from transformers import PreTrainedTokenizer, PreTrainedTokenizerFast
 
 from topollm.config_classes.data.DataConfig import DataConfig
-from topollm.config_classes.embeddings.EmbeddingsConfig import EmbeddingsConfig
+from topollm.config_classes.embeddings.embeddings_config import EmbeddingsConfig
 from topollm.config_classes.tokenizer.TokenizerConfig import TokenizerConfig
 
 

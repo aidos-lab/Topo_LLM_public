@@ -42,50 +42,25 @@ significantly lower than the specified sample size
 import logging
 import os
 import pathlib
-import pickle
-from typing import TYPE_CHECKING
 
 import hydra
 import hydra.core.hydra_config
 import numpy as np
 import omegaconf
 import pandas as pd
+import torch
 import transformers
 import zarr
 
+from topollm.config_classes.MainConfig import MainConfig
 from topollm.config_classes.setup_OmegaConf import setup_OmegaConf
+from topollm.embeddings_data_prep.load_pickle_files_from_meta_path import load_pickle_files_from_meta_path
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.model_handling.get_torch_device import get_torch_device
 from topollm.path_management.embeddings.EmbeddingsPathManagerFactory import (
     get_embeddings_path_manager,
 )
-
-if TYPE_CHECKING:
-    from topollm.config_classes.MainConfig import MainConfig
-
-
-def load_pickle_files(
-    meta_path: os.PathLike,
-) -> list:
-    """Load pickle files stored in the respective directory."""
-    data = []
-    chunk_list = [f"chunk_{str(i).zfill(5)}.pkl" for i in range(len(os.listdir(meta_path)))]
-
-    for filename in chunk_list:
-        if filename.endswith(".pkl"):
-            filepath = pathlib.Path(
-                meta_path,
-                filename,
-            )
-            with open(filepath, "rb") as f:
-                chunk = pickle.load(f)
-                data.append(
-                    chunk,
-                )
-
-    return data
-
 
 # logger for this file
 global_logger = logging.getLogger(__name__)
@@ -118,9 +93,21 @@ def main(
         logger=global_logger,
     )
 
+    data_prep_worker(
+        main_config=main_config,
+        device=device,
+        logger=global_logger,
+    )
+
+
+def data_prep_worker(
+    main_config: MainConfig,
+    device: torch.device,
+    logger: logging.Logger,
+) -> None:
     embeddings_path_manager = get_embeddings_path_manager(
         main_config=main_config,
-        logger=global_logger,
+        logger=logger,
     )
 
     # potentially adapt paths
@@ -141,13 +128,13 @@ def main(
         "pickle_chunked_metadata_storage",
     )
 
-    global_logger.info(f"{array_path = }")
+    logger.info(f"{array_path = }")
 
     if not array_path.exists():
         msg = f"{array_path = } does not exist."
         raise FileNotFoundError(msg)
 
-    global_logger.info(f"{meta_path = }")
+    logger.info(f"{meta_path = }")
 
     if not meta_path.exists():
         msg = f"{meta_path = } does not exist."
@@ -181,17 +168,17 @@ def main(
             size=meta_sample_size,
         )
 
-    # choose sample size of the arrays
-    sample_size = config.data_prep_samples
-    idx = idx[:sample_size]
+    # Sample size of the arrays
+    sample_size = main_config.embeddings_data_prep.num_samples
 
+    idx = idx[:sample_size]
     arr = arr[idx]
 
-    loaded_data = load_pickle_files(
+    loaded_data = load_pickle_files_from_meta_path(
         meta_path=meta_path,
     )
 
-    print("Loaded pickle files:", loaded_data)
+    logger.info(f"Loaded pickle files:\n{loaded_data}")
 
     input_ids = []
     for i in range(len(loaded_data)):

@@ -3,7 +3,7 @@
 # https://hydra.cc/docs/tutorials/basic/running_your_app/multi-run/
 
 PYTHON_SCRIPT_NAME="../compute_embeddings/run_compute_embeddings.py"
-PYTHON_SCRIPT_NAME_DATA_PREP="../embedding_data_prep/data_prep.py"
+PYTHON_SCRIPT_NAME_DATA_PREP="../embeddings_data_prep/run_embeddings_data_prep.py"
 
 # ==================================================== #
 # Select the parameters here
