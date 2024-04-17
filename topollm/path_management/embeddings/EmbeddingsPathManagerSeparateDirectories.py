@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -28,17 +26,18 @@
 # limitations under the License.
 
 import logging
-import os
 import pathlib
 
 from topollm.config_classes.data.DataConfig import DataConfig
-from topollm.config_classes.embeddings.EmbeddingsConfig import EmbeddingsConfig
+from topollm.config_classes.embeddings.embeddings_config import EmbeddingsConfig
 from topollm.config_classes.language_model.LanguageModelConfig import (
     LanguageModelConfig,
 )
 from topollm.config_classes.PathsConfig import PathsConfig
 from topollm.config_classes.tokenizer.TokenizerConfig import TokenizerConfig
-from topollm.config_classes.TransformationsConfig import TransformationsConfig
+from topollm.config_classes.transformations_config import TransformationsConfig
+
+logger = logging.getLogger(__name__)
 
 
 class EmbeddingsPathManagerSeparateDirectories:
@@ -51,7 +50,7 @@ class EmbeddingsPathManagerSeparateDirectories:
         transformations_config: TransformationsConfig,
         tokenizer_config: TokenizerConfig,
         verbosity: int = 1,
-        logger: logging.Logger = logging.getLogger(__name__),
+        logger: logging.Logger = logger,
     ):
         self.data_config = data_config
         self.embeddings_config = embeddings_config
@@ -72,17 +71,13 @@ class EmbeddingsPathManagerSeparateDirectories:
     def get_nested_subfolder_path(
         self,
     ) -> pathlib.Path:
-        """
-        Constructs a nested subfolder path based on specific attributes.
+        """Construct a nested subfolder path based on specific attributes.
 
-        Args:
-            include_data:
-                Whether to include the data prefix in the path.
-
-        Returns:
+        Returns
+        -------
             pathlib.Path: The constructed nested subfolder path.
-        """
 
+        """
         path = pathlib.Path(
             self.data_config.data_config_description,
             self.embeddings_config.embeddings_config_description,

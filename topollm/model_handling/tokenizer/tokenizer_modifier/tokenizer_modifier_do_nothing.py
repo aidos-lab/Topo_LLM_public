@@ -25,36 +25,40 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Modify a tokenizer by doing nothing."""
+
 import logging
-import pprint
 
-import omegaconf
-from hydra import compose, initialize_config_module
-
-from topollm.config_classes.embeddings.embeddings_config import EmbeddingsConfig
+from transformers import PreTrainedModel, PreTrainedTokenizer, PreTrainedTokenizerFast
 
 logger = logging.getLogger(__name__)
 
 
-def test_hydra_with_EmbeddingsConfig() -> None:
-    with initialize_config_module(
-        version_base=None,
-        config_module="configs.embeddings",
-    ):
-        # config is relative to a module
-        cfg: omegaconf.DictConfig = compose(
-            config_name="basic_embeddings",
-            overrides=[],
-        )
+class TokenizerModifierDoNothing:
+    """Modify a tokenizer by doing nothing."""
 
-        logger.info(f"cfg:\n" f"{pprint.pformat(cfg)}")
+    def __init__(
+        self,
+        verbosity: int = 1,
+        logger: logging.Logger = logger,
+    ) -> None:
+        self.verbosity = verbosity
+        self.logger = logger
 
-        # This tests whether the configuration is valid
-        config = EmbeddingsConfig.model_validate(
-            obj=cfg,
-        )
+    def modify_tokenizer(
+        self,
+        tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast,
+    ) -> PreTrainedTokenizer | PreTrainedTokenizerFast:
+        if self.verbosity >= 1:
+            self.logger.info("Returning unmodified tokenizer.")
 
-        logger.info(f"{type(config) = }")
-        logger.info(f"config:\n" f"{pprint.pformat(config)}")
+        return tokenizer
 
-    return None
+    def update_model(
+        self,
+        model: PreTrainedModel,
+    ) -> PreTrainedModel:
+        if self.verbosity >= 1:
+            self.logger.info("Returning unmodified model.")
+
+        return model

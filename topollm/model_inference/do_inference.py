@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -27,13 +25,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Run inference with a language model."""
+
 import logging
 from typing import Any
 
 import transformers
 
-from topollm.config_classes.MainConfig import MainConfig
 from topollm.config_classes.enums import LMmode
+from topollm.config_classes.MainConfig import MainConfig
 from topollm.model_handling.get_torch_device import get_torch_device
 from topollm.model_handling.model.load_model import load_model
 from topollm.model_handling.tokenizer.load_tokenizer import load_tokenizer
@@ -46,13 +46,16 @@ from topollm.model_inference.default_prompts import (
 )
 from topollm.model_inference.masked_language_modeling.do_fill_mask import do_fill_mask
 
+logger = logging.getLogger(__name__)
+
 
 def do_inference(
     main_config: MainConfig,
     prompts: list[str] | None = None,
-    logger: logging.Logger = logging.getLogger(__name__),
+    logger: logging.Logger = logger,
 ) -> list[list[str]] | Any:
-    """
+    """Run inference with a language model.
+
     If `prompts` is `None`, default prompts are used.
     Make sure to not accidentally use an empty list as the default argument.
     """
@@ -88,7 +91,8 @@ def do_inference(
     elif lm_mode == LMmode.CLM:
         model_loading_class = transformers.AutoModelForCausalLM
     else:
-        raise ValueError(f"Invalid lm_mode: " f"{lm_mode = }")
+        msg = f"Invalid lm_mode: {lm_mode = }"
+        raise ValueError(msg)
 
     model = load_model(
         pretrained_model_name_or_path=main_config.language_model.pretrained_model_name_or_path,
@@ -128,6 +132,7 @@ def do_inference(
             logger=logger,
         )
     else:
-        raise ValueError(f"Invalid lm_mode: " f"{lm_mode = }")
+        msg = f"Invalid lm_mode: {lm_mode = }"
+        raise ValueError(msg)
 
     return results

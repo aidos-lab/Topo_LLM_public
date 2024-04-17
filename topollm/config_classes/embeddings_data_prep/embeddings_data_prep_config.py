@@ -25,36 +25,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
-import pprint
+"""Configuration class for embedding data preparation."""
 
-import omegaconf
-from hydra import compose, initialize_config_module
+from pydantic import Field
 
-from topollm.config_classes.embeddings.embeddings_config import EmbeddingsConfig
-
-logger = logging.getLogger(__name__)
+from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
 
 
-def test_hydra_with_EmbeddingsConfig() -> None:
-    with initialize_config_module(
-        version_base=None,
-        config_module="configs.embeddings",
-    ):
-        # config is relative to a module
-        cfg: omegaconf.DictConfig = compose(
-            config_name="basic_embeddings",
-            overrides=[],
-        )
+class EmbeddingsDataPrepConfig(ConfigBaseModel):
+    """Configurations for specifying data preparation."""
 
-        logger.info(f"cfg:\n" f"{pprint.pformat(cfg)}")
-
-        # This tests whether the configuration is valid
-        config = EmbeddingsConfig.model_validate(
-            obj=cfg,
-        )
-
-        logger.info(f"{type(config) = }")
-        logger.info(f"config:\n" f"{pprint.pformat(config)}")
-
-    return None
+    num_samples: int = Field(
+        default=30_000,
+        title="Number of samples.",
+        description="The number of samples to be extracted.",
+    )

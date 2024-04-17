@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -42,7 +40,7 @@ from topollm.config_classes.data.DatasetMapConfig import DatasetMapConfig
 from topollm.config_classes.embeddings.EmbeddingExtractionConfig import (
     EmbeddingExtractionConfig,
 )
-from topollm.config_classes.embeddings.EmbeddingsConfig import EmbeddingsConfig
+from topollm.config_classes.embeddings.embeddings_config import EmbeddingsConfig
 from topollm.config_classes.enums import (
     AggregationType,
     ArrayStorageType,
@@ -68,7 +66,7 @@ from topollm.config_classes.MainConfig import MainConfig
 from topollm.config_classes.PathsConfig import PathsConfig
 from topollm.config_classes.StorageConfig import StorageConfig
 from topollm.config_classes.tokenizer.TokenizerConfig import TokenizerConfig
-from topollm.config_classes.TransformationsConfig import TransformationsConfig
+from topollm.config_classes.transformations_config import TransformationsConfig
 from topollm.model_handling.tokenizer.load_tokenizer import load_tokenizer
 from topollm.path_management.embeddings.EmbeddingsPathManagerSeparateDirectories import (
     EmbeddingsPathManagerSeparateDirectories,
@@ -80,14 +78,7 @@ from topollm.path_management.finetuning.FinetuningPathManagerProtocol import (
     FinetuningPathManager,
 )
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Configuration of the logging module
-
 logger = logging.getLogger(__name__)
-
-# END Configuration of the logging module
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # START Configuration of pytest
@@ -160,9 +151,7 @@ def repository_base_path() -> pathlib.Path:
     )
 
     if topo_llm_repository_base_path is None:
-        raise ValueError(
-            f"The 'TOPO_LLM_REPOSITORY_BASE_PATH' " f"environment variable is not set."
-        )
+        raise ValueError(f"The 'TOPO_LLM_REPOSITORY_BASE_PATH' " f"environment variable is not set.")
 
     path = pathlib.Path(
         topo_llm_repository_base_path,
@@ -458,9 +447,7 @@ def finetuning_config(
 )
 def device_fixture() -> torch.device:
     device = torch.device(
-        "cuda"
-        if torch.cuda.is_available()
-        else "mps" if torch.backends.mps.is_available() else "cpu"
+        "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
     )
 
     return device

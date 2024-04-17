@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -27,39 +25,47 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Factory for tokenizer modifier."""
+
 import logging
 
-import topollm.model_handling.tokenizer.tokenizer_modifier.TokenizerModifierAddPaddingToken as TokenizerModifierAddPaddingToken
-import topollm.model_handling.tokenizer.tokenizer_modifier.TokenizerModifierDoNothing as TokenizerModifierDoNothing
-import topollm.model_handling.tokenizer.tokenizer_modifier.TokenizerModifierProtocol as TokenizerModifierProtocol
 from topollm.config_classes.enums import TokenizerModifierMode
 from topollm.config_classes.finetuning.TokenizerModifierConfig import (
     TokenizerModifierConfig,
 )
+from topollm.model_handling.tokenizer.tokenizer_modifier import (
+    protocol,
+    tokenizer_modifier_add_padding_token,
+    tokenizer_modifier_do_nothing,
+)
+
+logger = logging.getLogger(__name__)
 
 
 def get_tokenizer_modifier(
     tokenizer_modifier_config: TokenizerModifierConfig,
     verbosity: int = 1,
-    logger: logging.Logger = logging.getLogger(__name__),
-) -> TokenizerModifierProtocol.TokenizerModifier:
+    logger: logging.Logger = logger,
+) -> protocol.TokenizerModifier:
+    """Get the tokenizer modifier based on the configuration."""
     mode: TokenizerModifierMode = tokenizer_modifier_config.mode
 
     if verbosity >= 1:
         logger.info(f"{mode = }")
 
     if mode == TokenizerModifierMode.DO_NOTHING:
-        modifier = TokenizerModifierDoNothing.TokenizerModifierDoNothing(
+        modifier = tokenizer_modifier_do_nothing.TokenizerModifierDoNothing(
             verbosity=verbosity,
             logger=logger,
         )
     elif mode == TokenizerModifierMode.ADD_PADDING_TOKEN:
-        modifier = TokenizerModifierAddPaddingToken.TokenizerModifierAddPaddingToken(
+        modifier = tokenizer_modifier_add_padding_token.TokenizerModifierAddPaddingToken(
             padding_token=tokenizer_modifier_config.padding_token,
             verbosity=verbosity,
             logger=logger,
         )
     else:
-        raise ValueError(f"Unknown " f"{mode = }")
+        msg = f"Unknown {mode = }"
+        raise ValueError(msg)
 
     return modifier

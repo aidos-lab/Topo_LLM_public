@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -27,11 +25,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Main configuration for all scripts."""
+
 from pydantic import Field
 
 from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
 from topollm.config_classes.data.DataConfig import DataConfig
-from topollm.config_classes.embeddings.EmbeddingsConfig import EmbeddingsConfig
+from topollm.config_classes.embeddings.embeddings_config import EmbeddingsConfig
+from topollm.config_classes.embeddings_data_prep.embeddings_data_prep_config import EmbeddingsDataPrepConfig
 from topollm.config_classes.enums import PreferredTorchBackend
 from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
 from topollm.config_classes.inference.InferenceConfig import InferenceConfig
@@ -41,24 +42,22 @@ from topollm.config_classes.language_model.LanguageModelConfig import (
 from topollm.config_classes.PathsConfig import PathsConfig
 from topollm.config_classes.StorageConfig import StorageConfig
 from topollm.config_classes.tokenizer.TokenizerConfig import TokenizerConfig
-from topollm.config_classes.TransformationsConfig import TransformationsConfig
-
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Globals
-
-# END Globals
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+from topollm.config_classes.transformations_config import TransformationsConfig
 
 
 class MainConfig(ConfigBaseModel):
-    """
-    Master configuration for computing embeddings.
-    """
+    """Main configuration for all scripts."""
 
     data: DataConfig = Field(
         ...,
         title="Data configuration.",
         description="The configuration for specifying data.",
+    )
+
+    embeddings_data_prep: EmbeddingsDataPrepConfig = Field(
+        ...,
+        title="Embeddings data preparation configuration.",
+        description="The configuration for specifying embeddings data preparation.",
     )
 
     embeddings: EmbeddingsConfig = Field(

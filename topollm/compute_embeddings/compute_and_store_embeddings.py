@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -27,17 +25,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Worker module to compute embedding vectors and store them to disk."""
+
 import logging
 from functools import partial
 
 import torch
-import transformers
 
 from topollm.compute_embeddings.collate_batch_for_embedding import (
     collate_batch_and_move_to_device,
-)
-from topollm.compute_embeddings.embedding_extractor.EmbeddingExtractorFactory import (
-    get_embedding_extractor,
 )
 from topollm.compute_embeddings.embedding_dataloader_preparer.EmbeddingDataLoaderPreparerContext import (
     EmbeddingDataLoaderPreparerContext,
@@ -45,18 +41,18 @@ from topollm.compute_embeddings.embedding_dataloader_preparer.EmbeddingDataLoade
 from topollm.compute_embeddings.embedding_dataloader_preparer.EmbeddingDataLoaderPreparerFactory import (
     get_embedding_dataloader_preparer,
 )
+from topollm.compute_embeddings.embedding_extractor.EmbeddingExtractorFactory import (
+    get_embedding_extractor,
+)
 from topollm.compute_embeddings.TokenLevelEmbeddingDataHandler import (
     TokenLevelEmbeddingDataHandler,
 )
 from topollm.config_classes.MainConfig import MainConfig
-from topollm.model_handling.tokenizer.tokenizer_modifier.TokenizerModifierFactory import (
-    get_tokenizer_modifier,
-)
+from topollm.model_handling.model.load_model import load_model
+from topollm.model_handling.tokenizer.load_tokenizer import load_modified_tokenizer
 from topollm.path_management.embeddings.EmbeddingsPathManagerFactory import (
     get_embeddings_path_manager,
 )
-from topollm.model_handling.model.load_model import load_model
-from topollm.model_handling.tokenizer.load_tokenizer import load_tokenizer
 from topollm.storage.StorageDataclasses import ArrayProperties
 from topollm.storage.StorageFactory import (
     StorageFactory,
@@ -64,46 +60,34 @@ from topollm.storage.StorageFactory import (
     StorageSpecification,
 )
 
+logger = logging.getLogger(__name__)
+
 
 def compute_and_store_embeddings(
     main_config: MainConfig,
     device: torch.device,
-    logger: logging.Logger = logging.getLogger(__name__),
+    logger: logging.Logger = logger,
 ) -> None:
-    tokenizer = load_tokenizer(
-        pretrained_model_name_or_path=main_config.language_model.pretrained_model_name_or_path,
-        tokenizer_config=main_config.tokenizer,
+    """Compute and store embedding vectors."""
+    tokenizer, tokenizer_modifier = load_modified_tokenizer(
+        main_config=main_config,
         logger=logger,
-        verbosity=main_config.verbosity,
     )
+
+    # Logging of the model happens in the 'load_model' function
     model = load_model(
         pretrained_model_name_or_path=main_config.language_model.pretrained_model_name_or_path,
         device=device,
         logger=logger,
         verbosity=main_config.verbosity,
     )
-    # Logging of the model happens in the 'load_model' function
 
-    # # # #
     # Put the model in evaluation mode.
     # For example, dropout layers behave differently during evaluation.
     model.eval()
 
-    # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-    # Potential modification of the tokenizer
-    # (and the model if this is necessary for compatibility).
-    # For instance, for some autoregressive models, the tokenizer
-    # needs to be modified to add a padding token.
-
-    tokenizer_modifier = get_tokenizer_modifier(
-        tokenizer_modifier_config=main_config.language_model.tokenizer_modifier,
-        verbosity=main_config.verbosity,
-        logger=logger,
-    )
-
-    tokenizer = tokenizer_modifier.modify_tokenizer(
-        tokenizer=tokenizer,
-    )
+    # Potential modification of the tokenizer and the model if this is necessary for compatibility.
+    # For instance, for some autoregressive models, the tokenizer needs to be modified to add a padding token.
     model = tokenizer_modifier.update_model(
         model=model,
     )
@@ -113,10 +97,11 @@ def compute_and_store_embeddings(
         model,
         "config",
     ):
-        raise ValueError(
-            "The model object does not have an attribute 'model_config'."
-            " This is necessary to access the hidden size of the model."
+        msg = (
+            "The model object does not have an attribute 'model_config', "
+            "which is necessary to access the hidden size of the model."
         )
+        raise ValueError(msg)
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Prepare data collator
@@ -140,18 +125,20 @@ def compute_and_store_embeddings(
         preparer_context=preparer_context,
     )
     dataloader = embedding_dataloader_preparer.prepare_dataloader()
-    # For debugging, you can get the first batch from the dataloader like this:
-    # example_batch = next(iter(dataloader))
 
     # Number of the sequence of dataset entries
-    N = len(embedding_dataloader_preparer)
+    number_of_sequences = len(embedding_dataloader_preparer)
     # Length of each sequence
-    S = embedding_dataloader_preparer.sequence_length
+    length_of_sequence = embedding_dataloader_preparer.sequence_length
     # Dimension of the embeddings
-    D: int = model.config.hidden_size
+    embedding_dimension: int = model.config.hidden_size
 
     array_properties = ArrayProperties(
-        shape=(N, S, D),
+        shape=(
+            number_of_sequences,
+            length_of_sequence,
+            embedding_dimension,
+        ),
         dtype="float32",
         chunks=(main_config.storage.chunk_size,),
     )
@@ -182,7 +169,7 @@ def compute_and_store_embeddings(
 
     embedding_extractor = get_embedding_extractor(
         embedding_extraction_config=main_config.embeddings.embedding_extraction,
-        model_hidden_size=D,
+        model_hidden_size=embedding_dimension,
     )
 
     data_handler = TokenLevelEmbeddingDataHandler(
@@ -194,5 +181,3 @@ def compute_and_store_embeddings(
         logger=logger,
     )
     data_handler.process_data()
-
-    return None

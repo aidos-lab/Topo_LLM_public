@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -27,34 +25,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
+"""Configuration class for specifying transformations."""
 
-from transformers import PreTrainedModel, PreTrainedTokenizer, PreTrainedTokenizerFast
+from pydantic import Field
+
+from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
+from topollm.config_classes.constants import KV_SEP, NAME_PREFIXES
 
 
-class TokenizerModifierDoNothing:
-    def __init__(
+class TransformationsConfig(ConfigBaseModel):
+    """Configurations for specifying transformations."""
+
+    normalization: str = Field(
+        ...,
+        title="Normalization method.",
+        description="The normalization method.",
+    )
+
+    @property
+    def transformation_config_description(
         self,
-        verbosity: int = 1,
-        logger: logging.Logger = logging.getLogger(__name__),
-    ) -> None:
-        self.verbosity = verbosity
-        self.logger = logger
+    ) -> str:
+        desc = f"{NAME_PREFIXES['normalization']}"
+        desc += f"{KV_SEP}"
+        desc += f"{self.normalization}"
 
-    def modify_tokenizer(
-        self,
-        tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast,
-    ) -> PreTrainedTokenizer | PreTrainedTokenizerFast:
-        if self.verbosity >= 1:
-            self.logger.info(f"Returning unmodified tokenizer.")
-
-        return tokenizer
-
-    def update_model(
-        self,
-        model: PreTrainedModel,
-    ) -> PreTrainedModel:
-        if self.verbosity >= 1:
-            self.logger.info(f"Returning unmodified model.")
-
-        return model
+        return desc

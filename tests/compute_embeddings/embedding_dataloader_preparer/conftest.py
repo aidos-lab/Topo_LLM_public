@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -46,7 +44,7 @@ from topollm.compute_embeddings.embedding_dataloader_preparer.EmbeddingDataLoade
     EmbeddingDataLoaderPreparerHuggingface,
 )
 from topollm.config_classes.data.DataConfig import DataConfig
-from topollm.config_classes.embeddings.EmbeddingsConfig import EmbeddingsConfig
+from topollm.config_classes.embeddings.embeddings_config import EmbeddingsConfig
 from topollm.config_classes.tokenizer.TokenizerConfig import TokenizerConfig
 
 

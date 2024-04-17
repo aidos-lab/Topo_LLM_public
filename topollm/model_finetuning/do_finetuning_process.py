@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -53,20 +51,23 @@ from topollm.model_finetuning.prepare_logging_dir import prepare_logging_dir
 from topollm.model_finetuning.prepare_model_input import prepare_model_input
 from topollm.model_finetuning.prepare_training_args import prepare_training_args
 from topollm.model_finetuning.save_tuned_model import save_tuned_model
-from topollm.model_handling.tokenizer.tokenizer_modifier.TokenizerModifierFactory import (
+from topollm.model_handling.tokenizer.tokenizer_modifier.factory import (
     get_tokenizer_modifier,
 )
 from topollm.path_management.finetuning.FinetuningPathManagerFactory import (
     get_finetuning_path_manager,
 )
 
+logger = logging.getLogger(__name__)
+
 
 def do_finetuning_process(
     main_config: MainConfig,
     device: torch.device,
     verbosity: int = 1,
-    logger: logging.Logger = logging.getLogger(__name__),
+    logger: logging.Logger = logger,
 ) -> None:
+    """Perform the finetuning process."""
     finetuning_config = main_config.finetuning
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -207,5 +208,3 @@ def do_finetuning_process(
         trainer=trainer,
         logger=logger,
     )
-
-    return None
