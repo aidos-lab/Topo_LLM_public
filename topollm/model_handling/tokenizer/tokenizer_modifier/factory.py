@@ -34,9 +34,9 @@ from topollm.config_classes.finetuning.TokenizerModifierConfig import (
     TokenizerModifierConfig,
 )
 from topollm.model_handling.tokenizer.tokenizer_modifier import (
-    TokenizerModifierAddPaddingToken,
-    TokenizerModifierDoNothing,
     protocol,
+    tokenizer_modifier_add_padding_token,
+    tokenizer_modifier_do_nothing,
 )
 
 logger = logging.getLogger(__name__)
@@ -54,12 +54,12 @@ def get_tokenizer_modifier(
         logger.info(f"{mode = }")
 
     if mode == TokenizerModifierMode.DO_NOTHING:
-        modifier = TokenizerModifierDoNothing.TokenizerModifierDoNothing(
+        modifier = tokenizer_modifier_do_nothing.TokenizerModifierDoNothing(
             verbosity=verbosity,
             logger=logger,
         )
     elif mode == TokenizerModifierMode.ADD_PADDING_TOKEN:
-        modifier = TokenizerModifierAddPaddingToken.TokenizerModifierAddPaddingToken(
+        modifier = tokenizer_modifier_add_padding_token.TokenizerModifierAddPaddingToken(
             padding_token=tokenizer_modifier_config.padding_token,
             verbosity=verbosity,
             logger=logger,

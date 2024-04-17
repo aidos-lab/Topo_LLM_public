@@ -137,7 +137,10 @@ def embeddings_data_prep_worker(
     )
 
     if verbosity >= 2:
-        logger.info(f"Loaded pickle files:\n{loaded_data}")
+        logger.info(
+            "Loaded pickle files",
+            extra={"loaded_data": loaded_data},
+        )
 
     input_ids = []
     for i in range(len(loaded_data)):
@@ -171,14 +174,18 @@ def embeddings_data_prep_worker(
         msg = "The padding token id is None."
         raise ValueError(msg)
 
+    # arr_no_pad.shape:
+    # (number of non-padding tokens in subsample, embedding dimension)
     arr_no_pad = np.array(
         list(full_df[(full_df["meta"] != eos_token_id) & (full_df["meta"] != pad_token_id)].arr),
     )
+    # meta_no_pad.shape:
+    # (number of non-padding tokens in subsample,)
     meta_no_pad = np.array(
         list(full_df[(full_df["meta"] != eos_token_id) & (full_df["meta"] != pad_token_id)].meta),
     )
 
-    file_name = "embeddings_token_lvl_" + str(sample_size) + "_samples_paddings_removed"
+    file_name = f"embeddings_token_lvl_{sample_size}_samples_paddings_removed"
     np.save(
         file=pathlib.Path(
             prepared_save_path,
@@ -187,7 +194,10 @@ def embeddings_data_prep_worker(
         arr=arr_no_pad,
     )
 
-    token_names_no_pad = [tokenizer.convert_ids_to_tokens(x) for x in meta_no_pad]
+    # x of type 'numpy.int64' needs to be explicitly converted to an integer,
+    # otherwise the convert_ids_to_tokens() method will raise the error:
+    # TypeError: 'numpy.int64' object is not iterable
+    token_names_no_pad = [tokenizer.convert_ids_to_tokens(int(x)) for x in meta_no_pad]
 
     meta_frame = pd.DataFrame(
         {

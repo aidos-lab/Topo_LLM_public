@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -27,16 +25,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Modify a tokenizer by doing nothing."""
+
 import logging
 
 from transformers import PreTrainedModel, PreTrainedTokenizer, PreTrainedTokenizerFast
 
+logger = logging.getLogger(__name__)
+
 
 class TokenizerModifierDoNothing:
+    """Modify a tokenizer by doing nothing."""
+
     def __init__(
         self,
         verbosity: int = 1,
-        logger: logging.Logger = logging.getLogger(__name__),
+        logger: logging.Logger = logger,
     ) -> None:
         self.verbosity = verbosity
         self.logger = logger
@@ -46,7 +50,7 @@ class TokenizerModifierDoNothing:
         tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast,
     ) -> PreTrainedTokenizer | PreTrainedTokenizerFast:
         if self.verbosity >= 1:
-            self.logger.info(f"Returning unmodified tokenizer.")
+            self.logger.info("Returning unmodified tokenizer.")
 
         return tokenizer
 
@@ -55,6 +59,6 @@ class TokenizerModifierDoNothing:
         model: PreTrainedModel,
     ) -> PreTrainedModel:
         if self.verbosity >= 1:
-            self.logger.info(f"Returning unmodified model.")
+            self.logger.info("Returning unmodified model.")
 
         return model
