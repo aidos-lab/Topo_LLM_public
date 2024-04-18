@@ -175,7 +175,11 @@ def embeddings_data_prep_worker(
             size=sample_size,
         )
     else:
-        idx = range(len(arr_no_pad))
+        idx = np.random.choice(
+            range(len(arr_no_pad)),
+            replace=False,
+            size=len(arr_no_pad),
+        )
 
     arr_no_pad = arr_no_pad[idx]
     meta_no_pad = meta_no_pad[idx]
