@@ -108,30 +108,6 @@ def embeddings_data_prep_worker(
         arr.shape[2],
     )
 
-    # choose size of a meta sample which is used to take subsets for a point-wise
-    # comparison of local estimators.
-    np.random.seed(42)
-
-    meta_sample_size = 200000
-    if meta_sample_size >= len(arr):
-        idx = np.random.choice(
-            range(len(arr)),
-            replace=False,
-            size=len(arr),
-        )
-    else:
-        idx = np.random.choice(
-            range(len(arr)),
-            replace=False,
-            size=meta_sample_size,
-        )
-
-    # Sample size of the arrays
-    sample_size = main_config.embeddings_data_prep.num_samples
-
-    idx = idx[:sample_size]
-    arr = arr[idx]
-
     loaded_data = load_pickle_files_from_meta_path(
         meta_path=meta_path,
     )
@@ -149,7 +125,7 @@ def embeddings_data_prep_worker(
     stacked_meta = np.vstack(input_ids)
     stacked_meta = stacked_meta.reshape(stacked_meta.shape[0] * stacked_meta.shape[1])
 
-    stacked_meta_sub = stacked_meta[idx]
+    stacked_meta_sub = stacked_meta
 
     full_df = pd.DataFrame(
         {
@@ -179,11 +155,35 @@ def embeddings_data_prep_worker(
     arr_no_pad = np.array(
         list(full_df[(full_df["meta"] != eos_token_id) & (full_df["meta"] != pad_token_id)].arr),
     )
+
     # meta_no_pad.shape:
     # (number of non-padding tokens in subsample,)
     meta_no_pad = np.array(
         list(full_df[(full_df["meta"] != eos_token_id) & (full_df["meta"] != pad_token_id)].meta),
     )
+    # choose size of a meta sample which is used to take subsets for a point-wise
+    # comparison of local estimators.
+    np.random.seed(42)
+
+    # Sample size of the arrays
+    sample_size = main_config.embeddings_data_prep.num_samples
+
+    if len(arr_no_pad) >= sample_size:
+        idx = np.random.choice(
+            range(len(arr_no_pad)),
+            replace=False,
+            size=sample_size,
+        )
+    else:
+        idx = range(len(arr_no_pad))
+
+    arr_no_pad = arr_no_pad[idx]
+    meta_no_pad = meta_no_pad[idx]
+
+    print("\n")
+    print(f"Actual shape of the samples produced: {arr_no_pad.shape}")
+    print(f"Expected sample size: {sample_size}")
+    print("\n")
 
     file_name = f"embeddings_token_lvl_{sample_size}_samples_paddings_removed"
     np.save(

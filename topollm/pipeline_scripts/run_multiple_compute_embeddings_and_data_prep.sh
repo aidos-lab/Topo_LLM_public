@@ -15,7 +15,8 @@ PYTHON_SCRIPT_NAME_DATA_PREP="../embeddings_data_prep/run_embeddings_data_prep.p
 DATA_LIST="wikitext"
 
 # LANGUAGE_MODEL_LIST="roberta-base,roberta-base_finetuned-on-multiwoz21_ftm-lora"
-LANGUAGE_MODEL_LIST="gpt2-medium,gpt2-medium_finetuned-on-multiwoz21_ftm-standard"
+LANGUAGE_MODEL_LIST="gpt2-medium"
+#LANGUAGE_MODEL_LIST="gpt2-medium,gpt2-medium_finetuned-on-multiwoz21_ftm-standard"
 # LANGUAGE_MODEL_LIST="roberta-base_finetuned-on-multiwoz21_ftm-standard_overfitted"
 # LANGUAGE_MODEL_LIST="bert-base-uncased,roberta-base"
 # LANGUAGE_MODEL_LIST="roberta-base"
@@ -23,9 +24,9 @@ LANGUAGE_MODEL_LIST="gpt2-medium,gpt2-medium_finetuned-on-multiwoz21_ftm-standar
 # LANGUAGE_MODEL_LIST="gpt2-medium_finetuned-on-multiwoz21_ftm-standard"
 # LANGUAGE_MODEL_LIST="roberta-base_finetuned-on-multiwoz21_ftm-standard_overfitted"
 
-# LAYER_INDICES_LIST="[-1],[-2]"
+LAYER_INDICES_LIST="[-1]"
 # LAYER_INDICES_LIST="[-1],[-2],[-3],[-4],[-5],[-6],[-7],[-8],[-9],[-10],[-11],[-12]"
-LAYER_INDICES_LIST="[-1],[-3],[-5],[-7],[-9],[-11],[-13],[-15],[-17],[-19],[-21],[-23]"
+#LAYER_INDICES_LIST="[-1],[-3],[-5],[-7],[-9],[-11],[-13],[-15],[-17],[-19],[-21],[-23]"
 
 #EMBEDDINGS_DATA_PREP_NUM_SAMPLES="10000,20000"
 EMBEDDINGS_DATA_PREP_NUM_SAMPLES="5000,10000,15000,20000,25000,30000,50000,75000,100000"
