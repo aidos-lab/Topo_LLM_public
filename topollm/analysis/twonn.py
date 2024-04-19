@@ -81,13 +81,13 @@ def main(cfg):
     arr_no_pad = np.load(path_1)
     arr_no_pad_finetuned = np.load(path_2)
 
-    arr_no_pad = arr_no_pad[:2000]
-    arr_no_pad_finetuned = arr_no_pad_finetuned[:2000]
+    arr_no_pad = arr_no_pad[:1000]
+    arr_no_pad_finetuned = arr_no_pad_finetuned[:1000]
     # provide number of jobs for the computation
     n_jobs = 1
 
     # provide number of neighbors which are used for the computation
-    n_neighbors = 500
+    n_neighbors = 300
     print(arr_no_pad[:10])
     lPCA = skdim.id.TwoNN().fit_pw(arr_no_pad,
                                   n_neighbors = n_neighbors,

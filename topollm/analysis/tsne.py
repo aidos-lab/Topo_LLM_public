@@ -56,29 +56,31 @@ def main(cfg):
     array_name_1 = 'embeddings_' + str(cfg.embedding_level_1) + '_' + str(cfg.samples_1) + '_samples_paddings_removed.npy'
     array_name_2 = 'embeddings_' + str(cfg.embedding_level_2) + '_' + str(cfg.samples_2) + '_samples_paddings_removed.npy'
 
+    layer_1 = 'layer-['+str(cfg.layer)+']_agg-mean'
+    layer_2 = layer_1
     path_1 = pathlib.Path("..", "..", "data", "analysis", "prepared",
-                          cfg.data_name_1,
+                          cfg.data_name,
                           cfg.level_1,
                           cfg.prefix_1,
                           cfg.model_1,
-                          cfg.layer_1,
+                          layer_1,
                           cfg.norm_1,
                           cfg.array_dir_1,
                           array_name_1
                           )
 
     path_2 = pathlib.Path("..", "..", "data", "analysis", "prepared",
-                          cfg.data_name_2,
+                          cfg.data_name,
                           cfg.level_2,
                           cfg.prefix_2,
                           cfg.model_2,
-                          cfg.layer_2,
+                          layer_2,
                           cfg.norm_2,
                           cfg.array_dir_2,
                           array_name_2
                           )
-    meta_path_1 = str(path_1)[:-4] + '_meta'
-    meta_path_2 = str(path_2)[:-4] + '_meta'
+    meta_path_1 = str(path_1)[:-4] + '_meta.pkl'
+    meta_path_2 = str(path_2)[:-4] + '_meta.pkl'
 
     tokens_1 = list(pd.read_pickle(meta_path_1).token_name)
     tokens_2 = list(pd.read_pickle(meta_path_2).token_name)
@@ -88,7 +90,9 @@ def main(cfg):
 
     # provide number of components of the projection
     n_components = 2
-    vis_type = 'lpca'
+
+    # choose between vis_type "comparison", "twonn", "density", "iso", "lpca"
+    vis_type = 'comparison'
 
     dataset = pd.DataFrame({f'Column{i+1}': arr_no_pad[:,i] for i in range(arr_no_pad.shape[1])})
     dataset['class'] = 'base'
@@ -121,10 +125,7 @@ def main(cfg):
             title_name += str(cfg.model_1) + ' vs. ' + str(cfg.model_2) + '_'
         elif cfg.model_1 == cfg.model_2:
             title_name += str(cfg.model_1) + '_'
-        if cfg.data_name_1 != cfg.data_name_2:
-            title_name += str(cfg.data_name_1) + ' vs. ' + str(cfg.data_name_2)
-        elif cfg.data_name_1 == cfg.data_name_2:
-            title_name += str(cfg.data_name_1) + ' '
+        title_name += str(cfg.data_name) + ' '
 
         if vis_type == 'comparison':
         # Create a Plotly scatter plot with text annotations for tokens
