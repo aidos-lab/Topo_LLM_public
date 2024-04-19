@@ -187,6 +187,7 @@ def embeddings_data_prep_worker(
     print("\n")
     print(f"Actual shape of the samples produced: {arr_no_pad.shape}")
     print(f"Expected sample size: {sample_size}")
+    print(meta_no_pad[:50])
     print("\n")
 
     file_name = f"embeddings_token_lvl_{sample_size}_samples_paddings_removed"

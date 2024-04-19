@@ -12,11 +12,14 @@ level_2: lvl-token
 prefix_1: add-prefix-space-False_max-len-512
 prefix_2: add-prefix-space-False_max-len-512
 
+
+#model_1: model-gpt2-medium_mask-no_masking
 model_1: model-roberta-base_mask-no_masking
-#model_2: model-roberta-base_mask-no_masking
 #model_2: model-roberta-base_finetuned-on-multiwoz21-train_context-dialogue_mask-no_masking
 #model_2: model-roberta-base_finetuned-on-sgd-train-10000_context-dialogue_mask-no_masking
-model_2: model-roberta-base_finetuned-on-multiwoz21_ftm-lora_mask-no_masking
+#model_2: model-roberta-base_finetuned-on-multiwoz21_ftm-lora_mask-no_masking
+#model_2: model-gpt2-medium_finetuned-on-multiwoz21_ftm-standard_checkpoint-2000_mask-no_masking
+model_2: model-roberta-base_finetuned-on-multiwoz21_ftm-standard_overfitted_mask-no_masking
 
 layer: -1
 
