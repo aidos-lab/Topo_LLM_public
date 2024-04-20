@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -43,9 +41,10 @@ def get_embedding_dataloader_preparer(
     dataset_type: DatasetType,
     preparer_context: EmbeddingDataLoaderPreparerContext,
 ) -> EmbeddingDataLoaderPreparer:
-    """Factory function to instantiate dataloader preparers based on the dataset type.
+    """Instantiate dataloader preparers based on the dataset type.
 
     Args:
+    ----
         dataset_type:
             The type of dataset to prepare.
         config:
@@ -54,14 +53,14 @@ def get_embedding_dataloader_preparer(
             Tokenizer object for datasets that require tokenization.
 
     Returns:
+    -------
         An instance of a DatasetPreparer subclass.
+
     """
     if dataset_type == DatasetType.HUGGINGFACE_DATASET:
         return EmbeddingDataLoaderPreparerHuggingface(
             preparer_context=preparer_context,
         )
-    # Extendable to other dataset types
-    # elif dataset_type == "unified_format":
-    #     return ImageDatasetPreparer(config)
     else:
-        raise ValueError(f"Unsupported {dataset_type = }")
+        msg = f"Unsupported {dataset_type = }"
+        raise ValueError(msg)

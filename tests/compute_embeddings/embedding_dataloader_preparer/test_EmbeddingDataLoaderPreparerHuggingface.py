@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -50,5 +48,3 @@ def test_EmbeddingDataLoaderPreparerHuggingface(
     logger_fixture.info(f"{length = }")
 
     assert length > 0
-
-    return None

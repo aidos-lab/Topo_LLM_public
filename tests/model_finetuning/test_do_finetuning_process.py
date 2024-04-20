@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -45,11 +43,8 @@ def test_do_finetuning_process(
     device_fixture: torch.device,
     logger_fixture: logging.Logger,
 ) -> None:
-
     do_finetuning_process(
         main_config=main_config,
         device=device_fixture,
         logger=logger_fixture,
     )
-
-    return None

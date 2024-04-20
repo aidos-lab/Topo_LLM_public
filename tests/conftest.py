@@ -533,6 +533,8 @@ def tokenizer(
     main_config: MainConfig,
     logger_fixture: logging.Logger,
 ) -> transformers.PreTrainedTokenizer | transformers.PreTrainedTokenizerFast:
+    # ! TODO: Add the tokenizer modifier here
+
     tokenizer = load_tokenizer(
         pretrained_model_name_or_path=main_config.language_model.pretrained_model_name_or_path,
         tokenizer_config=main_config.tokenizer,

@@ -32,10 +32,10 @@ import logging
 import pytest
 import torch
 
-from topollm.config_classes.MainConfig import MainConfig
 from topollm.compute_embeddings.compute_and_store_embeddings import (
     compute_and_store_embeddings,
 )
+from topollm.config_classes.MainConfig import MainConfig
 
 
 @pytest.mark.uses_transformers_models
@@ -50,5 +50,3 @@ def test_compute_and_store_embeddings(
         device=device_fixture,
         logger=logger_fixture,
     )
-
-    return None

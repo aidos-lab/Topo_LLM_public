@@ -30,9 +30,9 @@
 import logging
 import pprint
 
+import omegaconf
 import pytest
 from hydra import compose, initialize_config_module
-import omegaconf
 
 from topollm.config_classes.language_model.LanguageModelConfig import (
     LanguageModelConfig,
@@ -44,11 +44,9 @@ logger = logging.getLogger(__name__)
 @pytest.mark.parametrize(
     "config_name",
     [
+        "gpt2-medium",
         "roberta-base",
-        "roberta-base_finetuned-on-multiwoz21-train-5000_context-utterance_ep-3",
-        "roberta-base_finetuned-on-multiwoz21-train-5000_context-utterance_ep-5",
-        "roberta-base_finetuned-on-multiwoz21-train_context-dialogue",
-        "roberta-base_finetuned-on-multiwoz21-train-and-sgd-train_context-dialogue",
+        "roberta-base_finetuned-on-multiwoz21_ftm-standard",
     ],
 )
 def test_hydra_with_LanguageModelConfig(
