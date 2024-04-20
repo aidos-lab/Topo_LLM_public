@@ -25,18 +25,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Protocol for preparing a dataset."""
+"""Protocol for splitting a dataset."""
 
 from typing import Protocol
 
 import datasets
 
 
-class DatasetPreparer(Protocol):
-    """Protocol for preparing a dataset."""
+class DatasetSplitter(Protocol):
+    """Protocol for splitting a dataset."""
 
-    def prepare_dataset(
+    def split_dataset(
         self,
-    ) -> datasets.Dataset:
-        """Load and prepare a dataset."""
+        datasets.DatasetDict,
+    ) -> datasets.DatasetDict:
+        """Create the split or rearrange the split."""
         ...  # pragma: no cover

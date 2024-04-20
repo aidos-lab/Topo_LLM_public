@@ -25,6 +25,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Prepare a dataset from huggingface datasets."""
+
 import logging
 
 import datasets
@@ -44,6 +46,7 @@ class DatasetPreparerHuggingface:
         verbosity: int = 1,
         logger: logging.Logger = logger,
     ) -> None:
+        """Initialize the dataset preparer."""
         self.data_config = data_config
 
         self.verbosity = verbosity
@@ -81,7 +84,8 @@ class DatasetPreparerHuggingface:
 
         if self.verbosity >= 1:
             self.logger.info(
-                f"{dataset_dict = }",
+                "dataset_dict:\n%s",
+                dataset_dict,
             )
 
         if not isinstance(
@@ -109,7 +113,7 @@ class DatasetPreparerHuggingface:
 
         if self.verbosity >= 1:
             self.logger.info(
-                f"{self.dataset_length = }",
+                f"{self.dataset_length = }",  # noqa: G004 - no overhead
             )
             log_huggingface_dataset_info(
                 dataset=dataset,
