@@ -31,8 +31,8 @@ import logging
 
 from topollm.config_classes.data.DataConfig import DataConfig
 from topollm.config_classes.enums import DatasetType
-from topollm.data_handling import dataset_preparer_huggingface
-from topollm.data_handling.DatasetPreparerProtocol import DatasetPreparer
+from topollm.data_handling.dataset_preparer import dataset_preparer_huggingface
+from topollm.data_handling.protocol import DatasetPreparer
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +43,7 @@ def get_dataset_preparer(
     verbosity: int = 1,
     logger: logging.Logger = logger,
 ) -> DatasetPreparer:
-    """Factory function to instantiate dataset preparers."""
+    """Return a dataset preparer for the given dataset type."""
     if dataset_type == DatasetType.HUGGINGFACE_DATASET:
         return dataset_preparer_huggingface.DatasetPreparerHuggingface(
             data_config=data_config,

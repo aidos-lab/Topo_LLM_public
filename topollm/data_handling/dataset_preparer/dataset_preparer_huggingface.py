@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -77,7 +75,7 @@ class DatasetPreparerHuggingface:
         dataset_dict = datasets.load_dataset(
             path=self.data_config.dataset_path,
             name=self.data_config.dataset_name,
-            data_dir=self.data_config.data_dir,  # type: ignore
+            data_dir=self.data_config.data_dir,  # type: ignore - type annotation for path
             trust_remote_code=True,
         )
 

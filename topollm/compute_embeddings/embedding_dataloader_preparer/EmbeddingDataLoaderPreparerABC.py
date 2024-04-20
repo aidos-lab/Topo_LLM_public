@@ -35,7 +35,7 @@ from transformers import BatchEncoding, PreTrainedTokenizer, PreTrainedTokenizer
 from topollm.compute_embeddings.embedding_dataloader_preparer.EmbeddingDataLoaderPreparerContext import (
     EmbeddingDataLoaderPreparerContext,
 )
-from topollm.data_handling.dataset_preparer_huggingface import DatasetPreparerHuggingface
+from topollm.data_handling.dataset_preparer.dataset_preparer_huggingface import DatasetPreparerHuggingface
 
 
 class EmbeddingDataLoaderPreparer(ABC):
