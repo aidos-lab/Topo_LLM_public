@@ -25,6 +25,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Perform the finetuning process."""
+
 import logging
 
 import torch
@@ -54,7 +56,7 @@ from topollm.model_finetuning.save_tuned_model import save_tuned_model
 from topollm.model_handling.tokenizer.tokenizer_modifier.factory import (
     get_tokenizer_modifier,
 )
-from topollm.path_management.finetuning.FinetuningPathManagerFactory import (
+from topollm.path_management.finetuning.factory import (
     get_finetuning_path_manager,
 )
 

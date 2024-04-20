@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -30,7 +28,7 @@
 from pydantic import Field
 
 from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
-from topollm.config_classes.data.DataConfig import DataConfig
+from topollm.config_classes.data.data_config import DataConfig
 
 
 class FinetuningDatasetsConfig(ConfigBaseModel):

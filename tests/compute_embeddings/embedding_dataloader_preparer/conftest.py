@@ -43,7 +43,7 @@ from topollm.compute_embeddings.embedding_dataloader_preparer.EmbeddingDataLoade
 from topollm.compute_embeddings.embedding_dataloader_preparer.EmbeddingDataLoaderPreparerHuggingface import (
     EmbeddingDataLoaderPreparerHuggingface,
 )
-from topollm.config_classes.data.DataConfig import DataConfig
+from topollm.config_classes.data.data_config import DataConfig
 from topollm.config_classes.embeddings.embeddings_config import EmbeddingsConfig
 from topollm.config_classes.tokenizer.TokenizerConfig import TokenizerConfig
 

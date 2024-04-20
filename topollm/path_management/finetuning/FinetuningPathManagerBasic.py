@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -30,19 +28,15 @@
 import logging
 import pathlib
 
-from topollm.config_classes.constants import NAME_PREFIXES, KV_SEP, ITEM_SEP
-from topollm.config_classes.data.DataConfig import DataConfig
+from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
+from topollm.config_classes.data.data_config import DataConfig
 from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
 from topollm.config_classes.PathsConfig import PathsConfig
 from topollm.path_management.finetuning.peft.PEFTPathManagerFactory import (
     get_peft_path_manager,
 )
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Globals
-
-# END Globals
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+logger = logging.getLogger(__name__)
 
 
 class FinetuningPathManagerBasic:
@@ -124,11 +118,7 @@ class FinetuningPathManagerBasic:
     def epoch_description(
         self,
     ) -> str:
-        desc = (
-            f"{NAME_PREFIXES['epoch']}"
-            f"{KV_SEP}"
-            f"{self.finetuning_config.num_train_epochs}"
-        )
+        desc = f"{NAME_PREFIXES['epoch']}{KV_SEP}{self.finetuning_config.num_train_epochs}"
 
         return desc
 
@@ -150,12 +140,12 @@ class FinetuningPathManagerBasic:
     def logging_dir(
         self,
     ) -> pathlib.Path | None:
-        """
+        """Return the logging directory for the finetuning run.
+
         We decide to return None here,
         because this will mean the logging_dir will be handled
         by the Trainer class.
         """
-
         path = None
 
         if self.verbosity >= 1:

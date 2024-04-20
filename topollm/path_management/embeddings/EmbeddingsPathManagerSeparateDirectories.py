@@ -28,7 +28,7 @@
 import logging
 import pathlib
 
-from topollm.config_classes.data.DataConfig import DataConfig
+from topollm.config_classes.data.data_config import DataConfig
 from topollm.config_classes.embeddings.embeddings_config import EmbeddingsConfig
 from topollm.config_classes.language_model.LanguageModelConfig import (
     LanguageModelConfig,

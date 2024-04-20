@@ -29,7 +29,7 @@
 
 import logging
 
-from topollm.config_classes.data.DataConfig import DataConfig
+from topollm.config_classes.data.data_config import DataConfig
 from topollm.config_classes.enums import DatasetType
 from topollm.data_handling.dataset_preparer import dataset_preparer_huggingface
 from topollm.data_handling.protocol import DatasetPreparer

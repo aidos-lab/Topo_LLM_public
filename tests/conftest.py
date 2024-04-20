@@ -35,12 +35,13 @@ import torch
 import transformers
 from dotenv import find_dotenv, load_dotenv
 
-from topollm.config_classes.data.DataConfig import DataConfig
+from topollm.config_classes.data.data_config import DataConfig
 from topollm.config_classes.data.DatasetMapConfig import DatasetMapConfig
 from topollm.config_classes.embeddings.EmbeddingExtractionConfig import (
     EmbeddingExtractionConfig,
 )
 from topollm.config_classes.embeddings.embeddings_config import EmbeddingsConfig
+from topollm.config_classes.embeddings_data_prep.embeddings_data_prep_config import EmbeddingsDataPrepConfig
 from topollm.config_classes.enums import (
     AggregationType,
     ArrayStorageType,
@@ -51,6 +52,7 @@ from topollm.config_classes.enums import (
     MetadataStorageType,
     PreferredTorchBackend,
     Split,
+    TokenizerModifierMode,
 )
 from topollm.config_classes.finetuning.BatchSizesConfig import BatchSizesConfig
 from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
@@ -58,6 +60,7 @@ from topollm.config_classes.finetuning.FinetuningDatasetsConfig import (
     FinetuningDatasetsConfig,
 )
 from topollm.config_classes.finetuning.peft.PEFTConfig import PEFTConfig
+from topollm.config_classes.finetuning.TokenizerModifierConfig import TokenizerModifierConfig
 from topollm.config_classes.inference.InferenceConfig import InferenceConfig
 from topollm.config_classes.language_model.LanguageModelConfig import (
     LanguageModelConfig,
@@ -68,13 +71,14 @@ from topollm.config_classes.StorageConfig import StorageConfig
 from topollm.config_classes.tokenizer.TokenizerConfig import TokenizerConfig
 from topollm.config_classes.transformations_config import TransformationsConfig
 from topollm.model_handling.tokenizer.load_tokenizer import load_tokenizer
+from topollm.model_handling.tokenizer.tokenizer_modifier.protocol import TokenizerModifier
 from topollm.path_management.embeddings.EmbeddingsPathManagerSeparateDirectories import (
     EmbeddingsPathManagerSeparateDirectories,
 )
 from topollm.path_management.finetuning.FinetuningPathManagerBasic import (
     FinetuningPathManagerBasic,
 )
-from topollm.path_management.finetuning.FinetuningPathManagerProtocol import (
+from topollm.path_management.finetuning.protocol import (
     FinetuningPathManager,
 )
 
@@ -89,7 +93,8 @@ logger = logging.getLogger(__name__)
     autouse=True,
 )
 def load_env() -> None:
-    """
+    """Load the environment variables from the .test.env file.
+
     https://stackoverflow.com/questions/48211784/best-way-to-use-python-dotenv-with-pytest-or-best-way-to-have-a-pytest-test-dev
     """
     env_file = find_dotenv(".test.env")
@@ -115,16 +120,11 @@ def pytest_addoption(
         help="Keep test data after tests are done",
     )
 
-    return None
-
 
 def pytest_configure(
     config: pytest.Config,
 ) -> None:
-    """
-    Create a custom path to the log file
-    if log_file is not mentioned in pytest.ini file
-    """
+    """Create a custom path to the log file if log_file is not mentioned in pytest.ini file."""
     if not config.option.log_file:
         timestamp = datetime.strftime(
             datetime.now(),
@@ -132,8 +132,6 @@ def pytest_configure(
         )
         # Note: the doubling {{ and }} is necessary to escape the curly braces
         config.option.log_file = f"logs/pytest-logs_{timestamp}.log"
-
-    return None
 
 
 # END Configuration of pytest
@@ -151,7 +149,7 @@ def repository_base_path() -> pathlib.Path:
     )
 
     if topo_llm_repository_base_path is None:
-        raise ValueError(f"The 'TOPO_LLM_REPOSITORY_BASE_PATH' " f"environment variable is not set.")
+        raise ValueError(f"The 'TOPO_LLM_REPOSITORY_BASE_PATH' environment variable is not set.")
 
     path = pathlib.Path(
         topo_llm_repository_base_path,
@@ -256,38 +254,51 @@ def dataset_map_config() -> DatasetMapConfig:
     return config
 
 
+model_config_list_for_testing = [
+    (
+        LMmode.MLM,
+        "roberta-base",
+        "roberta-base",
+        TokenizerModifierConfig(
+            mode=TokenizerModifierMode.DO_NOTHING,
+            padding_token="<pad>",  # noqa: S106 - This is the hardcoded padding token
+        ),
+    ),
+    (
+        LMmode.MLM,
+        "bert-base-uncased",
+        "bert-base-uncased",
+        TokenizerModifierConfig(
+            mode=TokenizerModifierMode.DO_NOTHING,
+            padding_token="[PAD]",  # noqa: S106 - This is the hardcoded padding token
+        ),
+    ),
+    (
+        LMmode.CLM,
+        "gpt2-large",
+        "gpt2-large",
+        TokenizerModifierConfig(
+            mode=TokenizerModifierMode.ADD_PADDING_TOKEN,
+            padding_token="<|pad|>",  # noqa: S106 - This is the hardcoded padding token
+        ),
+    ),
+]
+
+
 @pytest.fixture(
     scope="session",
-    params=[
-        (
-            "roberta-base",
-            "roberta-base",
-            LMmode.MLM,
-        ),
-        (
-            "bert-base-uncased",
-            "bert-base-uncased",
-            LMmode.MLM,
-        ),
-        # (
-        #     "gpt2-large",
-        #     "gpt2-large",
-        #     LMmode.CLM,
-        # ),
-        # ! TODO The code does not work for causal language models yet
-        # TODO For the gpt2-large model, a padding token is missing:
-        # "ValueError: Asking to pad but the tokenizer does not have a padding token. Please select a token to use as `pad_token` `(tokenizer.pad_token = tokenizer.eos_token e.g.)` or add a new pad token..."
-    ],
+    params=model_config_list_for_testing,
 )
 def language_model_config(
     request: pytest.FixtureRequest,
 ) -> LanguageModelConfig:
-    pretrained_model_name_or_path, short_model_name, lm_mode = request.param
+    lm_mode, pretrained_model_name_or_path, short_model_name, tokenizer_modifier_config = request.param
     config = LanguageModelConfig(
+        lm_mode=lm_mode,
+        masking_mode="no_masking",
         pretrained_model_name_or_path=pretrained_model_name_or_path,
         short_model_name=short_model_name,
-        masking_mode="no_masking",
-        lm_mode=lm_mode,
+        tokenizer_modifier=tokenizer_modifier_config,
     )
 
     return config
@@ -400,24 +411,7 @@ def batch_sizes_config() -> BatchSizesConfig:
 
 @pytest.fixture(
     scope="session",
-    params=[
-        (
-            "roberta-base",
-            "roberta-base",
-            LMmode.MLM,
-        ),
-        (
-            "bert-base-uncased",
-            "bert-base-uncased",
-            LMmode.MLM,
-        ),
-        # TODO: The finetuning script is not updated for causal language models yet
-        # (
-        #     "gpt2-large",
-        #     "gpt2-large",
-        #     LMmode.CLM,
-        # ),
-    ],
+    params=model_config_list_for_testing,
 )
 def finetuning_config(
     request: pytest.FixtureRequest,
@@ -426,7 +420,7 @@ def finetuning_config(
     peft_config: PEFTConfig,
     tokenizer_config: TokenizerConfig,
 ) -> FinetuningConfig:
-    pretrained_model_name_or_path, short_model_name, lm_mode = request.param
+    lm_mode, pretrained_model_name_or_path, short_model_name, tokenizer_modifier_config = request.param
 
     config = FinetuningConfig(
         peft=peft_config,
@@ -437,6 +431,7 @@ def finetuning_config(
         pretrained_model_name_or_path=pretrained_model_name_or_path,
         short_model_name=short_model_name,
         tokenizer=tokenizer_config,
+        tokenizer_modifier=tokenizer_modifier_config,
     )
 
     return config
@@ -492,9 +487,19 @@ def transformers_config() -> TransformationsConfig:
 @pytest.fixture(
     scope="session",
 )
+def embeddings_data_prep_config() -> EmbeddingsDataPrepConfig:
+    config = EmbeddingsDataPrepConfig()
+
+    return config
+
+
+@pytest.fixture(
+    scope="session",
+)
 def main_config(
     data_config: DataConfig,
     embeddings_config: EmbeddingsConfig,
+    embeddings_data_prep_config: EmbeddingsDataPrepConfig,
     finetuning_config: FinetuningConfig,
     inference_config: InferenceConfig,
     language_model_config: LanguageModelConfig,
@@ -506,6 +511,7 @@ def main_config(
     config = MainConfig(
         data=data_config,
         embeddings=embeddings_config,
+        embeddings_data_prep=embeddings_data_prep_config,
         finetuning=finetuning_config,
         inference=inference_config,
         language_model=language_model_config,

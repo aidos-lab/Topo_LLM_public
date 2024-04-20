@@ -30,13 +30,13 @@
 import logging
 import pathlib
 
-from topollm.path_management.finetuning import FinetuningPathManagerProtocol
+from topollm.path_management.finetuning import protocol
 
 
 class TestFinetuningPathManager:
     def test_finetuned_model_dir(
         self,
-        finetuning_path_manager_basic: FinetuningPathManagerProtocol.FinetuningPathManager,
+        finetuning_path_manager_basic: protocol.FinetuningPathManager,
         logger_fixture: logging.Logger,
     ) -> None:
         result = finetuning_path_manager_basic.finetuned_model_dir
@@ -47,11 +47,9 @@ class TestFinetuningPathManager:
             pathlib.Path,
         )
 
-        return None
-
     def test_logging_dir(
         self,
-        finetuning_path_manager_basic: FinetuningPathManagerProtocol.FinetuningPathManager,
+        finetuning_path_manager_basic: protocol.FinetuningPathManager,
         logger_fixture: logging.Logger,
     ) -> None:
         result = finetuning_path_manager_basic.logging_dir
@@ -61,5 +59,3 @@ class TestFinetuningPathManager:
             result,
             pathlib.Path | None,
         )
-
-        return None

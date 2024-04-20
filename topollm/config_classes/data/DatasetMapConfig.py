@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -32,9 +30,7 @@ from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
 
 
 class DatasetMapConfig(ConfigBaseModel):
-    """
-    Configurations for specifying dataset map.
-    """
+    """Configurations for specifying dataset map."""
 
     batch_size: int = Field(
         ...,

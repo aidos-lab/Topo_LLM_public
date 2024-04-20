@@ -31,7 +31,7 @@ import logging
 
 import datasets
 
-from topollm.config_classes.data.DataConfig import DataConfig
+from topollm.config_classes.data.data_config import DataConfig
 from topollm.logging.log_dataset_info import log_huggingface_dataset_info
 
 logger = logging.getLogger(__name__)

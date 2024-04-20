@@ -55,8 +55,7 @@ class LanguageModelConfig(ConfigBaseModel):
     pretrained_model_name_or_path: str | pathlib.Path = Field(
         ...,
         title="Model identifier for huggingface transformers model.",
-        description=f"The model identifier for the huggingface transformers model "
-        f"to use for computing embeddings.",
+        description="The model identifier for the huggingface transformers model to use for computing embeddings.",
     )
 
     short_model_name: str = Field(

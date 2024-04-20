@@ -25,29 +25,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Context for preparing dataloaders."""
+"""Do nothing with the dataset dict."""
 
 import logging
-from collections.abc import Callable
-from dataclasses import dataclass, field
 
-from transformers import PreTrainedTokenizer, PreTrainedTokenizerFast
+import datasets
 
-from topollm.config_classes.data.data_config import DataConfig
-from topollm.config_classes.embeddings.embeddings_config import EmbeddingsConfig
-from topollm.config_classes.tokenizer.TokenizerConfig import TokenizerConfig
+logger = logging.getLogger(__name__)
 
 
-@dataclass
-class EmbeddingDataLoaderPreparerContext:
-    """Encapsulates the context needed for preparing dataloaders."""
+class DatasetSplitterDoNothing:
+    """Do nothing with the dataset dict."""
 
-    data_config: DataConfig
-    embeddings_config: EmbeddingsConfig
-    tokenizer_config: TokenizerConfig
-    tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast
-    collate_fn: Callable[[list], dict]
-    logger: logging.Logger = field(
-        default_factory=lambda: logging.getLogger(__name__),
-    )
-    verbosity: int = 1
+    def __init__(
+        self,
+        verbosity: int = 1,
+        logger: logging.Logger = logger,
+    ) -> None:
+        """Initialize the dataset splitter."""
+        self.verbosity = verbosity
+        self.logger = logger
+
+    def split_dataset(
+        self,
+        dataset_dict: datasets.DatasetDict,
+    ) -> datasets.DatasetDict:
+        """Return the dataset_dict unchanged."""
+        if self.verbosity >= 1:
+            self.logger.info("Returning unchanged dataset_dict.")
+        return dataset_dict

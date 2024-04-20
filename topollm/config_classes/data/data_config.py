@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -27,19 +25,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Configuration for specifying data."""
+
 import pathlib
 
 from pydantic import Field
 
 from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
-from topollm.config_classes.constants import NAME_PREFIXES, KV_SEP, ITEM_SEP
+from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
 from topollm.config_classes.enums import DatasetType, Split
 
 
 class DataConfig(ConfigBaseModel):
-    """
-    Configurations for specifying data.
-    """
+    """Configuration for specifying data."""
 
     column_name: str = Field(
         ...,
@@ -56,8 +54,7 @@ class DataConfig(ConfigBaseModel):
     dataset_description_string: str = Field(
         ...,
         title="Dataset description string.",
-        description=f"The dataset description string. "
-        f"This will be used for creating the file paths",
+        description=("The dataset description string. This will be used for creating the file paths"),
     )
 
     data_dir: pathlib.Path | None = Field(
@@ -68,8 +65,7 @@ class DataConfig(ConfigBaseModel):
     dataset_path: str = Field(
         ...,
         title="Dataset identifier for huggingface datasets.",
-        description="The dataset identifier for the huggingface datasets "
-        "to use for computing embeddings.",
+        description="The dataset identifier for the huggingface datasets to use for computing embeddings.",
     )
 
     dataset_name: str | None = Field(

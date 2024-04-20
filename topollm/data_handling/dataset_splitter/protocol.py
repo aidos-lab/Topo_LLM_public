@@ -37,7 +37,7 @@ class DatasetSplitter(Protocol):
 
     def split_dataset(
         self,
-        datasets.DatasetDict,
+        dataset_dict: datasets.DatasetDict,
     ) -> datasets.DatasetDict:
         """Create the split or rearrange the split."""
         ...  # pragma: no cover

@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -29,27 +27,23 @@
 
 import logging
 
-from topollm.config_classes.data.DataConfig import DataConfig
+from topollm.config_classes.data.data_config import DataConfig
 from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
 from topollm.config_classes.MainConfig import MainConfig
 from topollm.config_classes.PathsConfig import PathsConfig
 from topollm.path_management.finetuning.FinetuningPathManagerBasic import (
     FinetuningPathManagerBasic,
 )
-from topollm.path_management.finetuning.FinetuningPathManagerProtocol import (
+from topollm.path_management.finetuning.protocol import (
     FinetuningPathManager,
 )
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Globals
-
-# END Globals
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+logger = logging.getLogger(__name__)
 
 
 def get_finetuning_path_manager(
     main_config: MainConfig,
-    logger: logging.Logger = logging.getLogger(__name__),
+    logger: logging.Logger = logger,
 ) -> FinetuningPathManager:
     path_manger = FinetuningPathManagerBasic(
         data_config=main_config.data,

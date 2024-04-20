@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -32,6 +30,8 @@ from typing import Protocol
 
 
 class FinetuningPathManager(Protocol):
+    """Manages the paths for the finetuning process."""
+
     @property
     def finetuned_model_dir(
         self,
