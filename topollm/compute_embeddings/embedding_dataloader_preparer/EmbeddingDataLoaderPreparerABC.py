@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -37,7 +35,7 @@ from transformers import BatchEncoding, PreTrainedTokenizer, PreTrainedTokenizer
 from topollm.compute_embeddings.embedding_dataloader_preparer.EmbeddingDataLoaderPreparerContext import (
     EmbeddingDataLoaderPreparerContext,
 )
-from topollm.data_handling.HuggingfaceDatasetPreparer import HuggingfaceDatasetPreparer
+from topollm.data_handling.dataset_preparer_huggingface import DatasetPreparerHuggingface
 
 
 class EmbeddingDataLoaderPreparer(ABC):
@@ -49,13 +47,11 @@ class EmbeddingDataLoaderPreparer(ABC):
     ) -> None:
         self.preparer_context = preparer_context
 
-        self.dataset_preparer = HuggingfaceDatasetPreparer(
+        self.dataset_preparer = DatasetPreparerHuggingface(
             data_config=self.preparer_context.data_config,
             verbosity=self.preparer_context.verbosity,
             logger=self.preparer_context.logger,
         )
-
-        return None
 
     @property
     def logger(
@@ -76,10 +72,7 @@ class EmbeddingDataLoaderPreparer(ABC):
         column_name: str = "text",
         max_length: int = 512,
     ) -> BatchEncoding:
-        """
-        Convert dataset entires/examples to features
-        by tokenizing the text and padding/truncating to a maximum length.
-        """
+        """Convert dataset entires/examples to features by tokenizing the text and padding/truncating to a maximum length."""
 
         features = tokenizer(
             dataset_entry[column_name],
@@ -94,7 +87,7 @@ class EmbeddingDataLoaderPreparer(ABC):
     def prepare_dataloader(
         self,
     ) -> torch.utils.data.DataLoader:
-        """Loads a dataset and prepares a dataloader."""
+        """Load a dataset and prepare a dataloader."""
         pass  # pragma: no cover
 
     @property
@@ -102,12 +95,12 @@ class EmbeddingDataLoaderPreparer(ABC):
     def sequence_length(
         self,
     ) -> int:
-        """Returns the sequence length of the dataset."""
-        pass  # pragma: no cover
+        """Return the sequence length of the dataset."""
+        # pragma: no cover
 
     @abstractmethod
     def __len__(
         self,
     ) -> int:
-        """Returns the number of samples in the dataset."""
-        pass  # pragma: no cover
+        """Return the number of samples in the dataset."""
+        # pragma: no cover

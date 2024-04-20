@@ -7,8 +7,8 @@ PYTHON_SCRIPT_NAME="run_finetune_masked_language_model_on_huggingface_dataset.py
 # ==================================================== #
 # Select the parameters here
 
-BASE_MODEL_LIST="gpt2-medium"
-# BASE_MODEL_LIST="roberta-base"
+# BASE_MODEL_LIST="gpt2-medium"
+BASE_MODEL_LIST="roberta-base"
 # BASE_MODEL_LIST="bert-base-uncased,roberta-base"
 
 NUM_TRAIN_EPOCHS="5"
@@ -25,8 +25,8 @@ LR_SCHEDULER_TYPE="linear"
 # TODO: ValueError: Target modules {'key', 'value', 'query'} not found in the base model. Please check the target modules and try again.
 #
 # PEFT_LIST="lora"
-PEFT_LIST="standard"
-# PEFT_LIST="standard,lora"
+# PEFT_LIST="standard"
+PEFT_LIST="standard,lora"
 
 # ADDITIONAL_OVERRIDES=""
 # ADDITIONAL_OVERRIDES="finetuning.max_steps=10"

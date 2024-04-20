@@ -1,0 +1,10 @@
+defaults:
+  - subset@_here_: train_split_and_truncation
+  - _self_
+
+column_name: body
+context: dataset_entry
+dataset_description_string: one-year-of-tsla-on-reddit
+dataset_path: comments
+dataset_name: "SocialGrep/one-year-of-tsla-on-reddit"
+dataset_type: huggingface_dataset

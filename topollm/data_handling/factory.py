@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -27,43 +25,31 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
+"""Factory function to instantiate dataset preparers."""
 
-# Standard library imports
 import logging
 
-# Third party imports
-import datasets
-
-# Local imports
 from topollm.config_classes.data.DataConfig import DataConfig
 from topollm.config_classes.enums import DatasetType
-import topollm.data_handling.HuggingfaceDatasetPreparer as HuggingfaceDatasetPreparer
+from topollm.data_handling import dataset_preparer_huggingface
 from topollm.data_handling.DatasetPreparerProtocol import DatasetPreparer
-from topollm.logging.log_dataset_info import log_huggingface_dataset_info
 
-# END Imports
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+logger = logging.getLogger(__name__)
 
 
 def get_dataset_preparer(
     dataset_type: DatasetType,
     data_config: DataConfig,
     verbosity: int = 1,
-    logger: logging.Logger = logging.getLogger(__name__),
+    logger: logging.Logger = logger,
 ) -> DatasetPreparer:
-    """
-    Factory function to instantiate dataset preparers.
-    """
+    """Factory function to instantiate dataset preparers."""
     if dataset_type == DatasetType.HUGGINGFACE_DATASET:
-        return HuggingfaceDatasetPreparer.HuggingfaceDatasetPreparer(
+        return dataset_preparer_huggingface.DatasetPreparerHuggingface(
             data_config=data_config,
             verbosity=verbosity,
             logger=logger,
         )
-    # Extendable to other dataset types
-    # elif dataset_type == "unified_format":
-    #     return ImageDatasetPreparer(config)
     else:
-        raise ValueError(f"Unsupported {dataset_type = }")
+        msg = f"Unsupported {dataset_type = }"
+        raise ValueError(msg)

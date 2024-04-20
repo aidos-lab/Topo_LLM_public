@@ -31,7 +31,7 @@ import torch
 import transformers
 
 from topollm.config_classes.MainConfig import MainConfig
-from topollm.data_handling.DatasetPreparerFactory import get_dataset_preparer
+from topollm.data_handling.factory import get_dataset_preparer
 from topollm.model_finetuning.evaluate_tuned_model import evaluate_tuned_model
 from topollm.model_finetuning.finetune_model import finetune_model
 from topollm.model_finetuning.load_base_model_from_FinetuningConfig import (

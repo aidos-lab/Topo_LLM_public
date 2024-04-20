@@ -27,31 +27,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
-
-# Standard library imports
 import logging
 
-# Third party imports
 import datasets
 
-# Local imports
 from topollm.config_classes.data.DataConfig import DataConfig
 from topollm.logging.log_dataset_info import log_huggingface_dataset_info
 
-# END Imports
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+logger = logging.getLogger(__name__)
 
 
-class HuggingfaceDatasetPreparer:
+class DatasetPreparerHuggingface:
     """Prepares a dataset from huggingface datasets."""
 
     def __init__(
         self,
         data_config: DataConfig,
         verbosity: int = 1,
-        logger: logging.Logger = logging.getLogger(__name__),
+        logger: logging.Logger = logger,
     ) -> None:
         self.data_config = data_config
 
@@ -60,27 +53,27 @@ class HuggingfaceDatasetPreparer:
 
         self.dataset_length: int = -1
 
-        return None
-
     def __len__(
         self,
     ) -> int:
-        """Returns the number of samples in the dataset."""
+        """Return the number of samples in the dataset."""
         if not hasattr(
             self,
             "dataset_length",
         ):
-            raise ValueError("The dataset length is not available.")
+            msg = "The dataset length is not available."
+            raise ValueError(msg)
 
         if self.dataset_length < 0:
-            raise ValueError("The dataset length was not properly set.")
+            msg = "The dataset length was not properly set."
+            raise ValueError(msg)
 
         return self.dataset_length
 
     def load_dataset_dict(
         self,
     ) -> datasets.DatasetDict:
-        """Loads the dataset based from huggingface datasets based on configuration."""
+        """Load the dataset based from huggingface datasets based on configuration."""
         dataset_dict = datasets.load_dataset(
             path=self.data_config.dataset_path,
             name=self.data_config.dataset_name,
@@ -97,9 +90,8 @@ class HuggingfaceDatasetPreparer:
             dataset_dict,
             datasets.DatasetDict,
         ):
-            raise ValueError(
-                f"Expected {dataset_dict = } " f"to be a datasets.DatasetDict"
-            )
+            msg = f"Expected {dataset_dict = } to be a datasets.DatasetDict"
+            raise TypeError(msg)
 
         return dataset_dict
 
@@ -132,10 +124,7 @@ class HuggingfaceDatasetPreparer:
     def prepare_dataset(
         self,
     ) -> datasets.Dataset:
-        """
-        Loads and prepares a dataset.
-        """
-
+        """Load and prepare a dataset."""
         dataset_dict = self.load_dataset_dict()
 
         dataset = self.select_dataset(
