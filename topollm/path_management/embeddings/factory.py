@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -26,6 +24,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Factory for embeddings path managers."""
+
 import logging
 
 from topollm.config_classes.MainConfig import MainConfig
@@ -36,11 +36,14 @@ from topollm.path_management.embeddings.EmbeddingsPathManagerSeparateDirectories
     EmbeddingsPathManagerSeparateDirectories,
 )
 
+logger = logging.getLogger(__name__)
+
 
 def get_embeddings_path_manager(
     main_config: MainConfig,
-    logger: logging.Logger = logging.getLogger(__name__),
+    logger: logging.Logger = logger,
 ) -> EmbeddingsPathManager:
+    """Get an embeddings path manager based on the main configuration."""
     path_manger = EmbeddingsPathManagerSeparateDirectories(
         data_config=main_config.data,
         embeddings_config=main_config.embeddings,

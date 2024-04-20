@@ -70,7 +70,7 @@ from topollm.config_classes.PathsConfig import PathsConfig
 from topollm.config_classes.StorageConfig import StorageConfig
 from topollm.config_classes.tokenizer.TokenizerConfig import TokenizerConfig
 from topollm.config_classes.transformations_config import TransformationsConfig
-from topollm.model_handling.tokenizer.load_tokenizer import load_tokenizer
+from topollm.model_handling.tokenizer.load_tokenizer import load_modified_tokenizer, load_tokenizer
 from topollm.model_handling.tokenizer.tokenizer_modifier.protocol import TokenizerModifier
 from topollm.path_management.embeddings.EmbeddingsPathManagerSeparateDirectories import (
     EmbeddingsPathManagerSeparateDirectories,
@@ -533,12 +533,8 @@ def tokenizer(
     main_config: MainConfig,
     logger_fixture: logging.Logger,
 ) -> transformers.PreTrainedTokenizer | transformers.PreTrainedTokenizerFast:
-    # ! TODO: Add the tokenizer modifier here
-
-    tokenizer = load_tokenizer(
-        pretrained_model_name_or_path=main_config.language_model.pretrained_model_name_or_path,
-        tokenizer_config=main_config.tokenizer,
-        verbosity=1,
+    tokenizer, _ = load_modified_tokenizer(
+        main_config=main_config,
         logger=logger_fixture,
     )
 

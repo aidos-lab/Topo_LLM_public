@@ -50,7 +50,7 @@ from topollm.compute_embeddings.TokenLevelEmbeddingDataHandler import (
 from topollm.config_classes.MainConfig import MainConfig
 from topollm.model_handling.model.load_model import load_model
 from topollm.model_handling.tokenizer.load_tokenizer import load_modified_tokenizer
-from topollm.path_management.embeddings.EmbeddingsPathManagerFactory import (
+from topollm.path_management.embeddings.factory import (
     get_embeddings_path_manager,
 )
 from topollm.storage.StorageDataclasses import ArrayProperties
