@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -27,49 +25,33 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-Convert the split ICLR 2024 submissions data
-into huggingface datasets format.
-"""
+"""Convert the split ICLR 2024 submissions data into huggingface datasets format."""
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
-
-# Standard library imports
 import json
 import logging
 import os
 import pathlib
-from typing import IO
+from typing import IO, TYPE_CHECKING
 
-# Third party imports
 import hydra
 import hydra.core.hydra_config
 import omegaconf
 import pandas as pd
 from tqdm import tqdm
 
-# Local imports
-from topollm.config_classes.MainConfig import MainConfig
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
-from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.logging.log_list_info import log_list_info
+from topollm.logging.setup_exception_logging import setup_exception_logging
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Globals
+if TYPE_CHECKING:
+    from topollm.config_classes.main_config import MainConfig
 
-# A logger for this file
 global_logger = logging.getLogger(__name__)
 
 setup_exception_logging(
     logger=global_logger,
 )
-
-# torch.set_num_threads(1)
-
-# END Globals
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
 @hydra.main(
@@ -81,7 +63,6 @@ def main(
     config: omegaconf.DictConfig,
 ) -> None:
     """Run the script."""
-
     global_logger.info("Running script ...")
 
     main_config: MainConfig = initialize_configuration(
@@ -97,7 +78,7 @@ def main(
         logger=global_logger,
     )
 
-    return None
+    global_logger.info("Running script DONE")
 
 
 def process_dataset(
@@ -138,7 +119,7 @@ def process_dataset(
         desc="Iterating over splits",
     ):
         logger.info(f"Processing {split = } ...")
-        
+
         csv_file_path = pathlib.Path(
             dataset_load_dir,
             get_csv_file_name(
@@ -194,9 +175,7 @@ def add_additional_columns(
     dataframe_augmented = dataframe.copy()
 
     # Add additional columns
-    dataframe_augmented["text"] = (
-        dataframe_augmented["title"] + separator + dataframe_augmented["abstract"]
-    )
+    dataframe_augmented["text"] = dataframe_augmented["title"] + separator + dataframe_augmented["abstract"]
 
     return dataframe_augmented
 

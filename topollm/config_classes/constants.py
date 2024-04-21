@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -27,9 +25,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-Script for setting global variables for the config files.
-"""
+"""Script for setting global variables for the config files."""
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # START Globals

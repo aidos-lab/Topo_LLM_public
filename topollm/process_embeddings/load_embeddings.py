@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -27,36 +25,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-Load embeddings and metadata.
-"""
+"""Load embeddings and metadata."""
 
 import logging
-import os
 import pathlib
 import pickle
+from typing import TYPE_CHECKING
 
 import hydra
 import hydra.core.hydra_config
 import omegaconf
 import zarr
 
-from topollm.config_classes.MainConfig import MainConfig
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Globals
+if TYPE_CHECKING:
+    from topollm.config_classes.main_config import MainConfig
 
-# A logger for this file
+
 global_logger = logging.getLogger(__name__)
 
 setup_exception_logging(
     logger=global_logger,
 )
-
-# END Globals
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
 @hydra.main(
@@ -66,11 +58,8 @@ setup_exception_logging(
 )
 def main(
     config: omegaconf.DictConfig,
-):
+) -> None:
     """Run the script."""
-
-    print("Running script ...")
-
     global_logger.info("Running script ...")
 
     main_config: MainConfig = initialize_configuration(

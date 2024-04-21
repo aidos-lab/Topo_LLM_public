@@ -2,20 +2,21 @@
 
 # https://hydra.cc/docs/tutorials/basic/running_your_app/multi-run/
 
-PYTHON_SCRIPT_NAME="run_finetune_masked_language_model_on_huggingface_dataset.py"
+PYTHON_SCRIPT_NAME="run_finetune_language_model_on_huggingface_dataset.py"
 
 # ==================================================== #
 # Select the parameters here
 
-BASE_MODEL_LIST="gpt2-medium"
-# BASE_MODEL_LIST="roberta-base"
+# BASE_MODEL_LIST="gpt2-medium"
+BASE_MODEL_LIST="roberta-base"
 # BASE_MODEL_LIST="bert-base-uncased,roberta-base"
 
 NUM_TRAIN_EPOCHS="5"
 
 # FINETUNING_DATASETS_LIST="train_and_eval_on_bbc,train_and_eval_on_iclr_2024_submissions,train_and_eval_on_multiwoz21,train_and_eval_on_sgd,train_and_eval_on_wikitext"
 # FINETUNING_DATASETS_LIST="train_and_eval_on_iclr_2024_submissions"
-FINETUNING_DATASETS_LIST="train_and_eval_on_multiwoz21"
+# FINETUNING_DATASETS_LIST="train_and_eval_on_multiwoz21"
+FINETUNING_DATASETS_LIST="train_and_eval_on_one-year-of-tsla-on-reddit"
 
 LR_SCHEDULER_TYPE="linear"
 # LR_SCHEDULER_TYPE="constant"
@@ -25,8 +26,8 @@ LR_SCHEDULER_TYPE="linear"
 # TODO: ValueError: Target modules {'key', 'value', 'query'} not found in the base model. Please check the target modules and try again.
 #
 # PEFT_LIST="lora"
-PEFT_LIST="standard"
-# PEFT_LIST="standard,lora"
+# PEFT_LIST="standard"
+PEFT_LIST="standard,lora"
 
 # ADDITIONAL_OVERRIDES=""
 # ADDITIONAL_OVERRIDES="finetuning.max_steps=10"

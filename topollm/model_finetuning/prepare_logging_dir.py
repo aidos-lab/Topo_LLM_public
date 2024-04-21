@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -30,14 +28,16 @@
 import logging
 import os
 
-from topollm.path_management.finetuning.FinetuningPathManagerProtocol import (
+from topollm.path_management.finetuning.protocol import (
     FinetuningPathManager,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def prepare_logging_dir(
     finetuning_path_manager: FinetuningPathManager,
-    logger: logging.Logger = logging.getLogger(__name__),
+    logger: logging.Logger = logger,
 ) -> os.PathLike | None:
     logging_dir = finetuning_path_manager.logging_dir
     logger.info(f"{logging_dir = }")
@@ -49,9 +49,6 @@ def prepare_logging_dir(
             exist_ok=True,
         )
     else:
-        logger.info(
-            f"No logging directory specified. "
-            f"Using default logging from transformers.Trainer."
-        )
+        logger.info("No logging directory specified. Using default logging from transformers.Trainer.")
 
     return logging_dir

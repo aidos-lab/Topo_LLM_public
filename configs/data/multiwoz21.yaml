@@ -1,4 +1,5 @@
 defaults:
+  - data_split: do_nothing
   - subset@_here_: train_split_and_truncation
   - _self_
 

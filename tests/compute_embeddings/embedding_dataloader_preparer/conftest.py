@@ -25,6 +25,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Fixtures for the embedding dataloader preparer tests."""
+
 from functools import partial
 
 import pytest
@@ -34,18 +36,18 @@ import transformers
 from topollm.compute_embeddings.collate_batch_for_embedding import (
     collate_batch_and_move_to_device,
 )
-from topollm.compute_embeddings.embedding_dataloader_preparer.EmbeddingDataLoaderPreparerABC import (
-    EmbeddingDataLoaderPreparer,
-)
-from topollm.compute_embeddings.embedding_dataloader_preparer.EmbeddingDataLoaderPreparerContext import (
+from topollm.compute_embeddings.embedding_dataloader_preparer.embedding_dataloader_preparer_context import (
     EmbeddingDataLoaderPreparerContext,
 )
-from topollm.compute_embeddings.embedding_dataloader_preparer.EmbeddingDataLoaderPreparerHuggingface import (
+from topollm.compute_embeddings.embedding_dataloader_preparer.embedding_dataloader_preparer_huggingface import (
     EmbeddingDataLoaderPreparerHuggingface,
 )
-from topollm.config_classes.data.DataConfig import DataConfig
+from topollm.compute_embeddings.embedding_dataloader_preparer.protocol import (
+    EmbeddingDataLoaderPreparer,
+)
+from topollm.config_classes.data.data_config import DataConfig
 from topollm.config_classes.embeddings.embeddings_config import EmbeddingsConfig
-from topollm.config_classes.tokenizer.TokenizerConfig import TokenizerConfig
+from topollm.config_classes.tokenizer.tokenizer_config import TokenizerConfig
 
 
 @pytest.fixture(

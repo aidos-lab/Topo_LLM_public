@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -36,7 +34,7 @@ from transformers import PreTrainedTokenizer, PreTrainedTokenizerFast
 from tests.model_handling.parameter_lists import (
     example_pretrained_model_name_or_path_list,
 )
-from topollm.config_classes.tokenizer.TokenizerConfig import TokenizerConfig
+from topollm.config_classes.tokenizer.tokenizer_config import TokenizerConfig
 from topollm.model_handling.tokenizer.load_tokenizer import load_tokenizer
 
 
@@ -62,5 +60,3 @@ def test_load_tokenizer(
         tokenizer,
         PreTrainedTokenizer | PreTrainedTokenizerFast,
     )
-
-    return None

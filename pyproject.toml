@@ -10,7 +10,7 @@ select = ["ALL"]
 # overlap with the use of a formatter, like Black, but we can override this behavior by
 # explicitly adding the rule.
 # extend-select = ["E501"]
-ignore = ["ANN101", "RET504", "D102"]
+ignore = ["ANN101", "ANN102", "RET504", "D102"]
 
 [tool.ruff.lint.pylint]
 max-args = 7

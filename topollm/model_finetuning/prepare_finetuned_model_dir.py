@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -30,14 +28,16 @@
 import logging
 import os
 
-from topollm.path_management.finetuning.FinetuningPathManagerProtocol import (
+from topollm.path_management.finetuning.protocol import (
     FinetuningPathManager,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def prepare_finetuned_model_dir(
     finetuning_path_manager: FinetuningPathManager,
-    logger: logging.Logger = logging.getLogger(__name__),
+    logger: logging.Logger = logger,
 ) -> os.PathLike:
     finetuned_model_dir = finetuning_path_manager.finetuned_model_dir
     logger.info(f"{finetuned_model_dir = }")

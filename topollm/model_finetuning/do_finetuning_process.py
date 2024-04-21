@@ -25,22 +25,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Perform the finetuning process."""
+
 import logging
 
 import torch
 import transformers
 
-from topollm.config_classes.MainConfig import MainConfig
-from topollm.data_handling.DatasetPreparerFactory import get_dataset_preparer
+from topollm.config_classes.main_config import MainConfig
+from topollm.data_handling.dataset_preparer.factory import get_dataset_preparer
 from topollm.model_finetuning.evaluate_tuned_model import evaluate_tuned_model
 from topollm.model_finetuning.finetune_model import finetune_model
-from topollm.model_finetuning.load_base_model_from_FinetuningConfig import (
-    load_base_model_from_FinetuningConfig,
+from topollm.model_finetuning.load_base_model_from_finetuning_config import (
+    load_base_model_from_finetuning_config,
 )
-from topollm.model_finetuning.load_tokenizer_from_FinetuningConfig import (
-    load_tokenizer_from_FinetuningConfig,
+from topollm.model_finetuning.load_tokenizer_from_finetuning_config import (
+    load_tokenizer_from_finetuning_config,
 )
-from topollm.model_finetuning.model_modifiers.ModelModifierFactory import (
+from topollm.model_finetuning.model_modifiers.factory import (
     get_model_modifier,
 )
 from topollm.model_finetuning.prepare_data_collator import prepare_data_collator
@@ -54,7 +56,7 @@ from topollm.model_finetuning.save_tuned_model import save_tuned_model
 from topollm.model_handling.tokenizer.tokenizer_modifier.factory import (
     get_tokenizer_modifier,
 )
-from topollm.path_management.finetuning.FinetuningPathManagerFactory import (
+from topollm.path_management.finetuning.factory import (
     get_finetuning_path_manager,
 )
 
@@ -73,7 +75,6 @@ def do_finetuning_process(
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Load data
     train_dataset_preparer = get_dataset_preparer(
-        dataset_type=finetuning_config.finetuning_datasets.train_dataset.dataset_type,
         data_config=finetuning_config.finetuning_datasets.train_dataset,
         verbosity=main_config.verbosity,
         logger=logger,
@@ -81,7 +82,6 @@ def do_finetuning_process(
     train_dataset = train_dataset_preparer.prepare_dataset()
 
     eval_dataset_preparer = get_dataset_preparer(
-        dataset_type=finetuning_config.finetuning_datasets.eval_dataset.dataset_type,
         data_config=finetuning_config.finetuning_datasets.eval_dataset,
         verbosity=main_config.verbosity,
         logger=logger,
@@ -91,13 +91,13 @@ def do_finetuning_process(
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Load tokenizer and model
 
-    base_tokenizer = load_tokenizer_from_FinetuningConfig(
+    base_tokenizer = load_tokenizer_from_finetuning_config(
         finetuning_config=finetuning_config,
         verbosity=verbosity,
         logger=logger,
     )
 
-    base_model = load_base_model_from_FinetuningConfig(
+    base_model = load_base_model_from_finetuning_config(
         finetuning_config=finetuning_config,
         device=device,
         verbosity=verbosity,
@@ -187,8 +187,8 @@ def do_finetuning_process(
         model=modified_model,
         args=training_args,
         data_collator=data_collator,
-        train_dataset=train_dataset_mapped,  # type: ignore
-        eval_dataset=eval_dataset_mapped,  # type: ignore
+        train_dataset=train_dataset_mapped,  # type: ignore - typing issue with Dataset
+        eval_dataset=eval_dataset_mapped,  # type: ignore - typing issue with Dataset
         tokenizer=tokenizer,
     )
 

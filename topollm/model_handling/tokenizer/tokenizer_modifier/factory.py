@@ -30,7 +30,7 @@
 import logging
 
 from topollm.config_classes.enums import TokenizerModifierMode
-from topollm.config_classes.finetuning.TokenizerModifierConfig import (
+from topollm.config_classes.finetuning.tokenizer_modifier_config import (
     TokenizerModifierConfig,
 )
 from topollm.model_handling.tokenizer.tokenizer_modifier import (

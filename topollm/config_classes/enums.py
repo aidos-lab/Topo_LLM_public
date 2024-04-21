@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -27,6 +25,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Enums used in the configuration classes."""
+
 from enum import Enum, unique
 
 from strenum import StrEnum
@@ -39,10 +39,12 @@ except ImportError:
     # Run `python3 -m pip install strenum` for python < 3.11
     from strenum import StrEnum  # type: ignore
 
-assert issubclass(
+if not issubclass(
     StrEnum,
     Enum,
-), "StrEnum should be a subclass of Enum"
+):
+    msg = "StrEnum should be a subclass of Enum"
+    raise TypeError(msg)
 
 
 # ==============================
@@ -148,10 +150,9 @@ class DialogueDatasetDesc(StrEnum):  # type: ignore
 
 
 @unique
-class SplitMode(StrEnum):  # type: ignore
-    FULL = "full"
-    COLUMN = "column"
-    RANDOM = "random"
+class DataSplitMode(StrEnum):  # type: ignore
+    DO_NOTHING = "do_nothing"
+    PROPORTIONS = "proportions"
 
 
 @unique
@@ -169,17 +170,16 @@ class DatasetMode(StrEnum):  # type: ignore
 @unique
 class WordSeparationMethod(StrEnum):  # type: ignore
     # Option 1:
-    # word_separation_method = "from_tokenizer"
-    # means: use the word separation created by the tokenizer
+    # WordSeparationMethod.FROM_TOKENIZER means:
+    # Use the word separation created by the tokenizer
     # via the tokenizer.encode() method and returned word_ids.
     # Note that in that case, you have no control over the word separation.
-    #
+    FROM_TOKENIZER = "from_tokenizer"
     # Option 2:
-    # word_separation_method = "from_dataset"
-    # means: use the word separation created by the dataset
+    # WordSeparationMethod.FROM_DATASET means:
+    # Use the word separation created by the dataset
     # (for instance, the CoNLL2003 dataset comes separated into words,
     # with each word associated with a label on a separate line)
-    FROM_TOKENIZER = "from_tokenizer"
     FROM_DATASET = "from_dataset"
 
 

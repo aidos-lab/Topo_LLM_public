@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -27,21 +25,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Test the do_inference function."""
+
 import logging
 
 import pytest
 
-from topollm.config_classes.MainConfig import MainConfig
+from topollm.config_classes.main_config import MainConfig
 from topollm.model_inference.do_inference import do_inference
 
 
-@pytest.mark.uses_transformers_models
-@pytest.mark.slow
+@pytest.mark.uses_transformers_models()
+@pytest.mark.slow()
 def test_do_inference(
     main_config: MainConfig,
     logger_fixture: logging.Logger,
 ) -> None:
-
     results = do_inference(
         main_config=main_config,
         prompts=None,
@@ -49,5 +48,3 @@ def test_do_inference(
     )
 
     logger_fixture.info(f"results:\n" f"{results = }")
-
-    return None

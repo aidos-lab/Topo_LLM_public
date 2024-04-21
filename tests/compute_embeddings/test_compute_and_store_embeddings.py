@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -27,19 +25,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Test the compute_and_store_embeddings function."""
+
 import logging
 
 import pytest
 import torch
 
-from topollm.config_classes.MainConfig import MainConfig
 from topollm.compute_embeddings.compute_and_store_embeddings import (
     compute_and_store_embeddings,
 )
+from topollm.config_classes.main_config import MainConfig
 
 
-@pytest.mark.uses_transformers_models
-@pytest.mark.slow
+@pytest.mark.uses_transformers_models()
+@pytest.mark.slow()
 def test_compute_and_store_embeddings(
     main_config: MainConfig,
     device_fixture: torch.device,
@@ -50,5 +50,3 @@ def test_compute_and_store_embeddings(
         device=device_fixture,
         logger=logger_fixture,
     )
-
-    return None
