@@ -33,6 +33,8 @@ from topollm.config_classes.data.data_config import DataConfig
 from topollm.config_classes.enums import DatasetType
 from topollm.data_handling.dataset_preparer import dataset_preparer_huggingface
 from topollm.data_handling.dataset_preparer.protocol import DatasetPreparer
+from topollm.data_handling.dataset_splitter.factory import get_dataset_splitter
+from topollm.data_handling.dataset_splitter.protocol import DatasetSplitter
 
 logger = logging.getLogger(__name__)
 
@@ -44,9 +46,18 @@ def get_dataset_preparer(
     logger: logging.Logger = logger,
 ) -> DatasetPreparer:
     """Return a dataset preparer for the given dataset type."""
+    dataset_splitter: DatasetSplitter = get_dataset_splitter(
+        data_split_config=data_config.data_split_config,
+        verbosity=verbosity,
+        logger=logger,
+    )
+    if verbosity >= 1:
+        logger.info(f"Using {dataset_splitter.__class__.__name__} as dataset splitter.")
+
     if dataset_type == DatasetType.HUGGINGFACE_DATASET:
         result = dataset_preparer_huggingface.DatasetPreparerHuggingface(
             data_config=data_config,
+            dataset_splitter=dataset_splitter,
             verbosity=verbosity,
             logger=logger,
         )

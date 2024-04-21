@@ -32,6 +32,7 @@ import logging
 import datasets
 
 from topollm.config_classes.data.data_config import DataConfig
+from topollm.data_handling.dataset_splitter.protocol import DatasetSplitter
 from topollm.logging.log_dataset_info import log_huggingface_dataset_info
 
 logger = logging.getLogger(__name__)
@@ -43,11 +44,14 @@ class DatasetPreparerHuggingface:
     def __init__(
         self,
         data_config: DataConfig,
+        dataset_splitter: DatasetSplitter,
         verbosity: int = 1,
         logger: logging.Logger = logger,
     ) -> None:
         """Initialize the dataset preparer."""
         self.data_config = data_config
+
+        self.dataset_splitter = dataset_splitter
 
         self.verbosity = verbosity
         self.logger = logger
@@ -101,6 +105,8 @@ class DatasetPreparerHuggingface:
         self,
         dataset_dict: datasets.DatasetDict,
     ) -> datasets.Dataset:
+        # TODO: Include the dataset splitter here
+
         # Select the dataset split to use
         dataset: datasets.Dataset = dataset_dict[self.data_config.split]
 
