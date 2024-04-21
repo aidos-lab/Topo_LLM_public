@@ -25,10 +25,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import datetime
 import logging
 import os
 import pathlib
-from datetime import datetime
 
 import pytest
 import torch
@@ -36,8 +36,8 @@ import transformers
 from dotenv import find_dotenv, load_dotenv
 
 from topollm.config_classes.data.data_config import DataConfig
-from topollm.config_classes.data.DatasetMapConfig import DatasetMapConfig
-from topollm.config_classes.embeddings.EmbeddingExtractionConfig import (
+from topollm.config_classes.data.dataset_map_config import DatasetMapConfig
+from topollm.config_classes.embeddings.embedding_extraction_config import (
     EmbeddingExtractionConfig,
 )
 from topollm.config_classes.embeddings.embeddings_config import EmbeddingsConfig
@@ -97,7 +97,9 @@ def load_env() -> None:
 
     https://stackoverflow.com/questions/48211784/best-way-to-use-python-dotenv-with-pytest-or-best-way-to-have-a-pytest-test-dev
     """
-    env_file = find_dotenv(".test.env")
+    env_file = find_dotenv(
+        filename=".test.env",
+    )
     result = load_dotenv(
         dotenv_path=env_file,
         verbose=True,
@@ -107,8 +109,6 @@ def load_env() -> None:
         logger.info(f"Loaded environment variables " f"from {env_file = }")
     else:
         logger.warning(f"No environment variables loaded " f"from {env_file = }")
-
-    return None
 
 
 def pytest_addoption(
@@ -126,9 +126,11 @@ def pytest_configure(
 ) -> None:
     """Create a custom path to the log file if log_file is not mentioned in pytest.ini file."""
     if not config.option.log_file:
-        timestamp = datetime.strftime(
-            datetime.now(),
-            "%Y-%m-%d_%H-%M-%S",
+        timestamp = datetime.datetime.strftime(
+            datetime.datetime.now(
+                tz=datetime.timezone.utc,
+            ),
+            "%Y-%m-%d_%H-%M-%S_%Z",
         )
         # Note: the doubling {{ and }} is necessary to escape the curly braces
         config.option.log_file = f"logs/pytest-logs_{timestamp}.log"
@@ -149,7 +151,8 @@ def repository_base_path() -> pathlib.Path:
     )
 
     if topo_llm_repository_base_path is None:
-        raise ValueError(f"The 'TOPO_LLM_REPOSITORY_BASE_PATH' environment variable is not set.")
+        msg = "The 'TOPO_LLM_REPOSITORY_BASE_PATH' environment variable is not set."
+        raise ValueError(msg)
 
     path = pathlib.Path(
         topo_llm_repository_base_path,
@@ -166,7 +169,8 @@ def temp_files_dir() -> pathlib.Path:
     temp_files_dir = os.getenv("TEMP_FILES_DIR")
 
     if temp_files_dir is None:
-        raise ValueError("The 'TEMP_FILES_DIR' environment variable is not set.")
+        msg = "The 'TEMP_FILES_DIR' environment variable is not set."
+        raise ValueError(msg)
 
     path = pathlib.Path(
         temp_files_dir,
@@ -196,12 +200,12 @@ def test_data_dir(
             exist_ok=True,
         )
         return base_dir
-    else:
-        # Use pytest's tmp_path_factory for a truly temporary directory
-        return tmp_path_factory.mktemp(
-            basename="data-",
-            numbered=True,
-        )
+
+    # Use pytest's tmp_path_factory for a truly temporary directory
+    return tmp_path_factory.mktemp(
+        basename="data-",
+        numbered=True,
+    )
 
 
 @pytest.fixture(

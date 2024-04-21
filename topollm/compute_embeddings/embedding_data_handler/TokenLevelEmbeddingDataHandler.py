@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -36,28 +34,26 @@ import transformers.modeling_outputs
 from tqdm import tqdm
 from transformers import PreTrainedModel
 
-from topollm.compute_embeddings.embedding_extractor.EmbeddingExtractorProtocol import (
+from topollm.compute_embeddings.embedding_extractor.protocol import (
     EmbeddingExtractor,
 )
 from topollm.compute_embeddings.move_batch_to_cpu import move_batch_to_cpu
-from topollm.storage.metadata_storage.MetadataChunk import MetadataChunk
 from topollm.storage.array_storage.ChunkedArrayStorageProtocol import (
     ChunkedArrayStorageProtocol,
 )
 from topollm.storage.metadata_storage.ChunkedMetadataStorageProtocol import (
     ChunkedMetadataStorageProtocol,
 )
+from topollm.storage.metadata_storage.MetadataChunk import MetadataChunk
 from topollm.storage.StorageDataclasses import (
     ArrayDataChunk,
     ChunkIdentifier,
 )
 
+logger = logging.getLogger(__name__)
+
 
 class TokenLevelEmbeddingDataHandler:
-    """
-    Create a Data Handler Class with Dependency Injection
-    """
-
     def __init__(
         self,
         array_storage_backend: ChunkedArrayStorageProtocol,
@@ -65,8 +61,9 @@ class TokenLevelEmbeddingDataHandler:
         model: PreTrainedModel,
         dataloader: torch.utils.data.DataLoader,
         embedding_extractor: EmbeddingExtractor,
-        logger: logging.Logger = logging.getLogger(__name__),
+        logger: logging.Logger = logger,
     ):
+        """Create a Data Handler Class with Dependency Injection."""
         self.array_storage_backend = array_storage_backend
         self.metadata_storage_backend = metadata_storage_backend
         self.model = model
@@ -77,22 +74,18 @@ class TokenLevelEmbeddingDataHandler:
     def process_data(
         self,
     ) -> None:
-        """
-        Main method to process the data.
-        This method opens the storage and iterates over the dataloader.
+        """Process the data.
+
+        This worker method opens the storage and iterates over the dataloader.
         """
         self.open_storage()
         self.iterate_over_dataloader()
-
-        return
 
     def open_storage(
         self,
     ) -> None:
         self.array_storage_backend.open()
         self.metadata_storage_backend.open()
-
-        return
 
     def iterate_over_dataloader(
         self,
@@ -151,8 +144,6 @@ class TokenLevelEmbeddingDataHandler:
             data_chunk=metadata_data_chunk,
         )
 
-        return
-
     def get_chunk_identifier(
         self,
         batch: dict,
@@ -172,10 +163,7 @@ class TokenLevelEmbeddingDataHandler:
         self,
         batch: dict,
     ) -> np.ndarray:
-        """
-        Function for computing model outputs and extracting embeddings from a batch.
-        """
-
+        """Compute model outputs and extract embeddings from a batch."""
         model_outputs = self.compute_model_outputs_from_single_inputs(
             inputs=batch,
         )
@@ -189,10 +177,7 @@ class TokenLevelEmbeddingDataHandler:
         self,
         inputs: dict,
     ) -> transformers.modeling_outputs.BaseModelOutput:
-        """
-        Compute embeddings for the given inputs using the given model.
-        """
-
+        """Compute embeddings for the given inputs using the given model."""
         with torch.no_grad():
             # Compute embeddings.
             # The `output_hidden_states` argument needs to be set to `True`

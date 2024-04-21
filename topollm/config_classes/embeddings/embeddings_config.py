@@ -31,8 +31,8 @@ from pydantic import Field
 
 from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
 from topollm.config_classes.constants import KV_SEP, NAME_PREFIXES
-from topollm.config_classes.data.DatasetMapConfig import DatasetMapConfig
-from topollm.config_classes.embeddings.EmbeddingExtractionConfig import (
+from topollm.config_classes.data.dataset_map_config import DatasetMapConfig
+from topollm.config_classes.embeddings.embedding_extraction_config import (
     EmbeddingExtractionConfig,
 )
 from topollm.config_classes.enums import Level

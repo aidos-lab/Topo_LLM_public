@@ -5,6 +5,7 @@
 #
 # Authors:
 # Benjamin Ruppik (ruppik@hhu.de)
+# Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
 # First versions of this code were potentially generated
@@ -24,22 +25,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Configuration class for specifying data split."""
+
 from pydantic import Field
 
 from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
+from topollm.config_classes.enums import DataSplitMode
 
 
-class DatasetMapConfig(ConfigBaseModel):
-    """Configurations for specifying dataset map."""
+class DataSplitConfig(ConfigBaseModel):
+    """Configuration for specifying data split."""
 
-    batch_size: int = Field(
-        ...,
-        title="Batch size for mapping tokenization on dataset.",
-        description="The batch size for mapping tokenization on dataset.",
-    )
-
-    num_proc: int = Field(
-        ...,
-        title="Number of processes for mapping tokenization on dataset.",
-        description="The number of processes for mapping tokenization on dataset.",
+    data_split_mode: DataSplitMode = Field(
+        default=DataSplitMode.DO_NOTHING,
+        title="Data split mode.",
+        description="The mode to use for splitting the data.",
     )

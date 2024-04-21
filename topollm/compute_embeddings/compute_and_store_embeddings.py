@@ -35,17 +35,17 @@ import torch
 from topollm.compute_embeddings.collate_batch_for_embedding import (
     collate_batch_and_move_to_device,
 )
+from topollm.compute_embeddings.embedding_data_handler.TokenLevelEmbeddingDataHandler import (
+    TokenLevelEmbeddingDataHandler,
+)
 from topollm.compute_embeddings.embedding_dataloader_preparer.EmbeddingDataLoaderPreparerContext import (
     EmbeddingDataLoaderPreparerContext,
 )
 from topollm.compute_embeddings.embedding_dataloader_preparer.EmbeddingDataLoaderPreparerFactory import (
     get_embedding_dataloader_preparer,
 )
-from topollm.compute_embeddings.embedding_extractor.EmbeddingExtractorFactory import (
+from topollm.compute_embeddings.embedding_extractor.factory import (
     get_embedding_extractor,
-)
-from topollm.compute_embeddings.TokenLevelEmbeddingDataHandler import (
-    TokenLevelEmbeddingDataHandler,
 )
 from topollm.config_classes.MainConfig import MainConfig
 from topollm.model_handling.model.load_model import load_model

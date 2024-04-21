@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -38,20 +36,21 @@ class EmbeddingExtractionConfig(BaseModel):
     def embedding_extraction_config_description(
         self,
     ) -> str:
-        """
-        Get the description of the embedding extraction.
+        """Get the description of the embedding extraction.
 
-        Returns:
+        Returns
+        -------
             str: The description of the embedding extraction.
+
         """
         desc: str = (
             f"{NAME_PREFIXES['layer']}"
             f"{KV_SEP}"
-            f"{str(self.layer_indices)}"
+            f"{self.layer_indices!r}"
             f"{ITEM_SEP}"
             f"{NAME_PREFIXES['aggregation']}"
             f"{KV_SEP}"
-            f"{str(self.aggregation)}"
+            f"{self.aggregation!r}"
         )
 
         return desc

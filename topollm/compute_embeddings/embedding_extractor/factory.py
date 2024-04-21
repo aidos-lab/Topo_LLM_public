@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -24,24 +22,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from topollm.compute_embeddings.embedding_extractor.EmbeddingExtractorProtocol import (
-    EmbeddingExtractor,
-)
-from transformers.configuration_utils import PretrainedConfig
-
-from topollm.compute_embeddings.embedding_extractor.EmbeddingExtractorTokenLevel import (
+from topollm.compute_embeddings.embedding_extractor.embedding_extractor_token_level import (
     EmbeddingExtractorTokenLevel,
 )
-from topollm.compute_embeddings.embedding_extractor.LayerAggregatorConcatenate import (
+from topollm.compute_embeddings.embedding_extractor.layer_aggregator.LayerAggregatorConcatenate import (
     LayerAggregatorConcatenate,
 )
-from topollm.compute_embeddings.embedding_extractor.LayerExtractorFromIndices import (
-    LayerExtractorFromIndices,
-)
-from topollm.compute_embeddings.embedding_extractor.LayerAggregatorMean import (
+from topollm.compute_embeddings.embedding_extractor.layer_aggregator.LayerAggregatorMean import (
     LayerAggregatorMean,
 )
-from topollm.config_classes.embeddings.EmbeddingExtractionConfig import (
+from topollm.compute_embeddings.embedding_extractor.layer_extractor.LayerExtractorFromIndices import (
+    LayerExtractorFromIndices,
+)
+from topollm.compute_embeddings.embedding_extractor.protocol import (
+    EmbeddingExtractor,
+)
+from topollm.config_classes.embeddings.embedding_extraction_config import (
     EmbeddingExtractionConfig,
 )
 from topollm.config_classes.enums import AggregationType
@@ -67,9 +63,9 @@ def get_embedding_extractor(
             embedding_extraction_config.layer_indices,
         )
     else:
+        msg = f"Unknown aggregation method: {embedding_extraction_config.aggregation = }"
         raise ValueError(
-            f"Unknown aggregation method: "
-            f"{embedding_extraction_config.aggregation = }",
+            msg,
         )
 
     embedding_extractor = EmbeddingExtractorTokenLevel(
