@@ -3,7 +3,8 @@ defaults:
   - peft: standard
   # - peft: lora
   # - finetuning_datasets: train_and_eval_on_bbc
-  - finetuning_datasets: train_and_eval_on_wikitext
+  - finetuning_datasets: train_and_eval_on_one-year-of-tsla-on-reddit
+  # - finetuning_datasets: train_and_eval_on_wikitext
   - finetuning_parameters@_here_: default_parameters
   - ../tokenizer@tokenizer: basic_tokenizer
   - _self_

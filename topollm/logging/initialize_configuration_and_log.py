@@ -67,10 +67,12 @@ def log_hydra_main_config(
     logger.info(f"Working directory:\n" f"{os.getcwd() = }")
     logger.info(f"Hydra output directory:\n" f"{hydra.core.hydra_config.HydraConfig.get().runtime.output_dir}")
     logger.info(
-        f"hydra config:\n" f"{pprint.pformat(config)}",
+        "hydra config:\n%s",
+        pprint.pformat(config),
     )
     logger.info(
-        f"main_config:\n" f"{pprint.pformat(main_config)}",
+        "main_config:\n%s",
+        pprint.pformat(main_config),
     )
 
 

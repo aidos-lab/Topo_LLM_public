@@ -28,18 +28,21 @@
 """Script for fine-tuning language model on huggingface datasets."""
 
 import logging
+from typing import TYPE_CHECKING
 
 import hydra
 import hydra.core.hydra_config
 import omegaconf
 import transformers
 
-from topollm.config_classes.main_config import MainConfig
 from topollm.config_classes.setup_OmegaConf import setup_OmegaConf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.model_finetuning.do_finetuning_process import do_finetuning_process
 from topollm.model_handling.get_torch_device import get_torch_device
+
+if TYPE_CHECKING:
+    from topollm.config_classes.main_config import MainConfig
 
 global_logger = logging.getLogger(__name__)
 

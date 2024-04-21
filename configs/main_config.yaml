@@ -43,6 +43,8 @@ preferred_torch_backend: auto
 # Workaround for taking care of slashes '/' in 'hydra.job.override_dirname'
 # by adding an OmegaConf resolver 'sanitize_override_dirname':
 # https://github.com/facebookresearch/hydra/discussions/2409
+#
+# Note that %Z (for the time zone) does not appear to work in the 'now' handler function
 
 hydra:
   run:

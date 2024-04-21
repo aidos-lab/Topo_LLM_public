@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -24,15 +22,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Set up exception logging."""
+
 import logging
 import os
 import sys
 
+logger = logging.getLogger(__name__)
+
+
 def setup_exception_logging(
-    logger: logging.Logger = logging.getLogger(__name__),
+    logger: logging.Logger = logger,
 ) -> None:
-    """
-    Sets up a custom exception handler that logs uncaught exceptions using the provided logger.
+    """Set up a custom exception handler that logs uncaught exceptions using the provided logger.
 
     Args:
         logger: An instance of a logger to be used for logging exceptions.
@@ -41,7 +43,6 @@ def setup_exception_logging(
         - Sets the HYDRA_FULL_ERROR environment variable to "1".
         - Sets the sys.excepthook to a custom exception handler that logs uncaught exceptions using the provided logger.
     """
-
     # Setting this environment variable to "1" makes Hydra print the full stack trace of exceptions.
     # This is necessary to set here, because otherwise the exceptions would not be correctly logged.
     #
@@ -56,20 +57,21 @@ def setup_exception_logging(
         exc_value,
         exc_traceback,
     ):
-        """
-        Handles uncaught exceptions by logging them, except for KeyboardInterrupt.
+        """Handle uncaught exceptions by logging them, except for KeyboardInterrupt.
 
         This function is designed to be compatible with sys.excepthook.
         Thus, you should not call this function directly, but rather set it as the sys.excepthook.
         Also make sure you do not change the signature of this function, as it is called by sys.excepthook.
 
         Args:
+        ----
             exc_type:
                 The exception type.
             exc_value:
                 The exception value.
             exc_traceback:
                 The traceback object.
+
         """
         if issubclass(
             exc_type,
@@ -81,16 +83,14 @@ def setup_exception_logging(
                 exc_traceback,
             )
             return
-        else:
-            logger.critical(
-                "Uncaught exception",
-                exc_info=(
-                    exc_type,
-                    exc_value,
-                    exc_traceback,
-                ),
-            )
+
+        logger.critical(
+            "Uncaught exception",
+            exc_info=(
+                exc_type,
+                exc_value,
+                exc_traceback,
+            ),
+        )
 
     sys.excepthook = handle_exception
-
-    return None

@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -27,6 +25,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Prepare the data collator for the finetuning process."""
+
 import logging
 
 import transformers
@@ -34,13 +34,16 @@ import transformers
 from topollm.config_classes.enums import LMmode
 from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
 
+logger = logging.getLogger(__name__)
+
 
 def prepare_data_collator(
     finetuning_config: FinetuningConfig,
     tokenizer: transformers.PreTrainedTokenizerBase,
     verbosity: int = 1,
-    logger: logging.Logger = logging.getLogger(__name__),
+    logger: logging.Logger = logger,
 ):
+    """Prepare the data collator for the finetuning process."""
     lm_mode = finetuning_config.lm_mode
 
     if lm_mode == LMmode.MLM:
@@ -48,7 +51,8 @@ def prepare_data_collator(
     elif lm_mode == LMmode.CLM:
         mlm = False
     else:
-        raise ValueError(f"Unknown LMmode: " f"{lm_mode = }")
+        msg = f"Unknown {lm_mode = }"
+        raise ValueError(msg)
 
     data_collator = transformers.DataCollatorForLanguageModeling(
         tokenizer=tokenizer,
