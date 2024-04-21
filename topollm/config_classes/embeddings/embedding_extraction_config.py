@@ -46,11 +46,11 @@ class EmbeddingExtractionConfig(BaseModel):
         desc: str = (
             f"{NAME_PREFIXES['layer']}"
             f"{KV_SEP}"
-            f"{self.layer_indices!r}"
+            f"{str(self.layer_indices)}"
             f"{ITEM_SEP}"
             f"{NAME_PREFIXES['aggregation']}"
             f"{KV_SEP}"
-            f"{self.aggregation!r}"
+            f"{str(self.aggregation)}"
         )
 
         return desc

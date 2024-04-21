@@ -81,6 +81,6 @@ class EmbeddingsConfig(ConfigBaseModel):
     ) -> str:
         desc = f"{NAME_PREFIXES['level']}"
         desc += f"{KV_SEP}"
-        desc += f"{self.level}"
+        desc += f"{str(self.level)}"
 
         return desc

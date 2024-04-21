@@ -56,8 +56,8 @@ hydra:
     chdir: False
     env_set:
       # HYDRA_FULL_ERROR: 1 # NOTE: This will not work for setting the environment variable, set in code instead
-      # CUDA_VISIBLE_DEVICES: 0
-      CUDA_VISIBLE_DEVICES: 1
+      CUDA_VISIBLE_DEVICES: 0
+      # CUDA_VISIBLE_DEVICES: 1
     config:
       override_dirname:
         exclude_keys:
