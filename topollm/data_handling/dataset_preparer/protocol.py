@@ -40,3 +40,9 @@ class DatasetPreparer(Protocol):
     ) -> datasets.Dataset:
         """Load and prepare a dataset."""
         ...  # pragma: no cover
+
+    def __len__(
+        self,
+    ) -> int:
+        """Return the number of samples in the dataset."""
+        ...  # pragma: no cover

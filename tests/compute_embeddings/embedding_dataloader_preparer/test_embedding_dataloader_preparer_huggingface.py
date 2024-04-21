@@ -29,7 +29,7 @@ import logging
 
 import pytest
 
-from topollm.compute_embeddings.embedding_dataloader_preparer.EmbeddingDataLoaderPreparerHuggingface import (
+from topollm.compute_embeddings.embedding_dataloader_preparer.embedding_dataloader_preparer_huggingface import (
     EmbeddingDataLoaderPreparerHuggingface,
 )
 

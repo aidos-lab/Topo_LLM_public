@@ -25,42 +25,36 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from topollm.compute_embeddings.embedding_dataloader_preparer.EmbeddingDataLoaderPreparerABC import (
-    EmbeddingDataLoaderPreparer,
-)
-from topollm.compute_embeddings.embedding_dataloader_preparer.EmbeddingDataLoaderPreparerContext import (
+"""Factory for creating embedding dataloader preparers."""
+
+from topollm.compute_embeddings.embedding_dataloader_preparer.embedding_dataloader_preparer_context import (
     EmbeddingDataLoaderPreparerContext,
 )
-from topollm.compute_embeddings.embedding_dataloader_preparer.EmbeddingDataLoaderPreparerHuggingface import (
+from topollm.compute_embeddings.embedding_dataloader_preparer.embedding_dataloader_preparer_huggingface import (
     EmbeddingDataLoaderPreparerHuggingface,
+)
+from topollm.compute_embeddings.embedding_dataloader_preparer.protocol import (
+    EmbeddingDataLoaderPreparer,
 )
 from topollm.config_classes.enums import DatasetType
 
 
 def get_embedding_dataloader_preparer(
-    dataset_type: DatasetType,
     preparer_context: EmbeddingDataLoaderPreparerContext,
 ) -> EmbeddingDataLoaderPreparer:
     """Instantiate dataloader preparers based on the dataset type.
 
-    Args:
-    ----
-        dataset_type:
-            The type of dataset to prepare.
-        config:
-            Configuration object containing dataset and model settings.
-        tokenizer:
-            Tokenizer object for datasets that require tokenization.
-
-    Returns:
+    Returns
     -------
         An instance of a DatasetPreparer subclass.
 
     """
-    if dataset_type == DatasetType.HUGGINGFACE_DATASET:
-        return EmbeddingDataLoaderPreparerHuggingface(
+    if preparer_context.data_config.dataset_type == DatasetType.HUGGINGFACE_DATASET:
+        result = EmbeddingDataLoaderPreparerHuggingface(
             preparer_context=preparer_context,
         )
     else:
-        msg = f"Unsupported {dataset_type = }"
+        msg = f"Unsupported {preparer_context.data_config.dataset_type = }"
         raise ValueError(msg)
+
+    return result

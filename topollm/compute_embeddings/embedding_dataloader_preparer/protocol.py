@@ -32,10 +32,12 @@ import torch
 import torch.utils.data
 from transformers import BatchEncoding, PreTrainedTokenizer, PreTrainedTokenizerFast
 
-from topollm.compute_embeddings.embedding_dataloader_preparer.EmbeddingDataLoaderPreparerContext import (
+from topollm.compute_embeddings.embedding_dataloader_preparer.embedding_dataloader_preparer_context import (
     EmbeddingDataLoaderPreparerContext,
 )
 from topollm.data_handling.dataset_preparer.dataset_preparer_huggingface import DatasetPreparerHuggingface
+from topollm.data_handling.dataset_preparer.factory import get_dataset_preparer
+from topollm.data_handling.dataset_preparer.protocol import DatasetPreparer
 
 
 class EmbeddingDataLoaderPreparer(ABC):
@@ -47,7 +49,7 @@ class EmbeddingDataLoaderPreparer(ABC):
     ) -> None:
         self.preparer_context = preparer_context
 
-        self.dataset_preparer = DatasetPreparerHuggingface(
+        self.dataset_preparer: DatasetPreparer = get_dataset_preparer(
             data_config=self.preparer_context.data_config,
             verbosity=self.preparer_context.verbosity,
             logger=self.preparer_context.logger,
@@ -73,7 +75,6 @@ class EmbeddingDataLoaderPreparer(ABC):
         max_length: int = 512,
     ) -> BatchEncoding:
         """Convert dataset entires/examples to features by tokenizing the text and padding/truncating to a maximum length."""
-
         features = tokenizer(
             dataset_entry[column_name],
             max_length=max_length,

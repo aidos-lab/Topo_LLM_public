@@ -28,19 +28,21 @@
 """Factory function to instantiate dataset preparers."""
 
 import logging
+from typing import TYPE_CHECKING
 
 from topollm.config_classes.data.data_config import DataConfig
 from topollm.config_classes.enums import DatasetType
 from topollm.data_handling.dataset_preparer import dataset_preparer_huggingface
 from topollm.data_handling.dataset_preparer.protocol import DatasetPreparer
 from topollm.data_handling.dataset_splitter.factory import get_dataset_splitter
-from topollm.data_handling.dataset_splitter.protocol import DatasetSplitter
+
+if TYPE_CHECKING:
+    from topollm.data_handling.dataset_splitter.protocol import DatasetSplitter
 
 logger = logging.getLogger(__name__)
 
 
 def get_dataset_preparer(
-    dataset_type: DatasetType,
     data_config: DataConfig,
     verbosity: int = 1,
     logger: logging.Logger = logger,
@@ -54,7 +56,7 @@ def get_dataset_preparer(
     if verbosity >= 1:
         logger.info(f"Using {dataset_splitter.__class__.__name__} as dataset splitter.")
 
-    if dataset_type == DatasetType.HUGGINGFACE_DATASET:
+    if data_config.dataset_type == DatasetType.HUGGINGFACE_DATASET:
         result = dataset_preparer_huggingface.DatasetPreparerHuggingface(
             data_config=data_config,
             dataset_splitter=dataset_splitter,
@@ -62,7 +64,7 @@ def get_dataset_preparer(
             logger=logger,
         )
     else:
-        msg = f"Unsupported {dataset_type = }"
+        msg = f"Unsupported {data_config.dataset_type = }"
         raise ValueError(msg)
 
     return result

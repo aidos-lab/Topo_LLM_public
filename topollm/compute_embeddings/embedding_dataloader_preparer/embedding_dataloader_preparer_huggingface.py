@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -32,7 +30,7 @@ from functools import partial
 import datasets
 import torch.utils.data
 
-from topollm.compute_embeddings.embedding_dataloader_preparer.EmbeddingDataLoaderPreparerABC import (
+from topollm.compute_embeddings.embedding_dataloader_preparer.protocol import (
     EmbeddingDataLoaderPreparer,
 )
 from topollm.logging.log_dataset_info import log_huggingface_dataset_info
@@ -48,8 +46,7 @@ class EmbeddingDataLoaderPreparerHuggingface(EmbeddingDataLoaderPreparer):
     def __len__(
         self,
     ) -> int:
-        """Returns the number of samples in the dataset."""
-
+        """Return the number of samples in the dataset."""
         return len(self.dataset_preparer)
 
     def create_dataset_tokenized(
@@ -133,11 +130,7 @@ class EmbeddingDataLoaderPreparerHuggingface(EmbeddingDataLoaderPreparer):
     def prepare_dataloader(
         self,
     ) -> torch.utils.data.DataLoader:
-        """
-        Loads and prepares a dataset,
-        returns a dataloader.
-        """
-
+        """Load and prepare a dataset, return a dataloader."""
         dataset = self.dataset_preparer.prepare_dataset()
 
         dataset_tokenized = self.create_dataset_tokenized(
