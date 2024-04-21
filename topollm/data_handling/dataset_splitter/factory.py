@@ -50,9 +50,7 @@ def get_dataset_splitter(
         )
     elif data_split_config.data_split_mode == DataSplitMode.PROPORTIONS:
         result = dataset_splitter_proportions.DatasetSplitterProportions(
-            train_proportion=data_split_config.train_proportion,
-            validation_proportion=data_split_config.validation_proportion,
-            test_proportion=data_split_config.test_proportion,
+            proportions=data_split_config.proportions,
             verbosity=verbosity,
             logger=logger,
         )

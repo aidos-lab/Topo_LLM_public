@@ -105,10 +105,22 @@ class DatasetPreparerHuggingface:
         self,
         dataset_dict: datasets.DatasetDict,
     ) -> datasets.Dataset:
+        if self.verbosity >= 1:
+            logger.info(
+                "dataset_dict:\n%s",
+                dataset_dict,
+            )
+            logger.info("Applying dataset splitter ...")
+
         # Apply the dataset splitter to the dataset
         new_dataset_dict = self.dataset_splitter.split_dataset(
             dataset_dict=dataset_dict,
         )
+        if self.verbosity >= 1:
+            logger.info(
+                "new_dataset_dict:\n%s",
+                new_dataset_dict,
+            )
 
         # Select the dataset split to use
         dataset: datasets.Dataset = new_dataset_dict[self.data_config.split]

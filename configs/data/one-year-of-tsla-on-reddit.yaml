@@ -1,4 +1,5 @@
 defaults:
+  - data_split: proportions
   - subset@_here_: train_split_and_truncation
   - _self_
 

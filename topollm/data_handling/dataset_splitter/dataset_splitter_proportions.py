@@ -31,6 +31,8 @@ import logging
 
 import datasets
 
+from topollm.config_classes.data.data_split_config import Proportions
+
 logger = logging.getLogger(__name__)
 
 
@@ -39,16 +41,12 @@ class DatasetSplitterProportions:
 
     def __init__(
         self,
-        train_proportion: float,
-        validation_proportion: float,
-        test_proportion: float,
+        proportions: Proportions,
         verbosity: int = 1,
         logger: logging.Logger = logger,
     ) -> None:
         """Initialize the dataset splitter."""
-        self.train_proportion = train_proportion
-        self.validation_proportion = validation_proportion
-        self.test_proportion = test_proportion
+        self.proportions = proportions
 
         self.verbosity = verbosity
         self.logger = logger
@@ -64,11 +62,11 @@ class DatasetSplitterProportions:
 
         # Split the dataset into train and the rest
         train_and_rest = dataset.train_test_split(
-            test_size=self.validation_proportion + self.test_proportion,
+            test_size=self.proportions.validation + self.proportions.test,
             shuffle=False,
         )
         # Split the rest into validation and test
-        normalized_test_proportion = self.test_proportion / (self.validation_proportion + self.test_proportion)
+        normalized_test_proportion = self.proportions.test / (self.proportions.validation + self.proportions.test)
         validation_and_test = train_and_rest["test"].train_test_split(
             test_size=normalized_test_proportion,
             shuffle=False,

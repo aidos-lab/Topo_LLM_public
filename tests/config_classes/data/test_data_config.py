@@ -25,14 +25,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Test the DataConfig class."""
+
 import logging
 import pprint
+from typing import TYPE_CHECKING
 
-import omegaconf
 import pytest
 from hydra import compose, initialize
 
 from topollm.config_classes.main_config import DataConfig
+
+if TYPE_CHECKING:
+    import omegaconf
 
 logger = logging.getLogger(__name__)
 

@@ -33,6 +33,28 @@ from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
 from topollm.config_classes.enums import DataSplitMode
 
 
+class Proportions(ConfigBaseModel):
+    """Configuration for specifying proportions."""
+
+    train: float = Field(
+        default=0.8,
+        title="Train proportion.",
+        description="The proportion of the data to use for training.",
+    )
+
+    validation: float = Field(
+        default=0.1,
+        title="Validation proportion.",
+        description="The proportion of the data to use for validation.",
+    )
+
+    test: float = Field(
+        default=0.1,
+        title="Test proportion.",
+        description="The proportion of the data to use for testing.",
+    )
+
+
 class DataSplitConfig(ConfigBaseModel):
     """Configuration for specifying data split."""
 
@@ -42,20 +64,8 @@ class DataSplitConfig(ConfigBaseModel):
         description="The mode to use for splitting the data.",
     )
 
-    train_proportion: float = Field(
-        default=0.8,
-        title="Train proportion.",
-        description="The proportion of the data to use for training.",
-    )
-
-    validation_proportion: float = Field(
-        default=0.1,
-        title="Validation proportion.",
-        description="The proportion of the data to use for validation.",
-    )
-
-    test_proportion: float = Field(
-        default=0.1,
-        title="Test proportion.",
-        description="The proportion of the data to use for testing.",
+    proportions: Proportions = Field(
+        default_factory=Proportions,
+        title="Proportions.",
+        description="The proportions to use for splitting the data.",
     )

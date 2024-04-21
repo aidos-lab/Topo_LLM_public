@@ -81,7 +81,7 @@ class DataConfig(ConfigBaseModel):
         description="The dataset type.",
     )
 
-    data_split_config: DataSplitConfig = Field(
+    data_split: DataSplitConfig = Field(
         default=DataSplitConfig(),
         title="Data split configuration.",
         description="The data split configuration. This is useful if the dataset is not already split.",
