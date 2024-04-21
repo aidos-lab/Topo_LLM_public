@@ -25,13 +25,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Factory for creating a finetuning path manager."""
+
 import logging
 
-from topollm.config_classes.data.data_config import DataConfig
-from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
 from topollm.config_classes.MainConfig import MainConfig
-from topollm.config_classes.PathsConfig import PathsConfig
-from topollm.path_management.finetuning.FinetuningPathManagerBasic import (
+from topollm.path_management.finetuning.finetuning_path_manager_basic import (
     FinetuningPathManagerBasic,
 )
 from topollm.path_management.finetuning.protocol import (

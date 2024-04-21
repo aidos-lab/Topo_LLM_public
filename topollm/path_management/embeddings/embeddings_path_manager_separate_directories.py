@@ -25,6 +25,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Path manager for embeddings with separate directories for arrays and metadata."""
+
 import logging
 import pathlib
 
@@ -33,9 +35,9 @@ from topollm.config_classes.embeddings.embeddings_config import EmbeddingsConfig
 from topollm.config_classes.language_model.LanguageModelConfig import (
     LanguageModelConfig,
 )
-from topollm.config_classes.PathsConfig import PathsConfig
+from topollm.config_classes.paths.paths_config import PathsConfig
 from topollm.config_classes.tokenizer.TokenizerConfig import TokenizerConfig
-from topollm.config_classes.transformations_config import TransformationsConfig
+from topollm.config_classes.transformations.transformations_config import TransformationsConfig
 
 logger = logging.getLogger(__name__)
 

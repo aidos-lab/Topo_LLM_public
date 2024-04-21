@@ -59,6 +59,8 @@ class DatasetSplitterProportions:
     ) -> datasets.DatasetDict:
         """Split the dataset into training, validation, and test set with given proportions."""
         dataset = dataset_dict["train"]
+        if self.verbosity >= 1:
+            self.logger.info(f"Length of train for the original dict: {len(dataset) = }")
 
         # Split the dataset into train and the rest
         train_and_rest = dataset.train_test_split(
@@ -80,5 +82,10 @@ class DatasetSplitterProportions:
                 "test": validation_and_test["test"],
             },
         )
+
+        if self.verbosity >= 1:
+            self.logger.info(f"Length of new dict entry: {len(train_validation_test_dataset['train']) = }")
+            self.logger.info(f"Length of new dict entry: {len(train_validation_test_dataset['validation']) = }")
+            self.logger.info(f"Length of new dict entry: {len(train_validation_test_dataset['test']) = }")
 
         return train_validation_test_dataset

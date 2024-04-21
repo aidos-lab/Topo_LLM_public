@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -26,20 +24,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
+"""Protocol for managing paths to embeddings."""
 
-# System imports
 import pathlib
 from typing import Protocol
-
-# Local imports
-
-# Third-party imports
-
-
-# END Globals
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
 class EmbeddingsPathManager(Protocol):

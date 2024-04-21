@@ -41,3 +41,21 @@ class DataSplitConfig(ConfigBaseModel):
         title="Data split mode.",
         description="The mode to use for splitting the data.",
     )
+
+    train_proportion: float = Field(
+        default=0.8,
+        title="Train proportion.",
+        description="The proportion of the data to use for training.",
+    )
+
+    validation_proportion: float = Field(
+        default=0.1,
+        title="Validation proportion.",
+        description="The proportion of the data to use for validation.",
+    )
+
+    test_proportion: float = Field(
+        default=0.1,
+        title="Test proportion.",
+        description="The proportion of the data to use for testing.",
+    )

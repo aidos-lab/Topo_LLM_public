@@ -29,11 +29,11 @@
 import logging
 
 from topollm.config_classes.MainConfig import MainConfig
-from topollm.path_management.embeddings.EmbeddingsPathManagerProtocol import (
-    EmbeddingsPathManager,
-)
-from topollm.path_management.embeddings.EmbeddingsPathManagerSeparateDirectories import (
+from topollm.path_management.embeddings.embeddings_path_manager_separate_directories import (
     EmbeddingsPathManagerSeparateDirectories,
+)
+from topollm.path_management.embeddings.protocol import (
+    EmbeddingsPathManager,
 )
 
 logger = logging.getLogger(__name__)

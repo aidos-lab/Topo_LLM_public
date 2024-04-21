@@ -33,6 +33,7 @@ from pydantic import Field
 
 from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
 from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
+from topollm.config_classes.data.data_split_config import DataSplitConfig
 from topollm.config_classes.enums import DatasetType, Split
 
 
@@ -78,6 +79,12 @@ class DataConfig(ConfigBaseModel):
         ...,
         title="Dataset type.",
         description="The dataset type.",
+    )
+
+    data_split_config: DataSplitConfig = Field(
+        default=DataSplitConfig(),
+        title="Data split configuration.",
+        description="The data split configuration. This is useful if the dataset is not already split.",
     )
 
     number_of_samples: int = Field(

@@ -25,13 +25,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Path manager for finetuning with basic functionality."""
+
 import logging
 import pathlib
 
 from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
 from topollm.config_classes.data.data_config import DataConfig
 from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
-from topollm.config_classes.PathsConfig import PathsConfig
+from topollm.config_classes.paths.paths_config import PathsConfig
 from topollm.path_management.finetuning.peft.PEFTPathManagerFactory import (
     get_peft_path_manager,
 )

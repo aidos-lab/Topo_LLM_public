@@ -39,10 +39,10 @@ from topollm.config_classes.inference.InferenceConfig import InferenceConfig
 from topollm.config_classes.language_model.LanguageModelConfig import (
     LanguageModelConfig,
 )
-from topollm.config_classes.PathsConfig import PathsConfig
-from topollm.config_classes.StorageConfig import StorageConfig
+from topollm.config_classes.paths.paths_config import PathsConfig
+from topollm.config_classes.storage.storage_config import StorageConfig
 from topollm.config_classes.tokenizer.TokenizerConfig import TokenizerConfig
-from topollm.config_classes.transformations_config import TransformationsConfig
+from topollm.config_classes.transformations.transformations_config import TransformationsConfig
 
 
 class MainConfig(ConfigBaseModel):

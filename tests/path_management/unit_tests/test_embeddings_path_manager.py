@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -32,13 +30,13 @@ import pathlib
 
 import pytest
 
-from topollm.path_management.embeddings import EmbeddingsPathManagerProtocol
+from topollm.path_management.embeddings import protocol
 
 
 class TestEmbeddingsPathManager:
     def test_data_dir(
         self,
-        embeddings_path_manager: EmbeddingsPathManagerProtocol.EmbeddingsPathManager,
+        embeddings_path_manager: protocol.EmbeddingsPathManager,
         logger_fixture: logging.Logger,
     ) -> None:
         result = embeddings_path_manager.data_dir
@@ -49,11 +47,9 @@ class TestEmbeddingsPathManager:
             pathlib.Path,
         )
 
-        return None
-
     def test_array_dir_absolute_path(
         self,
-        embeddings_path_manager: EmbeddingsPathManagerProtocol.EmbeddingsPathManager,
+        embeddings_path_manager: protocol.EmbeddingsPathManager,
         logger_fixture: logging.Logger,
     ) -> None:
         result = embeddings_path_manager.array_dir_absolute_path
@@ -64,11 +60,9 @@ class TestEmbeddingsPathManager:
             pathlib.Path,
         )
 
-        return None
-
     def test_metadata_dir_absolute_path(
         self,
-        embeddings_path_manager: EmbeddingsPathManagerProtocol.EmbeddingsPathManager,
+        embeddings_path_manager: protocol.EmbeddingsPathManager,
         logger_fixture: logging.Logger,
     ) -> None:
         result = embeddings_path_manager.metadata_dir_absolute_path
@@ -78,5 +72,3 @@ class TestEmbeddingsPathManager:
             result,
             pathlib.Path,
         )
-
-        return None
