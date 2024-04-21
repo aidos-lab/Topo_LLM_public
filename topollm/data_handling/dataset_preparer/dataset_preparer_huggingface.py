@@ -105,10 +105,13 @@ class DatasetPreparerHuggingface:
         self,
         dataset_dict: datasets.DatasetDict,
     ) -> datasets.Dataset:
-        # TODO: Include the dataset splitter here
+        # Apply the dataset splitter to the dataset
+        new_dataset_dict = self.dataset_splitter.split_dataset(
+            dataset_dict=dataset_dict,
+        )
 
         # Select the dataset split to use
-        dataset: datasets.Dataset = dataset_dict[self.data_config.split]
+        dataset: datasets.Dataset = new_dataset_dict[self.data_config.split]
 
         # Truncate the dataset to the specified number of samples
         dataset = dataset.select(

@@ -43,7 +43,7 @@ from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.model_handling.get_torch_device import get_torch_device
 
 if TYPE_CHECKING:
-    from topollm.config_classes.MainConfig import MainConfig
+    from topollm.config_classes.main_config import MainConfig
 
 # logger for this file
 global_logger = logging.getLogger(__name__)

@@ -29,7 +29,7 @@
 
 import logging
 
-from topollm.config_classes.MainConfig import MainConfig
+from topollm.config_classes.main_config import MainConfig
 from topollm.path_management.finetuning.finetuning_path_manager_basic import (
     FinetuningPathManagerBasic,
 )
@@ -44,6 +44,7 @@ def get_finetuning_path_manager(
     main_config: MainConfig,
     logger: logging.Logger = logger,
 ) -> FinetuningPathManager:
+    """Get a finetuning path manager based on the main configuration."""
     path_manger = FinetuningPathManagerBasic(
         data_config=main_config.data,
         paths_config=main_config.paths,

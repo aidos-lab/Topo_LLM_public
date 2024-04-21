@@ -32,7 +32,7 @@ import logging
 import torch
 import transformers
 
-from topollm.config_classes.MainConfig import MainConfig
+from topollm.config_classes.main_config import MainConfig
 from topollm.data_handling.dataset_preparer.factory import get_dataset_preparer
 from topollm.model_finetuning.evaluate_tuned_model import evaluate_tuned_model
 from topollm.model_finetuning.finetune_model import finetune_model
@@ -75,7 +75,6 @@ def do_finetuning_process(
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Load data
     train_dataset_preparer = get_dataset_preparer(
-        dataset_type=finetuning_config.finetuning_datasets.train_dataset.dataset_type,
         data_config=finetuning_config.finetuning_datasets.train_dataset,
         verbosity=main_config.verbosity,
         logger=logger,
@@ -83,7 +82,6 @@ def do_finetuning_process(
     train_dataset = train_dataset_preparer.prepare_dataset()
 
     eval_dataset_preparer = get_dataset_preparer(
-        dataset_type=finetuning_config.finetuning_datasets.eval_dataset.dataset_type,
         data_config=finetuning_config.finetuning_datasets.eval_dataset,
         verbosity=main_config.verbosity,
         logger=logger,
@@ -189,8 +187,8 @@ def do_finetuning_process(
         model=modified_model,
         args=training_args,
         data_collator=data_collator,
-        train_dataset=train_dataset_mapped,  # type: ignore
-        eval_dataset=eval_dataset_mapped,  # type: ignore
+        train_dataset=train_dataset_mapped,  # type: ignore - typing issue with Dataset
+        eval_dataset=eval_dataset_mapped,  # type: ignore - typing issue with Dataset
         tokenizer=tokenizer,
     )
 

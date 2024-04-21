@@ -28,7 +28,7 @@
 
 import logging
 
-from topollm.config_classes.MainConfig import MainConfig
+from topollm.config_classes.main_config import MainConfig
 from topollm.path_management.embeddings.embeddings_path_manager_separate_directories import (
     EmbeddingsPathManagerSeparateDirectories,
 )

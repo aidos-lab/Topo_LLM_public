@@ -32,7 +32,7 @@ import os
 
 from transformers import AutoTokenizer, PreTrainedTokenizer, PreTrainedTokenizerFast
 
-from topollm.config_classes.MainConfig import MainConfig
+from topollm.config_classes.main_config import MainConfig
 from topollm.config_classes.tokenizer.TokenizerConfig import TokenizerConfig
 from topollm.model_handling.tokenizer.tokenizer_modifier.factory import get_tokenizer_modifier
 from topollm.model_handling.tokenizer.tokenizer_modifier.protocol import TokenizerModifier

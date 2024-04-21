@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -27,47 +25,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-Load dialogue data from the convlab unified dataset format
-and save it in the huggingface datasets format.
-"""
+"""Load dialogue data from the convlab unified dataset format and save it in the huggingface datasets format."""
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
-
-# Standard library imports
 import json
 import logging
 import pathlib
+from typing import TYPE_CHECKING
 
-# Third party imports
+import convlab  # type: ignore - we do not add convlab to the requirements
 import hydra
 import hydra.core.hydra_config
 import omegaconf
 from tqdm import tqdm
 
-# Local imports
-import convlab  # type: ignore
-import topollm.data_processing.DialogueUtteranceDataset as DialogueUtteranceDataset
-from topollm.config_classes.MainConfig import MainConfig
+from topollm.data_processing import DialogueUtteranceDataset
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
-from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.logging.log_dataset_info import log_torch_dataset_info
+from topollm.logging.setup_exception_logging import setup_exception_logging
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Globals
+if TYPE_CHECKING:
+    from topollm.config_classes.main_config import MainConfig
 
-# A logger for this file
 global_logger = logging.getLogger(__name__)
 
 setup_exception_logging(
     logger=global_logger,
 )
-
-# torch.set_num_threads(1)
-
-# END Globals
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
 @hydra.main(
@@ -79,7 +62,6 @@ def main(
     config: omegaconf.DictConfig,
 ) -> None:
     """Run the script."""
-
     global_logger.info("Running script ...")
 
     main_config: MainConfig = initialize_configuration(
@@ -118,15 +100,11 @@ def main(
             exist_ok=True,
         )
 
-        global_logger.info(
-            f"Loading convlab dataset:\n" f"{convlab_dataset_identifier = }\n..."
-        )
+        global_logger.info(f"Loading convlab dataset:\n" f"{convlab_dataset_identifier = }\n...")
         convlab_dataset_dict = convlab.util.load_dataset(
             dataset_name=convlab_dataset_identifier,
         )
-        global_logger.info(
-            f"Loading convlab dataset:\n" f"{convlab_dataset_identifier = }\nDONE"
-        )
+        global_logger.info(f"Loading convlab dataset:\n" f"{convlab_dataset_identifier = }\nDONE")
         global_logger.info(f"{convlab_dataset_dict.keys() = }")
 
         for split in tqdm(
@@ -139,7 +117,7 @@ def main(
                 split,
             )
 
-    return None
+    global_logger.info("Running script DONE")
 
 
 def write_single_split_to_file(
@@ -176,7 +154,7 @@ def write_single_split_to_file(
         for idx in tqdm(
             range(
                 len(split_dataset),
-            )
+            ),
         ):
             sample: dict = split_dataset[idx]
             json.dump(
@@ -187,10 +165,6 @@ def write_single_split_to_file(
 
     global_logger.info(f"Writing the dataset to file:\n" f"{save_file_path = }\nDONE")
 
-    return None
-
 
 if __name__ == "__main__":
     main()
-
-    global_logger.info("Script Done.")

@@ -25,6 +25,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Fixtures for the tests."""
 
 import datetime
 import logging
@@ -66,7 +67,7 @@ from topollm.config_classes.inference.InferenceConfig import InferenceConfig
 from topollm.config_classes.language_model.LanguageModelConfig import (
     LanguageModelConfig,
 )
-from topollm.config_classes.MainConfig import MainConfig
+from topollm.config_classes.main_config import MainConfig
 from topollm.config_classes.paths.paths_config import PathsConfig
 from topollm.config_classes.storage.storage_config import StorageConfig
 from topollm.config_classes.tokenizer.TokenizerConfig import TokenizerConfig

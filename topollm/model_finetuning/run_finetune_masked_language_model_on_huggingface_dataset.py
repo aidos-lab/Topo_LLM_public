@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -27,9 +25,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-Script for fine-tuning language model on huggingface datasets.
-"""
+"""Script for fine-tuning language model on huggingface datasets."""
 
 import logging
 
@@ -38,17 +34,13 @@ import hydra.core.hydra_config
 import omegaconf
 import transformers
 
-from topollm.config_classes.MainConfig import MainConfig
+from topollm.config_classes.main_config import MainConfig
 from topollm.config_classes.setup_OmegaConf import setup_OmegaConf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.model_finetuning.do_finetuning_process import do_finetuning_process
 from topollm.model_handling.get_torch_device import get_torch_device
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Globals
-
-# A logger for this file
 global_logger = logging.getLogger(__name__)
 
 setup_exception_logging(
@@ -60,11 +52,6 @@ transformers.logging.set_verbosity_info()
 
 setup_OmegaConf()
 
-# torch.set_num_threads(1)
-
-# END Globals
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-
 
 @hydra.main(
     config_path="../../configs",
@@ -75,7 +62,6 @@ def main(
     config: omegaconf.DictConfig,
 ) -> None:
     """Run the script."""
-
     global_logger.info("Running script ...")
 
     main_config: MainConfig = initialize_configuration(
@@ -97,8 +83,6 @@ def main(
     )
 
     global_logger.info("Running script DONE")
-
-    return None
 
 
 if __name__ == "__main__":

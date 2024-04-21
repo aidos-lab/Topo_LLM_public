@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -30,11 +28,11 @@
 import logging
 import pprint
 
+import omegaconf
 import pytest
 from hydra import compose, initialize
-import omegaconf
 
-from topollm.config_classes.MainConfig import DataConfig
+from topollm.config_classes.main_config import DataConfig
 
 logger = logging.getLogger(__name__)
 
@@ -75,5 +73,3 @@ def test_hydra_with_DataConfig(
 
         logger.info(f"{type(config) = }")
         logger.info(f"config:\n" f"{pprint.pformat(config)}")
-
-    return None

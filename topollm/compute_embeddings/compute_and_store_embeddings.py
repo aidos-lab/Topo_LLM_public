@@ -47,7 +47,7 @@ from topollm.compute_embeddings.embedding_dataloader_preparer.factory import (
 from topollm.compute_embeddings.embedding_extractor.factory import (
     get_embedding_extractor,
 )
-from topollm.config_classes.MainConfig import MainConfig
+from topollm.config_classes.main_config import MainConfig
 from topollm.model_handling.model.load_model import load_model
 from topollm.model_handling.tokenizer.load_tokenizer import load_modified_tokenizer
 from topollm.path_management.embeddings.factory import (

@@ -25,9 +25,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-Create embedding vectors from dataset.
-"""
+"""Run model inference on example data."""
 
 import logging
 
@@ -35,28 +33,20 @@ import hydra
 import hydra.core.hydra_config
 import omegaconf
 
-from topollm.config_classes.MainConfig import MainConfig
+from topollm.config_classes.main_config import MainConfig
 from topollm.config_classes.setup_OmegaConf import setup_OmegaConf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.model_inference.do_inference import do_inference
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Globals
-
-# A logger for this file
 global_logger = logging.getLogger(__name__)
 
 setup_exception_logging(
     logger=global_logger,
 )
 
-# torch.set_num_threads(1)
 
 setup_OmegaConf()
-
-# END Globals
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
 @hydra.main(
@@ -68,7 +58,6 @@ def main(
     config: omegaconf.DictConfig,
 ) -> None:
     """Run the script."""
-
     global_logger.info("Running script ...")
 
     main_config: MainConfig = initialize_configuration(
@@ -83,8 +72,6 @@ def main(
     )
 
     global_logger.info("Running script DONE")
-
-    return None
 
 
 if __name__ == "__main__":

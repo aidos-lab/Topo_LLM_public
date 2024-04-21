@@ -33,7 +33,7 @@ from typing import Any
 import transformers
 
 from topollm.config_classes.enums import LMmode
-from topollm.config_classes.MainConfig import MainConfig
+from topollm.config_classes.main_config import MainConfig
 from topollm.model_handling.get_torch_device import get_torch_device
 from topollm.model_handling.model.load_model import load_model
 from topollm.model_handling.tokenizer.load_tokenizer import load_tokenizer
