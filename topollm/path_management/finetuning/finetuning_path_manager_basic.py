@@ -32,7 +32,7 @@ import pathlib
 
 from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
 from topollm.config_classes.data.data_config import DataConfig
-from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
+from topollm.config_classes.finetuning.finetuning_config import FinetuningConfig
 from topollm.config_classes.paths.paths_config import PathsConfig
 from topollm.path_management.finetuning.peft.PEFTPathManagerFactory import (
     get_peft_path_manager,
@@ -42,13 +42,15 @@ logger = logging.getLogger(__name__)
 
 
 class FinetuningPathManagerBasic:
+    """Path manager for finetuning with basic functionality."""
+
     def __init__(
         self,
         data_config: DataConfig,
         paths_config: PathsConfig,
         finetuning_config: FinetuningConfig,
         verbosity: int = 1,
-        logger: logging.Logger = logging.getLogger(__name__),
+        logger: logging.Logger = logger,
     ):
         self.data_config = data_config
         self.finetuning_config = finetuning_config

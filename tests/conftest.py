@@ -72,8 +72,7 @@ from topollm.config_classes.paths.paths_config import PathsConfig
 from topollm.config_classes.storage.storage_config import StorageConfig
 from topollm.config_classes.tokenizer.tokenizer_config import TokenizerConfig
 from topollm.config_classes.transformations.transformations_config import TransformationsConfig
-from topollm.model_handling.tokenizer.load_tokenizer import load_modified_tokenizer, load_tokenizer
-from topollm.model_handling.tokenizer.tokenizer_modifier.protocol import TokenizerModifier
+from topollm.model_handling.tokenizer.load_tokenizer import load_modified_tokenizer
 from topollm.path_management.embeddings.embeddings_path_manager_separate_directories import (
     EmbeddingsPathManagerSeparateDirectories,
 )

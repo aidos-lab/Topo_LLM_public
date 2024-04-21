@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -27,11 +25,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Configuration class for specifying paths."""
+
 import pathlib
 
 from pydantic import Field
 
-from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
+from topollm.config_classes.config_base_model import ConfigBaseModel
 
 
 class PathsConfig(ConfigBaseModel):

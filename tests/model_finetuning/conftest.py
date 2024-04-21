@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -28,7 +26,6 @@
 # limitations under the License.
 
 import pytest
-import torch
 from peft.tuners.lora.config import LoraConfig
 from transformers import AutoModel
 
@@ -37,9 +34,7 @@ from transformers import AutoModel
     scope="session",
 )
 def base_model():
-    """
-    Load a lightweight model for testing.
-    """
+    """Load a lightweight model for testing."""
     base_model = AutoModel.from_pretrained(
         "google/bert_uncased_L-2_H-128_A-2",
         torchscript=True,

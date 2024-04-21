@@ -45,6 +45,7 @@ def test_do_finetuning_process(
     device_fixture: torch.device,
     logger_fixture: logging.Logger,
 ) -> None:
+    """Test the do_finetuning_process function."""
     do_finetuning_process(
         main_config=main_config,
         device=device_fixture,

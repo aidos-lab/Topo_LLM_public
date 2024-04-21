@@ -32,17 +32,19 @@ import pathlib
 
 from topollm.config_classes.data.data_config import DataConfig
 from topollm.config_classes.embeddings.embeddings_config import EmbeddingsConfig
-from topollm.config_classes.language_model.LanguageModelConfig import (
+from topollm.config_classes.language_model.language_model_config import (
     LanguageModelConfig,
 )
 from topollm.config_classes.paths.paths_config import PathsConfig
-from topollm.config_classes.tokenizer.TokenizerConfig import TokenizerConfig
+from topollm.config_classes.tokenizer.tokenizer_config import TokenizerConfig
 from topollm.config_classes.transformations.transformations_config import TransformationsConfig
 
 logger = logging.getLogger(__name__)
 
 
 class EmbeddingsPathManagerSeparateDirectories:
+    """Path manager for embeddings with separate directories for arrays and metadata."""
+
     def __init__(
         self,
         data_config: DataConfig,

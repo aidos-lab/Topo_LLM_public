@@ -37,10 +37,10 @@ from topollm.data_handling.dataset_preparer.factory import get_dataset_preparer
 from topollm.model_finetuning.evaluate_tuned_model import evaluate_tuned_model
 from topollm.model_finetuning.finetune_model import finetune_model
 from topollm.model_finetuning.load_base_model_from_finetuning_config import (
-    load_base_model_from_FinetuningConfig,
+    load_base_model_from_finetuning_config,
 )
 from topollm.model_finetuning.load_tokenizer_from_finetuning_config import (
-    load_tokenizer_from_FinetuningConfig,
+    load_tokenizer_from_finetuning_config,
 )
 from topollm.model_finetuning.model_modifiers.factory import (
     get_model_modifier,
@@ -91,13 +91,13 @@ def do_finetuning_process(
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Load tokenizer and model
 
-    base_tokenizer = load_tokenizer_from_FinetuningConfig(
+    base_tokenizer = load_tokenizer_from_finetuning_config(
         finetuning_config=finetuning_config,
         verbosity=verbosity,
         logger=logger,
     )
 
-    base_model = load_base_model_from_FinetuningConfig(
+    base_model = load_base_model_from_finetuning_config(
         finetuning_config=finetuning_config,
         device=device,
         verbosity=verbosity,

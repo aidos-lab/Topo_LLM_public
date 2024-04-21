@@ -61,7 +61,7 @@ def prepare_training_args(
         evaluation_strategy="steps",
         eval_steps=finetuning_config.eval_steps,
         save_steps=finetuning_config.save_steps,
-        logging_dir=logging_dir,  # type: ignore
+        logging_dir=logging_dir,  # type: ignore - typing problem with None and str
         log_level=finetuning_config.log_level,
         logging_steps=finetuning_config.logging_steps,
         use_cpu=finetuning_config.use_cpu,
