@@ -5,7 +5,6 @@
 #
 # Authors:
 # Benjamin Ruppik (ruppik@hhu.de)
-# Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
 # First versions of this code were potentially generated
@@ -25,19 +24,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Configuration class for inference."""
+
 from pydantic import Field
 
-from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
-from topollm.config_classes.data.data_config import DataConfig
+from topollm.config_classes.config_base_model import ConfigBaseModel
 
 
-class FinetuningDatasetsConfig(ConfigBaseModel):
-    train_dataset: DataConfig = Field(
-        ...,
-        description="The configuration for the training dataset.",
+class InferenceConfig(ConfigBaseModel):
+    """Configurations for running model inference."""
+
+    max_length: int = Field(
+        default=100,
+        title="Maximum length of generated text.",
+        description="The maximum length of generated text.",
     )
 
-    eval_dataset: DataConfig = Field(
-        ...,
-        description="The configuration for the evaluation dataset.",
+    num_return_sequences: int = Field(
+        default=3,
+        title="Number of returned sequences.",
+        description="The number of returned sequences.",
     )

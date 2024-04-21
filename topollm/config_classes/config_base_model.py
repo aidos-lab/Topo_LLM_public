@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -27,6 +25,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Module for the ConfigBaseModel class."""
+
 import json
 import pathlib
 import pprint
@@ -36,19 +36,13 @@ from typing import IO
 
 from pydantic import BaseModel
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Globals
-
-# END Globals
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-
 
 class ConfigBaseModel(
     BaseModel,
     ABC,
 ):
-    """
-    This class is the base class for all our configuration classes.
+    """Base class for all our configuration classes.
+
     It is inherited from Pydantic's BaseModel and adds some functionality
     for saving and loading the configuration to and from a json file.
     """
@@ -64,7 +58,7 @@ class ConfigBaseModel(
                     mode="json",
                 ),
                 indent=4,
-            )
+            ),
         )
 
     @classmethod
@@ -76,7 +70,7 @@ class ConfigBaseModel(
         return cls.model_validate(
             json.load(
                 io,
-            )
+            ),
         )
 
     @classmethod
@@ -85,9 +79,10 @@ class ConfigBaseModel(
         file_path: PathLike,
     ) -> "ConfigBaseModel":
         """Load the configuration from the specified file path."""
-        with open(
+        with pathlib.Path(
             file_path,
-            "r",
+        ).open(
+            mode="r",
         ) as file:
             return cls.load(file)
 
@@ -96,7 +91,6 @@ class ConfigBaseModel(
         file_path: PathLike,
     ) -> None:
         """Save the configuration to the specified file path."""
-
         file_path = pathlib.Path(
             file_path,
         )
@@ -107,17 +101,19 @@ class ConfigBaseModel(
             exist_ok=True,
         )
 
-        with open(
+        with pathlib.Path(
             file_path,
-            "w",
+        ).open(
+            mode="w",
         ) as file:
             self.save(file)
 
     def __repr__(
         self,
     ) -> str:
+        """Return a pretty printed representation of the configuration."""
         return pprint.pformat(
             self.model_dump(
                 mode="python",
-            )
+            ),
         )

@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -27,10 +25,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Prepare the model input for finetuning."""
+
 import datasets
 import transformers
 
-from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
+from topollm.config_classes.finetuning.finetuning_config import FinetuningConfig
 
 
 def prepare_model_input(
@@ -42,6 +42,8 @@ def prepare_model_input(
     datasets.Dataset,
     datasets.Dataset,
 ]:
+    """Prepare the model input for finetuning."""
+
     def tokenize_function(
         dataset_entries: dict[
             str,

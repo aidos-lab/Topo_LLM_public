@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -27,38 +25,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Configuration class for modifying the tokenizer."""
+
 from pydantic import Field
 
-from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
-from topollm.config_classes.enums import FinetuningMode
+from topollm.config_classes.config_base_model import ConfigBaseModel
+from topollm.config_classes.enums import TokenizerModifierMode
 
 
-class PEFTConfig(ConfigBaseModel):
-    finetuning_mode: FinetuningMode = Field(
-        default=FinetuningMode.STANDARD,
-        description="The finetuning mode of the PEFT model.",
+class TokenizerModifierConfig(ConfigBaseModel):
+    """Configurations for modifying the tokenizer."""
+
+    mode: TokenizerModifierMode = Field(
+        default=TokenizerModifierMode.DO_NOTHING,
+        description="The mode of the tokenizer modifier.",
     )
 
-    r: int = Field(
-        default=8,
-        description="The r (rank) parameter of the PEFT model for LoRA.",
-    )
-
-    lora_alpha: int = Field(
-        default=32,
-        description="The alpha parameter of the PEFT model for LoRA.",
-    )
-
-    target_modules: list[str] | str | None = Field(
-        default=[
-            "query",
-            "key",
-            "value",
-        ],
-        description="The target modules of the PEFT model for LoRA.",
-    )
-
-    lora_dropout: float = Field(
-        default=0.01,
-        description="The dropout rate of the PEFT model for LoRA.",
+    padding_token: str = Field(
+        default="<|pad|>",
+        description="The string representation of the padding token.",
     )

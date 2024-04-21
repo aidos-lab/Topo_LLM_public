@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -27,11 +25,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Prepare the training arguments for the finetuning process."""
+
 import os
 
 import transformers
 
-from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
+from topollm.config_classes.finetuning.finetuning_config import FinetuningConfig
 
 
 def prepare_training_args(
@@ -39,7 +39,8 @@ def prepare_training_args(
     seed: int,
     finetuned_model_dir: os.PathLike,
     logging_dir: os.PathLike | None = None,
-):
+) -> transformers.TrainingArguments:
+    """Prepare the training arguments for the finetuning process."""
     training_args = transformers.TrainingArguments(
         output_dir=str(finetuned_model_dir),
         overwrite_output_dir=True,

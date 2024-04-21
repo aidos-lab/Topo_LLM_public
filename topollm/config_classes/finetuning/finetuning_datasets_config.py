@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -27,38 +25,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
-import pprint
+"""Configuration class for the finetuning datasets."""
 
-from hydra import compose, initialize, initialize_config_module
-import omegaconf
+from pydantic import Field
 
-from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
-
-logger = logging.getLogger(__name__)
+from topollm.config_classes.config_base_model import ConfigBaseModel
+from topollm.config_classes.data.data_config import DataConfig
 
 
-def test_hydra_with_FinetuningConfig() -> None:
-    with initialize_config_module(
-        version_base=None,
-        config_module="configs.finetuning",
-    ):
-        # config is relative to a module
-        cfg: omegaconf.DictConfig = compose(
-            config_name="finetuning",
-            overrides=[
-                "batch_sizes.eval=42",
-            ],
-        )
+class FinetuningDatasetsConfig(ConfigBaseModel):
+    """Configurations for the finetuning datasets."""
 
-        logger.info(f"cfg:\n" f"{pprint.pformat(cfg)}")
+    train_dataset: DataConfig = Field(
+        ...,
+        description="The configuration for the training dataset.",
+    )
 
-        # This tests whether the configuration is valid
-        config = FinetuningConfig.model_validate(
-            obj=cfg,
-        )
-
-        logger.info(f"{type(config) = }")
-        logger.info(f"config:\n" f"{pprint.pformat(config)}")
-
-    return None
+    eval_dataset: DataConfig = Field(
+        ...,
+        description="The configuration for the evaluation dataset.",
+    )

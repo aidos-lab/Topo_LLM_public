@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -27,28 +25,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from topollm.config_classes.finetuning.peft.PEFTConfig import PEFTConfig
+"""Configuration class for specifying batch sizes."""
+
+from pydantic import Field
+
+from topollm.config_classes.config_base_model import ConfigBaseModel
 
 
-from peft.tuners.lora.config import LoraConfig
+class BatchSizesConfig(ConfigBaseModel):
+    """Configurations for specifying batch sizes."""
 
-
-def PEFTConfig_to_LoraConfig(
-    peft_config: PEFTConfig,
-) -> LoraConfig:
-    """
-    Convert a PEFTConfig to a LoraConfig.
-
-    https://huggingface.co/docs/peft/v0.10.0/en/package_reference/lora#peft.LoraConfig
-    """
-
-    # Note: The 'task_type' argument is not necessary.
-    # task_type=peft.utils.peft_types.TaskType.CAUSAL_LM
-    lora_config = LoraConfig(
-        r=peft_config.r,
-        lora_alpha=peft_config.lora_alpha,
-        target_modules=peft_config.target_modules,
-        lora_dropout=peft_config.lora_dropout,
+    train: int = Field(
+        default=8,
+        description="The batch size for training.",
     )
 
-    return lora_config
+    eval: int = Field(
+        default=16,
+        description="The batch size for evaluation.",
+    )

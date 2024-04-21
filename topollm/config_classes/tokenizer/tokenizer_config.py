@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -30,7 +28,7 @@
 
 from pydantic import Field
 
-from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
+from topollm.config_classes.config_base_model import ConfigBaseModel
 from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
 
 
@@ -51,11 +49,12 @@ class TokenizerConfig(ConfigBaseModel):
     def tokenizer_config_description(
         self,
     ) -> str:
-        """
-        Get the description of the tokenizer config.
+        """Get the description of the tokenizer config.
 
-        Returns:
+        Returns
+        -------
             str: The description of the tokenizer.
+
         """
         desc = (
             f"{NAME_PREFIXES['add_prefix_space']}"

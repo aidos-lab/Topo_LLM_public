@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -29,29 +27,41 @@
 
 import logging
 
+import torch
 import transformers
+from transformers import PreTrainedModel
 
-from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
-from topollm.model_handling.tokenizer.load_tokenizer import load_tokenizer
+from topollm.config_classes.enums import LMmode
+from topollm.config_classes.finetuning.finetuning_config import FinetuningConfig
+from topollm.model_handling.model.load_model import load_model
+
+default_device = torch.device("cpu")
+logger = logging.getLogger(__name__)
 
 
-def load_tokenizer_from_FinetuningConfig(
+def load_base_model_from_finetuning_config(
     finetuning_config: FinetuningConfig,
+    device: torch.device = default_device,
     verbosity: int = 1,
-    logger: logging.Logger = logging.getLogger(__name__),
-) -> transformers.PreTrainedTokenizer | transformers.PreTrainedTokenizerFast:
-    """
-    Interface function to load a tokenizer from a FinetuningConfig object.
-    """
+    logger: logging.Logger = logger,
+) -> PreTrainedModel:
+    """Interface function to load a model from a FinetuningConfig object."""
+    lm_mode = finetuning_config.lm_mode
 
-    tokenizer = load_tokenizer(
+    if lm_mode == LMmode.MLM:
+        model_loading_class = transformers.AutoModelForMaskedLM
+    elif lm_mode == LMmode.CLM:
+        model_loading_class = transformers.AutoModelForCausalLM
+    else:
+        msg = f"Invalid lm_mode: {lm_mode = }"
+        raise ValueError(msg)
+
+    model = load_model(
         pretrained_model_name_or_path=finetuning_config.pretrained_model_name_or_path,
-        tokenizer_config=finetuning_config.tokenizer,
+        model_loading_class=model_loading_class,
+        device=device,
         verbosity=verbosity,
         logger=logger,
     )
 
-    # Make sure not to accidentally modify the tokenizer pad token (tokenizer.pad_token) here.
-    # In particular, it is not custom to set the pad token to the eos token for masked language model training.
-
-    return tokenizer
+    return model

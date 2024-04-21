@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -31,21 +29,22 @@ import logging
 
 import torch
 
-import topollm.model_finetuning.model_modifiers.ModelModifierLora as ModelModifierLora
-import topollm.model_finetuning.model_modifiers.ModelModifierStandard as ModelModifierStandard
 from topollm.config_classes.enums import FinetuningMode
-from topollm.config_classes.finetuning.peft.PEFTConfig import PEFTConfig
-from topollm.config_classes.finetuning.peft.PEFTConfig_to_LoraConfig import (
-    PEFTConfig_to_LoraConfig,
+from topollm.config_classes.finetuning.peft.peft_config import PEFTConfig
+from topollm.config_classes.finetuning.peft.peft_config_to_lora_config import (
+    peft_config_to_lora_config,
 )
+from topollm.model_finetuning.model_modifiers import ModelModifierLora, ModelModifierStandard
 from topollm.model_finetuning.model_modifiers.ModelModifierProtocol import ModelModifier
+
+logger = logging.getLogger(__name__)
 
 
 def get_model_modifier(
     peft_config: PEFTConfig,
     device: torch.device,
     verbosity: int = 1,
-    logger: logging.Logger = logging.getLogger(__name__),
+    logger: logging.Logger = logger,
 ) -> ModelModifier:
     finetuning_mode = peft_config.finetuning_mode
     if verbosity >= 1:
@@ -56,7 +55,7 @@ def get_model_modifier(
             logger=logger,
         )
     elif finetuning_mode == FinetuningMode.LORA:
-        lora_config = PEFTConfig_to_LoraConfig(
+        lora_config = peft_config_to_lora_config(
             peft_config=peft_config,
         )
 

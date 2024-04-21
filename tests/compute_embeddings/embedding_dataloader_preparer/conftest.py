@@ -47,7 +47,7 @@ from topollm.compute_embeddings.embedding_dataloader_preparer.protocol import (
 )
 from topollm.config_classes.data.data_config import DataConfig
 from topollm.config_classes.embeddings.embeddings_config import EmbeddingsConfig
-from topollm.config_classes.tokenizer.TokenizerConfig import TokenizerConfig
+from topollm.config_classes.tokenizer.tokenizer_config import TokenizerConfig
 
 
 @pytest.fixture(

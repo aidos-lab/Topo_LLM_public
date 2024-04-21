@@ -36,13 +36,13 @@ from topollm.config_classes.main_config import MainConfig
 from topollm.data_handling.dataset_preparer.factory import get_dataset_preparer
 from topollm.model_finetuning.evaluate_tuned_model import evaluate_tuned_model
 from topollm.model_finetuning.finetune_model import finetune_model
-from topollm.model_finetuning.load_base_model_from_FinetuningConfig import (
+from topollm.model_finetuning.load_base_model_from_finetuning_config import (
     load_base_model_from_FinetuningConfig,
 )
-from topollm.model_finetuning.load_tokenizer_from_FinetuningConfig import (
+from topollm.model_finetuning.load_tokenizer_from_finetuning_config import (
     load_tokenizer_from_FinetuningConfig,
 )
-from topollm.model_finetuning.model_modifiers.ModelModifierFactory import (
+from topollm.model_finetuning.model_modifiers.factory import (
     get_model_modifier,
 )
 from topollm.model_finetuning.prepare_data_collator import prepare_data_collator

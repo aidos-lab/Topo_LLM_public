@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -32,7 +30,7 @@ import pathlib
 
 from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
 from topollm.config_classes.enums import FinetuningMode
-from topollm.config_classes.finetuning.peft.PEFTConfig import PEFTConfig
+from topollm.config_classes.finetuning.peft.peft_config import PEFTConfig
 
 
 class PEFTPathManagerBasic:
@@ -46,8 +44,6 @@ class PEFTPathManagerBasic:
 
         self.verbosity = verbosity
         self.logger = logger
-
-        return None
 
     @property
     def peft_description_subdir(
@@ -69,9 +65,7 @@ class PEFTPathManagerBasic:
         elif self.peft_config.finetuning_mode == FinetuningMode.LORA:
             desc = f"{NAME_PREFIXES['FinetuningMode']}" f"{KV_SEP}" f"lora"
         else:
-            raise ValueError(
-                f"Unknown finetuning_mode: " f"{self.peft_config.finetuning_mode = }"
-            )
+            raise ValueError(f"Unknown finetuning_mode: " f"{self.peft_config.finetuning_mode = }")
 
         return desc
 
@@ -100,8 +94,6 @@ class PEFTPathManagerBasic:
                 f"{self.peft_config.lora_dropout}"
             )
         else:
-            raise ValueError(
-                f"Unknown finetuning_mode: " f"{self.peft_config.finetuning_mode = }"
-            )
+            raise ValueError(f"Unknown finetuning_mode: " f"{self.peft_config.finetuning_mode = }")
 
         return description

@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -29,50 +27,40 @@
 
 import logging
 import pprint
+from typing import TYPE_CHECKING
 
-import omegaconf
-import pytest
 from hydra import compose, initialize_config_module
 
-from topollm.config_classes.language_model.LanguageModelConfig import (
-    LanguageModelConfig,
-)
+from topollm.config_classes.finetuning.finetuning_config import FinetuningConfig
+
+if TYPE_CHECKING:
+    import omegaconf
 
 logger = logging.getLogger(__name__)
 
 
-@pytest.mark.parametrize(
-    "config_name",
-    [
-        "gpt2-medium",
-        "roberta-base",
-        "roberta-base_finetuned-on-multiwoz21_ftm-standard",
-    ],
-)
-def test_hydra_with_LanguageModelConfig(
-    config_name: str,
-) -> None:
+def test_hydra_with_finetuning_config() -> None:
     with initialize_config_module(
         version_base=None,
-        config_module="configs.language_model",
+        config_module="configs.finetuning",
     ):
         # config is relative to a module
         cfg: omegaconf.DictConfig = compose(
-            config_name=config_name,
+            config_name="finetuning",
             overrides=[
-                "pretrained_model_name_or_path=overridden_pretrained_model_name_or_path",
-                "short_model_name=overridden_short_model_name",
+                "batch_sizes.eval=42",
             ],
         )
 
         logger.info(f"cfg:\n" f"{pprint.pformat(cfg)}")
 
         # This tests whether the configuration is valid
-        config = LanguageModelConfig.model_validate(
+        config = FinetuningConfig.model_validate(
             obj=cfg,
         )
 
         logger.info(f"{type(config) = }")
-        logger.info(f"config:\n" f"{pprint.pformat(config)}")
-
-    return None
+        logger.info(
+            "config:\n%s",
+            pprint.pformat(config),
+        )

@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -27,21 +25,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Configuration class for fine tuning."""
+
 from pydantic import Field
 from transformers.trainer_utils import SchedulerType
 
-from topollm.config_classes.ConfigBaseModel import ConfigBaseModel
+from topollm.config_classes.config_base_model import ConfigBaseModel
 from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
 from topollm.config_classes.enums import LMmode
-from topollm.config_classes.finetuning.BatchSizesConfig import BatchSizesConfig
-from topollm.config_classes.finetuning.FinetuningDatasetsConfig import (
+from topollm.config_classes.finetuning.batch_sizes_config import BatchSizesConfig
+from topollm.config_classes.finetuning.finetuning_datasets_config import (
     FinetuningDatasetsConfig,
 )
-from topollm.config_classes.finetuning.peft.PEFTConfig import PEFTConfig
-from topollm.config_classes.finetuning.TokenizerModifierConfig import (
+from topollm.config_classes.finetuning.peft.peft_config import PEFTConfig
+from topollm.config_classes.finetuning.tokenizer_modifier_config import (
     TokenizerModifierConfig,
 )
-from topollm.config_classes.tokenizer.TokenizerConfig import TokenizerConfig
+from topollm.config_classes.tokenizer.tokenizer_config import TokenizerConfig
 
 
 class FinetuningConfig(ConfigBaseModel):

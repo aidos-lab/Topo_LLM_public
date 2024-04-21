@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -29,7 +27,7 @@
 
 import logging
 
-from topollm.config_classes.finetuning.peft.PEFTConfig import PEFTConfig
+from topollm.config_classes.finetuning.peft.peft_config import PEFTConfig
 from topollm.path_management.finetuning.peft.PEFTPathManagerBasic import (
     PEFTPathManagerBasic,
 )
@@ -37,18 +35,15 @@ from topollm.path_management.finetuning.peft.PEFTPathManagerProtocol import (
     PEFTPathManager,
 )
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Globals
-
-# END Globals
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+logger = logging.getLogger(__name__)
 
 
 def get_peft_path_manager(
     peft_config: PEFTConfig,
     verbosity: int = 1,
-    logger: logging.Logger = logging.getLogger(__name__),
+    logger: logging.Logger = logger,
 ) -> PEFTPathManager:
+    """Create a PEFTPathManager instance."""
     path_manger = PEFTPathManagerBasic(
         peft_config=peft_config,
         verbosity=verbosity,

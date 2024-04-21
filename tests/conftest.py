@@ -56,21 +56,21 @@ from topollm.config_classes.enums import (
     Split,
     TokenizerModifierMode,
 )
-from topollm.config_classes.finetuning.BatchSizesConfig import BatchSizesConfig
-from topollm.config_classes.finetuning.FinetuningConfig import FinetuningConfig
-from topollm.config_classes.finetuning.FinetuningDatasetsConfig import (
+from topollm.config_classes.finetuning.batch_sizes_config import BatchSizesConfig
+from topollm.config_classes.finetuning.finetuning_config import FinetuningConfig
+from topollm.config_classes.finetuning.finetuning_datasets_config import (
     FinetuningDatasetsConfig,
 )
-from topollm.config_classes.finetuning.peft.PEFTConfig import PEFTConfig
-from topollm.config_classes.finetuning.TokenizerModifierConfig import TokenizerModifierConfig
-from topollm.config_classes.inference.InferenceConfig import InferenceConfig
-from topollm.config_classes.language_model.LanguageModelConfig import (
+from topollm.config_classes.finetuning.peft.peft_config import PEFTConfig
+from topollm.config_classes.finetuning.tokenizer_modifier_config import TokenizerModifierConfig
+from topollm.config_classes.inference.inference_config import InferenceConfig
+from topollm.config_classes.language_model.language_model_config import (
     LanguageModelConfig,
 )
 from topollm.config_classes.main_config import MainConfig
 from topollm.config_classes.paths.paths_config import PathsConfig
 from topollm.config_classes.storage.storage_config import StorageConfig
-from topollm.config_classes.tokenizer.TokenizerConfig import TokenizerConfig
+from topollm.config_classes.tokenizer.tokenizer_config import TokenizerConfig
 from topollm.config_classes.transformations.transformations_config import TransformationsConfig
 from topollm.model_handling.tokenizer.load_tokenizer import load_modified_tokenizer, load_tokenizer
 from topollm.model_handling.tokenizer.tokenizer_modifier.protocol import TokenizerModifier
@@ -281,8 +281,8 @@ model_config_list_for_testing = [
     ),
     (
         LMmode.CLM,
-        "gpt2-large",
-        "gpt2-large",
+        "gpt2-medium",
+        "gpt2-medium",
         TokenizerModifierConfig(
             mode=TokenizerModifierMode.ADD_PADDING_TOKEN,
             padding_token="<|pad|>",  # noqa: S106 - This is the hardcoded padding token
@@ -473,7 +473,7 @@ def storage_config() -> StorageConfig:
     config = StorageConfig(
         array_storage_type=ArrayStorageType.ZARR,
         metadata_storage_type=MetadataStorageType.PICKLE,
-        chunk_size=1000,
+        chunk_size=512,
     )
 
     return config
