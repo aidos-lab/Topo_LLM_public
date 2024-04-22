@@ -28,7 +28,7 @@
 """Run inference with a language model."""
 
 import logging
-from typing import Any
+import pprint
 
 import transformers
 
@@ -53,7 +53,7 @@ def do_inference(
     main_config: MainConfig,
     prompts: list[str] | None = None,
     logger: logging.Logger = logger,
-) -> list[list[str]] | Any:
+) -> list[list]:
     """Run inference with a language model.
 
     If `prompts` is `None`, default prompts are used.
@@ -108,7 +108,10 @@ def do_inference(
             prompts = get_default_mlm_prompts(
                 mask_token=tokenizer.mask_token,
             )
-        logger.info(f"{prompts = }")
+        logger.info(
+            "prompts:\n%s",
+            pprint.pformat(prompts),
+        )
 
         results = do_fill_mask(
             tokenizer=tokenizer,
@@ -120,7 +123,10 @@ def do_inference(
     elif lm_mode == LMmode.CLM:
         if prompts is None:
             prompts = get_default_clm_prompts()
-        logger.info(f"{prompts = }")
+        logger.info(
+            "prompts:\n%s",
+            pprint.pformat(prompts),
+        )
 
         results = do_text_generation(
             tokenizer=tokenizer,

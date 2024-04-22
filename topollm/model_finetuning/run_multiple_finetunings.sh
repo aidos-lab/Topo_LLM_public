@@ -7,8 +7,8 @@ PYTHON_SCRIPT_NAME="run_finetune_language_model_on_huggingface_dataset.py"
 # ==================================================== #
 # Select the parameters here
 
-# BASE_MODEL_LIST="gpt2-medium"
-BASE_MODEL_LIST="roberta-base"
+BASE_MODEL_LIST="gpt2-medium"
+# BASE_MODEL_LIST="roberta-base"
 # BASE_MODEL_LIST="bert-base-uncased,roberta-base"
 
 NUM_TRAIN_EPOCHS="5"

@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -27,21 +25,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Fill mask in a masked language model."""
+
 import logging
 import pprint
 
 import torch
 import transformers
 
+default_device = torch.device("cpu")
+logger = logging.getLogger(__name__)
+
 
 def do_fill_mask(
     tokenizer: transformers.PreTrainedTokenizer | transformers.PreTrainedTokenizerFast,
     model: transformers.PreTrainedModel,
     prompts: list[str],
-    device: torch.device = torch.device("cpu"),
-    logger: logging.Logger = logging.getLogger(__name__),
-) -> None:
-
+    device: torch.device = default_device,
+    logger: logging.Logger = logger,
+) -> list[list[dict]]:
+    """Fill mask in a masked language model."""
     fill_pipeline = transformers.pipeline(
         task="fill-mask",
         model=model,
@@ -56,4 +59,4 @@ def do_fill_mask(
     )
     logger.info(f"result:\n" f"{pprint.pformat(result)}")
 
-    return None
+    return result  # type: ignore
