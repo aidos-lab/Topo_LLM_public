@@ -3,7 +3,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 analysis_folder = 'twonn'
-min_num_samples = 356
+min_num_samples = pd.read_pickle('../../data/analysis/'+analysis_folder+
+        '/token_lvl/data-multiwoz21_split-validation_ctxt-dataset_entry_samples-1000_model-gpt2-medium_mask-no_masking_model-gpt2-medium_finetuned-on-multiwoz21_ftm-standard_checkpoint-2000_mask-no_masking__[-1]_' +
+                                      str(10000) + '.pkl').shape[0]
 
 last_layer = []
 last_layer_finetuned = []
