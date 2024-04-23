@@ -7,15 +7,16 @@ PYTHON_SCRIPT_NAME="twonn.py"
 # ==================================================== #
 # Select the parameters here
 
-# DATA_LIST="bbc,multiwoz21,sgd,wikitext"
-DATA_LIST="data-wikitext_split-train_ctxt-dataset_entry_samples-1000,data-multiwoz21_split-validation_ctxt-dataset_entry_samples-1000,data-iclr_2024_submissions_split-train_ctxt-dataset_entry_samples-1000"
-#DATA_LIST="data-multiwoz21_split-validation_ctxt-dataset_entry_samples-1000"
+#DATA_LIST="data-wikitext_split-train_ctxt-dataset_entry_samples-1000,data-multiwoz21_split-validation_ctxt-dataset_entry_samples-1000,data-iclr_2024_submissions_split-train_ctxt-dataset_entry_samples-1000"
+DATA_LIST="data-multiwoz21_split-validation_ctxt-dataset_entry_samples-1000"
 # LANGUAGE_MODEL_LIST="bert-base-uncased,roberta-base"
 #LANGUAGE_MODEL_LIST="roberta-base,roberta-base_finetuned-on-multiwoz21_ftm-lora"
 
-LAYER_INDICES_LIST="[-1],[-2],[-3],[-4],[-5],[-6],[-7],[-8],[-9],[-10],[-11],[-12]"
-#LAYER_INDICES_LIST="[-1],[-3],[-5],[-7],[-9],[-11],[-13],[-15],[-17],[-19],[-21],[-23]"
+#LAYER_INDICES_LIST="[-1],[-2],[-3],[-4],[-5],[-6],[-7],[-8],[-9],[-10],[-11],[-12]"
+LAYER_INDICES_LIST="[-1],[-3],[-5],[-7],[-9],[-11],[-13],[-15],[-17],[-19],[-21],[-23]"
 
+
+#SAMPLE_LIST="10000,20000,30000,50000"
 # ==================================================== #
 
 ADDITIONAL_OVERRIDES=""

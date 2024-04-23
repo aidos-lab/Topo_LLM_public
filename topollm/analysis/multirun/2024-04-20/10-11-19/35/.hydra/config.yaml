@@ -1,0 +1,17 @@
+data_name: data-multiwoz21_split-validation_ctxt-dataset_entry_samples-1000
+level_1: lvl-token
+level_2: lvl-token
+prefix_1: add-prefix-space-False_max-len-512
+prefix_2: add-prefix-space-False_max-len-512
+model_1: model-gpt2-medium_mask-no_masking
+model_2: model-gpt2-medium_finetuned-on-multiwoz21_ftm-standard_checkpoint-2000_mask-no_masking
+layer:
+- -9
+norm_1: norm-None
+norm_2: norm-None
+array_dir_1: array_dir
+array_dir_2: array_dir
+embedding_level_1: token_lvl
+embedding_level_2: token_lvl
+samples_1: 50000
+samples_2: SAMPLE_PLACEHOLDER

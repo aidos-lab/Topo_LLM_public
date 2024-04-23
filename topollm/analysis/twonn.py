@@ -81,13 +81,33 @@ def main(cfg):
     arr_no_pad = np.load(path_1)
     arr_no_pad_finetuned = np.load(path_2)
 
-    arr_no_pad = arr_no_pad[:1000]
-    arr_no_pad_finetuned = arr_no_pad_finetuned[:1000]
+    np.random.seed(2)
+    sample_size = 10000
+    # if sample_size>len(arr_no_pad):
+    #     idx = np.random.choice(
+    #         range(len(arr_no_pad)),
+    #         replace=False,
+    #         size=len(arr_no_pad),
+    #     )
+    # else:
+    #     idx = np.random.choice(
+    #         range(len(arr_no_pad)),
+    #         replace=False,
+    #         size=sample_size,
+    #     )
+    #
+    # arr_no_pad = arr_no_pad[idx]
+    # arr_no_pad_finetuned = arr_no_pad_finetuned[idx]
+
+    arr_no_pad = arr_no_pad[:sample_size]
+    arr_no_pad_finetuned = arr_no_pad_finetuned[:sample_size]
+
     # provide number of jobs for the computation
     n_jobs = 1
 
     # provide number of neighbors which are used for the computation
-    n_neighbors = 300
+    n_neighbors = round(len(arr_no_pad) *0.8)
+
     print(arr_no_pad[:10])
     lPCA = skdim.id.TwoNN().fit_pw(arr_no_pad,
                                   n_neighbors = n_neighbors,
@@ -122,7 +142,7 @@ def main(cfg):
     if not os.path.exists(save_path):
         os.makedirs(save_path)
 
-    save_name = save_path + file_name + '_'+str(cfg.layer) + '.pkl'
+    save_name = save_path + file_name + '_'+str(cfg.layer) + '_' + str(cfg.samples_1) + '.pkl'
     scatter_fig.savefig(save_name+'.png')
     dim_frame.to_pickle(save_name)
 
