@@ -1,0 +1,135 @@
+# Copyright 2024
+# Heinrich Heine University Dusseldorf,
+# Faculty of Mathematics and Natural Sciences,
+# Computer Science Department
+#
+# Authors:
+# Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
+# Benjamin Ruppik (ruppik@hhu.de)
+#
+# This code was generated with the help of AI writing assistants
+# including GitHub Copilot, ChatGPT, Bing Chat.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""Recursively go through directories starting from a root and delete all filtes matching a certain pattern."""
+
+import glob
+import logging
+import os
+import pathlib
+import sys
+
+default_logger = logging.getLogger(__name__)
+default_logger.setLevel(logging.INFO)
+default_logger.addHandler(
+    logging.StreamHandler(
+        stream=sys.stdout,
+    ),
+)
+
+
+def delete_files_except(
+    root_directory: os.PathLike,
+    delete_pattern: str = "embeddings_token_lvl_*[.pkl|.npy]",
+    retain_prefix_pattern: str = "embeddings_token_lvl_50000",
+    *,
+    dry_run: bool = True,
+    logger: logging.Logger = default_logger,
+) -> list[pathlib.Path] | None:
+    """Delete files that match the pattern except for those starting with the given retain pattern.
+
+    :param root_directory: The root directory to start traversing.
+    :param delete_pattern: The pattern to match files to be deleted (e.g., "embeddings_token_lvl_*").
+    :param retain_prefix_pattern: The prefix pattern to retain (e.g., "embeddings_token_lvl_50000").
+    :param dry_run: If True, lists files to be deleted without actually deleting them. Defaults to False.
+
+    :return: A list of files to be deleted if dry_run is True, else None.
+    """
+    logger.info(f"{delete_pattern = }")
+    files_to_delete: list[pathlib.Path] = []  # List to store files to be deleted
+
+    # Traverse through the entire folder structure recursively
+    for current_dir, _, _ in os.walk(
+        root_directory,
+    ):
+        logger.info(f"{current_dir = }")
+
+        # Find all files with the specified pattern
+        all_files = glob.glob(
+            pathname=delete_pattern,
+            root_dir=current_dir,
+        )
+
+        logger.info(f"{len(all_files) = }")
+
+        # Add files that do not start with the retain pattern to the list
+        for file in all_files:
+            if os.path.basename(file).startswith(
+                retain_prefix_pattern,
+            ):
+                logger.info(f"retained: {file = }")
+                continue
+
+            absolute_file_to_delete_path = pathlib.Path(
+                current_dir,
+                file,
+            )
+            files_to_delete.append(
+                absolute_file_to_delete_path,
+            )
+
+    logger.info(f"{len(files_to_delete) = }")
+
+    if dry_run:
+        # If it is a dry run, just return the list of files to be deleted
+        return files_to_delete
+
+    # Otherwise, delete the files
+    for file in files_to_delete:
+        pathlib.Path(
+            file,
+        ).unlink()
+        logger.info(f"deleted: {file = }")
+    # Return None if files are deleted
+    return None
+
+
+def main() -> None:
+    """Call the recursive deletion script."""
+    # Configuration for the base directory and the matching names.
+    base_dir = pathlib.Path(
+        "/Volumes/ruppik_external/research_data/Topo_LLM/data/analysis/prepared/",
+    )
+
+    delete_pattern = "embeddings_token_lvl_*[.pkl|.npy]"
+    retain_prefix_pattern = "embeddings_token_lvl_50000"
+
+    # Call the deletion function.
+    files_to_delete = delete_files_except(
+        root_directory=base_dir,
+        delete_pattern=delete_pattern,
+        retain_prefix_pattern=retain_prefix_pattern,
+        dry_run=False,
+    )
+
+    if files_to_delete:
+        default_logger.info("Files to be deleted (dry run):")
+        for file in files_to_delete:
+            default_logger.info(file)
+        default_logger.info(f"{len(files_to_delete) = } files to be deleted.")
+        default_logger.info("Run the script with `dry_run=False` to delete the files.")
+
+
+if __name__ == "__main__":
+    main()
