@@ -56,29 +56,29 @@ def delete_files_except(
 
     :return: A list of files to be deleted if dry_run is True, else None.
     """
-    logger.info(f"{delete_pattern = }")
+    logger.info(f"{delete_pattern = }")  # noqa: G004 - low overhead
     files_to_delete: list[pathlib.Path] = []  # List to store files to be deleted
 
     # Traverse through the entire folder structure recursively
     for current_dir, _, _ in os.walk(
         root_directory,
     ):
-        logger.info(f"{current_dir = }")
+        logger.info(f"{current_dir = }")  # noqa: G004 - low overhead
 
         # Find all files with the specified pattern
-        all_files = glob.glob(
+        all_files = glob.glob(  # noqa: PTH207 - we tested the function with glob.glob
             pathname=delete_pattern,
             root_dir=current_dir,
         )
 
-        logger.info(f"{len(all_files) = }")
+        logger.info(f"{len(all_files) = }")  # noqa: G004 - low overhead
 
         # Add files that do not start with the retain pattern to the list
         for file in all_files:
-            if os.path.basename(file).startswith(
+            if pathlib.Path(file).name.startswith(
                 retain_prefix_pattern,
             ):
-                logger.info(f"retained: {file = }")
+                logger.info(f"retained: {file = }")  # noqa: G004 - low overhead
                 continue
 
             absolute_file_to_delete_path = pathlib.Path(
@@ -89,7 +89,7 @@ def delete_files_except(
                 absolute_file_to_delete_path,
             )
 
-    logger.info(f"{len(files_to_delete) = }")
+    logger.info(f"{len(files_to_delete) = }")  # noqa: G004 - low overhead
 
     if dry_run:
         # If it is a dry run, just return the list of files to be deleted
@@ -100,7 +100,8 @@ def delete_files_except(
         pathlib.Path(
             file,
         ).unlink()
-        logger.info(f"deleted: {file = }")
+        logger.info(f"deleted: {file = }")  # noqa: G004 - low overhead
+
     # Return None if files are deleted
     return None
 
@@ -109,7 +110,8 @@ def main() -> None:
     """Call the recursive deletion script."""
     # Configuration for the base directory and the matching names.
     base_dir = pathlib.Path(
-        "/Volumes/ruppik_external/research_data/Topo_LLM/data/analysis/prepared/",
+        # "/Volumes/ruppik_external/research_data/Topo_LLM/data/analysis/prepared/",
+        "/home/benjamin_ruppik/git-source/Topo_LLM/data/analysis/prepared",
     )
 
     delete_pattern = "embeddings_token_lvl_*[.pkl|.npy]"
@@ -127,7 +129,7 @@ def main() -> None:
         default_logger.info("Files to be deleted (dry run):")
         for file in files_to_delete:
             default_logger.info(file)
-        default_logger.info(f"{len(files_to_delete) = } files to be deleted.")
+        default_logger.info(f"{len(files_to_delete) = } files to be deleted.")  # noqa: G004 - low overhead
         default_logger.info("Run the script with `dry_run=False` to delete the files.")
 
 
