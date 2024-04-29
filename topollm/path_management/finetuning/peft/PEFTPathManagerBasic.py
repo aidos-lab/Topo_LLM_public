@@ -29,8 +29,8 @@ import logging
 import pathlib
 
 from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
-from topollm.config_classes.enums import FinetuningMode
 from topollm.config_classes.finetuning.peft.peft_config import PEFTConfig
+from topollm.typing.enums import FinetuningMode
 
 
 class PEFTPathManagerBasic:
@@ -65,7 +65,8 @@ class PEFTPathManagerBasic:
         elif self.peft_config.finetuning_mode == FinetuningMode.LORA:
             desc = f"{NAME_PREFIXES['FinetuningMode']}" f"{KV_SEP}" f"lora"
         else:
-            raise ValueError(f"Unknown finetuning_mode: " f"{self.peft_config.finetuning_mode = }")
+            msg = f"Unknown finetuning_mode: {self.peft_config.finetuning_mode = }"
+            raise ValueError(msg)
 
         return desc
 
@@ -74,7 +75,7 @@ class PEFTPathManagerBasic:
         self,
     ) -> str:
         if self.peft_config.finetuning_mode == FinetuningMode.STANDARD:
-            description = f"lora-None"
+            description = "lora-None"
         elif self.peft_config.finetuning_mode == FinetuningMode.LORA:
             description = (
                 f"{NAME_PREFIXES['lora_r']}"
@@ -94,6 +95,7 @@ class PEFTPathManagerBasic:
                 f"{self.peft_config.lora_dropout}"
             )
         else:
-            raise ValueError(f"Unknown finetuning_mode: " f"{self.peft_config.finetuning_mode = }")
+            msg = f"Unknown finetuning_mode: {self.peft_config.finetuning_mode = }"
+            raise ValueError(msg)
 
         return description

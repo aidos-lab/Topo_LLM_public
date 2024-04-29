@@ -53,12 +53,12 @@ from topollm.model_handling.tokenizer.load_tokenizer import load_modified_tokeni
 from topollm.path_management.embeddings.factory import (
     get_embeddings_path_manager,
 )
-from topollm.storage.StorageDataclasses import ArrayProperties
-from topollm.storage.StorageFactory import (
+from topollm.storage.factory import (
     StorageFactory,
     StoragePaths,
     StorageSpecification,
 )
+from topollm.storage.StorageDataclasses import ArrayProperties
 
 logger = logging.getLogger(__name__)
 

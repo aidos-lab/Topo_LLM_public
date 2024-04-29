@@ -31,17 +31,17 @@ import logging
 
 import transformers
 
-from topollm.config_classes.enums import LMmode
 from topollm.config_classes.finetuning.finetuning_config import FinetuningConfig
+from topollm.typing.enums import LMmode
 
-logger = logging.getLogger(__name__)
+default_logger = logging.getLogger(__name__)
 
 
 def prepare_data_collator(
     finetuning_config: FinetuningConfig,
     tokenizer: transformers.PreTrainedTokenizerBase,
     verbosity: int = 1,
-    logger: logging.Logger = logger,
+    logger: logging.Logger = default_logger,
 ) -> transformers.DataCollatorForLanguageModeling:
     """Prepare the data collator for the finetuning process."""
     lm_mode = finetuning_config.lm_mode

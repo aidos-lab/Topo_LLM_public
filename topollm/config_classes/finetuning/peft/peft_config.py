@@ -30,7 +30,7 @@
 from pydantic import Field
 
 from topollm.config_classes.config_base_model import ConfigBaseModel
-from topollm.config_classes.enums import FinetuningMode
+from topollm.typing.enums import FinetuningMode
 
 
 class PEFTConfig(ConfigBaseModel):

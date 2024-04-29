@@ -31,21 +31,21 @@ import logging
 from typing import TYPE_CHECKING
 
 from topollm.config_classes.data.data_config import DataConfig
-from topollm.config_classes.enums import DatasetType
 from topollm.data_handling.dataset_preparer import dataset_preparer_huggingface
 from topollm.data_handling.dataset_preparer.protocol import DatasetPreparer
 from topollm.data_handling.dataset_splitter.factory import get_dataset_splitter
+from topollm.typing.enums import DatasetType
 
 if TYPE_CHECKING:
     from topollm.data_handling.dataset_splitter.protocol import DatasetSplitter
 
-logger = logging.getLogger(__name__)
+default_logger = logging.getLogger(__name__)
 
 
 def get_dataset_preparer(
     data_config: DataConfig,
     verbosity: int = 1,
-    logger: logging.Logger = logger,
+    logger: logging.Logger = default_logger,
 ) -> DatasetPreparer:
     """Return a dataset preparer for the given dataset type."""
     dataset_splitter: DatasetSplitter = get_dataset_splitter(

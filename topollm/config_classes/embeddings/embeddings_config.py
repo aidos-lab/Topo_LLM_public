@@ -35,7 +35,7 @@ from topollm.config_classes.data.dataset_map_config import DatasetMapConfig
 from topollm.config_classes.embeddings.embedding_extraction_config import (
     EmbeddingExtractionConfig,
 )
-from topollm.config_classes.enums import Level
+from topollm.typing.enums import Level
 
 
 class EmbeddingsConfig(ConfigBaseModel):

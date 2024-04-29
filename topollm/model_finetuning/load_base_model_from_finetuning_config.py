@@ -31,19 +31,19 @@ import torch
 import transformers
 from transformers import PreTrainedModel
 
-from topollm.config_classes.enums import LMmode
 from topollm.config_classes.finetuning.finetuning_config import FinetuningConfig
 from topollm.model_handling.model.load_model import load_model
+from topollm.typing.enums import LMmode
 
 default_device = torch.device("cpu")
-logger = logging.getLogger(__name__)
+default_logger = logging.getLogger(__name__)
 
 
 def load_base_model_from_finetuning_config(
     finetuning_config: FinetuningConfig,
     device: torch.device = default_device,
     verbosity: int = 1,
-    logger: logging.Logger = logger,
+    logger: logging.Logger = default_logger,
 ) -> PreTrainedModel:
     """Interface function to load a model from a FinetuningConfig object."""
     lm_mode = finetuning_config.lm_mode

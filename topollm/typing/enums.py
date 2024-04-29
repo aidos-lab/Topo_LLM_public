@@ -27,7 +27,7 @@
 
 """Enums used in the configuration classes."""
 
-from enum import Enum, unique
+from enum import Enum, IntEnum, unique
 
 from strenum import StrEnum
 
@@ -311,3 +311,12 @@ class LMmode(StrEnum):
 class TokenizerModifierMode(StrEnum):
     DO_NOTHING = "do_nothing"
     ADD_PADDING_TOKEN = "add_padding_token"
+
+
+class Verbosity(IntEnum):
+    """Verbosity level."""
+
+    QUIET = 0
+    NORMAL = 1
+    VERBOSE = 2
+    DEBUG = 3

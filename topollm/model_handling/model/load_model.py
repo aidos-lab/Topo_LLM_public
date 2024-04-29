@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -27,30 +25,43 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Load a model."""
+
 import logging
 import os
 
 import torch
 import transformers
-from transformers import AutoModelForPreTraining, PreTrainedModel
 
 from topollm.logging.log_model_info import log_model_info
+
+default_device = torch.device("cpu")
+default_logger = logging.getLogger(__name__)
 
 
 def load_model(
     pretrained_model_name_or_path: str | os.PathLike,
     model_loading_class: type = transformers.AutoModelForPreTraining,
-    device: torch.device = torch.device("cpu"),
+    device: torch.device = default_device,
     verbosity: int = 1,
-    logger: logging.Logger = logging.getLogger(__name__),
+    logger: logging.Logger = default_logger,
 ) -> transformers.PreTrainedModel:
     """Load the model based on the configuration.
 
     Args:
+    ----
         pretrained_model_name_or_path:
             The name or path of the pretrained model.
-    """
+        model_loading_class:
+            The class to use for loading the model.
+        device:
+            The device to move the model to.
+        verbosity:
+            The verbosity level.
+        logger:
+            The logger to use.
 
+    """
     if verbosity >= 1:
         logger.info(f"Loading model " f"{pretrained_model_name_or_path = } ...")
 
@@ -58,9 +69,8 @@ def load_model(
         model_loading_class,
         "from_pretrained",
     ):
-        raise ValueError(
-            f"model_loading_class does not have a from_pretrained method: " f"{model_loading_class = }",
-        )
+        msg = f"model_loading_class does not have a from_pretrained method: {model_loading_class = }"
+        raise ValueError(msg)
 
     model: transformers.PreTrainedModel = model_loading_class.from_pretrained(
         pretrained_model_name_or_path=pretrained_model_name_or_path,
@@ -72,9 +82,8 @@ def load_model(
         model,
         transformers.PreTrainedModel,
     ):
-        raise ValueError(
-            f"model is not of type PreTrainedModel: " f"{type(model) = }",
-        )
+        msg = f"model is not of type PreTrainedModel: {type(model) = }"
+        raise ValueError(msg)
 
     if verbosity >= 1:
         logger.info(

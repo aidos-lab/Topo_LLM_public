@@ -29,7 +29,6 @@
 
 import logging
 
-from topollm.config_classes.enums import TokenizerModifierMode
 from topollm.config_classes.finetuning.tokenizer_modifier_config import (
     TokenizerModifierConfig,
 )
@@ -38,6 +37,7 @@ from topollm.model_handling.tokenizer.tokenizer_modifier import (
     tokenizer_modifier_add_padding_token,
     tokenizer_modifier_do_nothing,
 )
+from topollm.typing.enums import TokenizerModifierMode
 
 logger = logging.getLogger(__name__)
 

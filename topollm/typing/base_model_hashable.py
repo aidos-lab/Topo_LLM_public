@@ -1,11 +1,10 @@
-# Copyright 2024
+# Copyright 2023-2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
 # Benjamin Ruppik (ruppik@hhu.de)
-# Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
 # First versions of this code were potentially generated
@@ -25,31 +24,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Configuration class for specifying storage."""
+"""Base class for dataclasses that should be hashable."""
 
-from pydantic import Field
-
-from topollm.config_classes.config_base_model import ConfigBaseModel
-from topollm.typing.enums import ArrayStorageType, MetadataStorageType
+from pydantic import BaseModel, ConfigDict
 
 
-class StorageConfig(ConfigBaseModel):
-    """Configurations for specifying storage."""
+class BaseModelHashable(BaseModel):
+    """Base class for dataclasses that should be hashable."""
 
-    array_storage_type: ArrayStorageType = Field(
-        ...,
-        title="Array storage type.",
-        description="The storage type for arrays.",
+    model_config = ConfigDict(
+        frozen=True,
     )
 
-    metadata_storage_type: MetadataStorageType = Field(
-        ...,
-        title="Metadata storage type.",
-        description="The storage type for metadata.",
-    )
-
-    chunk_size: int = Field(
-        ...,
-        title="Chunk size for storage.",
-        description="The chunk size for storage.",
-    )
+    def __hash__(
+        self,
+    ) -> int:
+        """Hash the object."""
+        return hash(
+            (type(self), *tuple(self.__dict__.values())),
+        )

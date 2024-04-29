@@ -44,18 +44,6 @@ from topollm.config_classes.embeddings.embedding_extraction_config import (
 )
 from topollm.config_classes.embeddings.embeddings_config import EmbeddingsConfig
 from topollm.config_classes.embeddings_data_prep.embeddings_data_prep_config import EmbeddingsDataPrepConfig
-from topollm.config_classes.enums import (
-    AggregationType,
-    ArrayStorageType,
-    DatasetType,
-    FinetuningMode,
-    Level,
-    LMmode,
-    MetadataStorageType,
-    PreferredTorchBackend,
-    Split,
-    TokenizerModifierMode,
-)
 from topollm.config_classes.finetuning.batch_sizes_config import BatchSizesConfig
 from topollm.config_classes.finetuning.finetuning_config import FinetuningConfig
 from topollm.config_classes.finetuning.finetuning_datasets_config import (
@@ -81,6 +69,18 @@ from topollm.path_management.finetuning.finetuning_path_manager_basic import (
 )
 from topollm.path_management.finetuning.protocol import (
     FinetuningPathManager,
+)
+from topollm.typing.enums import (
+    AggregationType,
+    ArrayStorageType,
+    DatasetType,
+    FinetuningMode,
+    Level,
+    LMmode,
+    MetadataStorageType,
+    PreferredTorchBackend,
+    Split,
+    TokenizerModifierMode,
 )
 
 logger = logging.getLogger(__name__)

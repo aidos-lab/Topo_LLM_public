@@ -32,7 +32,6 @@ import pprint
 
 import transformers
 
-from topollm.config_classes.enums import LMmode
 from topollm.config_classes.main_config import MainConfig
 from topollm.model_handling.get_torch_device import get_torch_device
 from topollm.model_handling.model.load_model import load_model
@@ -45,6 +44,7 @@ from topollm.model_inference.default_prompts import (
     get_default_mlm_prompts,
 )
 from topollm.model_inference.masked_language_modeling.do_fill_mask import do_fill_mask
+from topollm.typing.enums import LMmode
 
 logger = logging.getLogger(__name__)
 
