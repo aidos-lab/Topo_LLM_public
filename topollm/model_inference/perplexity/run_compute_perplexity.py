@@ -25,6 +25,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
+
 import numpy as np
 import torch
 from transformers import (
@@ -35,12 +37,17 @@ from transformers import (
     PreTrainedTokenizerFast,
 )
 
+default_device = torch.device("cpu")
+default_logger = logging.getLogger(__name__)
+
 
 def pseudoperplexity_per_token_of_sentence(
     tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast,
     model: PreTrainedModel,
     sentence: str,
+    device: torch.device = default_device,
 ) -> torch.Tensor:
+    """Compute the pseudo-perplexity of a masked language model on a given sentence."""
     mask_token_id = tokenizer.mask_token_id
     if not isinstance(
         mask_token_id,
@@ -53,6 +60,11 @@ def pseudoperplexity_per_token_of_sentence(
         sentence,
         return_tensors="pt",
     )
+    # Example:
+    # `model = 'roberta-base'`
+    # `sentence = 'Paris is in France.'
+    # `tensor_input = tensor([[    0, 32826,    16,    11,  1470,     4,     2]])`
+    # `[tokenizer.decode(id) for id in tensor_input[0]] = ['<s>', 'Paris', ' is', ' in', ' France', '.', '</s>']`
 
     if not isinstance(
         tensor_input,
@@ -65,15 +77,46 @@ def pseudoperplexity_per_token_of_sentence(
         tensor_input.size(-1) - 2,
         1,
     )
+    # repeat_input =
+    # tensor([[    0, 32826,    16,    11,  1470,     4,     2],
+    #         [    0, 32826,    16,    11,  1470,     4,     2],
+    #         [    0, 32826,    16,    11,  1470,     4,     2],
+    #         [    0, 32826,    16,    11,  1470,     4,     2],
+    #         [    0, 32826,    16,    11,  1470,     4,     2]])
+
     diagonal_mask = torch.ones(tensor_input.size(-1) - 1).diag(1)[:-2]
+    # diagonal_mask =
+    # tensor([[0., 1., 0., 0., 0., 0., 0.],
+    #         [0., 0., 1., 0., 0., 0., 0.],
+    #         [0., 0., 0., 1., 0., 0., 0.],
+    #         [0., 0., 0., 0., 1., 0., 0.],
+    #         [0., 0., 0., 0., 0., 1., 0.]])
+
     masked_input = repeat_input.masked_fill(
         mask=(diagonal_mask == 1),
         value=mask_token_id,
     )
+    # masked_input =
+    # tensor([[    0, 50264,    16,    11,  1470,     4,     2],
+    #         [    0, 32826, 50264,    11,  1470,     4,     2],
+    #         [    0, 32826,    16, 50264,  1470,     4,     2],
+    #         [    0, 32826,    16,    11, 50264,     4,     2],
+    #         [    0, 32826,    16,    11,  1470, 50264,     2]])
+
     labels = repeat_input.masked_fill(
         mask=(masked_input != mask_token_id),
         value=-100,
     )
+    # labels =
+    # tensor([[ -100, 32826,  -100,  -100,  -100,  -100,  -100],
+    #         [ -100,  -100,    16,  -100,  -100,  -100,  -100],
+    #         [ -100,  -100,  -100,    11,  -100,  -100,  -100],
+    #         [ -100,  -100,  -100,  -100,  1470,  -100,  -100],
+    #         [ -100,  -100,  -100,  -100,  -100,     4,  -100]])
+
+    # Move inputs and labels to the correct device.
+    masked_input = masked_input.to(device)
+    labels = labels.to(device)
 
     with torch.inference_mode():
         # TODO(Ben): Move model, input and labels to the correct device.
@@ -98,19 +141,24 @@ def compute_perplexity():
     # TODO(Ben): Implement a script which computes (pseudo-)perplexity of a model on a given dataset.
     # TODO(Ben): Save the token-level (pseudo-)perplexity to an array.
 
-    model_name = "cointegrated/rubert-tiny"
+    model_name = "roberta-base"
     model = AutoModelForMaskedLM.from_pretrained(
         model_name,
     )
     tokenizer = AutoTokenizer.from_pretrained(
         model_name,
     )
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    model = model.to(device)
 
     # # # #
     result = pseudoperplexity_per_token_of_sentence(
         tokenizer=tokenizer,
         model=model,
-        sentence="London is the capital of Great Britain.",
+        device=device,
+        sentence="Paris is in France.",
+        # sentence="London is the capital of Great Britain.",
     )
 
     print(result)
@@ -120,6 +168,7 @@ def compute_perplexity():
     result = pseudoperplexity_per_token_of_sentence(
         tokenizer=tokenizer,
         model=model,
+        device=device,
         sentence="London is the capital of South America.",
     )
     print(result)
