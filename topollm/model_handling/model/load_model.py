@@ -44,8 +44,7 @@ def load_model(
     verbosity: int = 1,
     logger: logging.Logger = logging.getLogger(__name__),
 ) -> transformers.PreTrainedModel:
-    """
-    Loads the model based on the configuration.
+    """Load the model based on the configuration.
 
     Args:
         pretrained_model_name_or_path:
@@ -60,8 +59,7 @@ def load_model(
         "from_pretrained",
     ):
         raise ValueError(
-            f"model_loading_class does not have a from_pretrained method: "
-            f"{model_loading_class = }",
+            f"model_loading_class does not have a from_pretrained method: " f"{model_loading_class = }",
         )
 
     model: transformers.PreTrainedModel = model_loading_class.from_pretrained(
