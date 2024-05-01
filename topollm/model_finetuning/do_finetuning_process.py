@@ -59,15 +59,16 @@ from topollm.model_handling.tokenizer.tokenizer_modifier.factory import (
 from topollm.path_management.finetuning.factory import (
     get_finetuning_path_manager,
 )
+from topollm.typing.enums import Verbosity
 
-logger = logging.getLogger(__name__)
+default_logger = logging.getLogger(__name__)
 
 
 def do_finetuning_process(
     main_config: MainConfig,
     device: torch.device,
-    verbosity: int = 1,
-    logger: logging.Logger = logger,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
 ) -> None:
     """Perform the finetuning process."""
     finetuning_config = main_config.finetuning

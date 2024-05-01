@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -31,21 +29,25 @@ import logging
 
 import transformers
 
+default_logger = logging.getLogger(__name__)
+
 
 def finetune_model(
     trainer: transformers.Trainer,
     verbosity: int = 1,
-    logger: logging.Logger = logging.getLogger(__name__),
+    logger: logging.Logger = default_logger,
 ) -> None:
+    """Finetune a model using the provided trainer."""
     if verbosity >= 1:
-        logger.info(f"Calling trainer.train() ...")
+        logger.info("Calling trainer.train() ...")
 
     training_call_output = trainer.train(
         resume_from_checkpoint=False,
     )
 
     if verbosity >= 1:
-        logger.info(f"Calling trainer.train() DONE")
-        logger.info(f"training_call_output:\n" f"{training_call_output}")
-
-    return None
+        logger.info("Calling trainer.train() DONE")
+        logger.info(
+            "training_call_output:\n%s",
+            training_call_output,
+        )

@@ -61,13 +61,13 @@ from topollm.storage.factory import (
 )
 from topollm.storage.StorageDataclasses import ArrayProperties
 
-logger = logging.getLogger(__name__)
+default_logger = logging.getLogger(__name__)
 
 
 def compute_and_store_embeddings(
     main_config: MainConfig,
     device: torch.device,
-    logger: logging.Logger = logger,
+    logger: logging.Logger = default_logger,
 ) -> None:
     """Compute and store embedding vectors."""
     tokenizer, tokenizer_modifier = load_modified_tokenizer(
