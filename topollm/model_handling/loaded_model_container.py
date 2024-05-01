@@ -32,6 +32,7 @@ from dataclasses import dataclass
 import torch
 import transformers
 
+from topollm.config_classes.tokenizer.tokenizer_config import TokenizerConfig
 from topollm.model_handling.tokenizer.tokenizer_modifier.protocol import TokenizerModifier
 from topollm.typing.enums import LMmode
 
@@ -42,6 +43,7 @@ class LoadedModelContainer:
 
     device: torch.device
     tokenizer: transformers.PreTrainedTokenizer | transformers.PreTrainedTokenizerFast
+    tokenizer_config: TokenizerConfig
     tokenizer_modifier: TokenizerModifier
     lm_mode: LMmode
     model: transformers.PreTrainedModel

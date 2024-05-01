@@ -94,6 +94,7 @@ def prepare_device_and_tokenizer_and_model(
     loaded_model_container = LoadedModelContainer(
         device=device,
         tokenizer=tokenizer,
+        tokenizer_config=main_config.tokenizer,
         tokenizer_modifier=tokenizer_modifier,
         lm_mode=lm_mode,
         model=model,

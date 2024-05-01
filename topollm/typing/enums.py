@@ -320,3 +320,11 @@ class Verbosity(IntEnum):
     NORMAL = 1
     VERBOSE = 2
     DEBUG = 3
+
+
+@unique
+class MLMPseudoperplexityGranularity(StrEnum):
+    """The different modes for computing the pseudoperplexity of a masked language model."""
+
+    TOKEN = "TOKEN"
+    SENTENCE = "SENTENCE"

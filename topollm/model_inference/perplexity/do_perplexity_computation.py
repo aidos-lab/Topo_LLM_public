@@ -32,7 +32,7 @@ from typing import TYPE_CHECKING
 
 from topollm.config_classes.main_config import MainConfig
 from topollm.data_handling.dataset_preparer.factory import get_dataset_preparer
-from topollm.model_handling.prepare_device_and_tokenizer_and_model import prepare_device_and_tokenizer_and_model
+from topollm.model_handling.prepare_loaded_model_container import prepare_device_and_tokenizer_and_model
 from topollm.model_inference.perplexity.compute_perplexity_over_dataset import compute_perplexity_over_dataset
 
 if TYPE_CHECKING:
@@ -68,10 +68,7 @@ def do_perplexity_computation(
     dataset: datasets.Dataset = dataset_preparer.prepare_dataset()
 
     compute_perplexity_over_dataset(
-        device=loaded_model_container.device,
-        tokenizer=loaded_model_container.tokenizer,
-        lm_mode=loaded_model_container.lm_mode,
-        model=model,
+        loaded_model_container=loaded_model_container,
         dataset=dataset,
         column_name=main_config.data.column_name,
         verbosity=main_config.verbosity,

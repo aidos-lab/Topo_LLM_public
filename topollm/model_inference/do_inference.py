@@ -32,7 +32,7 @@ import pprint
 from typing import TYPE_CHECKING
 
 from topollm.config_classes.main_config import MainConfig
-from topollm.model_handling.prepare_device_and_tokenizer_and_model import prepare_device_and_tokenizer_and_model
+from topollm.model_handling.prepare_loaded_model_container import prepare_device_and_tokenizer_and_model
 from topollm.model_inference.causal_language_modeling.do_text_generation import (
     do_text_generation,
 )

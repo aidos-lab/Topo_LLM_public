@@ -38,8 +38,9 @@ from topollm.config_classes.language_model.language_model_config import (
 from topollm.config_classes.paths.paths_config import PathsConfig
 from topollm.config_classes.tokenizer.tokenizer_config import TokenizerConfig
 from topollm.config_classes.transformations.transformations_config import TransformationsConfig
+from topollm.typing.enums import Verbosity
 
-logger = logging.getLogger(__name__)
+default_logger = logging.getLogger(__name__)
 
 
 class EmbeddingsPathManagerSeparateDirectories:
@@ -53,9 +54,10 @@ class EmbeddingsPathManagerSeparateDirectories:
         paths_config: PathsConfig,
         transformations_config: TransformationsConfig,
         tokenizer_config: TokenizerConfig,
-        verbosity: int = 1,
-        logger: logging.Logger = logger,
-    ):
+        verbosity: Verbosity = Verbosity.NORMAL,
+        logger: logging.Logger = default_logger,
+    ) -> None:
+        """Initialize the path manager."""
         self.data_config = data_config
         self.embeddings_config = embeddings_config
         self.language_model_config = language_model_config
@@ -105,8 +107,11 @@ class EmbeddingsPathManagerSeparateDirectories:
             self.array_dir_relative_path,
         )
 
-        if self.verbosity >= 1:
-            self.logger.info(f"array_dir_absolute_path:\n" f"{path}")
+        if self.verbosity >= Verbosity.NORMAL:
+            self.logger.info(
+                "array_dir_absolute_path:\n%s",
+                path,
+            )
 
         return path
 
@@ -142,7 +147,10 @@ class EmbeddingsPathManagerSeparateDirectories:
         )
 
         if self.verbosity >= 1:
-            self.logger.info(f"metadata_dir_absolute_path:\n" f"{path}")
+            self.logger.info(
+                "metadata_dir_absolute_path:\n%s",
+                path,
+            )
 
         return path
 
@@ -164,3 +172,42 @@ class EmbeddingsPathManagerSeparateDirectories:
         self,
     ) -> str:
         return "metadata_dir"
+
+    # # # #
+    # perplexity_dir
+
+    @property
+    def perplexity_dir_absolute_path(
+        self,
+    ) -> pathlib.Path:
+        path = pathlib.Path(
+            self.data_dir,
+            self.perplexity_dir_relative_path,
+        )
+
+        if self.verbosity >= 1:
+            self.logger.info(
+                "perplexity_dir_absolute_path:\n%s",
+                path,
+            )
+
+        return path
+
+    @property
+    def perplexity_dir_relative_path(
+        self,
+    ) -> pathlib.Path:
+        path = pathlib.Path(
+            "embeddings",
+            "perplexity",
+            self.get_nested_subfolder_path(),
+            self.perplexity_dir_name,
+        )
+
+        return path
+
+    @property
+    def perplexity_dir_name(
+        self,
+    ) -> str:
+        return "perplexity_dir"
