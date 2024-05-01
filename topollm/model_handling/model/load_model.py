@@ -63,7 +63,9 @@ def load_model(
 
     """
     if verbosity >= 1:
-        logger.info(f"Loading model " f"{pretrained_model_name_or_path = } ...")
+        logger.info(
+            f"Loading model {pretrained_model_name_or_path = } ...",  # noqa: G004 - low overhead
+        )
 
     if not hasattr(
         model_loading_class,
@@ -76,31 +78,34 @@ def load_model(
         pretrained_model_name_or_path=pretrained_model_name_or_path,
     )
     if verbosity >= 1:
-        logger.info(f"Loading model " f"{pretrained_model_name_or_path = } DONE")
+        logger.info(
+            f"Loading model {pretrained_model_name_or_path = } DONE",  # noqa: G004 - low overhead
+        )
 
     if not isinstance(
         model,
         transformers.PreTrainedModel,
     ):
         msg = f"model is not of type PreTrainedModel: {type(model) = }"
-        raise ValueError(msg)
+        raise TypeError(msg)
 
     if verbosity >= 1:
         logger.info(
-            f"Moving model to {device = } ...",
+            f"Moving model to {device = } ...",  # noqa: G004 - low overhead
         )
 
     # Move the model to GPU if available
     model.to(
-        device,  # type: ignore
+        device,  # type: ignore - torch.device
     )
 
     if verbosity >= 1:
         logger.info(
-            f"Moving model to {device = } DONE",
+            f"Moving model to {device = } DONE",  # noqa: G004 - low overhead
         )
         logger.info(
-            f"{device = }",
+            "device:\n%s",
+            device,
         )
         log_model_info(
             model=model,

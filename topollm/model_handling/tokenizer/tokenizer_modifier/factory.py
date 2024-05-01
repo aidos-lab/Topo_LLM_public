@@ -37,21 +37,23 @@ from topollm.model_handling.tokenizer.tokenizer_modifier import (
     tokenizer_modifier_add_padding_token,
     tokenizer_modifier_do_nothing,
 )
-from topollm.typing.enums import TokenizerModifierMode
+from topollm.typing.enums import TokenizerModifierMode, Verbosity
 
-logger = logging.getLogger(__name__)
+default_logger = logging.getLogger(__name__)
 
 
 def get_tokenizer_modifier(
     tokenizer_modifier_config: TokenizerModifierConfig,
-    verbosity: int = 1,
-    logger: logging.Logger = logger,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
 ) -> protocol.TokenizerModifier:
     """Get the tokenizer modifier based on the configuration."""
     mode: TokenizerModifierMode = tokenizer_modifier_config.mode
 
     if verbosity >= 1:
-        logger.info(f"{mode = }")
+        logger.info(
+            f"{mode = }",  # noqa: G004 - low overhead
+        )
 
     if mode == TokenizerModifierMode.DO_NOTHING:
         modifier = tokenizer_modifier_do_nothing.TokenizerModifierDoNothing(

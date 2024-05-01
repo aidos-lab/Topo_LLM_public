@@ -31,6 +31,7 @@ import logging
 from functools import partial
 
 import torch
+import torch.utils.data
 
 from topollm.compute_embeddings.collate_batch_for_embedding import (
     collate_batch_and_move_to_device,
@@ -123,7 +124,7 @@ def compute_and_store_embeddings(
     embedding_dataloader_preparer = get_embedding_dataloader_preparer(
         preparer_context=preparer_context,
     )
-    dataloader = embedding_dataloader_preparer.prepare_dataloader()
+    dataloader: torch.utils.data.DataLoader = embedding_dataloader_preparer.prepare_dataloader()
 
     # Number of the sequence of dataset entries
     number_of_sequences = len(embedding_dataloader_preparer)

@@ -25,10 +25,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
+"""Compute the (pseudo-)perplexity of a masked language model and save to disk."""
 
+import logging
+from typing import TYPE_CHECKING
+
+import hydra
+import hydra.core.hydra_config
 import numpy as np
+import omegaconf
 import torch
+import transformers
 from transformers import (
     AutoModelForMaskedLM,
     AutoTokenizer,
@@ -37,8 +44,27 @@ from transformers import (
     PreTrainedTokenizerFast,
 )
 
+from topollm.config_classes.setup_OmegaConf import setup_OmegaConf
+from topollm.logging.initialize_configuration_and_log import initialize_configuration
+from topollm.logging.setup_exception_logging import setup_exception_logging
+from topollm.model_handling.loaded_model_container import LoadedModelContainer
+from topollm.model_handling.prepare_device_and_tokenizer_and_model import prepare_device_and_tokenizer_and_model
+from topollm.typing.enums import LMmode
+
+if TYPE_CHECKING:
+    from topollm.config_classes.main_config import MainConfig
+
 default_device = torch.device("cpu")
 default_logger = logging.getLogger(__name__)
+
+global_logger = logging.getLogger(__name__)
+
+setup_exception_logging(
+    logger=global_logger,
+)
+
+
+setup_OmegaConf()
 
 
 def pseudoperplexity_per_token_of_sentence(
@@ -137,20 +163,18 @@ def token_level_to_sentence_level_pseudoperplexity(
     return np.exp(loss.item())
 
 
-def compute_perplexity():
-    # TODO(Ben): Implement a script which computes (pseudo-)perplexity of a model on a given dataset.
+def compute_perplexity_over_dataset(
+    device: torch.device,
+    tokenizer: transformers.PreTrainedTokenizer | transformers.PreTrainedTokenizerFast,
+    lm_mode: LMmode,
+    model: transformers.PreTrainedModel,
+):
+    # TODO(Ben): Load the correct dataset
     # TODO(Ben): Save the token-level (pseudo-)perplexity to an array.
 
-    model_name = "roberta-base"
-    model = AutoModelForMaskedLM.from_pretrained(
-        model_name,
-    )
-    tokenizer = AutoTokenizer.from_pretrained(
-        model_name,
-    )
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-    model = model.to(device)
+    if lm_mode == LMmode.CLM:
+        msg = "Perplexity computation not implemented for CLM yet."
+        raise NotImplementedError(msg)
 
     # # # #
     result = pseudoperplexity_per_token_of_sentence(
@@ -175,8 +199,39 @@ def compute_perplexity():
     # 6.162017238332462
 
 
-def main() -> None:
-    compute_perplexity()
+@hydra.main(
+    config_path="../../../configs",
+    config_name="main_config",
+    version_base="1.2",
+)
+def main(
+    config: omegaconf.DictConfig,
+) -> None:
+    """Run the script."""
+    logger = global_logger
+    logger.info("Running script ...")
+
+    main_config: MainConfig = initialize_configuration(
+        config=config,
+        logger=logger,
+    )
+
+    loaded_model_container: LoadedModelContainer = prepare_device_and_tokenizer_and_model(
+        main_config=main_config,
+        logger=logger,
+    )
+    model = loaded_model_container.model
+    # Put model in evaluation mode
+    model.eval()
+
+    compute_perplexity_over_dataset(
+        device=loaded_model_container.device,
+        tokenizer=loaded_model_container.tokenizer,
+        lm_mode=loaded_model_container.lm_mode,
+        model=model,
+    )
+
+    logger.info("Running script DONE")
 
 
 if __name__ == "__main__":

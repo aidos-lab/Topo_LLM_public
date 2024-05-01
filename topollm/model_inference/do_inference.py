@@ -29,13 +29,10 @@
 
 import logging
 import pprint
-
-import transformers
+from typing import TYPE_CHECKING
 
 from topollm.config_classes.main_config import MainConfig
-from topollm.model_handling.get_torch_device import get_torch_device
-from topollm.model_handling.model.load_model import load_model
-from topollm.model_handling.tokenizer.load_tokenizer import load_tokenizer
+from topollm.model_handling.prepare_device_and_tokenizer_and_model import prepare_device_and_tokenizer_and_model
 from topollm.model_inference.causal_language_modeling.do_text_generation import (
     do_text_generation,
 )
@@ -46,61 +43,32 @@ from topollm.model_inference.default_prompts import (
 from topollm.model_inference.masked_language_modeling.do_fill_mask import do_fill_mask
 from topollm.typing.enums import LMmode
 
-logger = logging.getLogger(__name__)
+if TYPE_CHECKING:
+    from topollm.model_handling.loaded_model_container import LoadedModelContainer
+
+default_logger = logging.getLogger(__name__)
 
 
 def do_inference(
     main_config: MainConfig,
     prompts: list[str] | None = None,
-    logger: logging.Logger = logger,
+    logger: logging.Logger = default_logger,
 ) -> list[list]:
     """Run inference with a language model.
 
     If `prompts` is `None`, default prompts are used.
     Make sure to not accidentally use an empty list as the default argument.
     """
-    device = get_torch_device(
-        preferred_torch_backend=main_config.preferred_torch_backend,
-        verbosity=main_config.verbosity,
+    loaded_model_container: LoadedModelContainer = prepare_device_and_tokenizer_and_model(
+        main_config=main_config,
         logger=logger,
     )
+    device = loaded_model_container.device
+    tokenizer = loaded_model_container.tokenizer
+    lm_mode = loaded_model_container.lm_mode
+    model = loaded_model_container.model
 
-    tokenizer = load_tokenizer(
-        pretrained_model_name_or_path=main_config.language_model.pretrained_model_name_or_path,
-        tokenizer_config=main_config.tokenizer,
-        verbosity=main_config.verbosity,
-        logger=logger,
-    )
-
-    # Note that you cannot use `AutoModel.from_pretrained` to load a model for inference,
-    # because it would lead to the error:
-    # `KeyError: 'logits'`
-    # See also: https://github.com/huggingface/transformers/issues/16569
-    #
-    # We use the `AutoModelFor...` class instead,
-    # which will load the model correctly for inference.
-    # Note: The `AutoModelForPreTraining` class appears to work for the
-    # "roberta"-models, but not for the "bert"-models.
-
-    # Case distinction for different language model modes
-    # (Masked Language Modeling, Causal Language Modeling).
-    lm_mode = main_config.language_model.lm_mode
-
-    if lm_mode == LMmode.MLM:
-        model_loading_class = transformers.AutoModelForMaskedLM
-    elif lm_mode == LMmode.CLM:
-        model_loading_class = transformers.AutoModelForCausalLM
-    else:
-        msg = f"Invalid lm_mode: {lm_mode = }"
-        raise ValueError(msg)
-
-    model = load_model(
-        pretrained_model_name_or_path=main_config.language_model.pretrained_model_name_or_path,
-        model_loading_class=model_loading_class,
-        device=device,
-        verbosity=main_config.verbosity,
-        logger=logger,
-    )
+    # Set up the model for evaluation.
     model.eval()
 
     if lm_mode == LMmode.MLM:
