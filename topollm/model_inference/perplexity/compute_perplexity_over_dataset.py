@@ -136,8 +136,6 @@ def token_level_to_sentence_level_pseudoperplexity(
 ):
     return np.exp(loss.item())
 
-    # 6.162017238332462
-
 
 def compute_perplexity_over_dataset(
     device: torch.device,
@@ -150,7 +148,6 @@ def compute_perplexity_over_dataset(
     logger: logging.Logger = default_logger,
 ):
     # TODO(Ben): Load the correct dataset
-    # TODO(Ben): Save the token-level (pseudo-)perplexity to an array.
 
     if lm_mode == LMmode.CLM:
         msg = "Perplexity computation not implemented for CLM yet."
@@ -165,18 +162,4 @@ def compute_perplexity_over_dataset(
         verbosity=verbosity,
         logger=logger,
     )
-
-    print(result)
-    # 4.541251105675365
-
-    # sentence="London is the capital of Great Britain.",
-    # # # #
-    result = pseudoperplexity_per_token_of_sentence(
-        sentence="London is the capital of South America.",
-        tokenizer=tokenizer,
-        model=model,
-        device=device,
-        verbosity=verbosity,
-        logger=logger,
-    )
-    print(result)
+    # TODO(Ben): Save the token-level (pseudo-)perplexity to an array.

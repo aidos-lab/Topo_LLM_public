@@ -81,6 +81,7 @@ from topollm.typing.enums import (
     PreferredTorchBackend,
     Split,
     TokenizerModifierMode,
+    Verbosity,
 )
 
 logger = logging.getLogger(__name__)
@@ -214,6 +215,13 @@ def test_data_dir(
 )
 def logger_fixture() -> logging.Logger:
     return logger
+
+
+@pytest.fixture(
+    scope="session",
+)
+def verbosity() -> Verbosity:
+    return Verbosity.NORMAL
 
 
 @pytest.fixture(
