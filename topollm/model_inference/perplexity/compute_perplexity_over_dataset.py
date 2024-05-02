@@ -25,32 +25,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Iterate over a dataset and compute the perplexity for each sentence."""
+
 import logging
-from dataclasses import dataclass
-from typing import TypeAlias
 
 import datasets
 import numpy as np
 import torch
-import transformers
 from tqdm import tqdm
 from transformers import PreTrainedModel, PreTrainedTokenizer, PreTrainedTokenizerFast
 
 from topollm.config_classes.tokenizer.tokenizer_config import TokenizerConfig
 from topollm.model_handling.loaded_model_container import LoadedModelContainer
+from topollm.model_inference.perplexity.sentence_perplexity_container import SentencePerplexityContainer
 from topollm.typing.enums import LMmode, MLMPseudoperplexityGranularity, Verbosity
+from topollm.typing.types import PerplexityResultsList
 
 default_device = torch.device("cpu")
 default_logger = logging.getLogger(__name__)
-
-
-@dataclass
-class SentencePerplexityContainer:
-    """Container for the token-level (pseudo-)perplexities of a sentence."""
-
-    token_ids: list[int]
-    token_strings: list[str]
-    token_perplexities: list[float]
 
 
 def pseudoperplexity_per_token_of_sentence(
@@ -58,7 +50,7 @@ def pseudoperplexity_per_token_of_sentence(
     tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast,
     tokenizer_config: TokenizerConfig,
     model: PreTrainedModel,
-    mlm_pseudoperplexity_mode: MLMPseudoperplexityGranularity = MLMPseudoperplexityGranularity.SENTENCE,
+    mlm_pseudoperplexity_granularity: MLMPseudoperplexityGranularity = MLMPseudoperplexityGranularity.SENTENCE,
     device: torch.device = default_device,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
@@ -94,7 +86,10 @@ def pseudoperplexity_per_token_of_sentence(
         raise TypeError(msg)
 
     token_id_list = tensor_input[0].tolist()  # type: ignore - tensor_input can be subscripted
-    tensor_input_decoded = [tokenizer.decode(single_token_id) for single_token_id in tensor_input[0]]  # type: ignore - tensor_input can be subscripted
+    tensor_input_decoded: list[str] = [
+        tokenizer.convert_ids_to_tokens(int(single_token_id))
+        for single_token_id in tensor_input[0]  # type: ignore - tensor_input can be subscripted
+    ]
 
     repeat_input = tensor_input.repeat(
         tensor_input.size(-1) - 2,
@@ -143,7 +138,7 @@ def pseudoperplexity_per_token_of_sentence(
 
     results_loss_list: list[float] = []
 
-    if mlm_pseudoperplexity_mode == MLMPseudoperplexityGranularity.SENTENCE:
+    if mlm_pseudoperplexity_granularity == MLMPseudoperplexityGranularity.SENTENCE:
         # We send the entire batch at once through the model to get a sentence-level loss.
         with torch.inference_mode():
             output = model(
@@ -156,15 +151,19 @@ def pseudoperplexity_per_token_of_sentence(
             results_loss_list.append(
                 loss.cpu().item(),
             )
-    elif mlm_pseudoperplexity_mode == MLMPseudoperplexityGranularity.TOKEN:
-        for masked_input_row, labels_row in zip(masked_input, labels):
-            masked_input_row = masked_input_row.unsqueeze(0)
-            labels_row = labels_row.unsqueeze(0)
+    elif mlm_pseudoperplexity_granularity == MLMPseudoperplexityGranularity.TOKEN:
+        for masked_input_row, labels_row in zip(
+            masked_input,
+            labels,
+            strict=True,
+        ):
+            masked_input_row_unsqueezed = masked_input_row.unsqueeze(0)
+            labels_row_unsqueezed = labels_row.unsqueeze(0)
 
             with torch.inference_mode():
                 output = model(
-                    masked_input_row,
-                    labels=labels_row,
+                    masked_input_row_unsqueezed,
+                    labels=labels_row_unsqueezed,
                 )
 
                 loss = output.loss
@@ -176,7 +175,12 @@ def pseudoperplexity_per_token_of_sentence(
         msg = "Invalid value for `mlm_pseudoperplexity_mode`."
         raise ValueError(msg)
 
-    results_loss_list_with_start_and_end = [0.0] + results_loss_list + [0.0]
+    # Concatenate 0.0 for the start and end token to the results list.
+    results_loss_list_with_start_and_end = [
+        0.0,
+        *results_loss_list,
+        0.0,
+    ]
 
     sentence_perplexity_container = SentencePerplexityContainer(
         token_ids=token_id_list,
@@ -193,9 +197,6 @@ def token_level_to_sentence_level_pseudoperplexity(
     return np.exp(loss.item())
 
 
-PerplexityResultsList: TypeAlias = list[tuple[int, SentencePerplexityContainer]]
-
-
 def compute_perplexity_over_dataset(
     loaded_model_container: LoadedModelContainer,
     dataset: datasets.Dataset,
@@ -207,7 +208,7 @@ def compute_perplexity_over_dataset(
         msg = "Perplexity computation not implemented for CLM yet."
         raise NotImplementedError(msg)
 
-    results_list: list[tuple[int, SentencePerplexityContainer]] = []
+    results_list: PerplexityResultsList = []
 
     for index, single_entry in enumerate(
         tqdm(
@@ -230,7 +231,7 @@ def compute_perplexity_over_dataset(
             tokenizer=loaded_model_container.tokenizer,
             tokenizer_config=loaded_model_container.tokenizer_config,
             model=loaded_model_container.model,
-            mlm_pseudoperplexity_mode=MLMPseudoperplexityGranularity.TOKEN,
+            mlm_pseudoperplexity_granularity=MLMPseudoperplexityGranularity.TOKEN,
             device=loaded_model_container.device,
             verbosity=verbosity,
             logger=logger,

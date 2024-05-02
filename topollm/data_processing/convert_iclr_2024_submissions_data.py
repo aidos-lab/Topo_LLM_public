@@ -47,6 +47,7 @@ from topollm.logging.setup_exception_logging import setup_exception_logging
 if TYPE_CHECKING:
     from topollm.config_classes.main_config import MainConfig
 
+default_logger = logging.getLogger(__name__)
 global_logger = logging.getLogger(__name__)
 
 setup_exception_logging(
@@ -83,7 +84,7 @@ def main(
 
 def process_dataset(
     data_dir: os.PathLike,
-    logger: logging.Logger = logging.getLogger(__name__),
+    logger: logging.Logger = default_logger,
 ) -> None:
     dataset_load_dir = pathlib.Path(
         data_dir,
@@ -130,10 +131,10 @@ def process_dataset(
         logger.info(f"Loading data from:\n" f"{csv_file_path = }\n...")
         # The argument
         # `keep_default_na=False`
-        # makes sur that string 'nan' is not interpreted as NaN
+        # makes sure that string 'nan' is not interpreted as NaN.
+        # Optional: Specify the data types of the columns via `dtype=dtypes`.
         dataframe = pd.read_csv(
             filepath_or_buffer=csv_file_path,
-            # dtype=dtypes, # Optional: Specify the data types of the columns
             keep_default_na=False,
             low_memory=False,
         )
@@ -153,24 +154,21 @@ def process_dataset(
 
         logger.info(f"Processing {split = } DONE")
 
-    return None
-
 
 def get_csv_file_name(
     split: str,
 ) -> str:
-    return f"ICLR_{split}" f".csv"
+    return f"ICLR_{split}.csv"
 
 
 def add_additional_columns(
     dataframe: pd.DataFrame,
     separator: str = ". ",
 ) -> pd.DataFrame:
-    """
-    Add additional columns to the dataframe.
+    """Add additional columns to the dataframe.
+
     We combine the title and abstract into a new column.
     """
-
     # Make a copy of the dataframe
     dataframe_augmented = dataframe.copy()
 
@@ -184,7 +182,7 @@ def write_single_split_dataframe_to_file(
     save_dir: pathlib.Path,
     split_dataframe: pd.DataFrame,
     split: str,
-    logger: logging.Logger = logging.getLogger(__name__),
+    logger: logging.Logger = default_logger,
 ) -> None:
     log_dataframe_info(
         df=split_dataframe,
@@ -200,7 +198,7 @@ def write_single_split_dataframe_to_file(
         save_dir,
         f"{split}.jsonl",
     )
-    logger.info(f"Writing the dataset to file:\n" f"{save_file_path = }\n...")
+    logger.info(f"Writing the dataset to file:\n{save_file_path = }\n...")  # noqa: G004 - low overhead
 
     with open(
         save_file_path,
@@ -213,15 +211,13 @@ def write_single_split_dataframe_to_file(
             logger=logger,
         )
 
-    logger.info(f"Writing the dataset to file:\n" f"{save_file_path = }\nDONE")
-
-    return None
+    logger.info(f"Writing the dataset to file:\n{save_file_path = }\nDONE")  # noqa: G004 - low overhead
 
 
 def iterate_over_dataframe(
     df: pd.DataFrame,
     file: IO,
-    logger: logging.Logger = logging.getLogger(__name__),
+    logger: logging.Logger = default_logger,
 ) -> None:
     # Convert the DataFrame to a list of dictionaries
     records: list[dict] = df.to_dict(
@@ -244,10 +240,6 @@ def iterate_over_dataframe(
             json_record + "\n",
         )
 
-    return None
-
 
 if __name__ == "__main__":
     main()
-
-    global_logger.info("Script Done.")

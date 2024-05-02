@@ -108,9 +108,9 @@ def load_env() -> None:
     )
 
     if result:
-        logger.info(f"Loaded environment variables " f"from {env_file = }")
+        logger.info(f"Loaded environment variables from {env_file = }")
     else:
-        logger.warning(f"No environment variables loaded " f"from {env_file = }")
+        logger.warning(f"No environment variables loaded from {env_file = }")
 
 
 def pytest_addoption(
@@ -247,6 +247,7 @@ def data_config() -> DataConfig:
     scope="session",
 )
 def tokenizer_config() -> TokenizerConfig:
+    """Return a TokenizerConfig object."""
     config = TokenizerConfig(
         add_prefix_space=False,
         max_length=512,
@@ -520,6 +521,7 @@ def main_config(
     storage_config: StorageConfig,
     tokenizer_config: TokenizerConfig,
     transformations_config: TransformationsConfig,
+    verbosity: Verbosity,
 ) -> MainConfig:
     config = MainConfig(
         data=data_config,
@@ -533,7 +535,7 @@ def main_config(
         storage=storage_config,
         tokenizer=tokenizer_config,
         transformations=transformations_config,
-        verbosity=1,
+        verbosity=verbosity,
     )
 
     return config
@@ -564,6 +566,7 @@ def embeddings_path_manager(
     paths_config: PathsConfig,
     tokenizer_config: TokenizerConfig,
     transformations_config: TransformationsConfig,
+    verbosity: Verbosity,
     logger_fixture: logging.Logger,
 ) -> EmbeddingsPathManagerSeparateDirectories:
     path_manager = EmbeddingsPathManagerSeparateDirectories(
@@ -573,7 +576,7 @@ def embeddings_path_manager(
         paths_config=paths_config,
         tokenizer_config=tokenizer_config,
         transformations_config=transformations_config,
-        verbosity=1,
+        verbosity=verbosity,
         logger=logger_fixture,
     )
 

@@ -33,11 +33,11 @@ from strenum import StrEnum
 
 try:
     # Try to import StrEnum from the standard library (Python 3.11 and later)
-    from enum import StrEnum  # type: ignore
+    from enum import StrEnum  # type: ignore - loading of the module is not guaranteed
 except ImportError:
     # Fallback to the strenum package for Python 3.10 and below.
     # Run `python3 -m pip install strenum` for python < 3.11
-    from strenum import StrEnum  # type: ignore
+    from strenum import StrEnum  # type: ignore - loading of the module is not guaranteed
 
 if not issubclass(
     StrEnum,
@@ -322,9 +322,22 @@ class Verbosity(IntEnum):
     DEBUG = 3
 
 
+# ==============================
+# Enums used for perplexity
+# ==============================
+
+
 @unique
 class MLMPseudoperplexityGranularity(StrEnum):
     """The different modes for computing the pseudoperplexity of a masked language model."""
 
-    TOKEN = "TOKEN"
+    TOKEN = "TOKEN"  # noqa: S105 - this is not a password
     SENTENCE = "SENTENCE"
+
+
+@unique
+class PerplexityContainerSaveFormat(StrEnum):
+    """The different formats in which the perplexity container can be saved."""
+
+    PICKLE = "pickle"
+    JSONL = "jsonl"
