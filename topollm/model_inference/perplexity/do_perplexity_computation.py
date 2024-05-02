@@ -28,12 +28,15 @@
 """Perform the perplexity computation based on the MainConfig object."""
 
 import logging
+import pathlib
+import pickle
 from typing import TYPE_CHECKING
 
 from topollm.config_classes.main_config import MainConfig
 from topollm.data_handling.dataset_preparer.factory import get_dataset_preparer
 from topollm.model_handling.prepare_loaded_model_container import prepare_device_and_tokenizer_and_model
 from topollm.model_inference.perplexity.compute_perplexity_over_dataset import compute_perplexity_over_dataset
+from topollm.path_management.embeddings.factory import get_embeddings_path_manager
 
 if TYPE_CHECKING:
     import datasets
@@ -67,10 +70,35 @@ def do_perplexity_computation(
     )
     dataset: datasets.Dataset = dataset_preparer.prepare_dataset()
 
-    compute_perplexity_over_dataset(
+    embeddings_path_manager = get_embeddings_path_manager(
+        main_config=main_config,
+        logger=logger,
+    )
+    perplexity_dir = embeddings_path_manager.perplexity_dir_absolute_path
+    # Create the directory if it does not exist
+    perplexity_dir.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+    save_file_path = pathlib.Path(
+        perplexity_dir,
+        "perplexity_results_list.pkl",
+    )
+
+    perplexity_results_list = compute_perplexity_over_dataset(
         loaded_model_container=loaded_model_container,
         dataset=dataset,
         column_name=main_config.data.column_name,
         verbosity=main_config.verbosity,
         logger=logger,
     )
+
+    logger.info(f"Saving perplexity results to {save_file_path} ...")  # noqa: G004 - low overhead
+    with pathlib.Path(save_file_path).open(
+        mode="wb",
+    ) as file:
+        pickle.dump(
+            obj=perplexity_results_list,
+            file=file,
+        )
+    logger.info(f"Saving perplexity results to {save_file_path} DONE")  # noqa: G004 - low overhead
