@@ -25,32 +25,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Iterate over a dataset and compute the perplexity for each sentence."""
+
 import logging
-from dataclasses import dataclass
-from typing import TypeAlias
 
 import datasets
 import numpy as np
 import torch
-import transformers
 from tqdm import tqdm
 from transformers import PreTrainedModel, PreTrainedTokenizer, PreTrainedTokenizerFast
 
 from topollm.config_classes.tokenizer.tokenizer_config import TokenizerConfig
 from topollm.model_handling.loaded_model_container import LoadedModelContainer
+from topollm.model_inference.perplexity.sentence_perplexity_container import SentencePerplexityContainer
 from topollm.typing.enums import LMmode, MLMPseudoperplexityGranularity, Verbosity
+from topollm.typing.types import PerplexityResultsList
 
 default_device = torch.device("cpu")
 default_logger = logging.getLogger(__name__)
-
-
-@dataclass
-class SentencePerplexityContainer:
-    """Container for the token-level (pseudo-)perplexities of a sentence."""
-
-    token_ids: list[int]
-    token_strings: list[str]
-    token_perplexities: list[float]
 
 
 def pseudoperplexity_per_token_of_sentence(
@@ -193,9 +185,6 @@ def token_level_to_sentence_level_pseudoperplexity(
     return np.exp(loss.item())
 
 
-PerplexityResultsList: TypeAlias = list[tuple[int, SentencePerplexityContainer]]
-
-
 def compute_perplexity_over_dataset(
     loaded_model_container: LoadedModelContainer,
     dataset: datasets.Dataset,
@@ -207,7 +196,7 @@ def compute_perplexity_over_dataset(
         msg = "Perplexity computation not implemented for CLM yet."
         raise NotImplementedError(msg)
 
-    results_list: list[tuple[int, SentencePerplexityContainer]] = []
+    results_list: PerplexityResultsList = []
 
     for index, single_entry in enumerate(
         tqdm(
