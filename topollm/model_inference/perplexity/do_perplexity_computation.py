@@ -35,7 +35,10 @@ from typing import TYPE_CHECKING
 from topollm.config_classes.main_config import MainConfig
 from topollm.data_handling.dataset_preparer.factory import get_dataset_preparer
 from topollm.model_handling.prepare_loaded_model_container import prepare_device_and_tokenizer_and_model
-from topollm.model_inference.perplexity.compute_perplexity_over_dataset import compute_perplexity_over_dataset
+from topollm.model_inference.perplexity.compute_perplexity_over_dataset import (
+    PerplexityResultsList,
+    compute_perplexity_over_dataset,
+)
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
 
 if TYPE_CHECKING:
@@ -85,7 +88,7 @@ def do_perplexity_computation(
         "perplexity_results_list.pkl",
     )
 
-    perplexity_results_list = compute_perplexity_over_dataset(
+    perplexity_results_list: PerplexityResultsList = compute_perplexity_over_dataset(
         loaded_model_container=loaded_model_container,
         dataset=dataset,
         column_name=main_config.data.column_name,

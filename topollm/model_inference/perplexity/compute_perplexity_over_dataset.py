@@ -26,13 +26,13 @@
 # limitations under the License.
 
 import logging
+from dataclasses import dataclass
 from typing import TypeAlias
 
 import datasets
 import numpy as np
 import torch
 import transformers
-from attr import dataclass
 from tqdm import tqdm
 from transformers import PreTrainedModel, PreTrainedTokenizer, PreTrainedTokenizerFast
 
