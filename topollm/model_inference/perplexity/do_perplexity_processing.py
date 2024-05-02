@@ -114,7 +114,7 @@ def save_perplexity_results_list(
     # Save in pickle format
     save_file_path_pickle = pathlib.Path(
         perplexity_dir,
-        "perplexity_results_list.pkl",
+        "perplexity_results_list_new_format.pkl",
     )
     if verbosity >= Verbosity.NORMAL:
         logger.info(f"Saving perplexity results to {save_file_path_pickle = } ...")  # noqa: G004 - low overhead

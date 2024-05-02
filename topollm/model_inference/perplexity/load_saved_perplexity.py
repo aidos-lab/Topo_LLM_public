@@ -89,12 +89,17 @@ def main(
             data_dir,
         )
 
-    perplexity_container_save_format = PerplexityContainerSaveFormat.JSONL
+    perplexity_container_save_format = PerplexityContainerSaveFormat.PICKLE
 
     if perplexity_container_save_format == PerplexityContainerSaveFormat.PICKLE:
-        # dataset_subdir = pathlib.Path("data-multiwoz21_split-validation_ctxt-dataset_entry_samples-3000")
+        # dataset_subdir = pathlib.Path(
+        #     "data-multiwoz21_split-validation_ctxt-dataset_entry_samples-3000",
+        # )
+        # dataset_subdir = pathlib.Path(
+        #     "data-one-year-of-tsla-on-reddit_split-validation_ctxt-dataset_entry_samples-3000",
+        # )
         dataset_subdir = pathlib.Path(
-            "data-one-year-of-tsla-on-reddit_split-validation_ctxt-dataset_entry_samples-3000"
+            "data-one-year-of-tsla-on-reddit_split-validation_ctxt-dataset_entry_samples-10",
         )
 
         path_list: list[pathlib.Path] = [
@@ -102,13 +107,17 @@ def main(
                 data_dir,
                 "embeddings/perplexity/",
                 dataset_subdir,
-                "lvl-token/add-prefix-space-False_max-len-512/model-roberta-base_finetuned-on-one-year-of-tsla-on-reddit_ftm-standard_checkpoint-400_mask-no_masking/layer-[-1]_agg-mean/norm-None/perplexity_dir/perplexity_results_list.pkl",
+                "lvl-token/add-prefix-space-False_max-len-512/",
+                "model-roberta-base_finetuned-on-one-year-of-tsla-on-reddit_ftm-standard_checkpoint-400_mask-no_masking/",
+                "layer-[-1]_agg-mean/norm-None/perplexity_dir/perplexity_results_list_new_format.pkl",
             ),
             pathlib.Path(
                 data_dir,
                 "embeddings/perplexity/",
                 dataset_subdir,
-                "lvl-token/add-prefix-space-False_max-len-512/model-roberta-base_finetuned-on-one-year-of-tsla-on-reddit_ftm-standard_checkpoint-2800_mask-no_masking/layer-[-1]_agg-mean/norm-None/perplexity_dir/perplexity_results_list.pkl",
+                "lvl-token/add-prefix-space-False_max-len-512/",
+                "model-roberta-base_finetuned-on-one-year-of-tsla-on-reddit_ftm-standard_checkpoint-2800_mask-no_masking/",
+                "layer-[-1]_agg-mean/norm-None/perplexity_dir/perplexity_results_list_new_format.pkl",
             ),
         ]
         if verbosity >= Verbosity.NORMAL:
@@ -123,10 +132,27 @@ def main(
             logger=logger,
         )
     elif perplexity_container_save_format == PerplexityContainerSaveFormat.JSONL:
+        dataset_subdir = pathlib.Path(
+            "data-one-year-of-tsla-on-reddit_split-validation_ctxt-dataset_entry_samples-10",
+        )
+
         path_list: list[pathlib.Path] = [
             pathlib.Path(
                 data_dir,
-                "embeddings/perplexity/data-one-year-of-tsla-on-reddit_split-train_ctxt-dataset_entry_samples-30/lvl-token/add-prefix-space-False_max-len-512/model-roberta-base_mask-no_masking/layer-[-1]_agg-mean/norm-None/perplexity_dir/perplexity_results_list.jsonl",
+                "embeddings/perplexity/",
+                dataset_subdir,
+                "lvl-token/add-prefix-space-False_max-len-512/",
+                "model-roberta-base_mask-no_masking/",
+                "layer-[-1]_agg-mean/norm-None/perplexity_dir/perplexity_results_list.jsonl",
+            ),
+            # NOTE: Currently these two paths are the same
+            pathlib.Path(
+                data_dir,
+                "embeddings/perplexity/",
+                dataset_subdir,
+                "lvl-token/add-prefix-space-False_max-len-512/",
+                "model-roberta-base_mask-no_masking/",
+                "layer-[-1]_agg-mean/norm-None/perplexity_dir/perplexity_results_list.jsonl",
             ),
         ]
         if verbosity >= Verbosity.NORMAL:
