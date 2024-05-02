@@ -50,7 +50,7 @@ def pseudoperplexity_per_token_of_sentence(
     tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast,
     tokenizer_config: TokenizerConfig,
     model: PreTrainedModel,
-    mlm_pseudoperplexity_mode: MLMPseudoperplexityGranularity = MLMPseudoperplexityGranularity.SENTENCE,
+    mlm_pseudoperplexity_granularity: MLMPseudoperplexityGranularity = MLMPseudoperplexityGranularity.SENTENCE,
     device: torch.device = default_device,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
@@ -138,7 +138,7 @@ def pseudoperplexity_per_token_of_sentence(
 
     results_loss_list: list[float] = []
 
-    if mlm_pseudoperplexity_mode == MLMPseudoperplexityGranularity.SENTENCE:
+    if mlm_pseudoperplexity_granularity == MLMPseudoperplexityGranularity.SENTENCE:
         # We send the entire batch at once through the model to get a sentence-level loss.
         with torch.inference_mode():
             output = model(
@@ -151,7 +151,7 @@ def pseudoperplexity_per_token_of_sentence(
             results_loss_list.append(
                 loss.cpu().item(),
             )
-    elif mlm_pseudoperplexity_mode == MLMPseudoperplexityGranularity.TOKEN:
+    elif mlm_pseudoperplexity_granularity == MLMPseudoperplexityGranularity.TOKEN:
         for masked_input_row, labels_row in zip(
             masked_input,
             labels,
@@ -231,7 +231,7 @@ def compute_perplexity_over_dataset(
             tokenizer=loaded_model_container.tokenizer,
             tokenizer_config=loaded_model_container.tokenizer_config,
             model=loaded_model_container.model,
-            mlm_pseudoperplexity_mode=MLMPseudoperplexityGranularity.TOKEN,
+            mlm_pseudoperplexity_granularity=MLMPseudoperplexityGranularity.TOKEN,
             device=loaded_model_container.device,
             verbosity=verbosity,
             logger=logger,

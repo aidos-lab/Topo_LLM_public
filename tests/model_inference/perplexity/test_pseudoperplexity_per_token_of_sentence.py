@@ -30,13 +30,16 @@ import logging
 import torch
 from transformers import AutoModelForMaskedLM, AutoTokenizer
 
+from topollm.config_classes.tokenizer.tokenizer_config import TokenizerConfig
 from topollm.model_inference.perplexity.compute_perplexity_over_dataset import pseudoperplexity_per_token_of_sentence
 from topollm.typing.enums import (
+    MLMPseudoperplexityGranularity,
     Verbosity,
 )
 
 
 def test_pseudoperplexity_per_token_of_sentence(
+    tokenizer_config: TokenizerConfig,
     device_fixture: torch.device,
     verbosity: Verbosity,
     logger_fixture: logging.Logger,
@@ -65,7 +68,9 @@ def test_pseudoperplexity_per_token_of_sentence(
         result = pseudoperplexity_per_token_of_sentence(
             sentence=sentence,
             tokenizer=tokenizer,
+            tokenizer_config=tokenizer_config,
             model=model,
+            mlm_pseudoperplexity_granularity=MLMPseudoperplexityGranularity.TOKEN,
             device=device_fixture,
             verbosity=verbosity,
             logger=logger_fixture,
