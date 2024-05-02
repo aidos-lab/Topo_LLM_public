@@ -30,7 +30,7 @@
 from pydantic import Field
 
 from topollm.config_classes.config_base_model import ConfigBaseModel
-from topollm.config_classes.enums import TokenizerModifierMode
+from topollm.typing.enums import TokenizerModifierMode
 
 
 class TokenizerModifierConfig(ConfigBaseModel):

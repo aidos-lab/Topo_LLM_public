@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -31,11 +29,10 @@ import logging
 from dataclasses import dataclass
 from os import PathLike
 
-from topollm.config_classes.enums import ArrayStorageType, MetadataStorageType
+from topollm.storage.array_storage import ChunkedArrayStorageZarr
 from topollm.storage.array_storage.ChunkedArrayStorageProtocol import (
     ChunkedArrayStorageProtocol,
 )
-from topollm.storage.array_storage import ChunkedArrayStorageZarr
 from topollm.storage.metadata_storage import (
     ChunkedMetadataStoragePickle,
     ChunkedMetadataStorageXarray,
@@ -46,6 +43,9 @@ from topollm.storage.metadata_storage.ChunkedMetadataStorageProtocol import (
 from topollm.storage.StorageDataclasses import (
     ArrayProperties,
 )
+from topollm.typing.enums import ArrayStorageType, MetadataStorageType
+
+default_logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -66,60 +66,43 @@ class StorageFactory:
     def __init__(
         self,
         storage_specification: StorageSpecification,
-        logger: logging.Logger = logging.getLogger(__name__),
+        logger: logging.Logger = default_logger,
     ) -> None:
         self.storage_specification = storage_specification
         self.logger = logger
 
-        return None
-
     def get_array_storage(
         self,
     ) -> ChunkedArrayStorageProtocol:
-        """
-        Factory function to instantiate array storage backends
-        based on the storage type.
-        """
+        """Instantiate array storage backends based on the storage type."""
         if self.storage_specification.array_storage_type == ArrayStorageType.ZARR:
             storage_backend = ChunkedArrayStorageZarr.ChunkedArrayStorageZarr(
                 array_properties=self.storage_specification.array_properties,
                 root_storage_path=self.storage_specification.storage_paths.array_dir,
             )
-            return storage_backend
         # Extendable to other storage types
-        # elif storage_type == "hdf5":
-        #     return Hdf5EmbeddingStorage(store_dir)
         else:
-            raise ValueError(
-                f"Unsupported " f"{self.storage_specification.array_storage_type = }"
-            )
+            msg = f"Unsupported {self.storage_specification.array_storage_type = }"
+            raise ValueError(msg)
+
+        return storage_backend
 
     def get_metadata_storage(
         self,
     ) -> ChunkedMetadataStorageProtocol:
-        if (
-            self.storage_specification.metadata_storage_type
-            == MetadataStorageType.XARRAY
-        ):
+        if self.storage_specification.metadata_storage_type == MetadataStorageType.XARRAY:
             storage_backend = ChunkedMetadataStorageXarray.ChunkedMetadataStorageXarray(
                 array_properties=self.storage_specification.array_properties,
                 root_storage_path=self.storage_specification.storage_paths.metadata_dir,
                 logger=self.logger,
             )
-        elif (
-            self.storage_specification.metadata_storage_type
-            == MetadataStorageType.PICKLE
-        ):
+        elif self.storage_specification.metadata_storage_type == MetadataStorageType.PICKLE:
             storage_backend = ChunkedMetadataStoragePickle.ChunkedMetadataStoragePickle(
                 root_storage_path=self.storage_specification.storage_paths.metadata_dir,
                 logger=self.logger,
             )
-        # Extendable to other storage types
-        # elif storage_type == "pandas":
-        #     return PandasMetadataStorage(store_dir)
         else:
-            raise ValueError(
-                f"Unsupported " f"{self.storage_specification.metadata_storage_type = }"
-            )
+            msg = f"Unsupported {self.storage_specification.metadata_storage_type = }"
+            raise ValueError(msg)
 
         return storage_backend

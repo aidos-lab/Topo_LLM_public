@@ -37,6 +37,8 @@ from topollm.logging.log_dataset_info import log_huggingface_dataset_info
 
 
 class EmbeddingDataLoaderPreparerHuggingface(EmbeddingDataLoaderPreparer):
+    """Prepare a dataloader for computing embeddings using Huggingface datasets."""
+
     @property
     def sequence_length(
         self,
@@ -71,7 +73,8 @@ class EmbeddingDataLoaderPreparerHuggingface(EmbeddingDataLoaderPreparer):
 
         if self.verbosity >= 1:
             self.logger.info(
-                f"{dataset_tokenized = }",
+                "dataset_tokenized:\n%s",
+                dataset_tokenized,
             )
             log_huggingface_dataset_info(
                 dataset=dataset_tokenized,
@@ -85,44 +88,47 @@ class EmbeddingDataLoaderPreparerHuggingface(EmbeddingDataLoaderPreparer):
         self,
         dataset_tokenized: datasets.Dataset,
     ) -> torch.utils.data.DataLoader:
-        # The mapped dataset has the input_ids and attention_mask
-        # as lists of integers, but we want to convert them to torch tensors
-        # to use them as model input.
-        # We will take care of this in the collate function of the DataLoader,
-        # which will also move the data to the appropriate device.
-        #
-        # An alternative way to set the format of the dataset to torch tensors
-        # is given below:
-        #
-        # dataset_tokenized.set_format(
-        #     type="torch",
-        #     columns=[
-        #         "input_ids",
-        #         "attention_mask",
-        #     ],
-        # )
+        """Create a dataloader from a tokenized dataset.
 
+        The mapped dataset has the input_ids and attention_mask
+        as lists of integers, but we want to convert them to torch tensors
+        to use them as model input.
+        We will take care of this in the collate function of the DataLoader,
+        which will also move the data to the appropriate device.
+
+        An alternative way to set the format of the dataset to torch tensors
+        is given below:
+
+        dataset_tokenized.set_format(
+            type="torch",
+            columns=[
+                "input_ids",
+                "attention_mask",
+            ],
+        )
+        """
         # The multiprocessing_context argument is the solution taken from:
         # https://github.com/pytorch/pytorch/issues/87688
         # But it does not appear to work with the "mps" backend.
+        # > multiprocessing_context=(
+        # >     "fork" if torch.backends.mps.is_available() else None
+        # > ),
         #
         # Not that you need to set `num_workers=0` so that the data loading
         # runs in the main process.
         # This appears to be necessary with the "mps" backend.
         dataloader = torch.utils.data.DataLoader(
-            dataset_tokenized,  # type: ignore
+            dataset_tokenized,  # type: ignore - typing issue with Dataset
             batch_size=self.preparer_context.embeddings_config.batch_size,
             shuffle=False,
             collate_fn=self.preparer_context.collate_fn,
             num_workers=self.preparer_context.embeddings_config.num_workers,
-            # multiprocessing_context=(
-            #     "fork" if torch.backends.mps.is_available() else None
-            # ),
         )
 
         if self.verbosity >= 1:
             self.logger.info(
-                f"{dataloader = }",
+                "dataloader:\n%s",
+                dataloader,
             )
 
         return dataloader

@@ -30,7 +30,7 @@
 from pydantic import Field
 
 from topollm.config_classes.config_base_model import ConfigBaseModel
-from topollm.config_classes.enums import ArrayStorageType, MetadataStorageType
+from topollm.typing.enums import ArrayStorageType, MetadataStorageType
 
 
 class StorageConfig(ConfigBaseModel):

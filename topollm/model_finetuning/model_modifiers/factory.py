@@ -29,22 +29,22 @@ import logging
 
 import torch
 
-from topollm.config_classes.enums import FinetuningMode
 from topollm.config_classes.finetuning.peft.peft_config import PEFTConfig
 from topollm.config_classes.finetuning.peft.peft_config_to_lora_config import (
     peft_config_to_lora_config,
 )
 from topollm.model_finetuning.model_modifiers import ModelModifierLora, ModelModifierStandard
 from topollm.model_finetuning.model_modifiers.ModelModifierProtocol import ModelModifier
+from topollm.typing.enums import FinetuningMode
 
-logger = logging.getLogger(__name__)
+default_logger = logging.getLogger(__name__)
 
 
 def get_model_modifier(
     peft_config: PEFTConfig,
     device: torch.device,
     verbosity: int = 1,
-    logger: logging.Logger = logger,
+    logger: logging.Logger = default_logger,
 ) -> ModelModifier:
     finetuning_mode = peft_config.finetuning_mode
     if verbosity >= 1:
@@ -60,8 +60,11 @@ def get_model_modifier(
         )
 
         if verbosity >= 1:
-            logger.info(f"Preparing LoRA adapter ...")
-            logger.info(f"{lora_config = }")
+            logger.info("Preparing LoRA adapter ...")
+            logger.info(
+                "lora_config:\n%s",
+                lora_config,
+            )
 
         model_modifier = ModelModifierLora.ModelModifierLora(
             lora_config=lora_config,
@@ -71,8 +74,9 @@ def get_model_modifier(
         )
 
         if verbosity >= 1:
-            logger.info(f"Preparing LoRA adapter DONE.")
+            logger.info("Preparing LoRA adapter DONE.")
     else:
-        raise ValueError(f"Unknown training mode: " f"{finetuning_mode = }")
+        msg = f"Unknown training mode: {finetuning_mode = }"
+        raise ValueError(msg)
 
     return model_modifier

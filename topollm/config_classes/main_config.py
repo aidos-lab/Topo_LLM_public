@@ -33,7 +33,6 @@ from topollm.config_classes.config_base_model import ConfigBaseModel
 from topollm.config_classes.data.data_config import DataConfig
 from topollm.config_classes.embeddings.embeddings_config import EmbeddingsConfig
 from topollm.config_classes.embeddings_data_prep.embeddings_data_prep_config import EmbeddingsDataPrepConfig
-from topollm.config_classes.enums import PreferredTorchBackend
 from topollm.config_classes.finetuning.finetuning_config import FinetuningConfig
 from topollm.config_classes.inference.inference_config import InferenceConfig
 from topollm.config_classes.language_model.language_model_config import (
@@ -43,6 +42,7 @@ from topollm.config_classes.paths.paths_config import PathsConfig
 from topollm.config_classes.storage.storage_config import StorageConfig
 from topollm.config_classes.tokenizer.tokenizer_config import TokenizerConfig
 from topollm.config_classes.transformations.transformations_config import TransformationsConfig
+from topollm.typing.enums import PreferredTorchBackend, Verbosity
 
 
 class MainConfig(ConfigBaseModel):
@@ -120,8 +120,8 @@ class MainConfig(ConfigBaseModel):
         description="The configuration for specifying transformations.",
     )
 
-    verbosity: int = Field(
-        default=1,
+    verbosity: Verbosity = Field(
+        default=Verbosity.NORMAL,
         title="Verbosity level.",
         description="The verbosity level.",
     )

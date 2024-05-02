@@ -30,17 +30,17 @@
 import logging
 
 from topollm.config_classes.data.data_split_config import DataSplitConfig
-from topollm.config_classes.enums import DataSplitMode
 from topollm.data_handling.dataset_splitter import dataset_splitter_do_nothing, dataset_splitter_proportions
 from topollm.data_handling.dataset_splitter.protocol import DatasetSplitter
+from topollm.typing.enums import DataSplitMode
 
-logger = logging.getLogger(__name__)
+default_logger = logging.getLogger(__name__)
 
 
 def get_dataset_splitter(
     data_split_config: DataSplitConfig,
     verbosity: int = 1,
-    logger: logging.Logger = logger,
+    logger: logging.Logger = default_logger,
 ) -> DatasetSplitter:
     """Return a dataset splitter."""
     if data_split_config.data_split_mode == DataSplitMode.DO_NOTHING:

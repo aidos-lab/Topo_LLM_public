@@ -25,7 +25,7 @@
 from pydantic import BaseModel
 
 from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
-from topollm.config_classes.enums import AggregationType
+from topollm.typing.enums import AggregationType
 
 
 class EmbeddingExtractionConfig(BaseModel):

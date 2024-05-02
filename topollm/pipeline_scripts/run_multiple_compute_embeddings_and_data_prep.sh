@@ -8,7 +8,8 @@ PYTHON_SCRIPT_NAME_DATA_PREP="../embeddings_data_prep/run_embeddings_data_prep.p
 # ==================================================== #
 # Select the parameters here
 
-DATA_LIST="one-year-of-tsla-on-reddit_validation,multiwoz21_validation,sgd,iclr_2024_submissions,wikitext,bbc"
+# DATA_LIST="one-year-of-tsla-on-reddit_validation,multiwoz21_validation,sgd,iclr_2024_submissions,wikitext,bbc"
+DATA_LIST="one-year-of-tsla-on-reddit_validation,multiwoz21_validation,iclr_2024_submissions,wikitext"
 # DATA_LIST="bbc,multiwoz21,sgd,wikitext"
 # DATA_LIST="multiwoz21_validation,iclr_2024_submissions,wikitext"
 # DATA_LIST="multiwoz21_validation"
@@ -16,10 +17,10 @@ DATA_LIST="one-year-of-tsla-on-reddit_validation,multiwoz21_validation,sgd,iclr_
 # DATA_LIST="wikitext"
 # DATA_LIST="one-year-of-tsla-on-reddit"
 
-LANGUAGE_MODEL_LIST="roberta-base"
+# LANGUAGE_MODEL_LIST="roberta-base"
 # LANGUAGE_MODEL_LIST="roberta-base_finetuned-on-iclr_ftm-standard"
 # LANGUAGE_MODEL_LIST="roberta-base_finetuned-on-multiwoz21_ftm-standard_overfitted"
-# LANGUAGE_MODEL_LIST="roberta-base_finetuned-on-one-year-of-tsla-on-reddit_ftm-standard"
+LANGUAGE_MODEL_LIST="roberta-base_finetuned-on-one-year-of-tsla-on-reddit_ftm-standard"
 
 # LANGUAGE_MODEL_LIST="gpt2-medium"
 # LANGUAGE_MODEL_LIST="gpt2-medium_finetuned-on-multiwoz21_ftm-standard"
@@ -35,7 +36,8 @@ LAYER_INDICES_LIST="[-1],[-2],[-3],[-4],[-5],[-6],[-7],[-8],[-9],[-10],[-11],[-1
 # LAYER_INDICES_LIST="[-1],[-3],[-5],[-7],[-9],[-11],[-13],[-15],[-17],[-19],[-21],[-23]"
 # LAYER_INDICES_LIST="[-1],[-2],[-3],[-4],[-5],[-6],[-7],[-8],[-9],[-10],[-11],[-12],[-13],[-14],[-15],[-16],[-17],[-18],[-19],[-20],[-21],[-22],[-23],[-24]"
 
-EMBEDDINGS_DATA_PREP_NUM_SAMPLES="50000"
+EMBEDDINGS_DATA_PREP_NUM_SAMPLES="30000"
+# EMBEDDINGS_DATA_PREP_NUM_SAMPLES="50000"
 # EMBEDDINGS_DATA_PREP_NUM_SAMPLES="10000,20000"
 # EMBEDDINGS_DATA_PREP_NUM_SAMPLES="5000,10000,15000,20000,25000,30000,50000,75000,100000"
 
@@ -43,6 +45,7 @@ EMBEDDINGS_DATA_PREP_NUM_SAMPLES="50000"
 # ADDITIONAL_OVERRIDES="data.number_of_samples=1000"
 ADDITIONAL_OVERRIDES="data.number_of_samples=3000"
 # ADDITIONAL_OVERRIDES+=" language_model.checkpoint_no=400,800,1200"
+ADDITIONAL_OVERRIDES+=" language_model.checkpoint_no=400,800,1200,1600,2000,2400,2800"
 
 # ==================================================== #
 

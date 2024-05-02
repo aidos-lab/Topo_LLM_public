@@ -25,29 +25,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
+"""Container for a loaded device, tokenizer, model."""
 
+from dataclasses import dataclass
+
+import torch
 import transformers
 
-default_logger = logging.getLogger(__name__)
+from topollm.config_classes.tokenizer.tokenizer_config import TokenizerConfig
+from topollm.model_handling.tokenizer.tokenizer_modifier.protocol import TokenizerModifier
+from topollm.typing.enums import LMmode
 
 
-def finetune_model(
-    trainer: transformers.Trainer,
-    verbosity: int = 1,
-    logger: logging.Logger = default_logger,
-) -> None:
-    """Finetune a model using the provided trainer."""
-    if verbosity >= 1:
-        logger.info("Calling trainer.train() ...")
+@dataclass
+class LoadedModelContainer:
+    """Container for a loaded device, tokenizer, model."""
 
-    training_call_output = trainer.train(
-        resume_from_checkpoint=False,
-    )
-
-    if verbosity >= 1:
-        logger.info("Calling trainer.train() DONE")
-        logger.info(
-            "training_call_output:\n%s",
-            training_call_output,
-        )
+    device: torch.device
+    tokenizer: transformers.PreTrainedTokenizer | transformers.PreTrainedTokenizerFast
+    tokenizer_config: TokenizerConfig
+    tokenizer_modifier: TokenizerModifier
+    lm_mode: LMmode
+    model: transformers.PreTrainedModel

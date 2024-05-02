@@ -32,7 +32,6 @@ from transformers.trainer_utils import SchedulerType
 
 from topollm.config_classes.config_base_model import ConfigBaseModel
 from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
-from topollm.config_classes.enums import LMmode
 from topollm.config_classes.finetuning.batch_sizes_config import BatchSizesConfig
 from topollm.config_classes.finetuning.finetuning_datasets_config import (
     FinetuningDatasetsConfig,
@@ -42,6 +41,7 @@ from topollm.config_classes.finetuning.tokenizer_modifier_config import (
     TokenizerModifierConfig,
 )
 from topollm.config_classes.tokenizer.tokenizer_config import TokenizerConfig
+from topollm.typing.enums import LMmode
 
 
 class FinetuningConfig(ConfigBaseModel):

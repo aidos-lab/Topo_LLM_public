@@ -31,6 +31,7 @@ import logging
 from functools import partial
 
 import torch
+import torch.utils.data
 
 from topollm.compute_embeddings.collate_batch_for_embedding import (
     collate_batch_and_move_to_device,
@@ -53,20 +54,20 @@ from topollm.model_handling.tokenizer.load_tokenizer import load_modified_tokeni
 from topollm.path_management.embeddings.factory import (
     get_embeddings_path_manager,
 )
-from topollm.storage.StorageDataclasses import ArrayProperties
-from topollm.storage.StorageFactory import (
+from topollm.storage.factory import (
     StorageFactory,
     StoragePaths,
     StorageSpecification,
 )
+from topollm.storage.StorageDataclasses import ArrayProperties
 
-logger = logging.getLogger(__name__)
+default_logger = logging.getLogger(__name__)
 
 
 def compute_and_store_embeddings(
     main_config: MainConfig,
     device: torch.device,
-    logger: logging.Logger = logger,
+    logger: logging.Logger = default_logger,
 ) -> None:
     """Compute and store embedding vectors."""
     tokenizer, tokenizer_modifier = load_modified_tokenizer(
@@ -123,7 +124,7 @@ def compute_and_store_embeddings(
     embedding_dataloader_preparer = get_embedding_dataloader_preparer(
         preparer_context=preparer_context,
     )
-    dataloader = embedding_dataloader_preparer.prepare_dataloader()
+    dataloader: torch.utils.data.DataLoader = embedding_dataloader_preparer.prepare_dataloader()
 
     # Number of the sequence of dataset entries
     number_of_sequences = len(embedding_dataloader_preparer)

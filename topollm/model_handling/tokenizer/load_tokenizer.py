@@ -36,15 +36,16 @@ from topollm.config_classes.main_config import MainConfig
 from topollm.config_classes.tokenizer.tokenizer_config import TokenizerConfig
 from topollm.model_handling.tokenizer.tokenizer_modifier.factory import get_tokenizer_modifier
 from topollm.model_handling.tokenizer.tokenizer_modifier.protocol import TokenizerModifier
+from topollm.typing.enums import Verbosity
 
-logger = logging.getLogger(__name__)
+default_logger = logging.getLogger(__name__)
 
 
 def load_tokenizer(
     pretrained_model_name_or_path: str | os.PathLike,
     tokenizer_config: TokenizerConfig,
-    verbosity: int = 1,
-    logger: logging.Logger = logger,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
 ) -> PreTrainedTokenizer | PreTrainedTokenizerFast:
     """Load the tokenizer based on the configuration."""
     if verbosity >= 1:
@@ -58,7 +59,8 @@ def load_tokenizer(
     if verbosity >= 1:
         logger.info(f"Loading tokenizer {pretrained_model_name_or_path = } DONE")
         logger.info(
-            f"tokenizer:\n{tokenizer}",
+            "tokenizer:\n%s",
+            tokenizer,
         )
 
     return tokenizer
@@ -66,7 +68,7 @@ def load_tokenizer(
 
 def load_modified_tokenizer(
     main_config: MainConfig,
-    logger: logging.Logger = logger,
+    logger: logging.Logger = default_logger,
 ) -> tuple[
     PreTrainedTokenizer | PreTrainedTokenizerFast,
     TokenizerModifier,
@@ -75,8 +77,8 @@ def load_modified_tokenizer(
     tokenizer = load_tokenizer(
         pretrained_model_name_or_path=main_config.language_model.pretrained_model_name_or_path,
         tokenizer_config=main_config.tokenizer,
-        logger=logger,
         verbosity=main_config.verbosity,
+        logger=logger,
     )
     tokenizer_modifier = get_tokenizer_modifier(
         tokenizer_modifier_config=main_config.language_model.tokenizer_modifier,

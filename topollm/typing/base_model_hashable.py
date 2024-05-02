@@ -1,11 +1,10 @@
-# Copyright 2024
+# Copyright 2023-2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
 # Benjamin Ruppik (ruppik@hhu.de)
-# Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
 # First versions of this code were potentially generated
@@ -25,29 +24,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
+"""Base class for dataclasses that should be hashable."""
 
-import transformers
-
-default_logger = logging.getLogger(__name__)
+from pydantic import BaseModel, ConfigDict
 
 
-def finetune_model(
-    trainer: transformers.Trainer,
-    verbosity: int = 1,
-    logger: logging.Logger = default_logger,
-) -> None:
-    """Finetune a model using the provided trainer."""
-    if verbosity >= 1:
-        logger.info("Calling trainer.train() ...")
+class BaseModelHashable(BaseModel):
+    """Base class for dataclasses that should be hashable."""
 
-    training_call_output = trainer.train(
-        resume_from_checkpoint=False,
+    model_config = ConfigDict(
+        frozen=True,
     )
 
-    if verbosity >= 1:
-        logger.info("Calling trainer.train() DONE")
-        logger.info(
-            "training_call_output:\n%s",
-            training_call_output,
+    def __hash__(
+        self,
+    ) -> int:
+        """Hash the object."""
+        return hash(
+            (type(self), *tuple(self.__dict__.values())),
         )

@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -27,20 +25,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
-
-# Standard library imports
 import logging
 
-# Third party imports
 import torch
 
-# Local imports
-from topollm.config_classes.enums import PreferredTorchBackend
-
-# END Imports
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+from topollm.typing.enums import PreferredTorchBackend
 
 
 def get_torch_device(
@@ -54,17 +43,11 @@ def get_torch_device(
         device = torch.device("cpu")
     # For 'cuda', check if it is the preference
     # and if it is available
-    elif (
-        preferred_torch_backend == PreferredTorchBackend.CUDA
-        and torch.cuda.is_available()
-    ):
+    elif preferred_torch_backend == PreferredTorchBackend.CUDA and torch.cuda.is_available():
         device = torch.device("cuda")
     # For 'mps', check if it is the preference
     # and if it is available
-    elif (
-        preferred_torch_backend == PreferredTorchBackend.MPS
-        and torch.backends.mps.is_available()
-    ):
+    elif preferred_torch_backend == PreferredTorchBackend.MPS and torch.backends.mps.is_available():
         device = torch.device("mps")
     # Fallback for PreferredTorchBackend.AUTO or
     # if preferred one is not available

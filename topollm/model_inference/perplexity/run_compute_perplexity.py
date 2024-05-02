@@ -25,7 +25,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Run model inference on example data."""
+"""Compute the (pseudo-)perplexity of a masked language model and save to disk."""
 
 import logging
 from typing import TYPE_CHECKING
@@ -33,14 +33,18 @@ from typing import TYPE_CHECKING
 import hydra
 import hydra.core.hydra_config
 import omegaconf
+import torch
 
 from topollm.config_classes.setup_OmegaConf import setup_OmegaConf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
-from topollm.model_inference.do_inference import do_inference
+from topollm.model_inference.perplexity.do_perplexity_computation import do_perplexity_computation
 
 if TYPE_CHECKING:
     from topollm.config_classes.main_config import MainConfig
+
+default_device = torch.device("cpu")
+default_logger = logging.getLogger(__name__)
 
 global_logger = logging.getLogger(__name__)
 
@@ -53,7 +57,7 @@ setup_OmegaConf()
 
 
 @hydra.main(
-    config_path="../../configs",
+    config_path="../../../configs",
     config_name="main_config",
     version_base="1.2",
 )
@@ -61,20 +65,20 @@ def main(
     config: omegaconf.DictConfig,
 ) -> None:
     """Run the script."""
-    global_logger.info("Running script ...")
+    logger = global_logger
+    logger.info("Running script ...")
 
     main_config: MainConfig = initialize_configuration(
         config=config,
-        logger=global_logger,
+        logger=logger,
     )
 
-    do_inference(
+    do_perplexity_computation(
         main_config=main_config,
-        prompts=None,
-        logger=global_logger,
+        logger=logger,
     )
 
-    global_logger.info("Running script DONE")
+    logger.info("Running script DONE")
 
 
 if __name__ == "__main__":

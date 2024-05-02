@@ -31,6 +31,8 @@ from typing import Protocol
 
 
 class EmbeddingsPathManager(Protocol):
+    """Protocol for managing paths to embeddings."""
+
     @property
     def data_dir(
         self,
@@ -43,5 +45,10 @@ class EmbeddingsPathManager(Protocol):
 
     @property
     def metadata_dir_absolute_path(
+        self,
+    ) -> pathlib.Path: ...  # pragma: no cover
+
+    @property
+    def perplexity_dir_absolute_path(
         self,
     ) -> pathlib.Path: ...  # pragma: no cover

@@ -36,7 +36,7 @@ from topollm.compute_embeddings.embedding_dataloader_preparer.embedding_dataload
 from topollm.compute_embeddings.embedding_dataloader_preparer.protocol import (
     EmbeddingDataLoaderPreparer,
 )
-from topollm.config_classes.enums import DatasetType
+from topollm.typing.enums import DatasetType
 
 
 def get_embedding_dataloader_preparer(

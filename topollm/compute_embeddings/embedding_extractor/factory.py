@@ -40,7 +40,7 @@ from topollm.compute_embeddings.embedding_extractor.protocol import (
 from topollm.config_classes.embeddings.embedding_extraction_config import (
     EmbeddingExtractionConfig,
 )
-from topollm.config_classes.enums import AggregationType
+from topollm.typing.enums import AggregationType
 
 
 def get_embedding_extractor(
