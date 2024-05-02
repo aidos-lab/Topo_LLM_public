@@ -38,7 +38,7 @@ import torch
 from topollm.config_classes.setup_OmegaConf import setup_OmegaConf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
-from topollm.model_inference.perplexity.do_perplexity_computation import do_perplexity_computation
+from topollm.model_inference.perplexity.do_perplexity_processing import do_perplexity_computation
 
 if TYPE_CHECKING:
     from topollm.config_classes.main_config import MainConfig

@@ -86,7 +86,10 @@ def pseudoperplexity_per_token_of_sentence(
         raise TypeError(msg)
 
     token_id_list = tensor_input[0].tolist()  # type: ignore - tensor_input can be subscripted
-    tensor_input_decoded = [tokenizer.decode(single_token_id) for single_token_id in tensor_input[0]]  # type: ignore - tensor_input can be subscripted
+    tensor_input_decoded: list[str] = [
+        tokenizer.convert_ids_to_tokens(int(single_token_id))
+        for single_token_id in tensor_input[0]  # type: ignore - tensor_input can be subscripted
+    ]
 
     repeat_input = tensor_input.repeat(
         tensor_input.size(-1) - 2,
@@ -149,14 +152,18 @@ def pseudoperplexity_per_token_of_sentence(
                 loss.cpu().item(),
             )
     elif mlm_pseudoperplexity_mode == MLMPseudoperplexityGranularity.TOKEN:
-        for masked_input_row, labels_row in zip(masked_input, labels):
-            masked_input_row = masked_input_row.unsqueeze(0)
-            labels_row = labels_row.unsqueeze(0)
+        for masked_input_row, labels_row in zip(
+            masked_input,
+            labels,
+            strict=True,
+        ):
+            masked_input_row_unsqueezed = masked_input_row.unsqueeze(0)
+            labels_row_unsqueezed = labels_row.unsqueeze(0)
 
             with torch.inference_mode():
                 output = model(
-                    masked_input_row,
-                    labels=labels_row,
+                    masked_input_row_unsqueezed,
+                    labels=labels_row_unsqueezed,
                 )
 
                 loss = output.loss
@@ -168,7 +175,12 @@ def pseudoperplexity_per_token_of_sentence(
         msg = "Invalid value for `mlm_pseudoperplexity_mode`."
         raise ValueError(msg)
 
-    results_loss_list_with_start_and_end = [0.0] + results_loss_list + [0.0]
+    # Concatenate 0.0 for the start and end token to the results list.
+    results_loss_list_with_start_and_end = [
+        0.0,
+        *results_loss_list,
+        0.0,
+    ]
 
     sentence_perplexity_container = SentencePerplexityContainer(
         token_ids=token_id_list,

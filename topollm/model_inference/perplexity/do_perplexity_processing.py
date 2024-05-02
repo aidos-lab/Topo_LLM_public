@@ -39,6 +39,7 @@ from topollm.model_handling.prepare_loaded_model_container import prepare_device
 from topollm.model_inference.perplexity.compute_perplexity_over_dataset import (
     compute_perplexity_over_dataset,
 )
+from topollm.model_inference.perplexity.sentence_perplexity_container import SentencePerplexityContainer
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
 from topollm.typing.enums import Verbosity
 from topollm.typing.types import PerplexityResultsList
@@ -111,13 +112,13 @@ def save_perplexity_results_list(
     """Save the perplexity results list to a file."""
     # # # #
     # Save in pickle format
-    save_file_path = pathlib.Path(
+    save_file_path_pickle = pathlib.Path(
         perplexity_dir,
         "perplexity_results_list.pkl",
     )
     if verbosity >= Verbosity.NORMAL:
-        logger.info(f"Saving perplexity results to {save_file_path} ...")  # noqa: G004 - low overhead
-    with pathlib.Path(save_file_path).open(
+        logger.info(f"Saving perplexity results to {save_file_path_pickle = } ...")  # noqa: G004 - low overhead
+    with pathlib.Path(save_file_path_pickle).open(
         mode="wb",
     ) as file:
         pickle.dump(
@@ -125,9 +126,30 @@ def save_perplexity_results_list(
             file=file,
         )
     if verbosity >= Verbosity.NORMAL:
-        logger.info(f"Saving perplexity results to {save_file_path} DONE")  # noqa: G004 - low overhead
+        logger.info(f"Saving perplexity results to {save_file_path_pickle = } DONE")  # noqa: G004 - low overhead
 
     # # # #
     # Save in jsonl format
+    save_file_path_josnl = pathlib.Path(
+        perplexity_dir,
+        "perplexity_results_list.jsonl",
+    )
+    # Iterate over the list and save each item as a jsonl line
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(f"Saving perplexity results to {save_file_path_josnl = } ...")  # noqa: G004 - low overhead
+    with save_file_path_josnl.open(
+        mode="w",
+    ) as file:
+        for _, sentence_perplexity_container in perplexity_results_list:
+            if not isinstance(
+                sentence_perplexity_container,
+                SentencePerplexityContainer,
+            ):
+                msg = "Expected a SentencePerplexityContainer."
+                raise TypeError(msg)
 
-    # TODO(Ben): Implement this
+            model_dump: str = sentence_perplexity_container.model_dump_json()
+            file.write(model_dump)
+            file.write("\n")
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(f"Saving perplexity results to {save_file_path_josnl = } DONE")  # noqa: G004 - low overhead

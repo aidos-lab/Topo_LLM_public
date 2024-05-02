@@ -25,11 +25,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dataclasses import dataclass
+from pydantic import BaseModel
 
 
-@dataclass
-class SentencePerplexityContainer:
+class SentencePerplexityContainer(BaseModel):
     """Container for the token-level (pseudo-)perplexities of a sentence."""
 
     token_ids: list[int]

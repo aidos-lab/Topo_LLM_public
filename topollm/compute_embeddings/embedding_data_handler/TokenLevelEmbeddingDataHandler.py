@@ -49,8 +49,9 @@ from topollm.storage.StorageDataclasses import (
     ArrayDataChunk,
     ChunkIdentifier,
 )
+from topollm.typing.enums import Verbosity
 
-logger = logging.getLogger(__name__)
+default_logger = logging.getLogger(__name__)
 
 
 class TokenLevelEmbeddingDataHandler:
@@ -61,14 +62,17 @@ class TokenLevelEmbeddingDataHandler:
         model: PreTrainedModel,
         dataloader: torch.utils.data.DataLoader,
         embedding_extractor: EmbeddingExtractor,
-        logger: logging.Logger = logger,
-    ):
+        verbosity: Verbosity = Verbosity.NORMAL,
+        logger: logging.Logger = default_logger,
+    ) -> None:
         """Create a Data Handler Class with Dependency Injection."""
         self.array_storage_backend = array_storage_backend
         self.metadata_storage_backend = metadata_storage_backend
         self.model = model
         self.dataloader = dataloader
         self.embedding_extractor = embedding_extractor
+
+        self.verbosity = verbosity
         self.logger = logger
 
     def process_data(
@@ -89,7 +93,7 @@ class TokenLevelEmbeddingDataHandler:
 
     def iterate_over_dataloader(
         self,
-    ):
+    ) -> None:
         # Iterate over batches and write embeddings to storage
         self.logger.info("Computing and storing embeddings ...")
 
@@ -97,7 +101,7 @@ class TokenLevelEmbeddingDataHandler:
             tqdm(
                 self.dataloader,
                 desc="Computing and storing embeddings",
-            )
+            ),
         ):
             self.process_single_batch(
                 batch=batch,
