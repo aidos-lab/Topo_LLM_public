@@ -2,7 +2,8 @@ defaults:
   - tokenizer_modifier: roberta
   - _self_
 
+checkpoint_no: 2800
 lm_mode: MLM
 masking_mode: no_masking
-pretrained_model_name_or_path: ${paths.data_dir}/models/finetuned_models/data-multiwoz21_split-train_ctxt-dataset_entry_samples-10000/ftm-standard/lora-None/ep-5/model_files
-short_model_name: roberta-base_finetuned-on-multiwoz21_ftm-standard
+pretrained_model_name_or_path: ${paths.data_dir}/models/finetuned_models/data-multiwoz21_split-train_ctxt-dataset_entry_samples-10000/model-roberta-base/ftm-standard/lora-None/lr-5e-05_lr_scheduler_type-linear_wd-0.01/ep-5/model_files/checkpoint-${language_model.checkpoint_no}
+short_model_name: roberta-base_finetuned-on-multiwoz21_ftm-standard_checkpoint-${language_model.checkpoint_no}
