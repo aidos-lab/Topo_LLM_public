@@ -25,6 +25,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Model modifier that does not modify the model, i.e., leads to standard fine-tuning behavior."""
+
 import logging
 
 import peft.peft_model
@@ -36,11 +38,14 @@ default_logger = logging.getLogger(__name__)
 
 
 class ModelModifierStandard:
+    """Model modifier that does not modify the model, i.e., leads to standard fine-tuning behavior."""
+
     def __init__(
         self,
         verbosity: Verbosity = Verbosity.NORMAL,
         logger: logging.Logger = default_logger,
     ) -> None:
+        """Initialize the model modifier."""
         self.verbosity = verbosity
         self.logger = logger
 

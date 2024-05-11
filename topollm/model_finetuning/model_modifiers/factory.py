@@ -25,6 +25,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Factory for model modifiers."""
+
 import logging
 
 import torch
@@ -46,6 +48,7 @@ def get_model_modifier(
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> ModelModifier:
+    """Get a model modifier for the given configuration."""
     finetuning_mode = peft_config.finetuning_mode
     if verbosity >= 1:
         logger.info(f"{finetuning_mode = }")  # noqa: G004 - low overhead

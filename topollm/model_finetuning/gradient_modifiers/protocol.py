@@ -25,18 +25,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Protocol for model modifiers which can be used to influence the fine-tuning."""
+"""Protocol for modifying how the gradients behave during fune-tuning."""
 
 from typing import Protocol
 
-import peft.peft_model
 from transformers import PreTrainedModel
 
 
-class ModelModifier(Protocol):
-    """Modify a model for finetuning."""
+class GradientModifier(Protocol):
+    """Modify the gradient behaviour during fine-tuning."""
 
-    def modify_model(
+    def modify_gradients(
         self,
         model: PreTrainedModel,
-    ) -> peft.peft_model.PeftModel | PreTrainedModel: ...  # pragma: no cover
+    ) -> PreTrainedModel: ...  # pragma: no cover

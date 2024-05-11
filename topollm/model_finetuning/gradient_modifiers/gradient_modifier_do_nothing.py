@@ -25,18 +25,35 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Protocol for model modifiers which can be used to influence the fine-tuning."""
+"""Gradient modifier that does not modify the model."""
 
-from typing import Protocol
+import logging
 
-import peft.peft_model
 from transformers import PreTrainedModel
 
+from topollm.typing.enums import Verbosity
 
-class ModelModifier(Protocol):
-    """Modify a model for finetuning."""
+default_logger = logging.getLogger(__name__)
 
-    def modify_model(
+
+class GradientModifierDoNothing:
+    """Gradient modifier that does not modify the model."""
+
+    def __init__(
+        self,
+        verbosity: Verbosity = Verbosity.NORMAL,
+        logger: logging.Logger = default_logger,
+    ) -> None:
+        """Initialize the model modifier."""
+        self.verbosity = verbosity
+        self.logger = logger
+
+    def modify_gradients(
         self,
         model: PreTrainedModel,
-    ) -> peft.peft_model.PeftModel | PreTrainedModel: ...  # pragma: no cover
+    ) -> PreTrainedModel:
+        if self.verbosity >= 1:
+            self.logger.info("Using model without gradient modifications.")
+            self.logger.info("Returning unmodified model.")
+
+        return model
