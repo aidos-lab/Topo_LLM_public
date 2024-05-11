@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -27,29 +25,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
+from typing import Protocol
 
 import peft.peft_model
 from transformers import PreTrainedModel
 
 
-class ModelModifierStandard:
-    def __init__(
-        self,
-        verbosity: int = 1,
-        logger: logging.Logger = logging.getLogger(__name__),
-    ) -> None:
-        self.verbosity = verbosity
-        self.logger = logger
-
-        return None
+class ModelModifier(Protocol):
+    """Modify a model for finetuning."""
 
     def modify_model(
         self,
         model: PreTrainedModel,
-    ) -> peft.peft_model.PeftModel | PreTrainedModel:
-        if self.verbosity >= 1:
-            self.logger.info(f"Using base model without modifications.")
-            self.logger.info(f"Returning model.")
-
-        return model
+    ) -> peft.peft_model.PeftModel | PreTrainedModel: ...  # pragma: no cover

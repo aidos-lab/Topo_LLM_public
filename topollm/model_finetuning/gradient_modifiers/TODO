@@ -1,0 +1,1 @@
+- Implement the freezing of model layers by setting their gradient parameter to False

@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -37,30 +35,36 @@ from transformers import PreTrainedModel
 from topollm.model_finetuning.model_modifiers.prepare_lora_model import (
     prepare_lora_model,
 )
+from topollm.typing.enums import Verbosity
+
+default_device = torch.device("cpu")
+default_logger = logging.getLogger(__name__)
 
 
 class ModelModifierLora:
     def __init__(
         self,
         lora_config: LoraConfig,
-        device: torch.device = torch.device("cpu"),
-        verbosity: int = 1,
-        logger: logging.Logger = logging.getLogger(__name__),
+        device: torch.device = default_device,
+        verbosity: Verbosity = Verbosity.NORMAL,
+        logger: logging.Logger = default_logger,
     ) -> None:
         self.lora_config = lora_config
         self.device = device
+
         self.verbosity = verbosity
         self.logger = logger
-
-        return None
 
     def modify_model(
         self,
         model: PreTrainedModel,
     ) -> peft.peft_model.PeftModel | PreTrainedModel:
-        if self.verbosity >= 1:
-            self.logger.info(f"Preparing LoRA adapter ...")
-            self.logger.info(f"{self.lora_config = }")
+        if self.verbosity >= Verbosity.NORMAL:
+            self.logger.info("Preparing LoRA adapter ...")
+            self.logger.info(
+                "self.lora_config:\n%s",
+                self.lora_config,
+            )
 
         modified_model = prepare_lora_model(
             base_model=model,
@@ -70,7 +74,7 @@ class ModelModifierLora:
             logger=self.logger,
         )
 
-        if self.verbosity >= 1:
-            self.logger.info(f"Preparing LoRA adapter DONE.")
+        if self.verbosity >= Verbosity.NORMAL:
+            self.logger.info("Preparing LoRA adapter DONE.")
 
         return modified_model

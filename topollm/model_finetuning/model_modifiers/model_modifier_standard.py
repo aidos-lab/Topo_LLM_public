@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -27,14 +25,31 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Protocol
+import logging
 
-from transformers import PreTrainedModel
 import peft.peft_model
+from transformers import PreTrainedModel
+
+from topollm.typing.enums import Verbosity
+
+default_logger = logging.getLogger(__name__)
 
 
-class ModelModifier(Protocol):
+class ModelModifierStandard:
+    def __init__(
+        self,
+        verbosity: Verbosity = Verbosity.NORMAL,
+        logger: logging.Logger = default_logger,
+    ) -> None:
+        self.verbosity = verbosity
+        self.logger = logger
+
     def modify_model(
         self,
         model: PreTrainedModel,
-    ) -> peft.peft_model.PeftModel | PreTrainedModel: ...  # pragma: no cover
+    ) -> peft.peft_model.PeftModel | PreTrainedModel:
+        if self.verbosity >= 1:
+            self.logger.info("Using base model without modifications.")
+            self.logger.info("Returning unmodified model.")
+
+        return model
