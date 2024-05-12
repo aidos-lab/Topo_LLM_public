@@ -1,8 +1,0 @@
-Implement the freezing of model layers by setting their gradient parameter to False.
-
-Subtasks:
-[x] Implement GradientModifierConfig
-[x] Implement factory function
-[x] Implement gradient modifier which freezes layers
-[x] Apply gradient modifier to the model prior to fine-tuning
-- Modify the trained model save paths to include the gradient modification information

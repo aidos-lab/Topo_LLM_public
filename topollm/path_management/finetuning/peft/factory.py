@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -7,6 +5,7 @@
 #
 # Authors:
 # Benjamin Ruppik (ruppik@hhu.de)
+# Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
 # First versions of this code were potentially generated
@@ -26,12 +25,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pathlib
-from typing import Protocol
+import logging
+
+from topollm.config_classes.finetuning.peft.peft_config import PEFTConfig
+from topollm.path_management.finetuning.peft.peft_path_manager_basic import (
+    PEFTPathManagerBasic,
+)
+from topollm.path_management.finetuning.peft.protocol import (
+    PEFTPathManager,
+)
+
+default_logger = logging.getLogger(__name__)
 
 
-class PEFTPathManager(Protocol):
-    @property
-    def peft_description_subdir(
-        self,
-    ) -> pathlib.Path: ...  # pragma: no cover
+def get_peft_path_manager(
+    peft_config: PEFTConfig,
+    verbosity: int = 1,
+    logger: logging.Logger = default_logger,
+) -> PEFTPathManager:
+    """Create a PEFTPathManager instance."""
+    path_manger = PEFTPathManagerBasic(
+        peft_config=peft_config,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+    return path_manger

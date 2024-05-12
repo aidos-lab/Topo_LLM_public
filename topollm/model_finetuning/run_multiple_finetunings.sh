@@ -29,6 +29,9 @@ LR_SCHEDULER_TYPE="constant"
 PEFT_LIST="standard"
 # PEFT_LIST="standard,lora"
 
+# GRADIENT_MODIFIER_LIST="do_nothing"
+GRADIENT_MODIFIER_LIST="freeze_first_layers_bert-style-models"
+
 # ADDITIONAL_OVERRIDES=""
 # ADDITIONAL_OVERRIDES="finetuning.max_steps=10"
 
@@ -43,5 +46,6 @@ python3 $PYTHON_SCRIPT_NAME \
     finetuning.batch_sizes.eval=8 \
     finetuning/finetuning_datasets=$FINETUNING_DATASETS_LIST \
     finetuning/peft=$PEFT_LIST \
+    finetuning/gradient_modifier=$GRADIENT_MODIFIER_LIST \
     hydra.job.env_set.CUDA_VISIBLE_DEVICES=0 \
     $ADDITIONAL_OVERRIDES

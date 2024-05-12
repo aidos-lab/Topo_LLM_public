@@ -30,6 +30,7 @@
 from pydantic import Field
 
 from topollm.config_classes.config_base_model import ConfigBaseModel
+from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
 from topollm.typing.enums import GradientModifierMode
 
 
@@ -45,3 +46,14 @@ class GradientModifierConfig(ConfigBaseModel):
         default_factory=list,
         description="The target modules to freeze.",
     )
+
+    @property
+    def gradient_modifier_description(self) -> str:
+        """Return a description of the gradient modifier which can be used in file paths."""
+        description = (
+            f"{NAME_PREFIXES['GradientModifierMode']}{KV_SEP}{str(self.mode)}"
+            f"{ITEM_SEP}"
+            f"{NAME_PREFIXES['target_modules_to_freeze']}{KV_SEP}{str(self.target_modules_to_freeze)}"
+        )
+
+        return description

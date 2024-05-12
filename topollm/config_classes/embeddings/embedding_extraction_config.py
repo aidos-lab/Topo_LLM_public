@@ -29,8 +29,10 @@ from topollm.typing.enums import AggregationType
 
 
 class EmbeddingExtractionConfig(BaseModel):
+    """Configuration for specifying embedding extraction."""
+
     layer_indices: list[int]
-    aggregation: AggregationType = AggregationType.MEAN  # type: ignore
+    aggregation: AggregationType = AggregationType.MEAN
 
     @property
     def embedding_extraction_config_description(
