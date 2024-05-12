@@ -37,8 +37,9 @@ from topollm.config_classes.paths.paths_config import PathsConfig
 from topollm.path_management.finetuning.peft.PEFTPathManagerFactory import (
     get_peft_path_manager,
 )
+from topollm.typing.enums import Verbosity
 
-logger = logging.getLogger(__name__)
+default_logger = logging.getLogger(__name__)
 
 
 class FinetuningPathManagerBasic:
@@ -49,9 +50,10 @@ class FinetuningPathManagerBasic:
         data_config: DataConfig,
         paths_config: PathsConfig,
         finetuning_config: FinetuningConfig,
-        verbosity: int = 1,
-        logger: logging.Logger = logger,
+        verbosity: Verbosity = Verbosity.NORMAL,
+        logger: logging.Logger = default_logger,
     ):
+        """Initialize the path manager."""
         self.data_config = data_config
         self.finetuning_config = finetuning_config
         self.paths_config = paths_config
@@ -75,6 +77,8 @@ class FinetuningPathManagerBasic:
     def finetuned_base_dir(
         self,
     ) -> pathlib.Path:
+        # TODO(Ben): Include the gradient modifier description into this path
+
         path = pathlib.Path(
             self.data_dir,
             "models",
@@ -136,7 +140,10 @@ class FinetuningPathManagerBasic:
         )
 
         if self.verbosity >= 1:
-            self.logger.info(f"finetuned_model_dir:\n" f"{path}")
+            self.logger.info(
+                "finetuned_model_dir:\n%s",
+                path,
+            )
 
         return path
 
@@ -153,6 +160,9 @@ class FinetuningPathManagerBasic:
         path = None
 
         if self.verbosity >= 1:
-            self.logger.info(f"logging_dir:\n" f"{path}")
+            self.logger.info(
+                "logging_dir:\n%s",
+                path,
+            )
 
         return path

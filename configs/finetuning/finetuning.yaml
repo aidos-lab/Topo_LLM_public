@@ -1,5 +1,7 @@
 defaults:
-  - base_model@_here_: gpt2-medium
+  # - base_model@_here_: bert-base-uncased
+  # - base_model@_here_: gpt2-medium
+  - base_model@_here_: roberta-base
   # - gradient_modifier: default
   - gradient_modifier: freeze_layers
   # - peft: lora

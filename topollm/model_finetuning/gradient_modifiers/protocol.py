@@ -29,6 +29,7 @@
 
 from typing import Protocol
 
+import peft.peft_model
 from transformers import PreTrainedModel
 
 
@@ -37,5 +38,5 @@ class GradientModifier(Protocol):
 
     def modify_gradients(
         self,
-        model: PreTrainedModel,
-    ) -> PreTrainedModel: ...  # pragma: no cover
+        model: PreTrainedModel | peft.peft_model.PeftModel,
+    ) -> PreTrainedModel | peft.peft_model.PeftModel: ...  # pragma: no cover

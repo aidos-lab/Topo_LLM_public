@@ -35,7 +35,6 @@ from topollm.config_classes.finetuning.gradient_modifier.gradient_modifier_confi
 from topollm.model_finetuning.gradient_modifiers.gradient_modifier_do_nothing import GradientModifierDoNothing
 from topollm.model_finetuning.gradient_modifiers.gradient_modifier_freeze_layers import GradientModifierFreezeLayers
 from topollm.model_finetuning.gradient_modifiers.protocol import GradientModifier
-from topollm.model_finetuning.model_modifiers.protocol import ModelModifier
 from topollm.typing.enums import GradientModifierMode, Verbosity
 
 default_logger = logging.getLogger(__name__)
@@ -43,7 +42,7 @@ default_logger = logging.getLogger(__name__)
 
 def get_gradient_modifier(
     gradient_modifier_config: GradientModifierConfig,
-    device: torch.device,
+    device: torch.device,  # noqa: ARG001 - might be used in the future
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> GradientModifier:

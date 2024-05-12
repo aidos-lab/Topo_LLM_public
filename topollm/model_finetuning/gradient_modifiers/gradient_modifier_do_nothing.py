@@ -29,6 +29,7 @@
 
 import logging
 
+import peft.peft_model
 from transformers import PreTrainedModel
 
 from topollm.typing.enums import Verbosity
@@ -50,8 +51,8 @@ class GradientModifierDoNothing:
 
     def modify_gradients(
         self,
-        model: PreTrainedModel,
-    ) -> PreTrainedModel:
+        model: PreTrainedModel | peft.peft_model.PeftModel,
+    ) -> PreTrainedModel | peft.peft_model.PeftModel:
         if self.verbosity >= 1:
             self.logger.info("Using model without gradient modifications.")
             self.logger.info("Returning unmodified model.")

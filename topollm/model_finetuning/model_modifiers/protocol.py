@@ -39,4 +39,4 @@ class ModelModifier(Protocol):
     def modify_model(
         self,
         model: PreTrainedModel,
-    ) -> peft.peft_model.PeftModel | PreTrainedModel: ...  # pragma: no cover
+    ) -> PreTrainedModel | peft.peft_model.PeftModel: ...  # pragma: no cover
