@@ -140,7 +140,12 @@ def do_finetuning_process(
     )
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-    # Prepare model input
+    # Potential modification gradients.
+
+    # TODO(Ben): Use the factory and apply the modifier method
+
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    # Prepare model input.
 
     train_dataset_mapped, eval_dataset_mapped = prepare_model_input(
         train_dataset=train_dataset,

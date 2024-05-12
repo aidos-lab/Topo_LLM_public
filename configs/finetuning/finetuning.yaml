@@ -1,6 +1,7 @@
 defaults:
   - base_model@_here_: gpt2-medium
-  - gradient_modifier: default
+  # - gradient_modifier: default
+  - gradient_modifier: freeze_layers
   # - peft: lora
   # - finetuning_datasets: train_and_eval_on_bbc
   - finetuning_datasets: train_and_eval_on_one-year-of-tsla-on-reddit

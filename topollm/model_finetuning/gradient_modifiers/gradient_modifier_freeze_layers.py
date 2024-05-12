@@ -50,13 +50,26 @@ class GradientModifierFreezeLayers:
         self.logger = logger
 
         if target_modules_to_freeze is None:
-            target_modules_to_freeze = []
+            self.target_modules_to_freeze = []
+        else:
+            self.target_modules_to_freeze = target_modules_to_freeze
 
     def modify_gradients(
         self,
         model: PreTrainedModel,
     ) -> PreTrainedModel:
-        if self.verbosity >= 1:
+        if self.verbosity >= Verbosity.NORMAL:
             self.logger.info("Freezing layers ...")
 
-        # TODO(Ben): Implement this
+        for name, param in model.named_parameters():
+            # TODO(Ben): Modify the criterion here
+            if name.startswith("encoder.layer.0"):
+                param.requires_grad = False
+
+        if self.verbosity >= Verbosity.NORMAL:
+            for name, param in model.named_parameters():
+                self.logger.info(
+                    f"{name = }, {param.requires_grad = }",  # noqa: G004 - low overhead
+                )
+
+        return model
