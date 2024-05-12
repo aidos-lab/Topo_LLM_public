@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -27,25 +25,44 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Logging utilities for model information."""
+
 import logging
 from typing import Any
 
 from transformers import PreTrainedModel
 
+default_logger = logging.getLogger(__name__)
+
 
 def log_model_info(
     model: PreTrainedModel | Any,
     model_name: str = "model",
-    logger: logging.Logger = logging.getLogger(__name__),
+    logger: logging.Logger = default_logger,
 ) -> None:
-
-    logger.info(f"{type(model) = }")
-    logger.info(f"{model_name}:\n" f"{model}")
+    """Log model information."""
+    logger.info(
+        f"{type(model) = }",  # noqa: G004 - low overhead
+    )
+    logger.info(
+        f"{model_name}:\n{model}",  # noqa: G004 - low overhead
+    )
 
     if hasattr(
         model,
         "config",
     ):
-        logger.info(f"{model_name}.config:\n" f"{model.config}")
+        logger.info(
+            f"{model_name}.config:\n{model.config}",  # noqa: G004 - low overhead
+        )
 
-    return None
+
+def log_param_requires_grad_for_model(
+    model: PreTrainedModel | Any,
+    logger: logging.Logger = default_logger,
+) -> None:
+    """Log whether parameters require gradients for a model."""
+    for name, param in model.named_parameters():
+        logger.info(
+            f"{name = }, {param.requires_grad = }",  # noqa: G004 - low overhead
+        )

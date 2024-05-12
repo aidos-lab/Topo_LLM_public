@@ -32,6 +32,7 @@ import logging
 import peft.peft_model
 from transformers import PreTrainedModel
 
+from topollm.logging.log_model_info import log_param_requires_grad_for_model
 from topollm.typing.enums import Verbosity
 
 default_logger = logging.getLogger(__name__)
@@ -59,40 +60,59 @@ class GradientModifierFreezeLayers:
         self,
         model: PreTrainedModel | peft.peft_model.PeftModel,
     ) -> PreTrainedModel | peft.peft_model.PeftModel:
-        """Freeze layers of the model.
-
-        Example names of named parameters:
-        - For model 'bert-base-uncased':
-          'bert.encoder.layer.11.attention.self.key.bias'
-        - For model 'gpt2-medium':
-          'transformer.h.23.ln_1.weight'
-          'transformer.h.23.ln_1.bias'
-          'transformer.h.23.attn.c_attn.weight'
-          'transformer.h.23.attn.c_attn.bias'
-          'transformer.h.23.attn.c_proj.weight'
-          'transformer.h.23.attn.c_proj.bias'
-          'transformer.h.23.ln_2.weight'
-          'transformer.h.23.ln_2.bias'
-          'transformer.h.23.mlp.c_fc.weight'
-          'transformer.h.23.mlp.c_fc.bias'
-          'transformer.h.23.mlp.c_proj.weight'
-          'transformer.h.23.mlp.c_proj.bias'
-        - For model 'roberta-base':
-          'roberta.encoder.layer.11.attention.self.query.weight'
-          'roberta.encoder.layer.11.attention.self.query.bias'
-        """
+        """Freeze layers of the model."""
         if self.verbosity >= Verbosity.NORMAL:
             self.logger.info("Freezing layers ...")
 
         for name, param in model.named_parameters():
-            # TODO(Ben): Modify the criterion here
-            if name.startswith("encoder.layer.0"):
+            name: str
+
+            should_be_frozen = self.check_if_layer_should_be_frozen(
+                name=name,
+            )
+
+            if should_be_frozen:
                 param.requires_grad = False
 
         if self.verbosity >= Verbosity.NORMAL:
-            for name, param in model.named_parameters():
-                self.logger.info(
-                    f"{name = }, {param.requires_grad = }",  # noqa: G004 - low overhead
-                )
+            log_param_requires_grad_for_model(
+                model=model,
+                logger=self.logger,
+            )
+
+        if self.verbosity >= Verbosity.NORMAL:
+            self.logger.info("Freezing layers DONE.")
 
         return model
+
+    def check_if_layer_should_be_frozen(
+        self,
+        name: str,
+    ) -> bool:
+        """Check if a layer should be frozen.
+
+        The decision is based on the name of the parameter,
+        if it contains any of the target modules to freeze as a substring,
+        the layer should be frozen.
+
+        Example names of named parameters:
+            - For model 'bert-base-uncased':
+            'bert.encoder.layer.11.attention.self.key.bias'
+            - For model 'gpt2-medium':
+            'transformer.h.23.ln_1.weight'
+            'transformer.h.23.ln_1.bias'
+            'transformer.h.23.attn.c_attn.weight'
+            'transformer.h.23.attn.c_attn.bias'
+            'transformer.h.23.attn.c_proj.weight'
+            'transformer.h.23.attn.c_proj.bias'
+            'transformer.h.23.ln_2.weight'
+            'transformer.h.23.ln_2.bias'
+            'transformer.h.23.mlp.c_fc.weight'
+            'transformer.h.23.mlp.c_fc.bias'
+            'transformer.h.23.mlp.c_proj.weight'
+            'transformer.h.23.mlp.c_proj.bias'
+            - For model 'roberta-base':
+            'roberta.encoder.layer.11.attention.self.query.weight'
+            'roberta.encoder.layer.11.attention.self.query.bias'
+        """
+        return any(target_module in name for target_module in self.target_modules_to_freeze)

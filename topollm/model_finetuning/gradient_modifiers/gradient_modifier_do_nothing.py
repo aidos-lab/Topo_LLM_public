@@ -32,6 +32,7 @@ import logging
 import peft.peft_model
 from transformers import PreTrainedModel
 
+from topollm.logging.log_model_info import log_param_requires_grad_for_model
 from topollm.typing.enums import Verbosity
 
 default_logger = logging.getLogger(__name__)
@@ -56,5 +57,11 @@ class GradientModifierDoNothing:
         if self.verbosity >= 1:
             self.logger.info("Using model without gradient modifications.")
             self.logger.info("Returning unmodified model.")
+
+        if self.verbosity >= Verbosity.NORMAL:
+            log_param_requires_grad_for_model(
+                model=model,
+                logger=self.logger,
+            )
 
         return model
