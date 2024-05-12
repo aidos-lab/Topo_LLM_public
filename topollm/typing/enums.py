@@ -282,19 +282,19 @@ class ModelSelectionMetric(StrEnum):  # type: ignore
 
 
 @unique
-class SliceNormType(StrEnum):  # type: ignore
+class SliceNormType(StrEnum):
     NONE = "None"
     INDIVIDUAL = "individual"
     SHARED = "shared"
 
 
 @unique
-class TaggerType(StrEnum):  # type: ignore
+class TaggerType(StrEnum):
     ROBERTA = "roberta"
 
 
 @unique
-class LrSchedulerType(StrEnum):  # type: ignore
+class LrSchedulerType(StrEnum):
     CONSTANT = "constant"
     LINEAR_WITH_WARMUP = "linear_with_warmup"
 
