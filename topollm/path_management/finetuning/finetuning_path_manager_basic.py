@@ -52,7 +52,7 @@ class FinetuningPathManagerBasic:
         finetuning_config: FinetuningConfig,
         verbosity: Verbosity = Verbosity.NORMAL,
         logger: logging.Logger = default_logger,
-    ):
+    ) -> None:
         """Initialize the path manager."""
         self.data_config = data_config
         self.finetuning_config = finetuning_config

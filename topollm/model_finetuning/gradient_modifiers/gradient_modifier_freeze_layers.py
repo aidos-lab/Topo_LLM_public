@@ -97,22 +97,22 @@ class GradientModifierFreezeLayers:
 
         Example names of named parameters:
             - For model 'bert-base-uncased':
-            'bert.encoder.layer.11.attention.self.key.bias'
+                'bert.encoder.layer.11.attention.self.key.bias'
             - For model 'gpt2-medium':
-            'transformer.h.23.ln_1.weight'
-            'transformer.h.23.ln_1.bias'
-            'transformer.h.23.attn.c_attn.weight'
-            'transformer.h.23.attn.c_attn.bias'
-            'transformer.h.23.attn.c_proj.weight'
-            'transformer.h.23.attn.c_proj.bias'
-            'transformer.h.23.ln_2.weight'
-            'transformer.h.23.ln_2.bias'
-            'transformer.h.23.mlp.c_fc.weight'
-            'transformer.h.23.mlp.c_fc.bias'
-            'transformer.h.23.mlp.c_proj.weight'
-            'transformer.h.23.mlp.c_proj.bias'
+                'transformer.h.23.ln_1.weight'
+                'transformer.h.23.ln_1.bias'
+                'transformer.h.23.attn.c_attn.weight'
+                'transformer.h.23.attn.c_attn.bias'
+                'transformer.h.23.attn.c_proj.weight'
+                'transformer.h.23.attn.c_proj.bias'
+                'transformer.h.23.ln_2.weight'
+                'transformer.h.23.ln_2.bias'
+                'transformer.h.23.mlp.c_fc.weight'
+                'transformer.h.23.mlp.c_fc.bias'
+                'transformer.h.23.mlp.c_proj.weight'
+                'transformer.h.23.mlp.c_proj.bias'
             - For model 'roberta-base':
-            'roberta.encoder.layer.11.attention.self.query.weight'
-            'roberta.encoder.layer.11.attention.self.query.bias'
+                'roberta.encoder.layer.11.attention.self.query.weight'
+                'roberta.encoder.layer.11.attention.self.query.bias'
         """
         return any(target_module in name for target_module in self.target_modules_to_freeze)
