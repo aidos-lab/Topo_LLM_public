@@ -1,10 +1,15 @@
 defaults:
-  - base_model@_here_: gpt2-medium
-  - peft: standard
+  # - base_model@_here_: bert-base-uncased
+  # - base_model@_here_: gpt2-medium
+  - base_model@_here_: roberta-base
+  - gradient_modifier: do_nothing
+  # - gradient_modifier: freeze_first_layers_bert-style-models
+  # - gradient_modifier: freeze_single_layer_bert-style-models
   # - peft: lora
   # - finetuning_datasets: train_and_eval_on_bbc
   - finetuning_datasets: train_and_eval_on_one-year-of-tsla-on-reddit
   # - finetuning_datasets: train_and_eval_on_wikitext
   - finetuning_parameters@_here_: default_parameters
   - ../tokenizer@tokenizer: basic_tokenizer
+  - peft: standard
   - _self_

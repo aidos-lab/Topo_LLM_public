@@ -25,44 +25,43 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Logging utilities for model information."""
+"""Gradient modifier that does not modify the model."""
 
 import logging
-from typing import Any
 
+import peft.peft_model
 from transformers import PreTrainedModel
+
+from topollm.logging.log_model_info import log_param_requires_grad_for_model
+from topollm.typing.enums import Verbosity
 
 default_logger = logging.getLogger(__name__)
 
 
-def log_model_info(
-    model: PreTrainedModel | Any,
-    model_name: str = "model",
-    logger: logging.Logger = default_logger,
-) -> None:
-    """Log model information."""
-    logger.info(
-        f"{type(model) = }",  # noqa: G004 - low overhead
-    )
-    logger.info(
-        f"{model_name}:\n{model}",  # noqa: G004 - low overhead
-    )
+class GradientModifierDoNothing:
+    """Gradient modifier that does not modify the model."""
 
-    if hasattr(
-        model,
-        "config",
-    ):
-        logger.info(
-            f"{model_name}.config:\n{model.config}",  # noqa: G004 - low overhead
-        )
+    def __init__(
+        self,
+        verbosity: Verbosity = Verbosity.NORMAL,
+        logger: logging.Logger = default_logger,
+    ) -> None:
+        """Initialize the model modifier."""
+        self.verbosity = verbosity
+        self.logger = logger
 
+    def modify_gradients(
+        self,
+        model: PreTrainedModel | peft.peft_model.PeftModel,
+    ) -> PreTrainedModel | peft.peft_model.PeftModel:
+        if self.verbosity >= 1:
+            self.logger.info("Using model without gradient modifications.")
+            self.logger.info("Returning unmodified model.")
 
-def log_param_requires_grad_for_model(
-    model: PreTrainedModel | Any,
-    logger: logging.Logger = default_logger,
-) -> None:
-    """Log whether parameters require gradients for a model."""
-    for name, param in model.named_parameters():
-        logger.info(
-            f"{name = }, {param.requires_grad = }",  # noqa: G004 - low overhead
-        )
+        if self.verbosity >= Verbosity.NORMAL:
+            log_param_requires_grad_for_model(
+                model=model,
+                logger=self.logger,
+            )
+
+        return model

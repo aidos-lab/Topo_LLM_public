@@ -48,6 +48,17 @@ if not issubclass(
 
 
 # ==============================
+
+
+class Verbosity(IntEnum):
+    """Verbosity level."""
+
+    QUIET = 0
+    NORMAL = 1
+    VERBOSE = 2
+    DEBUG = 3
+
+
 @unique
 class PreferredTorchBackend(StrEnum):  # type: ignore
     CPU = "cpu"
@@ -271,19 +282,19 @@ class ModelSelectionMetric(StrEnum):  # type: ignore
 
 
 @unique
-class SliceNormType(StrEnum):  # type: ignore
+class SliceNormType(StrEnum):
     NONE = "None"
     INDIVIDUAL = "individual"
     SHARED = "shared"
 
 
 @unique
-class TaggerType(StrEnum):  # type: ignore
+class TaggerType(StrEnum):
     ROBERTA = "roberta"
 
 
 @unique
-class LrSchedulerType(StrEnum):  # type: ignore
+class LrSchedulerType(StrEnum):
     CONSTANT = "constant"
     LINEAR_WITH_WARMUP = "linear_with_warmup"
 
@@ -303,23 +314,26 @@ class FinetuningMode(StrEnum):
 
 @unique
 class LMmode(StrEnum):
-    MLM = "MLM"
-    CLM = "CLM"
+    """The different types of language models."""
+
+    MLM = "MLM"  # masked language model
+    CLM = "CLM"  # causal language model
 
 
 @unique
 class TokenizerModifierMode(StrEnum):
+    """Modes for modifying the tokenizer."""
+
     DO_NOTHING = "do_nothing"
-    ADD_PADDING_TOKEN = "add_padding_token"
+    ADD_PADDING_TOKEN = "add_padding_token"  # noqa: S105 - not a password token
 
 
-class Verbosity(IntEnum):
-    """Verbosity level."""
+@unique
+class GradientModifierMode(StrEnum):
+    """Modes for modifying the gradients during finetuning."""
 
-    QUIET = 0
-    NORMAL = 1
-    VERBOSE = 2
-    DEBUG = 3
+    DO_NOTHING = "do_nothing"
+    FREEZE_LAYERS = "freeze_layers"
 
 
 # ==============================

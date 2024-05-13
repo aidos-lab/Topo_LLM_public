@@ -15,8 +15,8 @@ NUM_TRAIN_EPOCHS="50"
 
 # FINETUNING_DATASETS_LIST="train_and_eval_on_bbc,train_and_eval_on_iclr_2024_submissions,train_and_eval_on_multiwoz21,train_and_eval_on_sgd,train_and_eval_on_wikitext"
 # FINETUNING_DATASETS_LIST="train_and_eval_on_iclr_2024_submissions"
-# FINETUNING_DATASETS_LIST="train_and_eval_on_multiwoz21"
-FINETUNING_DATASETS_LIST="train_and_eval_on_one-year-of-tsla-on-reddit"
+FINETUNING_DATASETS_LIST="train_and_eval_on_multiwoz21"
+# FINETUNING_DATASETS_LIST="train_and_eval_on_one-year-of-tsla-on-reddit"
 
 # LR_SCHEDULER_TYPE="linear"
 LR_SCHEDULER_TYPE="constant"
@@ -29,8 +29,13 @@ LR_SCHEDULER_TYPE="constant"
 PEFT_LIST="standard"
 # PEFT_LIST="standard,lora"
 
+# GRADIENT_MODIFIER_LIST="do_nothing"
+GRADIENT_MODIFIER_LIST="freeze_first_layers_bert-style-models"
+
 # ADDITIONAL_OVERRIDES=""
 # ADDITIONAL_OVERRIDES="finetuning.max_steps=10"
+
+CUDA_VISIBLE_DEVICES=1
 
 # ==================================================== #
 
@@ -43,5 +48,6 @@ python3 $PYTHON_SCRIPT_NAME \
     finetuning.batch_sizes.eval=8 \
     finetuning/finetuning_datasets=$FINETUNING_DATASETS_LIST \
     finetuning/peft=$PEFT_LIST \
-    hydra.job.env_set.CUDA_VISIBLE_DEVICES=0 \
+    finetuning/gradient_modifier=$GRADIENT_MODIFIER_LIST \
+    hydra.job.env_set.CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES \
     $ADDITIONAL_OVERRIDES

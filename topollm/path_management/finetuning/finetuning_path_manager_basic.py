@@ -34,11 +34,12 @@ from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
 from topollm.config_classes.data.data_config import DataConfig
 from topollm.config_classes.finetuning.finetuning_config import FinetuningConfig
 from topollm.config_classes.paths.paths_config import PathsConfig
-from topollm.path_management.finetuning.peft.PEFTPathManagerFactory import (
+from topollm.path_management.finetuning.peft.factory import (
     get_peft_path_manager,
 )
+from topollm.typing.enums import Verbosity
 
-logger = logging.getLogger(__name__)
+default_logger = logging.getLogger(__name__)
 
 
 class FinetuningPathManagerBasic:
@@ -49,9 +50,10 @@ class FinetuningPathManagerBasic:
         data_config: DataConfig,
         paths_config: PathsConfig,
         finetuning_config: FinetuningConfig,
-        verbosity: int = 1,
-        logger: logging.Logger = logger,
-    ):
+        verbosity: Verbosity = Verbosity.NORMAL,
+        logger: logging.Logger = default_logger,
+    ) -> None:
+        """Initialize the path manager."""
         self.data_config = data_config
         self.finetuning_config = finetuning_config
         self.paths_config = paths_config
@@ -82,6 +84,7 @@ class FinetuningPathManagerBasic:
             self.finetuning_config.finetuning_datasets.train_dataset.data_config_description,
             self.finetuning_config.base_model_config_description,
             self.peft_path_manager.peft_description_subdir,
+            self.finetuning_config.gradient_modifier.gradient_modifier_description,
             self.finetuning_parameters_description,
             self.training_progress_subdir,
         )
@@ -92,7 +95,7 @@ class FinetuningPathManagerBasic:
     def finetuning_parameters_description(
         self,
     ) -> str:
-        desc = (
+        description = (
             f"{NAME_PREFIXES['learning_rate']}"
             f"{KV_SEP}"
             f"{self.finetuning_config.learning_rate}"
@@ -106,7 +109,7 @@ class FinetuningPathManagerBasic:
             f"{self.finetuning_config.weight_decay}"
         )
 
-        return desc
+        return description
 
     @property
     def training_progress_subdir(
@@ -136,7 +139,10 @@ class FinetuningPathManagerBasic:
         )
 
         if self.verbosity >= 1:
-            self.logger.info(f"finetuned_model_dir:\n" f"{path}")
+            self.logger.info(
+                "finetuned_model_dir:\n%s",
+                path,
+            )
 
         return path
 
@@ -153,6 +159,9 @@ class FinetuningPathManagerBasic:
         path = None
 
         if self.verbosity >= 1:
-            self.logger.info(f"logging_dir:\n" f"{path}")
+            self.logger.info(
+                "logging_dir:\n%s",
+                path,
+            )
 
         return path

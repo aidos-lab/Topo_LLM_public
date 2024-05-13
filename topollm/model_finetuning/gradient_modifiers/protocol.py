@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -27,29 +25,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
+"""Protocol for modifying how the gradients behave during fune-tuning."""
+
+from typing import Protocol
 
 import peft.peft_model
 from transformers import PreTrainedModel
 
 
-class ModelModifierStandard:
-    def __init__(
+class GradientModifier(Protocol):
+    """Modify the gradient behaviour during fine-tuning."""
+
+    def modify_gradients(
         self,
-        verbosity: int = 1,
-        logger: logging.Logger = logging.getLogger(__name__),
-    ) -> None:
-        self.verbosity = verbosity
-        self.logger = logger
-
-        return None
-
-    def modify_model(
-        self,
-        model: PreTrainedModel,
-    ) -> peft.peft_model.PeftModel | PreTrainedModel:
-        if self.verbosity >= 1:
-            self.logger.info(f"Using base model without modifications.")
-            self.logger.info(f"Returning model.")
-
-        return model
+        model: PreTrainedModel | peft.peft_model.PeftModel,
+    ) -> PreTrainedModel | peft.peft_model.PeftModel: ...  # pragma: no cover

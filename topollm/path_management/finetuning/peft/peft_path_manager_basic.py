@@ -61,9 +61,9 @@ class PEFTPathManagerBasic:
         self,
     ) -> str:
         if self.peft_config.finetuning_mode == FinetuningMode.STANDARD:
-            desc = f"{NAME_PREFIXES['FinetuningMode']}" f"{KV_SEP}" f"standard"
+            desc = f"{NAME_PREFIXES['FinetuningMode']}{KV_SEP}standard"
         elif self.peft_config.finetuning_mode == FinetuningMode.LORA:
-            desc = f"{NAME_PREFIXES['FinetuningMode']}" f"{KV_SEP}" f"lora"
+            desc = f"{NAME_PREFIXES['FinetuningMode']}{KV_SEP}lora"
         else:
             msg = f"Unknown finetuning_mode: {self.peft_config.finetuning_mode = }"
             raise ValueError(msg)

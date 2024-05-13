@@ -1,0 +1,11 @@
+mode: freeze_layers
+# Note: The dots at the end of the strings are important.
+# If left out, a module like 'roberta.encoder.layer.10.attention.self.query.weight'
+# would be frozen if 'encoder.layer.1' is in the list, becaus we check for string containment.
+target_modules_to_freeze:
+- "encoder.layer.0."
+- "encoder.layer.1."
+- "encoder.layer.2."
+- "encoder.layer.3."
+- "encoder.layer.4."
+- "encoder.layer.5."

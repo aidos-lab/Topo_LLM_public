@@ -25,44 +25,35 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Logging utilities for model information."""
+"""Configuration class for the gradient modifier."""
 
-import logging
-from typing import Any
+from pydantic import Field
 
-from transformers import PreTrainedModel
+from topollm.config_classes.config_base_model import ConfigBaseModel
+from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
+from topollm.typing.enums import GradientModifierMode
 
-default_logger = logging.getLogger(__name__)
 
+class GradientModifierConfig(ConfigBaseModel):
+    """Configurations for the gradient modifier."""
 
-def log_model_info(
-    model: PreTrainedModel | Any,
-    model_name: str = "model",
-    logger: logging.Logger = default_logger,
-) -> None:
-    """Log model information."""
-    logger.info(
-        f"{type(model) = }",  # noqa: G004 - low overhead
-    )
-    logger.info(
-        f"{model_name}:\n{model}",  # noqa: G004 - low overhead
+    mode: GradientModifierMode = Field(
+        default=GradientModifierMode.DO_NOTHING,
+        description="The gradient modifier mode.",
     )
 
-    if hasattr(
-        model,
-        "config",
-    ):
-        logger.info(
-            f"{model_name}.config:\n{model.config}",  # noqa: G004 - low overhead
+    target_modules_to_freeze: list[str] = Field(
+        default_factory=list,
+        description="The target modules to freeze.",
+    )
+
+    @property
+    def gradient_modifier_description(self) -> str:
+        """Return a description of the gradient modifier which can be used in file paths."""
+        description = (
+            f"{NAME_PREFIXES['GradientModifierMode']}{KV_SEP}{str(self.mode)}"
+            f"{ITEM_SEP}"
+            f"{NAME_PREFIXES['target_modules_to_freeze']}{KV_SEP}{str(self.target_modules_to_freeze)}"
         )
 
-
-def log_param_requires_grad_for_model(
-    model: PreTrainedModel | Any,
-    logger: logging.Logger = default_logger,
-) -> None:
-    """Log whether parameters require gradients for a model."""
-    for name, param in model.named_parameters():
-        logger.info(
-            f"{name = }, {param.requires_grad = }",  # noqa: G004 - low overhead
-        )
+        return description

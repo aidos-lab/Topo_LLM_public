@@ -25,17 +25,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Load embeddings and metadata."""
+"""Load and compare model checkpoints."""
 
 import logging
 import pathlib
-import pickle
 from typing import TYPE_CHECKING
 
 import hydra
 import hydra.core.hydra_config
 import omegaconf
-import zarr
 
 from topollm.config_classes.setup_OmegaConf import setup_OmegaConf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
@@ -54,7 +52,7 @@ setup_OmegaConf()
 
 
 @hydra.main(
-    config_path="../../configs",
+    config_path="../../../configs",
     config_name="main_config",
     version_base="1.2",
 )
@@ -62,73 +60,46 @@ def main(
     config: omegaconf.DictConfig,
 ) -> None:
     """Run the script."""
-    global_logger.info("Running script ...")
+    logger = global_logger
+    logger.info("Running script ...")
 
     main_config: MainConfig = initialize_configuration(
         config=config,
         logger=global_logger,
     )
 
-    # # # #
-    # Load the embeddings
-
-    array_path = pathlib.Path(
-        pathlib.Path.home(),
-        "git-source",
-        "Topo_LLM",
-        "data",
-        "embeddings",
-        "arrays",
-        "data-xsum_split-train_ctxt-dataset_entry/lvl-token/add-prefix-space-False_max-len-512/model-roberta-base_mask-no_masking/layer-[-1]_agg-mean/norm-None/",
-        "array_dir",
-        "test_array_dir",
+    data_dir: pathlib.Path = main_config.paths.data_dir
+    logger.info(
+        f"{data_dir = }",  # noqa: G004 - low overhead
     )
-
-    if not array_path.exists():
-        msg = f"{array_path = } does not exist."
-        raise FileNotFoundError(msg)
-
-    array = zarr.open(
-        store=array_path,  # type: ignore - zarr typing problem
-        mode="r",
-    )
-
-    print(f"{array.shape = }")
-    print(f"{array = }")
-    print(f"{array[0] = }")
 
     # # # #
-    # Load the metadata
+    # Load the models
 
-    metadata_root_storage_path = pathlib.Path(
-        pathlib.Path.home(),
-        "git-source",
-        "Topo_LLM",
-        "data",
-        "embeddings",
-        "metadata",
-        "data-xsum_split-train_ctxt-dataset_entry/lvl-token/add-prefix-space-False_max-len-512/model-roberta-base_mask-no_masking/layer-[-1]_agg-mean/norm-None/",
-        "metadata_dir",
+    model_files_root_dir = pathlib.Path(
+        data_dir,
+        "models",
+        "finetuned_models",
+        "data-one-year-of-tsla-on-reddit_split-train_ctxt-dataset_entry_samples-10000",
+        "model-roberta-base",
+        "ftm-standard",
+        "lora-None",
+        "gradmod-freeze_layers_target-freeze-['encoder.layer.0.', 'encoder.layer.1.', 'encoder.layer.2.', 'encoder.layer.3.', 'encoder.layer.4.', 'encoder.layer.5.']"
+        "lr-5e-05_lr_scheduler_type-constant_wd-0.01",
+        "ep-50",
+        "model_files",
     )
 
-    if not metadata_root_storage_path.exists():
-        msg = f"{metadata_root_storage_path = } does not exist."
-        raise FileNotFoundError(msg)
+    model_paths_list: list[pathlib.Path] = []
 
-    # Load pickled metadata
-    metadata_chunk_path = metadata_root_storage_path / "chunk_00156.pkl"
-
-    with open(
-        file=metadata_chunk_path,
-        mode="rb",
-    ) as file:
-        metadata_chunk = pickle.load(
-            file=file,
-        )
-
-    # "pickle_chunked_metadata_storage/chunk_00002.pkl"
+    layer_names_to_compare: list[str] = [
+        "roberta.encoder.layer.1.attention.self.query.weight",
+        "roberta.encoder.layer.11.attention.self.query.weight",
+    ]
 
     # TODO This script is not finished
+
+    logger.info("Running script DONE")
 
 
 if __name__ == "__main__":

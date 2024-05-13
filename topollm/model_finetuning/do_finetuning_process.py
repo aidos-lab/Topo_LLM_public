@@ -28,6 +28,7 @@
 """Perform the finetuning process."""
 
 import logging
+from typing import TYPE_CHECKING
 
 import torch
 import transformers
@@ -36,6 +37,7 @@ from topollm.config_classes.main_config import MainConfig
 from topollm.data_handling.dataset_preparer.factory import get_dataset_preparer
 from topollm.model_finetuning.evaluate_tuned_model import evaluate_tuned_model
 from topollm.model_finetuning.finetune_model import finetune_model
+from topollm.model_finetuning.gradient_modifiers.factory import get_gradient_modifier
 from topollm.model_finetuning.load_base_model_from_finetuning_config import (
     load_base_model_from_finetuning_config,
 )
@@ -61,6 +63,11 @@ from topollm.path_management.finetuning.factory import (
 )
 from topollm.typing.enums import Verbosity
 
+if TYPE_CHECKING:
+    from topollm.config_classes.finetuning.finetuning_config import FinetuningConfig
+    from topollm.model_finetuning.gradient_modifiers.protocol import GradientModifier
+    from topollm.model_finetuning.model_modifiers.protocol import ModelModifier
+
 default_logger = logging.getLogger(__name__)
 
 
@@ -71,7 +78,7 @@ def do_finetuning_process(
     logger: logging.Logger = default_logger,
 ) -> None:
     """Perform the finetuning process."""
-    finetuning_config = main_config.finetuning
+    finetuning_config: FinetuningConfig = main_config.finetuning
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Load data
@@ -129,7 +136,7 @@ def do_finetuning_process(
     # This allows for variations of the training process,
     # e.g. using LoRA or other model modifications.
 
-    model_modifier = get_model_modifier(
+    model_modifier: ModelModifier = get_model_modifier(
         peft_config=finetuning_config.peft,
         device=device,
         verbosity=verbosity,
@@ -140,7 +147,20 @@ def do_finetuning_process(
     )
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-    # Prepare model input
+    # Potential modification gradients.
+
+    gradient_modifier: GradientModifier = get_gradient_modifier(
+        gradient_modifier_config=finetuning_config.gradient_modifier,
+        device=device,
+        verbosity=verbosity,
+        logger=logger,
+    )
+    gradient_modified_model = gradient_modifier.modify_gradients(
+        model=modified_model,
+    )
+
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    # Prepare model input.
 
     train_dataset_mapped, eval_dataset_mapped = prepare_model_input(
         train_dataset=train_dataset,
@@ -185,7 +205,7 @@ def do_finetuning_process(
     )
 
     trainer = transformers.Trainer(
-        model=modified_model,
+        model=gradient_modified_model,
         args=training_args,
         data_collator=data_collator,
         train_dataset=train_dataset_mapped,  # type: ignore - typing issue with Dataset

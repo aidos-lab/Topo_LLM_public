@@ -37,7 +37,7 @@ def evaluate_tuned_model(
     trainer: transformers.Trainer,
     logger: logging.Logger = logging.getLogger(__name__),
 ) -> None:
-    logger.info(f"Evaluating the model ...")
+    logger.info("Evaluating the model ...")
 
     eval_results = trainer.evaluate()
     logger.info(f"eval_results:\n{eval_results}")
@@ -47,11 +47,6 @@ def evaluate_tuned_model(
         perplexity = math.exp(eval_results["eval_loss"])
         logger.info(f"perplexity:\n{perplexity:.2f}")
     else:
-        logger.warning(
-            f"Could not calculate perplexity, "
-            f"because 'eval_loss' was not in eval_results"
-        )
+        logger.warning(f"Could not calculate perplexity, " f"because 'eval_loss' was not in eval_results")
 
-    logger.info(f"Evaluating the model DONE")
-
-    return None
+    logger.info("Evaluating the model DONE")

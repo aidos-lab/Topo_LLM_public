@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -7,7 +5,6 @@
 #
 # Authors:
 # Benjamin Ruppik (ruppik@hhu.de)
-# Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
 # First versions of this code were potentially generated
@@ -27,14 +24,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pathlib
 from typing import Protocol
 
-from transformers import PreTrainedModel
-import peft.peft_model
 
-
-class ModelModifier(Protocol):
-    def modify_model(
+class PEFTPathManager(Protocol):
+    @property
+    def peft_description_subdir(
         self,
-        model: PreTrainedModel,
-    ) -> peft.peft_model.PeftModel | PreTrainedModel: ...  # pragma: no cover
+    ) -> pathlib.Path: ...  # pragma: no cover

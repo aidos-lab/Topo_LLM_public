@@ -28,20 +28,20 @@
 import logging
 
 from topollm.config_classes.finetuning.peft.peft_config import PEFTConfig
-from topollm.path_management.finetuning.peft.PEFTPathManagerBasic import (
+from topollm.path_management.finetuning.peft.peft_path_manager_basic import (
     PEFTPathManagerBasic,
 )
-from topollm.path_management.finetuning.peft.PEFTPathManagerProtocol import (
+from topollm.path_management.finetuning.peft.protocol import (
     PEFTPathManager,
 )
 
-logger = logging.getLogger(__name__)
+default_logger = logging.getLogger(__name__)
 
 
 def get_peft_path_manager(
     peft_config: PEFTConfig,
     verbosity: int = 1,
-    logger: logging.Logger = logger,
+    logger: logging.Logger = default_logger,
 ) -> PEFTPathManager:
     """Create a PEFTPathManager instance."""
     path_manger = PEFTPathManagerBasic(

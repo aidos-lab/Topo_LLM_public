@@ -36,6 +36,7 @@ from topollm.config_classes.finetuning.batch_sizes_config import BatchSizesConfi
 from topollm.config_classes.finetuning.finetuning_datasets_config import (
     FinetuningDatasetsConfig,
 )
+from topollm.config_classes.finetuning.gradient_modifier.gradient_modifier_config import GradientModifierConfig
 from topollm.config_classes.finetuning.peft.peft_config import PEFTConfig
 from topollm.config_classes.finetuning.tokenizer_modifier_config import (
     TokenizerModifierConfig,
@@ -46,6 +47,11 @@ from topollm.typing.enums import LMmode
 
 class FinetuningConfig(ConfigBaseModel):
     """Configurations for fine tuning."""
+
+    gradient_modifier: GradientModifierConfig = Field(
+        ...,
+        description="The configurations for the gradient modifier.",
+    )
 
     peft: PEFTConfig = Field(
         ...,

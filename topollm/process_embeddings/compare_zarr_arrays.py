@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -45,20 +43,22 @@ logger.addHandler(logging.StreamHandler())
 def compare_zarr_arrays(
     zarr1: zarr.core.Array,
     zarr2: zarr.core.Array,
-    rtol: float =1e-05,
-    atol: float=1e-08,
+    rtol: float = 1e-05,
+    atol: float = 1e-08,
 ) -> bool:
-    """
-    Compare two Zarr arrays for equality within a tolerance.
+    """Compare two Zarr arrays for equality within a tolerance.
 
-    Parameters:
+    Parameters
+    ----------
     zarr1: First Zarr array.
     zarr2: Second Zarr array.
     rtol: Relative tolerance parameter for np.allclose().
     atol: Absolute tolerance parameter for np.allclose().
 
-    Returns:
+    Returns
+    -------
     bool: True if arrays are equal within the given tolerance, False otherwise.
+
     """
     # First, compare the shapes of the arrays
     if zarr1.shape != zarr2.shape:
@@ -108,12 +108,14 @@ def main() -> None:
     for array_name, array in zip(
         ["array_1", "array_2"],
         [array_1, array_2],
+        strict=True,
     ):
         if not isinstance(
             array,
             zarr.core.Array,
         ):
-            raise ValueError(f"{array_name = } " f"is not a zarr.core.Array")
+            msg = f"{array_name = } is not a zarr.core.Array"
+            raise TypeError(msg)
 
         log_array_info(
             array_=array,
@@ -129,19 +131,24 @@ def main() -> None:
     # Check if the zarr arrays have the same shape
 
     if array_1.shape != array_2.shape:
-        logger.error(f"{array_1.shape = } != " f"{array_2.shape = }")
-        return None
+        logger.error(
+            f"{array_1.shape = } != {array_2.shape = }",  # noqa: G004 - low overhead
+        )
+        return
 
     # # # #
     # Check if the zarr arrays contain the same values
 
     result = compare_zarr_arrays(
-        zarr1=array_1, # type: ignore
-        zarr2=array_2, # type: ignore
+        zarr1=array_1,  # type: ignore - problem with zarr typing
+        zarr2=array_2,  # type: ignore - problem with zarr typing
     )
-    logger.info(f"{result = }")
+    logger.info(
+        "result:\n%s",
+        result,
+    )
 
-    return None
+    return
 
 
 if __name__ == "__main__":
