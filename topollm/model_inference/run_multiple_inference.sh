@@ -25,6 +25,8 @@ ADDITIONAL_OVERRIDES=""
 PREFERRED_TORCH_BACKEND="auto"
 # PREFERRED_TORCH_BACKEND="cpu"
 
+CUDA_VISIBLE_DEVICES=1
+
 # ==================================================== #
 
 echo "Calling python script."
@@ -33,6 +35,7 @@ python3 $PYTHON_SCRIPT_NAME \
     --multirun \
     language_model=$LANGUAGE_MODEL_LIST \
     preferred_torch_backend=$PREFERRED_TORCH_BACKEND \
+    hydra.job.env_set.CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES \
     $ADDITIONAL_OVERRIDES
 
 # Exit with status code 0

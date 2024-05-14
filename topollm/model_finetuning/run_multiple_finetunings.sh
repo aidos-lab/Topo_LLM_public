@@ -29,8 +29,8 @@ LR_SCHEDULER_TYPE="constant"
 PEFT_LIST="standard"
 # PEFT_LIST="standard,lora"
 
-# GRADIENT_MODIFIER_LIST="do_nothing"
-GRADIENT_MODIFIER_LIST="freeze_first_layers_bert-style-models"
+GRADIENT_MODIFIER_LIST="do_nothing"
+# GRADIENT_MODIFIER_LIST="freeze_first_layers_bert-style-models"
 
 # ADDITIONAL_OVERRIDES=""
 # ADDITIONAL_OVERRIDES="finetuning.max_steps=10"
