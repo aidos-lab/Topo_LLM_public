@@ -126,9 +126,17 @@ class DatasetPreparerHuggingface:
         dataset: datasets.Dataset = new_dataset_dict[self.data_config.split]
 
         # Truncate the dataset to the specified number of samples
-        dataset = dataset.select(
-            indices=range(self.data_config.number_of_samples),
-        )
+        if self.data_config.number_of_samples == -1:
+            # Use all samples
+            pass
+        elif self.data_config.number_of_samples > 0:
+            # Use only the specified number of samples
+            dataset = dataset.select(
+                indices=range(self.data_config.number_of_samples),
+            )
+        else:
+            msg = f"Expected {self.data_config.number_of_samples = } to be -1 or a positive integer"
+            raise ValueError(msg)
 
         self.dataset_length = len(dataset)
 
