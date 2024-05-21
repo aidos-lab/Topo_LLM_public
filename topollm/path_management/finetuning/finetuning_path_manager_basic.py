@@ -86,10 +86,23 @@ class FinetuningPathManagerBasic:
             self.peft_path_manager.peft_description_subdir,
             self.finetuning_config.gradient_modifier.gradient_modifier_description,
             self.finetuning_parameters_description,
+            self.batch_size_description,
             self.training_progress_subdir,
         )
 
         return path
+
+    @property
+    def batch_size_description(
+        self,
+    ) -> str:
+        description = (
+            f"{NAME_PREFIXES['batch_size_train']}"
+            f"{KV_SEP}"
+            f"{self.finetuning_config.batch_sizes.train}"
+        )
+
+        return description
 
     @property
     def finetuning_parameters_description(

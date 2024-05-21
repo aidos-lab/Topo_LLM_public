@@ -14,12 +14,20 @@ BASE_MODEL_LIST="roberta-base"
 NUM_TRAIN_EPOCHS="5"
 # NUM_TRAIN_EPOCHS="50"
 
+# BATCH_SIZE_TRAIN="8"
+# BATCH_SIZE_EVAL="8"
+#
+BATCH_SIZE_TRAIN="32"
+BATCH_SIZE_EVAL="32"
 
 # SAVE_STEPS="400"
 # EVAL_STEPS="400"
 #
-SAVE_STEPS="1000"
-EVAL_STEPS="1000"
+SAVE_STEPS="500"
+EVAL_STEPS="500"
+#
+# SAVE_STEPS="1000"
+# EVAL_STEPS="1000"
 
 
 # FINETUNING_DATASETS_LIST="train_and_eval_on_bbc,train_and_eval_on_iclr_2024_submissions,train_and_eval_on_multiwoz21,train_and_eval_on_sgd,train_and_eval_on_wikitext"
@@ -54,8 +62,8 @@ python3 $PYTHON_SCRIPT_NAME \
     finetuning/base_model@finetuning=$BASE_MODEL_LIST \
     finetuning.num_train_epochs=$NUM_TRAIN_EPOCHS \
     finetuning.lr_scheduler_type=$LR_SCHEDULER_TYPE \
-    finetuning.batch_sizes.train=8 \
-    finetuning.batch_sizes.eval=8 \
+    finetuning.batch_sizes.train="${BATCH_SIZE_TRAIN}" \
+    finetuning.batch_sizes.eval="${BATCH_SIZE_EVAL}" \
     finetuning.save_steps=$SAVE_STEPS \
     finetuning.eval_steps=$EVAL_STEPS \
     finetuning/finetuning_datasets=$FINETUNING_DATASETS_LIST \

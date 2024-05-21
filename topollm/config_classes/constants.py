@@ -54,6 +54,10 @@ NAME_PREFIXES: dict[
 ] = {
     "aggregation": "agg",
     "add_prefix_space": "add-prefix-space",
+    "batch_size": "bs",
+    "batch_size_eval": "bs-eval",
+    "batch_size_test": "bs-test",
+    "batch_size_train": "bs-train",
     "center": "center",
     "context": "ctxt",
     "data": "data",
