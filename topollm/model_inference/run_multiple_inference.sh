@@ -7,12 +7,12 @@ PYTHON_SCRIPT_NAME="run_inference_pipeline.py"
 # ==================================================== #
 # Select the parameters here
 
-LANGUAGE_MODEL_LIST="roberta-base"
+# LANGUAGE_MODEL_LIST="roberta-base"
 # LANGUAGE_MODEL_LIST="bert-base-uncased,gpt2-large,roberta-base"
 # LANGUAGE_MODEL_LIST="roberta-base,roberta-base_finetuned-on-multiwoz21_ftm-lora"
 # LANGUAGE_MODEL_LIST="bert-base-uncased,bert-base-uncased_finetuned-on-xsum_ftm-standard,bert-base-uncased_finetuned-on-multiwoz21_ftm-standard,bert-base-uncased_finetuned-on-sgd_ftm-lora"
 # LANGUAGE_MODEL_LIST="roberta-base_finetuned-on-one-year-of-tsla-on-reddit_ftm-standard_freeze-first-6-layers_overfitted"
-# LANGUAGE_MODEL_LIST="roberta-base_finetuned-on-multiwoz21_ftm-standard_full-dataset"
+LANGUAGE_MODEL_LIST="roberta-base_finetuned-on-multiwoz21_ftm-standard_full-dataset"
 
 ADDITIONAL_OVERRIDES=""
 
@@ -26,7 +26,7 @@ ADDITIONAL_OVERRIDES=""
 PREFERRED_TORCH_BACKEND="auto"
 # PREFERRED_TORCH_BACKEND="cpu"
 
-CUDA_VISIBLE_DEVICES=1
+CUDA_VISIBLE_DEVICES=0
 
 # ==================================================== #
 
