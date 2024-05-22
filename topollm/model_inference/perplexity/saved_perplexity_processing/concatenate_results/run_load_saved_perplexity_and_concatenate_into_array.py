@@ -32,12 +32,16 @@ from typing import TYPE_CHECKING
 
 import hydra
 import hydra.core.hydra_config
+import numpy as np
 import omegaconf
+import pandas as pd
 import torch
+import zarr
 from tqdm import tqdm
 
 from topollm.config_classes.setup_OmegaConf import setup_OmegaConf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
+from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.logging.log_list_info import log_list_info
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.model_inference.perplexity.saved_perplexity_processing.load_perplexity_containers_from_jsonl_files import (
@@ -123,7 +127,7 @@ def main(
     # Empty lists for holding the concatenated data
     token_ids_list: list[int] = []
     token_strings_list: list[str] = []
-    perplexity_list: list[float] = []
+    token_perplexities_list: list[float] = []
 
     for _, sentence_perplexity_container in tqdm(
         loaded_data,
@@ -137,18 +141,91 @@ def main(
         token_strings_list.extend(
             sentence_perplexity_container.token_strings,
         )
-        perplexity_list.extend(
+        token_perplexities_list.extend(
             sentence_perplexity_container.token_perplexities,
         )
 
     if verbosity >= Verbosity.NORMAL:
         log_list_info(
+            token_ids_list,
+            list_name="token_ids_list",
+            logger=logger,
+        )
+        log_list_info(
             token_strings_list,
             list_name="token_strings_list",
             logger=logger,
         )
+        log_list_info(
+            token_perplexities_list,
+            list_name="perplexity_list",
+            logger=logger,
+        )
 
-    # TODO: Continue here
+    # # # #
+    # Convert the token perplexities list to a numpy array and save as zarr array
+
+    token_perplexities_array = np.array(
+        token_perplexities_list,
+    )
+
+    token_perplexities_zarr_array_save_path = pathlib.Path(
+        perplexity_dir,
+        "perplexity_results_array.zarr",
+    )
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            f"{token_perplexities_zarr_array_save_path = }",  # noqa: G004 - low overhead
+        )
+        logger.info(
+            "Saving token_perplexities_array to zarr file ...",
+        )
+    zarr.save(
+        str(token_perplexities_zarr_array_save_path),
+        token_perplexities_array,
+    )
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            "Saving token_perplexities_array to zarr file DONE",
+        )
+
+    # # # #
+    # Convert the token perplexities to a pandas dataframe and save as csv
+
+    token_perplexities_df = pd.DataFrame(
+        {
+            "token_id": token_ids_list,
+            "token_string": token_strings_list,
+            "token_perplexity": token_perplexities_list,
+        },
+    )
+
+    if verbosity >= Verbosity.NORMAL:
+        log_dataframe_info(
+            token_perplexities_df,
+            df_name="token_perplexities_df",
+            check_for_nan=True,
+            logger=logger,
+        )
+
+    token_perplexities_df_save_path = pathlib.Path(
+        perplexity_dir,
+        "perplexity_results_df.csv",
+    )
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            f"{token_perplexities_df_save_path = }",  # noqa: G004 - low overhead
+        )
+        logger.info(
+            "Saving token_perplexities_df to csv file ...",
+        )
+    token_perplexities_df.to_csv(
+        token_perplexities_df_save_path,
+    )
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            "Saving token_perplexities_df to csv file DONE",
+        )
 
     logger.info("Running script DONE")
 
