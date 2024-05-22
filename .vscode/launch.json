@@ -1,0 +1,30 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python Debugger: Current File with Arguments",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": "${command:pickArgs}"
+        },
+        {
+            "name": "Python Debugger: Current File with Multirun",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--multirun",
+                "data=sgd_test",
+                "language_model=roberta-base,roberta-base_finetuned-on-multiwoz21_ftm-standard_full-dataset",
+                "hydra.job.env_set.CUDA_VISIBLE_DEVICES=0",
+                "tokenizer.add_prefix_space=True",
+            ]
+        },
+    ]
+}

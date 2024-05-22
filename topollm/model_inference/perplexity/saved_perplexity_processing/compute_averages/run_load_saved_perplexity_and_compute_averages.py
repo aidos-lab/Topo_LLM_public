@@ -39,13 +39,13 @@ import torch
 from topollm.config_classes.setup_OmegaConf import setup_OmegaConf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
-from topollm.model_inference.perplexity.perplexity_save_file_handling.compute_averages_over_loaded_data_list import (
+from topollm.model_inference.perplexity.saved_perplexity_processing.compute_averages.compute_averages_over_loaded_data_list import (
     compute_averages_over_loaded_data_list,
 )
-from topollm.model_inference.perplexity.perplexity_save_file_handling.load_perplexity_containers_from_jsonl_files import (
+from topollm.model_inference.perplexity.saved_perplexity_processing.load_perplexity_containers_from_jsonl_files import (
     load_perplexity_containers_from_jsonl_files,
 )
-from topollm.model_inference.perplexity.perplexity_save_file_handling.load_perplexity_containers_from_pickle_files import (
+from topollm.model_inference.perplexity.saved_perplexity_processing.load_perplexity_containers_from_pickle_files import (
     load_perplexity_containers_from_pickle_files,
 )
 from topollm.typing.enums import PerplexityContainerSaveFormat, Verbosity
@@ -67,7 +67,7 @@ setup_OmegaConf()
 
 
 @hydra.main(
-    config_path="../../../../configs",
+    config_path="../../../../../configs",
     config_name="main_config",
     version_base="1.2",
 )
