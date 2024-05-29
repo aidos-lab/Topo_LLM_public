@@ -1,6 +1,7 @@
 data_dir: ${paths.repository_base_path}/data
 repository_base_path: ${oc.env:TOPO_LLM_REPOSITORY_BASE_PATH}
+#
 # Other options for setting repository_base_path:
 #
 # repository_base_path: ${oc.env:HOME}/git-source/Topo_LLM
-#repository_base_path: ${oc.env:HOME}/Documents/LLM-Analysis/Topo_LLM
+# repository_base_path: ${oc.env:HOME}/Documents/LLM-Analysis/Topo_LLM
