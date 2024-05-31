@@ -1,0 +1,3 @@
+- data_name=data-reddit_split-validation_ctxt-dataset_entry_samples-3000
+- layer=[-1]
+- model_2=model-roberta-base_finetuned-on-one-year-of-tsla-on-reddit_ftm-standard_overfitted_checkpoint-24400_mask-no_masking

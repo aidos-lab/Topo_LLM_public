@@ -82,7 +82,8 @@ def main(cfg):
     arr_no_pad_finetuned = np.load(path_2)
 
     np.random.seed(2)
-    sample_size = 10000
+    sample_size = 1500
+    sample_size = min(sample_size, arr_no_pad.shape[0], arr_no_pad_finetuned.shape[0])
     # if sample_size>len(arr_no_pad):
     #     idx = np.random.choice(
     #         range(len(arr_no_pad)),
@@ -95,9 +96,21 @@ def main(cfg):
     #         replace=False,
     #         size=sample_size,
     #     )
+    # if sample_size>len(arr_no_pad_finetuned):
+    #     idx_finetuned = np.random.choice(
+    #         range(len(arr_no_pad_finetuned)),
+    #         replace=False,
+    #         size=len(arr_no_pad_finetuned),
+    #     )
+    # else:
+    #     idx_finetuned = np.random.choice(
+    #         range(len(arr_no_pad_finetuned)),
+    #         replace=False,
+    #         size=sample_size,
+    #     )
     #
     # arr_no_pad = arr_no_pad[idx]
-    # arr_no_pad_finetuned = arr_no_pad_finetuned[idx]
+    # arr_no_pad_finetuned = arr_no_pad_finetuned[idx_finetuned]
 
     arr_no_pad = arr_no_pad[:sample_size]
     arr_no_pad_finetuned = arr_no_pad_finetuned[:sample_size]
@@ -135,7 +148,7 @@ def main(cfg):
     file_name = ''
     file_name += str(cfg.data_name) + '_'
     file_name += str(cfg.model_1) + '_'
-    file_name += str(cfg.model_2) + '_'
+    file_name += str(cfg.model_2)
 
 
     save_path = '../../data/analysis/twonn/' + str(cfg.embedding_level_1) + '/'

@@ -100,8 +100,42 @@ def main(cfg):
     arr_no_pad = np.load(path_1)
     arr_no_pad_finetuned = np.load(path_2)
 
+    np.random.seed(2)
+    sample_size = 1500
+    sample_size = min(sample_size, arr_no_pad.shape[0], arr_no_pad_finetuned.shape[0])
+    # if sample_size>len(arr_no_pad):
+    #     idx = np.random.choice(
+    #         range(len(arr_no_pad)),
+    #         replace=False,
+    #         size=len(arr_no_pad),
+    #     )
+    # else:
+    #     idx = np.random.choice(
+    #         range(len(arr_no_pad)),
+    #         replace=False,
+    #         size=sample_size,
+    #     )
+    # if sample_size>len(arr_no_pad_finetuned):
+    #     idx_finetuned = np.random.choice(
+    #         range(len(arr_no_pad_finetuned)),
+    #         replace=False,
+    #         size=len(arr_no_pad_finetuned),
+    #     )
+    # else:
+    #     idx_finetuned = np.random.choice(
+    #         range(len(arr_no_pad_finetuned)),
+    #         replace=False,
+    #         size=sample_size,
+    #     )
+    #
+    # arr_no_pad = arr_no_pad[idx]
+    # arr_no_pad_finetuned = arr_no_pad_finetuned[idx_finetuned]
+
+    arr_no_pad = arr_no_pad[:sample_size]
+    arr_no_pad_finetuned = arr_no_pad_finetuned[:sample_size]
+
     # Number of nearest neighbors to consider
-    k = 10
+    k = 3
 
     # Calculate k nearest neighbor distances
     knn_distances = k_nearest_neighbor_distances(arr_no_pad, k)

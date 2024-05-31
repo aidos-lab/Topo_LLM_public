@@ -85,6 +85,9 @@ def main(cfg):
     tokens_1 = list(pd.read_pickle(meta_path_1).token_name)
     tokens_2 = list(pd.read_pickle(meta_path_2).token_name)
 
+    tokens_1 = [x[1:] for x in tokens_1]
+    tokens_2 = [x[1:] for x in tokens_2]
+
     arr_no_pad = np.load(path_1)
     arr_no_pad_finetuned = np.load(path_2)
 
@@ -92,7 +95,7 @@ def main(cfg):
     n_components = 2
 
     # choose between vis_type "comparison", "twonn", "density", "iso", "lpca"
-    vis_type = 'comparison'
+    vis_type = ''
 
     dataset = pd.DataFrame({f'Column{i+1}': arr_no_pad[:,i] for i in range(arr_no_pad.shape[1])})
     dataset['class'] = 'base'
@@ -114,6 +117,8 @@ def main(cfg):
     embedding = embedding_concat[:idx]
     embedding_finetuned = embedding_concat[idx:]
 
+    embedding = embedding[:2000]
+    embedding_finetuned = embedding_finetuned[:2000]
     if n_components==3:
         fig = px.scatter_3d(x=embedding[:, 0], y=embedding[:, 1], z=embedding[:, 2], title='t-SNE embedding')
         fig.add_trace(px.scatter_3d(x=embedding_finetuned[:, 0], y=embedding_finetuned[:, 1], z=embedding_finetuned[:, 2]).data[0])
@@ -291,7 +296,7 @@ def main(cfg):
                             colorscale='Viridis',
                             showscale=True,
                             colorbar=dict(
-                                title='lPCA'
+                                title='Euclidicity'
                             )
                             ),
                 text=tokens_1,
