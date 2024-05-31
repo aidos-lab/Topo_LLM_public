@@ -62,10 +62,6 @@ def twonn_worker(
         },
     )
 
-    if not array_path.exists():
-        msg = f"{array_path = } does not exist."
-        raise FileNotFoundError(msg)
-
     partial_save_path = pathlib.Path(*list(array_path.parts)[-7:])
 
     prepared_load_path = pathlib.Path(
