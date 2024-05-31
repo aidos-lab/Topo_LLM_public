@@ -31,6 +31,7 @@ from pydantic import Field
 
 from topollm.config_classes.config_base_model import ConfigBaseModel
 from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
+from topollm.path_management.convert_list_to_path_part import convert_list_to_path_part
 from topollm.typing.enums import GradientModifierMode
 
 
@@ -53,7 +54,18 @@ class GradientModifierConfig(ConfigBaseModel):
         description = (
             f"{NAME_PREFIXES['GradientModifierMode']}{KV_SEP}{str(self.mode)}"
             f"{ITEM_SEP}"
-            f"{NAME_PREFIXES['target_modules_to_freeze']}{KV_SEP}{str(self.target_modules_to_freeze)}"
+            f"{NAME_PREFIXES['target_modules_to_freeze']}"
+            f"{KV_SEP}"
+            f"{target_modules_to_freeze_to_path_part(self.target_modules_to_freeze)}"
         )
 
         return description
+
+
+def target_modules_to_freeze_to_path_part(
+    target_modules_to_freeze: list[str],
+) -> str:
+    """Convert the target_modules_to_freeze to a path part."""
+    return convert_list_to_path_part(
+        input_list=target_modules_to_freeze,
+    )
