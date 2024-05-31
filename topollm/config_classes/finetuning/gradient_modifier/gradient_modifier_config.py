@@ -31,7 +31,7 @@ from pydantic import Field
 
 from topollm.config_classes.config_base_model import ConfigBaseModel
 from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
-from topollm.path_management.convert_list_to_path_part import convert_list_to_path_part
+from topollm.path_management.convert_object_to_valid_path_part import convert_list_to_path_part
 from topollm.typing.enums import GradientModifierMode
 
 

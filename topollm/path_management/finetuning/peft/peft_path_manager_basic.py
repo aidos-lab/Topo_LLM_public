@@ -30,7 +30,7 @@ import pathlib
 
 from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
 from topollm.config_classes.finetuning.peft.peft_config import PEFTConfig
-from topollm.path_management.convert_list_to_path_part import convert_list_to_path_part
+from topollm.path_management.convert_object_to_valid_path_part import convert_list_to_path_part
 from topollm.typing.enums import FinetuningMode
 
 default_logger = logging.getLogger(__name__)

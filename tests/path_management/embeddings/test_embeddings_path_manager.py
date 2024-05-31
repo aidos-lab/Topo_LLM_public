@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -30,32 +28,54 @@
 import logging
 import pathlib
 
-from topollm.path_management.finetuning import protocol
+from topollm.path_management.embeddings import protocol
 
 
-class TestFinetuningPathManager:
-    def test_finetuned_model_dir(
+class TestEmbeddingsPathManager:
+    def test_data_dir(
         self,
-        finetuning_path_manager_basic: protocol.FinetuningPathManager,
+        embeddings_path_manager: protocol.EmbeddingsPathManager,
         logger_fixture: logging.Logger,
     ) -> None:
-        result = finetuning_path_manager_basic.finetuned_model_dir
-        logger_fixture.info(f"finetuned_model_dir:\n" f"{result = }")
+        result = embeddings_path_manager.data_dir
+        logger_fixture.info(
+            "data_dir:\n%s",
+            result,
+        )
 
-        assert isinstance(
+        assert isinstance(  # noqa: S101 - pytest assertion
             result,
             pathlib.Path,
         )
 
-    def test_logging_dir(
+    def test_array_dir_absolute_path(
         self,
-        finetuning_path_manager_basic: protocol.FinetuningPathManager,
+        embeddings_path_manager: protocol.EmbeddingsPathManager,
         logger_fixture: logging.Logger,
     ) -> None:
-        result = finetuning_path_manager_basic.logging_dir
-        logger_fixture.info(f"logging_dir:\n" f"{result = }")
-
-        assert isinstance(
+        result = embeddings_path_manager.array_dir_absolute_path
+        logger_fixture.info(
+            "array_dir_absolute_path:\n%s",
             result,
-            pathlib.Path | None,
+        )
+
+        assert isinstance(  # noqa: S101 - pytest assertion
+            result,
+            pathlib.Path,
+        )
+
+    def test_metadata_dir_absolute_path(
+        self,
+        embeddings_path_manager: protocol.EmbeddingsPathManager,
+        logger_fixture: logging.Logger,
+    ) -> None:
+        result = embeddings_path_manager.metadata_dir_absolute_path
+        logger_fixture.info(
+            "metadata_dir_absolute_path:\n%s",
+            result,
+        )
+
+        assert isinstance(  # noqa: S101 - pytest assertion
+            result,
+            pathlib.Path,
         )

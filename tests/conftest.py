@@ -49,6 +49,7 @@ from topollm.config_classes.finetuning.finetuning_config import FinetuningConfig
 from topollm.config_classes.finetuning.finetuning_datasets_config import (
     FinetuningDatasetsConfig,
 )
+from topollm.config_classes.finetuning.gradient_modifier.gradient_modifier_config import GradientModifierConfig
 from topollm.config_classes.finetuning.peft.peft_config import PEFTConfig
 from topollm.config_classes.finetuning.tokenizer_modifier_config import TokenizerModifierConfig
 from topollm.config_classes.inference.inference_config import InferenceConfig
@@ -75,6 +76,7 @@ from topollm.typing.enums import (
     ArrayStorageType,
     DatasetType,
     FinetuningMode,
+    GradientModifierMode,
     Level,
     LMmode,
     MetadataStorageType,
@@ -425,10 +427,26 @@ def batch_sizes_config() -> BatchSizesConfig:
 
 @pytest.fixture(
     scope="session",
+)
+def gradient_modifier_config() -> GradientModifierConfig:
+    config = GradientModifierConfig(
+        mode=GradientModifierMode.FREEZE_LAYERS,
+        target_modules_to_freeze=[
+            "encoder.layer.0.",
+            "encoder.layer.1.",
+        ],
+    )
+
+    return config
+
+
+@pytest.fixture(
+    scope="session",
     params=model_config_list_for_testing,
 )
 def finetuning_config(
     request: pytest.FixtureRequest,
+    gradient_modifier_config: GradientModifierConfig,
     batch_sizes_config: BatchSizesConfig,
     finetuning_datasets_config: FinetuningDatasetsConfig,
     peft_config: PEFTConfig,
@@ -437,6 +455,7 @@ def finetuning_config(
     lm_mode, pretrained_model_name_or_path, short_model_name, tokenizer_modifier_config = request.param
 
     config = FinetuningConfig(
+        gradient_modifier=gradient_modifier_config,
         peft=peft_config,
         batch_sizes=batch_sizes_config,
         finetuning_datasets=finetuning_datasets_config,
@@ -590,13 +609,14 @@ def finetuning_path_manager_basic(
     data_config: DataConfig,
     paths_config: PathsConfig,
     finetuning_config: FinetuningConfig,
+    verbosity: Verbosity,
     logger_fixture: logging.Logger,
 ) -> FinetuningPathManager:
     path_manager = FinetuningPathManagerBasic(
         data_config=data_config,
         paths_config=paths_config,
         finetuning_config=finetuning_config,
-        verbosity=1,
+        verbosity=verbosity,
         logger=logger_fixture,
     )
 

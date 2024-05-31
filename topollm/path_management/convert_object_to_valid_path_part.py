@@ -25,6 +25,7 @@
 # limitations under the License.
 
 import sys
+import warnings
 
 if sys.version_info >= (3, 11):
     from enum import StrEnum
@@ -58,29 +59,41 @@ def convert_list_to_path_part(
     path_part = delimiter.join(
         input_list_with_string_values,
     )
+
+    if not validate_path_part(
+        path_part=path_part,
+    ):
+        warnings.warn(
+            f"{path_part = } is not suitable for file paths.",
+            stacklevel=1,
+        )
+
     return path_part
 
 
-def test_convert_list_to_path_part() -> None:
-    """Example usage of convert_str_enum_list_to_path_part function."""
-    # TODO(Ben): Move this to the tests directory
-    list_of_examples: list[list] = [
-        [],
-        [
-            "encoder.layer.0.",
-            "encoder.layer.1.",
-            "encoder.layer.2.",
-            "encoder.layer.3.",
-            "encoder.layer.4.",
-            "encoder.layer.5.",
-        ],
-    ]
+def validate_path_part(
+    path_part: str,
+) -> bool:
+    """Validate if a string is suitable for file paths.
 
-    for example in list_of_examples:
-        path_part = convert_list_to_path_part(
-            input_list=example,
-        )
-        print(path_part)
+    This also checks for common issues that would appear when using gsutil for Google Cloud bucket operations,
+    in particular, the following characters are not allowed because they might be interpreted as wildcard:
+    `*`, `?`, `[`, `]`.
+    Also see the following discussions:
+    - https://stackoverflow.com/questions/42087510/gsutil-ls-returns-error-contains-wildcard
+    - https://github.com/GoogleCloudPlatform/gsutil/issues/290
+    - https://cloud.google.com/storage/docs/gsutil/addlhelp/WildcardNames
+    """
+    # Check if the path part is a string
+    if not isinstance(
+        path_part,
+        str,
+    ):
+        return False
 
+    gsutil_wildcard_characters = ["*", "?", "[", "]"]
 
-test_convert_list_to_path_part()
+    # Check if the path part does not contain any of the following characters
+    if any(char in path_part for char in gsutil_wildcard_characters):
+        return False
+    return True
