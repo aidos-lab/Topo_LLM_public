@@ -29,6 +29,7 @@ import logging
 import pathlib
 
 from topollm.path_management.finetuning import protocol
+from topollm.path_management.validate_path_part import validate_path_part
 
 
 class TestFinetuningPathManager:
@@ -37,7 +38,7 @@ class TestFinetuningPathManager:
         finetuning_path_manager_basic: protocol.FinetuningPathManager,
         logger_fixture: logging.Logger,
     ) -> None:
-        result = finetuning_path_manager_basic.finetuned_model_dir
+        result: pathlib.Path = finetuning_path_manager_basic.finetuned_model_dir
         logger_fixture.info(
             "finetuned_model_dir:\n%s",
             result,
@@ -48,12 +49,16 @@ class TestFinetuningPathManager:
             pathlib.Path,
         )
 
+        assert validate_path_part(  # noqa: S101 - pytest assertion
+            path_part=str(result),
+        )
+
     def test_logging_dir(
         self,
         finetuning_path_manager_basic: protocol.FinetuningPathManager,
         logger_fixture: logging.Logger,
     ) -> None:
-        result = finetuning_path_manager_basic.logging_dir
+        result: pathlib.Path | None = finetuning_path_manager_basic.logging_dir
         logger_fixture.info(
             "logging_dir:\n%s",
             result,
@@ -63,3 +68,8 @@ class TestFinetuningPathManager:
             result,
             pathlib.Path | None,
         )
+
+        if result is not None:
+            assert validate_path_part(  # noqa: S101 - pytest assertion
+                path_part=str(result),
+            )

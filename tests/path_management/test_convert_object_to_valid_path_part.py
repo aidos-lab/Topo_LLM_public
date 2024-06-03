@@ -26,7 +26,8 @@
 
 import logging
 
-from topollm.path_management.convert_object_to_valid_path_part import convert_list_to_path_part, validate_path_part
+from topollm.path_management.convert_object_to_valid_path_part import convert_list_to_path_part
+from topollm.path_management.validate_path_part import validate_path_part
 
 
 def test_convert_list_to_path_part(
@@ -51,6 +52,11 @@ def test_convert_list_to_path_part(
             "key",
             "value",
         ],  # list with multiple strings
+        [
+            -1,
+            -2,
+            -3,
+        ],  # list with multiple integers
     ]
 
     for example in list_of_examples:

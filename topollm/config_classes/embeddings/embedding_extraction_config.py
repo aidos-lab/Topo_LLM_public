@@ -25,6 +25,7 @@
 from pydantic import BaseModel
 
 from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
+from topollm.path_management.convert_object_to_valid_path_part import convert_list_to_path_part
 from topollm.typing.enums import AggregationType
 
 
@@ -48,7 +49,7 @@ class EmbeddingExtractionConfig(BaseModel):
         desc: str = (
             f"{NAME_PREFIXES['layer']}"
             f"{KV_SEP}"
-            f"{str(self.layer_indices)}"
+            f"{convert_layer_indices_to_path_part(self.layer_indices)}"
             f"{ITEM_SEP}"
             f"{NAME_PREFIXES['aggregation']}"
             f"{KV_SEP}"
@@ -56,3 +57,10 @@ class EmbeddingExtractionConfig(BaseModel):
         )
 
         return desc
+
+
+def convert_layer_indices_to_path_part(
+    layer_indices: list[int],
+) -> str:
+    """Convert a list of layer indices to a string suitable for file paths."""
+    return convert_list_to_path_part(layer_indices)
