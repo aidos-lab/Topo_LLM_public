@@ -7,6 +7,12 @@ ZIM_USERNAME="ruppik"
 
 echo "TOPO_LLM_REPOSITORY_BASE_PATH=$TOPO_LLM_REPOSITORY_BASE_PATH"
 
+EXCLUDE_FILE="rsync_git_repository_excludes.txt"
+
 rsync -aPe ssh \
-    "$TOPO_LLM_REPOSITORY_BASE_PATH/" \
-    $ZIM_USERNAME@storage.hpc.rz.uni-duesseldorf.de:/gpfs/project/$ZIM_USERNAME/git-source/Topo_LLM/
+    --exclude-from="$EXCLUDE_FILE" \
+    "${TOPO_LLM_REPOSITORY_BASE_PATH}/" \
+    "${ZIM_USERNAME}@storage.hpc.rz.uni-duesseldorf.de:/gpfs/project/${ZIM_USERNAME}/git-source/Topo_LLM/"
+
+# Exit with the exit code of the rsync command
+exit $?
