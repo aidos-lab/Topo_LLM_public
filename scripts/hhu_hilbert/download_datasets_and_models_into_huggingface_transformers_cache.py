@@ -38,6 +38,7 @@ import pathlib
 import subprocess
 
 import datasets
+import transformers
 from tqdm import tqdm
 
 from topollm.logging.log_list_info import log_list_info
@@ -107,13 +108,33 @@ def main() -> None:
             download_mode=datasets.DownloadMode.FORCE_REDOWNLOAD,
             trust_remote_code=True,
         )
-        logger.info(dataset)
+        logger.info(
+            dataset,
+        )
 
         logger.info(
             f"Downloading {dataset_name = } into huggingface transformers cache DONE",  # noqa: G004 - low overhead
         )
 
-    # TODO: Continue here
+    for model_name in tqdm(
+        args.model_names,
+        desc="Iterating over model names",
+    ):
+        logger.info(
+            f"Downloading {model_name = } into huggingface transformers cache ...",  # noqa: G004 - low overhead
+        )
+
+        model = transformers.AutoModel.from_pretrained(
+            pretrained_model_name_or_path=model_name,
+            force_download=True,
+        )
+        logger.info(
+            model,
+        )
+
+        logger.info(
+            f"Downloading {model_name = } into huggingface transformers cache DONE",  # noqa: G004 - low overhead
+        )
 
 
 def get_command_line_arguments() -> argparse.Namespace:
