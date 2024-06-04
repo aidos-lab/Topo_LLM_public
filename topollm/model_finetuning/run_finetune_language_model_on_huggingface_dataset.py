@@ -34,6 +34,7 @@ import hydra
 import hydra.core.hydra_config
 import omegaconf
 import transformers
+import wandb
 
 from topollm.config_classes.setup_OmegaConf import setup_OmegaConf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
@@ -66,6 +67,10 @@ def main(
 ) -> None:
     """Run the script."""
     global_logger.info("Running script ...")
+
+    wandb.init(
+        project="Topo_LLM",
+    )
 
     main_config: MainConfig = initialize_configuration(
         config=config,
