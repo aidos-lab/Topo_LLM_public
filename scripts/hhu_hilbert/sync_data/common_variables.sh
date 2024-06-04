@@ -1,0 +1,2 @@
+LOCAL_USERNAME="ruppik"
+ZIM_USERNAME="ruppik"

@@ -14,11 +14,11 @@ BASE_MODEL_LIST="roberta-base"
 NUM_TRAIN_EPOCHS="5"
 # NUM_TRAIN_EPOCHS="50"
 
-# BATCH_SIZE_TRAIN="8"
-# BATCH_SIZE_EVAL="8"
+BATCH_SIZE_TRAIN="8"
+BATCH_SIZE_EVAL="8"
 #
-BATCH_SIZE_TRAIN="32"
-BATCH_SIZE_EVAL="32"
+# BATCH_SIZE_TRAIN="32"
+# BATCH_SIZE_EVAL="32"
 
 # SAVE_STEPS="400"
 # EVAL_STEPS="400"
@@ -46,8 +46,8 @@ LR_SCHEDULER_TYPE="linear"
 # TODO(Ben): For "gpt2-medium" using LoRA training, get the following error:
 # `ValueError: Target modules {'key', 'value', 'query'} not found in the base model. Please check the target modules and try again.`
 #
-# PEFT_LIST="lora"
-PEFT_LIST="standard"
+PEFT_LIST="lora"
+# PEFT_LIST="standard"
 # PEFT_LIST="standard,lora"
 
 GRADIENT_MODIFIER_LIST="do_nothing"
@@ -58,7 +58,7 @@ CUDA_VISIBLE_DEVICES=0
 ADDITIONAL_OVERRIDES=""
 # ADDITIONAL_OVERRIDES+=" finetuning.max_steps=10"
 # ADDITIONAL_OVERRIDES+=" hydra.job.env_set.CUDA_VISIBLE_DEVICES=\"${CUDA_VISIBLE_DEVICES}\""
-ADDITIONAL_OVERRIDES+=" +finetuning.peft.r=16"
+ADDITIONAL_OVERRIDES+=" ++finetuning.peft.r=16"
 
 # ==================================================== #
 
@@ -71,6 +71,7 @@ python3 $PYTHON_SCRIPT_NAME \
     finetuning.batch_sizes.eval="${BATCH_SIZE_EVAL}" \
     finetuning.save_steps="${SAVE_STEPS}" \
     finetuning.eval_steps="${EVAL_STEPS}" \
+    finetuning.fp16="true" \
     finetuning/finetuning_datasets="${FINETUNING_DATASETS_LIST}" \
     finetuning/peft="${PEFT_LIST}" \
     finetuning/gradient_modifier="${GRADIENT_MODIFIER_LIST}" \
