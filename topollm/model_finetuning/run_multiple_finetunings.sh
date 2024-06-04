@@ -23,8 +23,11 @@ BATCH_SIZE_EVAL="32"
 # SAVE_STEPS="400"
 # EVAL_STEPS="400"
 #
-SAVE_STEPS="500"
-EVAL_STEPS="500"
+SAVE_STEPS="400"
+EVAL_STEPS="200"
+#
+# SAVE_STEPS="500"
+# EVAL_STEPS="500"
 #
 # SAVE_STEPS="1000"
 # EVAL_STEPS="1000"
@@ -33,15 +36,15 @@ EVAL_STEPS="500"
 # FINETUNING_DATASETS_LIST="train_and_eval_on_bbc,train_and_eval_on_iclr_2024_submissions,train_and_eval_on_multiwoz21,train_and_eval_on_sgd,train_and_eval_on_wikitext"
 # FINETUNING_DATASETS_LIST="train_and_eval_on_iclr_2024_submissions"
 # FINETUNING_DATASETS_LIST="train_and_eval_on_multiwoz21_10000_samples"
-FINETUNING_DATASETS_LIST="train_and_eval_on_multiwoz21_full"
-# FINETUNING_DATASETS_LIST="train_and_eval_on_one-year-of-tsla-on-reddit"
+# FINETUNING_DATASETS_LIST="train_and_eval_on_multiwoz21_full"
+FINETUNING_DATASETS_LIST="train_and_eval_on_one-year-of-tsla-on-reddit"
 
 LR_SCHEDULER_TYPE="linear"
 # LR_SCHEDULER_TYPE="constant"
 
 
 # TODO(Ben): For "gpt2-medium" using LoRA training, get the following error:
-# `ValueError: Target modules {'key', 'value', 'query'} not found in the base model. Please check the target modules and try again.``
+# `ValueError: Target modules {'key', 'value', 'query'} not found in the base model. Please check the target modules and try again.`
 #
 # PEFT_LIST="lora"
 PEFT_LIST="standard"
@@ -50,24 +53,25 @@ PEFT_LIST="standard"
 GRADIENT_MODIFIER_LIST="do_nothing"
 # GRADIENT_MODIFIER_LIST="freeze_first_layers_bert-style-models"
 
-# ADDITIONAL_OVERRIDES=""
-# ADDITIONAL_OVERRIDES="finetuning.max_steps=10"
-
 CUDA_VISIBLE_DEVICES=0
+
+ADDITIONAL_OVERRIDES=""
+# ADDITIONAL_OVERRIDES+=" finetuning.max_steps=10"
+# ADDITIONAL_OVERRIDES+=" hydra.job.env_set.CUDA_VISIBLE_DEVICES=\"${CUDA_VISIBLE_DEVICES}\""
+ADDITIONAL_OVERRIDES+=" +finetuning.peft.r=16"
 
 # ==================================================== #
 
 python3 $PYTHON_SCRIPT_NAME \
     --multirun \
-    finetuning/base_model@finetuning=$BASE_MODEL_LIST \
-    finetuning.num_train_epochs=$NUM_TRAIN_EPOCHS \
-    finetuning.lr_scheduler_type=$LR_SCHEDULER_TYPE \
+    finetuning/base_model@finetuning="${BASE_MODEL_LIST}" \
+    finetuning.num_train_epochs="${NUM_TRAIN_EPOCHS}" \
+    finetuning.lr_scheduler_type="${LR_SCHEDULER_TYPE}" \
     finetuning.batch_sizes.train="${BATCH_SIZE_TRAIN}" \
     finetuning.batch_sizes.eval="${BATCH_SIZE_EVAL}" \
-    finetuning.save_steps=$SAVE_STEPS \
-    finetuning.eval_steps=$EVAL_STEPS \
-    finetuning/finetuning_datasets=$FINETUNING_DATASETS_LIST \
-    finetuning/peft=$PEFT_LIST \
-    finetuning/gradient_modifier=$GRADIENT_MODIFIER_LIST \
-    hydra.job.env_set.CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES \
+    finetuning.save_steps="${SAVE_STEPS}" \
+    finetuning.eval_steps="${EVAL_STEPS}" \
+    finetuning/finetuning_datasets="${FINETUNING_DATASETS_LIST}" \
+    finetuning/peft="${PEFT_LIST}" \
+    finetuning/gradient_modifier="${GRADIENT_MODIFIER_LIST}" \
     $ADDITIONAL_OVERRIDES
