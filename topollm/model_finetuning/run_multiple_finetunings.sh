@@ -27,12 +27,7 @@ BATCH_SIZE_EVAL="${COMMON_BATCH_SIZE}"
 #
 SAVE_STEPS="400"
 EVAL_STEPS="200"
-#
-# SAVE_STEPS="500"
-# EVAL_STEPS="500"
-#
-# SAVE_STEPS="1000"
-# EVAL_STEPS="1000"
+
 
 # FINETUNING_DATASETS_LIST="train_and_eval_on_bbc,train_and_eval_on_iclr_2024_submissions,train_and_eval_on_multiwoz21,train_and_eval_on_sgd,train_and_eval_on_wikitext"
 # FINETUNING_DATASETS_LIST="train_and_eval_on_iclr_2024_submissions"
@@ -47,9 +42,9 @@ LR_SCHEDULER_TYPE="linear"
 # TODO(Ben): For "gpt2-medium" using LoRA training, get the following error:
 # `ValueError: Target modules {'key', 'value', 'query'} not found in the base model. Please check the target modules and try again.`
 #
-PEFT_LIST="lora"
+# PEFT_LIST="lora"
 # PEFT_LIST="standard"
-# PEFT_LIST="standard,lora"
+PEFT_LIST="standard,lora"
 
 GRADIENT_MODIFIER_LIST="do_nothing"
 # GRADIENT_MODIFIER_LIST="freeze_first_layers_bert-style-models"

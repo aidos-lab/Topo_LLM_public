@@ -20,12 +20,16 @@ echo "Calling submit_job ..."
 submit_job \
     --job_name "my_bash_job" \
     --job_script "${TOPO_LLM_REPOSITORY_BASE_PATH}/topollm/model_finetuning/run_multiple_finetunings.sh" \
-    --memory "64" \
+    --ncpus "2" \
+    --memory "32" \
     --ngpus "1" \
+    --accelerator_model "teslat4" \
+    --queue "CUDA" \
     --walltime "08:00:00" \
     --job_script_args ""
 
+# --accelerator_model "rtx6000" \
+
 echo "Calling submit_job DONE"
 
-# Exit with the exit code of the last command
-exit $?
+# Note: Do not add an `exit` command here, since we will source this script, and we want to keep the shell open.
