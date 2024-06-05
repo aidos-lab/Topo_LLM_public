@@ -2,7 +2,10 @@
 
 # https://hydra.cc/docs/tutorials/basic/running_your_app/multi-run/
 
+echo "TOPO_LLM_REPOSITORY_BASE_PATH=${TOPO_LLM_REPOSITORY_BASE_PATH}"
+
 PYTHON_SCRIPT_NAME="run_finetune_language_model_on_huggingface_dataset.py"
+PYTHON_SCRIPT_PATH="${TOPO_LLM_REPOSITORY_BASE_PATH}/topollm/model_finetuning/${PYTHON_SCRIPT_NAME}"
 
 # ==================================================== #
 # Select the parameters here
@@ -60,7 +63,11 @@ ADDITIONAL_OVERRIDES+=" ++finetuning.peft.r=16"
 
 # ==================================================== #
 
-python3 $PYTHON_SCRIPT_NAME \
+echo "Calling script from PYTHON_SCRIPT_PATH=${PYTHON_SCRIPT_PATH} ..."
+
+source ${TOPO_LLM_REPOSITORY_BASE_PATH}/.venv/bin/activate
+
+python3 $PYTHON_SCRIPT_PATH \
     --multirun \
     finetuning/base_model@finetuning="${BASE_MODEL_LIST}" \
     finetuning.num_train_epochs="${NUM_TRAIN_EPOCHS}" \
@@ -74,3 +81,8 @@ python3 $PYTHON_SCRIPT_NAME \
     finetuning/peft="${PEFT_LIST}" \
     finetuning/gradient_modifier="${GRADIENT_MODIFIER_LIST}" \
     $ADDITIONAL_OVERRIDES
+
+echo "Calling script from PYTHON_SCRIPT_PATH=$PYTHON_SCRIPT_PATH DONE"
+
+# Exit with the exit code of the python command
+exit $?
