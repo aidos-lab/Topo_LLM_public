@@ -25,18 +25,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Get the preferred torch device."""
+
 import logging
 
 import torch
 
-from topollm.typing.enums import PreferredTorchBackend
+from topollm.typing.enums import PreferredTorchBackend, Verbosity
+
+default_logger = logging.getLogger(__name__)
 
 
 def get_torch_device(
     preferred_torch_backend: PreferredTorchBackend,
-    verbosity: int = 1,
-    logger: logging.Logger = logging.getLogger(__name__),
+    verbosity: int = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
 ) -> torch.device:
+    """Get the preferred torch device."""
     # Directly select 'cpu' if preferred,
     # since it is always available
     if preferred_torch_backend == PreferredTorchBackend.CPU:
@@ -47,19 +52,18 @@ def get_torch_device(
         device = torch.device("cuda")
     # For 'mps', check if it is the preference
     # and if it is available
-    elif preferred_torch_backend == PreferredTorchBackend.MPS and torch.backends.mps.is_available():
+    elif (
+        preferred_torch_backend == PreferredTorchBackend.MPS and torch.backends.mps.is_available()
+    ) or torch.backends.mps.is_available():
         device = torch.device("mps")
-    # Fallback for PreferredTorchBackend.AUTO or
-    # if preferred one is not available
+    elif torch.cuda.is_available():
+        device = torch.device("cuda")
     else:
-        if torch.backends.mps.is_available():
-            device = torch.device("mps")
-        elif torch.cuda.is_available():
-            device = torch.device("cuda")
-        else:
-            device = torch.device("cpu")
+        device = torch.device("cpu")
 
     if verbosity >= 1:
-        logger.info(f"{device = }")
+        logger.info(
+            f"{device = }",  # noqa: G004 - low overhead
+        )
 
     return device

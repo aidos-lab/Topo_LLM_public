@@ -14,7 +14,7 @@ BASE_MODEL_LIST="roberta-base"
 NUM_TRAIN_EPOCHS="5"
 # NUM_TRAIN_EPOCHS="50"
 
-COMMON_BATCH_SIZE="2"
+COMMON_BATCH_SIZE="16"
 
 BATCH_SIZE_TRAIN="${COMMON_BATCH_SIZE}"
 BATCH_SIZE_EVAL="${COMMON_BATCH_SIZE}"
@@ -30,7 +30,6 @@ EVAL_STEPS="200"
 #
 # SAVE_STEPS="1000"
 # EVAL_STEPS="1000"
-
 
 # FINETUNING_DATASETS_LIST="train_and_eval_on_bbc,train_and_eval_on_iclr_2024_submissions,train_and_eval_on_multiwoz21,train_and_eval_on_sgd,train_and_eval_on_wikitext"
 # FINETUNING_DATASETS_LIST="train_and_eval_on_iclr_2024_submissions"

@@ -81,6 +81,7 @@ def main(
     # Use accelerator if available
     device = get_torch_device(
         preferred_torch_backend=main_config.preferred_torch_backend,
+        verbosity=main_config.verbosity,
         logger=global_logger,
     )
 
