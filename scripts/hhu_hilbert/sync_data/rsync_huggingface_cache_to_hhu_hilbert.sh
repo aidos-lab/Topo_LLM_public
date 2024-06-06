@@ -3,11 +3,9 @@
 # Following rsync instructions from:
 # https://wiki.hhu.de/pages/viewpage.action?pageId=55725648
 
-source ./common_variables.sh
-
 echo "TOPO_LLM_REPOSITORY_BASE_PATH=$TOPO_LLM_REPOSITORY_BASE_PATH"
 
-LOCAL_HUGGINGFACE_CACHE_PATH="/Users/$LOCAL_USERNAME/.cache/huggingface"
+source "${TOPO_LLM_REPOSITORY_BASE_PATH}/scripts/hhu_hilbert/sync_data/common_variables.sh"
 
 
 rsync -avz --delete --progress \
