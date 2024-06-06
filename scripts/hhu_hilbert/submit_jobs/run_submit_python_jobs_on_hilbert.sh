@@ -40,19 +40,25 @@ EVAL_STEPS="100"
 
 FINETUNING_DATASETS_LIST=(
     "train_and_eval_on_multiwoz21_10000_samples"
-    # "train_and_eval_on_one-year-of-tsla-on-reddit"
+    "train_and_eval_on_one-year-of-tsla-on-reddit"
 )
 
 LR_SCHEDULER_TYPE="linear"
 
 PEFT_LIST=(
     "standard"
-    # "lora"
+    "lora"
 )
 
 GRADIENT_MODIFIER_LIST=(
     "do_nothing"
-    # "freeze_first_layers_bert-style-models"
+    "freeze_first_layers_bert-style-models"
+)
+
+LORA_R_LIST=(
+    "16"
+    # "32"
+    # "64"
 )
 
 # # # # # # # # # # # # # # # #
@@ -62,45 +68,48 @@ for BASE_MODEL in "${BASE_MODEL_LIST[@]}"; do
     for FINETUNING_DATASET in "${FINETUNING_DATASETS_LIST[@]}"; do
         for PEFT in "${PEFT_LIST[@]}"; do
             for GRADIENT_MODIFIER in "${GRADIENT_MODIFIER_LIST[@]}"; do
-                echo "BASE_MODEL=${BASE_MODEL}"
-                echo "FINETUNING_DATASET=${FINETUNING_DATASET}"
-                echo "PEFT=${PEFT}"
-                echo "GRADIENT_MODIFIER=${GRADIENT_MODIFIER}"
-            
-                JOB_SCRIPT_ARGS="\""
-                JOB_SCRIPT_ARGS+="--multirun"
-                JOB_SCRIPT_ARGS+=" finetuning/base_model@finetuning=\"${BASE_MODEL}\""
-                JOB_SCRIPT_ARGS+=" finetuning.num_train_epochs=\"${NUM_TRAIN_EPOCHS}\""
-                JOB_SCRIPT_ARGS+=" finetuning.lr_scheduler_type=\"${LR_SCHEDULER_TYPE}\""
-                JOB_SCRIPT_ARGS+=" finetuning.batch_sizes.train=\"${BATCH_SIZE_TRAIN}\""
-                JOB_SCRIPT_ARGS+=" finetuning.batch_sizes.eval=\"${BATCH_SIZE_EVAL}\""
-                JOB_SCRIPT_ARGS+=" finetuning.save_steps=\"${SAVE_STEPS}\""
-                JOB_SCRIPT_ARGS+=" finetuning.eval_steps=\"${EVAL_STEPS}\""
-                JOB_SCRIPT_ARGS+=" finetuning.fp16=\"true\""
-                JOB_SCRIPT_ARGS+=" finetuning/finetuning_datasets=\"${FINETUNING_DATASET}\""
-                JOB_SCRIPT_ARGS+=" finetuning/peft=\"${PEFT}\""
-                JOB_SCRIPT_ARGS+=" finetuning/gradient_modifier=\"${GRADIENT_MODIFIER}\""
-                JOB_SCRIPT_ARGS+=" ++finetuning.peft.r=16"
-                JOB_SCRIPT_ARGS+="\""
+                for LORA_R in "${LORA_R_LIST[@]}"; do
+                    echo "BASE_MODEL=${BASE_MODEL}"
+                    echo "FINETUNING_DATASET=${FINETUNING_DATASET}"
+                    echo "PEFT=${PEFT}"
+                    echo "GRADIENT_MODIFIER=${GRADIENT_MODIFIER}"
+                    echo "LORA_R=${LORA_R}"
+                
+                    # JOB_SCRIPT_ARGS="\""
+                    JOB_SCRIPT_ARGS+="--multirun"
+                    JOB_SCRIPT_ARGS+=" finetuning/base_model@finetuning=\"${BASE_MODEL}\""
+                    JOB_SCRIPT_ARGS+=" finetuning.num_train_epochs=\"${NUM_TRAIN_EPOCHS}\""
+                    JOB_SCRIPT_ARGS+=" finetuning.lr_scheduler_type=\"${LR_SCHEDULER_TYPE}\""
+                    JOB_SCRIPT_ARGS+=" finetuning.batch_sizes.train=\"${BATCH_SIZE_TRAIN}\""
+                    JOB_SCRIPT_ARGS+=" finetuning.batch_sizes.eval=\"${BATCH_SIZE_EVAL}\""
+                    JOB_SCRIPT_ARGS+=" finetuning.save_steps=\"${SAVE_STEPS}\""
+                    JOB_SCRIPT_ARGS+=" finetuning.eval_steps=\"${EVAL_STEPS}\""
+                    JOB_SCRIPT_ARGS+=" finetuning.fp16=\"true\""
+                    JOB_SCRIPT_ARGS+=" finetuning/finetuning_datasets=\"${FINETUNING_DATASET}\""
+                    JOB_SCRIPT_ARGS+=" finetuning/peft=\"${PEFT}\""
+                    JOB_SCRIPT_ARGS+=" finetuning/gradient_modifier=\"${GRADIENT_MODIFIER}\""
+                    JOB_SCRIPT_ARGS+=" ++finetuning.peft.r=\"${LORA_R}\""
+                    # JOB_SCRIPT_ARGS+="\""
 
-                echo "JOB_SCRIPT_ARGS=${JOB_SCRIPT_ARGS}"
+                    echo "JOB_SCRIPT_ARGS=${JOB_SCRIPT_ARGS}"
 
-                # # # # # # # # # # # # # # # #
-                echo "Calling submit_job ..."
+                    # # # # # # # # # # # # # # # #
+                    echo "Calling submit_job ..."
 
-                submit_job \
-                    --job_name "my_python_job" \
-                    --job_script "${FINETUNING_PYTHON_SCRIPT_PATH}" \
-                    --ncpus "2" \
-                    --memory "32" \
-                    --ngpus "1" \
-                    --accelerator_model "${ACCELERATOR_MODEL}" \
-                    --queue "CUDA" \
-                    --walltime "08:00:00" \
-                    --job_script_args "${JOB_SCRIPT_ARGS}"
+                    submit_job \
+                        --job_name "my_python_job" \
+                        --job_script "${FINETUNING_PYTHON_SCRIPT_PATH}" \
+                        --ncpus "2" \
+                        --memory "32" \
+                        --ngpus "1" \
+                        --accelerator_model "${ACCELERATOR_MODEL}" \
+                        --queue "CUDA" \
+                        --walltime "08:00:00" \
+                        --job_script_args "${JOB_SCRIPT_ARGS}"
 
-                echo "Calling submit_job DONE"
-                # # # # # # # # # # # # # # # #
+                    echo "Calling submit_job DONE"
+                    # # # # # # # # # # # # # # # #
+                done
             done
         done
     done
