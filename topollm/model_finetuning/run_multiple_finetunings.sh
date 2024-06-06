@@ -49,10 +49,9 @@ GRADIENT_MODIFIER_LIST="do_nothing,freeze_first_layers_bert-style-models"
 # CUDA_VISIBLE_DEVICES=0
 
 ADDITIONAL_OVERRIDES=""
-# ADDITIONAL_OVERRIDES+=" finetuning.max_steps=10"
 # ADDITIONAL_OVERRIDES+=" hydra.job.env_set.CUDA_VISIBLE_DEVICES=\"${CUDA_VISIBLE_DEVICES}\""
 ADDITIONAL_OVERRIDES+=" ++finetuning.peft.r=16"
-ADDITIONAL_OVERRIDES+=" finetuning.max_steps=500" # TODO Comment out for full training. Note: This will lead to partial training.
+# ADDITIONAL_OVERRIDES+=" finetuning.max_steps=500" # Comment out for full training. Note: Setting to anything but '-1' will lead to partial training.
 
 # ==================================================== #
 
