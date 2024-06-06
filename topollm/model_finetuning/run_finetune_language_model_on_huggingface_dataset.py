@@ -28,6 +28,7 @@
 """Script for fine-tuning language model on huggingface datasets."""
 
 import logging
+import pathlib
 from typing import TYPE_CHECKING
 
 import hydra
@@ -66,15 +67,45 @@ def main(
     config: omegaconf.DictConfig,
 ) -> None:
     """Run the script."""
-    global_logger.info("Running script ...")
+    logger = global_logger
+    logger.info("Running script ...")
+
+    wandb_dir = pathlib.Path(
+        config.wandb.dir,
+    )
+    logger.info(
+        f"{wandb_dir = }",  # noqa: G004 - low overhead
+    )
+    # Create the wandb directory if it does not exist
+    wandb_dir.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
 
     wandb.init(
-        project="Topo_LLM",
+        dir=config.wandb.dir,
+        entity=config.wandb.entity,  # Note: To make this None, use null in the hydra config
+        project=config.wandb.project,
+        tags=config.wandb.tags,
     )
+
+    # Note: Convert OmegaConf to dict to avoid issues with wandb
+    # https://docs.wandb.ai/guides/integrations/hydra#track-hyperparameters
+    wandb.config = omegaconf.OmegaConf.to_container(
+        cfg=config,
+        resolve=True,
+        throw_on_missing=True,
+    )
+
+    # Add information about the wandb run to the logger
+    if wandb.run is not None:
+        logger.info(
+            f"{wandb.run.dir = }",  # noqa: G004 - low overhead
+        )
 
     main_config: MainConfig = initialize_configuration(
         config=config,
-        logger=global_logger,
+        logger=logger,
     )
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -82,16 +113,19 @@ def main(
     device = get_torch_device(
         preferred_torch_backend=main_config.preferred_torch_backend,
         verbosity=main_config.verbosity,
-        logger=global_logger,
+        logger=logger,
     )
 
     do_finetuning_process(
         main_config=main_config,
         device=device,
-        logger=global_logger,
+        logger=logger,
     )
 
-    global_logger.info("Running script DONE")
+    # We need to manually finish the wandb run so that the hydra multi-run submissions are not summarized in the same run
+    wandb.finish()
+
+    logger.info("Running script DONE")
 
 
 if __name__ == "__main__":

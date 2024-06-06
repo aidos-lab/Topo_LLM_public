@@ -64,3 +64,10 @@ hydra:
       override_dirname:
         exclude_keys:
           - seed
+
+wandb:
+  project: "Topo_LLM"
+  entity: null
+  tags:
+    - "model_finteuning"
+  dir: ${paths.repository_base_path}/wandb_output_dir/

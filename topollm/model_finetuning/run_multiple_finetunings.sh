@@ -22,12 +22,8 @@ COMMON_BATCH_SIZE="16"
 BATCH_SIZE_TRAIN="${COMMON_BATCH_SIZE}"
 BATCH_SIZE_EVAL="${COMMON_BATCH_SIZE}"
 
-# SAVE_STEPS="400"
-# EVAL_STEPS="400"
-#
 SAVE_STEPS="400"
 EVAL_STEPS="200"
-
 
 # FINETUNING_DATASETS_LIST="train_and_eval_on_bbc,train_and_eval_on_iclr_2024_submissions,train_and_eval_on_multiwoz21,train_and_eval_on_sgd,train_and_eval_on_wikitext"
 # FINETUNING_DATASETS_LIST="train_and_eval_on_iclr_2024_submissions"
@@ -55,6 +51,7 @@ ADDITIONAL_OVERRIDES=""
 # ADDITIONAL_OVERRIDES+=" finetuning.max_steps=10"
 # ADDITIONAL_OVERRIDES+=" hydra.job.env_set.CUDA_VISIBLE_DEVICES=\"${CUDA_VISIBLE_DEVICES}\""
 ADDITIONAL_OVERRIDES+=" ++finetuning.peft.r=16"
+ADDITIONAL_OVERRIDES+=" finetuning.max_steps=500" # TODO Comment out for full training. Note: This will lead to partial training.
 
 # ==================================================== #
 
