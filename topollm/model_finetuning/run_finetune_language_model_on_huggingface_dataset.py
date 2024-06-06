@@ -91,11 +91,13 @@ def main(
 
     # Note: Convert OmegaConf to dict to avoid issues with wandb
     # https://docs.wandb.ai/guides/integrations/hydra#track-hyperparameters
-    wandb.config = omegaconf.OmegaConf.to_container(
+    omegaconf_converted_to_dict = omegaconf.OmegaConf.to_container(
         cfg=config,
         resolve=True,
         throw_on_missing=True,
     )
+
+    wandb.config.hydra = omegaconf_converted_to_dict
 
     # Add information about the wandb run to the logger
     if wandb.run is not None:
