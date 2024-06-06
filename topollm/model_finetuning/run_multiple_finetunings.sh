@@ -23,7 +23,7 @@ BATCH_SIZE_TRAIN="${COMMON_BATCH_SIZE}"
 BATCH_SIZE_EVAL="${COMMON_BATCH_SIZE}"
 
 SAVE_STEPS="400"
-EVAL_STEPS="200"
+EVAL_STEPS="100"
 
 # FINETUNING_DATASETS_LIST="train_and_eval_on_bbc,train_and_eval_on_iclr_2024_submissions,train_and_eval_on_multiwoz21,train_and_eval_on_sgd,train_and_eval_on_wikitext"
 # FINETUNING_DATASETS_LIST="train_and_eval_on_iclr_2024_submissions"
@@ -42,10 +42,11 @@ LR_SCHEDULER_TYPE="linear"
 # PEFT_LIST="standard"
 PEFT_LIST="standard,lora"
 
-GRADIENT_MODIFIER_LIST="do_nothing"
+# GRADIENT_MODIFIER_LIST="do_nothing"
 # GRADIENT_MODIFIER_LIST="freeze_first_layers_bert-style-models"
+GRADIENT_MODIFIER_LIST="do_nothing,freeze_first_layers_bert-style-models"
 
-CUDA_VISIBLE_DEVICES=0
+# CUDA_VISIBLE_DEVICES=0
 
 ADDITIONAL_OVERRIDES=""
 # ADDITIONAL_OVERRIDES+=" finetuning.max_steps=10"
@@ -58,6 +59,8 @@ ADDITIONAL_OVERRIDES+=" finetuning.max_steps=500" # TODO Comment out for full tr
 echo "Calling script from PYTHON_SCRIPT_PATH=${PYTHON_SCRIPT_PATH} ..."
 
 source ${TOPO_LLM_REPOSITORY_BASE_PATH}/.venv/bin/activate
+
+echo "CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES}"
 
 python3 $PYTHON_SCRIPT_PATH \
     --multirun \

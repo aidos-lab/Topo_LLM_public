@@ -86,6 +86,9 @@ def main(
         dir=config.wandb.dir,
         entity=config.wandb.entity,  # Note: To make this None, use null in the hydra config
         project=config.wandb.project,
+        settings=wandb.Settings(
+            start_method="thread",  # Note: https://docs.wandb.ai/guides/integrations/hydra#troubleshooting-multiprocessing
+        ),
         tags=config.wandb.tags,
     )
 
