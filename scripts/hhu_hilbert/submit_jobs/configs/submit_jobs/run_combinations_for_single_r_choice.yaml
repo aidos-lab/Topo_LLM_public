@@ -19,3 +19,7 @@ gradient_modifier:
 
 lora_r:
   - 16
+
+accelerator_model: "teslat4"
+wandb_project: "Topo_LLM_run_combinations_for_single_r_choice"
+dry_run: false

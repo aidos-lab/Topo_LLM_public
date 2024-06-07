@@ -32,7 +32,7 @@ import os
 import pathlib
 import pprint
 import subprocess
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from itertools import product
 
 import hydra
@@ -68,6 +68,16 @@ class SubmitJobsConfig:
     walltime: str = "08:00:00"
     ngpus: int = 1
     memory_gb: int = 32
+
+    submit_job_command: list[str] = field(
+        default_factory=lambda: [
+            "python3",
+            "/gpfs/project/ruppik/.usr_tls/tools/submit_job.py",
+        ],
+    )
+
+    wandb_project: str = "Topo_LLM_submit_jobs_via_hydra_debug"
+    dry_run: bool = False
 
 
 @dataclass
@@ -124,7 +134,7 @@ def main(
         submit_jobs_config.lora_r,
     )
 
-    for id, combination in enumerate(
+    for job_id, combination in enumerate(
         tqdm(
             combinations,
             desc="Submitting jobs",
@@ -165,6 +175,7 @@ def main(
             f"finetuning/finetuning_datasets={finetuning_dataset}",
             f"finetuning/peft={peft}",
             f"finetuning/gradient_modifier={gradient_modifier}",
+            f"wandb.project={submit_jobs_config.wandb_project}",
             f"++finetuning.peft.r={lora_r}",
         ]
 
@@ -173,35 +184,49 @@ def main(
             f"JOB_SCRIPT_ARGS={job_script_args_str}",  # noqa: G004 - low overhead
         )
 
-        # Calling submit_job
-        subprocess.run(
-            [  # noqa: S603 , S607 - we trust the input; we need to use the "submit_job" here
-                "submit_job",
-                "--job_name",
-                f"my_python_job_{id}",
-                "--job_script",
-                finetuning_python_script_path,
-                "--ncpus",
-                str(submit_jobs_config.ncpus),
-                "--memory",
-                str(submit_jobs_config.memory_gb),
-                "--ngpus",
-                str(submit_jobs_config.ngpus),
-                "--accelerator_model",
-                submit_jobs_config.accelerator_model,
-                "--queue",
-                submit_jobs_config.queue,
-                "--walltime",
-                submit_jobs_config.walltime,
-                "--job_script_args",
-                job_script_args_str,
-            ],
-            check=True,
-        )
+        command: list[str] = [
+            *submit_jobs_config.submit_job_command,
+            "--job_name",
+            f"my_python_job_{job_id}",
+            "--job_script",
+            str(finetuning_python_script_path),
+            "--ncpus",
+            str(submit_jobs_config.ncpus),
+            "--memory",
+            str(submit_jobs_config.memory_gb),
+            "--ngpus",
+            str(submit_jobs_config.ngpus),
+            "--accelerator_model",
+            submit_jobs_config.accelerator_model,
+            "--queue",
+            submit_jobs_config.queue,
+            "--walltime",
+            submit_jobs_config.walltime,
+            "--job_script_args",
+            job_script_args_str,
+        ]
 
-        logger.info(
-            "Calling submit_job DONE",
-        )
+        if submit_jobs_config.dry_run:
+            logger.info(
+                "Dry run enabled. Command not executed.",
+            )
+            logger.info(
+                "Dry run command:\n%s",
+                command,
+            )
+        else:
+            # Calling submit_job
+            logger.info(
+                "Calling submit_job ...",
+            )
+            subprocess.run(
+                args=command,  # noqa: S603 , S607 - we trust the input; we need to use the "submit_job" here
+                shell=False,
+                check=True,
+            )
+            logger.info(
+                "Calling submit_job DONE",
+            )
 
     logger.info(
         "Running main DONE",
