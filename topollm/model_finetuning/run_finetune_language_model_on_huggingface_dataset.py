@@ -68,7 +68,9 @@ def main(
 ) -> None:
     """Run the script."""
     logger = global_logger
-    logger.info("Running script ...")
+    logger.info(
+        "Running script ...",
+    )
 
     wandb_dir = pathlib.Path(
         config.wandb.dir,
@@ -121,16 +123,26 @@ def main(
         logger=logger,
     )
 
+    logger.info(
+        "Calling do_finetuning_process ...",
+    )
+
     do_finetuning_process(
         main_config=main_config,
         device=device,
         logger=logger,
     )
 
+    logger.info(
+        "Calling do_finetuning_process DONE",
+    )
+
     # We need to manually finish the wandb run so that the hydra multi-run submissions are not summarized in the same run
     wandb.finish()
 
-    logger.info("Running script DONE")
+    logger.info(
+        "Running script DONE",
+    )
 
 
 if __name__ == "__main__":
