@@ -28,6 +28,7 @@ defaults:
   - storage: zarr_vectors_pickle_metadata
   - tokenizer: basic_tokenizer
   - transformations: none
+  - wandb: default
   - override hydra/job_logging: custom
   - _self_
 
@@ -64,10 +65,3 @@ hydra:
       override_dirname:
         exclude_keys:
           - seed
-
-wandb:
-  project: "Topo_LLM"
-  entity: null
-  tags:
-    - "model_finteuning"
-  dir: ${paths.repository_base_path}/wandb_output_dir/

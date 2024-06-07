@@ -60,8 +60,14 @@ class SubmitJobsConfig:
     eval_steps: int = 100
     lr_scheduler_type: str = "linear"
     accelerator_model: str = "rtx6000"
+    queue: str = "CUDA"
     finetuning_python_script_name: str = "run_finetune_language_model_on_huggingface_dataset.py"
     topo_llm_repository_base_path: str = TOPO_LLM_REPOSITORY_BASE_PATH
+
+    ncpus: int = 2
+    walltime: str = "08:00:00"
+    ngpus: int = 1
+    memory_gb: int = 32
 
 
 @dataclass
@@ -105,7 +111,8 @@ def main(
 
     finetuning_python_script_path = pathlib.Path(
         submit_jobs_config.topo_llm_repository_base_path,
-        "topollm/model_finetuning",
+        "topollm",
+        "model_finetuning",
         submit_jobs_config.finetuning_python_script_name,
     )
 
@@ -117,9 +124,11 @@ def main(
         submit_jobs_config.lora_r,
     )
 
-    for combination in tqdm(
-        combinations,
-        desc="Submitting jobs",
+    for id, combination in enumerate(
+        tqdm(
+            combinations,
+            desc="Submitting jobs",
+        ),
     ):
         logger.info(
             "combination:\n%s",
@@ -169,21 +178,21 @@ def main(
             [  # noqa: S603 , S607 - we trust the input; we need to use the "submit_job" here
                 "submit_job",
                 "--job_name",
-                "my_python_job",
+                f"my_python_job_{id}",
                 "--job_script",
                 finetuning_python_script_path,
                 "--ncpus",
-                "2",
+                str(submit_jobs_config.ncpus),
                 "--memory",
-                "32",
+                str(submit_jobs_config.memory_gb),
                 "--ngpus",
-                "1",
+                str(submit_jobs_config.ngpus),
                 "--accelerator_model",
                 submit_jobs_config.accelerator_model,
                 "--queue",
-                "CUDA",
+                submit_jobs_config.queue,
                 "--walltime",
-                "08:00:00",
+                submit_jobs_config.walltime,
                 "--job_script_args",
                 job_script_args_str,
             ],

@@ -72,8 +72,13 @@ def main(
         "Running script ...",
     )
 
+    main_config: MainConfig = initialize_configuration(
+        config=config,
+        logger=logger,
+    )
+
     wandb_dir = pathlib.Path(
-        config.wandb.dir,
+        main_config.wandb.dir,
     )
     logger.info(
         f"{wandb_dir = }",  # noqa: G004 - low overhead
@@ -85,13 +90,13 @@ def main(
     )
 
     wandb.init(
-        dir=config.wandb.dir,
-        entity=config.wandb.entity,  # Note: To make this None, use null in the hydra config
-        project=config.wandb.project,
+        dir=main_config.wandb.dir,
+        entity=main_config.wandb.entity,  # Note: To make this None, use null in the hydra config
+        project=main_config.wandb.project,
         settings=wandb.Settings(
             start_method="thread",  # Note: https://docs.wandb.ai/guides/integrations/hydra#troubleshooting-multiprocessing
         ),
-        tags=config.wandb.tags,
+        tags=main_config.wandb.tags,
     )
 
     # Note: Convert OmegaConf to dict to avoid issues with wandb
@@ -102,6 +107,8 @@ def main(
         throw_on_missing=True,
     )
 
+    # Add the hydra config to the wandb config
+    # (so that they are tracked in the wandb run)
     wandb.config.hydra = omegaconf_converted_to_dict
 
     # Add information about the wandb run to the logger
@@ -109,11 +116,6 @@ def main(
         logger.info(
             f"{wandb.run.dir = }",  # noqa: G004 - low overhead
         )
-
-    main_config: MainConfig = initialize_configuration(
-        config=config,
-        logger=logger,
-    )
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Use accelerator if available
