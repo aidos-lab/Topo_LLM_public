@@ -1,0 +1,21 @@
+defaults:
+  - base_config
+  - submit_jobs: run_combinations_for_single_r_choice
+  - _self_
+
+hydra:
+  run:
+    dir: hydra_output_dir/run/${hydra.job.name}/${now:%Y-%m-%d}/${now:%H-%M-%S}/
+  sweep:
+    dir: hydra_output_dir/multirun/${hydra.job.name}/${now:%Y-%m-%d}/${now:%H-%M-%S}/
+    subdir: seed=${seed}/
+  job:
+    chdir: False
+    env_set:
+      # HYDRA_FULL_ERROR: 1 # Note: This will not work for setting the environment variable, set in code instead
+      # CUDA_VISIBLE_DEVICES: 0
+      PLACEHOLDER_ENV_VAR: "placeholder_value" # Note: This is here so that the 'env_set' key is not empty
+    config:
+      override_dirname:
+        exclude_keys:
+          - seed
