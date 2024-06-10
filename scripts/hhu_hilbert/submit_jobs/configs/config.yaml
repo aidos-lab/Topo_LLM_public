@@ -5,9 +5,9 @@ defaults:
 
 hydra:
   run:
-    dir: hydra_output_dir/run/${hydra.job.name}/${now:%Y-%m-%d}/${now:%H-%M-%S}/
+    dir: ${oc.env:TOPO_LLM_REPOSITORY_BASE_PATH}/hydra_output_dir/run/${hydra.job.name}/${now:%Y-%m-%d}/${now:%H-%M-%S}/
   sweep:
-    dir: hydra_output_dir/multirun/${hydra.job.name}/${now:%Y-%m-%d}/${now:%H-%M-%S}/
+    dir: ${oc.env:TOPO_LLM_REPOSITORY_BASE_PATH}/hydra_output_dir/multirun/${hydra.job.name}/${now:%Y-%m-%d}/${now:%H-%M-%S}/
     subdir: seed=${seed}/
   job:
     chdir: False
