@@ -35,13 +35,13 @@ from scripts.hhu_hilbert.submit_jobs.submit_finetuning_jobs_config import Submit
 class Config:
     """Config for the main function."""
 
-    submit_jobs: SubmitFinetuningJobsConfig
+    submit_finetuning_jobs: SubmitFinetuningJobsConfig
 
 
 cs = ConfigStore.instance()
 cs.store(
-    group="submit_jobs",
-    name="base_submit_jobs_config",
+    group="submit_finetuning_jobs",
+    name="base_submit_finetuning_jobs_config",
     node=SubmitFinetuningJobsConfig,
 )
 cs.store(

@@ -13,8 +13,8 @@ if [[ "$1" == "--dry-run" ]]; then
 fi
 
 python3 submit_jobs_with_hydra_config.py \
-    submit_jobs=run_combinations_for_single_r_choice \
-    submit_jobs.dry_run=$DRY_RUN
+    submit_finetuning_jobs=run_combinations_for_single_r_choice \
+    submit_finetuning_jobs.dry_run=$DRY_RUN
 
 # Exit with the return code of the Python script.
 exit $?

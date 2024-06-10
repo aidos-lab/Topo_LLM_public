@@ -1,6 +1,6 @@
 defaults:
   - base_config
-  - submit_jobs: run_combinations_for_single_r_choice
+  - submit_finetuning_jobs: run_combinations_for_single_r_choice
   - _self_
 
 hydra:

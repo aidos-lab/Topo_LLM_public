@@ -60,21 +60,19 @@ def main(
         pprint.pformat(cfg),
     )
 
-    submit_jobs_config: SubmitFinetuningJobsConfig = cfg.submit_jobs
+    submit_finetuning_jobs_config: SubmitFinetuningJobsConfig = cfg.submit_finetuning_jobs
 
-    finetuning_python_script_path = pathlib.Path(
-        submit_jobs_config.topo_llm_repository_base_path,
-        "topollm",
-        "model_finetuning",
-        submit_jobs_config.finetuning_python_script_name,
+    finetuning_python_script_absolute_path = pathlib.Path(
+        submit_finetuning_jobs_config.topo_llm_repository_base_path,
+        submit_finetuning_jobs_config.finetuning_python_script_relative_path,
     )
 
     combinations = product(
-        submit_jobs_config.base_model,
-        submit_jobs_config.finetuning_dataset,
-        submit_jobs_config.peft,
-        submit_jobs_config.gradient_modifier,
-        submit_jobs_config.lora_r,
+        submit_finetuning_jobs_config.base_model,
+        submit_finetuning_jobs_config.finetuning_dataset,
+        submit_finetuning_jobs_config.peft,
+        submit_finetuning_jobs_config.gradient_modifier,
+        submit_finetuning_jobs_config.lora_r,
     )
 
     for job_id, combination in enumerate(
@@ -108,17 +106,17 @@ def main(
         job_script_args = [
             "--multirun",
             f"finetuning/base_model@finetuning={base_model}",
-            f"finetuning.num_train_epochs={submit_jobs_config.num_train_epochs}",
-            f"finetuning.lr_scheduler_type={submit_jobs_config.lr_scheduler_type}",
-            f"finetuning.batch_sizes.train={submit_jobs_config.common_batch_size}",
-            f"finetuning.batch_sizes.eval={submit_jobs_config.common_batch_size}",
-            f"finetuning.save_steps={submit_jobs_config.save_steps}",
-            f"finetuning.eval_steps={submit_jobs_config.eval_steps}",
+            f"finetuning.num_train_epochs={submit_finetuning_jobs_config.num_train_epochs}",
+            f"finetuning.lr_scheduler_type={submit_finetuning_jobs_config.lr_scheduler_type}",
+            f"finetuning.batch_sizes.train={submit_finetuning_jobs_config.common_batch_size}",
+            f"finetuning.batch_sizes.eval={submit_finetuning_jobs_config.common_batch_size}",
+            f"finetuning.save_steps={submit_finetuning_jobs_config.save_steps}",
+            f"finetuning.eval_steps={submit_finetuning_jobs_config.eval_steps}",
             "finetuning.fp16=true",
             f"finetuning/finetuning_datasets={finetuning_dataset}",
             f"finetuning/peft={peft}",
             f"finetuning/gradient_modifier={gradient_modifier}",
-            f"wandb.project={submit_jobs_config.wandb_project}",
+            f"wandb.project={submit_finetuning_jobs_config.wandb_project}",
             f"++finetuning.peft.r={lora_r}",
         ]
 
@@ -128,23 +126,23 @@ def main(
         )
 
         command: list[str] = [
-            *submit_jobs_config.submit_job_command,
+            *submit_finetuning_jobs_config.submit_job_command,
             "--job_name",
-            f"{submit_jobs_config.wandb_project}_{job_id}",
+            f"{submit_finetuning_jobs_config.wandb_project}_{job_id}",
             "--job_script",
-            str(finetuning_python_script_path),
+            str(finetuning_python_script_absolute_path),
             "--ncpus",
-            str(submit_jobs_config.ncpus),
+            str(submit_finetuning_jobs_config.ncpus),
             "--memory",
-            str(submit_jobs_config.memory_gb),
+            str(submit_finetuning_jobs_config.memory_gb),
             "--ngpus",
-            str(submit_jobs_config.ngpus),
+            str(submit_finetuning_jobs_config.ngpus),
             "--accelerator_model",
-            submit_jobs_config.accelerator_model,
+            submit_finetuning_jobs_config.accelerator_model,
             "--queue",
-            submit_jobs_config.queue,
+            submit_finetuning_jobs_config.queue,
             "--walltime",
-            submit_jobs_config.walltime,
+            submit_finetuning_jobs_config.walltime,
             "--job_script_args",
             job_script_args_str,
         ]
@@ -154,7 +152,7 @@ def main(
             30 * "=",
         )
 
-        if submit_jobs_config.dry_run:
+        if submit_finetuning_jobs_config.dry_run:
             logger.info(
                 "Dry run enabled. Command not executed.",
             )

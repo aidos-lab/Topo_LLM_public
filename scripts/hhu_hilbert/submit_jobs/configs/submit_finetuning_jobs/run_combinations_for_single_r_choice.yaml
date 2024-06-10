@@ -1,5 +1,5 @@
 defaults:
-  - base_submit_jobs_config
+  - base_submit_finetuning_jobs_config
   - _self_
 
 base_model:
@@ -14,8 +14,8 @@ peft:
   - lora
 
 gradient_modifier:
-  # - do_nothing
-  # - freeze_first_layers_bert-style-models
+  - do_nothing
+  - freeze_first_layers_bert-style-models
   - freeze_last_layers_bert-style-models
 
 lora_r:

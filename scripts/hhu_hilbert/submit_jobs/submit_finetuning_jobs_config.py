@@ -25,6 +25,7 @@
 # limitations under the License.
 
 import os
+import pathlib
 from dataclasses import dataclass, field
 
 TOPO_LLM_REPOSITORY_BASE_PATH = os.getenv(
@@ -48,8 +49,14 @@ class SubmitFinetuningJobsConfig:
     eval_steps: int = 100
     lr_scheduler_type: str = "linear"
 
-    finetuning_python_script_name: str = "run_finetune_language_model_on_huggingface_dataset.py"
+    finetuning_python_script_relative_path: pathlib.Path = pathlib.Path(
+        "topollm",
+        "model_finetuning",
+        "run_finetune_language_model_on_huggingface_dataset.py",
+    )
+
     topo_llm_repository_base_path: str = TOPO_LLM_REPOSITORY_BASE_PATH
+    wandb_project: str = "Topo_LLM_submit_jobs_via_hydra_debug"
 
     accelerator_model: str = "rtx6000"
     queue: str = "CUDA"
@@ -63,6 +70,4 @@ class SubmitFinetuningJobsConfig:
             "/gpfs/project/ruppik/.usr_tls/tools/submit_job.py",
         ],
     )
-
-    wandb_project: str = "Topo_LLM_submit_jobs_via_hydra_debug"
     dry_run: bool = False
