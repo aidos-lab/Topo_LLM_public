@@ -28,7 +28,7 @@ from dataclasses import dataclass
 
 from hydra.core.config_store import ConfigStore
 
-from scripts.hhu_hilbert.submit_jobs.submit_finetuning_jobs_config import SubmitFinetuningJobsConfig
+from scripts.hhu_hilbert.submit_jobs.config_classes.submit_finetuning_jobs_config import SubmitFinetuningJobsConfig
 
 
 @dataclass

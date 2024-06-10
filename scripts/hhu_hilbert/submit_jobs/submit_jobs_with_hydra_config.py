@@ -36,10 +36,10 @@ from typing import TYPE_CHECKING
 import hydra
 from tqdm import tqdm
 
-from scripts.hhu_hilbert.submit_jobs.config import Config
+from scripts.hhu_hilbert.submit_jobs.config_classes.config import Config
 
 if TYPE_CHECKING:
-    from scripts.hhu_hilbert.submit_jobs.submit_finetuning_jobs_config import SubmitFinetuningJobsConfig
+    from scripts.hhu_hilbert.submit_jobs.config_classes.submit_finetuning_jobs_config import SubmitFinetuningJobsConfig
 
 logger = logging.getLogger(__name__)
 
