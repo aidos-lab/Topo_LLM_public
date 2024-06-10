@@ -14,8 +14,9 @@ peft:
   - lora
 
 gradient_modifier:
-  - do_nothing
-  - freeze_first_layers_bert-style-models
+  # - do_nothing
+  # - freeze_first_layers_bert-style-models
+  - freeze_last_layers_bert-style-models
 
 lora_r:
   - 16

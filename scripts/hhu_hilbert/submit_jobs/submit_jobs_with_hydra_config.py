@@ -5,7 +5,6 @@
 #
 # Authors:
 # Benjamin Ruppik (ruppik@hhu.de)
-# Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
 # First versions of this code were potentially generated
@@ -28,75 +27,19 @@
 """Submit jobs for finetuning language models on huggingface datasets."""
 
 import logging
-import os
 import pathlib
 import pprint
 import subprocess
-from dataclasses import dataclass, field
 from itertools import product
+from typing import TYPE_CHECKING
 
 import hydra
-from hydra.core.config_store import ConfigStore
 from tqdm import tqdm
 
-TOPO_LLM_REPOSITORY_BASE_PATH = os.getenv(
-    "TOPO_LLM_REPOSITORY_BASE_PATH",
-    "$HOME/git-source/Topo_LLM",
-)
+from scripts.hhu_hilbert.submit_jobs.config import Config
 
-
-@dataclass
-class SubmitJobsConfig:
-    """Config for submitting jobs."""
-
-    base_model: list[str]
-    finetuning_dataset: list[str]
-    peft: list[str]
-    gradient_modifier: list[str]
-    lora_r: list[str]
-    num_train_epochs: int = 5
-    common_batch_size: int = 16
-    save_steps: int = 400
-    eval_steps: int = 100
-    lr_scheduler_type: str = "linear"
-    accelerator_model: str = "rtx6000"
-    queue: str = "CUDA"
-    finetuning_python_script_name: str = "run_finetune_language_model_on_huggingface_dataset.py"
-    topo_llm_repository_base_path: str = TOPO_LLM_REPOSITORY_BASE_PATH
-
-    ncpus: int = 2
-    walltime: str = "08:00:00"
-    ngpus: int = 1
-    memory_gb: int = 32
-
-    submit_job_command: list[str] = field(
-        default_factory=lambda: [
-            "python3",
-            "/gpfs/project/ruppik/.usr_tls/tools/submit_job.py",
-        ],
-    )
-
-    wandb_project: str = "Topo_LLM_submit_jobs_via_hydra_debug"
-    dry_run: bool = False
-
-
-@dataclass
-class Config:
-    """Config for the main function."""
-
-    submit_jobs: SubmitJobsConfig
-
-
-cs = ConfigStore.instance()
-cs.store(
-    group="submit_jobs",
-    name="base_submit_jobs_config",
-    node=SubmitJobsConfig,
-)
-cs.store(
-    name="base_config",
-    node=Config,
-)
+if TYPE_CHECKING:
+    from scripts.hhu_hilbert.submit_jobs.submit_finetuning_jobs_config import SubmitFinetuningJobsConfig
 
 logger = logging.getLogger(__name__)
 
@@ -117,7 +60,7 @@ def main(
         pprint.pformat(cfg),
     )
 
-    submit_jobs_config = cfg.submit_jobs
+    submit_jobs_config: SubmitFinetuningJobsConfig = cfg.submit_jobs
 
     finetuning_python_script_path = pathlib.Path(
         submit_jobs_config.topo_llm_repository_base_path,
@@ -147,19 +90,19 @@ def main(
         base_model, finetuning_dataset, peft, gradient_modifier, lora_r = combination
 
         logger.info(
-            f"BASE_MODEL={base_model}",  # noqa: G004 - low overhead
+            f"{base_model = }",  # noqa: G004 - low overhead
         )
         logger.info(
-            f"FINETUNING_DATASET={finetuning_dataset}",  # noqa: G004 - low overhead
+            f"{finetuning_dataset = }",  # noqa: G004 - low overhead
         )
         logger.info(
-            f"PEFT={peft}",  # noqa: G004 - low overhead
+            f"{peft = }",  # noqa: G004 - low overhead
         )
         logger.info(
-            f"GRADIENT_MODIFIER={gradient_modifier}",  # noqa: G004 - low overhead
+            f"{gradient_modifier = }",  # noqa: G004 - low overhead
         )
         logger.info(
-            f"LORA_R={lora_r}",  # noqa: G004 - low overhead
+            f"{lora_r = }",  # noqa: G004 - low overhead
         )
 
         job_script_args = [
@@ -187,7 +130,7 @@ def main(
         command: list[str] = [
             *submit_jobs_config.submit_job_command,
             "--job_name",
-            f"my_python_job_{job_id}",
+            f"{submit_jobs_config.wandb_project}_{job_id}",
             "--job_script",
             str(finetuning_python_script_path),
             "--ncpus",
@@ -206,18 +149,27 @@ def main(
             job_script_args_str,
         ]
 
+        # Add separator line to log
+        logger.info(
+            30 * "=",
+        )
+
         if submit_jobs_config.dry_run:
             logger.info(
                 "Dry run enabled. Command not executed.",
             )
             logger.info(
-                "Dry run command:\n%s",
+                "** Dry run ** command:\n%s",
                 command,
             )
         else:
             # Calling submit_job
             logger.info(
                 "Calling submit_job ...",
+            )
+            logger.info(
+                "command:\n%s",
+                command,
             )
             subprocess.run(
                 args=command,  # noqa: S603 , S607 - we trust the input; we need to use the "submit_job" here
@@ -227,6 +179,11 @@ def main(
             logger.info(
                 "Calling submit_job DONE",
             )
+
+        # Add separator line to log
+        logger.info(
+            30 * "=",
+        )
 
     logger.info(
         "Running main DONE",
