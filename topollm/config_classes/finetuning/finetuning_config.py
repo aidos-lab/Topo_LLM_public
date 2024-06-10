@@ -174,6 +174,14 @@ class FinetuningConfig(ConfigBaseModel):
         description="The weight decay.",
     )
 
+    report_to: list[str] = Field(
+        default=[
+            "wandb",
+            "tensorboard",
+        ],
+        description="The reporting tool.",
+    )
+
     @property
     def base_model_config_description(
         self,

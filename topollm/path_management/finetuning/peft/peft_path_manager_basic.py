@@ -30,7 +30,10 @@ import pathlib
 
 from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
 from topollm.config_classes.finetuning.peft.peft_config import PEFTConfig
+from topollm.path_management.convert_object_to_valid_path_part import convert_list_to_path_part
 from topollm.typing.enums import FinetuningMode
+
+default_logger = logging.getLogger(__name__)
 
 
 class PEFTPathManagerBasic:
@@ -38,7 +41,7 @@ class PEFTPathManagerBasic:
         self,
         peft_config: PEFTConfig,
         verbosity: int = 1,
-        logger: logging.Logger = logging.getLogger(__name__),
+        logger: logging.Logger = default_logger,
     ) -> None:
         self.peft_config = peft_config
 
@@ -88,7 +91,7 @@ class PEFTPathManagerBasic:
                 f"{ITEM_SEP}"
                 f"{NAME_PREFIXES['lora_target_modules']}"
                 f"{KV_SEP}"
-                f"{self.peft_config.target_modules}"
+                f"{target_modules_to_path_part(self.peft_config.target_modules)}"
                 f"{ITEM_SEP}"
                 f"{NAME_PREFIXES['lora_dropout']}"
                 f"{KV_SEP}"
@@ -99,3 +102,20 @@ class PEFTPathManagerBasic:
             raise ValueError(msg)
 
         return description
+
+
+def target_modules_to_path_part(
+    target_modules: list[str] | str | None,
+) -> str:
+    """Convert the target_modules to a path part."""
+    if target_modules is None:
+        return "None"
+    elif isinstance(
+        target_modules,
+        str,
+    ):
+        return target_modules
+    else:
+        return convert_list_to_path_part(
+            input_list=target_modules,
+        )

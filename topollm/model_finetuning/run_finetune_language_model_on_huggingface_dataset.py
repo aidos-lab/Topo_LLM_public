@@ -28,12 +28,14 @@
 """Script for fine-tuning language model on huggingface datasets."""
 
 import logging
+import pathlib
 from typing import TYPE_CHECKING
 
 import hydra
 import hydra.core.hydra_config
 import omegaconf
 import transformers
+import wandb
 
 from topollm.config_classes.setup_OmegaConf import setup_OmegaConf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
@@ -65,27 +67,84 @@ def main(
     config: omegaconf.DictConfig,
 ) -> None:
     """Run the script."""
-    global_logger.info("Running script ...")
+    logger = global_logger
+    logger.info(
+        "Running script ...",
+    )
 
     main_config: MainConfig = initialize_configuration(
         config=config,
-        logger=global_logger,
+        logger=logger,
     )
+
+    wandb_dir = pathlib.Path(
+        main_config.wandb.dir,
+    )
+    logger.info(
+        f"{wandb_dir = }",  # noqa: G004 - low overhead
+    )
+    # Create the wandb directory if it does not exist
+    wandb_dir.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    wandb.init(
+        dir=main_config.wandb.dir,
+        entity=main_config.wandb.entity,  # Note: To make this None, use null in the hydra config
+        project=main_config.wandb.project,
+        settings=wandb.Settings(
+            start_method="thread",  # Note: https://docs.wandb.ai/guides/integrations/hydra#troubleshooting-multiprocessing
+        ),
+        tags=main_config.wandb.tags,
+    )
+
+    # Note: Convert OmegaConf to dict to avoid issues with wandb
+    # https://docs.wandb.ai/guides/integrations/hydra#track-hyperparameters
+    omegaconf_converted_to_dict = omegaconf.OmegaConf.to_container(
+        cfg=config,
+        resolve=True,
+        throw_on_missing=True,
+    )
+
+    # Add the hydra config to the wandb config
+    # (so that they are tracked in the wandb run)
+    wandb.config.hydra = omegaconf_converted_to_dict
+
+    # Add information about the wandb run to the logger
+    if wandb.run is not None:
+        logger.info(
+            f"{wandb.run.dir = }",  # noqa: G004 - low overhead
+        )
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Use accelerator if available
     device = get_torch_device(
         preferred_torch_backend=main_config.preferred_torch_backend,
-        logger=global_logger,
+        verbosity=main_config.verbosity,
+        logger=logger,
+    )
+
+    logger.info(
+        "Calling do_finetuning_process ...",
     )
 
     do_finetuning_process(
         main_config=main_config,
         device=device,
-        logger=global_logger,
+        logger=logger,
     )
 
-    global_logger.info("Running script DONE")
+    logger.info(
+        "Calling do_finetuning_process DONE",
+    )
+
+    # We need to manually finish the wandb run so that the hydra multi-run submissions are not summarized in the same run
+    wandb.finish()
+
+    logger.info(
+        "Running script DONE",
+    )
 
 
 if __name__ == "__main__":

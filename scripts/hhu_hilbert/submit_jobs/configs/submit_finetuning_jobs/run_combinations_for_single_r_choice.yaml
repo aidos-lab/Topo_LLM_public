@@ -1,0 +1,26 @@
+defaults:
+  - base_submit_finetuning_jobs_config
+  - _self_
+
+base_model:
+  - roberta-base
+
+finetuning_dataset:
+  - train_and_eval_on_multiwoz21_10000_samples
+  - train_and_eval_on_one-year-of-tsla-on-reddit
+
+peft:
+  - standard
+  - lora
+
+gradient_modifier:
+  - do_nothing
+  - freeze_first_layers_bert-style-models
+  - freeze_last_layers_bert-style-models
+
+lora_r:
+  - 16
+
+accelerator_model: "teslat4"
+wandb_project: "Topo_LLM_run_combinations_for_single_r_choice"
+dry_run: false

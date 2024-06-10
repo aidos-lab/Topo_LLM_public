@@ -28,6 +28,7 @@ defaults:
   - storage: zarr_vectors_pickle_metadata
   - tokenizer: basic_tokenizer
   - transformations: none
+  - wandb: default
   - override hydra/job_logging: custom
   - _self_
 
@@ -57,9 +58,9 @@ hydra:
   job:
     chdir: False
     env_set:
-      # HYDRA_FULL_ERROR: 1 # NOTE: This will not work for setting the environment variable, set in code instead
+      # HYDRA_FULL_ERROR: 1 # Note: This will not work for setting the environment variable, set in code instead
       # CUDA_VISIBLE_DEVICES: 0
-      CUDA_VISIBLE_DEVICES: 1
+      PLACEHOLDER_ENV_VAR: "placeholder_value" # Note: This is here so that the 'env_set' key is not empty
     config:
       override_dirname:
         exclude_keys:

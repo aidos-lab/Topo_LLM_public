@@ -5,7 +5,6 @@
 #
 # Authors:
 # Benjamin Ruppik (ruppik@hhu.de)
-# Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
 # First versions of this code were potentially generated
@@ -24,3 +23,28 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from dataclasses import dataclass
+
+from hydra.core.config_store import ConfigStore
+
+from scripts.hhu_hilbert.submit_jobs.submit_finetuning_jobs_config import SubmitFinetuningJobsConfig
+
+
+@dataclass
+class Config:
+    """Config for the main function."""
+
+    submit_finetuning_jobs: SubmitFinetuningJobsConfig
+
+
+cs = ConfigStore.instance()
+cs.store(
+    group="submit_finetuning_jobs",
+    name="base_submit_finetuning_jobs_config",
+    node=SubmitFinetuningJobsConfig,
+)
+cs.store(
+    name="base_config",
+    node=Config,
+)

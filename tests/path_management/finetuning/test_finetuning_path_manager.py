@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -31,6 +29,7 @@ import logging
 import pathlib
 
 from topollm.path_management.finetuning import protocol
+from topollm.path_management.validate_path_part import validate_path_part
 
 
 class TestFinetuningPathManager:
@@ -39,12 +38,19 @@ class TestFinetuningPathManager:
         finetuning_path_manager_basic: protocol.FinetuningPathManager,
         logger_fixture: logging.Logger,
     ) -> None:
-        result = finetuning_path_manager_basic.finetuned_model_dir
-        logger_fixture.info(f"finetuned_model_dir:\n" f"{result = }")
+        result: pathlib.Path = finetuning_path_manager_basic.finetuned_model_dir
+        logger_fixture.info(
+            "finetuned_model_dir:\n%s",
+            result,
+        )
 
-        assert isinstance(
+        assert isinstance(  # noqa: S101 - pytest assertion
             result,
             pathlib.Path,
+        )
+
+        assert validate_path_part(  # noqa: S101 - pytest assertion
+            path_part=str(result),
         )
 
     def test_logging_dir(
@@ -52,10 +58,18 @@ class TestFinetuningPathManager:
         finetuning_path_manager_basic: protocol.FinetuningPathManager,
         logger_fixture: logging.Logger,
     ) -> None:
-        result = finetuning_path_manager_basic.logging_dir
-        logger_fixture.info(f"logging_dir:\n" f"{result = }")
+        result: pathlib.Path | None = finetuning_path_manager_basic.logging_dir
+        logger_fixture.info(
+            "logging_dir:\n%s",
+            result,
+        )
 
-        assert isinstance(
+        assert isinstance(  # noqa: S101 - pytest assertion
             result,
             pathlib.Path | None,
         )
+
+        if result is not None:
+            assert validate_path_part(  # noqa: S101 - pytest assertion
+                path_part=str(result),
+            )

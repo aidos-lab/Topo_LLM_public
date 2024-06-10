@@ -1,0 +1,49 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "rsync git repository to hhu hilbert",
+            "command": "./scripts/hhu_hilbert/sync_data/rsync_git_repository_to_hhu_hilbert.sh",
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": false,
+            }
+        },
+        {
+            "label": "rsync hydra logs and wandb from hhu hilbert and upload to wandb",
+            "command": "./scripts/hhu_hilbert/sync_data/rsync_hydra_output_dir_from_hhu_hilbert.sh && ./scripts/hhu_hilbert/sync_data/rsync_wandb_dirs_from_hhu_hilbert.sh && ./wandb_output_dir/sync_wandb_runs.sh",
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": false,
+            }
+        },
+        {
+            "label": "Generate Email",
+            "command": "/Users/carel17/Projects/SeminarEmailGenerator/.venv/bin/python /Users/carel17/Projects/SeminarEmailGenerator/generate_email.py && code /Users/carel17/Projects/SeminarEmailGenerator/templates/email.json",
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "never",
+                "panel": "new",
+                "focus": false,
+            }
+        },
+    ]
+}

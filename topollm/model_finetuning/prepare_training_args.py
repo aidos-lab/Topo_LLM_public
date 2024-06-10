@@ -41,6 +41,8 @@ def prepare_training_args(
     logging_dir: os.PathLike | None = None,
 ) -> transformers.TrainingArguments:
     """Prepare the training arguments for the finetuning process."""
+    # Note: the `label_names` argument appears to be necessary for the PEFT evaluation to work.
+    # https://discuss.huggingface.co/t/eval-with-trainer-not-running-with-peft-lora-model/53286
     training_args = transformers.TrainingArguments(
         output_dir=str(finetuned_model_dir),
         overwrite_output_dir=True,
@@ -58,10 +60,12 @@ def prepare_training_args(
         },
         fp16=finetuning_config.fp16,
         warmup_steps=finetuning_config.warmup_steps,
-        evaluation_strategy="steps",
+        eval_strategy="steps",
         eval_steps=finetuning_config.eval_steps,
         save_steps=finetuning_config.save_steps,
+        label_names=["labels"],
         logging_dir=logging_dir,  # type: ignore - typing problem with None and str
+        report_to=finetuning_config.report_to,
         log_level=finetuning_config.log_level,
         logging_steps=finetuning_config.logging_steps,
         use_cpu=finetuning_config.use_cpu,

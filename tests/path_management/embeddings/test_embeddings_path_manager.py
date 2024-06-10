@@ -28,9 +28,8 @@
 import logging
 import pathlib
 
-import pytest
-
 from topollm.path_management.embeddings import protocol
+from topollm.path_management.validate_path_part import validate_path_part
 
 
 class TestEmbeddingsPathManager:
@@ -39,12 +38,19 @@ class TestEmbeddingsPathManager:
         embeddings_path_manager: protocol.EmbeddingsPathManager,
         logger_fixture: logging.Logger,
     ) -> None:
-        result = embeddings_path_manager.data_dir
-        logger_fixture.info(f"data_dir:\n" f"{result = }")
+        result: pathlib.Path = embeddings_path_manager.data_dir
+        logger_fixture.info(
+            "data_dir:\n%s",
+            result,
+        )
 
-        assert isinstance(
+        assert isinstance(  # noqa: S101 - pytest assertion
             result,
             pathlib.Path,
+        )
+
+        assert validate_path_part(  # noqa: S101 - pytest assertion
+            path_part=str(result),
         )
 
     def test_array_dir_absolute_path(
@@ -52,12 +58,19 @@ class TestEmbeddingsPathManager:
         embeddings_path_manager: protocol.EmbeddingsPathManager,
         logger_fixture: logging.Logger,
     ) -> None:
-        result = embeddings_path_manager.array_dir_absolute_path
-        logger_fixture.info(f"array_dir_absolute_path:\n" f"{result = }")
+        result: pathlib.Path = embeddings_path_manager.array_dir_absolute_path
+        logger_fixture.info(
+            "array_dir_absolute_path:\n%s",
+            result,
+        )
 
-        assert isinstance(
+        assert isinstance(  # noqa: S101 - pytest assertion
             result,
             pathlib.Path,
+        )
+
+        assert validate_path_part(  # noqa: S101 - pytest assertion
+            path_part=str(result),
         )
 
     def test_metadata_dir_absolute_path(
@@ -65,10 +78,17 @@ class TestEmbeddingsPathManager:
         embeddings_path_manager: protocol.EmbeddingsPathManager,
         logger_fixture: logging.Logger,
     ) -> None:
-        result = embeddings_path_manager.metadata_dir_absolute_path
-        logger_fixture.info(f"metadata_dir_absolute_path:\n" f"{result = }")
+        result: pathlib.Path = embeddings_path_manager.metadata_dir_absolute_path
+        logger_fixture.info(
+            "metadata_dir_absolute_path:\n%s",
+            result,
+        )
 
-        assert isinstance(
+        assert isinstance(  # noqa: S101 - pytest assertion
             result,
             pathlib.Path,
+        )
+
+        assert validate_path_part(  # noqa: S101 - pytest assertion
+            path_part=str(result),
         )
