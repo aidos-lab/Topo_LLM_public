@@ -55,6 +55,7 @@ class SubmitFinetuningJobsConfig:
     common_batch_size: int = 16
     save_steps: int = 400
     eval_steps: int = 100
+    fp16: str = "true"
 
     finetuning_python_script_relative_path: pathlib.Path = pathlib.Path(
         "topollm",

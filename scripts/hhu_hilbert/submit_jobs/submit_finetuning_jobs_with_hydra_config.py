@@ -37,9 +37,9 @@ import hydra
 from tqdm import tqdm
 
 from scripts.hhu_hilbert.submit_jobs.config_classes.config import Config
-from scripts.hhu_hilbert.submit_jobs.config_classes.machine_configuration_config import MachineConfigurationConfig
 
 if TYPE_CHECKING:
+    from scripts.hhu_hilbert.submit_jobs.config_classes.machine_configuration_config import MachineConfigurationConfig
     from scripts.hhu_hilbert.submit_jobs.config_classes.submit_finetuning_jobs_config import SubmitFinetuningJobsConfig
 
 logger = logging.getLogger(__name__)
@@ -118,7 +118,7 @@ def main(
             f"finetuning.batch_sizes.eval={submit_finetuning_jobs_config.common_batch_size}",
             f"finetuning.save_steps={submit_finetuning_jobs_config.save_steps}",
             f"finetuning.eval_steps={submit_finetuning_jobs_config.eval_steps}",
-            "finetuning.fp16=true",
+            f"finetuning.fp16={submit_finetuning_jobs_config.fp16}",
             f"finetuning/finetuning_datasets={finetuning_dataset}",
             f"finetuning/peft={peft}",
             f"finetuning/gradient_modifier={gradient_modifier}",
@@ -176,7 +176,7 @@ def main(
                 command,
             )
             subprocess.run(
-                args=command,  # noqa: S603 , S607 - we trust the input; we need to use the "submit_job" here
+                args=command,
                 shell=False,
                 check=True,
             )

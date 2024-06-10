@@ -12,9 +12,12 @@ if [[ "$1" == "--dry-run" ]]; then
     echo "Dry run mode enabled."
 fi
 
+# SUBMIT_FINETUNING_JOBS="run_combinations_for_single_r_choice"
+SUBMIT_FINETUNING_JOBS="run_multiple_r_choices"
+
 python3 submit_finetuning_jobs_with_hydra_config.py \
-    submit_finetuning_jobs=run_combinations_for_single_r_choice \
-    machine_configuration.dry_run=$DRY_RUN
+    submit_finetuning_jobs="${SUBMIT_FINETUNING_JOBS}" \
+    machine_configuration.dry_run="${DRY_RUN}"
 
 # Exit with the return code of the Python script.
 exit $?
