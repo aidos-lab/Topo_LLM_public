@@ -1,0 +1,8 @@
+defaults:
+  - base_machine_configuration_config
+  - _self_
+
+accelerator_model: "rtx6000"
+queue: "CUDA"
+
+dry_run: false

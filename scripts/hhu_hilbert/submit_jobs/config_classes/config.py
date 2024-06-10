@@ -28,22 +28,38 @@ from dataclasses import dataclass
 
 from hydra.core.config_store import ConfigStore
 
-from scripts.hhu_hilbert.submit_jobs.config_classes.submit_finetuning_jobs_config import SubmitFinetuningJobsConfig
+from scripts.hhu_hilbert.submit_jobs.config_classes.machine_configuration_config import MachineConfigurationConfig
+from scripts.hhu_hilbert.submit_jobs.config_classes.submit_finetuning_jobs_config import (
+    SubmitFinetuningJobsConfig,
+    TrainingScheduleConfig,
+)
 
 
 @dataclass
 class Config:
     """Config for the main function."""
 
+    machine_configuration: MachineConfigurationConfig
     submit_finetuning_jobs: SubmitFinetuningJobsConfig
 
 
+# # # # # # # # # # # # # # # # # # # # # # # #
+# Register the config classes with Hydra
+
 cs = ConfigStore.instance()
+cs.store(
+    group="machine_configuration",
+    name="base_machine_configuration_config",
+    node=MachineConfigurationConfig,
+)
 cs.store(
     group="submit_finetuning_jobs",
     name="base_submit_finetuning_jobs_config",
     node=SubmitFinetuningJobsConfig,
 )
+# Note: Do not register the TrainingScheduleConfig class as a separate config class,
+# because we use an additional key for nesting so that they do not overwrite each other.
+# https://hydra.cc/docs/patterns/select_multiple_configs_from_config_group/
 cs.store(
     name="base_config",
     node=Config,

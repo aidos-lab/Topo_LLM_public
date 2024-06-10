@@ -37,6 +37,7 @@ import hydra
 from tqdm import tqdm
 
 from scripts.hhu_hilbert.submit_jobs.config_classes.config import Config
+from scripts.hhu_hilbert.submit_jobs.config_classes.machine_configuration_config import MachineConfigurationConfig
 
 if TYPE_CHECKING:
     from scripts.hhu_hilbert.submit_jobs.config_classes.submit_finetuning_jobs_config import SubmitFinetuningJobsConfig
@@ -61,6 +62,7 @@ def main(
     )
 
     submit_finetuning_jobs_config: SubmitFinetuningJobsConfig = cfg.submit_finetuning_jobs
+    machine_configuration: MachineConfigurationConfig = cfg.machine_configuration
 
     finetuning_python_script_absolute_path = pathlib.Path(
         submit_finetuning_jobs_config.topo_llm_repository_base_path,
@@ -73,6 +75,7 @@ def main(
         submit_finetuning_jobs_config.peft,
         submit_finetuning_jobs_config.gradient_modifier,
         submit_finetuning_jobs_config.lora_r,
+        submit_finetuning_jobs_config.training_schedule.values(),
     )
 
     for job_id, combination in enumerate(
@@ -85,7 +88,7 @@ def main(
             "combination:\n%s",
             combination,
         )
-        base_model, finetuning_dataset, peft, gradient_modifier, lora_r = combination
+        base_model, finetuning_dataset, peft, gradient_modifier, lora_r, training_schedule = combination
 
         logger.info(
             f"{base_model = }",  # noqa: G004 - low overhead
@@ -102,12 +105,15 @@ def main(
         logger.info(
             f"{lora_r = }",  # noqa: G004 - low overhead
         )
+        logger.info(
+            f"{training_schedule = }",  # noqa: G004 - low overhead
+        )
 
         job_script_args = [
             "--multirun",
             f"finetuning/base_model@finetuning={base_model}",
-            f"finetuning.num_train_epochs={submit_finetuning_jobs_config.num_train_epochs}",
-            f"finetuning.lr_scheduler_type={submit_finetuning_jobs_config.lr_scheduler_type}",
+            f"finetuning.num_train_epochs={training_schedule.num_train_epochs}",
+            f"finetuning.lr_scheduler_type={training_schedule.lr_scheduler_type}",
             f"finetuning.batch_sizes.train={submit_finetuning_jobs_config.common_batch_size}",
             f"finetuning.batch_sizes.eval={submit_finetuning_jobs_config.common_batch_size}",
             f"finetuning.save_steps={submit_finetuning_jobs_config.save_steps}",
@@ -126,23 +132,23 @@ def main(
         )
 
         command: list[str] = [
-            *submit_finetuning_jobs_config.submit_job_command,
+            *machine_configuration.submit_job_command,
             "--job_name",
             f"{submit_finetuning_jobs_config.wandb_project}_{job_id}",
             "--job_script",
             str(finetuning_python_script_absolute_path),
             "--ncpus",
-            str(submit_finetuning_jobs_config.ncpus),
+            str(machine_configuration.ncpus),
             "--memory",
-            str(submit_finetuning_jobs_config.memory_gb),
+            str(machine_configuration.memory_gb),
             "--ngpus",
-            str(submit_finetuning_jobs_config.ngpus),
+            str(machine_configuration.ngpus),
             "--accelerator_model",
-            submit_finetuning_jobs_config.accelerator_model,
+            machine_configuration.accelerator_model,
             "--queue",
-            submit_finetuning_jobs_config.queue,
+            machine_configuration.queue,
             "--walltime",
-            submit_finetuning_jobs_config.walltime,
+            machine_configuration.walltime,
             "--job_script_args",
             job_script_args_str,
         ]
@@ -152,7 +158,7 @@ def main(
             30 * "=",
         )
 
-        if submit_finetuning_jobs_config.dry_run:
+        if machine_configuration.dry_run:
             logger.info(
                 "Dry run enabled. Command not executed.",
             )

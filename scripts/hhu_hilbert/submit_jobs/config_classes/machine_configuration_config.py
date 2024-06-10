@@ -25,43 +25,27 @@
 # limitations under the License.
 
 import os
-import pathlib
 from dataclasses import dataclass, field
 
-TOPO_LLM_REPOSITORY_BASE_PATH = os.getenv(
-    "TOPO_LLM_REPOSITORY_BASE_PATH",
-    "$HOME/git-source/Topo_LLM",
+USER = os.getenv(
+    "USER",
 )
 
 
 @dataclass
-class TrainingScheduleConfig:
-    """Config for training schedule."""
+class MachineConfigurationConfig:
+    """Config for machine configuration."""
 
-    num_train_epochs: int = 5
-    lr_scheduler_type: str = "linear"
-
-
-@dataclass
-class SubmitFinetuningJobsConfig:
-    """Config for submitting finetuning jobs."""
-
-    base_model: list[str]
-    finetuning_dataset: list[str]
-    peft: list[str]
-    gradient_modifier: list[str]
-    lora_r: list[str]
-    training_schedule: dict[str, TrainingScheduleConfig]
-    common_batch_size: int = 16
-    save_steps: int = 400
-    eval_steps: int = 100
-
-    finetuning_python_script_relative_path: pathlib.Path = pathlib.Path(
-        "topollm",
-        "model_finetuning",
-        "run_finetune_language_model_on_huggingface_dataset.py",
+    accelerator_model: str = "rtx6000"
+    queue: str = "CUDA"
+    ncpus: int = 2
+    ngpus: int = 1
+    memory_gb: int = 32
+    walltime: str = "08:00:00"
+    submit_job_command: list[str] = field(
+        default_factory=lambda: [
+            "python3",
+            f"/gpfs/project/{USER}/.usr_tls/tools/submit_job.py",
+        ],
     )
-
-    topo_llm_repository_base_path: str = TOPO_LLM_REPOSITORY_BASE_PATH
-
-    wandb_project: str = "Topo_LLM_submit_jobs_via_hydra_debug"
+    dry_run: bool = False
