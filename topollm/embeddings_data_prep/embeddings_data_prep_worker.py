@@ -42,14 +42,14 @@ from topollm.model_handling.tokenizer.load_tokenizer import load_modified_tokeni
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
 from topollm.typing.enums import Verbosity
 
-logger = logging.getLogger(__name__)
+default_logger = logging.getLogger(__name__)
 
 
 def embeddings_data_prep_worker(
     main_config: MainConfig,
     device: torch.device,
     verbosity: Verbosity = Verbosity.NORMAL,
-    logger: logging.Logger = logger,
+    logger: logging.Logger = default_logger,
 ) -> None:
     """Prepare the embedding data of a model and its metadata for further analysis."""
     embeddings_path_manager = get_embeddings_path_manager(
@@ -68,7 +68,11 @@ def embeddings_data_prep_worker(
 
     if not array_path.exists():
         msg = f"{array_path = } does not exist."
-        raise FileNotFoundError(msg)
+        raise FileNotFoundError(
+            msg,
+        )
+
+    # TODO: Include this logic (or better, an explicit path) into the embeddings path manager
 
     partial_save_path = pathlib.Path(*list(array_path.parts)[-7:])
     prepared_save_path = pathlib.Path(

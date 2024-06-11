@@ -34,7 +34,7 @@ import hydra
 import hydra.core.hydra_config
 import omegaconf
 
-from topollm.analysis.twonn_worker import twonn_worker
+from topollm.analysis.twonn.twonn_worker import twonn_worker
 from topollm.compute_embeddings.compute_and_store_embeddings import (
     compute_and_store_embeddings,
 )

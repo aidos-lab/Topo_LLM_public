@@ -60,6 +60,8 @@ def twonn_worker(
         },
     )
 
+    # TODO: Manage paths with the embeddings path manager
+
     partial_save_path = pathlib.Path(*list(array_path.parts)[-7:])
 
     prepared_load_path = pathlib.Path(
