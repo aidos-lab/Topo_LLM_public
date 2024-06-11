@@ -40,6 +40,7 @@ from topollm.embeddings_data_prep.load_pickle_files_from_meta_path import load_p
 from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.model_handling.tokenizer.load_tokenizer import load_modified_tokenizer
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
+from topollm.typing.enums import Verbosity
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +48,7 @@ logger = logging.getLogger(__name__)
 def embeddings_data_prep_worker(
     main_config: MainConfig,
     device: torch.device,
-    verbosity: int = 1,
+    verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = logger,
 ) -> None:
     """Prepare the embedding data of a model and its metadata for further analysis."""

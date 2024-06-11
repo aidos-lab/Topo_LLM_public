@@ -25,19 +25,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Prepare the embedding data of a model and its metadata for further analysis.
-
-The script outputs two numpy arrays of subsamples
-of the respective arrays that correspond to the
-embeddings of the base model and the fine-tuned model,
-respectively.
-The arrays are stored in the directory where this
-script is executed.
-Since paddings are removed from the embeddings,
-the resulting size of the arrays will usually be
-significantly lower than the specified sample size
-(often ~5% of the specified size).
-"""
+"""Run script to create embedding vectors from dataset based on config."""
 
 import logging
 from typing import TYPE_CHECKING
@@ -46,17 +34,24 @@ import hydra
 import hydra.core.hydra_config
 import omegaconf
 
+from topollm.analysis.twonn_worker import twonn_worker
+from topollm.compute_embeddings.compute_and_store_embeddings import (
+    compute_and_store_embeddings,
+)
 from topollm.config_classes.setup_OmegaConf import setup_OmegaConf
 from topollm.embeddings_data_prep.embeddings_data_prep_worker import embeddings_data_prep_worker
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.model_handling.get_torch_device import get_torch_device
+from topollm.typing.enums import Verbosity
 
 if TYPE_CHECKING:
     from topollm.config_classes.main_config import MainConfig
 
 # logger for this file
 global_logger = logging.getLogger(__name__)
+
+logger_section_separation_line = 30 * "="
 
 setup_exception_logging(
     logger=global_logger,
@@ -74,26 +69,84 @@ def main(
     config: omegaconf.DictConfig,
 ) -> None:
     """Run the script."""
-    global_logger.info("Running script ...")
+    logger = global_logger
+    logger.info("Running script ...")
 
     main_config: MainConfig = initialize_configuration(
         config=config,
-        logger=global_logger,
+        logger=logger,
     )
+    verbosity: Verbosity = main_config.verbosity
 
     device = get_torch_device(
         preferred_torch_backend=main_config.preferred_torch_backend,
-        logger=global_logger,
+        logger=logger,
     )
 
+    # # # # # # # # # # # # # # # #
+    # Compute embeddings worker
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            logger_section_separation_line,
+        )
+        logger.info("Calling compute embeddings worker ...")
+
+    compute_and_store_embeddings(
+        main_config=main_config,
+        device=device,
+        logger=logger,
+    )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info("Calling compute embeddings worker DONE")
+        logger.info(
+            logger_section_separation_line,
+        )
+
+    # # # # # # # # # # # # # # # #
+    # Data prep worker
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            logger_section_separation_line,
+        )
+        logger.info("Calling data prep worker ...")
+
     embeddings_data_prep_worker(
+        main_config=main_config,
+        device=device,
+        verbosity=main_config.verbosity,
+        logger=logger,
+    )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info("Calling data prep worker DONE")
+        logger.info(
+            logger_section_separation_line,
+        )
+
+    # # # # # # # # # # # # # # # #
+    # Local estimates worker
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            logger_section_separation_line,
+        )
+        logger.info("Calling local estimates worker ...")
+
+    # ! TODO: There appears to be an error in the paths of the twonn_worker
+    twonn_worker(
         main_config=main_config,
         device=device,
         verbosity=main_config.verbosity,
         logger=global_logger,
     )
 
-    global_logger.info("Script finished.")
+    if verbosity >= Verbosity.NORMAL:
+        logger.info("Calling local estimates worker DONE")
+        logger.info(
+            logger_section_separation_line,
+        )
+
+    logger.info("Running script DONE")
 
 
 if __name__ == "__main__":

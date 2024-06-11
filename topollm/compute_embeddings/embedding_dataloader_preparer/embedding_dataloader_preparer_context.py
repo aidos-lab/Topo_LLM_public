@@ -47,7 +47,7 @@ class EmbeddingDataLoaderPreparerContext:
     tokenizer_config: TokenizerConfig
     tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast
     collate_fn: Callable[[list], dict]
+    verbosity: int = 1
     logger: logging.Logger = field(
         default_factory=lambda: logging.getLogger(__name__),
     )
-    verbosity: int = 1

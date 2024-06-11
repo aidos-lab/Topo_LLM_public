@@ -28,24 +28,22 @@ import logging
 import pathlib
 
 import numpy as np
-import pandas as pd
+import skdim
 import torch
-import zarr
 
 from topollm.config_classes.main_config import MainConfig
-from topollm.embeddings_data_prep.load_pickle_files_from_meta_path import load_pickle_files_from_meta_path
-from topollm.logging.log_dataframe_info import log_dataframe_info
-from topollm.model_handling.tokenizer.load_tokenizer import load_modified_tokenizer
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
+from topollm.typing.enums import Verbosity
 
-logger = logging.getLogger(__name__)
+default_device = torch.device("cpu")
+default_logger = logging.getLogger(__name__)
 
 
 def twonn_worker(
     main_config: MainConfig,
-    device: torch.device,
-    verbosity: int = 1,
-    logger: logging.Logger = logger,
+    device: torch.device = default_device,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
 ) -> None:
     """Prepare the embedding data of a model and its metadata for further analysis."""
     embeddings_path_manager = get_embeddings_path_manager(
@@ -107,9 +105,11 @@ def twonn_worker(
     n_neighbors = round(len(arr_no_pad) * 0.8)
 
     print(arr_no_pad[:10])
-    lPCA = skdim.id.TwoNN().fit_pw(arr_no_pad,
-                                   n_neighbors=n_neighbors,
-                                   n_jobs=n_jobs)
+    lPCA = skdim.id.TwoNN().fit_pw(
+        arr_no_pad,
+        n_neighbors=n_neighbors,
+        n_jobs=n_jobs,
+    )
 
     ####
 
