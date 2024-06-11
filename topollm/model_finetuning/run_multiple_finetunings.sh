@@ -53,7 +53,7 @@ ADDITIONAL_OVERRIDES=""
 ADDITIONAL_OVERRIDES+=" ++finetuning.peft.r=16"
 ADDITIONAL_OVERRIDES+=" ++finetuning.peft.lora_alpha=32"
 ADDITIONAL_OVERRIDES+=" ++finetuning.peft.use_rslora=True"
-ADDITIONAL_OVERRIDES+=" finetuning.max_steps=500" # Comment out for full training. Note: Setting to anything but '-1' will lead to partial training.
+# ADDITIONAL_OVERRIDES+=" finetuning.max_steps=500" # Comment out for full training. Note: Setting to anything but '-1' will lead to partial training.
 
 # ==================================================== #
 
