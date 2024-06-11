@@ -1,5 +1,8 @@
 defaults:
   - base_submit_finetuning_jobs_config
+  - training_schedule: 
+    - short_linear_lr_scheduler
+    - long_constant_lr_scheduler
   - _self_
 
 base_model:
@@ -18,9 +21,10 @@ gradient_modifier:
   - freeze_first_layers_bert-style-models
   - freeze_last_layers_bert-style-models
 
-lora_r:
-  - 16
+lora_parameters:
+  first:
+    lora_r: 16
+    lora_alpha: 32
+    use_rslora: false
 
-accelerator_model: "teslat4"
 wandb_project: "Topo_LLM_run_combinations_for_single_r_choice"
-dry_run: false

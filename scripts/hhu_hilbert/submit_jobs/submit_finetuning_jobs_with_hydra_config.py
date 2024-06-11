@@ -36,10 +36,12 @@ from typing import TYPE_CHECKING
 import hydra
 from tqdm import tqdm
 
-from scripts.hhu_hilbert.submit_jobs.config import Config
+from scripts.hhu_hilbert.submit_jobs.config_classes.config import Config
+from scripts.hhu_hilbert.submit_jobs.config_classes.submit_finetuning_jobs_config import TrainingScheduleConfig
 
 if TYPE_CHECKING:
-    from scripts.hhu_hilbert.submit_jobs.submit_finetuning_jobs_config import SubmitFinetuningJobsConfig
+    from scripts.hhu_hilbert.submit_jobs.config_classes.machine_configuration_config import MachineConfigurationConfig
+    from scripts.hhu_hilbert.submit_jobs.config_classes.submit_finetuning_jobs_config import SubmitFinetuningJobsConfig
 
 logger = logging.getLogger(__name__)
 
@@ -61,6 +63,7 @@ def main(
     )
 
     submit_finetuning_jobs_config: SubmitFinetuningJobsConfig = cfg.submit_finetuning_jobs
+    machine_configuration: MachineConfigurationConfig = cfg.machine_configuration
 
     finetuning_python_script_absolute_path = pathlib.Path(
         submit_finetuning_jobs_config.topo_llm_repository_base_path,
@@ -72,7 +75,8 @@ def main(
         submit_finetuning_jobs_config.finetuning_dataset,
         submit_finetuning_jobs_config.peft,
         submit_finetuning_jobs_config.gradient_modifier,
-        submit_finetuning_jobs_config.lora_r,
+        submit_finetuning_jobs_config.lora_parameters.values(),
+        submit_finetuning_jobs_config.training_schedule.values(),
     )
 
     for job_id, combination in enumerate(
@@ -85,7 +89,8 @@ def main(
             "combination:\n%s",
             combination,
         )
-        base_model, finetuning_dataset, peft, gradient_modifier, lora_r = combination
+        base_model, finetuning_dataset, peft, gradient_modifier, lora_parameters, training_schedule = combination
+        training_schedule: TrainingScheduleConfig
 
         logger.info(
             f"{base_model = }",  # noqa: G004 - low overhead
@@ -100,24 +105,29 @@ def main(
             f"{gradient_modifier = }",  # noqa: G004 - low overhead
         )
         logger.info(
-            f"{lora_r = }",  # noqa: G004 - low overhead
+            f"{lora_parameters = }",  # noqa: G004 - low overhead
+        )
+        logger.info(
+            f"{training_schedule = }",  # noqa: G004 - low overhead
         )
 
         job_script_args = [
             "--multirun",
             f"finetuning/base_model@finetuning={base_model}",
-            f"finetuning.num_train_epochs={submit_finetuning_jobs_config.num_train_epochs}",
-            f"finetuning.lr_scheduler_type={submit_finetuning_jobs_config.lr_scheduler_type}",
+            f"finetuning.num_train_epochs={training_schedule.num_train_epochs}",
+            f"finetuning.lr_scheduler_type={training_schedule.lr_scheduler_type}",
             f"finetuning.batch_sizes.train={submit_finetuning_jobs_config.common_batch_size}",
             f"finetuning.batch_sizes.eval={submit_finetuning_jobs_config.common_batch_size}",
             f"finetuning.save_steps={submit_finetuning_jobs_config.save_steps}",
             f"finetuning.eval_steps={submit_finetuning_jobs_config.eval_steps}",
-            "finetuning.fp16=true",
+            f"finetuning.fp16={submit_finetuning_jobs_config.fp16}",
             f"finetuning/finetuning_datasets={finetuning_dataset}",
             f"finetuning/peft={peft}",
             f"finetuning/gradient_modifier={gradient_modifier}",
             f"wandb.project={submit_finetuning_jobs_config.wandb_project}",
-            f"++finetuning.peft.r={lora_r}",
+            f"++finetuning.peft.r={lora_parameters.lora_r}",
+            f"++finetuning.peft.lora_alpha={lora_parameters.lora_alpha}",
+            f"++finetuning.peft.use_rslora={lora_parameters.use_rslora}",
         ]
 
         job_script_args_str = " ".join(job_script_args)
@@ -126,23 +136,23 @@ def main(
         )
 
         command: list[str] = [
-            *submit_finetuning_jobs_config.submit_job_command,
+            *machine_configuration.submit_job_command,
             "--job_name",
             f"{submit_finetuning_jobs_config.wandb_project}_{job_id}",
             "--job_script",
             str(finetuning_python_script_absolute_path),
             "--ncpus",
-            str(submit_finetuning_jobs_config.ncpus),
+            str(machine_configuration.ncpus),
             "--memory",
-            str(submit_finetuning_jobs_config.memory_gb),
+            str(machine_configuration.memory_gb),
             "--ngpus",
-            str(submit_finetuning_jobs_config.ngpus),
+            str(machine_configuration.ngpus),
             "--accelerator_model",
-            submit_finetuning_jobs_config.accelerator_model,
+            machine_configuration.accelerator_model,
             "--queue",
-            submit_finetuning_jobs_config.queue,
+            machine_configuration.queue,
             "--walltime",
-            submit_finetuning_jobs_config.walltime,
+            machine_configuration.walltime,
             "--job_script_args",
             job_script_args_str,
         ]
@@ -152,7 +162,7 @@ def main(
             30 * "=",
         )
 
-        if submit_finetuning_jobs_config.dry_run:
+        if machine_configuration.dry_run:
             logger.info(
                 "Dry run enabled. Command not executed.",
             )
@@ -170,7 +180,7 @@ def main(
                 command,
             )
             subprocess.run(
-                args=command,  # noqa: S603 , S607 - we trust the input; we need to use the "submit_job" here
+                args=command,
                 shell=False,
                 check=True,
             )

@@ -24,27 +24,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dataclasses import dataclass
+import os
+from dataclasses import dataclass, field
 
-from hydra.core.config_store import ConfigStore
-
-from scripts.hhu_hilbert.submit_jobs.submit_finetuning_jobs_config import SubmitFinetuningJobsConfig
+USER = os.getenv(
+    "USER",
+)
 
 
 @dataclass
-class Config:
-    """Config for the main function."""
+class MachineConfigurationConfig:
+    """Config for machine configuration."""
 
-    submit_finetuning_jobs: SubmitFinetuningJobsConfig
-
-
-cs = ConfigStore.instance()
-cs.store(
-    group="submit_finetuning_jobs",
-    name="base_submit_finetuning_jobs_config",
-    node=SubmitFinetuningJobsConfig,
-)
-cs.store(
-    name="base_config",
-    node=Config,
-)
+    accelerator_model: str = "rtx6000"
+    queue: str = "CUDA"
+    ncpus: int = 2
+    ngpus: int = 1
+    memory_gb: int = 32
+    walltime: str = "08:00:00"
+    submit_job_command: list[str] = field(
+        default_factory=lambda: [
+            "python3",
+            f"/gpfs/project/{USER}/.usr_tls/tools/submit_job.py",
+        ],
+    )
+    dry_run: bool = False

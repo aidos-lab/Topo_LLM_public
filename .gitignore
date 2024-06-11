@@ -185,6 +185,7 @@ data/models/finetuned_models
 data/analysis/prepared
 
 hydra_output_dir/
+hilbert_job_logs/
 
 # Weights and Biases (wandb)
 wandb

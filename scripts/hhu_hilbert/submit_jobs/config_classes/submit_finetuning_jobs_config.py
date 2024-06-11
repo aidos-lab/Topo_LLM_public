@@ -35,19 +35,34 @@ TOPO_LLM_REPOSITORY_BASE_PATH = os.getenv(
 
 
 @dataclass
+class TrainingScheduleConfig:
+    """Config for training schedule."""
+
+    num_train_epochs: int = 5
+    lr_scheduler_type: str = "linear"
+
+
+@dataclass
+class LoraParameters:
+    lora_r: int
+    lora_alpha: int
+    use_rslora: bool = False
+
+
+@dataclass
 class SubmitFinetuningJobsConfig:
-    """Config for submitting jobs."""
+    """Config for submitting finetuning jobs."""
 
     base_model: list[str]
     finetuning_dataset: list[str]
     peft: list[str]
     gradient_modifier: list[str]
-    lora_r: list[str]
-    num_train_epochs: int = 5
+    lora_parameters: dict[str, LoraParameters]
+    training_schedule: dict[str, TrainingScheduleConfig]
     common_batch_size: int = 16
     save_steps: int = 400
     eval_steps: int = 100
-    lr_scheduler_type: str = "linear"
+    fp16: str = "true"
 
     finetuning_python_script_relative_path: pathlib.Path = pathlib.Path(
         "topollm",
@@ -56,18 +71,5 @@ class SubmitFinetuningJobsConfig:
     )
 
     topo_llm_repository_base_path: str = TOPO_LLM_REPOSITORY_BASE_PATH
-    wandb_project: str = "Topo_LLM_submit_jobs_via_hydra_debug"
 
-    accelerator_model: str = "rtx6000"
-    queue: str = "CUDA"
-    ncpus: int = 2
-    walltime: str = "08:00:00"
-    ngpus: int = 1
-    memory_gb: int = 32
-    submit_job_command: list[str] = field(
-        default_factory=lambda: [
-            "python3",
-            "/gpfs/project/ruppik/.usr_tls/tools/submit_job.py",
-        ],
-    )
-    dry_run: bool = False
+    wandb_project: str = "Topo_LLM_submit_jobs_via_hydra_debug"

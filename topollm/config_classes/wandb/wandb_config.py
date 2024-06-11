@@ -25,47 +25,41 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Configuration class for the PEFT model."""
+"""Configuration class for Weights and Biases."""
+
+import pathlib
 
 from pydantic import Field
 
 from topollm.config_classes.config_base_model import ConfigBaseModel
-from topollm.typing.enums import FinetuningMode
+from topollm.config_classes.constants import KV_SEP, NAME_PREFIXES
 
 
-class PEFTConfig(ConfigBaseModel):
-    """Configurations for the PEFT model."""
+class WandBConfig(ConfigBaseModel):
+    """Configuration class for Weights and Biases."""
 
-    finetuning_mode: FinetuningMode = Field(
-        default=FinetuningMode.STANDARD,
-        description="The finetuning mode of the PEFT model.",
+    project: str = Field(
+        default="Topo_LLM_debug",
+        title="Project name.",
+        description="The project name.",
     )
 
-    r: int = Field(
-        default=8,
-        description="The r (rank) parameter of the PEFT model for LoRA.",
+    entity: str | None = Field(
+        default=None,
+        title="Entity name.",
+        description="Entity name.",
     )
 
-    lora_alpha: int = Field(
-        default=32,
-        description="The alpha parameter of the PEFT model for LoRA.",
+    tags: list[str] = Field(
+        default=[],
+        title="Tags.",
+        description="Tags.",
     )
 
-    target_modules: list[str] | str | None = Field(
-        default=[
-            "query",
-            "key",
-            "value",
-        ],
-        description="The target modules of the PEFT model for LoRA.",
-    )
-
-    lora_dropout: float = Field(
-        default=0.01,
-        description="The dropout rate of the PEFT model for LoRA.",
-    )
-
-    use_rslora: bool = Field(
-        default=False,
-        description="Whether to use the RSLora variant of the PEFT model.",
+    dir: pathlib.Path = Field(
+        default=pathlib.Path(
+            "wandb_output_dir",
+        ),
+        title="Directory.",
+        description="Directory.",
     )
