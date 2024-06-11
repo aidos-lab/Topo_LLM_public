@@ -18,8 +18,22 @@
             }
         },
         {
-            "label": "rsync hydra logs and wandb from hhu hilbert and upload to wandb",
-            "command": "./scripts/hhu_hilbert/sync_data/rsync_hydra_output_dir_from_hhu_hilbert.sh && ./scripts/hhu_hilbert/sync_data/rsync_wandb_dirs_from_hhu_hilbert.sh && ./wandb_output_dir/sync_wandb_runs.sh",
+            "label": "rsync wandb from hhu hilbert and upload to wandb",
+            "command": "./scripts/hhu_hilbert/sync_data/rsync_wandb_dirs_from_hhu_hilbert.sh && ./wandb_output_dir/sync_wandb_runs.sh",
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": false,
+            }
+        },
+        {
+            "label": "rsync hydra_output_dir and job_logs from hhu hilbert",
+            "command": "./scripts/hhu_hilbert/sync_data/rsync_hydra_output_dir_from_hhu_hilbert.sh && ./scripts/hhu_hilbert/sync_data/rsync_job_logs_dir_from_hhu_hilbert.sh",
             "type": "shell",
             "group": {
                 "kind": "build",
