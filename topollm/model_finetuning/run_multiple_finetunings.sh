@@ -38,20 +38,22 @@ LR_SCHEDULER_TYPE="linear"
 # TODO(Ben): For "gpt2-medium" using LoRA training, get the following error:
 # `ValueError: Target modules {'key', 'value', 'query'} not found in the base model. Please check the target modules and try again.`
 #
-# PEFT_LIST="lora"
+PEFT_LIST="lora"
 # PEFT_LIST="standard"
-PEFT_LIST="standard,lora"
+# PEFT_LIST="standard,lora"
 
-# GRADIENT_MODIFIER_LIST="do_nothing"
+GRADIENT_MODIFIER_LIST="do_nothing"
 # GRADIENT_MODIFIER_LIST="freeze_first_layers_bert-style-models"
-GRADIENT_MODIFIER_LIST="do_nothing,freeze_first_layers_bert-style-models"
+# GRADIENT_MODIFIER_LIST="do_nothing,freeze_first_layers_bert-style-models"
 
 # CUDA_VISIBLE_DEVICES=0
 
 ADDITIONAL_OVERRIDES=""
 # ADDITIONAL_OVERRIDES+=" hydra.job.env_set.CUDA_VISIBLE_DEVICES=\"${CUDA_VISIBLE_DEVICES}\""
 ADDITIONAL_OVERRIDES+=" ++finetuning.peft.r=16"
-# ADDITIONAL_OVERRIDES+=" finetuning.max_steps=500" # Comment out for full training. Note: Setting to anything but '-1' will lead to partial training.
+ADDITIONAL_OVERRIDES+=" ++finetuning.peft.lora_alpha=32"
+ADDITIONAL_OVERRIDES+=" ++finetuning.peft.use_rslora=True"
+ADDITIONAL_OVERRIDES+=" finetuning.max_steps=500" # Comment out for full training. Note: Setting to anything but '-1' will lead to partial training.
 
 # ==================================================== #
 

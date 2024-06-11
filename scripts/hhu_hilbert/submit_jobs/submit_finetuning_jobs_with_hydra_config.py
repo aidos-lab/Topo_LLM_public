@@ -37,6 +37,7 @@ import hydra
 from tqdm import tqdm
 
 from scripts.hhu_hilbert.submit_jobs.config_classes.config import Config
+from scripts.hhu_hilbert.submit_jobs.config_classes.submit_finetuning_jobs_config import TrainingScheduleConfig
 
 if TYPE_CHECKING:
     from scripts.hhu_hilbert.submit_jobs.config_classes.machine_configuration_config import MachineConfigurationConfig
@@ -74,7 +75,7 @@ def main(
         submit_finetuning_jobs_config.finetuning_dataset,
         submit_finetuning_jobs_config.peft,
         submit_finetuning_jobs_config.gradient_modifier,
-        submit_finetuning_jobs_config.lora_r,
+        submit_finetuning_jobs_config.lora_parameters.values(),
         submit_finetuning_jobs_config.training_schedule.values(),
     )
 
@@ -88,7 +89,8 @@ def main(
             "combination:\n%s",
             combination,
         )
-        base_model, finetuning_dataset, peft, gradient_modifier, lora_r, training_schedule = combination
+        base_model, finetuning_dataset, peft, gradient_modifier, lora_parameters, training_schedule = combination
+        training_schedule: TrainingScheduleConfig
 
         logger.info(
             f"{base_model = }",  # noqa: G004 - low overhead
@@ -103,7 +105,7 @@ def main(
             f"{gradient_modifier = }",  # noqa: G004 - low overhead
         )
         logger.info(
-            f"{lora_r = }",  # noqa: G004 - low overhead
+            f"{lora_parameters = }",  # noqa: G004 - low overhead
         )
         logger.info(
             f"{training_schedule = }",  # noqa: G004 - low overhead
@@ -123,7 +125,9 @@ def main(
             f"finetuning/peft={peft}",
             f"finetuning/gradient_modifier={gradient_modifier}",
             f"wandb.project={submit_finetuning_jobs_config.wandb_project}",
-            f"++finetuning.peft.r={lora_r}",
+            f"++finetuning.peft.r={lora_parameters.lora_r}",
+            f"++finetuning.peft.lora_alpha={lora_parameters.lora_alpha}",
+            f"++finetuning.peft.use_rslora={lora_parameters.use_rslora}",
         ]
 
         job_script_args_str = " ".join(job_script_args)

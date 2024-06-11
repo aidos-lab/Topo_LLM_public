@@ -6,3 +6,4 @@ target_modules:
   - "key"
   - "value"
 lora_dropout: 0.01
+use_rslora: false

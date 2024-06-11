@@ -44,6 +44,7 @@ def peft_config_to_lora_config(
         lora_alpha=peft_config.lora_alpha,
         target_modules=peft_config.target_modules,
         lora_dropout=peft_config.lora_dropout,
+        use_rslora=peft_config.use_rslora,
     )
 
     return lora_config

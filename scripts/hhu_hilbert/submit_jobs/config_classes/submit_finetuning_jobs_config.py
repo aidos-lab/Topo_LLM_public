@@ -43,6 +43,13 @@ class TrainingScheduleConfig:
 
 
 @dataclass
+class LoraParameters:
+    lora_r: int
+    lora_alpha: int
+    use_rslora: bool = False
+
+
+@dataclass
 class SubmitFinetuningJobsConfig:
     """Config for submitting finetuning jobs."""
 
@@ -50,7 +57,7 @@ class SubmitFinetuningJobsConfig:
     finetuning_dataset: list[str]
     peft: list[str]
     gradient_modifier: list[str]
-    lora_r: list[str]
+    lora_parameters: dict[str, LoraParameters]
     training_schedule: dict[str, TrainingScheduleConfig]
     common_batch_size: int = 16
     save_steps: int = 400
