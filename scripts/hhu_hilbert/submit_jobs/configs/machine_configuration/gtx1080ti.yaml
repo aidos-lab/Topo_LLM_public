@@ -4,6 +4,6 @@ defaults:
 
 accelerator_model: "gtx1080ti"
 queue: "CUDA"
-walltime: "24:00:00"
+walltime: "36:00:00"
 
 dry_run: false

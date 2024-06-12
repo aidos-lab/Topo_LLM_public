@@ -19,7 +19,8 @@ fi
 # START: Python script - Command line arguments
 
 # SUBMIT_FINETUNING_JOBS="run_combinations_for_single_r_choice"
-SUBMIT_FINETUNING_JOBS="run_multiple_r_choices"
+# SUBMIT_FINETUNING_JOBS="run_multiple_r_choices"
+SUBMIT_FINETUNING_JOBS="run_multiple_r_choices_very_long_constant_lr_scheduler"
 
 MACHINE_CONFIGURATION="rtx6000"
 # MACHINE_CONFIGURATION="gtx1080ti"
