@@ -34,16 +34,11 @@ import hydra
 import hydra.core.hydra_config
 import omegaconf
 
-from topollm.analysis.twonn.twonn_worker import twonn_worker
-from topollm.compute_embeddings.compute_and_store_embeddings import (
-    compute_and_store_embeddings,
-)
 from topollm.config_classes.setup_OmegaConf import setup_OmegaConf
-from topollm.embeddings_data_prep.embeddings_data_prep_worker import embeddings_data_prep_worker
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.model_handling.get_torch_device import get_torch_device
-from topollm.typing.enums import Verbosity
+from topollm.pipeline_scripts.worker_for_pipeline import worker_for_pipeline
 
 if TYPE_CHECKING:
     from topollm.config_classes.main_config import MainConfig
@@ -76,7 +71,6 @@ def main(
         config=config,
         logger=logger,
     )
-    verbosity: Verbosity = main_config.verbosity
 
     device = get_torch_device(
         preferred_torch_backend=main_config.preferred_torch_backend,
@@ -84,67 +78,12 @@ def main(
     )
 
     # # # # # # # # # # # # # # # #
-    # Compute embeddings worker
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            logger_section_separation_line,
-        )
-        logger.info("Calling compute embeddings worker ...")
-
-    compute_and_store_embeddings(
+    # Call the worker function
+    worker_for_pipeline(
         main_config=main_config,
-        device=device,
         logger=logger,
-    )
-
-    if verbosity >= Verbosity.NORMAL:
-        logger.info("Calling compute embeddings worker DONE")
-        logger.info(
-            logger_section_separation_line,
-        )
-
-    # # # # # # # # # # # # # # # #
-    # Data prep worker
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            logger_section_separation_line,
-        )
-        logger.info("Calling data prep worker ...")
-
-    embeddings_data_prep_worker(
-        main_config=main_config,
         device=device,
-        verbosity=main_config.verbosity,
-        logger=logger,
     )
-
-    if verbosity >= Verbosity.NORMAL:
-        logger.info("Calling data prep worker DONE")
-        logger.info(
-            logger_section_separation_line,
-        )
-
-    # # # # # # # # # # # # # # # #
-    # Local estimates worker
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            logger_section_separation_line,
-        )
-        logger.info("Calling local estimates worker ...")
-
-    # ! TODO: There appears to be an error in the paths of the twonn_worker
-    twonn_worker(
-        main_config=main_config,
-        device=device,
-        verbosity=main_config.verbosity,
-        logger=global_logger,
-    )
-
-    if verbosity >= Verbosity.NORMAL:
-        logger.info("Calling local estimates worker DONE")
-        logger.info(
-            logger_section_separation_line,
-        )
 
     logger.info("Running script DONE")
 
