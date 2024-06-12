@@ -8,7 +8,7 @@ base_model:
   - roberta-base
 
 finetuning_dataset:
-  # - train_and_eval_on_multiwoz21_10000_samples
+  - train_and_eval_on_multiwoz21_10000_samples
   - train_and_eval_on_multiwoz21_50000_train_samples
 
 peft:
