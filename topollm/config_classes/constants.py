@@ -88,6 +88,7 @@ NAME_PREFIXES: dict[
     "target_modules_to_freeze": "target-freeze",
     "transformation": "trans",
     "use_canonical_values_from_dataset": "use-canonical-val",
+    "use_rslora": "rslora",
     "weight_decay": "wd",
 }
 

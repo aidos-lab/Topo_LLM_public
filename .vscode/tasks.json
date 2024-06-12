@@ -19,7 +19,7 @@
         },
         {
             "label": "rsync wandb from hhu hilbert and upload to wandb",
-            "command": "./scripts/hhu_hilbert/sync_data/rsync_wandb_dirs_from_hhu_hilbert.sh && ./wandb_output_dir/sync_wandb_runs.sh",
+            "command": "./scripts/hhu_hilbert/sync_data/rsync_wandb_output_dir_from_hhu_hilbert.sh && ./wandb_output_dir/sync_wandb_runs.sh",
             "type": "shell",
             "group": {
                 "kind": "build",
