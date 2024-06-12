@@ -82,6 +82,7 @@ NAME_PREFIXES: dict[
     "max_length": "max-len",
     "normalization": "norm",
     "number_of_samples": "samples",
+    "num_samples": "samples",
     "n_neighbors": "n-neighbors",
     "query": "query",
     "split": "split",

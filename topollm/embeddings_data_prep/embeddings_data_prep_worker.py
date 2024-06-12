@@ -40,6 +40,7 @@ from topollm.embeddings_data_prep.load_pickle_files_from_meta_path import load_p
 from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.model_handling.tokenizer.load_tokenizer import load_modified_tokenizer
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
+from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 from topollm.typing.enums import Verbosity
 
 default_logger = logging.getLogger(__name__)
@@ -52,19 +53,19 @@ def embeddings_data_prep_worker(
     logger: logging.Logger = default_logger,
 ) -> None:
     """Prepare the embedding data of a model and its metadata for further analysis."""
-    embeddings_path_manager = get_embeddings_path_manager(
+    embeddings_path_manager: EmbeddingsPathManager = get_embeddings_path_manager(
         main_config=main_config,
         logger=logger,
     )
 
-    # potentially adapt paths
+    # Path for loading the precomputed embeddings
     array_path = embeddings_path_manager.array_dir_absolute_path
-    logger.info(
-        "array_path",
-        extra={
-            "array_path": array_path,
-        },
-    )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            "array_path:%s",
+            array_path,
+        )
 
     if not array_path.exists():
         msg = f"{array_path = } does not exist."
@@ -72,9 +73,26 @@ def embeddings_data_prep_worker(
             msg,
         )
 
-    # TODO: Include this logic (or better, an explicit path) into the embeddings path manager
+    # Path for loading the precomputed metadata
+    meta_path = pathlib.Path(
+        embeddings_path_manager.metadata_dir_absolute_path,
+        "pickle_chunked_metadata_storage",
+    )
 
-    partial_save_path = pathlib.Path(*list(array_path.parts)[-7:])
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            "meta_path:%s",
+            meta_path,
+        )
+
+    if not meta_path.exists():
+        msg = f"{meta_path = } does not exist."
+        raise FileNotFoundError(
+            msg,
+        )
+
+    # TODO: Get this from the embeddings path manager
+
     prepared_save_path = pathlib.Path(
         "..",
         "..",
@@ -90,52 +108,46 @@ def embeddings_data_prep_worker(
         exist_ok=True,
     )
 
-    meta_path = pathlib.Path(
-        embeddings_path_manager.metadata_dir_absolute_path,
-        "pickle_chunked_metadata_storage",
-    )
-
-    if verbosity >= 1:
-        logger.info(f"{meta_path = }")
-
-    if not meta_path.exists():
-        msg = f"{meta_path = } does not exist."
-        raise FileNotFoundError(msg)
-
-    array = zarr.open(
-        store=array_path,  # type: ignore
+    array_zarr = zarr.open(
+        store=str(array_path),
         mode="r",
     )
 
-    arr = np.array(array)
-    arr = arr.reshape(
-        arr.shape[0] * arr.shape[1],
-        arr.shape[2],
+    array_np = np.array(
+        array_zarr,
+    )
+    array_np = array_np.reshape(
+        array_np.shape[0] * array_np.shape[1],
+        array_np.shape[2],
     )
 
-    loaded_data = load_pickle_files_from_meta_path(
+    loaded_metadata = load_pickle_files_from_meta_path(
         meta_path=meta_path,
     )
 
-    if verbosity >= 2:
+    if verbosity >= Verbosity.DEBUG:
         logger.info(
-            "Loaded pickle files",
-            extra={"loaded_data": loaded_data},
+            "Loaded pickle files loaded_data:\n%s",
+            loaded_metadata,
         )
 
-    input_ids = []
-    for i in range(len(loaded_data)):
-        input_ids.append(loaded_data[i]["input_ids"].tolist())
+    input_ids_collection: list[list] = []
+    for i in range(len(loaded_metadata)):
+        input_ids_collection.append(
+            loaded_metadata[i]["input_ids"].tolist(),
+        )
 
-    stacked_meta = np.vstack(input_ids)
-    stacked_meta = stacked_meta.reshape(stacked_meta.shape[0] * stacked_meta.shape[1])
-
-    stacked_meta_sub = stacked_meta
+    stacked_meta = np.vstack(
+        input_ids_collection,
+    )
+    stacked_meta = stacked_meta.reshape(
+        stacked_meta.shape[0] * stacked_meta.shape[1],
+    )
 
     full_df = pd.DataFrame(
         {
-            "arr": list(arr),
-            "meta": list(stacked_meta_sub),
+            "arr": list(array_np),
+            "meta": list(stacked_meta),
         },
     )
 
@@ -147,13 +159,19 @@ def embeddings_data_prep_worker(
     eos_token_id = tokenizer.eos_token_id
     pad_token_id = tokenizer.pad_token_id
 
-    if verbosity >= 1:
-        logger.info(f"{eos_token_id = }")
-        logger.info(f"{pad_token_id = }")
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            f"{eos_token_id = }",  # noqa: G004 - low overhead
+        )
+        logger.info(
+            f"{pad_token_id = }",  # noqa: G004 - low overhead
+        )
 
     if pad_token_id is None:
         msg = "The padding token id is None."
-        raise ValueError(msg)
+        raise ValueError(
+            msg,
+        )
 
     # arr_no_pad.shape:
     # (number of non-padding tokens in subsample, embedding dimension)
@@ -192,12 +210,15 @@ def embeddings_data_prep_worker(
     logger.info(f"Actual shape of the samples produced: {arr_no_pad.shape}")
     logger.info(f"Expected sample size: {sample_size}")
 
-    file_name = f"embeddings_token_lvl_{sample_size}_samples_paddings_removed"
+    # TODO: Move this to the embeddings path manager
+    data_prep_array_file_name = "embeddings_samples_paddings_removed.np"
+    data_prep_array_save_path = pathlib.Path(
+        prepared_save_path,
+        data_prep_array_file_name,
+    )
+
     np.save(
-        file=pathlib.Path(
-            prepared_save_path,
-            file_name,
-        ),
+        file=data_prep_array_save_path,
         arr=arr_no_pad,
     )
 
@@ -213,17 +234,19 @@ def embeddings_data_prep_worker(
         },
     )
 
-    if verbosity >= 1:
+    if verbosity >= Verbosity.NORMAL:
         log_dataframe_info(
             meta_frame,
             df_name="meta_frame",
             logger=logger,
         )
 
-    meta_name = f"{file_name}_meta.pkl"
+    # TODO: Move this to the embeddings path manager
+    data_prep_meta_file_name = "embeddings_samples_paddings_removed_meta.pkl"
+    data_prep_meta_save_path = pathlib.Path(
+        prepared_save_path,
+        data_prep_meta_file_name,
+    )
     meta_frame.to_pickle(
-        path=pathlib.Path(
-            prepared_save_path,
-            meta_name,
-        ),
+        path=data_prep_meta_save_path,
     )

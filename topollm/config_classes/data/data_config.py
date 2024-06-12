@@ -100,7 +100,7 @@ class DataConfig(ConfigBaseModel):
     )
 
     @property
-    def data_config_description(
+    def config_description(
         self,
     ) -> str:
         desc = (

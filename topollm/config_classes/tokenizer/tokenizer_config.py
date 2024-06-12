@@ -48,7 +48,7 @@ class TokenizerConfig(ConfigBaseModel):
     )
 
     @property
-    def tokenizer_config_description(
+    def config_description(
         self,
     ) -> str:
         """Get the description of the tokenizer config.

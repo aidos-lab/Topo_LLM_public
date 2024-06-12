@@ -52,3 +52,8 @@ class EmbeddingsPathManager(Protocol):
     def perplexity_dir_absolute_path(
         self,
     ) -> pathlib.Path: ...  # pragma: no cover
+
+    @property
+    def prepared_data_dir_absolute_path(
+        self,
+    ) -> pathlib.Path: ...  # pragma: no cover

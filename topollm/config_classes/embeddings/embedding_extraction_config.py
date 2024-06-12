@@ -40,7 +40,7 @@ class EmbeddingExtractionConfig(BaseModel):
     )
 
     @property
-    def embedding_extraction_config_description(
+    def config_description(
         self,
     ) -> str:
         """Get the description of the embedding extraction.

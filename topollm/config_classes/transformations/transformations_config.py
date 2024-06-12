@@ -43,7 +43,7 @@ class TransformationsConfig(ConfigBaseModel):
     )
 
     @property
-    def transformation_config_description(
+    def config_description(
         self,
     ) -> str:
         desc = f"{NAME_PREFIXES['normalization']}"

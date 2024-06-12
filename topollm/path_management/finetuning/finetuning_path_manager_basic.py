@@ -81,7 +81,7 @@ class FinetuningPathManagerBasic:
             self.data_dir,
             "models",
             "finetuned_models",
-            self.finetuning_config.finetuning_datasets.train_dataset.data_config_description,
+            self.finetuning_config.finetuning_datasets.train_dataset.config_description,
             self.finetuning_config.base_model_config_description,
             self.peft_path_manager.peft_description_subdir,
             self.finetuning_config.gradient_modifier.gradient_modifier_description,
@@ -96,11 +96,7 @@ class FinetuningPathManagerBasic:
     def batch_size_description(
         self,
     ) -> str:
-        description = (
-            f"{NAME_PREFIXES['batch_size_train']}"
-            f"{KV_SEP}"
-            f"{self.finetuning_config.batch_sizes.train}"
-        )
+        description = f"{NAME_PREFIXES['batch_size_train']}" f"{KV_SEP}" f"{self.finetuning_config.batch_sizes.train}"
 
         return description
 
