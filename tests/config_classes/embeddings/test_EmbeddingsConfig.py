@@ -56,5 +56,3 @@ def test_hydra_with_EmbeddingsConfig() -> None:
 
         logger.info(f"{type(config) = }")
         logger.info(f"config:\n" f"{pprint.pformat(config)}")
-
-    return None

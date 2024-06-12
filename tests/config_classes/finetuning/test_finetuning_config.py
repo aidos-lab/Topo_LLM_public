@@ -52,7 +52,10 @@ def test_hydra_with_finetuning_config() -> None:
             ],
         )
 
-        logger.info(f"cfg:\n" f"{pprint.pformat(cfg)}")
+        logger.info(
+            "cfg:\n%s",
+            pprint.pformat(cfg),
+        )
 
         # This tests whether the configuration is valid
         config = FinetuningConfig.model_validate(

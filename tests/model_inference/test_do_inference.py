@@ -41,10 +41,14 @@ def test_do_inference(
     main_config: MainConfig,
     logger_fixture: logging.Logger,
 ) -> None:
+    """Test the do_inference function."""
     results = do_inference(
         main_config=main_config,
         prompts=None,
         logger=logger_fixture,
     )
 
-    logger_fixture.info(f"results:\n" f"{results = }")
+    logger_fixture.info(
+        "results:\n%s",
+        results,
+    )

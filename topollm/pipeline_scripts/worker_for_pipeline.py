@@ -33,11 +33,9 @@ from topollm.analysis.twonn.twonn_worker import twonn_worker
 from topollm.compute_embeddings.compute_and_store_embeddings import compute_and_store_embeddings
 from topollm.config_classes.main_config import MainConfig
 from topollm.embeddings_data_prep.embeddings_data_prep_worker import embeddings_data_prep_worker
-from topollm.pipeline_scripts.run_pipeline_embeddings_data_prep_local_estimate import (
-    global_logger,
-    logger_section_separation_line,
-)
 from topollm.typing.enums import Verbosity
+
+logger_section_separation_line = 30 * "="
 
 default_device = torch.device("cpu")
 default_logger = logging.getLogger(__name__)
@@ -47,7 +45,7 @@ def worker_for_pipeline(
     main_config: MainConfig,
     device: torch.device = default_device,
     logger: logging.Logger = default_logger,
-):
+) -> None:
     """Run the worker which goes through the pipeline."""
     verbosity: Verbosity = main_config.verbosity
 
@@ -105,7 +103,7 @@ def worker_for_pipeline(
         main_config=main_config,
         device=device,
         verbosity=main_config.verbosity,
-        logger=global_logger,
+        logger=logger,
     )
 
     if verbosity >= Verbosity.NORMAL:

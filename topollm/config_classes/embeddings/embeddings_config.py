@@ -48,7 +48,7 @@ class EmbeddingsConfig(ConfigBaseModel):
     )
 
     batch_size: int = Field(
-        ...,
+        default=32,
         title="Batch size for computing embeddings.",
         description="The batch size for computing embeddings.",
     )
@@ -66,7 +66,7 @@ class EmbeddingsConfig(ConfigBaseModel):
     )
 
     num_workers: int = Field(
-        ...,
+        default=0,
         title="Number of workers for dataloader.",
         description=(
             "The number of workers for dataloader. "

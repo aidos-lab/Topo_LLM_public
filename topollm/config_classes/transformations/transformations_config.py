@@ -37,7 +37,7 @@ class TransformationsConfig(ConfigBaseModel):
     """Configurations for specifying transformations."""
 
     normalization: str = Field(
-        ...,
+        default="None",
         title="Normalization method.",
         description="The normalization method.",
     )

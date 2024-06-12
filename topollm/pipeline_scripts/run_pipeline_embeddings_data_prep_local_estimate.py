@@ -46,8 +46,6 @@ if TYPE_CHECKING:
 # logger for this file
 global_logger = logging.getLogger(__name__)
 
-logger_section_separation_line = 30 * "="
-
 setup_exception_logging(
     logger=global_logger,
 )

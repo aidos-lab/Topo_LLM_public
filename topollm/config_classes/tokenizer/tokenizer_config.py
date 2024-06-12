@@ -33,14 +33,16 @@ from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
 
 
 class TokenizerConfig(ConfigBaseModel):
+    """Configurations for the tokenizer."""
+
     add_prefix_space: bool = Field(
-        ...,
+        default=False,
         title="Add prefix space.",
         description="Whether to add prefix space.",
     )
 
     max_length: int = Field(
-        ...,
+        default=512,
         title="Maximum length of the input sequence.",
         description="The maximum length of the input sequence.",
     )

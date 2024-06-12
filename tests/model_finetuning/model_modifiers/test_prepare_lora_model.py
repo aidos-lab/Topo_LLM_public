@@ -38,23 +38,17 @@ from topollm.model_finetuning.model_modifiers.prepare_lora_model import (
     prepare_lora_model,
 )
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Configuration of the logging module
-
 logger = logging.getLogger(__name__)
-
-# END Configuration of the logging module
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
-@pytest.mark.uses_transformers_models
+@pytest.mark.uses_transformers_models()
 def test_prepare_lora_model_integration(
     base_model: PreTrainedModel,
     lora_config: LoraConfig,
     device_fixture: torch.device,
     logger: logging.Logger = logger,
 ) -> None:
-
     modified_model = prepare_lora_model(
         base_model=base_model,
         lora_config=lora_config,
@@ -68,5 +62,3 @@ def test_prepare_lora_model_integration(
     # You can add more specific assertions here depending on the expected behavior,
     # such as checking for the addition of specific LoRA parameters
     # or changes in parameter count.
-
-    return None

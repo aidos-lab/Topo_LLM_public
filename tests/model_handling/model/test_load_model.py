@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -31,8 +29,8 @@ import logging
 import os
 
 import pytest
-from transformers import PreTrainedModel
 import torch
+from transformers import PreTrainedModel
 
 from tests.model_handling.parameter_lists import (
     example_pretrained_model_name_or_path_list,
@@ -44,12 +42,13 @@ from topollm.model_handling.model.load_model import load_model
     "pretrained_model_name_or_path",
     example_pretrained_model_name_or_path_list,
 )
-@pytest.mark.uses_transformers_models
+@pytest.mark.uses_transformers_models()
 def test_load_model(
     pretrained_model_name_or_path: str | os.PathLike,
     device_fixture: torch.device,
     logger_fixture: logging.Logger,
 ) -> None:
+    """Test the load_model function."""
     model = load_model(
         pretrained_model_name_or_path=pretrained_model_name_or_path,
         device=device_fixture,
@@ -57,10 +56,8 @@ def test_load_model(
         logger=logger_fixture,
     )
 
-    assert model is not None
-    assert isinstance(
+    assert model is not None  # noqa: S101 - pytest assert
+    assert isinstance(  # noqa: S101 - pytest assert
         model,
         PreTrainedModel,
     )
-
-    return None
