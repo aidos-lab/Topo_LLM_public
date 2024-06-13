@@ -80,7 +80,7 @@ def small_data_config() -> DataConfig:
         data_dir=None,
         dataset_path="SocialGrep/one-year-of-tsla-on-reddit",
         dataset_name="comments",
-        number_of_samples=40,
+        number_of_samples=128,
         split=Split.TRAIN,
         data_split=DataSplitConfig(
             data_split_mode=DataSplitMode.PROPORTIONS,

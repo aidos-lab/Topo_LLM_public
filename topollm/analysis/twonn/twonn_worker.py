@@ -136,7 +136,7 @@ def twonn_worker(
             results_array_np,
             array_name="results_array_np",
             log_array_size=True,
-            log_row_l2_norms=True,
+            log_row_l2_norms=False,  # Note: This is a one-dimensional array, so the l2-norms are not meaningful
             logger=logger,
         )
 
