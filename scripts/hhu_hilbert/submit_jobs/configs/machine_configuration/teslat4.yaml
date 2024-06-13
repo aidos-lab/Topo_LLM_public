@@ -4,6 +4,6 @@ defaults:
 
 accelerator_model: "teslat4"
 queue: "CUDA"
-walltime: "36:00:00"
+walltime: "42:00:00"
 
 dry_run: false

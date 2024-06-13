@@ -41,7 +41,7 @@ default_logger = logging.getLogger(__name__)
 
 def twonn_worker(
     main_config: MainConfig,
-    device: torch.device = default_device,
+    device: torch.device = default_device,  # noqa: ARG001 - placeholder for future use
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> None:
@@ -92,13 +92,20 @@ def twonn_worker(
         msg = f"{prepared_load_path = } does not exist."
         raise FileNotFoundError(msg)
 
+    # ! TODO: There appears to be an error in the paths of the twonn_worker
+
     arr_no_pad = np.load(prepared_load_path)
 
     np.random.seed(2)
-    sample_size = 1500
-    sample_size = min(sample_size, arr_no_pad.shape[0])
 
-    arr_no_pad = arr_no_pad[:sample_size]
+    # TODO: Make this a parameter
+    local_estimates_sample_size = 1500
+    local_estimates_sample_size = min(
+        local_estimates_sample_size,
+        arr_no_pad.shape[0],
+    )
+
+    arr_no_pad = arr_no_pad[:local_estimates_sample_size]
 
     # provide number of jobs for the computation
     n_jobs = 1
@@ -119,7 +126,7 @@ def twonn_worker(
 
     arr = np.array(array)
 
-    file_name = f"twonn_token_lvl_{sample_size}_samples_paddings_removed"
+    file_name = f"twonn_token_lvl_{local_estimates_sample_size}_samples_paddings_removed"
     np.save(
         file=pathlib.Path(
             prepared_save_path,

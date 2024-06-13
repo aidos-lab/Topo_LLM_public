@@ -15,6 +15,9 @@ defaults:
 embeddings_data_prep:
   num_samples: 30000
 
+local_estimates:
+  num_samples: 1500
+
 seed: 1234
 verbosity: 1
 preferred_torch_backend: auto

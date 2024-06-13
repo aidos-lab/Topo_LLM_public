@@ -233,3 +233,25 @@ class EmbeddingsPathManagerSeparateDirectories:
         )
 
         return path
+
+    def get_prepared_data_array_save_path(
+        self,
+        prepared_data_array_file_name: str = "embeddings_samples_paddings_removed.np",
+    ) -> pathlib.Path:
+        path = pathlib.Path(
+            self.prepared_data_dir_absolute_path,
+            prepared_data_array_file_name,
+        )
+
+        return path
+
+    def get_prepared_data_meta_save_path(
+        self,
+        prepared_data_meta_file_name: str = "embeddings_samples_paddings_removed_meta.pkl",
+    ) -> pathlib.Path:
+        path = pathlib.Path(
+            self.prepared_data_dir_absolute_path,
+            prepared_data_meta_file_name,
+        )
+
+        return path

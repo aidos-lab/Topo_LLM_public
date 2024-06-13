@@ -29,6 +29,7 @@
 
 import logging
 import pathlib
+from typing import TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
@@ -42,13 +43,14 @@ from topollm.model_handling.tokenizer.load_tokenizer import load_modified_tokeni
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
 from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 from topollm.typing.enums import Verbosity
+from topollm.typing.types import TransformersTokenizer
 
 default_logger = logging.getLogger(__name__)
 
 
 def embeddings_data_prep_worker(
     main_config: MainConfig,
-    device: torch.device,
+    device: torch.device,  # noqa: ARG001 - placeholder for future use
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> None:
@@ -58,6 +60,71 @@ def embeddings_data_prep_worker(
         logger=logger,
     )
 
+    full_df = load_embedding_data(
+        embeddings_path_manager=embeddings_path_manager,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+    tokenizer, arr_no_pad, meta_no_pad = remove_padding_and_extra_tokens(
+        full_df=full_df,
+        main_config=main_config,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+    # Choose size of a meta sample which is used to take subsets for a point-wise
+    # comparison of local estimators.
+    # Sample size of the arrays
+    sample_size = main_config.embeddings_data_prep.num_samples
+
+    arr_no_pad, meta_no_pad = select_subsets_of_arr_and_meta(
+        arr_no_pad=arr_no_pad,
+        meta_no_pad=meta_no_pad,
+        sample_size=sample_size,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+    # # # #
+    # Convert the metadata to a DataFrame
+
+    # x of type 'numpy.int64' needs to be explicitly converted to an integer,
+    # otherwise the convert_ids_to_tokens() method will raise the error:
+    # TypeError: 'numpy.int64' object is not iterable
+    token_names_no_pad = [tokenizer.convert_ids_to_tokens(int(x)) for x in meta_no_pad]
+
+    meta_frame = pd.DataFrame(
+        {
+            "token_id": list(meta_no_pad),
+            "token_name": list(token_names_no_pad),
+        },
+    )
+
+    if verbosity >= Verbosity.NORMAL:
+        log_dataframe_info(
+            meta_frame,
+            df_name="meta_frame",
+            logger=logger,
+        )
+
+    # # # #
+    # Save the prepared data
+    save_prepared_data(
+        embeddings_path_manager=embeddings_path_manager,
+        arr_no_pad=arr_no_pad,
+        meta_frame=meta_frame,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+
+def load_embedding_data(
+    embeddings_path_manager: EmbeddingsPathManager,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> pd.DataFrame:
+    """Load the embedding data and metadata."""
     # Path for loading the precomputed embeddings
     array_path = embeddings_path_manager.array_dir_absolute_path
 
@@ -91,23 +158,6 @@ def embeddings_data_prep_worker(
             msg,
         )
 
-    # TODO: Get this from the embeddings path manager
-
-    prepared_save_path = pathlib.Path(
-        "..",
-        "..",
-        "data",
-        "analysis",
-        "prepared",
-        partial_save_path,
-    )
-
-    # Make sure the save path exists
-    pathlib.Path(prepared_save_path).mkdir(
-        parents=True,
-        exist_ok=True,
-    )
-
     array_zarr = zarr.open(
         store=str(array_path),
         mode="r",
@@ -131,16 +181,12 @@ def embeddings_data_prep_worker(
             loaded_metadata,
         )
 
-    input_ids_collection: list[list] = []
-    for i in range(len(loaded_metadata)):
-        input_ids_collection.append(
-            loaded_metadata[i]["input_ids"].tolist(),
-        )
+    input_ids_collection: list[list] = [metadata_chunk["input_ids"].tolist() for metadata_chunk in loaded_metadata]
 
-    stacked_meta = np.vstack(
+    stacked_meta: np.ndarray = np.vstack(
         input_ids_collection,
     )
-    stacked_meta = stacked_meta.reshape(
+    stacked_meta: np.ndarray = stacked_meta.reshape(
         stacked_meta.shape[0] * stacked_meta.shape[1],
     )
 
@@ -151,6 +197,16 @@ def embeddings_data_prep_worker(
         },
     )
 
+    return full_df
+
+
+def remove_padding_and_extra_tokens(
+    full_df: pd.DataFrame,
+    main_config: MainConfig,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> tuple[TransformersTokenizer, np.ndarray, np.ndarray]:
+    """Remove padding and extra tokens from the data."""
     tokenizer, _ = load_modified_tokenizer(
         main_config=main_config,
         logger=logger,
@@ -184,21 +240,29 @@ def embeddings_data_prep_worker(
     meta_no_pad = np.array(
         list(full_df[(full_df["meta"] != eos_token_id) & (full_df["meta"] != pad_token_id)].meta),
     )
-    # choose size of a meta sample which is used to take subsets for a point-wise
-    # comparison of local estimators.
-    np.random.seed(42)
 
-    # Sample size of the arrays
-    sample_size = main_config.embeddings_data_prep.num_samples
+    return tokenizer, arr_no_pad, meta_no_pad
 
+
+def select_subsets_of_arr_and_meta(
+    arr_no_pad: np.ndarray,
+    meta_no_pad: np.ndarray,
+    sample_size: int,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Select subsets of the arrays and metadata."""
+    rng = np.random.default_rng(
+        seed=42,
+    )
     if len(arr_no_pad) >= sample_size:
-        idx = np.random.choice(
+        idx = rng.choice(
             range(len(arr_no_pad)),
             replace=False,
             size=sample_size,
         )
     else:
-        idx = np.random.choice(
+        idx = rng.choice(
             range(len(arr_no_pad)),
             replace=False,
             size=len(arr_no_pad),
@@ -207,46 +271,46 @@ def embeddings_data_prep_worker(
     arr_no_pad = arr_no_pad[idx]
     meta_no_pad = meta_no_pad[idx]
 
-    logger.info(f"Actual shape of the samples produced: {arr_no_pad.shape}")
-    logger.info(f"Expected sample size: {sample_size}")
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            f"{arr_no_pad.shape = }",  # noqa: G004 - low overhead
+        )
+        logger.info(
+            f"Expected sample size: {sample_size = }",  # noqa: G004 - low overhead
+        )
 
-    # TODO: Move this to the embeddings path manager
-    data_prep_array_file_name = "embeddings_samples_paddings_removed.np"
-    data_prep_array_save_path = pathlib.Path(
-        prepared_save_path,
-        data_prep_array_file_name,
+    return arr_no_pad, meta_no_pad
+
+
+def save_prepared_data(
+    embeddings_path_manager: EmbeddingsPathManager,
+    arr_no_pad: np.ndarray,
+    meta_frame: pd.DataFrame,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
+    """Save the prepared data."""
+    prepared_data_dir_absolute_path = embeddings_path_manager.prepared_data_dir_absolute_path
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            "prepared_data_dir_absolute_path:%s",
+            prepared_data_dir_absolute_path,
+        )
+
+    # Make sure the save directory exists
+    pathlib.Path(prepared_data_dir_absolute_path).mkdir(
+        parents=True,
+        exist_ok=True,
     )
 
+    # # # #
+    # Save the prepared data
     np.save(
-        file=data_prep_array_save_path,
+        file=embeddings_path_manager.get_prepared_data_array_save_path(),
         arr=arr_no_pad,
     )
 
-    # x of type 'numpy.int64' needs to be explicitly converted to an integer,
-    # otherwise the convert_ids_to_tokens() method will raise the error:
-    # TypeError: 'numpy.int64' object is not iterable
-    token_names_no_pad = [tokenizer.convert_ids_to_tokens(int(x)) for x in meta_no_pad]
-
-    meta_frame = pd.DataFrame(
-        {
-            "token_id": list(meta_no_pad),
-            "token_name": list(token_names_no_pad),
-        },
-    )
-
-    if verbosity >= Verbosity.NORMAL:
-        log_dataframe_info(
-            meta_frame,
-            df_name="meta_frame",
-            logger=logger,
-        )
-
-    # TODO: Move this to the embeddings path manager
-    data_prep_meta_file_name = "embeddings_samples_paddings_removed_meta.pkl"
-    data_prep_meta_save_path = pathlib.Path(
-        prepared_save_path,
-        data_prep_meta_file_name,
-    )
     meta_frame.to_pickle(
-        path=data_prep_meta_save_path,
+        path=embeddings_path_manager.get_prepared_data_meta_save_path(),
     )

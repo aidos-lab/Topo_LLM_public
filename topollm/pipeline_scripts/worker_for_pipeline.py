@@ -98,7 +98,6 @@ def worker_for_pipeline(
         )
         logger.info("Calling local estimates worker ...")
 
-    # ! TODO: There appears to be an error in the paths of the twonn_worker
     twonn_worker(
         main_config=main_config,
         device=device,
