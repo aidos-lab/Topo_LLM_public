@@ -38,6 +38,7 @@ from topollm.config_classes.inference.inference_config import InferenceConfig
 from topollm.config_classes.language_model.language_model_config import (
     LanguageModelConfig,
 )
+from topollm.config_classes.local_estimates.local_estimates_config import LocalEstimatesConfig
 from topollm.config_classes.paths.paths_config import PathsConfig
 from topollm.config_classes.storage.storage_config import StorageConfig
 from topollm.config_classes.tokenizer.tokenizer_config import TokenizerConfig
@@ -85,6 +86,12 @@ class MainConfig(ConfigBaseModel):
         description="The configuration for specifying model.",
     )
 
+    local_estimates: LocalEstimatesConfig = Field(
+        default=LocalEstimatesConfig(),
+        title="Local estimates configuration.",
+        description="The configuration for specifying local estimates.",
+    )
+
     paths: PathsConfig = Field(
         ...,
         title="Paths configuration.",
@@ -92,7 +99,7 @@ class MainConfig(ConfigBaseModel):
     )
 
     preferred_torch_backend: PreferredTorchBackend = Field(
-        ...,
+        default=PreferredTorchBackend.CPU,
         title="Preferred torch backend.",
         description="The preferred torch backend.",
     )
@@ -128,7 +135,7 @@ class MainConfig(ConfigBaseModel):
     )
 
     wandb: WandBConfig = Field(
-        ...,
+        default=WandBConfig(),
         title="Weights and Biases configuration.",
         description="The configuration for specifying Weights and Biases.",
     )

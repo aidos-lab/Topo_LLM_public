@@ -65,3 +65,11 @@ class EmbeddingsPathManager(Protocol):
     def get_prepared_data_meta_save_path(
         self,
     ) -> pathlib.Path: ...  # pragma: no cover
+
+    def get_local_estimates_dir_absolute_path(
+        self,
+    ) -> pathlib.Path: ...  # pragma: no cover
+
+    def get_local_estimates_array_save_path(
+        self,
+    ) -> pathlib.Path: ...  # pragma: no cover

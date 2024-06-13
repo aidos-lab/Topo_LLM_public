@@ -32,6 +32,7 @@ import skdim
 import torch
 
 from topollm.config_classes.main_config import MainConfig
+from topollm.logging.log_array_info import log_array_info
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
 from topollm.typing.enums import Verbosity
 
@@ -51,86 +52,111 @@ def twonn_worker(
         logger=logger,
     )
 
-    # potentially adapt paths
-    array_path = embeddings_path_manager.array_dir_absolute_path
-    logger.info(
-        "array_path",
-        extra={
-            "array_path": array_path,
-        },
+    # # # #
+    # Load the prepared data array
+    prepared_data_array_save_path = embeddings_path_manager.get_prepared_data_array_save_path()
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            f"{prepared_data_array_save_path = }",  # noqa: G004 - low overhead
+        )
+
+    arr_no_pad = np.load(
+        file=prepared_data_array_save_path,
     )
 
-    # TODO: Manage paths with the embeddings path manager
+    if verbosity >= Verbosity.NORMAL:
+        log_array_info(
+            arr_no_pad,
+            array_name="arr_no_pad",
+            log_array_size=True,
+            log_row_l2_norms=True,
+            logger=logger,
+        )
 
-    partial_save_path = pathlib.Path(*list(array_path.parts)[-7:])
-
-    prepared_load_path = pathlib.Path(
-        "..",
-        "..",
-        "data",
-        "analysis",
-        "prepared",
-        partial_save_path,
-    )
-
-    prepared_save_path = pathlib.Path(
-        "..",
-        "..",
-        "data",
-        "analysis",
-        "twonn",
-        partial_save_path,
-    )
-
-    # Make sure the save path exists
-    pathlib.Path(prepared_save_path).mkdir(
-        parents=True,
-        exist_ok=True,
-    )
-
-    if not prepared_load_path.exists():
-        msg = f"{prepared_load_path = } does not exist."
-        raise FileNotFoundError(msg)
-
-    # ! TODO: There appears to be an error in the paths of the twonn_worker
-
-    arr_no_pad = np.load(prepared_load_path)
-
-    np.random.seed(2)
-
-    # TODO: Make this a parameter
-    local_estimates_sample_size = 1500
+    # # # #
+    # Restrict to the first `local_estimates_sample_size` samples
+    local_estimates_sample_size = main_config.local_estimates.num_samples
     local_estimates_sample_size = min(
         local_estimates_sample_size,
         arr_no_pad.shape[0],
     )
 
-    arr_no_pad = arr_no_pad[:local_estimates_sample_size]
+    arr_no_pad_truncated = arr_no_pad[:local_estimates_sample_size]
+
+    # Remove zero rows from the array
+    arr_no_pad_truncated = arr_no_pad_truncated[
+        ~np.all(
+            arr_no_pad_truncated == 0,
+            axis=1,
+        )
+    ]
+
+    if verbosity >= Verbosity.NORMAL:
+        log_array_info(
+            arr_no_pad_truncated,
+            array_name="arr_no_pad_truncated",
+            log_array_size=True,
+            log_row_l2_norms=True,
+            logger=logger,
+        )
+
+    # # # #
+    # Local estimates computation
 
     # provide number of jobs for the computation
     n_jobs = 1
 
     # provide number of neighbors which are used for the computation
-    n_neighbors = round(len(arr_no_pad) * 0.8)
+    n_neighbors = round(len(arr_no_pad_truncated) * 0.8)
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            f"{n_neighbors = }",  # noqa: G004 - low overhead
+        )
 
-    print(arr_no_pad[:10])
-    lPCA = skdim.id.TwoNN().fit_pw(
-        arr_no_pad,
+    estimator = skdim.id.TwoNN(
+        discard_fraction=0.1,
+    )
+
+    fitted_estimator = estimator.fit_pw(
+        X=arr_no_pad_truncated,
+        precomputed_knn=None,
+        smooth=False,
         n_neighbors=n_neighbors,
         n_jobs=n_jobs,
     )
 
-    ####
+    results_array = list(fitted_estimator.dimension_pw_)
 
-    array = list(lPCA.dimension_pw_)
+    results_array_np = np.array(
+        results_array,
+    )
 
-    arr = np.array(array)
+    if verbosity >= Verbosity.NORMAL:
+        log_array_info(
+            results_array_np,
+            array_name="results_array_np",
+            log_array_size=True,
+            log_row_l2_norms=True,
+            logger=logger,
+        )
 
-    file_name = f"twonn_token_lvl_{local_estimates_sample_size}_samples_paddings_removed"
+    # # # #
+    # Save the results
+
+    local_estimates_dir_absolute_path = embeddings_path_manager.get_local_estimates_dir_absolute_path()
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            f"{local_estimates_dir_absolute_path = }",  # noqa: G004 - low overhead
+        )
+
+    # Make sure the save path exists
+    pathlib.Path(local_estimates_dir_absolute_path).mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
     np.save(
-        file=pathlib.Path(
-            prepared_save_path,
-            file_name,
-        ),
-        arr=arr,
+        file=embeddings_path_manager.get_local_estimates_array_save_path(),
+        arr=results_array_np,
     )

@@ -17,6 +17,7 @@ embeddings_data_prep:
 
 local_estimates:
   num_samples: 1500
+  description: "twonn"
 
 seed: 1234
 verbosity: 1

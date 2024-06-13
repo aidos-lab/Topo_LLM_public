@@ -46,6 +46,7 @@ from topollm.config_classes.finetuning.peft.peft_config import PEFTConfig
 from topollm.config_classes.finetuning.tokenizer_modifier_config import TokenizerModifierConfig
 from topollm.config_classes.inference.inference_config import InferenceConfig
 from topollm.config_classes.language_model.language_model_config import LanguageModelConfig
+from topollm.config_classes.local_estimates.local_estimates_config import LocalEstimatesConfig
 from topollm.config_classes.main_config import MainConfig
 from topollm.config_classes.paths.paths_config import PathsConfig
 from topollm.config_classes.storage.storage_config import StorageConfig
@@ -98,7 +99,9 @@ def main_config_with_small_dataset_and_model(
     paths_config: PathsConfig,
 ) -> MainConfig:
     """Return a MainConfig object."""
-    pretrained_model_name_or_path = "hf-internal-testing/tiny-random-RobertaModel"
+    pretrained_model_name_or_path = "roberta-base"
+    # pretrained_model_name_or_path = "hf-internal-testing/tiny-random-RobertaModel"
+
     short_model_name = "tiny-random-RobertaModel"
 
     tokenizer_config = TokenizerConfig()
@@ -149,6 +152,9 @@ def main_config_with_small_dataset_and_model(
     embeddings_data_prep_config = EmbeddingsDataPrepConfig(
         num_samples=1_000,
     )
+    local_estimates_config = LocalEstimatesConfig(
+        num_samples=1_500,
+    )
 
     config = MainConfig(
         data=small_data_config,
@@ -157,6 +163,7 @@ def main_config_with_small_dataset_and_model(
         finetuning=finetuning_config,
         inference=inference_config,
         language_model=language_model_config,
+        local_estimates=local_estimates_config,
         paths=paths_config,
         preferred_torch_backend=PreferredTorchBackend.CPU,
         storage=storage_config,

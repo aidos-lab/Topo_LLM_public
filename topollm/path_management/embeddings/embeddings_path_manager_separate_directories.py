@@ -36,6 +36,7 @@ from topollm.config_classes.embeddings_data_prep.embeddings_data_prep_config imp
 from topollm.config_classes.language_model.language_model_config import (
     LanguageModelConfig,
 )
+from topollm.config_classes.local_estimates.local_estimates_config import LocalEstimatesConfig
 from topollm.config_classes.paths.paths_config import PathsConfig
 from topollm.config_classes.tokenizer.tokenizer_config import TokenizerConfig
 from topollm.config_classes.transformations.transformations_config import TransformationsConfig
@@ -44,6 +45,7 @@ from topollm.typing.enums import Verbosity
 default_logger = logging.getLogger(__name__)
 
 default_embeddings_data_prep_config = EmbeddingsDataPrepConfig()
+default_local_estimates_config = LocalEstimatesConfig()
 
 
 class EmbeddingsPathManagerSeparateDirectories:
@@ -58,6 +60,7 @@ class EmbeddingsPathManagerSeparateDirectories:
         transformations_config: TransformationsConfig,
         tokenizer_config: TokenizerConfig,
         embeddings_data_prep_config: EmbeddingsDataPrepConfig = default_embeddings_data_prep_config,
+        local_estimates_config: LocalEstimatesConfig = default_local_estimates_config,
         verbosity: Verbosity = Verbosity.NORMAL,
         logger: logging.Logger = default_logger,
     ) -> None:
@@ -69,6 +72,7 @@ class EmbeddingsPathManagerSeparateDirectories:
         self.transformations_config: TransformationsConfig = transformations_config
         self.tokenizer_config: TokenizerConfig = tokenizer_config
         self.embeddings_data_prep_config: EmbeddingsDataPrepConfig = embeddings_data_prep_config
+        self.local_estimates_config: LocalEstimatesConfig = local_estimates_config
 
         self.verbosity = verbosity
         self.logger = logger
@@ -236,8 +240,14 @@ class EmbeddingsPathManagerSeparateDirectories:
 
     def get_prepared_data_array_save_path(
         self,
-        prepared_data_array_file_name: str = "embeddings_samples_paddings_removed.np",
+        prepared_data_array_file_name: str = "embeddings_samples_paddings_removed.npy",
     ) -> pathlib.Path:
+        """Get the path to save the prepared data array.
+
+        Note: If this does not have the '.npy' extension,
+        the numpy save function will add it automatically.
+        In particular, do not use '.np' here.
+        """
         path = pathlib.Path(
             self.prepared_data_dir_absolute_path,
             prepared_data_array_file_name,
@@ -252,6 +262,33 @@ class EmbeddingsPathManagerSeparateDirectories:
         path = pathlib.Path(
             self.prepared_data_dir_absolute_path,
             prepared_data_meta_file_name,
+        )
+
+        return path
+
+    # # # #
+    # local estimates directories
+
+    def get_local_estimates_dir_absolute_path(
+        self,
+    ) -> pathlib.Path:
+        path = pathlib.Path(
+            self.data_dir,
+            "analysis",
+            self.local_estimates_config.description,
+            self.get_nested_subfolder_path(),
+            self.local_estimates_config.config_description,
+        )
+
+        return path
+
+    def get_local_estimates_array_save_path(
+        self,
+        local_estimates_file_name: str = "local_estimates_paddings_removed.npy",
+    ) -> pathlib.Path:
+        path = pathlib.Path(
+            self.get_local_estimates_dir_absolute_path(),
+            local_estimates_file_name,
         )
 
         return path
