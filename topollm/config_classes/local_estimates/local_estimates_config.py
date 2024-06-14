@@ -53,6 +53,9 @@ class LocalEstimatesConfig(ConfigBaseModel):
         self,
     ) -> str:
         """Get the description of the config."""
-        desc = f"{NAME_PREFIXES['num_samples']}{KV_SEP}{str(self.num_samples)}"
+        desc = (
+            f"{NAME_PREFIXES['description']}{KV_SEP}{str(self.description)}"
+            f"{NAME_PREFIXES['num_samples']}{KV_SEP}{str(self.num_samples)}"
+        )
 
         return desc

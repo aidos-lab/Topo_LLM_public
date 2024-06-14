@@ -277,6 +277,7 @@ class EmbeddingsPathManagerSeparateDirectories:
             "analysis",
             self.local_estimates_config.description,
             self.get_nested_subfolder_path(),
+            self.embeddings_data_prep_config.config_description,  # We include this because the local estimates are computed on the prepared data
             self.local_estimates_config.config_description,
         )
 

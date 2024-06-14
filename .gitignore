@@ -183,6 +183,7 @@ data/models/architecture-roberta-base
 data/models/finetuned_models
 
 data/analysis/prepared
+data/analysis/twonn
 
 hydra_output_dir/
 hilbert_job_logs/

@@ -62,6 +62,7 @@ NAME_PREFIXES: dict[
     "context": "ctxt",
     "data": "data",
     "dataloader_desc": "dataloader",
+    "description": "desc",
     "epoch": "ep",
     "FinetuningMode": "ftm",
     "global_step": "gs",

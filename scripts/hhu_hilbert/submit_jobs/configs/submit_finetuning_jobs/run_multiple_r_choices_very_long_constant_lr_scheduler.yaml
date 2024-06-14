@@ -51,4 +51,4 @@ lora_parameters:
     lora_alpha: 1024
     use_rslora: true
 
-wandb_project: "Topo_LLM_run_multiple_r_choices_very_long_constant_lr_scheduler"
+wandb_project: "Topo_LLM_run_multiple_r_choices_very_long_constant_lr_scheduler_RUN_02"

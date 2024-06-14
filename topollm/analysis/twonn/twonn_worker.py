@@ -24,6 +24,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+"""Run script to compute twoNN estimates from prepared embeddings."""
+
 import logging
 import pathlib
 
@@ -34,6 +37,7 @@ import torch
 from topollm.config_classes.main_config import MainConfig
 from topollm.logging.log_array_info import log_array_info
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
+from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 from topollm.typing.enums import Verbosity
 
 default_device = torch.device("cpu")
@@ -75,6 +79,9 @@ def twonn_worker(
 
     # # # #
     # Restrict to the first `local_estimates_sample_size` samples
+    if verbosity >= Verbosity.NORMAL:
+        logger.info("Truncating and removing zero rows ...")
+
     local_estimates_sample_size = main_config.local_estimates.num_samples
     local_estimates_sample_size = min(
         local_estimates_sample_size,
@@ -100,6 +107,9 @@ def twonn_worker(
             logger=logger,
         )
 
+    if verbosity >= Verbosity.NORMAL:
+        logger.info("Truncating and removing zero rows DONE")
+
     # # # #
     # Local estimates computation
 
@@ -117,6 +127,9 @@ def twonn_worker(
         discard_fraction=0.1,
     )
 
+    if verbosity >= Verbosity.NORMAL:
+        logger.info("Calling estimator.fit_pw() ...")
+
     fitted_estimator = estimator.fit_pw(
         X=arr_no_pad_truncated,
         precomputed_knn=None,
@@ -124,6 +137,9 @@ def twonn_worker(
         n_neighbors=n_neighbors,
         n_jobs=n_jobs,
     )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info("Calling estimator.fit_pw() DONE")
 
     results_array = list(fitted_estimator.dimension_pw_)
 
@@ -142,7 +158,21 @@ def twonn_worker(
 
     # # # #
     # Save the results
+    save_local_estimates(
+        embeddings_path_manager=embeddings_path_manager,
+        results_array_np=results_array_np,
+        verbosity=verbosity,
+        logger=logger,
+    )
 
+
+def save_local_estimates(
+    embeddings_path_manager: EmbeddingsPathManager,
+    results_array_np: np.ndarray,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
+    """Save the local estimates array to disk."""
     local_estimates_dir_absolute_path = embeddings_path_manager.get_local_estimates_dir_absolute_path()
 
     if verbosity >= Verbosity.NORMAL:
@@ -156,7 +186,13 @@ def twonn_worker(
         exist_ok=True,
     )
 
+    if verbosity >= Verbosity.NORMAL:
+        logger.info("Saving local estimates array ...")
+
     np.save(
         file=embeddings_path_manager.get_local_estimates_array_save_path(),
         arr=results_array_np,
     )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info("Saving local estimates array DONE")
