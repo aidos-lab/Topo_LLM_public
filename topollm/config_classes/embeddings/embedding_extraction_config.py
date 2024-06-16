@@ -22,7 +22,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
 from topollm.path_management.convert_object_to_valid_path_part import convert_list_to_path_part
@@ -32,11 +32,15 @@ from topollm.typing.enums import AggregationType
 class EmbeddingExtractionConfig(BaseModel):
     """Configuration for specifying embedding extraction."""
 
-    layer_indices: list[int]
-    aggregation: AggregationType = AggregationType.MEAN
+    layer_indices: list[int] = Field(
+        default_factory=lambda: [-1],  # [-1] denotes the last layer
+    )
+    aggregation: AggregationType = Field(
+        default=AggregationType.MEAN,
+    )
 
     @property
-    def embedding_extraction_config_description(
+    def config_description(
         self,
     ) -> str:
         """Get the description of the embedding extraction.

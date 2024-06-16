@@ -60,13 +60,15 @@ from topollm.storage.factory import (
     StorageSpecification,
 )
 from topollm.storage.StorageDataclasses import ArrayProperties
+from topollm.typing.enums import Verbosity
 
+default_device = torch.device("cpu")
 default_logger = logging.getLogger(__name__)
 
 
 def compute_and_store_embeddings(
     main_config: MainConfig,
-    device: torch.device,
+    device: torch.device = default_device,
     logger: logging.Logger = default_logger,
 ) -> None:
     """Compute and store embedding vectors."""
@@ -118,8 +120,8 @@ def compute_and_store_embeddings(
         tokenizer_config=main_config.tokenizer,
         tokenizer=tokenizer,
         collate_fn=partial_collate_fn,
-        logger=logger,
         verbosity=main_config.verbosity,
+        logger=logger,
     )
     embedding_dataloader_preparer = get_embedding_dataloader_preparer(
         preparer_context=preparer_context,

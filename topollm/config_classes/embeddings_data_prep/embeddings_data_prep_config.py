@@ -30,6 +30,7 @@
 from pydantic import Field
 
 from topollm.config_classes.config_base_model import ConfigBaseModel
+from topollm.config_classes.constants import KV_SEP, NAME_PREFIXES
 
 
 class EmbeddingsDataPrepConfig(ConfigBaseModel):
@@ -40,3 +41,12 @@ class EmbeddingsDataPrepConfig(ConfigBaseModel):
         title="Number of samples.",
         description="The number of samples to be extracted.",
     )
+
+    @property
+    def config_description(
+        self,
+    ) -> str:
+        """Get the description of the config."""
+        desc = f"{NAME_PREFIXES['num_samples']}{KV_SEP}{str(self.num_samples)}"
+
+        return desc

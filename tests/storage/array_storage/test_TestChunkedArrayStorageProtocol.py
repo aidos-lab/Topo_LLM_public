@@ -43,9 +43,7 @@ from topollm.storage.array_storage import ChunkedArrayStorageZarr
 def array_properties(
     request: pytest.FixtureRequest,
 ) -> StorageDataclasses.ArrayProperties:
-    """
-    Fixture that provides ArrayProperties based on parameterized inputs.
-    """
+    """Fixture that provides ArrayProperties based on parameterized inputs."""
     shape = request.param
     return StorageDataclasses.ArrayProperties(
         shape=shape,
@@ -55,16 +53,12 @@ def array_properties(
 
 
 class ChunkedArrayStorageFactory(ABC):
-    """
-    Abstract factory for creating storage instances.
-    """
+    """Abstract factory for creating storage instances."""
 
     @abstractmethod
     def create_storage(
         self,
-    ) -> (
-        topollm.storage.array_storage.ChunkedArrayStorageProtocol.ChunkedArrayStorageProtocol
-    ):
+    ) -> topollm.storage.array_storage.ChunkedArrayStorageProtocol.ChunkedArrayStorageProtocol:
         """
         Creates and returns a storage instance, with all necessary
         arguments handled internally by the factory.
@@ -93,9 +87,7 @@ class _ChunkedArrayStorageProtocol(ABC):
     def storage(
         self,
         storage_factory: ChunkedArrayStorageFactory,
-    ) -> (
-        topollm.storage.array_storage.ChunkedArrayStorageProtocol.ChunkedArrayStorageProtocol
-    ):
+    ) -> topollm.storage.array_storage.ChunkedArrayStorageProtocol.ChunkedArrayStorageProtocol:
         """
         Dynamic storage instance creation using the provided factory.
         """
@@ -129,9 +121,7 @@ class _ChunkedArrayStorageProtocol(ABC):
 
         # Take the length of the chunk to write from `chunk_length`
         # and the remaining dimensions from `array_properties.shape`.
-        chunk_shape = (chunk_length,) + array_properties.shape[
-            1:
-        ]  # The '+' here is tuple concatenation
+        chunk_shape = (chunk_length,) + array_properties.shape[1:]  # The '+' here is tuple concatenation
 
         random_array = np.random.rand(*chunk_shape)
         data = random_array.astype(
@@ -184,9 +174,7 @@ class ChunkedArrayStorageZarrFactory(ChunkedArrayStorageFactory):
             self.tmp_path,
             "zarr_chunked_array_storage_test",
         )
-        self.logger.info(
-            f"Creating ZarrChunkedArrayStorage storage " f"at {storage_path = }"
-        )
+        self.logger.info(f"Creating ZarrChunkedArrayStorage storage " f"at {storage_path = }")
 
         return ChunkedArrayStorageZarr.ChunkedArrayStorageZarr(
             array_properties=self.array_properties,

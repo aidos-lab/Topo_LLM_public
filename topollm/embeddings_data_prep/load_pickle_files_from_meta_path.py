@@ -40,7 +40,9 @@ def load_pickle_files_from_meta_path(
     chunk_list = [f"chunk_{str(i).zfill(5)}.pkl" for i in range(len(os.listdir(meta_path)))]
 
     for filename in chunk_list:
-        if filename.endswith(".pkl"):
+        if filename.endswith(
+            ".pkl",
+        ):
             filepath = pathlib.Path(
                 meta_path,
                 filename,

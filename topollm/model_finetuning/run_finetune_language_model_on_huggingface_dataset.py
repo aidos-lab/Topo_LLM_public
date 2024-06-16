@@ -28,6 +28,7 @@
 """Script for fine-tuning language model on huggingface datasets."""
 
 import logging
+import os
 import pathlib
 from typing import TYPE_CHECKING
 
@@ -45,6 +46,10 @@ from topollm.model_handling.get_torch_device import get_torch_device
 
 if TYPE_CHECKING:
     from topollm.config_classes.main_config import MainConfig
+
+# Increase the wandb service wait time to prevent errors.
+# https://github.com/wandb/wandb/issues/5214
+os.environ["WANDB__SERVICE_WAIT"] = "300"
 
 global_logger = logging.getLogger(__name__)
 
@@ -95,6 +100,8 @@ def main(
         project=main_config.wandb.project,
         settings=wandb.Settings(
             start_method="thread",  # Note: https://docs.wandb.ai/guides/integrations/hydra#troubleshooting-multiprocessing
+            _service_wait=300,
+            init_timeout=300,
         ),
         tags=main_config.wandb.tags,
     )

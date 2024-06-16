@@ -30,12 +30,12 @@
 import logging
 
 import torch
-from hypothesis import given, settings, Verbosity
+from hypothesis import Verbosity, given, settings
 from hypothesis import strategies as st
 from hypothesis.strategies import dictionaries
 
-from topollm.storage.StorageDataclasses import ChunkIdentifier
 from topollm.storage.metadata_storage.MetadataChunk import MetadataChunk
+from topollm.storage.StorageDataclasses import ChunkIdentifier
 
 logger = logging.getLogger(__name__)
 
@@ -106,8 +106,5 @@ def test_metadata_chunk_equality(
     assert (chunk1 == chunk2) == (chunk2 == chunk1)
 
     # Check cases where they should not be equal
-    if (
-        chunk1.chunk_identifier != chunk2.chunk_identifier
-        or chunk1.batch.keys() != chunk2.batch.keys()
-    ):
+    if chunk1.chunk_identifier != chunk2.chunk_identifier or chunk1.batch.keys() != chunk2.batch.keys():
         assert chunk1 != chunk2

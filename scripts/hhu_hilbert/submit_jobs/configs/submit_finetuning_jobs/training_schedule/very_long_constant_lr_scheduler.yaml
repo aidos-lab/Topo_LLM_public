@@ -1,0 +1,6 @@
+defaults:
+  - _self_
+
+very_long_constant_lr_scheduler:
+  num_train_epochs: 50
+  lr_scheduler_type: "constant"

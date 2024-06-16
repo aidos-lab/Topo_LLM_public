@@ -27,6 +27,10 @@
 
 from typing import TypeAlias
 
+from transformers import PreTrainedTokenizer, PreTrainedTokenizerFast
+
 from topollm.model_inference.perplexity.sentence_perplexity_container import SentencePerplexityContainer
 
 PerplexityResultsList: TypeAlias = list[tuple[int, SentencePerplexityContainer]]
+
+TransformersTokenizer: TypeAlias = PreTrainedTokenizer | PreTrainedTokenizerFast

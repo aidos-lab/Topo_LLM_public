@@ -34,17 +34,19 @@ from topollm.compute_embeddings.embedding_dataloader_preparer.embedding_dataload
 )
 
 
-@pytest.mark.uses_transformers_models
+@pytest.mark.uses_transformers_models()
 def test_EmbeddingDataLoaderPreparerHuggingface(
     embedding_dataloader_preparer_huggingface: EmbeddingDataLoaderPreparerHuggingface,
     logger_fixture: logging.Logger,
 ) -> None:
     dataloader = embedding_dataloader_preparer_huggingface.prepare_dataloader()
 
-    assert dataloader is not None
+    assert dataloader is not None  # noqa: S101 - pytest assert
 
     # Test the length function
     length = len(embedding_dataloader_preparer_huggingface)
-    logger_fixture.info(f"{length = }")
+    logger_fixture.info(
+        f"{length = }",  # noqa: G004 - low overhead
+    )
 
-    assert length > 0
+    assert length > 0  # noqa: S101 - pytest assert

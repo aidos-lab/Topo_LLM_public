@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -34,23 +32,19 @@ from abc import ABC, abstractmethod
 
 import pytest
 
-import topollm.storage.metadata_storage.MetadataChunk
 import topollm.storage.metadata_storage.ChunkedMetadataStorageProtocol
+import topollm.storage.metadata_storage.MetadataChunk
 from topollm.storage import StorageDataclasses
 from topollm.storage.metadata_storage import ChunkedMetadataStoragePickle
 
 
 class ChunkedMetadataStorageFactory(ABC):
-    """
-    Abstract factory for creating storage instances.
-    """
+    """Abstract factory for creating storage instances."""
 
     @abstractmethod
     def create_storage(
         self,
-    ) -> (
-        topollm.storage.metadata_storage.ChunkedMetadataStorageProtocol.ChunkedMetadataStorageProtocol
-    ):
+    ) -> topollm.storage.metadata_storage.ChunkedMetadataStorageProtocol.ChunkedMetadataStorageProtocol:
         """
         Creates and returns a storage instance, with all necessary
         arguments handled internally by the factory.
@@ -79,9 +73,7 @@ class _ChunkedMetadataStorageProtocol(ABC):
     def storage(
         self,
         storage_factory: ChunkedMetadataStorageFactory,
-    ) -> (
-        topollm.storage.metadata_storage.ChunkedMetadataStorageProtocol.ChunkedMetadataStorageProtocol
-    ):
+    ) -> topollm.storage.metadata_storage.ChunkedMetadataStorageProtocol.ChunkedMetadataStorageProtocol:
         """
         Dynamic storage instance creation using the provided factory.
         """
@@ -101,9 +93,7 @@ class _ChunkedMetadataStorageProtocol(ABC):
         storage.open()
 
         logger_fixture.info(
-            f"Testing with example_batch:\n"
-            f"{pprint.pformat(example_batch)}\n"
-            f"and\n{chunk_idx = }"
+            f"Testing with example_batch:\n" f"{pprint.pformat(example_batch)}\n" f"and\n{chunk_idx = }"
         )
 
         chunk_identifier = StorageDataclasses.ChunkIdentifier(
@@ -120,10 +110,8 @@ class _ChunkedMetadataStorageProtocol(ABC):
         storage.write_chunk(
             data_chunk=metadata_chunk,
         )
-        read_chunk: topollm.storage.metadata_storage.MetadataChunk.MetadataChunk = (
-            storage.read_chunk(
-                chunk_identifier=chunk_identifier,
-            )
+        read_chunk: topollm.storage.metadata_storage.MetadataChunk.MetadataChunk = storage.read_chunk(
+            chunk_identifier=chunk_identifier,
         )
 
         logger_fixture.info(metadata_chunk)
@@ -153,9 +141,7 @@ class ChunkedMetadataStoragePickleFactory(ChunkedMetadataStorageFactory):
             self.tmp_path,
             "pickle_chunked_metadata_storage_test",
         )
-        self.logger.info(
-            f"Creating ChunkedMetadataStoragePickle storage " f"at {storage_path = }"
-        )
+        self.logger.info(f"Creating ChunkedMetadataStoragePickle storage " f"at {storage_path = }")
 
         return ChunkedMetadataStoragePickle.ChunkedMetadataStoragePickle(
             root_storage_path=storage_path,

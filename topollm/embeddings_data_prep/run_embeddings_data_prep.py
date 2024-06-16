@@ -40,17 +40,20 @@ significantly lower than the specified sample size
 """
 
 import logging
+from typing import TYPE_CHECKING
 
 import hydra
 import hydra.core.hydra_config
 import omegaconf
 
-from topollm.config_classes.main_config import MainConfig
 from topollm.config_classes.setup_OmegaConf import setup_OmegaConf
 from topollm.embeddings_data_prep.embeddings_data_prep_worker import embeddings_data_prep_worker
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.model_handling.get_torch_device import get_torch_device
+
+if TYPE_CHECKING:
+    from topollm.config_classes.main_config import MainConfig
 
 # logger for this file
 global_logger = logging.getLogger(__name__)

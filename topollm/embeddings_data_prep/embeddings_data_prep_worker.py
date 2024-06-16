@@ -29,6 +29,7 @@
 
 import logging
 import pathlib
+from typing import TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
@@ -40,161 +41,53 @@ from topollm.embeddings_data_prep.load_pickle_files_from_meta_path import load_p
 from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.model_handling.tokenizer.load_tokenizer import load_modified_tokenizer
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
+from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
+from topollm.typing.enums import Verbosity
+from topollm.typing.types import TransformersTokenizer
 
-logger = logging.getLogger(__name__)
+default_logger = logging.getLogger(__name__)
 
 
 def embeddings_data_prep_worker(
     main_config: MainConfig,
-    device: torch.device,
-    verbosity: int = 1,
-    logger: logging.Logger = logger,
+    device: torch.device,  # noqa: ARG001 - placeholder for future use
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
 ) -> None:
     """Prepare the embedding data of a model and its metadata for further analysis."""
-    embeddings_path_manager = get_embeddings_path_manager(
+    embeddings_path_manager: EmbeddingsPathManager = get_embeddings_path_manager(
         main_config=main_config,
         logger=logger,
     )
 
-    # potentially adapt paths
-    array_path = embeddings_path_manager.array_dir_absolute_path
-    logger.info(
-        "array_path",
-        extra={
-            "array_path": array_path,
-        },
-    )
-
-    if not array_path.exists():
-        msg = f"{array_path = } does not exist."
-        raise FileNotFoundError(msg)
-
-    partial_save_path = pathlib.Path(*list(array_path.parts)[-7:])
-    prepared_save_path = pathlib.Path(
-        "..",
-        "..",
-        "data",
-        "analysis",
-        "prepared",
-        partial_save_path,
-    )
-
-    # Make sure the save path exists
-    pathlib.Path(prepared_save_path).mkdir(
-        parents=True,
-        exist_ok=True,
-    )
-
-    meta_path = pathlib.Path(
-        embeddings_path_manager.metadata_dir_absolute_path,
-        "pickle_chunked_metadata_storage",
-    )
-
-    if verbosity >= 1:
-        logger.info(f"{meta_path = }")
-
-    if not meta_path.exists():
-        msg = f"{meta_path = } does not exist."
-        raise FileNotFoundError(msg)
-
-    array = zarr.open(
-        store=array_path,  # type: ignore
-        mode="r",
-    )
-
-    arr = np.array(array)
-    arr = arr.reshape(
-        arr.shape[0] * arr.shape[1],
-        arr.shape[2],
-    )
-
-    loaded_data = load_pickle_files_from_meta_path(
-        meta_path=meta_path,
-    )
-
-    if verbosity >= 2:
-        logger.info(
-            "Loaded pickle files",
-            extra={"loaded_data": loaded_data},
-        )
-
-    input_ids = []
-    for i in range(len(loaded_data)):
-        input_ids.append(loaded_data[i]["input_ids"].tolist())
-
-    stacked_meta = np.vstack(input_ids)
-    stacked_meta = stacked_meta.reshape(stacked_meta.shape[0] * stacked_meta.shape[1])
-
-    stacked_meta_sub = stacked_meta
-
-    full_df = pd.DataFrame(
-        {
-            "arr": list(arr),
-            "meta": list(stacked_meta_sub),
-        },
-    )
-
-    tokenizer, _ = load_modified_tokenizer(
-        main_config=main_config,
+    full_df = load_embedding_data(
+        embeddings_path_manager=embeddings_path_manager,
+        verbosity=verbosity,
         logger=logger,
     )
 
-    eos_token_id = tokenizer.eos_token_id
-    pad_token_id = tokenizer.pad_token_id
-
-    if verbosity >= 1:
-        logger.info(f"{eos_token_id = }")
-        logger.info(f"{pad_token_id = }")
-
-    if pad_token_id is None:
-        msg = "The padding token id is None."
-        raise ValueError(msg)
-
-    # arr_no_pad.shape:
-    # (number of non-padding tokens in subsample, embedding dimension)
-    arr_no_pad = np.array(
-        list(full_df[(full_df["meta"] != eos_token_id) & (full_df["meta"] != pad_token_id)].arr),
+    tokenizer, arr_no_pad, meta_no_pad = remove_padding_and_extra_tokens(
+        full_df=full_df,
+        main_config=main_config,
+        verbosity=verbosity,
+        logger=logger,
     )
 
-    # meta_no_pad.shape:
-    # (number of non-padding tokens in subsample,)
-    meta_no_pad = np.array(
-        list(full_df[(full_df["meta"] != eos_token_id) & (full_df["meta"] != pad_token_id)].meta),
-    )
-    # choose size of a meta sample which is used to take subsets for a point-wise
+    # Choose size of a meta sample which is used to take subsets for a point-wise
     # comparison of local estimators.
-    np.random.seed(42)
-
     # Sample size of the arrays
     sample_size = main_config.embeddings_data_prep.num_samples
 
-    if len(arr_no_pad) >= sample_size:
-        idx = np.random.choice(
-            range(len(arr_no_pad)),
-            replace=False,
-            size=sample_size,
-        )
-    else:
-        idx = np.random.choice(
-            range(len(arr_no_pad)),
-            replace=False,
-            size=len(arr_no_pad),
-        )
-
-    arr_no_pad = arr_no_pad[idx]
-    meta_no_pad = meta_no_pad[idx]
-
-    logger.info(f"Actual shape of the samples produced: {arr_no_pad.shape}")
-    logger.info(f"Expected sample size: {sample_size}")
-
-    file_name = f"embeddings_token_lvl_{sample_size}_samples_paddings_removed"
-    np.save(
-        file=pathlib.Path(
-            prepared_save_path,
-            file_name,
-        ),
-        arr=arr_no_pad,
+    arr_no_pad, meta_no_pad = select_subsets_of_arr_and_meta(
+        arr_no_pad=arr_no_pad,
+        meta_no_pad=meta_no_pad,
+        sample_size=sample_size,
+        verbosity=verbosity,
+        logger=logger,
     )
+
+    # # # #
+    # Convert the metadata to a DataFrame
 
     # x of type 'numpy.int64' needs to be explicitly converted to an integer,
     # otherwise the convert_ids_to_tokens() method will raise the error:
@@ -208,17 +101,216 @@ def embeddings_data_prep_worker(
         },
     )
 
-    if verbosity >= 1:
+    if verbosity >= Verbosity.NORMAL:
         log_dataframe_info(
             meta_frame,
             df_name="meta_frame",
             logger=logger,
         )
 
-    meta_name = f"{file_name}_meta.pkl"
+    # # # #
+    # Save the prepared data
+    save_prepared_data(
+        embeddings_path_manager=embeddings_path_manager,
+        arr_no_pad=arr_no_pad,
+        meta_frame=meta_frame,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+
+def load_embedding_data(
+    embeddings_path_manager: EmbeddingsPathManager,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> pd.DataFrame:
+    """Load the embedding data and metadata."""
+    # Path for loading the precomputed embeddings
+    array_path = embeddings_path_manager.array_dir_absolute_path
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            "array_path:%s",
+            array_path,
+        )
+
+    if not array_path.exists():
+        msg = f"{array_path = } does not exist."
+        raise FileNotFoundError(
+            msg,
+        )
+
+    # Path for loading the precomputed metadata
+    meta_path = pathlib.Path(
+        embeddings_path_manager.metadata_dir_absolute_path,
+        "pickle_chunked_metadata_storage",
+    )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            "meta_path:%s",
+            meta_path,
+        )
+
+    if not meta_path.exists():
+        msg = f"{meta_path = } does not exist."
+        raise FileNotFoundError(
+            msg,
+        )
+
+    array_zarr = zarr.open(
+        store=str(array_path),
+        mode="r",
+    )
+
+    array_np = np.array(
+        array_zarr,
+    )
+    array_np = array_np.reshape(
+        array_np.shape[0] * array_np.shape[1],
+        array_np.shape[2],
+    )
+
+    loaded_metadata = load_pickle_files_from_meta_path(
+        meta_path=meta_path,
+    )
+
+    if verbosity >= Verbosity.DEBUG:
+        logger.info(
+            "Loaded pickle files loaded_data:\n%s",
+            loaded_metadata,
+        )
+
+    input_ids_collection: list[list] = [metadata_chunk["input_ids"].tolist() for metadata_chunk in loaded_metadata]
+
+    stacked_meta: np.ndarray = np.vstack(
+        input_ids_collection,
+    )
+    stacked_meta: np.ndarray = stacked_meta.reshape(
+        stacked_meta.shape[0] * stacked_meta.shape[1],
+    )
+
+    full_df = pd.DataFrame(
+        {
+            "arr": list(array_np),
+            "meta": list(stacked_meta),
+        },
+    )
+
+    return full_df
+
+
+def remove_padding_and_extra_tokens(
+    full_df: pd.DataFrame,
+    main_config: MainConfig,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> tuple[TransformersTokenizer, np.ndarray, np.ndarray]:
+    """Remove padding and extra tokens from the data."""
+    tokenizer, _ = load_modified_tokenizer(
+        main_config=main_config,
+        logger=logger,
+    )
+
+    eos_token_id = tokenizer.eos_token_id
+    pad_token_id = tokenizer.pad_token_id
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            f"{eos_token_id = }",  # noqa: G004 - low overhead
+        )
+        logger.info(
+            f"{pad_token_id = }",  # noqa: G004 - low overhead
+        )
+
+    if pad_token_id is None:
+        msg = "The padding token id is None."
+        raise ValueError(
+            msg,
+        )
+
+    # arr_no_pad.shape:
+    # (number of non-padding tokens in subsample, embedding dimension)
+    arr_no_pad = np.array(
+        list(full_df[(full_df["meta"] != eos_token_id) & (full_df["meta"] != pad_token_id)].arr),
+    )
+
+    # meta_no_pad.shape:
+    # (number of non-padding tokens in subsample,)
+    meta_no_pad = np.array(
+        list(full_df[(full_df["meta"] != eos_token_id) & (full_df["meta"] != pad_token_id)].meta),
+    )
+
+    return tokenizer, arr_no_pad, meta_no_pad
+
+
+def select_subsets_of_arr_and_meta(
+    arr_no_pad: np.ndarray,
+    meta_no_pad: np.ndarray,
+    sample_size: int,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Select subsets of the arrays and metadata."""
+    rng = np.random.default_rng(
+        seed=42,
+    )
+    if len(arr_no_pad) >= sample_size:
+        idx = rng.choice(
+            range(len(arr_no_pad)),
+            replace=False,
+            size=sample_size,
+        )
+    else:
+        idx = rng.choice(
+            range(len(arr_no_pad)),
+            replace=False,
+            size=len(arr_no_pad),
+        )
+
+    arr_no_pad = arr_no_pad[idx]
+    meta_no_pad = meta_no_pad[idx]
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            f"{arr_no_pad.shape = }",  # noqa: G004 - low overhead
+        )
+        logger.info(
+            f"Expected sample size: {sample_size = }",  # noqa: G004 - low overhead
+        )
+
+    return arr_no_pad, meta_no_pad
+
+
+def save_prepared_data(
+    embeddings_path_manager: EmbeddingsPathManager,
+    arr_no_pad: np.ndarray,
+    meta_frame: pd.DataFrame,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
+    """Save the prepared data."""
+    prepared_data_dir_absolute_path = embeddings_path_manager.prepared_data_dir_absolute_path
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            "prepared_data_dir_absolute_path:%s",
+            prepared_data_dir_absolute_path,
+        )
+
+    # Make sure the save directory exists
+    pathlib.Path(prepared_data_dir_absolute_path).mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    # # # #
+    # Save the prepared data
+    np.save(
+        file=embeddings_path_manager.get_prepared_data_array_save_path(),
+        arr=arr_no_pad,
+    )
+
     meta_frame.to_pickle(
-        path=pathlib.Path(
-            prepared_save_path,
-            meta_name,
-        ),
+        path=embeddings_path_manager.get_prepared_data_meta_save_path(),
     )

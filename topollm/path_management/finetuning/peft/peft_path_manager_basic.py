@@ -37,13 +37,16 @@ default_logger = logging.getLogger(__name__)
 
 
 class PEFTPathManagerBasic:
+    """Path manager for the PEFT finetuning mode."""
+
     def __init__(
         self,
         peft_config: PEFTConfig,
         verbosity: int = 1,
         logger: logging.Logger = default_logger,
     ) -> None:
-        self.peft_config = peft_config
+        """Initialize the PEFTPathManagerBasic."""
+        self.peft_config: PEFTConfig = peft_config
 
         self.verbosity = verbosity
         self.logger = logger
@@ -96,6 +99,10 @@ class PEFTPathManagerBasic:
                 f"{NAME_PREFIXES['lora_dropout']}"
                 f"{KV_SEP}"
                 f"{self.peft_config.lora_dropout}"
+                f"{ITEM_SEP}"
+                f"{NAME_PREFIXES['use_rslora']}"
+                f"{KV_SEP}"
+                f"{self.peft_config.use_rslora}"
             )
         else:
             msg = f"Unknown finetuning_mode: {self.peft_config.finetuning_mode = }"

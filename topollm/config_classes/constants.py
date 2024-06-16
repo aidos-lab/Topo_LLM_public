@@ -62,6 +62,7 @@ NAME_PREFIXES: dict[
     "context": "ctxt",
     "data": "data",
     "dataloader_desc": "dataloader",
+    "description": "desc",
     "epoch": "ep",
     "FinetuningMode": "ftm",
     "global_step": "gs",
@@ -82,12 +83,14 @@ NAME_PREFIXES: dict[
     "max_length": "max-len",
     "normalization": "norm",
     "number_of_samples": "samples",
+    "num_samples": "samples",
     "n_neighbors": "n-neighbors",
     "query": "query",
     "split": "split",
     "target_modules_to_freeze": "target-freeze",
     "transformation": "trans",
     "use_canonical_values_from_dataset": "use-canonical-val",
+    "use_rslora": "rslora",
     "weight_decay": "wd",
 }
 

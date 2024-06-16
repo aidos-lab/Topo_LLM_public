@@ -72,7 +72,7 @@ class LanguageModelConfig(ConfigBaseModel):
     )
 
     @property
-    def lanugage_model_config_description(
+    def config_description(
         self,
     ) -> str:
         # Construct and return the model parameters description

@@ -37,13 +37,13 @@ class TransformationsConfig(ConfigBaseModel):
     """Configurations for specifying transformations."""
 
     normalization: str = Field(
-        ...,
+        default="None",
         title="Normalization method.",
         description="The normalization method.",
     )
 
     @property
-    def transformation_config_description(
+    def config_description(
         self,
     ) -> str:
         desc = f"{NAME_PREFIXES['normalization']}"
