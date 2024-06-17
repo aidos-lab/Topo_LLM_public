@@ -27,6 +27,8 @@
 
 """Script for setting global variables for the config files."""
 
+import os
+
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # START Globals
 
@@ -96,6 +98,11 @@ NAME_PREFIXES: dict[
 
 # Limit for length of file names
 FILE_NAME_TRUNCATION_LENGTH: int = 200
+
+TOPO_LLM_REPOSITORY_BASE_PATH = os.getenv(
+    key="TOPO_LLM_REPOSITORY_BASE_PATH",
+    default="$HOME/git-source/Topo_LLM",
+)
 
 # END Globals
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #

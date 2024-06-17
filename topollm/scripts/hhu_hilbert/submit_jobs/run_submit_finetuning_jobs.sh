@@ -5,6 +5,8 @@ POETRY_ENV_PATH=$(poetry env info --path)
 echo "Using Poetry environment at $POETRY_ENV_PATH"
 
 source "$POETRY_ENV_PATH/bin/activate"
+
+export HYDRA_FULL_ERROR=1
 # ==================================================== #
 
 # Check for the dry run option

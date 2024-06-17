@@ -24,14 +24,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
 import pathlib
 from dataclasses import dataclass, field
 
-TOPO_LLM_REPOSITORY_BASE_PATH = os.getenv(
-    "TOPO_LLM_REPOSITORY_BASE_PATH",
-    "$HOME/git-source/Topo_LLM",
-)
+from topollm.config_classes.constants import TOPO_LLM_REPOSITORY_BASE_PATH
 
 
 @dataclass
@@ -44,6 +40,8 @@ class TrainingScheduleConfig:
 
 @dataclass
 class LoraParameters:
+    """Config for LoRA parameters."""
+
     lora_r: int
     lora_alpha: int
     use_rslora: bool = False

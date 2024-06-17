@@ -36,19 +36,19 @@ from typing import TYPE_CHECKING
 import hydra
 from tqdm import tqdm
 
-from scripts.hhu_hilbert.submit_jobs.config_classes.config import Config
-from scripts.hhu_hilbert.submit_jobs.config_classes.submit_finetuning_jobs_config import TrainingScheduleConfig
+from topollm.config_classes.submit_jobs.config import Config
+from topollm.config_classes.submit_jobs.submit_finetuning_jobs_config import TrainingScheduleConfig
 
 if TYPE_CHECKING:
-    from scripts.hhu_hilbert.submit_jobs.config_classes.machine_configuration_config import MachineConfigurationConfig
-    from scripts.hhu_hilbert.submit_jobs.config_classes.submit_finetuning_jobs_config import SubmitFinetuningJobsConfig
+    from topollm.config_classes.submit_jobs.machine_configuration_config import MachineConfigurationConfig
+    from topollm.config_classes.submit_jobs.submit_finetuning_jobs_config import SubmitFinetuningJobsConfig
 
 logger = logging.getLogger(__name__)
 
 
 @hydra.main(
     version_base=None,
-    config_path="configs",
+    config_path="../../../configs/submit_jobs",
     config_name="config",
 )
 def main(
@@ -62,9 +62,11 @@ def main(
         pprint.pformat(cfg),
     )
 
-    submit_finetuning_jobs_config: SubmitFinetuningJobsConfig = cfg.submit_finetuning_jobs
+    # submit_finetuning_jobs_config: SubmitFinetuningJobsConfig = cfg.submit_finetuning_jobs
+
     machine_configuration: MachineConfigurationConfig = cfg.machine_configuration
 
+    # TODO: Continue here
     finetuning_python_script_absolute_path = pathlib.Path(
         submit_finetuning_jobs_config.topo_llm_repository_base_path,
         submit_finetuning_jobs_config.finetuning_python_script_relative_path,

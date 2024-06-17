@@ -1,0 +1,8 @@
+defaults:
+  - base_submit_pipeline_jobs_config
+  - _self_
+
+# TODO: Update this config
+
+
+wandb_project: "Topo_LLM_pipeline_jobs"

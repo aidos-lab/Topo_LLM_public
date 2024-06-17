@@ -28,11 +28,11 @@ from dataclasses import dataclass
 
 from hydra.core.config_store import ConfigStore
 
-from scripts.hhu_hilbert.submit_jobs.config_classes.machine_configuration_config import MachineConfigurationConfig
-from scripts.hhu_hilbert.submit_jobs.config_classes.submit_finetuning_jobs_config import (
+from topollm.config_classes.submit_jobs.machine_configuration_config import MachineConfigurationConfig
+from topollm.config_classes.submit_jobs.submit_finetuning_jobs_config import (
     SubmitFinetuningJobsConfig,
-    TrainingScheduleConfig,
 )
+from topollm.config_classes.submit_jobs.submit_pipeline_jobs_config import SubmitPipelineJobsConfig
 
 
 @dataclass
@@ -41,6 +41,7 @@ class Config:
 
     machine_configuration: MachineConfigurationConfig
     submit_finetuning_jobs: SubmitFinetuningJobsConfig
+    submit_pipeline_jobs: SubmitPipelineJobsConfig
 
 
 # # # # # # # # # # # # # # # # # # # # # # # #
@@ -48,15 +49,21 @@ class Config:
 
 cs = ConfigStore.instance()
 cs.store(
-    group="machine_configuration",
+    group="configs/submit_jobs/machine_configuration",
     name="base_machine_configuration_config",
     node=MachineConfigurationConfig,
 )
 cs.store(
-    group="submit_finetuning_jobs",
+    group="configs/submit_jobs/submit_finetuning_jobs",
     name="base_submit_finetuning_jobs_config",
     node=SubmitFinetuningJobsConfig,
 )
+cs.store(
+    group="configs/submit_jobs/submit_pipeline_jobs",
+    name="base_submit_pipeline_jobs_config",
+    node=SubmitPipelineJobsConfig,
+)
+
 # Note: Do not register the TrainingScheduleConfig class as a separate config class,
 # because we use an additional key for nesting so that they do not overwrite each other.
 # https://hydra.cc/docs/patterns/select_multiple_configs_from_config_group/
