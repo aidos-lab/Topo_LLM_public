@@ -48,7 +48,7 @@ logger = logging.getLogger(__name__)
 
 @hydra.main(
     version_base=None,
-    config_path="../../../configs/submit_jobs",
+    config_path="../../../../configs/submit_jobs",
     config_name="config",
 )
 def main(
