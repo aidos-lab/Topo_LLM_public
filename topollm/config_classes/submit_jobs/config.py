@@ -36,8 +36,8 @@ from topollm.config_classes.submit_jobs.submit_pipeline_jobs_config import Submi
 
 
 @dataclass
-class Config:
-    """Config for the main function."""
+class SubmitJobsConfig:
+    """Config for the job submission main functions."""
 
     machine_configuration: MachineConfigurationConfig
     submit_finetuning_jobs: SubmitFinetuningJobsConfig
@@ -47,19 +47,29 @@ class Config:
 # # # # # # # # # # # # # # # # # # # # # # # #
 # Register the config classes with Hydra
 
+
 cs = ConfigStore.instance()
+
 cs.store(
-    group="configs/submit_jobs/machine_configuration",
+    group=None,  # This is in the top level of `submit_jobs` config group
+    name="base_submit_jobs_config",
+    node=SubmitJobsConfig,
+)
+
+# Note: The groups need to be given relative to the config path that
+# is loaded in the main function hydra decorator.
+cs.store(
+    group="machine_configuration",
     name="base_machine_configuration_config",
     node=MachineConfigurationConfig,
 )
 cs.store(
-    group="configs/submit_jobs/submit_finetuning_jobs",
+    group="submit_finetuning_jobs",
     name="base_submit_finetuning_jobs_config",
     node=SubmitFinetuningJobsConfig,
 )
 cs.store(
-    group="configs/submit_jobs/submit_pipeline_jobs",
+    group="submit_pipeline_jobs",
     name="base_submit_pipeline_jobs_config",
     node=SubmitPipelineJobsConfig,
 )
@@ -67,7 +77,3 @@ cs.store(
 # Note: Do not register the TrainingScheduleConfig class as a separate config class,
 # because we use an additional key for nesting so that they do not overwrite each other.
 # https://hydra.cc/docs/patterns/select_multiple_configs_from_config_group/
-cs.store(
-    name="base_config",
-    node=Config,
-)

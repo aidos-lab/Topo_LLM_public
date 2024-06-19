@@ -32,6 +32,11 @@ MACHINE_CONFIGURATION="rtx6000"
 
 # ==================================================== #
 
+# Echo the variables
+echo "SUBMIT_FINETUNING_JOBS: ${SUBMIT_FINETUNING_JOBS}"
+echo "MACHINE_CONFIGURATION: ${MACHINE_CONFIGURATION}"
+echo "DRY_RUN: ${DRY_RUN}"
+
 python3 submit_finetuning_jobs_with_hydra_config.py \
     submit_finetuning_jobs="${SUBMIT_FINETUNING_JOBS}" \
     machine_configuration="${MACHINE_CONFIGURATION}" \

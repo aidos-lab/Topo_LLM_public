@@ -36,23 +36,23 @@ from typing import TYPE_CHECKING
 import hydra
 from tqdm import tqdm
 
-from topollm.config_classes.submit_jobs.config import Config
-from topollm.config_classes.submit_jobs.submit_finetuning_jobs_config import TrainingScheduleConfig
+from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
+from topollm.config_classes.submit_jobs.config import SubmitJobsConfig
 
 if TYPE_CHECKING:
     from topollm.config_classes.submit_jobs.machine_configuration_config import MachineConfigurationConfig
-    from topollm.config_classes.submit_jobs.submit_finetuning_jobs_config import SubmitFinetuningJobsConfig
+    from topollm.config_classes.submit_jobs.submit_finetuning_jobs_config import TrainingScheduleConfig
 
 logger = logging.getLogger(__name__)
 
 
 @hydra.main(
     version_base=None,
-    config_path="../../../../configs/submit_jobs",
+    config_path=f"{HYDRA_CONFIGS_BASE_PATH}/submit_jobs",
     config_name="config",
 )
 def main(
-    cfg: Config,
+    cfg: SubmitJobsConfig,
 ) -> None:
     """Run the main function."""
     logger.info("Running main ...")

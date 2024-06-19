@@ -1,5 +1,5 @@
 defaults:
-  - base_config
+  - base_submit_jobs_config
   - machine_configuration: rtx6000
   - submit_finetuning_jobs: run_combinations_for_single_r_choice
   - submit_pipeline_jobs: run_multiple_models

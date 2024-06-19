@@ -104,5 +104,7 @@ TOPO_LLM_REPOSITORY_BASE_PATH = os.getenv(
     default="$HOME/git-source/Topo_LLM",
 )
 
+HYDRA_CONFIGS_BASE_PATH = f"{TOPO_LLM_REPOSITORY_BASE_PATH}/configs"
+
 # END Globals
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
