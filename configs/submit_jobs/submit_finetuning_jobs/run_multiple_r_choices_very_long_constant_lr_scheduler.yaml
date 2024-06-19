@@ -4,17 +4,17 @@ defaults:
     - very_long_constant_lr_scheduler
   - _self_
 
-base_model:
+base_model_list:
   - roberta-base
 
-finetuning_dataset:
+finetuning_dataset_list:
   - train_and_eval_on_multiwoz21_10000_samples
   - train_and_eval_on_multiwoz21_50000_train_samples
 
-peft:
+peft_list:
   - lora
 
-gradient_modifier:
+gradient_modifier_list:
   - do_nothing
 
 lora_parameters:

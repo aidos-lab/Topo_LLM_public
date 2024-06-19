@@ -27,19 +27,18 @@
 import pathlib
 from dataclasses import dataclass, field
 
-from topollm.config_classes.constants import TOPO_LLM_REPOSITORY_BASE_PATH
-
 
 @dataclass
 class SubmitPipelineJobsConfig:
     """Config for submitting finetuning jobs."""
+
+    data_list: list[str]
+    language_model_list: list[str]
 
     pipeline_python_script_relative_path: pathlib.Path = pathlib.Path(
         "topollm",
         "pipeline_scripts",
         "run_pipeline_embeddings_data_prep_local_estimate.py",
     )
-
-    topo_llm_repository_base_path: str = TOPO_LLM_REPOSITORY_BASE_PATH
 
     wandb_project: str = "Topo_LLM_submit_jobs_via_hydra_debug"

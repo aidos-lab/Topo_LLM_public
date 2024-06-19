@@ -28,6 +28,7 @@ from dataclasses import dataclass
 
 from hydra.core.config_store import ConfigStore
 
+from topollm.config_classes.constants import TOPO_LLM_REPOSITORY_BASE_PATH
 from topollm.config_classes.submit_jobs.machine_configuration_config import MachineConfigurationConfig
 from topollm.config_classes.submit_jobs.submit_finetuning_jobs_config import (
     SubmitFinetuningJobsConfig,
@@ -42,6 +43,8 @@ class SubmitJobsConfig:
     machine_configuration: MachineConfigurationConfig
     submit_finetuning_jobs: SubmitFinetuningJobsConfig
     submit_pipeline_jobs: SubmitPipelineJobsConfig
+
+    topo_llm_repository_base_path: str = TOPO_LLM_REPOSITORY_BASE_PATH
 
 
 # # # # # # # # # # # # # # # # # # # # # # # #

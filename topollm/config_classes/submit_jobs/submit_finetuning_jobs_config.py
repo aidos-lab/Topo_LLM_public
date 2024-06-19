@@ -51,10 +51,10 @@ class LoraParameters:
 class SubmitFinetuningJobsConfig:
     """Config for submitting finetuning jobs."""
 
-    base_model: list[str]
-    finetuning_dataset: list[str]
-    peft: list[str]
-    gradient_modifier: list[str]
+    base_model_list: list[str]
+    finetuning_dataset_list: list[str]
+    peft_list: list[str]
+    gradient_modifier_list: list[str]
     lora_parameters: dict[str, LoraParameters]
     training_schedule: dict[str, TrainingScheduleConfig]
     common_batch_size: int = 16
@@ -67,7 +67,5 @@ class SubmitFinetuningJobsConfig:
         "model_finetuning",
         "run_finetune_language_model_on_huggingface_dataset.py",
     )
-
-    topo_llm_repository_base_path: str = TOPO_LLM_REPOSITORY_BASE_PATH
 
     wandb_project: str = "Topo_LLM_submit_jobs_via_hydra_debug"

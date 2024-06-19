@@ -2,6 +2,11 @@ defaults:
   - base_submit_pipeline_jobs_config
   - _self_
 
+data_list:
+  - multiwoz21_validation
+  - iclr_2024_submissions
 
+language_model_list:
+  - roberta-base
 
 wandb_project: "Topo_LLM_pipeline_jobs"

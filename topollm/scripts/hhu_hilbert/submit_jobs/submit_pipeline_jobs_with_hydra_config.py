@@ -37,7 +37,8 @@ import hydra
 from tqdm import tqdm
 
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
-from topollm.config_classes.submit_jobs.config import SubmitJobsConfig
+from topollm.config_classes.submit_jobs.submit_jobs_config import SubmitJobsConfig
+from topollm.config_classes.submit_jobs.submit_pipeline_jobs_config import SubmitPipelineJobsConfig
 
 if TYPE_CHECKING:
     from topollm.config_classes.submit_jobs.machine_configuration_config import MachineConfigurationConfig
@@ -47,39 +48,36 @@ logger = logging.getLogger(__name__)
 
 
 @hydra.main(
-    version_base=None,
     config_path=f"{HYDRA_CONFIGS_BASE_PATH}/submit_jobs",
     config_name="config",
+    version_base="1.2",
 )
 def main(
-    cfg: SubmitJobsConfig,
+    submit_jobs_config: SubmitJobsConfig,
 ) -> None:
     """Run the main function."""
     logger.info("Running main ...")
 
     logger.info(
         "cfg:\n%s",
-        pprint.pformat(cfg),
+        pprint.pformat(submit_jobs_config),
     )
 
-    # submit_finetuning_jobs_config: SubmitFinetuningJobsConfig = cfg.submit_finetuning_jobs
+    machine_configuration: MachineConfigurationConfig = submit_jobs_config.machine_configuration
+    submit_pipeline_jobs_config: SubmitPipelineJobsConfig = submit_jobs_config.submit_pipeline_jobs
 
-    machine_configuration: MachineConfigurationConfig = cfg.machine_configuration
-
-    # TODO: Continue here
-    finetuning_python_script_absolute_path = pathlib.Path(
-        submit_finetuning_jobs_config.topo_llm_repository_base_path,
-        submit_finetuning_jobs_config.finetuning_python_script_relative_path,
+    pipeline_python_script_absolute_path = pathlib.Path(
+        submit_jobs_config.topo_llm_repository_base_path,
+        submit_pipeline_jobs_config.pipeline_python_script_relative_path,
     )
 
+    # # # #
+    # Argument combinations
     combinations = product(
-        submit_finetuning_jobs_config.base_model,
-        submit_finetuning_jobs_config.finetuning_dataset,
-        submit_finetuning_jobs_config.peft,
-        submit_finetuning_jobs_config.gradient_modifier,
-        submit_finetuning_jobs_config.lora_parameters.values(),
-        submit_finetuning_jobs_config.training_schedule.values(),
+        submit_pipeline_jobs_config.data_list,
+        submit_pipeline_jobs_config.language_model_list,
     )
+    # TODO: Continue here
 
     for job_id, combination in enumerate(
         tqdm(
@@ -142,7 +140,7 @@ def main(
             "--job_name",
             f"{submit_finetuning_jobs_config.wandb_project}_{job_id}",
             "--job_script",
-            str(finetuning_python_script_absolute_path),
+            str(pipeline_python_script_absolute_path),
             "--ncpus",
             str(machine_configuration.ncpus),
             "--memory",
