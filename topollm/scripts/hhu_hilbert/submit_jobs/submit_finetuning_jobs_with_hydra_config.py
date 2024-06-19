@@ -38,6 +38,7 @@ from tqdm import tqdm
 
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
 from topollm.config_classes.submit_jobs.submit_jobs_config import SubmitJobsConfig
+from topollm.scripts.hhu_hilbert.submit_jobs.call_command import call_command
 
 if TYPE_CHECKING:
     from topollm.config_classes.submit_jobs.machine_configuration_config import MachineConfigurationConfig
@@ -160,40 +161,10 @@ def main(
             job_script_args_str,
         ]
 
-        # Add separator line to log
-        logger.info(
-            30 * "=",
-        )
-
-        if machine_configuration.dry_run:
-            logger.info(
-                "Dry run enabled. Command not executed.",
-            )
-            logger.info(
-                "** Dry run ** command:\n%s",
-                command,
-            )
-        else:
-            # Calling submit_job
-            logger.info(
-                "Calling submit_job ...",
-            )
-            logger.info(
-                "command:\n%s",
-                command,
-            )
-            subprocess.run(
-                args=command,
-                shell=False,
-                check=True,
-            )
-            logger.info(
-                "Calling submit_job DONE",
-            )
-
-        # Add separator line to log
-        logger.info(
-            30 * "=",
+        call_command(
+            command=command,
+            dry_run=machine_configuration.dry_run,
+            logger=logger,
         )
 
     logger.info(
