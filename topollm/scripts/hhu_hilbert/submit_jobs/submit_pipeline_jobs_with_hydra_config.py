@@ -77,6 +77,10 @@ def main(
     combinations = product(
         submit_pipeline_jobs_config.data_list,
         submit_pipeline_jobs_config.language_model_list,
+        submit_pipeline_jobs_config.checkpoint_no_list,
+        submit_pipeline_jobs_config.layer_indices_list,
+        submit_pipeline_jobs_config.data_number_of_samples_list,
+        submit_pipeline_jobs_config.embeddings_data_prep_num_samples_list,
     )
 
     for job_id, combination in enumerate(
@@ -86,24 +90,24 @@ def main(
         ),
     ):
         logger.info(
+            60 * "=",
+        )
+        logger.info(
             "combination:\n%s",
             combination,
         )
-        data, language_model = combination
-
-        # TODO: Continue here
-
-        logger.info(
-            f"{data = }",  # noqa: G004 - low overhead
-        )
-        logger.info(
-            f"{language_model = }",  # noqa: G004 - low overhead
+        data, language_model, checkpoint_no, layer_indices, data_number_of_samples, embeddings_data_prep_num_samples = (
+            combination
         )
 
         job_script_args = [
             "--multirun",
             f"data={data}",
             f"language_model={language_model}",
+            f"+language_model.checkpoint_no={checkpoint_no}",
+            f"embeddings.embedding_extraction.layer_indices={layer_indices}",
+            f"data.number_of_samples={data_number_of_samples}",
+            f"embeddings_data_prep.num_samples={embeddings_data_prep_num_samples}",
             f"wandb.project={submit_pipeline_jobs_config.wandb_project}",
         ]
 

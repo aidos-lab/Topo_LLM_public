@@ -9,4 +9,19 @@ data_list:
 language_model_list:
   - roberta-base
 
+layer_indices_list:
+  - "[-1]"
+  - "[-2]"
+  - "[-3]"
+  - "[-4]"
+
+checkpoint_no_list:
+  - 400
+
+data_number_of_samples_list:
+  - 3000
+
+embeddings_data_prep_num_samples_list:
+  - 30000
+
 wandb_project: "Topo_LLM_pipeline_jobs"

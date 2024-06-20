@@ -39,7 +39,7 @@ def call_command(
     """Call a command in a subprocess."""
     # Add separator line to log
     logger.info(
-        30 * "=",
+        30 * "-",
     )
 
     if dry_run:
@@ -70,5 +70,5 @@ def call_command(
 
     # Add separator line to log
     logger.info(
-        30 * "=",
+        30 * "-",
     )

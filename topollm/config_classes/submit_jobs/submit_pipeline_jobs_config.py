@@ -25,7 +25,7 @@
 # limitations under the License.
 
 import pathlib
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 
 @dataclass
@@ -34,6 +34,10 @@ class SubmitPipelineJobsConfig:
 
     data_list: list[str]
     language_model_list: list[str]
+    layer_indices_list: list[str]
+    checkpoint_no_list: list[str]
+    data_number_of_samples_list: list[str]
+    embeddings_data_prep_num_samples_list: list[str]
 
     pipeline_python_script_relative_path: pathlib.Path = pathlib.Path(
         "topollm",
