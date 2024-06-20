@@ -36,6 +36,7 @@ import hydra
 from tqdm import tqdm
 
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
+from topollm.config_classes.submit_jobs.machine_configuration_config import get_machine_configuration_args_list
 from topollm.config_classes.submit_jobs.submit_jobs_config import SubmitJobsConfig
 from topollm.config_classes.submit_jobs.submit_pipeline_jobs_config import SubmitPipelineJobsConfig
 from topollm.scripts.hhu_hilbert.submit_jobs.call_command import call_command
@@ -111,33 +112,20 @@ def main(
             f"JOB_SCRIPT_ARGS={job_script_args_str}",  # noqa: G004 - low overhead
         )
 
-        command: list[str] = (
-            [
-                *machine_configuration.submit_job_command,
-                "--job_name",
-                f"{submit_pipeline_jobs_config.wandb_project}_{job_id}",
-                "--job_script",
-                str(pipeline_python_script_absolute_path),
-            ]
-            + [
-                "--ncpus",
-                str(machine_configuration.ncpus),
-                "--memory",
-                str(machine_configuration.memory_gb),
-                "--ngpus",
-                str(machine_configuration.ngpus),
-                "--accelerator_model",
-                machine_configuration.accelerator_model,
-                "--queue",
-                machine_configuration.queue,
-                "--walltime",
-                machine_configuration.walltime,
-            ]
-            + [
-                "--job_script_args",
-                job_script_args_str,
-            ]
+        machine_configuration_args_list = get_machine_configuration_args_list(
+            machine_configuration_config=machine_configuration,
         )
+
+        command: list[str] = [
+            *machine_configuration.submit_job_command,
+            "--job_name",
+            f"{submit_pipeline_jobs_config.wandb_project}_{job_id}",
+            "--job_script",
+            str(pipeline_python_script_absolute_path),
+            *machine_configuration_args_list,
+            "--job_script_args",
+            job_script_args_str,
+        ]
 
         call_command(
             command=command,

@@ -34,7 +34,11 @@ USER = os.getenv(
 
 @dataclass
 class MachineConfigurationConfig:
-    """Config for machine configuration."""
+    """Config for machine configuration.
+
+    Note: Since we register this with the hydra config,
+    we do not want to add methods to this class.
+    """
 
     accelerator_model: str = "rtx6000"
     queue: str = "CUDA"
@@ -49,3 +53,29 @@ class MachineConfigurationConfig:
         ],
     )
     dry_run: bool = False
+
+
+def get_machine_configuration_args_list(
+    machine_configuration_config: MachineConfigurationConfig,
+) -> list[str]:
+    """Get machine configuration args list.
+
+    Note that we have this as a separate function and not as a method of the MachineConfigurationConfig dataclass,
+    since we register this dataclass with the hydra config.
+    """
+    machine_configuration_args_list: list[str] = [
+        "--ncpus",
+        str(machine_configuration_config.ncpus),
+        "--memory",
+        str(machine_configuration_config.memory_gb),
+        "--ngpus",
+        str(machine_configuration_config.ngpus),
+        "--accelerator_model",
+        machine_configuration_config.accelerator_model,
+        "--queue",
+        machine_configuration_config.queue,
+        "--walltime",
+        machine_configuration_config.walltime,
+    ]
+
+    return machine_configuration_args_list
