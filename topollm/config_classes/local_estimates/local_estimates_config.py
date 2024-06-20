@@ -37,7 +37,7 @@ class LocalEstimatesConfig(ConfigBaseModel):
     """Configurations for specifying data preparation."""
 
     num_samples: int = Field(
-        default=1_500,
+        default=2_500,
         title="Number of samples.",
         description="The number of samples to compute the estimates for.",
     )

@@ -5,7 +5,7 @@
 
 echo "TOPO_LLM_REPOSITORY_BASE_PATH=$TOPO_LLM_REPOSITORY_BASE_PATH"
 
-source "${TOPO_LLM_REPOSITORY_BASE_PATH}/scripts/hhu_hilbert/sync_data/common_variables.sh"
+source "${TOPO_LLM_REPOSITORY_BASE_PATH}/topollm/scripts/hhu_hilbert/sync_data/common_variables.sh"
 
 
 rsync -avz --delete --progress \

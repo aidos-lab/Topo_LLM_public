@@ -22,8 +22,8 @@ fi
 
 SUBMIT_PIPELINE_JOBS="run_multiple_models"
 
-MACHINE_CONFIGURATION="rtx6000"
-# MACHINE_CONFIGURATION="gtx1080ti"
+# MACHINE_CONFIGURATION="rtx6000"
+MACHINE_CONFIGURATION="gtx1080ti"
 
 # END: Python script - Command line arguments
 # # # # # # # # # # # # # # # # # # # # # # # # # # #
