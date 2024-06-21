@@ -1,0 +1,39 @@
+#!/bin/bash
+
+# This script will run all the tests in the tests directory,
+# and create an html coverage report in the htmlcov directory.
+
+source ${TOPO_LLM_REPOSITORY_BASE_PATH}/.venv/bin/activate
+
+# Add the flag --keep-test-data to keep the test data,
+# otherwise the test data will be placed into temporary directories
+# which are deleted after the tests are run.
+
+# keep_test_data=true
+keep_test_data=false
+
+if [ "$keep_test_data" = true ]; then
+    KEEP_TEST_DATA_FLAG="--keep-test-data"
+else
+    KEEP_TEST_DATA_FLAG=""
+fi
+
+# Use the following array to select specific test cases to run.
+# Initialize the array:
+SELECTED_TEST_CASES=()
+SELECTED_TEST_CASES+=(-m "not slow")
+
+# Add the following options to pytest to show the output of print statements:
+#
+# ADDITIONAL_PYTEST_OPTIONS="--capture=no"
+ADDITIONAL_PYTEST_OPTIONS=""
+
+
+python3 -m pytest \
+    $KEEP_TEST_DATA_FLAG \
+    "${SELECTED_TEST_CASES[@]}" \
+    ${TOPO_LLM_REPOSITORY_BASE_PATH}/tests/ \
+    --cov=topollm/ \
+    --cov-report=html:tests/temp_files/coverage_report \
+    --hypothesis-show-statistics \
+    $ADDITIONAL_PYTEST_OPTIONS

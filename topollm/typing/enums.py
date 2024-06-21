@@ -60,7 +60,9 @@ class Verbosity(IntEnum):
 
 
 @unique
-class PreferredTorchBackend(StrEnum):  # type: ignore
+class PreferredTorchBackend(StrEnum):
+    """The preferred backend for PyTorch."""
+
     CPU = "cpu"
     CUDA = "cuda"
     MPS = "mps"
@@ -71,7 +73,9 @@ class PreferredTorchBackend(StrEnum):  # type: ignore
 
 
 @unique
-class DatasetType(StrEnum):  # type: ignore
+class DatasetType(StrEnum):
+    """The different types of datasets."""
+
     HUGGINGFACE_DATASET = "huggingface_dataset"
 
 
@@ -79,12 +83,16 @@ class DatasetType(StrEnum):  # type: ignore
 
 
 @unique
-class ArrayStorageType(StrEnum):  # type: ignore
+class ArrayStorageType(StrEnum):
+    """The different types of array storage."""
+
     ZARR = "zarr"
 
 
 @unique
-class MetadataStorageType(StrEnum):  # type: ignore
+class MetadataStorageType(StrEnum):
+    """The different types of metadata storage."""
+
     XARRAY = "xarray"
     PICKLE = "pickle"
 
@@ -93,14 +101,18 @@ class MetadataStorageType(StrEnum):  # type: ignore
 
 
 @unique
-class AggregationType(StrEnum):  # type: ignore
+class AggregationType(StrEnum):
+    """The different types of aggregation for the embedding vectors."""
+
     CONCATENATE = "concatenate"
     MEAN = "mean"
 
 
 @unique
-class Level(StrEnum):  # type: ignore
-    TOKEN = "token"
+class Level(StrEnum):
+    """The different levels for the embedding vector extraction."""
+
+    TOKEN = "token"  # noqa: S105 - not a password token
     WVFS = "wvfs"
     DATASET_ENTRY = "dataset_entry"
 
@@ -124,6 +136,16 @@ level_short_to_long: dict[str, str] = {
 masking_mode_short_to_long: dict[str, str] = {
     "hsout": "hidden-state-of-unmasked-token",
 }
+
+# ==============================
+
+
+@unique
+class ZeroVectorHandlingMode(StrEnum):
+    """The different modes for handling zero vectors."""
+
+    KEEP = "keep"
+    REMOVE = "remove"
 
 
 # ==============================
@@ -194,107 +216,17 @@ class WordSeparationMethod(StrEnum):  # type: ignore
     FROM_DATASET = "from_dataset"
 
 
-# ==============================
-# Enums used for neighborhoods configurations
-# ==============================
-
-
-@unique
-class NeighborhoodsCenterMethod(StrEnum):  # type: ignore
-    IGNORE = "ignore"
-    ADD_CENTER = "add_center"
-    ADDIFNOT = "addifnot"
-
-
-@unique
-class PrecomputedNeighborsMetric(StrEnum):  # type: ignore
-    EUCLIDEAN = "euclidean"
-    COSINE = "cosine"
-
-
-@unique
-class RipserMetric(StrEnum):  # type: ignore
-    EUCLIDEAN = "euclidean"
-    COSINE = "cosine"
-
-
-@unique
-class NeighborhoodsKeyDesc(StrEnum):  # type: ignore
-    MULTIWOZ21_TRAIN = "multiwoz21-train"
-    SGD_TRAIN = "sgd-train"
-    MULTIWOZ21_TRAIN_AND_SGD_TRAIN = "multiwoz21-train-and-sgd-train"
-
-
-@unique
-class WhichEmbeddings(StrEnum):  # type: ignore
-    KEY = "key"
-    QUERY = "query"
-
-
-@unique
-class DistancesOrIndices(StrEnum):  # type: ignore
-    DISTANCES = "distances"
-    INDICES = "indices"
-
-
-# ==============================
-# Enums used for configuration parameters
-# of the BioTagger PyTorch models
-# ==============================
-
-
-@unique
-class FeatureType(StrEnum):  # type: ignore
-    LM = "lm"
-    LM_C_PIS_H0 = "lm_C_PIs_H0"
-    LM_C_WASSERSTEIN_H0_H1 = "lm_C_wasserstein_H0_H1"
-    LM_C_CODENSITY = "lm_C_codensity"
-    LM_C_LOCALDIM = "lm_C_localdim"
-    LM_C_PERPLEXITY = "lm_C_perplexity"
-
-
-@unique
-class AdditionalLayerNormForInProjection(StrEnum):  # type: ignore
-    NONE = "None"
-    BEFORE = "before"
-    AFTER = "after"
-
-
-@unique
-class EncodedSliceCombinationMode(StrEnum):  # type: ignore
-    ADD = "add"
-    CONCATENATE = "concatenate"
-    NONE = "none"
-
-
-@unique
-class InProjectionType(StrEnum):  # type: ignore
-    LINEAR = "linear"
-    MLP = "mlp"
-    SLICED_MLP = "sliced_mlp"
-
-
-@unique
-class ModelSelectionMetric(StrEnum):  # type: ignore
-    F1_MACRO = "f1_macro"
-    PHRASAL_OVERALL_F1 = "phrasal_overall_f1"
-    TRAINING_LOSS = "training_loss"
-
-
-@unique
-class SliceNormType(StrEnum):
-    NONE = "None"
-    INDIVIDUAL = "individual"
-    SHARED = "shared"
-
-
 @unique
 class TaggerType(StrEnum):
+    """The different types of taggers."""
+
     ROBERTA = "roberta"
 
 
 @unique
 class LrSchedulerType(StrEnum):
+    """The different types of learning rate schedulers."""
+
     CONSTANT = "constant"
     LINEAR_WITH_WARMUP = "linear_with_warmup"
 

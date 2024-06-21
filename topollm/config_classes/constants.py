@@ -27,6 +27,8 @@
 
 """Script for setting global variables for the config files."""
 
+import os
+
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # START Globals
 
@@ -92,10 +94,18 @@ NAME_PREFIXES: dict[
     "use_canonical_values_from_dataset": "use-canonical-val",
     "use_rslora": "rslora",
     "weight_decay": "wd",
+    "zero_vector_handling_mode": "zerovec",
 }
 
 # Limit for length of file names
 FILE_NAME_TRUNCATION_LENGTH: int = 200
+
+TOPO_LLM_REPOSITORY_BASE_PATH = os.getenv(
+    key="TOPO_LLM_REPOSITORY_BASE_PATH",
+    default="$HOME/git-source/Topo_LLM",
+)
+
+HYDRA_CONFIGS_BASE_PATH = f"{TOPO_LLM_REPOSITORY_BASE_PATH}/configs"
 
 # END Globals
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #

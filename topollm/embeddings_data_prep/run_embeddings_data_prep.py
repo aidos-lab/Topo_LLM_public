@@ -46,6 +46,7 @@ import hydra
 import hydra.core.hydra_config
 import omegaconf
 
+from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
 from topollm.config_classes.setup_OmegaConf import setup_OmegaConf
 from topollm.embeddings_data_prep.embeddings_data_prep_worker import embeddings_data_prep_worker
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
@@ -66,7 +67,7 @@ setup_OmegaConf()
 
 
 @hydra.main(
-    config_path="../../configs",
+    config_path=f"{HYDRA_CONFIGS_BASE_PATH}",
     config_name="main_config",
     version_base="1.2",
 )
