@@ -194,7 +194,7 @@ def load_embedding_data(
     stacked_meta: np.ndarray = stacked_meta.reshape(
         stacked_meta.shape[0] * stacked_meta.shape[1],
     )
-    sentence_idx = np.array([np.ones(token_num) * i for i in range(sentence_num)]).reshape(sentence_num*token_num)
+    sentence_idx = np.array([np.ones(token_num) * i for i in range(sentence_num)]).reshape(sentence_num * token_num)
     full_df = pd.DataFrame(
         {
             "arr": list(array_np),
@@ -211,7 +211,12 @@ def remove_padding_and_extra_tokens(
     main_config: MainConfig,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
-) -> tuple[TransformersTokenizer, np.ndarray, np.ndarray]:
+) -> tuple[
+    TransformersTokenizer,
+    np.ndarray,
+    np.ndarray,
+    np.ndarray,
+]:
     """Remove padding and extra tokens from the data."""
     tokenizer, _ = load_modified_tokenizer(
         main_config=main_config,
@@ -235,22 +240,24 @@ def remove_padding_and_extra_tokens(
             msg,
         )
 
+    filtered_df = full_df[(full_df["meta"] != eos_token_id) & (full_df["meta"] != pad_token_id)]
+
     # arr_no_pad.shape:
     # (number of non-padding tokens in subsample, embedding dimension)
     arr_no_pad = np.array(
-        list(full_df[(full_df["meta"] != eos_token_id) & (full_df["meta"] != pad_token_id)].arr),
+        list(filtered_df.arr),
     )
 
     # meta_no_pad.shape:
     # (number of non-padding tokens in subsample,)
     meta_no_pad = np.array(
-        list(full_df[(full_df["meta"] != eos_token_id) & (full_df["meta"] != pad_token_id)].meta),
+        list(filtered_df.meta),
     )
 
     # sentence_idx_no_pad.shape:
     # (number of non-padding tokens in subsample,)
     sentence_idx_no_pad = np.array(
-        list(full_df[(full_df["meta"] != eos_token_id) & (full_df["meta"] != pad_token_id)].sentence_idx),
+        list(filtered_df.sentence_idx),
     )
 
     return tokenizer, arr_no_pad, meta_no_pad, sentence_idx_no_pad
@@ -263,7 +270,11 @@ def select_subsets_of_arr_and_meta(
     sample_size: int,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
-) -> tuple[np.ndarray, np.ndarray]:
+) -> tuple[
+    np.ndarray,
+    np.ndarray,
+    np.ndarray,
+]:
     """Select subsets of the arrays and metadata."""
     rng = np.random.default_rng(
         seed=42,
