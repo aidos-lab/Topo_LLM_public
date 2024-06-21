@@ -5,7 +5,7 @@
     "tasks": [
         {
             "label": "rsync git repository to hhu hilbert",
-            "command": "./scripts/hhu_hilbert/sync_data/rsync_git_repository_to_hhu_hilbert.sh",
+            "command": "./topollm/scripts/hhu_hilbert/sync_data/rsync_git_repository_to_hhu_hilbert.sh",
             "type": "shell",
             "group": {
                 "kind": "build",
@@ -19,7 +19,7 @@
         },
         {
             "label": "rsync wandb from hhu hilbert and upload to wandb",
-            "command": "./scripts/hhu_hilbert/sync_data/rsync_wandb_output_dir_from_hhu_hilbert.sh && ./wandb_output_dir/sync_wandb_runs.sh",
+            "command": "./topollm/scripts/hhu_hilbert/sync_data/rsync_wandb_output_dir_from_hhu_hilbert.sh && ./wandb_output_dir/sync_wandb_runs.sh",
             "type": "shell",
             "group": {
                 "kind": "build",
@@ -33,7 +33,7 @@
         },
         {
             "label": "rsync hydra_output_dir and job_logs from hhu hilbert",
-            "command": "./scripts/hhu_hilbert/sync_data/rsync_hydra_output_dir_from_hhu_hilbert.sh && ./scripts/hhu_hilbert/sync_data/rsync_job_logs_dir_from_hhu_hilbert.sh",
+            "command": "./topollm/scripts/hhu_hilbert/sync_data/rsync_hydra_output_dir_from_hhu_hilbert.sh && ./topollm/scripts/hhu_hilbert/sync_data/rsync_job_logs_dir_from_hhu_hilbert.sh",
             "type": "shell",
             "group": {
                 "kind": "build",
@@ -47,7 +47,7 @@
         },
         {
             "label": "rsync parts of analysis directory from hhu hilbert",
-            "command": "./scripts/hhu_hilbert/sync_data/rsync_partial_analysis_dir_from_hhu_hilbert.sh",
+            "command": "./topollm/scripts/hhu_hilbert/sync_data/rsync_partial_analysis_dir_from_hhu_hilbert.sh",
             "type": "shell",
             "group": {
                 "kind": "build",

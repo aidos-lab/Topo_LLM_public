@@ -32,6 +32,7 @@ import hydra.core.hydra_config
 import omegaconf
 
 from topollm.analysis.twonn.twonn_worker import twonn_worker
+from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
 from topollm.config_classes.setup_OmegaConf import setup_OmegaConf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
@@ -51,7 +52,7 @@ setup_OmegaConf()
 
 
 @hydra.main(
-    config_path="../../../configs",
+    config_path=f"{HYDRA_CONFIGS_BASE_PATH}",
     config_name="main_config",
     version_base="1.2",
 )

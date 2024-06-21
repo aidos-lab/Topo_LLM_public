@@ -29,16 +29,21 @@
 
 import logging
 import pathlib
+from typing import TYPE_CHECKING
 
 import numpy as np
 import skdim
 import torch
 
+from topollm.analysis.local_estimates.filter.get_local_estimates_filter import get_local_estimates_filter
 from topollm.config_classes.main_config import MainConfig
 from topollm.logging.log_array_info import log_array_info
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
 from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 from topollm.typing.enums import Verbosity
+
+if TYPE_CHECKING:
+    from topollm.analysis.local_estimates.filter.protocol import LocalEstimatesFilter
 
 default_device = torch.device("cpu")
 default_logger = logging.getLogger(__name__)
@@ -78,25 +83,28 @@ def twonn_worker(
         )
 
     # # # #
-    # Restrict to the first `local_estimates_sample_size` samples
     if verbosity >= Verbosity.NORMAL:
-        logger.info("Truncating and removing zero rows ...")
+        logger.info("Filtering local estimates and truncating to first vectors ...")
 
-    local_estimates_sample_size = main_config.local_estimates.num_samples
-    local_estimates_sample_size = min(
-        local_estimates_sample_size,
-        arr_no_pad.shape[0],
+    local_estimates_filter: LocalEstimatesFilter = get_local_estimates_filter(
+        local_estimates_filtering_config=main_config.local_estimates.filtering,
+        verbosity=verbosity,
+        logger=logger,
     )
 
-    arr_no_pad_truncated = arr_no_pad[:local_estimates_sample_size]
+    # Filter the array, for example, by potentially removing zero vectors
+    arr_no_pad_filtered = local_estimates_filter.filter_data(
+        input_array=arr_no_pad,
+    )
 
-    # Remove zero rows from the array
-    arr_no_pad_truncated = arr_no_pad_truncated[
-        ~np.all(
-            arr_no_pad_truncated == 0,
-            axis=1,
-        )
-    ]
+    # Restrict to the first `local_estimates_sample_size` samples
+    local_estimates_sample_size = main_config.local_estimates.filtering.num_samples
+    local_estimates_sample_size = min(
+        local_estimates_sample_size,
+        arr_no_pad_filtered.shape[0],
+    )
+
+    arr_no_pad_truncated = arr_no_pad_filtered[:local_estimates_sample_size]
 
     if verbosity >= Verbosity.NORMAL:
         log_array_info(
@@ -108,7 +116,7 @@ def twonn_worker(
         )
 
     if verbosity >= Verbosity.NORMAL:
-        logger.info("Truncating and removing zero rows DONE")
+        logger.info("Filtering local estimates and truncating to first vectors DONE")
 
     # # # #
     # Local estimates computation
