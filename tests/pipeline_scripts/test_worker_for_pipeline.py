@@ -47,6 +47,7 @@ from topollm.config_classes.finetuning.tokenizer_modifier_config import Tokenize
 from topollm.config_classes.inference.inference_config import InferenceConfig
 from topollm.config_classes.language_model.language_model_config import LanguageModelConfig
 from topollm.config_classes.local_estimates.local_estimates_config import LocalEstimatesConfig
+from topollm.config_classes.local_estimates.local_estimates_filtering_config import LocalEstimatesFilteringConfig
 from topollm.config_classes.main_config import MainConfig
 from topollm.config_classes.paths.paths_config import PathsConfig
 from topollm.config_classes.storage.storage_config import StorageConfig
@@ -64,6 +65,7 @@ from topollm.typing.enums import (
     Split,
     TokenizerModifierMode,
     Verbosity,
+    ZeroVectorHandlingMode,
 )
 
 
@@ -99,8 +101,8 @@ def main_config_with_small_dataset_and_model(
     paths_config: PathsConfig,
 ) -> MainConfig:
     """Return a MainConfig object."""
-    pretrained_model_name_or_path = "roberta-base"
-    # pretrained_model_name_or_path = "hf-internal-testing/tiny-random-RobertaModel"
+    # pretrained_model_name_or_path = "roberta-base"
+    pretrained_model_name_or_path = "hf-internal-testing/tiny-random-RobertaModel"
 
     short_model_name = "tiny-random-RobertaModel"
 
@@ -152,8 +154,12 @@ def main_config_with_small_dataset_and_model(
     embeddings_data_prep_config = EmbeddingsDataPrepConfig(
         num_samples=1_000,
     )
+    local_estimates_filtering_config = LocalEstimatesFilteringConfig(
+        zero_vector_handling_mode=ZeroVectorHandlingMode.REMOVE,
+    )
     local_estimates_config = LocalEstimatesConfig(
-        num_samples=1_500,
+        description="twonn",
+        filtering=local_estimates_filtering_config,
     )
 
     config = MainConfig(
@@ -184,6 +190,12 @@ def test_worker_for_pipeline(
     logger_fixture: logging.Logger,
 ) -> None:
     """Test the pipeline function."""
+    logger_fixture.info("Testing worker_for_pipeline ...")
+    logger_fixture.info(
+        "main_config_with_small_dataset_and_model:%s",
+        main_config_with_small_dataset_and_model,
+    )
+
     worker_for_pipeline(
         main_config=main_config_with_small_dataset_and_model,
         device=device_fixture,

@@ -94,6 +94,7 @@ NAME_PREFIXES: dict[
     "use_canonical_values_from_dataset": "use-canonical-val",
     "use_rslora": "rslora",
     "weight_decay": "wd",
+    "zero_vector_handling_mode": "zerovec",
 }
 
 # Limit for length of file names
