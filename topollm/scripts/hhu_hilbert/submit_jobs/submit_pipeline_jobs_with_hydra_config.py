@@ -60,7 +60,7 @@ def main(
     logger.info("Running main ...")
 
     logger.info(
-        "cfg:\n%s",
+        "submit_jobs_config:\n%s",
         pprint.pformat(submit_jobs_config),
     )
 
@@ -121,7 +121,7 @@ def main(
         )
 
         command: list[str] = [
-            *machine_configuration.submit_job_command,
+            *machine_configuration.submit_job_hilbert_command,
             "--job_name",
             f"{submit_pipeline_jobs_config.wandb_project}_{job_id}",
             "--job_script",

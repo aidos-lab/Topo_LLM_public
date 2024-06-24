@@ -73,6 +73,17 @@ class PreferredTorchBackend(StrEnum):
 
 
 @unique
+class JobRunMode(StrEnum):
+    """The different modes for running jobs."""
+
+    LOCAL = "local"
+    HHU_HILBERT = "hhu_hilbert"
+
+
+# ==============================
+
+
+@unique
 class DatasetType(StrEnum):
     """The different types of datasets."""
 
