@@ -39,6 +39,7 @@ import transformers
 import wandb
 
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
+from topollm.config_classes.main_config import MainConfig
 from topollm.config_classes.setup_OmegaConf import setup_OmegaConf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
@@ -49,7 +50,7 @@ from topollm.path_management.finetuning.factory import get_finetuning_path_manag
 from topollm.typing.enums import Verbosity
 
 if TYPE_CHECKING:
-    from topollm.config_classes.main_config import MainConfig
+    pass
 
 # Increase the wandb service wait time to prevent errors.
 # https://github.com/wandb/wandb/issues/5214

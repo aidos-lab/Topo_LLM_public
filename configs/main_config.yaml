@@ -1,6 +1,7 @@
 defaults:
   - data: one-year-of-tsla-on-reddit
   - embeddings: basic_embeddings
+  - feature_flags: default
   - finetuning: finetuning
   - inference: default
   - language_model: roberta-base

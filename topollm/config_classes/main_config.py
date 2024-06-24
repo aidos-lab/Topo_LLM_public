@@ -33,6 +33,7 @@ from topollm.config_classes.config_base_model import ConfigBaseModel
 from topollm.config_classes.data.data_config import DataConfig
 from topollm.config_classes.embeddings.embeddings_config import EmbeddingsConfig
 from topollm.config_classes.embeddings_data_prep.embeddings_data_prep_config import EmbeddingsDataPrepConfig
+from topollm.config_classes.feature_flags.feature_flags_config import FeatureFlagsConfig
 from topollm.config_classes.finetuning.finetuning_config import FinetuningConfig
 from topollm.config_classes.inference.inference_config import InferenceConfig
 from topollm.config_classes.language_model.language_model_config import (
@@ -66,6 +67,12 @@ class MainConfig(ConfigBaseModel):
         ...,
         title="Embeddings configuration.",
         description="The configuration for specifying embeddings.",
+    )
+
+    feature_flags: FeatureFlagsConfig = Field(
+        default_factory=FeatureFlagsConfig,
+        title="Feature flags configuration.",
+        description="The configuration for specifying feature flags.",
     )
 
     finetuning: FinetuningConfig = Field(
