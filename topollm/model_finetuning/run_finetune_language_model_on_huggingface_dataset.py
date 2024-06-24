@@ -43,7 +43,10 @@ from topollm.config_classes.setup_OmegaConf import setup_OmegaConf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.model_finetuning.do_finetuning_process import do_finetuning_process
+from topollm.model_finetuning.prepare_finetuned_model_dir import prepare_finetuned_model_dir
 from topollm.model_handling.get_torch_device import get_torch_device
+from topollm.path_management.finetuning.factory import get_finetuning_path_manager
+from topollm.typing.enums import Verbosity
 
 if TYPE_CHECKING:
     from topollm.config_classes.main_config import MainConfig
@@ -153,6 +156,38 @@ def main(
     logger.info(
         "Running script DONE",
     )
+
+
+default_logger = logging.getLogger(__name__)
+
+
+def create_language_model_config(
+    main_config: MainConfig,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+):
+    """Create the config for the language model resulting from fine-tuning.
+
+    This config can be used for further processing, e.g. for the embedding and data generation.
+
+    # TODO: Add function return type
+    """
+    finetuning_path_manager = get_finetuning_path_manager(
+        main_config=main_config,
+        logger=logger,
+    )
+
+    finetuned_model_dir = prepare_finetuned_model_dir(
+        finetuning_path_manager=finetuning_path_manager,
+        logger=logger,
+    )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            f"{finetuned_model_dir = }",  # noqa: G004 - low overhead
+        )
+
+    # TODO(Ben): Continue here
 
 
 if __name__ == "__main__":
