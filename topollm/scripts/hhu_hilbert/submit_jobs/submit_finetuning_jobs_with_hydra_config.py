@@ -70,10 +70,11 @@ def main(
     submit_finetuning_jobs_config: SubmitFinetuningJobsConfig = submit_jobs_config.submit_finetuning_jobs
     machine_configuration: MachineConfigurationConfig = submit_jobs_config.machine_configuration
 
-    finetuning_python_script_absolute_path = pathlib.Path(
+    python_script_absolute_path = pathlib.Path(
         submit_jobs_config.topo_llm_repository_base_path,
         submit_finetuning_jobs_config.finetuning_python_script_relative_path,
     )
+    wandb_project: str = submit_finetuning_jobs_config.wandb_project
 
     combinations = product(
         submit_finetuning_jobs_config.base_model_list,
@@ -129,7 +130,7 @@ def main(
             f"finetuning/finetuning_datasets={finetuning_dataset}",
             f"finetuning/peft={peft}",
             f"finetuning/gradient_modifier={gradient_modifier}",
-            f"wandb.project={submit_finetuning_jobs_config.wandb_project}",
+            f"wandb.project={wandb_project}",
             f"++finetuning.peft.r={lora_parameters.lora_r}",
             f"++finetuning.peft.lora_alpha={lora_parameters.lora_alpha}",
             f"++finetuning.peft.use_rslora={lora_parameters.use_rslora}",
@@ -144,12 +145,15 @@ def main(
             machine_configuration_config=machine_configuration,
         )
 
+        # TODO(Ben): Add an option to run the jobs locally in a sequence instead of submitting them to the cluster
+        # (this can be useful to run the config file creation scripts locally)
+
         command: list[str] = [
             *machine_configuration.submit_job_command,
             "--job_name",
-            f"{submit_finetuning_jobs_config.wandb_project}_{job_id}",
+            f"{wandb_project}_{job_id}",
             "--job_script",
-            str(finetuning_python_script_absolute_path),
+            str(python_script_absolute_path),
             *machine_configuration_args_list,
             "--job_script_args",
             job_script_args_str,
