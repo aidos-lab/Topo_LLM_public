@@ -80,6 +80,8 @@ def main(
     )
     wandb_project: str = submit_finetuning_jobs_config.wandb_project
 
+    # # # #
+    # Argument combinations
     combinations = product(
         submit_finetuning_jobs_config.base_model_list,
         submit_finetuning_jobs_config.finetuning_dataset_list,
@@ -97,10 +99,21 @@ def main(
     ):
         if verbosity >= Verbosity.NORMAL:
             logger.info(
+                60 * "=",
+            )
+            logger.info(
                 "combination:\n%s",
                 combination,
             )
-        base_model, finetuning_dataset, peft, gradient_modifier, lora_parameters, training_schedule = combination
+
+        (
+            base_model,
+            finetuning_dataset,
+            peft,
+            gradient_modifier,
+            lora_parameters,
+            training_schedule,
+        ) = combination
         training_schedule: TrainingScheduleConfig
 
         if verbosity >= Verbosity.NORMAL:

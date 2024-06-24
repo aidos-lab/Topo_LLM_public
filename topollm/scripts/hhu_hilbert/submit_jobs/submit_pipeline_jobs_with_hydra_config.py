@@ -40,12 +40,14 @@ from topollm.config_classes.submit_jobs.machine_configuration_config import get_
 from topollm.config_classes.submit_jobs.submit_jobs_config import SubmitJobsConfig
 from topollm.config_classes.submit_jobs.submit_pipeline_jobs_config import SubmitPipelineJobsConfig
 from topollm.scripts.hhu_hilbert.submit_jobs.call_command import call_command
+from topollm.scripts.hhu_hilbert.submit_jobs.run_job_submission import run_job_submission
+from topollm.typing.enums import Verbosity
 
 if TYPE_CHECKING:
     from topollm.config_classes.submit_jobs.machine_configuration_config import MachineConfigurationConfig
     from topollm.config_classes.submit_jobs.submit_finetuning_jobs_config import TrainingScheduleConfig
 
-logger = logging.getLogger(__name__)
+global_logger = logging.getLogger(__name__)
 
 
 @hydra.main(
@@ -57,20 +59,24 @@ def main(
     submit_jobs_config: SubmitJobsConfig,
 ) -> None:
     """Run the main function."""
+    logger = global_logger
+    verbosity: Verbosity = submit_jobs_config.machine_configuration.verbosity
+
     logger.info("Running main ...")
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            "submit_jobs_config:\n%s",
+            pprint.pformat(submit_jobs_config),
+        )
 
-    logger.info(
-        "submit_jobs_config:\n%s",
-        pprint.pformat(submit_jobs_config),
-    )
-
-    machine_configuration: MachineConfigurationConfig = submit_jobs_config.machine_configuration
     submit_pipeline_jobs_config: SubmitPipelineJobsConfig = submit_jobs_config.submit_pipeline_jobs
+    machine_configuration: MachineConfigurationConfig = submit_jobs_config.machine_configuration
 
-    pipeline_python_script_absolute_path = pathlib.Path(
+    python_script_absolute_path = pathlib.Path(
         submit_jobs_config.topo_llm_repository_base_path,
         submit_pipeline_jobs_config.pipeline_python_script_relative_path,
     )
+    wandb_project: str = submit_pipeline_jobs_config.wandb_project
 
     # # # #
     # Argument combinations
@@ -89,16 +95,23 @@ def main(
             desc="Submitting jobs",
         ),
     ):
-        logger.info(
-            60 * "=",
-        )
-        logger.info(
-            "combination:\n%s",
-            combination,
-        )
-        data, language_model, checkpoint_no, layer_indices, data_number_of_samples, embeddings_data_prep_num_samples = (
-            combination
-        )
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                60 * "=",
+            )
+            logger.info(
+                "combination:\n%s",
+                combination,
+            )
+
+        (
+            data,
+            language_model,
+            checkpoint_no,
+            layer_indices,
+            data_number_of_samples,
+            embeddings_data_prep_num_samples,
+        ) = combination
 
         job_script_args = [
             "--multirun",
@@ -108,33 +121,17 @@ def main(
             f"embeddings.embedding_extraction.layer_indices={layer_indices}",
             f"data.number_of_samples={data_number_of_samples}",
             f"embeddings_data_prep.num_samples={embeddings_data_prep_num_samples}",
-            f"wandb.project={submit_pipeline_jobs_config.wandb_project}",
+            f"wandb.project={wandb_project}",
         ]
 
-        job_script_args_str = " ".join(job_script_args)
-        logger.info(
-            f"JOB_SCRIPT_ARGS={job_script_args_str}",  # noqa: G004 - low overhead
-        )
+        job_name: str = f"{wandb_project}_{job_id}"
 
-        machine_configuration_args_list = get_machine_configuration_args_list(
-            machine_configuration_config=machine_configuration,
-        )
-
-        command: list[str] = [
-            *machine_configuration.submit_job_hilbert_command,
-            "--job_name",
-            f"{submit_pipeline_jobs_config.wandb_project}_{job_id}",
-            "--job_script",
-            str(pipeline_python_script_absolute_path),
-            *machine_configuration_args_list,
-            "--job_script_args",
-            job_script_args_str,
-        ]
-
-        call_command(
-            command=command,
-            dry_run=machine_configuration.dry_run,
-            logger=logger,
+        run_job_submission(
+            python_script_absolute_path=python_script_absolute_path,
+            job_script_args=job_script_args,
+            machine_configuration=machine_configuration,
+            job_name=job_name,
+            verbosity=machine_configuration.verbosity,
         )
 
     logger.info(

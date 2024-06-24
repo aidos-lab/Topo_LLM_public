@@ -41,6 +41,7 @@ def prepare_finetuned_model_dir(
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> os.PathLike:
+    """Prepare the directory for the finetuned model."""
     finetuned_model_dir = finetuning_path_manager.finetuned_model_dir
 
     if verbosity >= Verbosity.NORMAL:
