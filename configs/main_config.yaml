@@ -1,5 +1,6 @@
 defaults:
   - data: one-year-of-tsla-on-reddit
+  - embeddings_data_prep: default
   - embeddings: basic_embeddings
   - feature_flags: default
   - finetuning: finetuning
@@ -13,11 +14,6 @@ defaults:
   - wandb: default
   - override hydra/job_logging: custom
   - _self_
-
-embeddings_data_prep:
-  num_samples: 30000
-
-
 
 seed: 1234
 verbosity: 1
