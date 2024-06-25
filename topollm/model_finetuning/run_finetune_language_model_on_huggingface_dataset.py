@@ -92,7 +92,7 @@ def main(
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Initialize wandb
-    if main_config.feature_flags.use_wandb:
+    if main_config.feature_flags.finetuning.use_wandb:
         initialize_wandb(
             main_config=main_config,
             config=config,
@@ -111,7 +111,7 @@ def main(
         logger=logger,
     )
 
-    if not main_config.feature_flags.skip_finetuning:
+    if not main_config.feature_flags.finetuning.skip_finetuning:
         logger.info(
             "Calling do_finetuning_process ...",
         )
@@ -126,10 +126,25 @@ def main(
             "Calling do_finetuning_process DONE",
         )
 
-    if main_config.feature_flags.use_wandb:
+    if main_config.feature_flags.finetuning.use_wandb:
         # We need to manually finish the wandb run
         # so that the hydra multi-run submissions are not summarized in the same run
         wandb.finish()
+
+    if main_config.feature_flags.finetuning.do_create_finetuned_language_model_config:
+        logger.info(
+            "Calling create_finetuned_language_model_config ...",
+        )
+
+        create_finetuned_language_model_config(
+            main_config=main_config,
+            verbosity=main_config.verbosity,
+            logger=logger,
+        )
+
+        logger.info(
+            "Calling create_finetuned_language_model_config DONE",
+        )
 
     logger.info(
         "Running script DONE",
@@ -139,7 +154,7 @@ def main(
 default_logger = logging.getLogger(__name__)
 
 
-def create_language_model_config(
+def create_finetuned_language_model_config(
     main_config: MainConfig,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,

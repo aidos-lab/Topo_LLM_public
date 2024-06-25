@@ -33,8 +33,14 @@ from topollm.config_classes.config_base_model import ConfigBaseModel
 from topollm.config_classes.constants import KV_SEP, NAME_PREFIXES
 
 
-class FeatureFlagsConfig(ConfigBaseModel):
-    """Configurations for specifying feature flags."""
+class FinetuningFeatureFlagsConfig(ConfigBaseModel):
+    """Feature flags for the finetuning process."""
+
+    do_create_finetuned_language_model_config: bool = Field(
+        default=True,
+        title="Create finetuned language model config.",
+        description="Whether to create the finetuned language model config after the finetuning process.",
+    )
 
     skip_finetuning: bool = Field(
         default=False,
@@ -46,4 +52,14 @@ class FeatureFlagsConfig(ConfigBaseModel):
         default=True,
         title="Use wandb.",
         description="Whether to use wandb for logging.",
+    )
+
+
+class FeatureFlagsConfig(ConfigBaseModel):
+    """Configurations for specifying feature flags."""
+
+    finetuning: FinetuningFeatureFlagsConfig = Field(
+        default_factory=FinetuningFeatureFlagsConfig,
+        title="Finetuning feature flags.",
+        description="Feature flags for the finetuning process.",
     )
