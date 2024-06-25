@@ -27,6 +27,7 @@
 
 import logging
 import os
+import pathlib
 
 from topollm.path_management.finetuning.protocol import (
     FinetuningPathManager,
@@ -40,9 +41,9 @@ def prepare_finetuned_model_dir(
     finetuning_path_manager: FinetuningPathManager,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
-) -> os.PathLike:
+) -> pathlib.Path:
     """Prepare the directory for the finetuned model."""
-    finetuned_model_dir = finetuning_path_manager.finetuned_model_dir
+    finetuned_model_dir: pathlib.Path = finetuning_path_manager.finetuned_model_dir
 
     if verbosity >= Verbosity.NORMAL:
         logger.info(

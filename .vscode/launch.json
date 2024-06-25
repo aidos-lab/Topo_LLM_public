@@ -26,5 +26,13 @@
                 "tokenizer.add_prefix_space=True",
             ]
         },
+        {
+            "name": "run_finetune_language_model_on_huggingface_dataset.py with Arguments",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/model_finetuning/run_finetune_language_model_on_huggingface_dataset.py",
+            "console": "integratedTerminal",
+            "args": "feature_flags.finetuning.skip_finetuning=true feature_flags.finetuning.use_wandb=false"
+        },
     ]
 }

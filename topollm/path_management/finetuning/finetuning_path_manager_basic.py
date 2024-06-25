@@ -73,12 +73,11 @@ class FinetuningPathManagerBasic:
     ) -> pathlib.Path:
         return self.paths_config.data_dir
 
-    @property
-    def finetuned_base_dir(
+    def get_finetuned_model_relative_dir(
         self,
     ) -> pathlib.Path:
+        """Return the directory for the finetuned model relative to the data_dir."""
         path = pathlib.Path(
-            self.data_dir,
             "models",
             "finetuned_models",
             self.finetuning_config.finetuning_datasets.train_dataset.config_description,
@@ -88,6 +87,7 @@ class FinetuningPathManagerBasic:
             self.finetuning_parameters_description,
             self.batch_size_description,
             self.training_progress_subdir,
+            "model_files",
         )
 
         return path
@@ -142,12 +142,13 @@ class FinetuningPathManagerBasic:
     def finetuned_model_dir(
         self,
     ) -> pathlib.Path:
+        """Absolute path to the directory for the finetuned model."""
         path = pathlib.Path(
-            self.finetuned_base_dir,
-            "model_files",
+            self.data_dir,
+            self.get_finetuned_model_relative_dir(),
         )
 
-        if self.verbosity >= 1:
+        if self.verbosity >= Verbosity.NORMAL:
             self.logger.info(
                 "finetuned_model_dir:\n%s",
                 path,
