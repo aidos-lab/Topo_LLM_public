@@ -129,11 +129,24 @@ class Level(StrEnum):
 
 
 @unique
-class Split(StrEnum):  # type: ignore
+class Split(StrEnum):
+    """Splits of a dataset."""
+
     TRAIN = "train"
     VALIDATION = "validation"
     TEST = "test"
     FULL = "full"
+
+
+# ==============================
+
+
+@unique
+class DescriptionType(StrEnum):
+    """The different types of descriptions."""
+
+    SHORT = "short"
+    LONG = "long"
 
 
 # # # #

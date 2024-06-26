@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -34,14 +32,16 @@ from topollm.path_management.truncate_length_of_desc import truncate_length_of_d
 def sanitize_dirname(
     dir_name: str,
 ) -> str:
-    """
-    Sanitizes a directory name by replacing all slashes with underscores.
+    """Sanitizes a directory name by replacing all slashes with underscores.
 
     Args:
+    ----
         dir_name: The directory name to sanitize.
 
     Returns:
+    -------
         The sanitized directory name.
+
     """
     result = dir_name.replace(
         "/",

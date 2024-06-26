@@ -164,6 +164,14 @@ def twonn_worker(
             logger=logger,
         )
 
+        # Log the mean and standard deviation of the local estimates
+        logger.info(
+            f"Mean of local estimates: {results_array_np.mean() = }",  # noqa: G004 - low overhead
+        )
+        logger.info(
+            f"Standard deviation of local estimates: {results_array_np.std() = }",  # noqa: G004 - low overhead
+        )
+
     # # # #
     # Save the results
     save_local_estimates(

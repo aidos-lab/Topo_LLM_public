@@ -171,11 +171,15 @@ def create_finetuned_language_model_config(
         logger=logger,
     )
 
-    finetuned_model_relative_dir = finetuning_path_manager.get_finetuned_model_relative_dir()
+    finetuned_model_relative_dir: pathlib.Path = finetuning_path_manager.get_finetuned_model_relative_dir()
+    finetuned_short_model_name: str = finetuning_path_manager.get_finetuned_short_model_name()
 
     if verbosity >= Verbosity.NORMAL:
         logger.info(
             f"{finetuned_model_relative_dir = }",  # noqa: G004 - low overhead
+        )
+        logger.info(
+            f"{finetuned_short_model_name = }",  # noqa: G004 - low overhead
         )
 
     # # # #
@@ -193,6 +197,7 @@ def create_finetuned_language_model_config(
     new_language_model_config = update_language_model_config(
         base_language_model_config=base_language_model_config,
         finetuned_model_relative_dir=finetuned_model_relative_dir,
+        finetuned_short_model_name=finetuned_short_model_name,
         checkpoint_no=last_checkpoint_no,
     )
 
@@ -207,12 +212,15 @@ def create_finetuned_language_model_config(
         )
 
     # TODO(Ben): Continue here: Save the config to a file
+
+    # TODO(Ben): Continue here: Write a list with the names of the config files to a text file
     pass
 
 
 def update_language_model_config(
     base_language_model_config: LanguageModelConfig,
     finetuned_model_relative_dir: pathlib.Path,
+    finetuned_short_model_name: str,
     checkpoint_no: int,
 ) -> LanguageModelConfig:
     """Update the language model config with the new finetuned model path and short model name."""
@@ -220,8 +228,7 @@ def update_language_model_config(
         r"${paths.data_dir}/" + str(finetuned_model_relative_dir) + r"/checkpoint-${language_model.checkpoint_no}"
     )
 
-    # TODO: Update this with a better way to get the short model name
-    new_short_model_name = str(base_language_model_config.short_model_name) + r"_ckpt-${language_model.checkpoint_no}"
+    new_short_model_name = str(finetuned_short_model_name) + r"_ckpt-${language_model.checkpoint_no}"
 
     updated_config: LanguageModelConfig = base_language_model_config.model_copy(
         update={

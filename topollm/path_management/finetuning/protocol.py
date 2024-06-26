@@ -36,6 +36,10 @@ class FinetuningPathManager(Protocol):
         self,
     ) -> pathlib.Path: ...  # pragma: no cover
 
+    def get_finetuned_short_model_name(
+        self,
+    ) -> str: ...  # pragma: no cover
+
     @property
     def finetuned_model_dir(
         self,
