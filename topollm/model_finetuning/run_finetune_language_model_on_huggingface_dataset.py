@@ -36,17 +36,17 @@ import hydra
 import hydra.core.hydra_config
 import omegaconf
 import transformers
-import wandb
 
+import wandb
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
 from topollm.config_classes.language_model.language_model_config import LanguageModelConfig
 from topollm.config_classes.main_config import MainConfig
 from topollm.config_classes.setup_OmegaConf import setup_OmegaConf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
+from topollm.model_finetuning.compute_last_save_step import compute_last_save_step
 from topollm.model_finetuning.do_finetuning_process import do_finetuning_process
 from topollm.model_finetuning.initialize_wandb import initialize_wandb
-from topollm.model_finetuning.prepare_finetuned_model_dir import prepare_finetuned_model_dir
 from topollm.model_handling.get_torch_device import get_torch_device
 from topollm.path_management.finetuning.factory import get_finetuning_path_manager
 from topollm.path_management.finetuning.protocol import FinetuningPathManager
@@ -178,14 +178,22 @@ def create_finetuned_language_model_config(
             f"{finetuned_model_relative_dir = }",  # noqa: G004 - low overhead
         )
 
-    # TODO: Get this from the parameters
-    checkpoint_no = 31200
+    # # # #
+    # Find the last checkpoint global save step
+    finetuning_config = main_config.finetuning
+    last_checkpoint_no = compute_last_save_step(
+        total_samples=finetuning_config.finetuning_datasets.train_dataset.number_of_samples,
+        batch_size=finetuning_config.batch_sizes.train,
+        gradient_accumulation_steps=finetuning_config.gradient_accumulation_steps,
+        num_epochs=finetuning_config.num_train_epochs,
+        save_steps=finetuning_config.save_steps,
+    )
 
     base_language_model_config = main_config.language_model
     new_language_model_config = update_language_model_config(
         base_language_model_config=base_language_model_config,
         finetuned_model_relative_dir=finetuned_model_relative_dir,
-        checkpoint_no=checkpoint_no,
+        checkpoint_no=last_checkpoint_no,
     )
 
     if verbosity >= Verbosity.NORMAL:
@@ -215,7 +223,7 @@ def update_language_model_config(
     # TODO: Update this with a better way to get the short model name
     new_short_model_name = str(base_language_model_config.short_model_name) + r"_ckpt-${language_model.checkpoint_no}"
 
-    updated_config = base_language_model_config.model_copy(
+    updated_config: LanguageModelConfig = base_language_model_config.model_copy(
         update={
             "pretrained_model_name_or_path": new_pretrained_model_path,
             "short_model_name": new_short_model_name,
