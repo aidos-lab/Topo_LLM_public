@@ -233,11 +233,25 @@ def dump_language_model_config_to_file(
     language_model_config: LanguageModelConfig,
     configs_save_dir: pathlib.Path,
     config_file_name: str,
+    *,
+    generated_configs_logs_file_path: pathlib.Path | None = None,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> None:
     """Dump the language model config to a file."""
+    if generated_configs_logs_file_path is None:
+        generated_configs_logs_file_path = pathlib.Path(
+            configs_save_dir,
+            "generated_configs_logs",
+            "generated_configs_logs.txt",
+        )
+
+    # Create the directories if they do not exist
     configs_save_dir.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+    generated_configs_logs_file_path.parent.mkdir(
         parents=True,
         exist_ok=True,
     )
@@ -253,7 +267,7 @@ def dump_language_model_config_to_file(
             generated_config_path,
         )
 
-    # dump to yaml string
+    # Convert to yaml string
     new_language_model_config_yaml_data: str = omegaconf.OmegaConf.to_yaml(
         language_model_config.model_dump(),
     )
@@ -271,7 +285,13 @@ def dump_language_model_config_to_file(
             new_language_model_config_yaml_data,
         )
 
-    # TODO(Ben): Continue here: Write a list with the names of the config files to a text file
+    # Append the name of the generated config to the logs file
+    with generated_configs_logs_file_path.open(
+        mode="a",
+    ) as file:
+        file.write(
+            f"{config_file_name}\n",
+        )
 
 
 def update_language_model_config(
