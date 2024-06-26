@@ -159,7 +159,6 @@ default_logger = logging.getLogger(__name__)
 
 def create_finetuned_language_model_config(
     main_config: MainConfig,
-    generated_configs_save_dir: pathlib.Path = pathlib.Path("generated_configs"),
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> None:
@@ -214,6 +213,12 @@ def create_finetuned_language_model_config(
 
     # # # #
     # Save the new config
+    generated_configs_save_dir: pathlib.Path = pathlib.Path(
+        main_config.paths.repository_base_path,
+        "configs",
+        "language_model",
+    )
+
     dump_language_model_config_to_file(
         language_model_config=new_language_model_config,
         configs_save_dir=generated_configs_save_dir,
@@ -227,7 +232,8 @@ def dump_language_model_config_to_file(
     configs_save_dir: pathlib.Path,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
-):
+) -> None:
+    """Dump the language model config to a file."""
     configs_save_dir.mkdir(
         parents=True,
         exist_ok=True,
@@ -237,6 +243,12 @@ def dump_language_model_config_to_file(
         configs_save_dir / "finetuned_language_model_config.yaml"
     )  # TODO: Change this to the model name
 
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            "generated_config_path:\n%s",
+            generated_config_path,
+        )
+
     # dump to yaml string
     new_language_model_config_yaml_data: str = omegaconf.OmegaConf.to_yaml(
         language_model_config.model_dump(),
@@ -244,7 +256,7 @@ def dump_language_model_config_to_file(
 
     if verbosity >= Verbosity.NORMAL:
         logger.info(
-            "new_language_model_config_yaml_data:%s",
+            "new_language_model_config_yaml_data:\n%s",
             new_language_model_config_yaml_data,
         )
 
