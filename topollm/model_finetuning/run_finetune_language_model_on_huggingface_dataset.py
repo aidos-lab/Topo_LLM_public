@@ -159,6 +159,7 @@ default_logger = logging.getLogger(__name__)
 
 def create_finetuned_language_model_config(
     main_config: MainConfig,
+    generated_configs_save_dir: pathlib.Path = pathlib.Path("generated_configs"),
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> None:
@@ -193,8 +194,8 @@ def create_finetuned_language_model_config(
         save_steps=finetuning_config.save_steps,
     )
 
-    base_language_model_config = main_config.language_model
-    new_language_model_config = update_language_model_config(
+    base_language_model_config: LanguageModelConfig = main_config.language_model
+    new_language_model_config: LanguageModelConfig = update_language_model_config(
         base_language_model_config=base_language_model_config,
         finetuned_model_relative_dir=finetuned_model_relative_dir,
         finetuned_short_model_name=finetuned_short_model_name,
@@ -211,10 +212,50 @@ def create_finetuned_language_model_config(
             new_language_model_config,
         )
 
-    # TODO(Ben): Continue here: Save the config to a file
+    # # # #
+    # Save the new config
+    dump_language_model_config_to_file(
+        language_model_config=new_language_model_config,
+        configs_save_dir=generated_configs_save_dir,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+
+def dump_language_model_config_to_file(
+    language_model_config: LanguageModelConfig,
+    configs_save_dir: pathlib.Path,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+):
+    configs_save_dir.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    generated_config_path = (
+        configs_save_dir / "finetuned_language_model_config.yaml"
+    )  # TODO: Change this to the model name
+
+    # dump to yaml string
+    new_language_model_config_yaml_data: str = omegaconf.OmegaConf.to_yaml(
+        language_model_config.model_dump(),
+    )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            "new_language_model_config_yaml_data:%s",
+            new_language_model_config_yaml_data,
+        )
+
+    with generated_config_path.open(
+        mode="w",
+    ) as file:
+        file.write(
+            new_language_model_config_yaml_data,
+        )
 
     # TODO(Ben): Continue here: Write a list with the names of the config files to a text file
-    pass
 
 
 def update_language_model_config(
