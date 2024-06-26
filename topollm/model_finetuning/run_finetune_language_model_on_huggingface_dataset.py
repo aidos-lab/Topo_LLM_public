@@ -49,11 +49,11 @@ from topollm.model_finetuning.do_finetuning_process import do_finetuning_process
 from topollm.model_finetuning.initialize_wandb import initialize_wandb
 from topollm.model_handling.get_torch_device import get_torch_device
 from topollm.path_management.finetuning.factory import get_finetuning_path_manager
-from topollm.path_management.finetuning.protocol import FinetuningPathManager
 from topollm.typing.enums import Verbosity
 
 if TYPE_CHECKING:
-    pass
+    from topollm.path_management.finetuning.protocol import FinetuningPathManager
+
 
 # Increase the wandb service wait time to prevent errors.
 # https://github.com/wandb/wandb/issues/5214
@@ -172,6 +172,7 @@ def create_finetuned_language_model_config(
     )
 
     finetuned_model_relative_dir: pathlib.Path = finetuning_path_manager.get_finetuned_model_relative_dir()
+    # The `finetuned_short_model_name` does not contain the checkpoint number appendix
     finetuned_short_model_name: str = finetuning_path_manager.get_finetuned_short_model_name()
 
     if verbosity >= Verbosity.NORMAL:
@@ -222,6 +223,7 @@ def create_finetuned_language_model_config(
     dump_language_model_config_to_file(
         language_model_config=new_language_model_config,
         configs_save_dir=generated_configs_save_dir,
+        config_file_name=f"{finetuned_short_model_name}.yaml",
         verbosity=verbosity,
         logger=logger,
     )
@@ -230,6 +232,7 @@ def create_finetuned_language_model_config(
 def dump_language_model_config_to_file(
     language_model_config: LanguageModelConfig,
     configs_save_dir: pathlib.Path,
+    config_file_name: str,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> None:
@@ -239,9 +242,10 @@ def dump_language_model_config_to_file(
         exist_ok=True,
     )
 
-    generated_config_path = (
-        configs_save_dir / "finetuned_language_model_config.yaml"
-    )  # TODO: Change this to the model name
+    generated_config_path = pathlib.Path(
+        configs_save_dir,
+        config_file_name,
+    )
 
     if verbosity >= Verbosity.NORMAL:
         logger.info(
@@ -281,12 +285,14 @@ def update_language_model_config(
         r"${paths.data_dir}/" + str(finetuned_model_relative_dir) + r"/checkpoint-${language_model.checkpoint_no}"
     )
 
-    new_short_model_name = str(finetuned_short_model_name) + r"_ckpt-${language_model.checkpoint_no}"
+    new_short_model_name_with_checkpoint_interpolation = (
+        str(finetuned_short_model_name) + r"_ckpt-${language_model.checkpoint_no}"
+    )
 
     updated_config: LanguageModelConfig = base_language_model_config.model_copy(
         update={
             "pretrained_model_name_or_path": new_pretrained_model_path,
-            "short_model_name": new_short_model_name,
+            "short_model_name": new_short_model_name_with_checkpoint_interpolation,
             "checkpoint_no": checkpoint_no,
         },
         deep=True,
