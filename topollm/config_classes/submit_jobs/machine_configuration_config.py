@@ -63,7 +63,6 @@ class MachineConfigurationConfig(ConfigBaseModel):
 
     job_run_mode: JobRunMode = JobRunMode.HHU_HILBERT
     dry_run: bool = False
-    verbosity: Verbosity = Verbosity.NORMAL
 
 
 def get_machine_configuration_args_list(

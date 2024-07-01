@@ -75,7 +75,7 @@ def main(
     )
 
     submit_jobs_config: SubmitJobsConfig = main_config.submit_jobs
-    verbosity: Verbosity = submit_jobs_config.machine_configuration.verbosity
+    verbosity: Verbosity = main_config.verbosity
 
     logger.info("Running main ...")
     if verbosity >= Verbosity.NORMAL:
@@ -176,7 +176,7 @@ def main(
             job_script_args=job_script_args,
             machine_configuration=machine_configuration,
             job_name=job_name,
-            verbosity=machine_configuration.verbosity,
+            verbosity=verbosity,
         )
 
     logger.info(

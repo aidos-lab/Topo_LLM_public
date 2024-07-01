@@ -27,7 +27,7 @@
 
 """Enums used in the configuration classes."""
 
-from enum import Enum, IntEnum, unique
+from enum import Enum, IntEnum, auto, unique
 
 from strenum import StrEnum
 
@@ -280,8 +280,8 @@ class LMmode(StrEnum):
 class TokenizerModifierMode(StrEnum):
     """Modes for modifying the tokenizer."""
 
-    DO_NOTHING = "do_nothing"
-    ADD_PADDING_TOKEN = "add_padding_token"  # noqa: S105 - not a password token
+    DO_NOTHING = auto()
+    ADD_PADDING_TOKEN = auto()  # noqa: S105 - not a password token
 
 
 @unique

@@ -33,12 +33,16 @@ from itertools import product
 from typing import TYPE_CHECKING
 
 import hydra
+import omegaconf
 from tqdm import tqdm
 
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
+from topollm.config_classes.main_config import MainConfig
+from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.config_classes.submit_jobs.machine_configuration_config import get_machine_configuration_args_list
 from topollm.config_classes.submit_jobs.submit_jobs_config import SubmitJobsConfig
 from topollm.config_classes.submit_jobs.submit_pipeline_jobs_config import SubmitPipelineJobsConfig
+from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.scripts.hhu_hilbert.submit_jobs.call_command import call_command
 from topollm.scripts.hhu_hilbert.submit_jobs.run_job_submission import run_job_submission
 from topollm.typing.enums import Verbosity
@@ -49,18 +53,27 @@ if TYPE_CHECKING:
 
 global_logger = logging.getLogger(__name__)
 
+setup_omega_conf()
+
 
 @hydra.main(
-    config_path=f"{HYDRA_CONFIGS_BASE_PATH}/submit_jobs",
-    config_name="config",
-    version_base="1.2",
+    config_path=f"{HYDRA_CONFIGS_BASE_PATH}",
+    config_name="main_config",
+    version_base="1.3",
 )
 def main(
-    submit_jobs_config: SubmitJobsConfig,
+    config: omegaconf.DictConfig,
 ) -> None:
     """Run the main function."""
     logger = global_logger
-    verbosity: Verbosity = submit_jobs_config.machine_configuration.verbosity
+
+    main_config: MainConfig = initialize_configuration(
+        config=config,
+        logger=logger,
+    )
+
+    submit_jobs_config: SubmitJobsConfig = main_config.submit_jobs
+    verbosity: Verbosity = main_config.verbosity
 
     logger.info("Running main ...")
     if verbosity >= Verbosity.NORMAL:
@@ -117,7 +130,7 @@ def main(
             "--multirun",
             f"data={data}",
             f"language_model={language_model}",
-            f"+language_model.checkpoint_no={checkpoint_no}",
+            f"++language_model.checkpoint_no={checkpoint_no}",
             f"embeddings.embedding_extraction.layer_indices={layer_indices}",
             f"data.number_of_samples={data_number_of_samples}",
             f"embeddings_data_prep.num_samples={embeddings_data_prep_num_samples}",
@@ -131,7 +144,7 @@ def main(
             job_script_args=job_script_args,
             machine_configuration=machine_configuration,
             job_name=job_name,
-            verbosity=machine_configuration.verbosity,
+            verbosity=verbosity,
         )
 
     logger.info(

@@ -2,5 +2,5 @@ lm_mode: CLM
 pretrained_model_name_or_path: gpt2-medium
 short_model_name: ${finetuning.pretrained_model_name_or_path}
 tokenizer_modifier:
-  mode: add_padding_token
+  mode: ADD_PADDING_TOKEN
   padding_token: "<|pad|>"
