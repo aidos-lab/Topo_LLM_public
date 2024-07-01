@@ -34,10 +34,11 @@ echo "DRY_RUN: ${DRY_RUN}"
 echo "JOB_RUN_MODE: ${JOB_RUN_MODE}"
 
 python3 submit_finetuning_jobs_with_hydra_config.py \
-    submit_finetuning_jobs="${SUBMIT_FINETUNING_JOBS}" \
-    machine_configuration="${MACHINE_CONFIGURATION}" \
-    machine_configuration.dry_run="${DRY_RUN}" \
-    machine_configuration.job_run_mode="${JOB_RUN_MODE}"
+    submit_jobs/submit_finetuning_jobs="${SUBMIT_FINETUNING_JOBS}" \
+    feature_flags.finetuning.skip_finetuning="${SKIP_FINETUNING}" \
+    submit_jobs/machine_configuration="${MACHINE_CONFIGURATION}" \
+    submit_jobs.machine_configuration.dry_run="${DRY_RUN}" \
+    ++submit_jobs.machine_configuration.job_run_mode="${JOB_RUN_MODE}"
 
 # ==================================================== #
 

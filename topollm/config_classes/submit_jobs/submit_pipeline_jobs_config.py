@@ -25,19 +25,33 @@
 # limitations under the License.
 
 import pathlib
-from dataclasses import dataclass
+
+from pydantic import Field
+
+from topollm.config_classes.config_base_model import ConfigBaseModel
 
 
-@dataclass
-class SubmitPipelineJobsConfig:
+class SubmitPipelineJobsConfig(ConfigBaseModel):
     """Config for submitting finetuning jobs."""
 
-    data_list: list[str]
-    language_model_list: list[str]
-    layer_indices_list: list[str]
-    checkpoint_no_list: list[str]
-    data_number_of_samples_list: list[str]
-    embeddings_data_prep_num_samples_list: list[str]
+    data_list: list[str] = Field(
+        default_factory=list,
+    )
+    language_model_list: list[str] = Field(
+        default_factory=list,
+    )
+    layer_indices_list: list[str] = Field(
+        default_factory=list,
+    )
+    checkpoint_no_list: list[int] = Field(
+        default_factory=list,
+    )
+    data_number_of_samples_list: list[int] = Field(
+        default_factory=list,
+    )
+    embeddings_data_prep_num_samples_list: list[int] = Field(
+        default_factory=list,
+    )
 
     pipeline_python_script_relative_path: pathlib.Path = pathlib.Path(
         "topollm",

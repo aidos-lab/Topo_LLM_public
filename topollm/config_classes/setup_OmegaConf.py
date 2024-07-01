@@ -32,10 +32,9 @@ import omegaconf
 from topollm.config_classes.sanitize_dirname import sanitize_dirname
 
 
-def setup_OmegaConf() -> None:
+def setup_omega_conf() -> None:
+    """Set up OmegaConf with custom resolvers."""
     omegaconf.OmegaConf.register_new_resolver(
         "sanitize_override_dirname",
         sanitize_dirname,
     )
-
-    return None

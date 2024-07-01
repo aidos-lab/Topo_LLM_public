@@ -36,12 +36,12 @@ import hydra
 import hydra.core.hydra_config
 import omegaconf
 import transformers
-
 import wandb
+
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
 from topollm.config_classes.language_model.language_model_config import LanguageModelConfig
 from topollm.config_classes.main_config import MainConfig
-from topollm.config_classes.setup_OmegaConf import setup_OmegaConf
+from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.model_finetuning.compute_last_save_step import compute_last_save_step
@@ -71,7 +71,7 @@ setup_exception_logging(
 # Set the transformers logging level
 transformers.logging.set_verbosity_info()
 
-setup_OmegaConf()
+setup_omega_conf()
 
 
 @hydra.main(

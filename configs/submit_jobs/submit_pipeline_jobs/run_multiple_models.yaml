@@ -1,5 +1,4 @@
 defaults:
-  - base_submit_pipeline_jobs_config
   - _self_
 
 data_list:
