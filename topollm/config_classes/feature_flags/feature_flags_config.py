@@ -30,7 +30,14 @@
 from pydantic import Field
 
 from topollm.config_classes.config_base_model import ConfigBaseModel
-from topollm.config_classes.constants import KV_SEP, NAME_PREFIXES
+
+
+class EmbeddingsDataPrepFeatureFlagsConfig(ConfigBaseModel):
+    """Feature flags for the embeddings data preparation process."""
+
+    write_sentences_to_meta: bool = Field(
+        default=True,
+    )
 
 
 class FinetuningFeatureFlagsConfig(ConfigBaseModel):
@@ -57,6 +64,12 @@ class FinetuningFeatureFlagsConfig(ConfigBaseModel):
 
 class FeatureFlagsConfig(ConfigBaseModel):
     """Configurations for specifying feature flags."""
+
+    embeddings_data_prep: EmbeddingsDataPrepFeatureFlagsConfig = Field(
+        default_factory=EmbeddingsDataPrepFeatureFlagsConfig,
+        title="Embeddings data preparation feature flags.",
+        description="Feature flags for the embeddings data preparation process.",
+    )
 
     finetuning: FinetuningFeatureFlagsConfig = Field(
         default_factory=FinetuningFeatureFlagsConfig,

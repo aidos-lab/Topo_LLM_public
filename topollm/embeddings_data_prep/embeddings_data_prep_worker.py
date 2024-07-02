@@ -93,6 +93,7 @@ def embeddings_data_prep_worker(
     # x of type 'numpy.int64' needs to be explicitly converted to an integer,
     # otherwise the convert_ids_to_tokens() method will raise the error:
     # TypeError: 'numpy.int64' object is not iterable
+
     token_names_no_pad = [tokenizer.convert_ids_to_tokens(int(x)) for x in meta_no_pad]
 
     meta_frame = pd.DataFrame(
@@ -102,6 +103,25 @@ def embeddings_data_prep_worker(
             "sentence_idx": list(sentence_idx_no_pad),
         },
     )
+
+    # # # #
+    # Optionally add sentence information to the metadata
+    if main_config.feature_flags.embeddings_data_prep.write_sentences_to_meta:
+        meta_names = [tokenizer.convert_ids_to_tokens(int(x)) for x in list(full_df.meta)]
+        full_df["meta_name"] = meta_names
+        grouped_df = (
+            full_df.iloc[:, 1:]
+            .groupby(
+                by="sentence_idx",
+                sort=False,
+            )["meta_name"]
+            .apply(" ".join)
+            .reset_index()
+        )
+        meta_frame = meta_frame.merge(
+            grouped_df,
+            on="sentence_idx",
+        )
 
     if verbosity >= Verbosity.NORMAL:
         log_dataframe_info(
