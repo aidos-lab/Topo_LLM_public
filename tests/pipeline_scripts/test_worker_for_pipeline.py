@@ -96,15 +96,26 @@ def small_data_config() -> DataConfig:
 @pytest.fixture(
     scope="session",
 )
+def pretrained_model_name_or_path_and_short_model_name() -> tuple[str, str]:
+    """Return a pretrained_model_name_or_path string."""
+    result = (
+        "hf-internal-testing/tiny-random-RobertaModel",
+        "tiny-random-RobertaModel",
+    )
+
+    return result
+
+
+@pytest.fixture(
+    scope="session",
+)
 def main_config_with_small_dataset_and_model(
+    pretrained_model_name_or_path_and_short_model_name: tuple[str, str],
     small_data_config: DataConfig,
     paths_config: PathsConfig,
 ) -> MainConfig:
     """Return a MainConfig object."""
-    # pretrained_model_name_or_path = "roberta-base"
-    pretrained_model_name_or_path = "hf-internal-testing/tiny-random-RobertaModel"
-
-    short_model_name = "tiny-random-RobertaModel"
+    pretrained_model_name_or_path, short_model_name = pretrained_model_name_or_path_and_short_model_name
 
     tokenizer_config = TokenizerConfig()
     tokenizer_modifier_config = TokenizerModifierConfig(
