@@ -32,6 +32,14 @@ from typing import Protocol
 class FinetuningPathManager(Protocol):
     """Manages the paths for the finetuning process."""
 
+    def get_finetuned_model_relative_dir(
+        self,
+    ) -> pathlib.Path: ...  # pragma: no cover
+
+    def get_finetuned_short_model_name(
+        self,
+    ) -> str: ...  # pragma: no cover
+
     @property
     def finetuned_model_dir(
         self,

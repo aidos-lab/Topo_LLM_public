@@ -42,6 +42,9 @@ class EmbeddingsDataPrepConfig(ConfigBaseModel):
         description="The number of samples to be extracted.",
     )
 
+    # TODO(Ben): Add configuration options for the type of metadata to save
+    # (i.e., whether the sentences should be included or not).
+
     @property
     def config_description(
         self,

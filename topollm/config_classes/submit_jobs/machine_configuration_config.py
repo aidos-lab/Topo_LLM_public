@@ -25,15 +25,18 @@
 # limitations under the License.
 
 import os
-from dataclasses import dataclass, field
+
+from pydantic import Field
+
+from topollm.config_classes.config_base_model import ConfigBaseModel
+from topollm.typing.enums import JobRunMode, Verbosity
 
 USER = os.getenv(
     "USER",
 )
 
 
-@dataclass
-class MachineConfigurationConfig:
+class MachineConfigurationConfig(ConfigBaseModel):
     """Config for machine configuration.
 
     Note: Since we register this with the hydra config,
@@ -46,12 +49,19 @@ class MachineConfigurationConfig:
     ngpus: int = 1
     memory_gb: int = 32
     walltime: str = "08:00:00"
-    submit_job_command: list[str] = field(
+    submit_job_hilbert_command: list[str] = Field(
         default_factory=lambda: [
             "python3",
             f"/gpfs/project/{USER}/.usr_tls/tools/submit_job.py",
         ],
     )
+    run_job_locally_command: list[str] = Field(
+        default_factory=lambda: [
+            "python3",
+        ],
+    )
+
+    job_run_mode: JobRunMode = JobRunMode.HHU_HILBERT
     dry_run: bool = False
 
 

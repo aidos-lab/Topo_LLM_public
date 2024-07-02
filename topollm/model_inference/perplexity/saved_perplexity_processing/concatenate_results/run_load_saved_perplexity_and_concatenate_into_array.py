@@ -39,7 +39,7 @@ import torch
 import zarr
 from tqdm import tqdm
 
-from topollm.config_classes.setup_OmegaConf import setup_OmegaConf
+from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.logging.log_list_info import log_list_info
@@ -67,7 +67,7 @@ setup_exception_logging(
 )
 
 
-setup_OmegaConf()
+setup_omega_conf()
 
 
 @hydra.main(

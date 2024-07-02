@@ -25,21 +25,20 @@
 # limitations under the License.
 
 import pathlib
-from dataclasses import dataclass, field
 
-from topollm.config_classes.constants import TOPO_LLM_REPOSITORY_BASE_PATH
+from pydantic import Field
+
+from topollm.config_classes.config_base_model import ConfigBaseModel
 
 
-@dataclass
-class TrainingScheduleConfig:
+class TrainingScheduleConfig(ConfigBaseModel):
     """Config for training schedule."""
 
     num_train_epochs: int = 5
     lr_scheduler_type: str = "linear"
 
 
-@dataclass
-class LoraParameters:
+class LoraParameters(ConfigBaseModel):
     """Config for LoRA parameters."""
 
     lora_r: int
@@ -47,16 +46,27 @@ class LoraParameters:
     use_rslora: bool = False
 
 
-@dataclass
-class SubmitFinetuningJobsConfig:
+class SubmitFinetuningJobsConfig(ConfigBaseModel):
     """Config for submitting finetuning jobs."""
 
-    base_model_list: list[str]
-    finetuning_dataset_list: list[str]
-    peft_list: list[str]
-    gradient_modifier_list: list[str]
-    lora_parameters: dict[str, LoraParameters]
-    training_schedule: dict[str, TrainingScheduleConfig]
+    base_model_list: list[str] = Field(
+        default_factory=list,
+    )
+    finetuning_dataset_list: list[str] = Field(
+        default_factory=list,
+    )
+    peft_list: list[str] = Field(
+        default_factory=list,
+    )
+    gradient_modifier_list: list[str] = Field(
+        default_factory=list,
+    )
+    lora_parameters: dict[str, LoraParameters] = Field(
+        default_factory=dict,
+    )
+    training_schedule: dict[str, TrainingScheduleConfig] = Field(
+        default_factory=dict,
+    )
     common_batch_size: int = 16
     save_steps: int = 400
     eval_steps: int = 100

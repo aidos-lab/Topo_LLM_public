@@ -35,7 +35,7 @@ import hydra.core.hydra_config
 import omegaconf
 import torch
 
-from topollm.config_classes.setup_OmegaConf import setup_OmegaConf
+from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.model_inference.perplexity.do_perplexity_processing import do_perplexity_computation
@@ -53,7 +53,7 @@ setup_exception_logging(
 )
 
 
-setup_OmegaConf()
+setup_omega_conf()
 
 
 @hydra.main(

@@ -1,22 +1,20 @@
 defaults:
   - data: one-year-of-tsla-on-reddit
+  - embeddings_data_prep: default
   - embeddings: basic_embeddings
+  - feature_flags: default
   - finetuning: finetuning
   - inference: default
   - language_model: roberta-base
   - local_estimates: twonn
   - paths: absolute_repository_base
   - storage: zarr_vectors_pickle_metadata
+  - submit_jobs: config
   - tokenizer: basic_tokenizer
   - transformations: none
   - wandb: default
   - override hydra/job_logging: custom
   - _self_
-
-embeddings_data_prep:
-  num_samples: 30000
-
-
 
 seed: 1234
 verbosity: 1
@@ -43,6 +41,7 @@ hydra:
     env_set:
       # HYDRA_FULL_ERROR: 1 # Note: This will not work for setting the environment variable, set in code instead
       # CUDA_VISIBLE_DEVICES: 0
+      OC_CAUSE: "1"
       PLACEHOLDER_ENV_VAR: "placeholder_value" # Note: This is here so that the 'env_set' key is not empty
     config:
       override_dirname:

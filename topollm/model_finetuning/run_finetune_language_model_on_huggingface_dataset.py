@@ -39,18 +39,28 @@ import transformers
 import wandb
 
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
-from topollm.config_classes.setup_OmegaConf import setup_OmegaConf
+from topollm.config_classes.language_model.language_model_config import LanguageModelConfig
+from topollm.config_classes.main_config import MainConfig
+from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
+from topollm.model_finetuning.compute_last_save_step import compute_last_save_step
 from topollm.model_finetuning.do_finetuning_process import do_finetuning_process
+from topollm.model_finetuning.initialize_wandb import initialize_wandb
 from topollm.model_handling.get_torch_device import get_torch_device
+from topollm.path_management.finetuning.factory import get_finetuning_path_manager
+from topollm.typing.enums import Verbosity
 
 if TYPE_CHECKING:
-    from topollm.config_classes.main_config import MainConfig
+    from topollm.path_management.finetuning.protocol import FinetuningPathManager
+
 
 # Increase the wandb service wait time to prevent errors.
 # https://github.com/wandb/wandb/issues/5214
 os.environ["WANDB__SERVICE_WAIT"] = "300"
+wandb.require(
+    "core",
+)
 
 global_logger = logging.getLogger(__name__)
 
@@ -61,7 +71,7 @@ setup_exception_logging(
 # Set the transformers logging level
 transformers.logging.set_verbosity_info()
 
-setup_OmegaConf()
+setup_omega_conf()
 
 
 @hydra.main(
@@ -83,47 +93,18 @@ def main(
         logger=logger,
     )
 
-    wandb_dir = pathlib.Path(
-        main_config.wandb.dir,
-    )
-    logger.info(
-        f"{wandb_dir = }",  # noqa: G004 - low overhead
-    )
-    # Create the wandb directory if it does not exist
-    wandb_dir.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
-
-    wandb.init(
-        dir=main_config.wandb.dir,
-        entity=main_config.wandb.entity,  # Note: To make this None, use null in the hydra config
-        project=main_config.wandb.project,
-        settings=wandb.Settings(
-            start_method="thread",  # Note: https://docs.wandb.ai/guides/integrations/hydra#troubleshooting-multiprocessing
-            _service_wait=300,
-            init_timeout=300,
-        ),
-        tags=main_config.wandb.tags,
-    )
-
-    # Note: Convert OmegaConf to dict to avoid issues with wandb
-    # https://docs.wandb.ai/guides/integrations/hydra#track-hyperparameters
-    omegaconf_converted_to_dict = omegaconf.OmegaConf.to_container(
-        cfg=config,
-        resolve=True,
-        throw_on_missing=True,
-    )
-
-    # Add the hydra config to the wandb config
-    # (so that they are tracked in the wandb run)
-    wandb.config.hydra = omegaconf_converted_to_dict
-
-    # Add information about the wandb run to the logger
-    if wandb.run is not None:
-        logger.info(
-            f"{wandb.run.dir = }",  # noqa: G004 - low overhead
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    # Initialize wandb
+    if main_config.feature_flags.finetuning.use_wandb:
+        initialize_wandb(
+            main_config=main_config,
+            config=config,
+            logger=logger,
         )
+    else:
+        os.environ["WANDB_MODE"] = "disabled"
+        # Note: Do not set `os.environ["WANDB_DISABLED"] = "true"` because this will raise the error
+        # `RuntimeError: WandbCallback requires wandb to be installed. Run `pip install wandb`.`
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Use accelerator if available
@@ -133,26 +114,211 @@ def main(
         logger=logger,
     )
 
-    logger.info(
-        "Calling do_finetuning_process ...",
-    )
+    if not main_config.feature_flags.finetuning.skip_finetuning:
+        logger.info(
+            "Calling do_finetuning_process ...",
+        )
 
-    do_finetuning_process(
-        main_config=main_config,
-        device=device,
-        logger=logger,
-    )
+        do_finetuning_process(
+            main_config=main_config,
+            device=device,
+            logger=logger,
+        )
 
-    logger.info(
-        "Calling do_finetuning_process DONE",
-    )
+        logger.info(
+            "Calling do_finetuning_process DONE",
+        )
 
-    # We need to manually finish the wandb run so that the hydra multi-run submissions are not summarized in the same run
-    wandb.finish()
+    if main_config.feature_flags.finetuning.use_wandb:
+        # We need to manually finish the wandb run
+        # so that the hydra multi-run submissions are not summarized in the same run
+        wandb.finish()
+
+    if main_config.feature_flags.finetuning.do_create_finetuned_language_model_config:
+        logger.info(
+            "Calling create_finetuned_language_model_config ...",
+        )
+
+        create_finetuned_language_model_config(
+            main_config=main_config,
+            verbosity=main_config.verbosity,
+            logger=logger,
+        )
+
+        logger.info(
+            "Calling create_finetuned_language_model_config DONE",
+        )
 
     logger.info(
         "Running script DONE",
     )
+
+
+default_logger = logging.getLogger(__name__)
+
+
+def create_finetuned_language_model_config(
+    main_config: MainConfig,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
+    """Create the config for the language model resulting from fine-tuning.
+
+    This config can be used for further processing, e.g. for the embedding and data generation.
+    """
+    finetuning_path_manager: FinetuningPathManager = get_finetuning_path_manager(
+        main_config=main_config,
+        logger=logger,
+    )
+
+    finetuned_model_relative_dir: pathlib.Path = finetuning_path_manager.get_finetuned_model_relative_dir()
+    # The `finetuned_short_model_name` does not contain the checkpoint number appendix
+    finetuned_short_model_name: str = finetuning_path_manager.get_finetuned_short_model_name()
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            f"{finetuned_model_relative_dir = }",  # noqa: G004 - low overhead
+        )
+        logger.info(
+            f"{finetuned_short_model_name = }",  # noqa: G004 - low overhead
+        )
+
+    # # # #
+    # Find the last checkpoint global save step
+    finetuning_config = main_config.finetuning
+    last_checkpoint_no = compute_last_save_step(
+        total_samples=finetuning_config.finetuning_datasets.train_dataset.number_of_samples,
+        batch_size=finetuning_config.batch_sizes.train,
+        gradient_accumulation_steps=finetuning_config.gradient_accumulation_steps,
+        num_epochs=finetuning_config.num_train_epochs,
+        save_steps=finetuning_config.save_steps,
+    )
+
+    base_language_model_config: LanguageModelConfig = main_config.language_model
+    new_language_model_config: LanguageModelConfig = update_language_model_config(
+        base_language_model_config=base_language_model_config,
+        finetuned_model_relative_dir=finetuned_model_relative_dir,
+        finetuned_short_model_name=finetuned_short_model_name,
+        checkpoint_no=last_checkpoint_no,
+    )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            "base_language_model_config:%s",
+            base_language_model_config,
+        )
+        logger.info(
+            "new_language_model_config:%s",
+            new_language_model_config,
+        )
+
+    # # # #
+    # Save the new config
+    generated_configs_save_dir: pathlib.Path = pathlib.Path(
+        main_config.paths.repository_base_path,
+        "configs",
+        "language_model",
+    )
+
+    dump_language_model_config_to_file(
+        language_model_config=new_language_model_config,
+        configs_save_dir=generated_configs_save_dir,
+        config_file_name=f"{finetuned_short_model_name}.yaml",
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+
+def dump_language_model_config_to_file(
+    language_model_config: LanguageModelConfig,
+    configs_save_dir: pathlib.Path,
+    config_file_name: str,
+    *,
+    generated_configs_logs_file_path: pathlib.Path | None = None,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
+    """Dump the language model config to a file."""
+    if generated_configs_logs_file_path is None:
+        generated_configs_logs_file_path = pathlib.Path(
+            configs_save_dir,
+            "generated_configs_logs",
+            "generated_configs_logs.txt",
+        )
+
+    # Create the directories if they do not exist
+    configs_save_dir.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+    generated_configs_logs_file_path.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    generated_config_path = pathlib.Path(
+        configs_save_dir,
+        config_file_name,
+    )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            "generated_config_path:\n%s",
+            generated_config_path,
+        )
+
+    # Convert to yaml string
+    new_language_model_config_yaml_data: str = omegaconf.OmegaConf.to_yaml(
+        language_model_config.model_dump(),
+    )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            "new_language_model_config_yaml_data:\n%s",
+            new_language_model_config_yaml_data,
+        )
+
+    with generated_config_path.open(
+        mode="w",
+    ) as file:
+        file.write(
+            new_language_model_config_yaml_data,
+        )
+
+    # Append the name of the generated config to the logs file
+    with generated_configs_logs_file_path.open(
+        mode="a",
+    ) as file:
+        file.write(
+            f"{config_file_name}\n",
+        )
+
+
+def update_language_model_config(
+    base_language_model_config: LanguageModelConfig,
+    finetuned_model_relative_dir: pathlib.Path,
+    finetuned_short_model_name: str,
+    checkpoint_no: int,
+) -> LanguageModelConfig:
+    """Update the language model config with the new finetuned model path and short model name."""
+    new_pretrained_model_path = (
+        r"${paths.data_dir}/" + str(finetuned_model_relative_dir) + r"/checkpoint-${language_model.checkpoint_no}"
+    )
+
+    new_short_model_name_with_checkpoint_interpolation = (
+        str(finetuned_short_model_name) + r"_ckpt-${language_model.checkpoint_no}"
+    )
+
+    updated_config: LanguageModelConfig = base_language_model_config.model_copy(
+        update={
+            "pretrained_model_name_or_path": new_pretrained_model_path,
+            "short_model_name": new_short_model_name_with_checkpoint_interpolation,
+            "checkpoint_no": checkpoint_no,
+        },
+        deep=True,
+    )
+
+    return updated_config
 
 
 if __name__ == "__main__":

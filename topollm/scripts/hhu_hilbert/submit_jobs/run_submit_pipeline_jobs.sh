@@ -9,12 +9,8 @@ source "$POETRY_ENV_PATH/bin/activate"
 export HYDRA_FULL_ERROR=1
 # ==================================================== #
 
-# Check for the dry run option
-DRY_RUN=false
-if [[ "$1" == "--dry-run" ]]; then
-    DRY_RUN=true
-    echo "Dry run mode enabled."
-fi
+# Source the argument parsing script
+source ./parse_args.sh "$@"
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -34,11 +30,13 @@ MACHINE_CONFIGURATION="gtx1080ti"
 echo "SUBMIT_PIPELINE_JOBS: ${SUBMIT_PIPELINE_JOBS}"
 echo "MACHINE_CONFIGURATION: ${MACHINE_CONFIGURATION}"
 echo "DRY_RUN: ${DRY_RUN}"
+echo "JOB_RUN_MODE: ${JOB_RUN_MODE}"
 
 python3 submit_pipeline_jobs_with_hydra_config.py \
-    submit_pipeline_jobs="${SUBMIT_PIPELINE_JOBS}" \
-    machine_configuration="${MACHINE_CONFIGURATION}" \
-    machine_configuration.dry_run="${DRY_RUN}"
+    submit_jobs/submit_pipeline_jobs="${SUBMIT_PIPELINE_JOBS}" \
+    submit_jobs/machine_configuration="${MACHINE_CONFIGURATION}" \
+    submit_jobs.machine_configuration.dry_run="${DRY_RUN}" \
+    ++submit_jobs.machine_configuration.job_run_mode="${JOB_RUN_MODE}"
 
 # ==================================================== #
 

@@ -34,7 +34,7 @@ from pydantic import Field
 from topollm.config_classes.config_base_model import ConfigBaseModel
 from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
 from topollm.config_classes.data.data_split_config import DataSplitConfig
-from topollm.typing.enums import DatasetType, Split
+from topollm.typing.enums import DatasetType, DescriptionType, Split
 
 
 class DataConfig(ConfigBaseModel):
@@ -122,3 +122,25 @@ class DataConfig(ConfigBaseModel):
         )
 
         return desc
+
+    def get_config_description(
+        self,
+        description_type: DescriptionType = DescriptionType.LONG,
+        short_description_separator: str = "-",
+    ) -> str:
+        """Return the config description."""
+        match description_type:
+            case DescriptionType.LONG:
+                return self.config_description
+            case DescriptionType.SHORT:
+                short_description = (
+                    self.dataset_description_string
+                    + short_description_separator
+                    + self.split
+                    + short_description_separator
+                    + str(self.number_of_samples)
+                )
+                return short_description
+            case _:
+                msg = f"Unknown description type: {description_type}"
+                raise ValueError(msg)

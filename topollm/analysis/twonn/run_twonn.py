@@ -33,7 +33,7 @@ import omegaconf
 
 from topollm.analysis.twonn.twonn_worker import twonn_worker
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
-from topollm.config_classes.setup_OmegaConf import setup_OmegaConf
+from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.model_handling.get_torch_device import get_torch_device
@@ -48,7 +48,7 @@ setup_exception_logging(
     logger=global_logger,
 )
 
-setup_OmegaConf()
+setup_omega_conf()
 
 
 @hydra.main(
