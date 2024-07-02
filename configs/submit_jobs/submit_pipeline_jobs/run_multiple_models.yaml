@@ -3,7 +3,7 @@ defaults:
 
 data_list:
   - multiwoz21_validation
-  - iclr_2024_submissions_validation
+  # - iclr_2024_submissions_validation
 
 language_model_list:
   - model-roberta-base_multiwoz21-train-10000_ftm-lora_r-4_alpha-8_lora-target-query_key_value_lora-dropout-0.01_rslora-True_5e-05-constant-0.01-50.yaml
@@ -17,20 +17,23 @@ language_model_list:
 
 layer_indices_list:
   - "[-1]"
-  - "[-2]"
-  - "[-3]"
-  - "[-4]"
-  - "[-5]"
-  - "[-6]"
-  - "[-7]"
-  - "[-8]"
-  - "[-9]"
-  - "[-10]"
-  - "[-11]"
-  - "[-12]"
+  # - "[-2]"
+  # - "[-3]"
+  # - "[-4]"
+  # - "[-5]"
+  # - "[-6]"
+  # - "[-7]"
+  # - "[-8]"
+  # - "[-9]"
+  # - "[-10]"
+  # - "[-11]"
+  # - "[-12]"
 
 checkpoint_no_list:
   - 400
+  - 800
+  - 1200
+  - 1600
 
 data_number_of_samples_list:
   - 3000
