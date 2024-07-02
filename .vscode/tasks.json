@@ -47,7 +47,7 @@
         },
         {
             "label": "rsync parts of analysis directory from hhu hilbert",
-            "command": "./topollm/scripts/hhu_hilbert/sync_data/rsync_partial_analysis_dir_from_hhu_hilbert.sh",
+            "command": "./topollm/scripts/hhu_hilbert/sync_data/rsync_partial_analysis_dir_from_hhu_hilbert.sh --sync_to_external_drive",
             "type": "shell",
             "group": {
                 "kind": "build",

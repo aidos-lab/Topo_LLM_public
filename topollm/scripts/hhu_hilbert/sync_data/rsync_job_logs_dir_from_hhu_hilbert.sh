@@ -1,14 +1,16 @@
 #!/bin/bash
 
-# Following rsync instructions from:
-# https://wiki.hhu.de/pages/viewpage.action?pageId=55725648
-
-echo "TOPO_LLM_REPOSITORY_BASE_PATH=$TOPO_LLM_REPOSITORY_BASE_PATH"
-
 source "${TOPO_LLM_REPOSITORY_BASE_PATH}/topollm/scripts/hhu_hilbert/sync_data/common_variables.sh"
 
+# Print variables
+echo "TOPO_LLM_REPOSITORY_BASE_PATH=$TOPO_LLM_REPOSITORY_BASE_PATH"
+echo "ZIM_TOPO_LLM_REPOSITORY_BASE_PATH=$ZIM_TOPO_LLM_REPOSITORY_BASE_PATH"
+
+
+# Following rsync instructions from:
+# https://wiki.hhu.de/pages/viewpage.action?pageId=55725648
 rsync -avz --progress \
-    "${ZIM_USERNAME}@storage.hpc.rz.uni-duesseldorf.de:/gpfs/project/${ZIM_USERNAME}/job_logs/" \
+    "Hilbert-Storage:/gpfs/project/${ZIM_USERNAME}/job_logs/" \
     "${TOPO_LLM_REPOSITORY_BASE_PATH}/hilbert_job_logs/"
 
 # Exit with the exit code of the rsync command
