@@ -34,10 +34,11 @@ from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
 from topollm.config_classes.data.data_config import DataConfig
 from topollm.config_classes.finetuning.finetuning_config import FinetuningConfig
 from topollm.config_classes.paths.paths_config import PathsConfig
+from topollm.config_classes.sanitize_dirname import sanitize_dirname
 from topollm.path_management.finetuning.peft.factory import (
     get_peft_path_manager,
 )
-from topollm.typing.enums import Verbosity
+from topollm.typing.enums import DescriptionType, Verbosity
 
 default_logger = logging.getLogger(__name__)
 
@@ -73,12 +74,11 @@ class FinetuningPathManagerBasic:
     ) -> pathlib.Path:
         return self.paths_config.data_dir
 
-    @property
-    def finetuned_base_dir(
+    def get_finetuned_model_relative_dir(
         self,
     ) -> pathlib.Path:
+        """Return the directory for the finetuned model relative to the data_dir."""
         path = pathlib.Path(
-            self.data_dir,
             "models",
             "finetuned_models",
             self.finetuning_config.finetuning_datasets.train_dataset.config_description,
@@ -88,15 +88,44 @@ class FinetuningPathManagerBasic:
             self.finetuning_parameters_description,
             self.batch_size_description,
             self.training_progress_subdir,
+            "model_files",
         )
 
         return path
+
+    def get_finetuned_short_model_name(
+        self,
+    ) -> str:
+        """Return the short model name for the finetuned model."""
+        # Note: The short model name does not include the gradient modifier at the moment
+        finetuned_short_model_name = (
+            str(self.finetuning_config.base_model_config_description)
+            + ITEM_SEP
+            + str(
+                self.finetuning_config.finetuning_datasets.train_dataset.get_config_description(
+                    description_type=DescriptionType.SHORT,
+                ),
+            )
+            + ITEM_SEP
+            + sanitize_dirname(str(self.peft_path_manager.peft_description_subdir))  # We might need to shorten this
+            + ITEM_SEP
+            + str(
+                # Note: the short finetuning parameters description contains the epoch description
+                self.get_finetuning_parameters_description(
+                    description_type=DescriptionType.SHORT,
+                ),
+            )
+        )
+
+        return finetuned_short_model_name
 
     @property
     def batch_size_description(
         self,
     ) -> str:
-        description = f"{NAME_PREFIXES['batch_size_train']}" f"{KV_SEP}" f"{self.finetuning_config.batch_sizes.train}"
+        description = (
+            f"{NAME_PREFIXES['batch_size_train']}" + f"{KV_SEP}" + f"{self.finetuning_config.batch_sizes.train}"
+        )
 
         return description
 
@@ -120,6 +149,30 @@ class FinetuningPathManagerBasic:
 
         return description
 
+    def get_finetuning_parameters_description(
+        self,
+        description_type: DescriptionType = DescriptionType.LONG,
+        short_description_separator: str = "-",
+    ) -> str:
+        """Return the config description."""
+        match description_type:
+            case DescriptionType.LONG:
+                return self.finetuning_parameters_description
+            case DescriptionType.SHORT:
+                short_description = (
+                    str(self.finetuning_config.learning_rate)
+                    + short_description_separator
+                    + self.finetuning_config.lr_scheduler_type
+                    + short_description_separator
+                    + str(self.finetuning_config.weight_decay)
+                    + short_description_separator
+                    + str(self.finetuning_config.num_train_epochs)
+                )
+                return short_description
+            case _:
+                msg = f"Unknown description type: {description_type}"
+                raise ValueError(msg)
+
     @property
     def training_progress_subdir(
         self,
@@ -134,20 +187,21 @@ class FinetuningPathManagerBasic:
     def epoch_description(
         self,
     ) -> str:
-        desc = f"{NAME_PREFIXES['epoch']}{KV_SEP}{self.finetuning_config.num_train_epochs}"
+        description = f"{NAME_PREFIXES['epoch']}{KV_SEP}{self.finetuning_config.num_train_epochs}"
 
-        return desc
+        return description
 
     @property
     def finetuned_model_dir(
         self,
     ) -> pathlib.Path:
+        """Absolute path to the directory for the finetuned model."""
         path = pathlib.Path(
-            self.finetuned_base_dir,
-            "model_files",
+            self.data_dir,
+            self.get_finetuned_model_relative_dir(),
         )
 
-        if self.verbosity >= 1:
+        if self.verbosity >= Verbosity.NORMAL:
             self.logger.info(
                 "finetuned_model_dir:\n%s",
                 path,

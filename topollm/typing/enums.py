@@ -27,7 +27,7 @@
 
 """Enums used in the configuration classes."""
 
-from enum import Enum, IntEnum, unique
+from enum import Enum, IntEnum, auto, unique
 
 from strenum import StrEnum
 
@@ -67,6 +67,17 @@ class PreferredTorchBackend(StrEnum):
     CUDA = "cuda"
     MPS = "mps"
     AUTO = "auto"
+
+
+# ==============================
+
+
+@unique
+class JobRunMode(StrEnum):
+    """The different modes for running jobs."""
+
+    LOCAL = "local"
+    HHU_HILBERT = "hhu_hilbert"
 
 
 # ==============================
@@ -118,11 +129,24 @@ class Level(StrEnum):
 
 
 @unique
-class Split(StrEnum):  # type: ignore
+class Split(StrEnum):
+    """Splits of a dataset."""
+
     TRAIN = "train"
     VALIDATION = "validation"
     TEST = "test"
     FULL = "full"
+
+
+# ==============================
+
+
+@unique
+class DescriptionType(StrEnum):
+    """The different types of descriptions."""
+
+    SHORT = "short"
+    LONG = "long"
 
 
 # # # #
@@ -256,8 +280,8 @@ class LMmode(StrEnum):
 class TokenizerModifierMode(StrEnum):
     """Modes for modifying the tokenizer."""
 
-    DO_NOTHING = "do_nothing"
-    ADD_PADDING_TOKEN = "add_padding_token"  # noqa: S105 - not a password token
+    DO_NOTHING = auto()
+    ADD_PADDING_TOKEN = auto()  # noqa: S105 - not a password token
 
 
 @unique

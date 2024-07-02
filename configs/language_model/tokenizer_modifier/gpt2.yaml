@@ -1,2 +1,2 @@
-mode: add_padding_token
+mode: ADD_PADDING_TOKEN
 padding_token: "<|pad|>"

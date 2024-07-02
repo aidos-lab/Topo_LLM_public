@@ -1,0 +1,34 @@
+defaults:
+  - _self_
+
+data_list:
+  - multiwoz21_validation
+  - iclr_2024_submissions_validation
+
+language_model_list:
+  - roberta-base
+
+layer_indices_list:
+  - "[-1]"
+  - "[-2]"
+  - "[-3]"
+  - "[-4]"
+  - "[-5]"
+  - "[-6]"
+  - "[-7]"
+  - "[-8]"
+  - "[-9]"
+  - "[-10]"
+  - "[-11]"
+  - "[-12]"
+
+checkpoint_no_list:
+  - 400
+
+data_number_of_samples_list:
+  - 3000
+
+embeddings_data_prep_num_samples_list:
+  - 30000
+
+wandb_project: "Topo_LLM_pipeline_jobs"

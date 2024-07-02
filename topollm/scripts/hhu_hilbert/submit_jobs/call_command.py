@@ -27,6 +27,8 @@
 import logging
 import subprocess
 
+from topollm.typing.enums import Verbosity
+
 default_logger = logging.getLogger(__name__)
 
 
@@ -34,15 +36,18 @@ def call_command(
     command: list[str],
     *,
     dry_run: bool = False,
+    verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> None:
     """Call a command in a subprocess."""
-    # Add separator line to log
-    logger.info(
-        30 * "-",
-    )
+    if verbosity >= Verbosity.NORMAL:
+        # Add separator line to log
+        logger.info(
+            30 * "-",
+        )
 
     if dry_run:
+        # Logging always enabled in dry run mode
         logger.info(
             "Dry run enabled. Command not executed.",
         )
@@ -52,23 +57,28 @@ def call_command(
         )
     else:
         # Calling submit_job
-        logger.info(
-            "Calling submit_job ...",
-        )
-        logger.info(
-            "command:\n%s",
-            command,
-        )
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                "Calling command ...",
+            )
+            logger.info(
+                "command:\n%s",
+                command,
+            )
+
         subprocess.run(
             args=command,
             shell=False,
             check=True,
         )
-        logger.info(
-            "Calling submit_job DONE",
-        )
 
-    # Add separator line to log
-    logger.info(
-        30 * "-",
-    )
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                "Calling command DONE",
+            )
+
+    if verbosity >= Verbosity.NORMAL:
+        # Add separator line to log
+        logger.info(
+            30 * "-",
+        )

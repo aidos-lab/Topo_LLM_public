@@ -24,10 +24,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dataclasses import dataclass
 
-from hydra.core.config_store import ConfigStore
-
+from topollm.config_classes.config_base_model import ConfigBaseModel
 from topollm.config_classes.constants import TOPO_LLM_REPOSITORY_BASE_PATH
 from topollm.config_classes.submit_jobs.machine_configuration_config import MachineConfigurationConfig
 from topollm.config_classes.submit_jobs.submit_finetuning_jobs_config import (
@@ -36,8 +34,7 @@ from topollm.config_classes.submit_jobs.submit_finetuning_jobs_config import (
 from topollm.config_classes.submit_jobs.submit_pipeline_jobs_config import SubmitPipelineJobsConfig
 
 
-@dataclass
-class SubmitJobsConfig:
+class SubmitJobsConfig(ConfigBaseModel):
     """Config for the job submission main functions."""
 
     machine_configuration: MachineConfigurationConfig
@@ -45,38 +42,3 @@ class SubmitJobsConfig:
     submit_pipeline_jobs: SubmitPipelineJobsConfig
 
     topo_llm_repository_base_path: str = TOPO_LLM_REPOSITORY_BASE_PATH
-
-
-# # # # # # # # # # # # # # # # # # # # # # # #
-# Register the config classes with Hydra
-
-
-cs = ConfigStore.instance()
-
-cs.store(
-    group=None,  # This is in the top level of `submit_jobs` config group
-    name="base_submit_jobs_config",
-    node=SubmitJobsConfig,
-)
-
-# Note: The groups need to be given relative to the config path that
-# is loaded in the main function hydra decorator.
-cs.store(
-    group="machine_configuration",
-    name="base_machine_configuration_config",
-    node=MachineConfigurationConfig,
-)
-cs.store(
-    group="submit_finetuning_jobs",
-    name="base_submit_finetuning_jobs_config",
-    node=SubmitFinetuningJobsConfig,
-)
-cs.store(
-    group="submit_pipeline_jobs",
-    name="base_submit_pipeline_jobs_config",
-    node=SubmitPipelineJobsConfig,
-)
-
-# Note: Do not register the TrainingScheduleConfig class as a separate config class,
-# because we use an additional key for nesting so that they do not overwrite each other.
-# https://hydra.cc/docs/patterns/select_multiple_configs_from_config_group/

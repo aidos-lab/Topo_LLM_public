@@ -1,5 +1,4 @@
 defaults:
-  - base_submit_finetuning_jobs_config
   - training_schedule:
     - very_long_constant_lr_scheduler
   - _self_

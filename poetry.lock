@@ -4023,18 +4023,18 @@ zstd = ["zstandard (>=0.18.0)"]
 
 [[package]]
 name = "wandb"
-version = "0.17.0"
+version = "0.17.3"
 description = "A CLI and library for interacting with the Weights & Biases API."
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "wandb-0.17.0-py3-none-any.whl", hash = "sha256:b1b056b4cad83b00436cb76049fd29ecedc6045999dcaa5eba40db6680960ac2"},
-    {file = "wandb-0.17.0-py3-none-macosx_10_9_x86_64.whl", hash = "sha256:e1e6f04e093a6a027dcb100618ca23b122d032204b2ed4c62e4e991a48041a6b"},
-    {file = "wandb-0.17.0-py3-none-macosx_11_0_arm64.whl", hash = "sha256:feeb60d4ff506d2a6bc67f953b310d70b004faa789479c03ccd1559c6f1a9633"},
-    {file = "wandb-0.17.0-py3-none-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:b7bed8a3dd404a639e6bf5fea38c6efe2fb98d416ff1db4fb51be741278ed328"},
-    {file = "wandb-0.17.0-py3-none-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:56a1dd6e0e635cba3f6ed30b52c71739bdc2a3e57df155619d2d80ee952b4201"},
-    {file = "wandb-0.17.0-py3-none-win32.whl", hash = "sha256:1f692d3063a0d50474022cfe6668e1828260436d1cd40827d1e136b7f730c74c"},
-    {file = "wandb-0.17.0-py3-none-win_amd64.whl", hash = "sha256:ab582ca0d54d52ef5b991de0717350b835400d9ac2d3adab210022b68338d694"},
+    {file = "wandb-0.17.3-py3-none-any.whl", hash = "sha256:df94581b299414c4929759b0d12578b00a84d3bb21bc01461edcb1a643b2719b"},
+    {file = "wandb-0.17.3-py3-none-macosx_10_9_x86_64.whl", hash = "sha256:f6fe865b9ed7db74d67660973abaa236bbe469019a37b50d44a1be372122aced"},
+    {file = "wandb-0.17.3-py3-none-macosx_11_0_arm64.whl", hash = "sha256:36c4688c70bcd1d39e1575ab1664b22f67b40f685b087847f867b6e9302cd963"},
+    {file = "wandb-0.17.3-py3-none-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:7b69eb8148dca4f04d1e9c11f7d651e374f429b8ed729562e3184ce989f376f2"},
+    {file = "wandb-0.17.3-py3-none-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:cdc18c87ed255235cddd4a89ad96624595871e24ccfe975211a375a16923759f"},
+    {file = "wandb-0.17.3-py3-none-win32.whl", hash = "sha256:c0e228b06ed9c47a2bfb8ebb6f23b470ba95f58e35eb2dbd93b91d4f8e739923"},
+    {file = "wandb-0.17.3-py3-none-win_amd64.whl", hash = "sha256:836abfd028e19ca37a908aa7a57a4cd32f74619289f3bd111e27083a6b66e6e8"},
 ]
 
 [package.dependencies]
@@ -4042,7 +4042,7 @@ click = ">=7.1,<8.0.0 || >8.0.0"
 docker-pycreds = ">=0.4.0"
 gitpython = ">=1.0.0,<3.1.29 || >3.1.29"
 platformdirs = "*"
-protobuf = {version = ">=3.19.0,<4.21.0 || >4.21.0,<5", markers = "python_version > \"3.9\" or sys_platform != \"linux\""}
+protobuf = {version = ">=3.19.0,<4.21.0 || >4.21.0,<6", markers = "python_version > \"3.9\" or sys_platform != \"linux\""}
 psutil = ">=5.0.0"
 pyyaml = "*"
 requests = ">=2.0.0,<3"
@@ -4060,8 +4060,8 @@ launch = ["awscli", "azure-containerregistry", "azure-identity", "azure-storage-
 media = ["bokeh", "moviepy", "numpy", "pillow", "plotly (>=5.18.0)", "rdkit-pypi", "soundfile"]
 models = ["cloudpickle"]
 perf = ["orjson"]
-reports = ["pydantic (>=2.0.0)"]
 sweeps = ["sweeps (>=0.2.0)"]
+workspaces = ["wandb-workspaces"]
 
 [[package]]
 name = "wcwidth"

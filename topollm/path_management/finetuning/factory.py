@@ -37,12 +37,12 @@ from topollm.path_management.finetuning.protocol import (
     FinetuningPathManager,
 )
 
-logger = logging.getLogger(__name__)
+default_logger = logging.getLogger(__name__)
 
 
 def get_finetuning_path_manager(
     main_config: MainConfig,
-    logger: logging.Logger = logger,
+    logger: logging.Logger = default_logger,
 ) -> FinetuningPathManager:
     """Get a finetuning path manager based on the main configuration."""
     path_manger = FinetuningPathManagerBasic(

@@ -42,6 +42,12 @@ from topollm.typing.enums import LMmode
 class LanguageModelConfig(ConfigBaseModel):
     """Configuration for specifying the language model."""
 
+    checkpoint_no: int = Field(
+        default=-1,
+        title="Checkpoint number.",
+        description="The checkpoint number.",
+    )
+
     lm_mode: LMmode = Field(
         ...,
         title="Language model mode.",

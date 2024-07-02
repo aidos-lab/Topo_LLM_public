@@ -33,6 +33,7 @@ from topollm.config_classes.config_base_model import ConfigBaseModel
 from topollm.config_classes.data.data_config import DataConfig
 from topollm.config_classes.embeddings.embeddings_config import EmbeddingsConfig
 from topollm.config_classes.embeddings_data_prep.embeddings_data_prep_config import EmbeddingsDataPrepConfig
+from topollm.config_classes.feature_flags.feature_flags_config import FeatureFlagsConfig
 from topollm.config_classes.finetuning.finetuning_config import FinetuningConfig
 from topollm.config_classes.inference.inference_config import InferenceConfig
 from topollm.config_classes.language_model.language_model_config import (
@@ -41,6 +42,10 @@ from topollm.config_classes.language_model.language_model_config import (
 from topollm.config_classes.local_estimates.local_estimates_config import LocalEstimatesConfig
 from topollm.config_classes.paths.paths_config import PathsConfig
 from topollm.config_classes.storage.storage_config import StorageConfig
+from topollm.config_classes.submit_jobs.machine_configuration_config import MachineConfigurationConfig
+from topollm.config_classes.submit_jobs.submit_finetuning_jobs_config import SubmitFinetuningJobsConfig
+from topollm.config_classes.submit_jobs.submit_jobs_config import SubmitJobsConfig
+from topollm.config_classes.submit_jobs.submit_pipeline_jobs_config import SubmitPipelineJobsConfig
 from topollm.config_classes.tokenizer.tokenizer_config import TokenizerConfig
 from topollm.config_classes.transformations.transformations_config import TransformationsConfig
 from topollm.config_classes.wandb.wandb_config import WandBConfig
@@ -66,6 +71,12 @@ class MainConfig(ConfigBaseModel):
         ...,
         title="Embeddings configuration.",
         description="The configuration for specifying embeddings.",
+    )
+
+    feature_flags: FeatureFlagsConfig = Field(
+        default_factory=FeatureFlagsConfig,
+        title="Feature flags configuration.",
+        description="The configuration for specifying feature flags.",
     )
 
     finetuning: FinetuningConfig = Field(
@@ -114,6 +125,16 @@ class MainConfig(ConfigBaseModel):
         ...,
         title="Storage configuration.",
         description="The configuration for specifying storage.",
+    )
+
+    submit_jobs: SubmitJobsConfig = Field(
+        default=SubmitJobsConfig(
+            machine_configuration=MachineConfigurationConfig(),
+            submit_finetuning_jobs=SubmitFinetuningJobsConfig(),
+            submit_pipeline_jobs=SubmitPipelineJobsConfig(),
+        ),
+        title="Submit jobs configuration.",
+        description="The configuration for specifying submit jobs.",
     )
 
     tokenizer: TokenizerConfig = Field(

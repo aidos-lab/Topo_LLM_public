@@ -1,30 +1,39 @@
 defaults:
-  - base_submit_pipeline_jobs_config
   - _self_
 
 data_list:
   - multiwoz21_validation
-  - iclr_2024_submissions
+  # - iclr_2024_submissions_validation
 
 language_model_list:
-  - roberta-base
+  - model-roberta-base_multiwoz21-train-10000_ftm-lora_r-4_alpha-8_lora-target-query_key_value_lora-dropout-0.01_rslora-True_5e-05-constant-0.01-50.yaml
+  - model-roberta-base_multiwoz21-train-10000_ftm-lora_r-8_alpha-16_lora-target-query_key_value_lora-dropout-0.01_rslora-True_5e-05-constant-0.01-50.yaml
+  - model-roberta-base_multiwoz21-train-10000_ftm-lora_r-16_alpha-32_lora-target-query_key_value_lora-dropout-0.01_rslora-True_5e-05-constant-0.01-50.yaml
+  - model-roberta-base_multiwoz21-train-10000_ftm-lora_r-32_alpha-64_lora-target-query_key_value_lora-dropout-0.01_rslora-True_5e-05-constant-0.01-50.yaml
+  - model-roberta-base_multiwoz21-train-10000_ftm-lora_r-64_alpha-128_lora-target-query_key_value_lora-dropout-0.01_rslora-True_5e-05-constant-0.01-50.yaml
+  - model-roberta-base_multiwoz21-train-10000_ftm-lora_r-128_alpha-256_lora-target-query_key_value_lora-dropout-0.01_rslora-True_5e-05-constant-0.01-50.yaml
+  - model-roberta-base_multiwoz21-train-10000_ftm-lora_r-256_alpha-512_lora-target-query_key_value_lora-dropout-0.01_rslora-True_5e-05-constant-0.01-50.yaml
+  - model-roberta-base_multiwoz21-train-10000_ftm-lora_r-512_alpha-1024_lora-target-query_key_value_lora-dropout-0.01_rslora-True_5e-05-constant-0.01-50.yaml
 
 layer_indices_list:
   - "[-1]"
-  - "[-2]"
-  - "[-3]"
-  - "[-4]"
-  - "[-5]"
-  - "[-6]"
-  - "[-7]"
-  - "[-8]"
-  - "[-9]"
-  - "[-10]"
-  - "[-11]"
-  - "[-12]"
+  # - "[-2]"
+  # - "[-3]"
+  # - "[-4]"
+  # - "[-5]"
+  # - "[-6]"
+  # - "[-7]"
+  # - "[-8]"
+  # - "[-9]"
+  # - "[-10]"
+  # - "[-11]"
+  # - "[-12]"
 
 checkpoint_no_list:
   - 400
+  - 800
+  - 1200
+  - 1600
 
 data_number_of_samples_list:
   - 3000
