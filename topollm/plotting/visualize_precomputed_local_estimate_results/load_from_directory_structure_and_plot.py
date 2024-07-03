@@ -30,22 +30,27 @@ import logging
 import os
 import pathlib
 from collections import defaultdict
+from collections.abc import Callable
+from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
+from tqdm import tqdm
 
 default_logger = logging.getLogger(__name__)
 
 
-# Function to recursively load numpy arrays
 def load_numpy_arrays(
     base_dir: pathlib.Path,
-    logger: logging.Logger = default_logger,
 ) -> defaultdict:
-    data = defaultdict(lambda: defaultdict(list))
+    """Recursively load numpy arrays into a nested dictionary structure."""
+    data = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
 
-    for root, dirs, files in os.walk(
-        base_dir,
+    for root, _, files in tqdm(
+        os.walk(
+            base_dir,
+        ),
+        desc="Loading arrays",
     ):
         for file in files:
             if file.endswith(".npy"):
@@ -58,31 +63,55 @@ def load_numpy_arrays(
                 checkpoint = parts[2]
 
                 arr = np.load(file_path)
-                mean_value = np.mean(arr)
-
-                data[model_config][layer].append((checkpoint, mean_value))
+                data[model_config][layer][checkpoint].append(arr)
 
     return data
 
 
-# Function to plot data
-def plot_data(data):
-    for model_config, layers in data.items():
-        for layer, values in layers.items():
-            values.sort()  # Sort values by checkpoint
-            checkpoints, means = zip(*values)
+def apply_accumulation_function(data, func: Callable[[np.ndarray], float]) -> defaultdict:
+    """Recursively apply an accumulation function to all numpy arrays in the data structure."""
+
+    def recursive_apply(current_data: Any) -> Any:
+        if isinstance(
+            current_data,
+            list,
+        ):
+            return [func(np.array(arr)) for arr in current_data]
+        elif isinstance(
+            current_data,
+            dict,
+        ):
+            return {key: recursive_apply(value) for key, value in current_data.items()}
+        else:
+            msg = "Unexpected data type in the nested structure."
+            raise TypeError(msg)
+
+    return recursive_apply(data)
+
+
+def plot_data(accumulated_data):
+    """Plot the accumulated data."""
+    for model_config, layers in accumulated_data.items():
+        for layer, checkpoints in layers.items():
+            sorted_checkpoints = sorted(checkpoints.items())
+            checkpoint_labels, values = zip(*sorted_checkpoints)
 
             plt.figure()
-            plt.plot(checkpoints, means, marker="o")
+            plt.plot(checkpoint_labels, values, marker="o")
             plt.xlabel("Checkpoint")
-            plt.ylabel("Mean Value")
-            plt.title(f"Mean Values for {model_config} - {layer}")
+            plt.ylabel("Accumulated Value")
+            plt.title(f"Accumulated Values for {model_config} - {layer}")
             plt.xticks(rotation=45)
             plt.tight_layout()
             plt.show()
 
 
 def main() -> None:
+    logger = default_logger
+    logger.info(
+        "Starting main() function ...",
+    )
+
     # Base directory
     base_dir = pathlib.Path(
         "/Volumes/ruppik_external/research_data/",
@@ -91,10 +120,20 @@ def main() -> None:
 
     # Load and plot data
     data = load_numpy_arrays(
-        base_dir,
+        base_dir=base_dir,
     )
-    plot_data(
+    # Apply an accumulation function (e.g., np.mean)
+    accumulated_data = apply_accumulation_function(
         data,
+        np.mean,
+    )
+
+    plot_data(
+        accumulated_data=accumulated_data,
+    )
+
+    logger.info(
+        "Starting main() function DONE",
     )
 
 
