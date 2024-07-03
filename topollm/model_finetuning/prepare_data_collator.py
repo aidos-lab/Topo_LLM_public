@@ -61,8 +61,14 @@ def prepare_data_collator(
     )
 
     if verbosity >= 1:
-        logger.info(f"{lm_mode = }")
-        logger.info(f"{mlm = }")
-        logger.info(f"{data_collator = }")
+        logger.info(
+            f"{lm_mode = }",  # noqa: G004 - low overhead
+        )
+        logger.info(
+            f"{mlm = }",  # noqa: G004 - low overhead
+        )
+        logger.info(
+            f"{data_collator = }",  # noqa: G004 - low overhead
+        )
 
     return data_collator

@@ -1,0 +1,9 @@
+defaults:
+  - data_split: do_nothing
+  - subset@_here_: train_split_and_truncation
+  - _self_
+
+context: dataset_entry
+dataset_description_string: wnut_17
+dataset_path: wnut_17
+dataset_type: huggingface_dataset
