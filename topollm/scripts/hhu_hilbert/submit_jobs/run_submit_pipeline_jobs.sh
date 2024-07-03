@@ -16,7 +16,8 @@ source ./parse_args.sh "$@"
 # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # START: Python script - Command line arguments
 
-SUBMIT_PIPELINE_JOBS="run_multiple_models"
+# SUBMIT_PIPELINE_JOBS="run_multiple_models"
+SUBMIT_PIPELINE_JOBS="run_single_model_all_checkpoints"
 
 # MACHINE_CONFIGURATION="rtx6000"
 MACHINE_CONFIGURATION="gtx1080ti"
