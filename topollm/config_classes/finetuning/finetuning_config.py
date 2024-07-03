@@ -59,7 +59,7 @@ class FinetuningConfig(ConfigBaseModel):
     )
 
     batch_sizes: BatchSizesConfig = Field(
-        ...,
+        default=BatchSizesConfig(),
         description="The batch sizes for training and evaluation.",
     )
 
@@ -134,7 +134,7 @@ class FinetuningConfig(ConfigBaseModel):
     )
 
     pretrained_model_name_or_path: str = Field(
-        ...,
+        default="roberta-base",
         description="The name or path of the base model to use for fine tuning.",
     )
 
@@ -144,7 +144,7 @@ class FinetuningConfig(ConfigBaseModel):
     )
 
     short_model_name: str = Field(
-        default="default-short-model-name",
+        default="roberta-base",
         description="Short name of the base model for file names.",
     )
 

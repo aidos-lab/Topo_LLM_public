@@ -17,11 +17,6 @@ BASE_MODEL_LIST="roberta-base"
 NUM_TRAIN_EPOCHS="5"
 # NUM_TRAIN_EPOCHS="50"
 
-COMMON_BATCH_SIZE="16"
-
-BATCH_SIZE_TRAIN="${COMMON_BATCH_SIZE}"
-BATCH_SIZE_EVAL="${COMMON_BATCH_SIZE}"
-
 SAVE_STEPS="400"
 EVAL_STEPS="100"
 
@@ -34,10 +29,6 @@ FINETUNING_DATASETS_LIST="train_and_eval_on_one-year-of-tsla-on-reddit"
 LR_SCHEDULER_TYPE="linear"
 # LR_SCHEDULER_TYPE="constant"
 
-
-# TODO(Ben): For "gpt2-medium" using LoRA training, get the following error:
-# `ValueError: Target modules {'key', 'value', 'query'} not found in the base model. Please check the target modules and try again.`
-#
 PEFT_LIST="lora"
 # PEFT_LIST="standard"
 # PEFT_LIST="standard,lora"
@@ -68,8 +59,6 @@ python3 $PYTHON_SCRIPT_PATH \
     finetuning/base_model@finetuning="${BASE_MODEL_LIST}" \
     finetuning.num_train_epochs="${NUM_TRAIN_EPOCHS}" \
     finetuning.lr_scheduler_type="${LR_SCHEDULER_TYPE}" \
-    finetuning.batch_sizes.train="${BATCH_SIZE_TRAIN}" \
-    finetuning.batch_sizes.eval="${BATCH_SIZE_EVAL}" \
     finetuning.save_steps="${SAVE_STEPS}" \
     finetuning.eval_steps="${EVAL_STEPS}" \
     finetuning.fp16="true" \

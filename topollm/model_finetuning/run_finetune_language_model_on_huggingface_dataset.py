@@ -72,7 +72,7 @@ setup_omega_conf()
 @hydra.main(
     config_path=f"{HYDRA_CONFIGS_BASE_PATH}",
     config_name="main_config",
-    version_base="1.2",
+    version_base="1.3",
 )
 def main(
     config: omegaconf.DictConfig,
@@ -100,6 +100,9 @@ def main(
         os.environ["WANDB_MODE"] = "disabled"
         # Note: Do not set `os.environ["WANDB_DISABLED"] = "true"` because this will raise the error
         # `RuntimeError: WandbCallback requires wandb to be installed. Run `pip install wandb`.`
+        main_config.finetuning.report_to = [
+            "tensorboard",
+        ]
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Use accelerator if available

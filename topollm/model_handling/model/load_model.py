@@ -71,7 +71,7 @@ def load_model(
         model_loading_class,
         "from_pretrained",
     ):
-        msg = f"model_loading_class does not have a from_pretrained method: {model_loading_class = }"
+        msg = f"Does not have a .from_pretrained() method: {model_loading_class = }"
         raise ValueError(msg)
 
     model: transformers.PreTrainedModel = model_loading_class.from_pretrained(

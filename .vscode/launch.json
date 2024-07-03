@@ -27,13 +27,20 @@
             ]
         },
         {
-            "name": "run_finetune_language_model_on_huggingface_dataset.py only config file creation",
+            "name": "run_finetune_language_model_on_huggingface_dataset.py; skip finetuning; only config file creation",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/model_finetuning/run_finetune_language_model_on_huggingface_dataset.py",
             "console": "integratedTerminal",
             "args": "feature_flags.finetuning.skip_finetuning=true feature_flags.finetuning.use_wandb=false"
         },
-        // TODO(Ben): Add debug run for NER task
+        {
+            "name": "run_finetune_language_model_on_huggingface_dataset.py; on NER task",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/model_finetuning/run_finetune_language_model_on_huggingface_dataset.py",
+            "console": "integratedTerminal",
+            "args": "feature_flags.finetuning.use_wandb=false finetuning/finetuning_datasets=train_and_eval_on_wnut_17"
+        },
     ]
 }

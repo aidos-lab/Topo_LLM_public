@@ -1,6 +1,3 @@
-batch_sizes:
-  train: 16
-  eval: 32
 eval_steps: 400
 fp16: false
 gradient_accumulation_steps: 2

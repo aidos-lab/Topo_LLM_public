@@ -105,6 +105,8 @@ def do_finetuning_process(
         logger=logger,
     )
 
+    # TODO: Add the necessary parameters for loading the model in token tagging mode
+
     base_model = load_base_model_from_finetuning_config(
         finetuning_config=finetuning_config,
         device=device,

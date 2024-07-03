@@ -3,6 +3,7 @@ defaults:
   - subset@_here_: train_split_and_truncation
   - _self_
 
+column_name: tokens
 context: dataset_entry
 dataset_description_string: wnut_17
 dataset_path: wnut_17

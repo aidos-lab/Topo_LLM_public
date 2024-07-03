@@ -36,7 +36,7 @@ class BatchSizesConfig(ConfigBaseModel):
     """Configurations for specifying batch sizes."""
 
     train: int = Field(
-        default=8,
+        default=16,
         description="The batch size for training.",
     )
 
