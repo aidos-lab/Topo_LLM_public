@@ -132,6 +132,19 @@ default_output_dir = pathlib.Path(
 )
 
 
+def extract_layer_index(
+    layer_name: str,
+):
+    """Extract the numerical index from the layer name for sorting."""
+    match = re.search(
+        r"layer--(\d+)",
+        layer_name,
+    )
+    if match:
+        return int(match.group(1))
+    return layer_name
+
+
 def plot_data(
     accumulated_data: defaultdict,
     output_dir: pathlib.Path = default_output_dir,
@@ -146,7 +159,7 @@ def plot_data(
         for layers in checkpoints.values():
             all_layers.update(layers.keys())
 
-    all_layers = sorted(all_layers)
+    all_layers = sorted(all_layers, key=extract_layer_index)
     num_layers = len(all_layers)
     num_lora_r = len(accumulated_data)
 
@@ -179,9 +192,11 @@ def plot_data(
             plt.close()
 
     if save_grid_plot:
+        sorted_lora_r_values = sorted(accumulated_data.keys())
         fig, axes = plt.subplots(num_lora_r, num_layers, figsize=(num_layers * 5, num_lora_r * 5), squeeze=False)
 
-        for i, (lora_r, checkpoints) in enumerate(accumulated_data.items()):
+        for i, lora_r in enumerate(sorted_lora_r_values):
+            checkpoints = accumulated_data[lora_r]
             for j, layer in enumerate(all_layers):
                 ax = axes[i][j]
                 checkpoint_values = []
