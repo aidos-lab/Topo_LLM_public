@@ -179,12 +179,12 @@ data/analysis/twonn/
 
 data/backup/
 
-data/embeddings/arrays
-data/embeddings/metadata
-data/embeddings/perplexity
+data/embeddings/arrays/
+data/embeddings/metadata/
+data/embeddings/perplexity/
 
-data/models/architecture-roberta-base
-data/models/finetuned_models
+data/models/architecture-roberta-base/
+data/models/finetuned_models/
 
 data/saved_plots/
 
@@ -192,4 +192,4 @@ hydra_output_dir/
 hilbert_job_logs/
 
 # Weights and Biases (wandb)
-wandb
+wandb/
