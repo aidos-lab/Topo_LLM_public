@@ -174,7 +174,11 @@ data/datasets/dialogue_datasets/
 data/datasets/iclr_2024_submissions/csv_format/ICLR_Mistral_Embeddings.csv
 data/datasets/tokenised_datasets_dataframes/
 
+data/analysis/prepared
+data/analysis/twonn
+
 data/backup/
+
 data/embeddings/arrays
 data/embeddings/metadata
 data/embeddings/perplexity
@@ -182,8 +186,7 @@ data/embeddings/perplexity
 data/models/architecture-roberta-base
 data/models/finetuned_models
 
-data/analysis/prepared
-data/analysis/twonn
+data/saved_plots/
 
 hydra_output_dir/
 hilbert_job_logs/
