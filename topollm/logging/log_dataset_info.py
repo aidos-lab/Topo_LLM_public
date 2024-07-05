@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -33,17 +31,19 @@ import pprint
 import datasets
 import torch.utils.data
 
+default_logger = logging.getLogger(__name__)
+
 
 def log_huggingface_dataset_info(
     dataset: datasets.Dataset,
     dataset_name: str = "dataset",
     num_samples_to_log: int = 5,
-    logger: logging.Logger = logging.getLogger(__name__),
+    logger: logging.Logger = default_logger,
 ) -> None:
-    """Logs information about the dataset."""
-
+    """Log information about the dataset."""
     logger.info(
-        f"{dataset_name}.info:\n" f"{pprint.pformat(dataset.info)}",
+        f"{dataset_name}.info:\n%s",  # noqa: G004 - low overhead
+        pprint.pformat(dataset.info),
     )
     logger.info(
         f"{dataset_name}.column_names:\n" f"{pprint.pformat(dataset.column_names)}",
@@ -62,16 +62,14 @@ def log_huggingface_dataset_info(
         f"{dataset[-num_samples_to_log:]}",  # Do not use pprint here, as it will not be readable
     )
 
-    return None
-
 
 def log_torch_dataset_info(
     dataset: torch.utils.data.Dataset,
     dataset_name: str = "dataset",
     num_samples_to_log: int = 5,
-    logger: logging.Logger = logging.getLogger(__name__),
+    logger: logging.Logger = default_logger,
 ) -> None:
-    """Logs information about the dataset."""
+    """Log information about the dataset."""
     logger.info(
         f"{dataset_name = }",
     )
@@ -86,8 +84,7 @@ def log_torch_dataset_info(
         num_samples_to_log,
     ):
         logger.info(
-            f"{dataset_name}[{idx}]:\n"
-            f"{(dataset[idx])}",  # Do not use pprint here, as it will not be readable
+            f"{dataset_name}[{idx}]:\n" f"{(dataset[idx])}",  # Do not use pprint here, as it will not be readable
         )
 
     for idx in range(
@@ -95,8 +92,5 @@ def log_torch_dataset_info(
         0,
     ):
         logger.info(
-            f"{dataset_name}[{idx}]:\n"
-            f"{(dataset[idx])}",  # Do not use pprint here, as it will not be readable
+            f"{dataset_name}[{idx}]:\n" f"{(dataset[idx])}",  # Do not use pprint here, as it will not be readable
         )
-
-    return None

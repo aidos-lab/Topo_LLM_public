@@ -35,6 +35,9 @@ import transformers
 
 from topollm.config_classes.main_config import MainConfig
 from topollm.data_handling.dataset_preparer.factory import get_dataset_preparer
+from topollm.data_handling.dataset_preparer.select_random_elements import (
+    log_selected_dataset_elements_info,
+)
 from topollm.model_finetuning.evaluate_tuned_model import evaluate_tuned_model
 from topollm.model_finetuning.finetune_model import finetune_model
 from topollm.model_finetuning.gradient_modifiers.factory import get_gradient_modifier
@@ -95,6 +98,19 @@ def do_finetuning_process(
         logger=logger,
     )
     eval_dataset = eval_dataset_preparer.prepare_dataset()
+
+    # Print examples from the dataset
+    if verbosity >= Verbosity.NORMAL:
+        log_selected_dataset_elements_info(
+            dataset=train_dataset,
+            dataset_name="train_dataset",
+            logger=logger,
+        )
+        log_selected_dataset_elements_info(
+            dataset=eval_dataset,
+            dataset_name="eval_dataset",
+            logger=logger,
+        )
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Load tokenizer and model
