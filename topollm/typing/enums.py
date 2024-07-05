@@ -138,6 +138,13 @@ class Split(StrEnum):
     FULL = "full"
 
 
+@unique
+class MaskingMode(StrEnum):
+    """The different masking modes."""
+
+    NO_MASKING = auto()
+
+
 # ==============================
 
 

@@ -3,6 +3,6 @@ defaults:
   - _self_
 
 lm_mode: MLM
-masking_mode: no_masking
+
 pretrained_model_name_or_path: roberta-base
 short_model_name: ${language_model.pretrained_model_name_or_path}

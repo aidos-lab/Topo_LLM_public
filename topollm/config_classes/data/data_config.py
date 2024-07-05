@@ -94,7 +94,7 @@ class DataConfig(ConfigBaseModel):
     )
 
     split: Split = Field(
-        ...,
+        default=Split.TRAIN,
         title="Split to use for computing embeddings.",
         description="The split to use for computing embeddings.",
     )
@@ -103,7 +103,7 @@ class DataConfig(ConfigBaseModel):
     def config_description(
         self,
     ) -> str:
-        desc = (
+        description = (
             f"{NAME_PREFIXES['data']}"
             f"{KV_SEP}"
             f"{self.dataset_description_string}"
@@ -121,7 +121,7 @@ class DataConfig(ConfigBaseModel):
             f"{self.number_of_samples}"
         )
 
-        return desc
+        return description
 
     def get_config_description(
         self,

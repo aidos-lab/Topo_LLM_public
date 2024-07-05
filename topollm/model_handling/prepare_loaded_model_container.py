@@ -71,6 +71,8 @@ def prepare_device_and_tokenizer_and_model(
     # Note: The `AutoModelForPreTraining` class appears to work for the
     # "roberta"-models, but not for the "bert"-models.
 
+    # TODO: Update this so that it supports the same model loading classes as the finetuning code.
+
     # Case distinction for different language model modes
     # (Masked Language Modeling, Causal Language Modeling).
     lm_mode: LMmode = main_config.language_model.lm_mode

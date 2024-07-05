@@ -41,6 +41,7 @@ from topollm.config_classes.finetuning.peft.peft_config import PEFTConfig
 from topollm.config_classes.finetuning.tokenizer_modifier_config import (
     TokenizerModifierConfig,
 )
+from topollm.config_classes.language_model.language_model_config import LanguageModelConfig
 from topollm.config_classes.tokenizer.tokenizer_config import TokenizerConfig
 from topollm.typing.enums import LMmode
 
@@ -48,18 +49,23 @@ from topollm.typing.enums import LMmode
 class FinetuningConfig(ConfigBaseModel):
     """Configurations for fine tuning."""
 
+    base_model: LanguageModelConfig = Field(
+        default_factory=LanguageModelConfig,
+        description="The configuration for specifying the base model.",
+    )
+
     gradient_modifier: GradientModifierConfig = Field(
-        ...,
+        default_factory=GradientModifierConfig,
         description="The configurations for the gradient modifier.",
     )
 
     peft: PEFTConfig = Field(
-        ...,
+        default_factory=PEFTConfig,
         description="The configurations for the PEFT model.",
     )
 
     batch_sizes: BatchSizesConfig = Field(
-        default=BatchSizesConfig(),
+        default_factory=BatchSizesConfig,
         description="The batch sizes for training and evaluation.",
     )
 
@@ -98,11 +104,6 @@ class FinetuningConfig(ConfigBaseModel):
         description="The learning rate scheduler type.",
     )
 
-    lm_mode: LMmode = Field(
-        default=LMmode.MLM,
-        description="The language model mode.",
-    )
-
     log_level: str = Field(
         default="info",
         description="The log level.",
@@ -133,30 +134,15 @@ class FinetuningConfig(ConfigBaseModel):
         description="The number of training epochs.",
     )
 
-    pretrained_model_name_or_path: str = Field(
-        default="roberta-base",
-        description="The name or path of the base model to use for fine tuning.",
-    )
-
     save_steps: int = Field(
         default=400,
         description="The number of steps between two saves.",
     )
 
-    short_model_name: str = Field(
-        default="roberta-base",
-        description="Short name of the base model for file names.",
-    )
-
     tokenizer: TokenizerConfig = Field(
-        ...,
+        default_factory=TokenizerConfig,
         title="Tokenizer configuration.",
         description="The configuration for specifying tokenizer.",
-    )
-
-    tokenizer_modifier: TokenizerModifierConfig = Field(
-        ...,
-        description="The configuration for modifying the tokenizer.",
     )
 
     use_cpu: bool = Field(
@@ -188,6 +174,6 @@ class FinetuningConfig(ConfigBaseModel):
     ) -> str:
         # Construct and return the model parameters description
 
-        desc = f"{NAME_PREFIXES['model']}{KV_SEP}{self.short_model_name}"
+        description = self.base_model.config_description
 
-        return desc
+        return description

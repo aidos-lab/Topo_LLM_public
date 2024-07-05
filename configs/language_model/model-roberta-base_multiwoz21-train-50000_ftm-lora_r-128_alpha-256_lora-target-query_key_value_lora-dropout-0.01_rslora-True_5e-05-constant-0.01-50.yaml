@@ -1,6 +1,6 @@
 checkpoint_no: 78000
 lm_mode: MLM
-masking_mode: no_masking
+
 pretrained_model_name_or_path: ${paths.data_dir}/models/finetuned_models/data-multiwoz21_split-train_ctxt-dataset_entry_samples-50000/model-roberta-base/ftm-lora/r-128_alpha-256_lora-target-query_key_value_lora-dropout-0.01_rslora-True/gradmod-do_nothing_target-freeze-/lr-5e-05_lr_scheduler_type-constant_wd-0.01/bs-train-16/ep-50/model_files/checkpoint-${language_model.checkpoint_no}
 short_model_name: model-roberta-base_multiwoz21-train-50000_ftm-lora_r-128_alpha-256_lora-target-query_key_value_lora-dropout-0.01_rslora-True_5e-05-constant-0.01-50_ckpt-${language_model.checkpoint_no}
 tokenizer_modifier:
