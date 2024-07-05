@@ -45,7 +45,7 @@ def load_tokenizer_from_finetuning_config(
 ) -> transformers.PreTrainedTokenizer | transformers.PreTrainedTokenizerFast:
     """Interface function to load a tokenizer from a FinetuningConfig object."""
     tokenizer = load_tokenizer(
-        pretrained_model_name_or_path=finetuning_config.pretrained_model_name_or_path,
+        pretrained_model_name_or_path=finetuning_config.base_model.pretrained_model_name_or_path,
         tokenizer_config=finetuning_config.tokenizer,
         verbosity=verbosity,
         logger=logger,

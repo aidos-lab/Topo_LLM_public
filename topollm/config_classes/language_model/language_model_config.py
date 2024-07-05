@@ -36,7 +36,7 @@ from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
 from topollm.config_classes.finetuning.tokenizer_modifier_config import (
     TokenizerModifierConfig,
 )
-from topollm.typing.enums import LMmode, MaskingMode
+from topollm.typing.enums import LMmode, MaskingMode, TaskType
 
 
 class LanguageModelConfig(ConfigBaseModel):
@@ -52,6 +52,12 @@ class LanguageModelConfig(ConfigBaseModel):
         default=LMmode.MLM,
         title="Language model mode.",
         description="The language model mode.",
+    )
+
+    task_type: TaskType = Field(
+        default=TaskType.MASKED_LM,
+        title="Task type.",
+        description="The task type.",
     )
 
     masking_mode: MaskingMode = Field(

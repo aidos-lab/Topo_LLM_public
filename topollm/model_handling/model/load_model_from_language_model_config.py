@@ -25,50 +25,39 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Prepare the data collator for the finetuning process."""
+"""Load a model from a LanguageModelConfig object."""
 
 import logging
 
-import transformers
+import torch
+from transformers import PreTrainedModel
 
-from topollm.config_classes.finetuning.finetuning_config import FinetuningConfig
-from topollm.typing.enums import LMmode
+from topollm.config_classes.language_model.language_model_config import LanguageModelConfig
+from topollm.model_handling.model.get_model_class_from_task_type import get_model_class_from_task_type
+from topollm.model_handling.model.load_model import load_model
+from topollm.typing.enums import Verbosity
 
+default_device = torch.device("cpu")
 default_logger = logging.getLogger(__name__)
 
 
-def prepare_data_collator(
-    finetuning_config: FinetuningConfig,
-    tokenizer: transformers.PreTrainedTokenizerBase,
-    verbosity: int = 1,
+def load_model_from_language_model_config(
+    language_model_config: LanguageModelConfig,
+    device: torch.device = default_device,
+    verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
-) -> transformers.DataCollatorForLanguageModeling:
-    """Prepare the data collator for the finetuning process."""
-    lm_mode = finetuning_config.base_model.lm_mode
-
-    if lm_mode == LMmode.MLM:
-        mlm = True
-    elif lm_mode == LMmode.CLM:
-        mlm = False
-    else:
-        msg = f"Unknown {lm_mode = }"
-        raise ValueError(msg)
-
-    data_collator = transformers.DataCollatorForLanguageModeling(
-        tokenizer=tokenizer,
-        mlm=mlm,
-        mlm_probability=finetuning_config.mlm_probability,
+) -> PreTrainedModel:
+    """Load a model from a LanguageModelConfig object."""
+    model_loading_class = get_model_class_from_task_type(
+        task_type=language_model_config.task_type,
     )
 
-    if verbosity >= 1:
-        logger.info(
-            f"{lm_mode = }",  # noqa: G004 - low overhead
-        )
-        logger.info(
-            f"{mlm = }",  # noqa: G004 - low overhead
-        )
-        logger.info(
-            f"{data_collator = }",  # noqa: G004 - low overhead
-        )
+    model = load_model(
+        pretrained_model_name_or_path=language_model_config.pretrained_model_name_or_path,
+        model_loading_class=model_loading_class,
+        device=device,
+        verbosity=verbosity,
+        logger=logger,
+    )
 
-    return data_collator
+    return model

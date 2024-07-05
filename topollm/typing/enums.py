@@ -183,25 +183,6 @@ class ZeroVectorHandlingMode(StrEnum):
 
 
 @unique
-class DataLoaderKey(StrEnum):  # type: ignore
-    TRAINING = "train"
-    VALIDATION = "validation"
-    TESTING = "test"
-    PREDICTION = "prediction"
-
-
-@unique
-class ExperimentMode(StrEnum):  # type: ignore
-    TRAINING = "training"
-    VALIDATION = "validation"
-    TESTING = "testing"
-    PREDICTION = "prediction"
-
-
-# ==============================
-
-
-@unique
 class DialogueDatasetDesc(StrEnum):  # type: ignore
     MULTIWOZ21 = "multiwoz21"
     MULTIWOZ21_TRAIN = "multiwoz21-train"
@@ -214,21 +195,11 @@ class DialogueDatasetDesc(StrEnum):  # type: ignore
 
 
 @unique
-class DataSplitMode(StrEnum):  # type: ignore
+class DataSplitMode(StrEnum):
+    """The different modes for splitting the data."""
+
     DO_NOTHING = "do_nothing"
     PROPORTIONS = "proportions"
-
-
-@unique
-class SubtokenExtractionMethod(StrEnum):  # type: ignore
-    FIRST_SUBTOKEN = "first_subtoken"
-    LAST_SUBTOKEN = "last_subtoken"
-
-
-@unique
-class DatasetMode(StrEnum):  # type: ignore
-    DATASETS_CONTEXTUAL_DIALOGUES = "datasets_contextual_dialogues"
-    DATASETS_NER_EXPERIMENTS = "datasets_ner_experiments"
 
 
 @unique
@@ -245,13 +216,6 @@ class WordSeparationMethod(StrEnum):  # type: ignore
     # (for instance, the CoNLL2003 dataset comes separated into words,
     # with each word associated with a label on a separate line)
     FROM_DATASET = "from_dataset"
-
-
-@unique
-class TaggerType(StrEnum):
-    """The different types of taggers."""
-
-    ROBERTA = "roberta"
 
 
 @unique
@@ -283,12 +247,21 @@ class LMmode(StrEnum):
     CLM = "CLM"  # causal language model
 
 
+class TaskType(StrEnum):
+    """The different types of tasks."""
+
+    SEQUENCE_CLASSIFICATION = auto()
+    TOKEN_CLASSIFICATION = auto()
+    MASKED_LM = auto()
+    CAUSAL_LM = auto()
+
+
 @unique
 class TokenizerModifierMode(StrEnum):
     """Modes for modifying the tokenizer."""
 
     DO_NOTHING = auto()
-    ADD_PADDING_TOKEN = auto()  # noqa: S105 - not a password token
+    ADD_PADDING_TOKEN = auto()
 
 
 @unique

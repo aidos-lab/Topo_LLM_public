@@ -25,33 +25,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
+"""Get the model class based on the task type."""
 
-import torch
-from transformers import PreTrainedModel
+from transformers import (
+    AutoModel,
+    AutoModelForCausalLM,
+    AutoModelForMaskedLM,
+    AutoModelForSequenceClassification,
+    AutoModelForTokenClassification,
+)
+from transformers.modeling_utils import PreTrainedModel
 
-from topollm.config_classes.finetuning.finetuning_config import FinetuningConfig
-from topollm.model_handling.model.load_model_from_language_model_config import load_model_from_language_model_config
-from topollm.typing.enums import Verbosity
+from topollm.typing.enums import TaskType
 
-default_device = torch.device("cpu")
-default_logger = logging.getLogger(__name__)
+TASK_TYPE_TO_MODEL_MAPPING = {
+    TaskType.SEQUENCE_CLASSIFICATION: AutoModelForSequenceClassification,
+    TaskType.TOKEN_CLASSIFICATION: AutoModelForTokenClassification,
+    TaskType.MASKED_LM: AutoModelForMaskedLM,
+    TaskType.CAUSAL_LM: AutoModelForCausalLM,
+}
 
 
-def load_base_model_from_finetuning_config(
-    finetuning_config: FinetuningConfig,
-    device: torch.device = default_device,
-    verbosity: Verbosity = Verbosity.NORMAL,
-    logger: logging.Logger = default_logger,
-) -> PreTrainedModel:
-    """Interface function to load a model from a FinetuningConfig object."""
-    language_model_config = finetuning_config.base_model
-
-    model = load_model_from_language_model_config(
-        language_model_config=language_model_config,
-        device=device,
-        verbosity=verbosity,
-        logger=logger,
+def get_model_class_from_task_type(
+    task_type: TaskType,
+) -> type[PreTrainedModel]:
+    """Get the model class based on the task type."""
+    return TASK_TYPE_TO_MODEL_MAPPING.get(
+        task_type,
+        AutoModel,
     )
-
-    return model

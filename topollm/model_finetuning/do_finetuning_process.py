@@ -121,7 +121,8 @@ def do_finetuning_process(
         logger=logger,
     )
 
-    # TODO: Add the necessary parameters for loading the model in token tagging mode
+    # ! TODO: We need to set parameters for the model loading:
+    # num_labels=13, id2label=id2label, label2id=label2id
 
     base_model = load_base_model_from_finetuning_config(
         finetuning_config=finetuning_config,
@@ -136,8 +137,10 @@ def do_finetuning_process(
     # For instance, for some autoregressive models, the tokenizer
     # needs to be modified to add a padding token.
 
+    # TODO: Prepare data for Token Tagging (tokenize and align labels)
+
     tokenizer_modifier = get_tokenizer_modifier(
-        tokenizer_modifier_config=finetuning_config.tokenizer_modifier,
+        tokenizer_modifier_config=finetuning_config.base_model.tokenizer_modifier,
         verbosity=verbosity,
         logger=logger,
     )
