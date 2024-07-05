@@ -64,12 +64,15 @@ def select_random_elements_and_create_dataframe_with_classlabel(
         selected_elements,
     )
 
-    for column, feature_type in dataset.features.items():
+    for column_name, feature_type in dataset.features.items():
+        feature_type: datasets.features.features.Value
+
         if isinstance(
             feature_type,
             ClassLabel,
         ):
-            selected_elements_df[column] = selected_elements_df[column].transform(
+            new_column_name = f"{column_name}_transformed"
+            selected_elements_df[new_column_name] = selected_elements_df[column_name].transform(
                 lambda i, feature_type=feature_type: feature_type.names[i],
             )
         elif isinstance(
@@ -79,7 +82,8 @@ def select_random_elements_and_create_dataframe_with_classlabel(
             feature_type.feature,
             ClassLabel,
         ):
-            selected_elements_df[column] = selected_elements_df[column].transform(
+            new_column_name = f"{column_name}_transformed"
+            selected_elements_df[new_column_name] = selected_elements_df[column_name].transform(
                 lambda x, feature_type=feature_type: [feature_type.feature.names[i] for i in x],
             )
 

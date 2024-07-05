@@ -34,6 +34,7 @@ import torch
 import transformers
 
 from topollm.logging.log_model_info import log_model_info
+from topollm.typing.enums import Verbosity
 
 default_device = torch.device("cpu")
 default_logger = logging.getLogger(__name__)
@@ -43,7 +44,7 @@ def load_model(
     pretrained_model_name_or_path: str | os.PathLike,
     model_loading_class: type = transformers.AutoModelForPreTraining,
     device: torch.device = default_device,
-    verbosity: int = 1,
+    verbosity: int = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> transformers.PreTrainedModel:
     """Load the model based on the configuration.
@@ -62,7 +63,7 @@ def load_model(
             The logger to use.
 
     """
-    if verbosity >= 1:
+    if verbosity >= Verbosity.NORMAL:
         logger.info(
             f"Loading model {pretrained_model_name_or_path = } ...",  # noqa: G004 - low overhead
         )
@@ -77,7 +78,7 @@ def load_model(
     model: transformers.PreTrainedModel = model_loading_class.from_pretrained(
         pretrained_model_name_or_path=pretrained_model_name_or_path,
     )
-    if verbosity >= 1:
+    if verbosity >= Verbosity.NORMAL:
         logger.info(
             f"Loading model {pretrained_model_name_or_path = } DONE",  # noqa: G004 - low overhead
         )
@@ -89,7 +90,7 @@ def load_model(
         msg = f"model is not of type PreTrainedModel: {type(model) = }"
         raise TypeError(msg)
 
-    if verbosity >= 1:
+    if verbosity >= Verbosity.NORMAL:
         logger.info(
             f"Moving model to {device = } ...",  # noqa: G004 - low overhead
         )
@@ -99,7 +100,7 @@ def load_model(
         device,  # type: ignore - torch.device
     )
 
-    if verbosity >= 1:
+    if verbosity >= Verbosity.NORMAL:
         logger.info(
             f"Moving model to {device = } DONE",  # noqa: G004 - low overhead
         )

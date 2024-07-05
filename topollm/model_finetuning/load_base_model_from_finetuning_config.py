@@ -56,6 +56,8 @@ def load_base_model_from_finetuning_config(
         msg = f"Invalid lm_mode: {lm_mode = }"
         raise ValueError(msg)
 
+    # TODO: Add the option to load with the AutoModelForTokenClassification model loading class
+
     model = load_model(
         pretrained_model_name_or_path=finetuning_config.pretrained_model_name_or_path,
         model_loading_class=model_loading_class,
