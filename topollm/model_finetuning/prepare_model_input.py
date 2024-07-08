@@ -27,10 +27,14 @@
 
 """Prepare the model input for finetuning."""
 
+from collections.abc import Callable
+from functools import partial
+
 import datasets
 import transformers
 
 from topollm.config_classes.finetuning.finetuning_config import FinetuningConfig
+from topollm.typing.enums import TaskType
 
 
 def prepare_model_input(
@@ -42,32 +46,14 @@ def prepare_model_input(
     datasets.Dataset,
     datasets.Dataset,
 ]:
-    """Prepare the model input for finetuning."""
+    """Prepare the model input for finetuning.
 
-    # TODO(Ben): Update this to work with text split into tokens.
-    # Exception has occurred: TypeError
-    # TextEncodeInput must be Union[TextInputSequence, Tuple[InputSequence, InputSequence]]
-
-    def tokenize_function(
-        dataset_entries: dict[
-            str,
-            list,
-        ],
-    ) -> transformers.tokenization_utils_base.BatchEncoding:
-        """Tokenize the dataset entries.
-
-        NOTE: This implementation assumes that train and eval datasets use the same column name.
-        """
-        column_name = finetuning_config.finetuning_datasets.train_dataset.column_name
-
-        result = tokenizer(
-            dataset_entries[column_name],
-            padding="max_length",
-            truncation=True,
-            max_length=finetuning_config.max_length,
-        )
-
-        return result
+    NOTE: This implementation assumes that train and eval datasets use the same column name.
+    """
+    tokenize_function = get_tokenize_function(
+        tokenizer=tokenizer,  # type: ignore - ignoring the requirement for PreTrainedTokenizerFast here
+        finetuning_config=finetuning_config,
+    )
 
     train_dataset_mapped = train_dataset.map(
         tokenize_function,
@@ -79,3 +65,117 @@ def prepare_model_input(
     )
 
     return train_dataset_mapped, eval_dataset_mapped
+
+
+def get_tokenize_function(
+    tokenizer: transformers.PreTrainedTokenizerFast,
+    finetuning_config: FinetuningConfig,
+) -> Callable[
+    [
+        dict[
+            str,
+            list,
+        ],
+    ],
+    transformers.tokenization_utils_base.BatchEncoding,
+]:
+    """Get the tokenize function based on the finetuning config."""
+    if finetuning_config.base_model.task_type in (TaskType.CAUSAL_LM, TaskType.MASKED_LM):
+        tokenize_function = partial(
+            standard_tokenize_function,
+            tokenizer=tokenizer,
+            finetuning_config=finetuning_config,
+        )
+    elif finetuning_config.base_model.task_type == TaskType.TOKEN_CLASSIFICATION:
+        tokenize_function = partial(
+            tokenize_split_into_words_input_and_align_labels,
+            tokenizer=tokenizer,
+            finetuning_config=finetuning_config,
+        )
+    else:
+        msg = f"Task type {finetuning_config.base_model.task_type} is not supported."
+        raise ValueError(
+            msg,
+        )
+
+    return tokenize_function
+
+
+def standard_tokenize_function(
+    dataset_entries: dict[
+        str,
+        list,
+    ],
+    tokenizer: transformers.PreTrainedTokenizerFast,
+    finetuning_config: FinetuningConfig,
+) -> transformers.tokenization_utils_base.BatchEncoding:
+    """Tokenize the dataset entries."""
+    column_name: str = finetuning_config.finetuning_datasets.train_dataset.column_name
+
+    result = tokenizer(
+        dataset_entries[column_name],
+        truncation=True,
+        padding="max_length",
+        max_length=finetuning_config.max_length,
+    )
+
+    return result
+
+
+def tokenize_split_into_words_input_and_align_labels(
+    dataset_entries: dict[
+        str,
+        list,
+    ],
+    tokenizer: transformers.PreTrainedTokenizerFast,
+    finetuning_config: FinetuningConfig,
+) -> transformers.tokenization_utils_base.BatchEncoding:
+    """Tokenize the dataset entries and align the labels.
+
+    This is used if the input actually has not been tokenized yet
+    and you will need to set `is_split_into_words=True` to tokenize the words into subwords.
+    A single word corresponding to a single label may now be split into two subwords.
+    We need to realign the tokens and labels by:
+    - Mapping all tokens to their corresponding word with the word_ids method.
+    - Assigning the label -100 to the special tokens [CLS] and [SEP]
+      so they are ignored by the PyTorch loss function (see CrossEntropyLoss).
+    - Only labeling the first token of a given word.
+      Assign -100 to other subtokens from the same word.
+
+    Code inspired by:
+    https://huggingface.co/docs/transformers/en/tasks/token_classification
+    """
+    column_name: str = finetuning_config.finetuning_datasets.train_dataset.column_name
+
+    tokenized_inputs = tokenizer(
+        dataset_entries[column_name],
+        truncation=True,
+        padding="max_length",
+        max_length=finetuning_config.max_length,
+        is_split_into_words=True,
+    )
+
+    feature_column_name: str = finetuning_config.finetuning_datasets.train_dataset.feature_column_name
+
+    labels = []
+    for i, label in enumerate(
+        dataset_entries[feature_column_name],
+    ):
+        word_ids = tokenized_inputs.word_ids(
+            batch_index=i,
+        )  # Map tokens to their respective word.
+        previous_word_idx = None
+        label_ids = []
+        for word_idx in word_ids:
+            if word_idx is None:  # Set the special tokens to -100.
+                label_ids.append(-100)
+            elif word_idx != previous_word_idx:  # Only label the first token of a given word.
+                label_ids.append(label[word_idx])
+            else:
+                label_ids.append(-100)
+            previous_word_idx = word_idx
+        labels.append(label_ids)
+
+    tokenized_inputs["labels"] = labels
+
+    return tokenized_inputs

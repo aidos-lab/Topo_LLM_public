@@ -1,6 +1,7 @@
 lm_mode: MLM
 pretrained_model_name_or_path: bert-base-uncased
 short_model_name: ${finetuning.base_model.pretrained_model_name_or_path}
+task_type: MASKED_LM
 tokenizer_modifier:
   mode: DO_NOTHING
   padding_token: "[PAD]"

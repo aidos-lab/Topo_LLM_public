@@ -3,7 +3,7 @@ defaults:
   - embeddings_data_prep: default
   - embeddings: basic_embeddings
   - feature_flags: default
-  - finetuning: finetuning
+  - finetuning: finetuning_for_masked_lm
   - inference: default
   - language_model: roberta-base
   - local_estimates: twonn

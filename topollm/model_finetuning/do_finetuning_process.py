@@ -30,9 +30,11 @@
 import logging
 from typing import TYPE_CHECKING
 
+import datasets
 import torch
 import transformers
 
+from topollm.config_classes.finetuning.finetuning_config import FinetuningConfig
 from topollm.config_classes.main_config import MainConfig
 from topollm.data_handling.dataset_preparer.factory import get_dataset_preparer
 from topollm.data_handling.dataset_preparer.select_random_elements import (
@@ -68,7 +70,6 @@ from topollm.path_management.finetuning.factory import (
 from topollm.typing.enums import TaskType, Verbosity
 
 if TYPE_CHECKING:
-    from topollm.config_classes.finetuning.finetuning_config import FinetuningConfig
     from topollm.model_finetuning.gradient_modifiers.protocol import GradientModifier
     from topollm.model_finetuning.model_modifiers.protocol import ModelModifier
 
@@ -91,14 +92,14 @@ def do_finetuning_process(
         verbosity=main_config.verbosity,
         logger=logger,
     )
-    train_dataset = train_dataset_preparer.prepare_dataset()
+    train_dataset: datasets.Dataset = train_dataset_preparer.prepare_dataset()
 
     eval_dataset_preparer = get_dataset_preparer(
         data_config=finetuning_config.finetuning_datasets.eval_dataset,
         verbosity=main_config.verbosity,
         logger=logger,
     )
-    eval_dataset = eval_dataset_preparer.prepare_dataset()
+    eval_dataset: datasets.Dataset = eval_dataset_preparer.prepare_dataset()
 
     # Print examples from the dataset
     if verbosity >= Verbosity.NORMAL:
@@ -122,20 +123,10 @@ def do_finetuning_process(
         logger=logger,
     )
 
-    if finetuning_config.base_model.task_type in (TaskType.CAUSAL_LM, TaskType.MASKED_LM):
-        from_pretrained_kwargs_instance = None
-    elif finetuning_config.base_model.task_type == TaskType.TOKEN_CLASSIFICATION:
-        feature_column_name: str = finetuning_config.finetuning_datasets.train_dataset.feature_column_name
-        label_list = train_dataset.features[feature_column_name].feature.names
-
-        from_pretrained_kwargs_instance = TokenClassificationFromPretrainedKwargs(
-            num_labels=len(label_list),
-            id2label=dict(enumerate(label_list)),
-            label2id={label: i for i, label in enumerate(label_list)},
-        )
-    else:
-        msg = f"Unknown {finetuning_config.base_model.task_type = }"
-        raise ValueError(msg)
+    from_pretrained_kwargs_instance = generate_pretrained_kwargs_instance(
+        finetuning_config=finetuning_config,
+        train_dataset=train_dataset,
+    )
 
     base_model = load_base_model_from_finetuning_config(
         finetuning_config=finetuning_config,
@@ -265,3 +256,25 @@ def do_finetuning_process(
         trainer=trainer,
         logger=logger,
     )
+
+
+def generate_pretrained_kwargs_instance(
+    finetuning_config: FinetuningConfig,
+    train_dataset: datasets.Dataset,
+) -> TokenClassificationFromPretrainedKwargs | None:
+    """Generate the from_pretrained_kwargs_instance for token classification."""
+    if finetuning_config.base_model.task_type in (TaskType.CAUSAL_LM, TaskType.MASKED_LM):
+        from_pretrained_kwargs_instance = None
+    elif finetuning_config.base_model.task_type == TaskType.TOKEN_CLASSIFICATION:
+        feature_column_name: str = finetuning_config.finetuning_datasets.train_dataset.feature_column_name
+        label_list = train_dataset.features[feature_column_name].feature.names
+
+        from_pretrained_kwargs_instance = TokenClassificationFromPretrainedKwargs(
+            num_labels=len(label_list),
+            id2label=dict(enumerate(label_list)),
+            label2id={label: i for i, label in enumerate(label_list)},
+        )
+    else:
+        msg = f"Unknown {finetuning_config.base_model.task_type = }"
+        raise ValueError(msg)
+    return from_pretrained_kwargs_instance
