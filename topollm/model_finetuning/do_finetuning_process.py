@@ -40,6 +40,7 @@ from topollm.data_handling.dataset_preparer.factory import get_dataset_preparer
 from topollm.data_handling.dataset_preparer.select_random_elements import (
     log_selected_dataset_elements_info,
 )
+from topollm.logging.log_dataset_info import log_huggingface_dataset_info
 from topollm.model_finetuning.evaluate_tuned_model import evaluate_tuned_model
 from topollm.model_finetuning.finetune_model import finetune_model
 from topollm.model_finetuning.gradient_modifiers.factory import get_gradient_modifier
@@ -186,14 +187,35 @@ def do_finetuning_process(
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Prepare model input.
 
-    # TODO: Prepare data for Token Tagging (tokenize and align labels)
-
     train_dataset_mapped, eval_dataset_mapped = prepare_model_input(
         train_dataset=train_dataset,
         eval_dataset=eval_dataset,
         tokenizer=tokenizer,
         finetuning_config=finetuning_config,
     )
+
+    if verbosity >= Verbosity.NORMAL:
+        log_huggingface_dataset_info(
+            dataset=train_dataset_mapped,
+            dataset_name="train_dataset_mapped",
+            logger=logger,
+        )
+        log_selected_dataset_elements_info(
+            dataset=train_dataset_mapped,
+            dataset_name="train_dataset_mapped",
+            logger=logger,
+        )
+
+        log_huggingface_dataset_info(
+            dataset=eval_dataset_mapped,
+            dataset_name="eval_dataset_mapped",
+            logger=logger,
+        )
+        log_selected_dataset_elements_info(
+            dataset=eval_dataset_mapped,
+            dataset_name="eval_dataset_mapped",
+            logger=logger,
+        )
 
     # TODO: Update the collator function to handle token tagging
     data_collator = prepare_data_collator(
