@@ -30,6 +30,7 @@
 import logging
 
 import torch
+from pydantic import BaseModel, Field
 from transformers import PreTrainedModel
 
 from topollm.config_classes.language_model.language_model_config import LanguageModelConfig
@@ -41,8 +42,57 @@ default_device = torch.device("cpu")
 default_logger = logging.getLogger(__name__)
 
 
+id2label_default = {
+    0: "O",
+    1: "B-corporation",
+    2: "I-corporation",
+    3: "B-creative-work",
+    4: "I-creative-work",
+    5: "B-group",
+    6: "I-group",
+    7: "B-location",
+    8: "I-location",
+    9: "B-person",
+    10: "I-person",
+    11: "B-product",
+    12: "I-product",
+}
+label2id_default = {
+    "O": 0,
+    "B-corporation": 1,
+    "I-corporation": 2,
+    "B-creative-work": 3,
+    "I-creative-work": 4,
+    "B-group": 5,
+    "I-group": 6,
+    "B-location": 7,
+    "I-location": 8,
+    "B-person": 9,
+    "I-person": 10,
+    "B-product": 11,
+    "I-product": 12,
+}
+
+
+class TokenClassificationFromPretrainedKwargs(BaseModel):
+    num_labels: int = Field(
+        default=13,
+        title="Number of labels",
+    )
+    id2label: dict[int, str] = Field(
+        default=id2label_default,
+        title="ID to label mapping",
+    )
+
+    label2id: dict[str, int] = Field(
+        default=label2id_default,
+        title="Label to ID mapping",
+    )
+
+
 def load_model_from_language_model_config(
     language_model_config: LanguageModelConfig,
+    from_pretrained_kwargs_instance: BaseModel | dict | None = None,
     device: torch.device = default_device,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
@@ -52,9 +102,40 @@ def load_model_from_language_model_config(
         task_type=language_model_config.task_type,
     )
 
+    if from_pretrained_kwargs_instance is None:
+        from_pretrained_kwargs: dict = {}
+    elif isinstance(
+        from_pretrained_kwargs_instance,
+        BaseModel,
+    ):
+        from_pretrained_kwargs: dict = from_pretrained_kwargs_instance.model_dump()
+    elif isinstance(
+        from_pretrained_kwargs_instance,
+        dict,
+    ):
+        from_pretrained_kwargs: dict = from_pretrained_kwargs_instance
+    else:
+        msg = f"Unknown {from_pretrained_kwargs_instance = }"
+        raise ValueError(msg)
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            "model_loading_class:\n%s",
+            model_loading_class,
+        )
+        logger.info(
+            "language_model_config:\n%s",
+            language_model_config,
+        )
+        logger.info(
+            "from_pretrained_kwargs:\n%s",
+            from_pretrained_kwargs,
+        )
+
     model = load_model(
         pretrained_model_name_or_path=language_model_config.pretrained_model_name_or_path,
         model_loading_class=model_loading_class,
+        from_pretrained_kwargs=from_pretrained_kwargs,
         device=device,
         verbosity=verbosity,
         logger=logger,

@@ -58,13 +58,14 @@ from topollm.model_finetuning.prepare_logging_dir import prepare_logging_dir
 from topollm.model_finetuning.prepare_model_input import prepare_model_input
 from topollm.model_finetuning.prepare_training_args import prepare_training_args
 from topollm.model_finetuning.save_tuned_model import save_tuned_model
+from topollm.model_handling.model.load_model_from_language_model_config import TokenClassificationFromPretrainedKwargs
 from topollm.model_handling.tokenizer.tokenizer_modifier.factory import (
     get_tokenizer_modifier,
 )
 from topollm.path_management.finetuning.factory import (
     get_finetuning_path_manager,
 )
-from topollm.typing.enums import Verbosity
+from topollm.typing.enums import TaskType, Verbosity
 
 if TYPE_CHECKING:
     from topollm.config_classes.finetuning.finetuning_config import FinetuningConfig
@@ -121,11 +122,24 @@ def do_finetuning_process(
         logger=logger,
     )
 
-    # ! TODO: We need to set parameters for the model loading:
-    # num_labels=13, id2label=id2label, label2id=label2id
+    if finetuning_config.base_model.task_type in (TaskType.CAUSAL_LM, TaskType.MASKED_LM):
+        from_pretrained_kwargs_instance = None
+    elif finetuning_config.base_model.task_type == TaskType.TOKEN_CLASSIFICATION:
+        feature_column_name: str = finetuning_config.finetuning_datasets.train_dataset.feature_column_name
+        label_list = train_dataset.features[feature_column_name].feature.names
+
+        from_pretrained_kwargs_instance = TokenClassificationFromPretrainedKwargs(
+            num_labels=len(label_list),
+            id2label=dict(enumerate(label_list)),
+            label2id={label: i for i, label in enumerate(label_list)},
+        )
+    else:
+        msg = f"Unknown {finetuning_config.base_model.task_type = }"
+        raise ValueError(msg)
 
     base_model = load_base_model_from_finetuning_config(
         finetuning_config=finetuning_config,
+        from_pretrained_kwargs_instance=from_pretrained_kwargs_instance,
         device=device,
         verbosity=verbosity,
         logger=logger,
@@ -136,8 +150,6 @@ def do_finetuning_process(
     # (and the model if this is necessary for compatibility).
     # For instance, for some autoregressive models, the tokenizer
     # needs to be modified to add a padding token.
-
-    # TODO: Prepare data for Token Tagging (tokenize and align labels)
 
     tokenizer_modifier = get_tokenizer_modifier(
         tokenizer_modifier_config=finetuning_config.base_model.tokenizer_modifier,
@@ -183,6 +195,8 @@ def do_finetuning_process(
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Prepare model input.
 
+    # TODO: Prepare data for Token Tagging (tokenize and align labels)
+
     train_dataset_mapped, eval_dataset_mapped = prepare_model_input(
         train_dataset=train_dataset,
         eval_dataset=eval_dataset,
@@ -190,6 +204,7 @@ def do_finetuning_process(
         finetuning_config=finetuning_config,
     )
 
+    # TODO: Update the collator function to handle token tagging
     data_collator = prepare_data_collator(
         finetuning_config=finetuning_config,
         tokenizer=tokenizer,

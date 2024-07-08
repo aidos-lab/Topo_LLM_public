@@ -28,6 +28,7 @@
 import logging
 
 import torch
+from pydantic import BaseModel
 from transformers import PreTrainedModel
 
 from topollm.config_classes.finetuning.finetuning_config import FinetuningConfig
@@ -40,6 +41,7 @@ default_logger = logging.getLogger(__name__)
 
 def load_base_model_from_finetuning_config(
     finetuning_config: FinetuningConfig,
+    from_pretrained_kwargs_instance: BaseModel | dict | None = None,
     device: torch.device = default_device,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
@@ -49,6 +51,7 @@ def load_base_model_from_finetuning_config(
 
     model = load_model_from_language_model_config(
         language_model_config=language_model_config,
+        from_pretrained_kwargs_instance=from_pretrained_kwargs_instance,
         device=device,
         verbosity=verbosity,
         logger=logger,

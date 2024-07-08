@@ -44,13 +44,20 @@ def prepare_model_input(
 ]:
     """Prepare the model input for finetuning."""
 
+    # TODO(Ben): Update this to work with text split into tokens.
+    # Exception has occurred: TypeError
+    # TextEncodeInput must be Union[TextInputSequence, Tuple[InputSequence, InputSequence]]
+
     def tokenize_function(
         dataset_entries: dict[
             str,
             list,
         ],
     ) -> transformers.tokenization_utils_base.BatchEncoding:
-        # NOTE: This assumes that train and eval datasets use the same column name
+        """Tokenize the dataset entries.
+
+        NOTE: This implementation assumes that train and eval datasets use the same column name.
+        """
         column_name = finetuning_config.finetuning_datasets.train_dataset.column_name
 
         result = tokenizer(
