@@ -7,9 +7,8 @@ defaults:
   - peft: standard
   - _self_
 
-# NOTE:
+# NOTE: We set `add_prefix_space` to True to be able to use the tokenizer
+# on data which is already split into words.
 # AssertionError: You need to instantiate RobertaTokenizerFast with add_prefix_space=True to use it with pretokenized inputs.
 tokenizer:
   add_prefix_space: true
-
-# TODO: Set the add_prefix_space flag to True (otherwise we cannot use the tokenizer)

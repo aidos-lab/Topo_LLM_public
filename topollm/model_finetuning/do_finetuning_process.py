@@ -246,6 +246,7 @@ def do_finetuning_process(
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Finetuning setup
 
+    # TODO: Add seqeval evaluation to the Trainer
     training_args = prepare_training_args(
         finetuning_config=finetuning_config,
         seed=main_config.seed,
