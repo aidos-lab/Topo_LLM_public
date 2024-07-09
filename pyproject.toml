@@ -54,6 +54,7 @@ readme = "README.md"
     pyyaml = "^6.0.1"
     hydra-colorlog = "^1.2.0"
     wandb = "^0.17.0"
+    rich = "^13.7.1"
 
 [tool.poetry.group.dev.dependencies]
     hypothesis = "^6.99.13"
