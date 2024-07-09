@@ -285,18 +285,19 @@ def generate_pretrained_kwargs_instance(
     train_dataset: datasets.Dataset,
 ) -> TokenClassificationFromPretrainedKwargs | None:
     """Generate the from_pretrained_kwargs_instance for token classification."""
-    if finetuning_config.base_model.task_type in (TaskType.CAUSAL_LM, TaskType.MASKED_LM):
-        from_pretrained_kwargs_instance = None
-    elif finetuning_config.base_model.task_type == TaskType.TOKEN_CLASSIFICATION:
-        feature_column_name: str = finetuning_config.finetuning_datasets.train_dataset.feature_column_name
-        label_list = train_dataset.features[feature_column_name].feature.names
+    match finetuning_config.base_model.task_type:
+        case TaskType.CAUSAL_LM | TaskType.MASKED_LM:
+            from_pretrained_kwargs_instance = None
+        case TaskType.TOKEN_CLASSIFICATION:
+            feature_column_name: str = finetuning_config.finetuning_datasets.train_dataset.feature_column_name
+            label_list = train_dataset.features[feature_column_name].feature.names
 
-        from_pretrained_kwargs_instance = TokenClassificationFromPretrainedKwargs(
-            num_labels=len(label_list),
-            id2label=dict(enumerate(label_list)),
-            label2id={label: i for i, label in enumerate(label_list)},
-        )
-    else:
-        msg = f"Unknown {finetuning_config.base_model.task_type = }"
-        raise ValueError(msg)
+            from_pretrained_kwargs_instance = TokenClassificationFromPretrainedKwargs(
+                num_labels=len(label_list),
+                id2label=dict(enumerate(label_list)),
+                label2id={label: i for i, label in enumerate(label_list)},
+            )
+        case _:
+            msg = f"Unknown {finetuning_config.base_model.task_type = }"
+            raise ValueError(msg)
     return from_pretrained_kwargs_instance
