@@ -22,9 +22,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Initialize the main configuration and log the configuration and git information."""
 
 import logging
-import os
+import pathlib
 import pprint
 
 import hydra.core.hydra_config
@@ -32,8 +33,9 @@ import omegaconf
 
 from topollm.config_classes.main_config import MainConfig
 from topollm.logging.get_git_info import get_git_info
+from topollm.typing.enums import Verbosity
 
-logger = logging.getLogger(__name__)
+default_logger = logging.getLogger(__name__)
 
 
 def setup_main_config(
@@ -61,13 +63,26 @@ def setup_main_config(
 def log_hydra_main_config(
     config: omegaconf.DictConfig,
     main_config: MainConfig,
-    logger: logging.Logger = logger,
+    logger: logging.Logger = default_logger,
 ) -> None:
     """Log the main configuration and the working directory."""
-    logger.info(f"Working directory:\n" f"{os.getcwd() = }")
-    logger.info(f"Hydra output directory:\n" f"{hydra.core.hydra_config.HydraConfig.get().runtime.output_dir}")
     logger.info(
-        "hydra config:\n%s",
+        f"Working directory:\n{pathlib.Path.cwd() = }",  # noqa: G004 - low overhead
+    )
+    try:
+        logger.info(
+            "Hydra output directory:\n%s",
+            hydra.core.hydra_config.HydraConfig.get().runtime.output_dir,
+        )
+    except ValueError:
+        # If the config is not loaded with the proper hydra context manager,
+        # it might lead to the following: `ValueError: HydraConfig was not set`
+        # We catch this error and log a warning.
+        logger.warning(
+            "Hydra output directory could not be determined.",
+        )
+    logger.info(
+        "omegaconf.DictConfig config:\n%s",
         pprint.pformat(config),
     )
     logger.info(
@@ -77,22 +92,24 @@ def log_hydra_main_config(
 
 
 def log_git_info(
-    logger: logging.Logger = logger,
+    logger: logging.Logger = default_logger,
 ) -> None:
     """Log the git information."""
-    logger.info(f"{get_git_info() = }")
+    logger.info(
+        f"{get_git_info() = }",  # noqa: G004 - low overhead
+    )
 
 
 def initialize_configuration(
     config: omegaconf.DictConfig,
-    logger: logging.Logger = logger,
+    logger: logging.Logger = default_logger,
 ) -> MainConfig:
     """Initialize the main configuration."""
     main_config = setup_main_config(
         config=config,
     )
 
-    if main_config.verbosity >= 1:
+    if main_config.verbosity >= Verbosity.NORMAL:
         log_git_info(
             logger=logger,
         )

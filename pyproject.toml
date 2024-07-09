@@ -59,6 +59,7 @@ readme = "README.md"
     hypothesis = "^6.99.13"
     pytest = "^8.0.1"
     pytest-cov = "*"
+    ipykernel = "^6.29.5"
 
 [tool.poetry.group.cpu]
     optional = true
