@@ -29,7 +29,6 @@
 
 import logging
 import os
-import pathlib
 from typing import TYPE_CHECKING
 
 import hydra
@@ -39,8 +38,6 @@ import transformers
 import wandb
 
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
-from topollm.config_classes.language_model.language_model_config import LanguageModelConfig
-from topollm.config_classes.main_config import MainConfig
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
@@ -48,7 +45,9 @@ from topollm.model_finetuning.create_finetuned_language_model_config import crea
 from topollm.model_finetuning.do_finetuning_process import do_finetuning_process
 from topollm.model_finetuning.initialize_wandb import initialize_wandb
 from topollm.model_handling.get_torch_device import get_torch_device
-from topollm.typing.enums import Verbosity
+
+if TYPE_CHECKING:
+    from topollm.config_classes.main_config import MainConfig
 
 # Increase the wandb service wait time to prevent errors.
 # https://github.com/wandb/wandb/issues/5214
@@ -90,7 +89,7 @@ def main(
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Initialize wandb
-    if main_config.feature_flags.finetuning.use_wandb:
+    if main_config.feature_flags.wandb.use_wandb:
         initialize_wandb(
             main_config=main_config,
             config=config,
@@ -127,7 +126,7 @@ def main(
             "Calling do_finetuning_process DONE",
         )
 
-    if main_config.feature_flags.finetuning.use_wandb:
+    if main_config.feature_flags.wandb.use_wandb:
         # We need to manually finish the wandb run
         # so that the hydra multi-run submissions are not summarized in the same run
         wandb.finish()

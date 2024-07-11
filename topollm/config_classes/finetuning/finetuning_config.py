@@ -38,6 +38,7 @@ from topollm.config_classes.finetuning.finetuning_datasets_config import (
 )
 from topollm.config_classes.finetuning.gradient_modifier.gradient_modifier_config import GradientModifierConfig
 from topollm.config_classes.finetuning.peft.peft_config import PEFTConfig
+from topollm.config_classes.finetuning.trainer_modifier.trainer_modifier_config import TrainerModifierConfig
 from topollm.config_classes.language_model.language_model_config import LanguageModelConfig
 from topollm.config_classes.tokenizer.tokenizer_config import TokenizerConfig
 
@@ -139,6 +140,11 @@ class FinetuningConfig(ConfigBaseModel):
         default_factory=TokenizerConfig,
         title="Tokenizer configuration.",
         description="The configuration for specifying tokenizer.",
+    )
+
+    trainer_modifier: TrainerModifierConfig = Field(
+        default_factory=TrainerModifierConfig,
+        description="The configurations for the trainer modifier.",
     )
 
     use_cpu: bool = Field(

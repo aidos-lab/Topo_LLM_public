@@ -29,16 +29,14 @@
 
 import logging
 
-import peft.peft_model
-from transformers import PreTrainedModel
+import transformers
 
-from topollm.logging.log_model_info import log_param_requires_grad_for_model
 from topollm.typing.enums import Verbosity
 
 default_logger = logging.getLogger(__name__)
 
 
-class GradientModifierDoNothing:
+class TrainerModifierDoNothing:
     """Gradient modifier that does not modify the model."""
 
     def __init__(
@@ -50,18 +48,11 @@ class GradientModifierDoNothing:
         self.verbosity = verbosity
         self.logger = logger
 
-    def modify_gradients(
+    def modify_trainer(
         self,
-        model: PreTrainedModel | peft.peft_model.PeftModel,
-    ) -> PreTrainedModel | peft.peft_model.PeftModel:
+        trainer: transformers.Trainer,
+    ) -> transformers.Trainer:
         if self.verbosity >= Verbosity.NORMAL:
-            self.logger.info("Using model without gradient modifications.")
-            self.logger.info("Returning unmodified model.")
+            self.logger.info("Returning unmodified trainer.")
 
-        if self.verbosity >= Verbosity.NORMAL:
-            log_param_requires_grad_for_model(
-                model=model,
-                logger=self.logger,
-            )
-
-        return model
+        return trainer

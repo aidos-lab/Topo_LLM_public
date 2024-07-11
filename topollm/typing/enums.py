@@ -268,8 +268,15 @@ class TokenizerModifierMode(StrEnum):
 class GradientModifierMode(StrEnum):
     """Modes for modifying the gradients during finetuning."""
 
-    DO_NOTHING = "do_nothing"
-    FREEZE_LAYERS = "freeze_layers"
+    DO_NOTHING = auto()
+    FREEZE_LAYERS = auto()
+
+
+@unique
+class TrainerModifierMode(StrEnum):
+    """Modes for modifying the trainer during finetuning."""
+
+    DO_NOTHING = auto()
 
 
 # ==============================
@@ -281,8 +288,8 @@ class GradientModifierMode(StrEnum):
 class MLMPseudoperplexityGranularity(StrEnum):
     """The different modes for computing the pseudoperplexity of a masked language model."""
 
-    TOKEN = "TOKEN"  # noqa: S105 - this is not a password
-    SENTENCE = "SENTENCE"
+    TOKEN = auto()
+    SENTENCE = auto()
 
 
 @unique

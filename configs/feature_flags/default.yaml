@@ -7,4 +7,3 @@ embeddings_data_prep:
 finetuning:
   skip_finetuning: false
   do_create_finetuned_language_model_config: true
-  use_wandb: true

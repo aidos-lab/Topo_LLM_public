@@ -75,6 +75,8 @@ label2id_default = {
 
 
 class TokenClassificationFromPretrainedKwargs(BaseModel):
+    """Token classification from pretrained kwargs."""
+
     num_labels: int = Field(
         default=13,
         title="Number of labels",

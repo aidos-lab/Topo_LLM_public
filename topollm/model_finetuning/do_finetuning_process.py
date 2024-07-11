@@ -28,11 +28,14 @@
 """Perform the finetuning process."""
 
 import logging
+from collections.abc import Callable
 from typing import TYPE_CHECKING
 
 import datasets
+import pandas as pd
 import torch
 import transformers
+from transformers.integrations import WandbCallback
 
 from topollm.config_classes.finetuning.finetuning_config import FinetuningConfig
 from topollm.config_classes.main_config import MainConfig
@@ -61,6 +64,8 @@ from topollm.model_finetuning.prepare_logging_dir import prepare_logging_dir
 from topollm.model_finetuning.prepare_model_input import prepare_model_input
 from topollm.model_finetuning.prepare_training_args import prepare_training_args
 from topollm.model_finetuning.save_tuned_model import save_tuned_model
+from topollm.model_finetuning.trainer_modifiers.factory import get_trainer_modifier
+from topollm.model_finetuning.trainer_modifiers.protocol import TrainerModifier
 from topollm.model_handling.model.load_model_from_language_model_config import TokenClassificationFromPretrainedKwargs
 from topollm.model_handling.tokenizer.tokenizer_modifier.factory import (
     get_tokenizer_modifier,
@@ -245,7 +250,9 @@ def do_finetuning_process(
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Finetuning setup
 
-    # TODO: Add seqeval evaluation to the Trainer
+    # TODO: Pass the arguments needed to set up the seqeval metric evaluation
+    compute_metrics = get_compute_metrics()
+
     training_args = prepare_training_args(
         finetuning_config=finetuning_config,
         seed=main_config.seed,
@@ -260,6 +267,17 @@ def do_finetuning_process(
         train_dataset=train_dataset_mapped,  # type: ignore - typing issue with Dataset
         eval_dataset=eval_dataset_mapped,  # type: ignore - typing issue with Dataset
         tokenizer=tokenizer,
+        compute_metrics=compute_metrics,
+    )
+
+    trainer_modifier: TrainerModifier = get_trainer_modifier(
+        trainer_modifier_config=finetuning_config.trainer_modifier,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+    trainer = trainer_modifier.modify_trainer(
+        trainer=trainer,
     )
 
     finetune_model(
@@ -278,6 +296,11 @@ def do_finetuning_process(
         trainer=trainer,
         logger=logger,
     )
+
+
+def get_compute_metrics() -> Callable | None:
+    # TODO: Add seqeval evaluation to the Trainer if applicable
+    return None
 
 
 def generate_pretrained_kwargs_instance(
