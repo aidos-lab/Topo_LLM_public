@@ -41,6 +41,7 @@ from topollm.config_classes.finetuning.peft.peft_config import PEFTConfig
 from topollm.config_classes.finetuning.trainer_modifier.trainer_modifier_config import TrainerModifierConfig
 from topollm.config_classes.language_model.language_model_config import LanguageModelConfig
 from topollm.config_classes.tokenizer.tokenizer_config import TokenizerConfig
+from topollm.typing.enums import ComputeMetricsMode
 
 
 class FinetuningConfig(ConfigBaseModel):
@@ -49,6 +50,11 @@ class FinetuningConfig(ConfigBaseModel):
     base_model: LanguageModelConfig = Field(
         default_factory=LanguageModelConfig,
         description="The configuration for specifying the base model.",
+    )
+
+    compute_metrics_mode: ComputeMetricsMode = Field(
+        default=ComputeMetricsMode.FROM_TASK_TYPE,
+        description="The mode for computing metrics.",
     )
 
     gradient_modifier: GradientModifierConfig = Field(

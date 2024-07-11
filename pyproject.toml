@@ -55,6 +55,8 @@ readme = "README.md"
     hydra-colorlog = "^1.2.0"
     wandb = "^0.17.0"
     rich = "^13.7.1"
+evaluate = "^0.4.2"
+seqeval = "^1.2.2"
 
 [tool.poetry.group.dev.dependencies]
     hypothesis = "^6.99.13"

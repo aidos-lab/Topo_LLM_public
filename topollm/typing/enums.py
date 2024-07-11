@@ -239,12 +239,19 @@ class FinetuningMode(StrEnum):
     LORA = "lora"
 
 
+class ComputeMetricsMode(StrEnum):
+    """Compute metrics to use in the finetuning Trainer."""
+
+    NONE = auto()
+    FROM_TASK_TYPE = auto()
+
+
 @unique
 class LMmode(StrEnum):
     """The different types of language models."""
 
-    MLM = "MLM"  # masked language model
-    CLM = "CLM"  # causal language model
+    MLM = auto()  # masked language model
+    CLM = auto()  # causal language model
 
 
 class TaskType(StrEnum):
