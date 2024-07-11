@@ -42,7 +42,7 @@ def prepare_data_collator(
     tokenizer: transformers.PreTrainedTokenizerBase,
     verbosity: int = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
-) -> transformers.DataCollatorForLanguageModeling:
+) -> transformers.DataCollatorForLanguageModeling | transformers.DataCollatorForTokenClassification:
     """Prepare the data collator for the finetuning process."""
     match finetuning_config.base_model.task_type:
         case TaskType.MASKED_LM:
@@ -57,8 +57,9 @@ def prepare_data_collator(
                 mlm=False,
             )
         case TaskType.TOKEN_CLASSIFICATION:
-            raise NotImplementedError("Token classification is not yet implemented.")
-            # TODO: Add the token classification task
+            data_collator = transformers.DataCollatorForTokenClassification(
+                tokenizer=tokenizer,
+            )
         case _:
             msg = f"Unknown {finetuning_config.base_model.task_type = }"
             raise ValueError(msg)

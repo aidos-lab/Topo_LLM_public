@@ -26,6 +26,7 @@
 # limitations under the License.
 
 import logging
+import os
 import pathlib
 
 import omegaconf
@@ -53,6 +54,8 @@ def initialize_wandb(
         parents=True,
         exist_ok=True,
     )
+
+    os.environ["WANDB_WATCH"] = "all"
 
     wandb.init(
         dir=main_config.wandb.dir,

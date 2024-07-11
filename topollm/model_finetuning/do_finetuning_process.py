@@ -217,7 +217,6 @@ def do_finetuning_process(
             logger=logger,
         )
 
-    # TODO: Update the collator function to handle token tagging
     data_collator = prepare_data_collator(
         finetuning_config=finetuning_config,
         tokenizer=tokenizer,
