@@ -25,7 +25,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Configuration class for the gradient modifier."""
+"""Configuration class for the trainer modifier."""
 
 from pydantic import Field
 
@@ -39,4 +39,14 @@ class TrainerModifierConfig(ConfigBaseModel):
     mode: TrainerModifierMode = Field(
         default=TrainerModifierMode.DO_NOTHING,
         description="The gradient modifier mode.",
+    )
+
+    num_samples: int = Field(
+        default=10,
+        description="The number of samples to use when logging predictions.",
+    )
+
+    frequency: int = Field(
+        default=400,
+        description="The frequency of logging predictions.",
     )

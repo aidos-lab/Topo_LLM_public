@@ -300,7 +300,7 @@ def do_finetuning_process(
     )
 
     trainer_modifier: TrainerModifier = get_trainer_modifier(
-        trainer_modifier_config=finetuning_config.trainer_modifier,
+        finetuning_config=finetuning_config,
         tokenizer=tokenizer,
         dataset=eval_dataset_mapped,
         verbosity=verbosity,

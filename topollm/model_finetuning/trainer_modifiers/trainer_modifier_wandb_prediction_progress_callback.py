@@ -36,7 +36,9 @@ import pandas as pd
 import transformers
 from transformers.integrations import WandbCallback
 
-from topollm.typing.enums import Verbosity
+from topollm.config_classes.finetuning.finetuning_config import FinetuningConfig
+from topollm.config_classes.finetuning.trainer_modifier.trainer_modifier_config import TrainerModifierConfig
+from topollm.typing.enums import TaskType, Verbosity
 
 default_logger = logging.getLogger(__name__)
 
@@ -46,12 +48,14 @@ class TrainerModifierWandbPredictionProgressCallback:
 
     def __init__(
         self,
+        finetuning_config: FinetuningConfig,
         tokenizer: transformers.PreTrainedTokenizer | transformers.PreTrainedTokenizerFast,
         dataset: datasets.Dataset,
         verbosity: Verbosity = Verbosity.NORMAL,
         logger: logging.Logger = default_logger,
     ) -> None:
         """Initialize the model modifier."""
+        self.finetuning_config = finetuning_config
         self.tokenizer = tokenizer
         self.dataset = dataset
 
@@ -62,16 +66,20 @@ class TrainerModifierWandbPredictionProgressCallback:
         self,
         trainer: transformers.Trainer,
     ) -> transformers.Trainer:
-        # TODO: Implement decode_predictions for the token classification task
+        trainer_modifier_config: TrainerModifierConfig = self.finetuning_config.trainer_modifier
+
+        decode_predictions_function = get_decode_predictions_function(
+            task_type=self.finetuning_config.base_model.task_type,
+        )
 
         # Instantiate the WandbPredictionProgressCallback
         progress_callback = WandbPredictionProgressCallback(
             trainer=trainer,
             tokenizer=self.tokenizer,
             val_dataset=self.dataset,
-            num_samples=10,
-            freq=2,
-            decode_predictions_function=decode_predictions_language_modeling,
+            num_samples=trainer_modifier_config.num_samples,
+            frequency=trainer_modifier_config.frequency,
+            decode_predictions_function=decode_predictions_function,
         )
 
         # Add the callback to the trainer
@@ -83,6 +91,24 @@ class TrainerModifierWandbPredictionProgressCallback:
             self.logger.info("Returning Trainer with added callback.")
 
         return trainer
+
+
+def get_decode_predictions_function(
+    task_type: TaskType,
+) -> Callable:
+    """Get the decode_predictions function for the task."""
+    match task_type:
+        case TaskType.MASKED_LM | TaskType.CAUSAL_LM:
+            decode_predictions_function = decode_predictions_language_modeling
+        case TaskType.TOKEN_CLASSIFICATION:
+            # TODO: Implement decode_predictions for the token classification task
+
+            raise NotImplementedError("Token classification task not implemented.")
+        case _:
+            msg = f"{task_type = } not supported."
+            raise ValueError(msg)
+
+    return decode_predictions_function
 
 
 def decode_predictions_language_modeling(
@@ -147,7 +173,7 @@ class WandbPredictionProgressCallback(WandbCallback):
         tokenizer: transformers.PreTrainedTokenizer | transformers.PreTrainedTokenizerFast,
         val_dataset: datasets.Dataset,
         num_samples: int = 100,
-        freq: int = 2,
+        frequency: int = 400,
         decode_predictions_function: Callable = decode_predictions_language_modeling,
     ) -> None:
         """Initialize the WandbPredictionProgressCallback instance.
@@ -160,14 +186,14 @@ class WandbPredictionProgressCallback(WandbCallback):
             val_dataset: The validation dataset.
             num_samples: Number of samples to select from
               the validation dataset for generating predictions.
-            freq: Frequency of logging.
+            frequency: Frequency of logging.
 
         """
         super().__init__()
         self.trainer = trainer
         self.tokenizer = tokenizer
         self.sample_dataset = val_dataset.select(range(num_samples))
-        self.freq = freq
+        self.frequency = frequency
         self.decode_predictions_function = decode_predictions_function
 
     def on_evaluate(
@@ -183,13 +209,12 @@ class WandbPredictionProgressCallback(WandbCallback):
             control,
             **kwargs,
         )
-        # control the frequency of logging by logging the predictions
-        # every `freq` epochs
+        # Control the frequency of logging by logging the predictions
+        # every `frequency` global steps.
         if state.epoch is None:
             return
 
-        # if state.epoch % self.freq == 0:
-        if True:  # TODO: This is set for debugging purposes, remove this line later
+        if state.global_step % self.frequency == 0:
             # generate predictions
             predictions_output: transformers.trainer_utils.PredictionOutput = self.trainer.predict(
                 self.sample_dataset,  # type: ignore - problem with datasets.Dataset type
@@ -205,10 +230,11 @@ class WandbPredictionProgressCallback(WandbCallback):
             )
             predictions_df["epoch"] = state.epoch
             predictions_df["step"] = state.global_step
-            predictions_df["sample_dataset"] = self.sample_dataset
+            predictions_df["sample_dataset"] = self.sample_dataset.to_list()
 
             records_table = self._wandb.Table(
                 dataframe=predictions_df,
+                allow_mixed_types=True,  # This is important to avoid problems with `None` values in the dataset fields
             )
             # log the table to wandb
             self._wandb.log(

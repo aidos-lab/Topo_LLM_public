@@ -117,6 +117,7 @@ def standard_tokenize_function(
         truncation=True,
         padding="max_length",
         max_length=finetuning_config.max_length,
+        return_special_tokens_mask=finetuning_config.tokenizer.return_special_tokens_mask,
     )
 
     return result
