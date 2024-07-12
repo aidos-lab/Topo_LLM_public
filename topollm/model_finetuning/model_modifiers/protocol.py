@@ -29,8 +29,9 @@
 
 from typing import Protocol
 
-import peft.peft_model
 from transformers import PreTrainedModel
+
+from topollm.typing.types import ModifiedModel
 
 
 class ModelModifier(Protocol):
@@ -39,4 +40,4 @@ class ModelModifier(Protocol):
     def modify_model(
         self,
         model: PreTrainedModel,
-    ) -> PreTrainedModel | peft.peft_model.PeftModel: ...  # pragma: no cover
+    ) -> ModifiedModel: ...  # pragma: no cover

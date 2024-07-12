@@ -29,8 +29,10 @@
 
 import logging
 import pathlib
+from collections.abc import Callable
 from typing import TYPE_CHECKING
 
+import peft.peft_model
 import torch
 import transformers
 
@@ -79,6 +81,7 @@ from topollm.path_management.finetuning.factory import (
 )
 from topollm.path_management.finetuning.protocol import FinetuningPathManager
 from topollm.typing.enums import Verbosity
+from topollm.typing.types import ModifiedModel
 
 if TYPE_CHECKING:
     import datasets
@@ -195,7 +198,7 @@ def do_finetuning_process(
         verbosity=verbosity,
         logger=logger,
     )
-    modified_model = model_modifier.modify_model(
+    modified_model: ModifiedModel = model_modifier.modify_model(
         model=base_model,
     )
 
@@ -208,7 +211,7 @@ def do_finetuning_process(
         verbosity=verbosity,
         logger=logger,
     )
-    gradient_modified_model = gradient_modifier.modify_gradients(
+    gradient_modified_model: ModifiedModel = gradient_modifier.modify_gradients(
         model=modified_model,
     )
 
@@ -275,7 +278,7 @@ def do_finetuning_process(
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Finetuning setup
 
-    compute_metrics = get_compute_metrics(
+    compute_metrics: Callable | None = get_compute_metrics(
         finetuning_config=finetuning_config,
         label_list=label_list,
         verbosity=verbosity,
@@ -303,6 +306,7 @@ def do_finetuning_process(
         finetuning_config=finetuning_config,
         tokenizer=tokenizer,
         dataset=eval_dataset_mapped,
+        label_list=label_list,
         verbosity=verbosity,
         logger=logger,
     )

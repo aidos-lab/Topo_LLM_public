@@ -51,12 +51,14 @@ class TrainerModifierWandbPredictionProgressCallback:
         finetuning_config: FinetuningConfig,
         tokenizer: transformers.PreTrainedTokenizer | transformers.PreTrainedTokenizerFast,
         dataset: datasets.Dataset,
+        label_list: list[str] | None = None,
         verbosity: Verbosity = Verbosity.NORMAL,
         logger: logging.Logger = default_logger,
     ) -> None:
         """Initialize the model modifier."""
         self.finetuning_config = finetuning_config
         self.tokenizer = tokenizer
+        self.label_list = label_list
         self.dataset = dataset
 
         self.verbosity = verbosity
@@ -77,6 +79,7 @@ class TrainerModifierWandbPredictionProgressCallback:
             trainer=trainer,
             tokenizer=self.tokenizer,
             val_dataset=self.dataset,
+            label_list=self.label_list,
             num_samples=trainer_modifier_config.num_samples,
             frequency=trainer_modifier_config.frequency,
             decode_predictions_function=decode_predictions_function,
@@ -101,9 +104,7 @@ def get_decode_predictions_function(
         case TaskType.MASKED_LM | TaskType.CAUSAL_LM:
             decode_predictions_function = decode_predictions_language_modeling
         case TaskType.TOKEN_CLASSIFICATION:
-            # TODO: Implement decode_predictions for the token classification task
-
-            raise NotImplementedError("Token classification task not implemented.")
+            decode_predictions_function = decode_predictions_token_classification
         case _:
             msg = f"{task_type = } not supported."
             raise ValueError(msg)
@@ -112,8 +113,9 @@ def get_decode_predictions_function(
 
 
 def decode_predictions_language_modeling(
-    tokenizer: transformers.PreTrainedTokenizer,
     prediction_output: transformers.trainer_utils.PredictionOutput,
+    tokenizer: transformers.PreTrainedTokenizer,
+    label_list: list[str] | None = None,  # noqa: ARG001 - here to make function interface compatible with other decode_predictions functions
 ) -> dict:
     """Decode predictions and labels for language modeling tasks."""
     # `prediction_output.label_ids.shape`: (10, 512)
@@ -121,14 +123,15 @@ def decode_predictions_language_modeling(
     # Replace -100 with the pad token id,
     # because otherwise the tokeinzer decode function results in an error:
     # `OverflowError: out of range integral type conversion attempted`
+    ignore_index = -100
     label_ids: np.ndarray = prediction_output.label_ids.copy()  # type: ignore - this is a numpy array and not a tuple
-    label_ids[label_ids == -100] = tokenizer.pad_token_id
+    label_ids[label_ids == ignore_index] = tokenizer.pad_token_id
 
     # `len(labels_decoded)`: 10
     labels_decoded: list[str] = tokenizer.batch_decode(
         label_ids,
     )
-    # `prediction_output.predictions.shape`: (10, 512, 13)
+    # `prediction_output.predictions.shape`: (10, 512, 50267)
     # `logits_argmax.shape`: (10, 512)
     logits_argmax = prediction_output.predictions.argmax(  # type: ignore - problem with tuple type
         axis=-1,
@@ -142,6 +145,50 @@ def decode_predictions_language_modeling(
         "labels_decoded": labels_decoded,
         "logits_argmax": logits_argmax.tolist(),  # type: ignore - this is a numpy array and not a tuple
         "prediction_text": prediction_text,
+    }
+
+
+def decode_predictions_token_classification(
+    prediction_output: transformers.trainer_utils.PredictionOutput,
+    tokenizer: transformers.PreTrainedTokenizer,  # noqa: ARG001 - here to make function interface compatible with other decode_predictions functions
+    label_list: list[str] | None = None,
+) -> dict:
+    """Decode predictions and labels for token classification tasks."""
+    if label_list is None:
+        msg = "label_list must be provided for token classification tasks."
+        raise ValueError(msg)
+
+    def decode_label_id(
+        label_id: int,
+        ignore_index: int = -100,
+    ) -> str:
+        if label_id == ignore_index:
+            return "IGNORE"
+        return label_list[label_id]
+
+    label_ids: np.ndarray = prediction_output.label_ids.copy()  # type: ignore - this is a numpy array and not a tuple
+
+    # Use the label_list to decode the labels
+
+    # `prediction_output.label_ids.shape`: (10, 512)
+    # Go through the batch and decode the labels
+    labels_decoded: list[list[str]] = [
+        [decode_label_id(label_id) for label_id in label_ids_batch] for label_ids_batch in label_ids
+    ]
+
+    logits_argmax = prediction_output.predictions.argmax(  # type: ignore - problem with tuple type
+        axis=-1,
+    )
+    predictions_decoded: list[list[str]] = [
+        [decode_label_id(prediction_id) for prediction_id in prediction_ids_batch]
+        for prediction_ids_batch in logits_argmax
+    ]
+
+    return {
+        "label_ids": prediction_output.label_ids.tolist(),  # type: ignore - this is a numpy array and not a tuple
+        "labels_decoded": labels_decoded,
+        "logits_argmax": logits_argmax.tolist(),  # type: ignore - this is a numpy array and not a tuple
+        "predictions_decoded": predictions_decoded,
     }
 
 
@@ -172,6 +219,7 @@ class WandbPredictionProgressCallback(WandbCallback):
         trainer: transformers.Trainer,
         tokenizer: transformers.PreTrainedTokenizer | transformers.PreTrainedTokenizerFast,
         val_dataset: datasets.Dataset,
+        label_list: list[str] | None = None,
         num_samples: int = 100,
         frequency: int = 400,
         decode_predictions_function: Callable = decode_predictions_language_modeling,
@@ -187,12 +235,16 @@ class WandbPredictionProgressCallback(WandbCallback):
             num_samples: Number of samples to select from
               the validation dataset for generating predictions.
             frequency: Frequency of logging.
+            decode_predictions_function: Function to decode predictions and labels.
 
         """
         super().__init__()
         self.trainer = trainer
         self.tokenizer = tokenizer
-        self.sample_dataset = val_dataset.select(range(num_samples))
+        self.label_list = label_list
+        self.sample_dataset = val_dataset.select(
+            indices=range(num_samples),
+        )
         self.frequency = frequency
         self.decode_predictions_function = decode_predictions_function
 
@@ -221,8 +273,9 @@ class WandbPredictionProgressCallback(WandbCallback):
             )
             # decode predictions and labels
             predictions_output_decoded = self.decode_predictions_function(
-                self.tokenizer,
                 predictions_output,
+                self.tokenizer,
+                self.label_list,
             )
             # add predictions to a wandb.Table
             predictions_df = pd.DataFrame(

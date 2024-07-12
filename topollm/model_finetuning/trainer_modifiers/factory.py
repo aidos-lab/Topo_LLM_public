@@ -51,6 +51,7 @@ def get_trainer_modifier(
     finetuning_config: FinetuningConfig,
     tokenizer: transformers.PreTrainedTokenizer | transformers.PreTrainedTokenizerFast | None = None,
     dataset: datasets.Dataset | None = None,
+    label_list: list[str] | None = None,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> TrainerModifier:
@@ -91,6 +92,7 @@ def get_trainer_modifier(
                 finetuning_config=finetuning_config,
                 tokenizer=tokenizer,
                 dataset=dataset,
+                label_list=label_list,
                 verbosity=verbosity,
                 logger=logger,
             )
