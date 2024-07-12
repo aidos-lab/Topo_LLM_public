@@ -29,9 +29,15 @@
 
 import logging
 
+import datasets
+import transformers
+
 from topollm.config_classes.finetuning.trainer_modifier.trainer_modifier_config import TrainerModifierConfig
 from topollm.model_finetuning.trainer_modifiers.protocol import TrainerModifier
 from topollm.model_finetuning.trainer_modifiers.trainer_modifier_do_nothing import TrainerModifierDoNothing
+from topollm.model_finetuning.trainer_modifiers.trainer_modifier_wandb_prediction_progress_callback import (
+    TrainerModifierWandbPredictionProgressCallback,
+)
 from topollm.typing.enums import TrainerModifierMode, Verbosity
 
 default_logger = logging.getLogger(__name__)
@@ -39,6 +45,8 @@ default_logger = logging.getLogger(__name__)
 
 def get_trainer_modifier(
     trainer_modifier_config: TrainerModifierConfig,
+    tokenizer: transformers.PreTrainedTokenizer | transformers.PreTrainedTokenizerFast | None = None,
+    dataset: datasets.Dataset | None = None,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> TrainerModifier:
@@ -63,7 +71,23 @@ def get_trainer_modifier(
                 verbosity=verbosity,
                 logger=logger,
             )
-        # TODO: Implement the Callback version of the TrainerModifier
+        case TrainerModifierMode.ADD_WANDB_PREDICTION_PROGRESS_CALLBACK:
+            if verbosity >= Verbosity.NORMAL:
+                logger.info("Creating TrainerModifierWandbPredictionProgressCallback instance ...")
+
+            if tokenizer is None:
+                msg = f"Tokenizer must be provided for {mode = }"
+                raise ValueError(msg)
+            if dataset is None:
+                msg = f"Dataset must be provided for {mode = }"
+                raise ValueError(msg)
+
+            modifier = TrainerModifierWandbPredictionProgressCallback(
+                tokenizer=tokenizer,
+                dataset=dataset,
+                verbosity=verbosity,
+                logger=logger,
+            )
         case _:
             msg = f"Unknown mode: {mode = }"
             raise ValueError(msg)

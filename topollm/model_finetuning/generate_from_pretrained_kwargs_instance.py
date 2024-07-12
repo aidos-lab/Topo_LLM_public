@@ -83,5 +83,12 @@ def extract_label_list(
                 feature_column_name,
             )
         label_list = None
+    except KeyError:
+        if verbosity >= Verbosity.NORMAL:
+            logger.warning(
+                "Could not find column train_dataset.features[%s]",
+                feature_column_name,
+            )
+        label_list = None
 
     return label_list

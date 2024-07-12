@@ -1,7 +1,0 @@
-lm_mode: MLM
-pretrained_model_name_or_path: roberta-base
-short_model_name: ${finetuning.base_model.pretrained_model_name_or_path}
-task_type: MASKED_LM
-tokenizer_modifier:
-  mode: DO_NOTHING
-  padding_token: "<pad>"

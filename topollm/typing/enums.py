@@ -284,6 +284,7 @@ class TrainerModifierMode(StrEnum):
     """Modes for modifying the trainer during finetuning."""
 
     DO_NOTHING = auto()
+    ADD_WANDB_PREDICTION_PROGRESS_CALLBACK = auto()
 
 
 # ==============================

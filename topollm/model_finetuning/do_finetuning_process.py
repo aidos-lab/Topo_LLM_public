@@ -28,6 +28,7 @@
 """Perform the finetuning process."""
 
 import logging
+import pathlib
 from typing import TYPE_CHECKING
 
 import torch
@@ -76,6 +77,7 @@ from topollm.model_handling.tokenizer.tokenizer_modifier.protocol import Tokeniz
 from topollm.path_management.finetuning.factory import (
     get_finetuning_path_manager,
 )
+from topollm.path_management.finetuning.protocol import FinetuningPathManager
 from topollm.typing.enums import Verbosity
 
 if TYPE_CHECKING:
@@ -255,17 +257,17 @@ def do_finetuning_process(
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Output paths
 
-    finetuning_path_manager = get_finetuning_path_manager(
+    finetuning_path_manager: FinetuningPathManager = get_finetuning_path_manager(
         main_config=main_config,
         logger=logger,
     )
 
-    finetuned_model_dir = prepare_finetuned_model_dir(
+    finetuned_model_dir: pathlib.Path = prepare_finetuned_model_dir(
         finetuning_path_manager=finetuning_path_manager,
         logger=logger,
     )
 
-    logging_dir = prepare_logging_dir(
+    logging_dir: pathlib.Path | None = prepare_logging_dir(
         finetuning_path_manager=finetuning_path_manager,
         logger=logger,
     )
@@ -280,7 +282,7 @@ def do_finetuning_process(
         logger=logger,
     )
 
-    training_args = prepare_training_args(
+    training_args: transformers.TrainingArguments = prepare_training_args(
         finetuning_config=finetuning_config,
         seed=main_config.seed,
         finetuned_model_dir=finetuned_model_dir,
@@ -299,6 +301,8 @@ def do_finetuning_process(
 
     trainer_modifier: TrainerModifier = get_trainer_modifier(
         trainer_modifier_config=finetuning_config.trainer_modifier,
+        tokenizer=tokenizer,
+        dataset=eval_dataset_mapped,
         verbosity=verbosity,
         logger=logger,
     )

@@ -48,7 +48,31 @@
             "request": "launch",
             "program": "topollm/model_finetuning/run_finetune_language_model_on_huggingface_dataset.py",
             "console": "integratedTerminal",
-            "args": "finetuning=finetuning_for_token_classification finetuning.eval_steps=3 feature_flags.wandb.use_wandb=false wandb.project=Topo_LLM_finetuning_for_token_classification_debug",
+            "args": [
+                "finetuning=finetuning_for_token_classification",
+                "finetuning.finetuning_datasets.train_dataset.number_of_samples=100",
+                "finetuning.finetuning_datasets.eval_dataset.number_of_samples=20",
+                "finetuning.eval_steps=2",
+                "+finetuning.trainer_modifier.mode=ADD_WANDB_PREDICTION_PROGRESS_CALLBACK",
+                "feature_flags.wandb.use_wandb=false",
+                "wandb.project=Topo_LLM_finetuning_for_token_classification_debug",
+            ]
+        },
+        {
+            "name": "run_finetune_language_model_on_huggingface_dataset.py; on language modeling task",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/model_finetuning/run_finetune_language_model_on_huggingface_dataset.py",
+            "console": "integratedTerminal",
+            "args": [
+                "finetuning=finetuning_for_masked_lm",
+                "finetuning.finetuning_datasets.train_dataset.number_of_samples=100",
+                "finetuning.finetuning_datasets.eval_dataset.number_of_samples=20",
+                "finetuning.eval_steps=2",
+                "+finetuning.trainer_modifier.mode=ADD_WANDB_PREDICTION_PROGRESS_CALLBACK",
+                "feature_flags.wandb.use_wandb=false",
+                "wandb.project=Topo_LLM_finetuning_for_language_modeling_debug",
+            ]
         },
     ]
 }

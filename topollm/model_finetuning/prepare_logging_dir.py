@@ -27,20 +27,24 @@
 
 import logging
 import os
+import pathlib
 
 from topollm.path_management.finetuning.protocol import (
     FinetuningPathManager,
 )
 
-logger = logging.getLogger(__name__)
+default_logger = logging.getLogger(__name__)
 
 
 def prepare_logging_dir(
     finetuning_path_manager: FinetuningPathManager,
-    logger: logging.Logger = logger,
-) -> os.PathLike | None:
+    logger: logging.Logger = default_logger,
+) -> pathlib.Path | None:
+    """Prepare the logging directory for the finetuning process."""
     logging_dir = finetuning_path_manager.logging_dir
-    logger.info(f"{logging_dir = }")
+    logger.info(
+        f"{logging_dir = }",  # noqa: G004 - low overhead
+    )
 
     # Create the logging directory if it does not exist
     if logging_dir is not None:

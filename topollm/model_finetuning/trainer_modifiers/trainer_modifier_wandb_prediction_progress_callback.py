@@ -28,8 +28,13 @@
 """Gradient modifier that does not modify the model."""
 
 import logging
+from collections.abc import Callable
 
+import datasets
+import numpy as np
+import pandas as pd
 import transformers
+from transformers.integrations import WandbCallback
 
 from topollm.typing.enums import Verbosity
 
@@ -41,10 +46,15 @@ class TrainerModifierWandbPredictionProgressCallback:
 
     def __init__(
         self,
+        tokenizer: transformers.PreTrainedTokenizer | transformers.PreTrainedTokenizerFast,
+        dataset: datasets.Dataset,
         verbosity: Verbosity = Verbosity.NORMAL,
         logger: logging.Logger = default_logger,
     ) -> None:
         """Initialize the model modifier."""
+        self.tokenizer = tokenizer
+        self.dataset = dataset
+
         self.verbosity = verbosity
         self.logger = logger
 
@@ -52,24 +62,61 @@ class TrainerModifierWandbPredictionProgressCallback:
         self,
         trainer: transformers.Trainer,
     ) -> transformers.Trainer:
-        # TODO: Implement this
+        # TODO: Implement decode_predictions for the token classification task
 
-        raise NotImplementedError("Not implemented yet")
+        # Instantiate the WandbPredictionProgressCallback
+        progress_callback = WandbPredictionProgressCallback(
+            trainer=trainer,
+            tokenizer=self.tokenizer,
+            val_dataset=self.dataset,
+            num_samples=10,
+            freq=2,
+            decode_predictions_function=decode_predictions_language_modeling,
+        )
+
+        # Add the callback to the trainer
+        trainer.add_callback(
+            callback=progress_callback,
+        )
 
         if self.verbosity >= Verbosity.NORMAL:
-            self.logger.info("Returning unmodified trainer.")
+            self.logger.info("Returning Trainer with added callback.")
 
         return trainer
 
 
-def decode_predictions(
-    tokenizer,
-    predictions,
-):
-    labels = tokenizer.batch_decode(predictions.label_ids)
-    logits = predictions.predictions.argmax(axis=-1)
-    prediction_text = tokenizer.batch_decode(logits)
-    return {"labels": labels, "predictions": prediction_text}
+def decode_predictions_language_modeling(
+    tokenizer: transformers.PreTrainedTokenizer,
+    prediction_output: transformers.trainer_utils.PredictionOutput,
+) -> dict:
+    """Decode predictions and labels for language modeling tasks."""
+    # `prediction_output.label_ids.shape`: (10, 512)
+    #
+    # Replace -100 with the pad token id,
+    # because otherwise the tokeinzer decode function results in an error:
+    # `OverflowError: out of range integral type conversion attempted`
+    label_ids: np.ndarray = prediction_output.label_ids.copy()  # type: ignore - this is a numpy array and not a tuple
+    label_ids[label_ids == -100] = tokenizer.pad_token_id
+
+    # `len(labels_decoded)`: 10
+    labels_decoded: list[str] = tokenizer.batch_decode(
+        label_ids,
+    )
+    # `prediction_output.predictions.shape`: (10, 512, 13)
+    # `logits_argmax.shape`: (10, 512)
+    logits_argmax = prediction_output.predictions.argmax(  # type: ignore - problem with tuple type
+        axis=-1,
+    )
+    # `len(prediction_text)`: 10
+    prediction_text: list[str] = tokenizer.batch_decode(
+        logits_argmax,
+    )
+    return {
+        "label_ids": prediction_output.label_ids.tolist(),  # type: ignore - this is a numpy array and not a tuple
+        "labels_decoded": labels_decoded,
+        "logits_argmax": logits_argmax.tolist(),  # type: ignore - this is a numpy array and not a tuple
+        "prediction_text": prediction_text,
+    }
 
 
 class WandbPredictionProgressCallback(WandbCallback):
@@ -97,11 +144,12 @@ class WandbPredictionProgressCallback(WandbCallback):
     def __init__(
         self,
         trainer: transformers.Trainer,
-        tokenizer: transformers.AutoTokenizer,
+        tokenizer: transformers.PreTrainedTokenizer | transformers.PreTrainedTokenizerFast,
         val_dataset: datasets.Dataset,
         num_samples: int = 100,
         freq: int = 2,
-    ):
+        decode_predictions_function: Callable = decode_predictions_language_modeling,
+    ) -> None:
         """Initialize the WandbPredictionProgressCallback instance.
 
         Args:
@@ -112,8 +160,7 @@ class WandbPredictionProgressCallback(WandbCallback):
             val_dataset: The validation dataset.
             num_samples: Number of samples to select from
               the validation dataset for generating predictions.
-              Defaults to 100.
-            freq: Frequency of logging. Defaults to 2.
+            freq: Frequency of logging.
 
         """
         super().__init__()
@@ -121,19 +168,49 @@ class WandbPredictionProgressCallback(WandbCallback):
         self.tokenizer = tokenizer
         self.sample_dataset = val_dataset.select(range(num_samples))
         self.freq = freq
+        self.decode_predictions_function = decode_predictions_function
 
-    def on_evaluate(self, args, state, control, **kwargs):
-        super().on_evaluate(args, state, control, **kwargs)
+    def on_evaluate(
+        self,
+        args: transformers.TrainingArguments,
+        state: transformers.TrainerState,
+        control: transformers.TrainerControl,
+        **kwargs,  # noqa: ANN003 - no type annotations for kwargs
+    ) -> None:
+        super().on_evaluate(
+            args,
+            state,
+            control,
+            **kwargs,
+        )
         # control the frequency of logging by logging the predictions
         # every `freq` epochs
-        if state.epoch % self.freq == 0:
+        if state.epoch is None:
+            return
+
+        # if state.epoch % self.freq == 0:
+        if True:  # TODO: This is set for debugging purposes, remove this line later
             # generate predictions
-            predictions = self.trainer.predict(self.sample_dataset)
+            predictions_output: transformers.trainer_utils.PredictionOutput = self.trainer.predict(
+                self.sample_dataset,  # type: ignore - problem with datasets.Dataset type
+            )
             # decode predictions and labels
-            predictions = decode_predictions(self.tokenizer, predictions)
+            predictions_output_decoded = self.decode_predictions_function(
+                self.tokenizer,
+                predictions_output,
+            )
             # add predictions to a wandb.Table
-            predictions_df = pd.DataFrame(predictions)
+            predictions_df = pd.DataFrame(
+                predictions_output_decoded,
+            )
             predictions_df["epoch"] = state.epoch
-            records_table = self._wandb.Table(dataframe=predictions_df)
+            predictions_df["step"] = state.global_step
+            predictions_df["sample_dataset"] = self.sample_dataset
+
+            records_table = self._wandb.Table(
+                dataframe=predictions_df,
+            )
             # log the table to wandb
-            self._wandb.log({"sample_predictions": records_table})
+            self._wandb.log(
+                {"sample_predictions": records_table},
+            )
