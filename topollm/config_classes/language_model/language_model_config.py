@@ -33,7 +33,7 @@ from pydantic import Field
 
 from topollm.config_classes.config_base_model import ConfigBaseModel
 from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
-from topollm.config_classes.finetuning.tokenizer_modifier_config import (
+from topollm.config_classes.language_model.tokenizer_modifier.tokenizer_modifier_config import (
     TokenizerModifierConfig,
 )
 from topollm.typing.enums import LMmode, MaskingMode, TaskType

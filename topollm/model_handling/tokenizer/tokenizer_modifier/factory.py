@@ -29,7 +29,7 @@
 
 import logging
 
-from topollm.config_classes.finetuning.tokenizer_modifier_config import (
+from topollm.config_classes.language_model.tokenizer_modifier.tokenizer_modifier_config import (
     TokenizerModifierConfig,
 )
 from topollm.model_handling.tokenizer.tokenizer_modifier import (
@@ -50,7 +50,7 @@ def get_tokenizer_modifier(
     """Get the tokenizer modifier based on the configuration."""
     mode: TokenizerModifierMode = tokenizer_modifier_config.mode
 
-    if verbosity >= 1:
+    if verbosity >= Verbosity.NORMAL:
         logger.info(
             f"{mode = }",  # noqa: G004 - low overhead
         )

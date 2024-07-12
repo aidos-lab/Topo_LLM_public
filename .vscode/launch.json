@@ -48,7 +48,7 @@
             "request": "launch",
             "program": "topollm/model_finetuning/run_finetune_language_model_on_huggingface_dataset.py",
             "console": "integratedTerminal",
-            "args": "finetuning=finetuning_for_token_classification feature_flags.wandb.use_wandb=false wandb.project=Topo_LLM_finetuning_for_token_classification_debug",
+            "args": "finetuning=finetuning_for_token_classification finetuning.eval_steps=3 feature_flags.wandb.use_wandb=false wandb.project=Topo_LLM_finetuning_for_token_classification_debug",
         },
     ]
 }

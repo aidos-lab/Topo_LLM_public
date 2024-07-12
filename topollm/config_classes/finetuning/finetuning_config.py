@@ -32,8 +32,8 @@ from transformers.trainer_utils import SchedulerType
 
 from topollm.config_classes.config_base_model import ConfigBaseModel
 from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
-from topollm.config_classes.finetuning.batch_sizes_config import BatchSizesConfig
-from topollm.config_classes.finetuning.finetuning_datasets_config import (
+from topollm.config_classes.finetuning.batch_sizes.batch_sizes_config import BatchSizesConfig
+from topollm.config_classes.finetuning.finetuning_datasets.finetuning_datasets_config import (
     FinetuningDatasetsConfig,
 )
 from topollm.config_classes.finetuning.gradient_modifier.gradient_modifier_config import GradientModifierConfig

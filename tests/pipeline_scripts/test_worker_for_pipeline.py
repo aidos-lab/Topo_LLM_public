@@ -38,28 +38,27 @@ from topollm.config_classes.data.dataset_map_config import DatasetMapConfig
 from topollm.config_classes.embeddings.embedding_extraction_config import EmbeddingExtractionConfig
 from topollm.config_classes.embeddings.embeddings_config import EmbeddingsConfig
 from topollm.config_classes.embeddings_data_prep.embeddings_data_prep_config import EmbeddingsDataPrepConfig
-from topollm.config_classes.finetuning.batch_sizes_config import BatchSizesConfig
+from topollm.config_classes.finetuning.batch_sizes.batch_sizes_config import BatchSizesConfig
 from topollm.config_classes.finetuning.finetuning_config import FinetuningConfig
-from topollm.config_classes.finetuning.finetuning_datasets_config import FinetuningDatasetsConfig
+from topollm.config_classes.finetuning.finetuning_datasets.finetuning_datasets_config import FinetuningDatasetsConfig
 from topollm.config_classes.finetuning.gradient_modifier.gradient_modifier_config import GradientModifierConfig
 from topollm.config_classes.finetuning.peft.peft_config import PEFTConfig
-from topollm.config_classes.finetuning.tokenizer_modifier_config import TokenizerModifierConfig
 from topollm.config_classes.inference.inference_config import InferenceConfig
 from topollm.config_classes.language_model.language_model_config import LanguageModelConfig
+from topollm.config_classes.language_model.tokenizer_modifier.tokenizer_modifier_config import TokenizerModifierConfig
 from topollm.config_classes.local_estimates.local_estimates_config import LocalEstimatesConfig
 from topollm.config_classes.local_estimates.local_estimates_filtering_config import LocalEstimatesFilteringConfig
 from topollm.config_classes.main_config import MainConfig
 from topollm.config_classes.paths.paths_config import PathsConfig
 from topollm.config_classes.storage.storage_config import StorageConfig
 from topollm.config_classes.tokenizer.tokenizer_config import TokenizerConfig
-from topollm.config_classes.transformations.transformations_config import TransformationsConfig
-from topollm.config_classes.wandb.wandb_config import WandBConfig
 from topollm.pipeline_scripts.worker_for_pipeline import worker_for_pipeline
 from topollm.typing.enums import (
     ArrayStorageType,
     DatasetType,
     DataSplitMode,
     LMmode,
+    MaskingMode,
     MetadataStorageType,
     PreferredTorchBackend,
     Split,
@@ -124,7 +123,7 @@ def main_config_with_small_dataset_and_model(
     )
     language_model_config = LanguageModelConfig(
         lm_mode=LMmode.MLM,
-        masking_mode="no_masking",
+        masking_mode=MaskingMode.NO_MASKING,
         pretrained_model_name_or_path=pretrained_model_name_or_path,
         short_model_name=short_model_name,
         tokenizer_modifier=tokenizer_modifier_config,
@@ -147,12 +146,11 @@ def main_config_with_small_dataset_and_model(
     )
 
     finetuning_config = FinetuningConfig(
+        base_model=language_model_config,
         finetuning_datasets=finetuning_datasets_config,
-        pretrained_model_name_or_path=pretrained_model_name_or_path,
         gradient_modifier=gradient_modifier_config,
         peft=peft_config,
         tokenizer=tokenizer_config,
-        tokenizer_modifier=tokenizer_modifier_config,
         batch_sizes=batch_sizes_config,
     )
 
@@ -185,8 +183,6 @@ def main_config_with_small_dataset_and_model(
         preferred_torch_backend=PreferredTorchBackend.CPU,
         storage=storage_config,
         tokenizer=tokenizer_config,
-        transformations=TransformationsConfig(),
-        wandb=WandBConfig(),
         verbosity=Verbosity.VERBOSE,
     )
 

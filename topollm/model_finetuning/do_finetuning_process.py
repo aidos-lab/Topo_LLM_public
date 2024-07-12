@@ -30,19 +30,22 @@
 import logging
 from typing import TYPE_CHECKING
 
-import datasets
 import torch
 import transformers
 
-from topollm.config_classes.finetuning.finetuning_config import FinetuningConfig
 from topollm.config_classes.main_config import MainConfig
 from topollm.data_handling.dataset_preparer.factory import get_dataset_preparer
+from topollm.data_handling.dataset_preparer.protocol import DatasetPreparer
 from topollm.data_handling.dataset_preparer.select_random_elements import (
     log_selected_dataset_elements_info,
 )
 from topollm.logging.log_dataset_info import log_huggingface_dataset_info
 from topollm.model_finetuning.evaluate_tuned_model import evaluate_tuned_model
 from topollm.model_finetuning.finetune_model import finetune_model
+from topollm.model_finetuning.generate_from_pretrained_kwargs_instance import (
+    extract_label_list,
+    generate_from_pretrained_kwargs_instance,
+)
 from topollm.model_finetuning.get_compute_metrics import get_compute_metrics
 from topollm.model_finetuning.gradient_modifiers.factory import get_gradient_modifier
 from topollm.model_finetuning.load_base_model_from_finetuning_config import (
@@ -63,26 +66,33 @@ from topollm.model_finetuning.prepare_model_input import prepare_model_input
 from topollm.model_finetuning.prepare_training_args import prepare_training_args
 from topollm.model_finetuning.save_tuned_model import save_tuned_model
 from topollm.model_finetuning.trainer_modifiers.factory import get_trainer_modifier
-from topollm.model_handling.model.load_model_from_language_model_config import TokenClassificationFromPretrainedKwargs
+from topollm.model_handling.model.token_classification_from_pretrained_kwargs import (
+    TokenClassificationFromPretrainedKwargs,
+)
 from topollm.model_handling.tokenizer.tokenizer_modifier.factory import (
     get_tokenizer_modifier,
 )
+from topollm.model_handling.tokenizer.tokenizer_modifier.protocol import TokenizerModifier
 from topollm.path_management.finetuning.factory import (
     get_finetuning_path_manager,
 )
-from topollm.typing.enums import TaskType, Verbosity
+from topollm.typing.enums import Verbosity
 
 if TYPE_CHECKING:
+    import datasets
+
+    from topollm.config_classes.finetuning.finetuning_config import FinetuningConfig
     from topollm.model_finetuning.gradient_modifiers.protocol import GradientModifier
     from topollm.model_finetuning.model_modifiers.protocol import ModelModifier
     from topollm.model_finetuning.trainer_modifiers.protocol import TrainerModifier
 
+default_device = torch.device("cpu")
 default_logger = logging.getLogger(__name__)
 
 
 def do_finetuning_process(
     main_config: MainConfig,
-    device: torch.device,
+    device: torch.device = default_device,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> None:
@@ -91,14 +101,14 @@ def do_finetuning_process(
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Load data
-    train_dataset_preparer = get_dataset_preparer(
+    train_dataset_preparer: DatasetPreparer = get_dataset_preparer(
         data_config=finetuning_config.finetuning_datasets.train_dataset,
         verbosity=main_config.verbosity,
         logger=logger,
     )
     train_dataset: datasets.Dataset = train_dataset_preparer.prepare_dataset()
 
-    eval_dataset_preparer = get_dataset_preparer(
+    eval_dataset_preparer: DatasetPreparer = get_dataset_preparer(
         data_config=finetuning_config.finetuning_datasets.eval_dataset,
         verbosity=main_config.verbosity,
         logger=logger,
@@ -121,18 +131,29 @@ def do_finetuning_process(
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Load tokenizer and model
 
-    base_tokenizer = load_tokenizer_from_finetuning_config(
+    base_tokenizer: transformers.PreTrainedTokenizer | transformers.PreTrainedTokenizerFast = (
+        load_tokenizer_from_finetuning_config(
+            finetuning_config=finetuning_config,
+            verbosity=verbosity,
+            logger=logger,
+        )
+    )
+
+    label_list: list[str] | None = extract_label_list(
         finetuning_config=finetuning_config,
+        train_dataset=train_dataset,
         verbosity=verbosity,
         logger=logger,
     )
 
-    from_pretrained_kwargs_instance = generate_pretrained_kwargs_instance(
-        finetuning_config=finetuning_config,
-        train_dataset=train_dataset,
+    from_pretrained_kwargs_instance: TokenClassificationFromPretrainedKwargs | None = (
+        generate_from_pretrained_kwargs_instance(
+            finetuning_config=finetuning_config,
+            label_list=label_list,
+        )
     )
 
-    base_model = load_base_model_from_finetuning_config(
+    base_model: transformers.PreTrainedModel = load_base_model_from_finetuning_config(
         finetuning_config=finetuning_config,
         from_pretrained_kwargs_instance=from_pretrained_kwargs_instance,
         device=device,
@@ -146,16 +167,18 @@ def do_finetuning_process(
     # For instance, for some autoregressive models, the tokenizer
     # needs to be modified to add a padding token.
 
-    tokenizer_modifier = get_tokenizer_modifier(
+    tokenizer_modifier: TokenizerModifier = get_tokenizer_modifier(
         tokenizer_modifier_config=finetuning_config.base_model.tokenizer_modifier,
         verbosity=verbosity,
         logger=logger,
     )
 
-    tokenizer = tokenizer_modifier.modify_tokenizer(
-        tokenizer=base_tokenizer,
+    tokenizer: transformers.PreTrainedTokenizer | transformers.PreTrainedTokenizerFast = (
+        tokenizer_modifier.modify_tokenizer(
+            tokenizer=base_tokenizer,
+        )
     )
-    base_model = tokenizer_modifier.update_model(
+    base_model: transformers.PreTrainedModel = tokenizer_modifier.update_model(
         model=base_model,
     )
 
@@ -220,11 +243,13 @@ def do_finetuning_process(
             logger=logger,
         )
 
-    data_collator = prepare_data_collator(
-        finetuning_config=finetuning_config,
-        tokenizer=tokenizer,
-        verbosity=verbosity,
-        logger=logger,
+    data_collator: transformers.DataCollatorForLanguageModeling | transformers.DataCollatorForTokenClassification = (
+        prepare_data_collator(
+            finetuning_config=finetuning_config,
+            tokenizer=tokenizer,
+            verbosity=verbosity,
+            logger=logger,
+        )
     )
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -250,6 +275,9 @@ def do_finetuning_process(
 
     compute_metrics = get_compute_metrics(
         finetuning_config=finetuning_config,
+        label_list=label_list,
+        verbosity=verbosity,
+        logger=logger,
     )
 
     training_args = prepare_training_args(
@@ -259,7 +287,7 @@ def do_finetuning_process(
         logging_dir=logging_dir,
     )
 
-    trainer = transformers.Trainer(
+    trainer: transformers.Trainer = transformers.Trainer(
         model=gradient_modified_model,
         args=training_args,
         data_collator=data_collator,
@@ -275,7 +303,7 @@ def do_finetuning_process(
         logger=logger,
     )
 
-    trainer = trainer_modifier.modify_trainer(
+    trainer: transformers.Trainer = trainer_modifier.modify_trainer(
         trainer=trainer,
     )
 
@@ -295,26 +323,3 @@ def do_finetuning_process(
         trainer=trainer,
         logger=logger,
     )
-
-
-def generate_pretrained_kwargs_instance(
-    finetuning_config: FinetuningConfig,
-    train_dataset: datasets.Dataset,
-) -> TokenClassificationFromPretrainedKwargs | None:
-    """Generate the from_pretrained_kwargs_instance for token classification."""
-    match finetuning_config.base_model.task_type:
-        case TaskType.CAUSAL_LM | TaskType.MASKED_LM:
-            from_pretrained_kwargs_instance = None
-        case TaskType.TOKEN_CLASSIFICATION:
-            feature_column_name: str = finetuning_config.finetuning_datasets.train_dataset.feature_column_name
-            label_list = train_dataset.features[feature_column_name].feature.names
-
-            from_pretrained_kwargs_instance = TokenClassificationFromPretrainedKwargs(
-                num_labels=len(label_list),
-                id2label=dict(enumerate(label_list)),
-                label2id={label: i for i, label in enumerate(label_list)},
-            )
-        case _:
-            msg = f"Unknown {finetuning_config.base_model.task_type = }"
-            raise ValueError(msg)
-    return from_pretrained_kwargs_instance

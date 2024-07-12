@@ -144,7 +144,7 @@ class MainConfig(ConfigBaseModel):
     )
 
     transformations: TransformationsConfig = Field(
-        ...,
+        default_factory=TransformationsConfig,
         title="Transformations configuration.",
         description="The configuration for specifying transformations.",
     )
@@ -156,7 +156,7 @@ class MainConfig(ConfigBaseModel):
     )
 
     wandb: WandBConfig = Field(
-        default=WandBConfig(),
+        default_factory=WandBConfig,
         title="Weights and Biases configuration.",
         description="The configuration for specifying Weights and Biases.",
     )
