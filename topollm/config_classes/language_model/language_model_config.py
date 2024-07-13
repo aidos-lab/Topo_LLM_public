@@ -36,7 +36,7 @@ from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
 from topollm.config_classes.language_model.tokenizer_modifier.tokenizer_modifier_config import (
     TokenizerModifierConfig,
 )
-from topollm.typing.enums import LMmode, MaskingMode, TaskType
+from topollm.typing.enums import LMmode, TaskType
 
 
 class LanguageModelConfig(ConfigBaseModel):
@@ -58,12 +58,6 @@ class LanguageModelConfig(ConfigBaseModel):
         default=TaskType.MASKED_LM,
         title="Task type.",
         description="The task type.",
-    )
-
-    masking_mode: MaskingMode = Field(
-        default=MaskingMode.NO_MASKING,
-        title="Masking mode.",
-        description="The masking mode.",
     )
 
     pretrained_model_name_or_path: str | pathlib.Path = Field(
@@ -94,9 +88,9 @@ class LanguageModelConfig(ConfigBaseModel):
             f"{KV_SEP}"
             f"{self.short_model_name}"
             f"{ITEM_SEP}"
-            f"{NAME_PREFIXES['masking_mode']}"
+            f"{NAME_PREFIXES['task_type']}"
             f"{KV_SEP}"
-            f"{self.masking_mode}"
+            f"{self.task_type}"
         )
 
         return description

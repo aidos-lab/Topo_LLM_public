@@ -25,14 +25,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Tests for the finetuning path manager."""
+
 import logging
 import pathlib
 
 from topollm.path_management.finetuning import protocol
 from topollm.path_management.validate_path_part import validate_path_part
+from topollm.typing.enums import DescriptionType
 
 
 class TestFinetuningPathManager:
+    """Tests for the finetuning path manager."""
+
     def test_finetuned_model_dir(
         self,
         finetuning_path_manager_basic: protocol.FinetuningPathManager,
@@ -72,4 +77,40 @@ class TestFinetuningPathManager:
         if result is not None:
             assert validate_path_part(  # noqa: S101 - pytest assertion
                 path_part=str(result),
+            )
+
+    def test_get_finetuned_short_model_name(
+        self,
+        finetuning_path_manager_basic: protocol.FinetuningPathManager,
+        logger_fixture: logging.Logger,
+    ) -> None:
+        result: str = finetuning_path_manager_basic.get_finetuned_short_model_name()
+
+        logger_fixture.info(
+            "finetuned_short_model_name:\n%s",
+            result,
+        )
+
+        assert isinstance(  # noqa: S101 - pytest assertion
+            result,
+            str,
+        )
+
+    def test_get_finetuning_parameters_description(
+        self,
+        finetuning_path_manager_basic: protocol.FinetuningPathManager,
+        logger_fixture: logging.Logger,
+    ) -> None:
+        for description_type in DescriptionType:
+            result: str = finetuning_path_manager_basic.get_finetuning_parameters_description(
+                description_type=description_type,
+            )
+            logger_fixture.info(
+                "finetuning_parameters_description:\n%s",
+                result,
+            )
+
+            assert isinstance(  # noqa: S101 - pytest assertion
+                result,
+                str,
             )

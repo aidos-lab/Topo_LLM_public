@@ -28,6 +28,8 @@
 import pathlib
 from typing import Protocol
 
+from topollm.typing.enums import DescriptionType
+
 
 class FinetuningPathManager(Protocol):
     """Manages the paths for the finetuning process."""
@@ -38,6 +40,12 @@ class FinetuningPathManager(Protocol):
 
     def get_finetuned_short_model_name(
         self,
+    ) -> str: ...  # pragma: no cover
+
+    def get_finetuning_parameters_description(
+        self,
+        description_type: DescriptionType,
+        short_description_separator: str = "-",
     ) -> str: ...  # pragma: no cover
 
     @property

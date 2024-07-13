@@ -62,6 +62,7 @@ from topollm.typing.enums import (
     MetadataStorageType,
     PreferredTorchBackend,
     Split,
+    TaskType,
     TokenizerModifierMode,
     Verbosity,
     ZeroVectorHandlingMode,
@@ -123,7 +124,7 @@ def main_config_with_small_dataset_and_model(
     )
     language_model_config = LanguageModelConfig(
         lm_mode=LMmode.MLM,
-        masking_mode=MaskingMode.NO_MASKING,
+        task_type=TaskType.MASKED_LM,
         pretrained_model_name_or_path=pretrained_model_name_or_path,
         short_model_name=short_model_name,
         tokenizer_modifier=tokenizer_modifier_config,

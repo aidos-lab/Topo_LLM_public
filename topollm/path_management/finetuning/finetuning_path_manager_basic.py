@@ -91,9 +91,6 @@ class FinetuningPathManagerBasic:
             "model_files",
         )
 
-        # TODO: Include the training objective here (i.e., masked lm or token classification)
-        # TODO: Include the label name
-
         return path
 
     def get_finetuned_short_model_name(

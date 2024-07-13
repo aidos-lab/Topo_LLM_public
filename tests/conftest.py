@@ -86,6 +86,7 @@ from topollm.typing.enums import (
     MetadataStorageType,
     PreferredTorchBackend,
     Split,
+    TaskType,
     TokenizerModifierMode,
     Verbosity,
 )
@@ -253,6 +254,7 @@ def data_config() -> DataConfig:
         data_dir=None,
         dataset_path="xsum",
         dataset_name=None,
+        feature_column_name="summary",
         number_of_samples=10,
         split=Split.TRAIN,
     )
@@ -286,6 +288,7 @@ def dataset_map_config() -> DatasetMapConfig:
 model_config_list_for_testing = [
     (
         LMmode.MLM,
+        TaskType.MASKED_LM,
         "roberta-base",
         "roberta-base",
         TokenizerModifierConfig(
@@ -295,6 +298,7 @@ model_config_list_for_testing = [
     ),
     (
         LMmode.MLM,
+        TaskType.MASKED_LM,
         "bert-base-uncased",
         "bert-base-uncased",
         TokenizerModifierConfig(
@@ -304,6 +308,7 @@ model_config_list_for_testing = [
     ),
     (
         LMmode.CLM,
+        TaskType.CAUSAL_LM,
         "gpt2-medium",
         "gpt2-medium",
         TokenizerModifierConfig(
@@ -322,11 +327,11 @@ def language_model_config(
     request: pytest.FixtureRequest,
 ) -> LanguageModelConfig:
     """Return a LanguageModelConfig object."""
-    lm_mode, pretrained_model_name_or_path, short_model_name, tokenizer_modifier_config = request.param
+    lm_mode, task_type, pretrained_model_name_or_path, short_model_name, tokenizer_modifier_config = request.param
 
     config = LanguageModelConfig(
         lm_mode=lm_mode,
-        masking_mode=MaskingMode.NO_MASKING,
+        task_type=task_type,
         pretrained_model_name_or_path=pretrained_model_name_or_path,
         short_model_name=short_model_name,
         tokenizer_modifier=tokenizer_modifier_config,

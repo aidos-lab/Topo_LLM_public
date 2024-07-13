@@ -27,6 +27,7 @@
 
 import logging
 import pathlib
+from typing import TYPE_CHECKING
 
 import omegaconf
 
@@ -34,8 +35,10 @@ from topollm.config_classes.language_model.language_model_config import Language
 from topollm.config_classes.main_config import MainConfig
 from topollm.model_finetuning.compute_last_save_step import compute_last_save_step
 from topollm.path_management.finetuning.factory import get_finetuning_path_manager
-from topollm.path_management.finetuning.protocol import FinetuningPathManager
 from topollm.typing.enums import Verbosity
+
+if TYPE_CHECKING:
+    from topollm.path_management.finetuning.protocol import FinetuningPathManager
 
 default_logger = logging.getLogger(__name__)
 

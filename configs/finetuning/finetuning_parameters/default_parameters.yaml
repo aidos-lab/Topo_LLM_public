@@ -6,7 +6,6 @@ learning_rate: 5e-5
 lr_scheduler_type: linear
 log_level: info
 logging_steps: 100
-max_length: 512
 max_steps: -1 # '-1' for no 'max_steps' limit
 mlm_probability: 0.15
 num_train_epochs: 5

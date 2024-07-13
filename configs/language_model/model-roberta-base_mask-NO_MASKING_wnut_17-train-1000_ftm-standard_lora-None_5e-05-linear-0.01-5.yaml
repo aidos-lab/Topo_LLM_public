@@ -1,7 +1,5 @@
 checkpoint_no: 0
 lm_mode: MLM
-task_type: MASKED_LM
-masking_mode: NO_MASKING
 pretrained_model_name_or_path: ${paths.data_dir}/models/finetuned_models/data-wnut_17_split-train_ctxt-dataset_entry_samples-1000/model-roberta-base_mask-NO_MASKING/ftm-standard/lora-None/gradmod-DO_NOTHING_target-freeze-/lr-5e-05_lr_scheduler_type-linear_wd-0.01/bs-train-16/ep-5/model_files/checkpoint-${language_model.checkpoint_no}
 short_model_name: model-roberta-base_mask-NO_MASKING_wnut_17-train-1000_ftm-standard_lora-None_5e-05-linear-0.01-5_ckpt-${language_model.checkpoint_no}
 tokenizer_modifier:

@@ -117,11 +117,6 @@ class FinetuningConfig(ConfigBaseModel):
         description="The number of steps between two logging.",
     )
 
-    max_length: int = Field(
-        default=512,
-        description="The maximum length of the input sequence.",
-    )
-
     max_steps: int = Field(
         default=-1,
         description="The maximum number of steps. Overrides num_train_epochs.",

@@ -124,6 +124,10 @@ class DataConfig(ConfigBaseModel):
             f"{NAME_PREFIXES['number_of_samples']}"
             f"{KV_SEP}"
             f"{self.number_of_samples}"
+            f"{ITEM_SEP}"
+            f"{NAME_PREFIXES['feature_column_name']}"
+            f"{KV_SEP}"
+            f"{self.feature_column_name}"
         )
 
         return description
@@ -144,8 +148,10 @@ class DataConfig(ConfigBaseModel):
                     + self.split
                     + short_description_separator
                     + str(self.number_of_samples)
+                    + short_description_separator
+                    + self.feature_column_name
                 )
                 return short_description
             case _:
-                msg = f"Unknown description type: {description_type}"
+                msg = f"Unknown: {description_type = }"
                 raise ValueError(msg)

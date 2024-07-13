@@ -116,7 +116,7 @@ def standard_tokenize_function(
         dataset_entries[column_name],
         truncation=True,
         padding="max_length",
-        max_length=finetuning_config.max_length,
+        max_length=finetuning_config.tokenizer.max_length,
         return_special_tokens_mask=finetuning_config.tokenizer.return_special_tokens_mask,
     )
 
@@ -152,7 +152,7 @@ def tokenize_split_into_words_input_and_align_labels(
         dataset_entries[column_name],
         truncation=True,
         padding="max_length",
-        max_length=finetuning_config.max_length,
+        max_length=finetuning_config.tokenizer.max_length,
         is_split_into_words=True,
     )
 
