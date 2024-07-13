@@ -8,6 +8,7 @@ PYTHON_SCRIPT_PATH="${TOPO_LLM_REPOSITORY_BASE_PATH}/topollm/model_finetuning/${
 poetry run python3 \
     $PYTHON_SCRIPT_NAME \
     finetuning=finetuning_for_token_classification \
+    finetuning.compute_metrics_mode=NONE \
     finetuning.finetuning_datasets.train_dataset.number_of_samples=3000 \
     finetuning.finetuning_datasets.eval_dataset.number_of_samples=200 \
     finetuning.eval_steps=100 \

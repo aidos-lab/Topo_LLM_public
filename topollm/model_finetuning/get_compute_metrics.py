@@ -47,7 +47,7 @@ def prepare_compute_seqeval_metrics(
     # Load the seqeval library.
     # We move this here into the function to avoid loading it
     # if it is not needed.
-    seqeval = evaluate.load("seqeval")
+    seqeval_from_evaluate_load = evaluate.load("seqeval")
 
     def compute_seqeval_metrics(
         p: transformers.EvalPrediction,
@@ -92,7 +92,7 @@ def prepare_compute_seqeval_metrics(
             )
         ]
 
-        results = seqeval.compute(
+        results = seqeval_from_evaluate_load.compute(
             predictions=true_predictions,
             references=true_labels,
         )
