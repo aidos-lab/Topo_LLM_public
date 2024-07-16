@@ -59,7 +59,7 @@ setup_omega_conf()
 @hydra.main(
     config_path="../../../configs",
     config_name="main_config",
-    version_base="1.2",
+    version_base="1.3",
 )
 def main(
     config: omegaconf.DictConfig,

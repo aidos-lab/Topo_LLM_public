@@ -5,7 +5,12 @@ __pycache__
 .coverage
 .coverage.*
 
+# VS Code settings
+.vscode
+
 # Large data directories
+data/analysis/
+data/embeddings/
 data/models/finetuned_models/
 
 # Log files
