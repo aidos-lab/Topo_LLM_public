@@ -32,34 +32,43 @@ from transformers.trainer_utils import SchedulerType
 
 from topollm.config_classes.config_base_model import ConfigBaseModel
 from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
-from topollm.config_classes.finetuning.batch_sizes_config import BatchSizesConfig
-from topollm.config_classes.finetuning.finetuning_datasets_config import (
+from topollm.config_classes.finetuning.batch_sizes.batch_sizes_config import BatchSizesConfig
+from topollm.config_classes.finetuning.finetuning_datasets.finetuning_datasets_config import (
     FinetuningDatasetsConfig,
 )
 from topollm.config_classes.finetuning.gradient_modifier.gradient_modifier_config import GradientModifierConfig
 from topollm.config_classes.finetuning.peft.peft_config import PEFTConfig
-from topollm.config_classes.finetuning.tokenizer_modifier_config import (
-    TokenizerModifierConfig,
-)
+from topollm.config_classes.finetuning.trainer_modifier.trainer_modifier_config import TrainerModifierConfig
+from topollm.config_classes.language_model.language_model_config import LanguageModelConfig
 from topollm.config_classes.tokenizer.tokenizer_config import TokenizerConfig
-from topollm.typing.enums import LMmode
+from topollm.typing.enums import ComputeMetricsMode
 
 
 class FinetuningConfig(ConfigBaseModel):
     """Configurations for fine tuning."""
 
+    base_model: LanguageModelConfig = Field(
+        default_factory=LanguageModelConfig,
+        description="The configuration for specifying the base model.",
+    )
+
+    compute_metrics_mode: ComputeMetricsMode = Field(
+        default=ComputeMetricsMode.FROM_TASK_TYPE,
+        description="The mode for computing metrics.",
+    )
+
     gradient_modifier: GradientModifierConfig = Field(
-        ...,
+        default_factory=GradientModifierConfig,
         description="The configurations for the gradient modifier.",
     )
 
     peft: PEFTConfig = Field(
-        ...,
+        default_factory=PEFTConfig,
         description="The configurations for the PEFT model.",
     )
 
     batch_sizes: BatchSizesConfig = Field(
-        ...,
+        default_factory=BatchSizesConfig,
         description="The batch sizes for training and evaluation.",
     )
 
@@ -98,11 +107,6 @@ class FinetuningConfig(ConfigBaseModel):
         description="The learning rate scheduler type.",
     )
 
-    lm_mode: LMmode = Field(
-        default=LMmode.MLM,
-        description="The language model mode.",
-    )
-
     log_level: str = Field(
         default="info",
         description="The log level.",
@@ -111,11 +115,6 @@ class FinetuningConfig(ConfigBaseModel):
     logging_steps: int = Field(
         default=100,
         description="The number of steps between two logging.",
-    )
-
-    max_length: int = Field(
-        default=512,
-        description="The maximum length of the input sequence.",
     )
 
     max_steps: int = Field(
@@ -133,30 +132,20 @@ class FinetuningConfig(ConfigBaseModel):
         description="The number of training epochs.",
     )
 
-    pretrained_model_name_or_path: str = Field(
-        ...,
-        description="The name or path of the base model to use for fine tuning.",
-    )
-
     save_steps: int = Field(
         default=400,
         description="The number of steps between two saves.",
     )
 
-    short_model_name: str = Field(
-        default="default-short-model-name",
-        description="Short name of the base model for file names.",
-    )
-
     tokenizer: TokenizerConfig = Field(
-        ...,
+        default_factory=TokenizerConfig,
         title="Tokenizer configuration.",
         description="The configuration for specifying tokenizer.",
     )
 
-    tokenizer_modifier: TokenizerModifierConfig = Field(
-        ...,
-        description="The configuration for modifying the tokenizer.",
+    trainer_modifier: TrainerModifierConfig = Field(
+        default_factory=TrainerModifierConfig,
+        description="The configurations for the trainer modifier.",
     )
 
     use_cpu: bool = Field(
@@ -188,6 +177,6 @@ class FinetuningConfig(ConfigBaseModel):
     ) -> str:
         # Construct and return the model parameters description
 
-        desc = f"{NAME_PREFIXES['model']}{KV_SEP}{self.short_model_name}"
+        description = self.base_model.config_description
 
-        return desc
+        return description

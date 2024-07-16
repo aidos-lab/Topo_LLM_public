@@ -55,6 +55,10 @@ class FinetuningFeatureFlagsConfig(ConfigBaseModel):
         description="Whether to skip the finetuning process.",
     )
 
+
+class WandbFeatureFlagsConfig(ConfigBaseModel):
+    """Feature flags for the Weights and Biases integration."""
+
     use_wandb: bool = Field(
         default=True,
         title="Use wandb.",
@@ -75,4 +79,10 @@ class FeatureFlagsConfig(ConfigBaseModel):
         default_factory=FinetuningFeatureFlagsConfig,
         title="Finetuning feature flags.",
         description="Feature flags for the finetuning process.",
+    )
+
+    wandb: WandbFeatureFlagsConfig = Field(
+        default_factory=WandbFeatureFlagsConfig,
+        title="Weights and Biases feature flags.",
+        description="Feature flags for the Weights and Biases integration.",
     )

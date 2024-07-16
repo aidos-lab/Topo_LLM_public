@@ -28,15 +28,28 @@
 """Perform the finetuning process."""
 
 import logging
+import pathlib
+from collections.abc import Callable
 from typing import TYPE_CHECKING
 
+import peft.peft_model
 import torch
 import transformers
 
 from topollm.config_classes.main_config import MainConfig
 from topollm.data_handling.dataset_preparer.factory import get_dataset_preparer
+from topollm.data_handling.dataset_preparer.protocol import DatasetPreparer
+from topollm.data_handling.dataset_preparer.select_random_elements import (
+    log_selected_dataset_elements_info,
+)
+from topollm.logging.log_dataset_info import log_huggingface_dataset_info
 from topollm.model_finetuning.evaluate_tuned_model import evaluate_tuned_model
 from topollm.model_finetuning.finetune_model import finetune_model
+from topollm.model_finetuning.generate_from_pretrained_kwargs_instance import (
+    extract_label_list,
+    generate_from_pretrained_kwargs_instance,
+)
+from topollm.model_finetuning.get_compute_metrics import get_compute_metrics
 from topollm.model_finetuning.gradient_modifiers.factory import get_gradient_modifier
 from topollm.model_finetuning.load_base_model_from_finetuning_config import (
     load_base_model_from_finetuning_config,
@@ -55,25 +68,36 @@ from topollm.model_finetuning.prepare_logging_dir import prepare_logging_dir
 from topollm.model_finetuning.prepare_model_input import prepare_model_input
 from topollm.model_finetuning.prepare_training_args import prepare_training_args
 from topollm.model_finetuning.save_tuned_model import save_tuned_model
+from topollm.model_finetuning.trainer_modifiers.factory import get_trainer_modifier
+from topollm.model_handling.model.token_classification_from_pretrained_kwargs import (
+    TokenClassificationFromPretrainedKwargs,
+)
 from topollm.model_handling.tokenizer.tokenizer_modifier.factory import (
     get_tokenizer_modifier,
 )
+from topollm.model_handling.tokenizer.tokenizer_modifier.protocol import TokenizerModifier
 from topollm.path_management.finetuning.factory import (
     get_finetuning_path_manager,
 )
+from topollm.path_management.finetuning.protocol import FinetuningPathManager
 from topollm.typing.enums import Verbosity
+from topollm.typing.types import ModifiedModel
 
 if TYPE_CHECKING:
+    import datasets
+
     from topollm.config_classes.finetuning.finetuning_config import FinetuningConfig
     from topollm.model_finetuning.gradient_modifiers.protocol import GradientModifier
     from topollm.model_finetuning.model_modifiers.protocol import ModelModifier
+    from topollm.model_finetuning.trainer_modifiers.protocol import TrainerModifier
 
+default_device = torch.device("cpu")
 default_logger = logging.getLogger(__name__)
 
 
 def do_finetuning_process(
     main_config: MainConfig,
-    device: torch.device,
+    device: torch.device = default_device,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> None:
@@ -82,31 +106,61 @@ def do_finetuning_process(
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Load data
-    train_dataset_preparer = get_dataset_preparer(
+    train_dataset_preparer: DatasetPreparer = get_dataset_preparer(
         data_config=finetuning_config.finetuning_datasets.train_dataset,
         verbosity=main_config.verbosity,
         logger=logger,
     )
-    train_dataset = train_dataset_preparer.prepare_dataset()
+    train_dataset: datasets.Dataset = train_dataset_preparer.prepare_dataset()
 
-    eval_dataset_preparer = get_dataset_preparer(
+    eval_dataset_preparer: DatasetPreparer = get_dataset_preparer(
         data_config=finetuning_config.finetuning_datasets.eval_dataset,
         verbosity=main_config.verbosity,
         logger=logger,
     )
-    eval_dataset = eval_dataset_preparer.prepare_dataset()
+    eval_dataset: datasets.Dataset = eval_dataset_preparer.prepare_dataset()
+
+    # Print examples from the dataset
+    if verbosity >= Verbosity.NORMAL:
+        log_selected_dataset_elements_info(
+            dataset=train_dataset,
+            dataset_name="train_dataset",
+            logger=logger,
+        )
+        log_selected_dataset_elements_info(
+            dataset=eval_dataset,
+            dataset_name="eval_dataset",
+            logger=logger,
+        )
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Load tokenizer and model
 
-    base_tokenizer = load_tokenizer_from_finetuning_config(
+    base_tokenizer: transformers.PreTrainedTokenizer | transformers.PreTrainedTokenizerFast = (
+        load_tokenizer_from_finetuning_config(
+            finetuning_config=finetuning_config,
+            verbosity=verbosity,
+            logger=logger,
+        )
+    )
+
+    label_list: list[str] | None = extract_label_list(
         finetuning_config=finetuning_config,
+        train_dataset=train_dataset,
         verbosity=verbosity,
         logger=logger,
     )
 
-    base_model = load_base_model_from_finetuning_config(
+    from_pretrained_kwargs_instance: TokenClassificationFromPretrainedKwargs | None = (
+        generate_from_pretrained_kwargs_instance(
+            finetuning_config=finetuning_config,
+            label_list=label_list,
+        )
+    )
+
+    base_model: transformers.PreTrainedModel = load_base_model_from_finetuning_config(
         finetuning_config=finetuning_config,
+        from_pretrained_kwargs_instance=from_pretrained_kwargs_instance,
         device=device,
         verbosity=verbosity,
         logger=logger,
@@ -118,16 +172,18 @@ def do_finetuning_process(
     # For instance, for some autoregressive models, the tokenizer
     # needs to be modified to add a padding token.
 
-    tokenizer_modifier = get_tokenizer_modifier(
-        tokenizer_modifier_config=finetuning_config.tokenizer_modifier,
+    tokenizer_modifier: TokenizerModifier = get_tokenizer_modifier(
+        tokenizer_modifier_config=finetuning_config.base_model.tokenizer_modifier,
         verbosity=verbosity,
         logger=logger,
     )
 
-    tokenizer = tokenizer_modifier.modify_tokenizer(
-        tokenizer=base_tokenizer,
+    tokenizer: transformers.PreTrainedTokenizer | transformers.PreTrainedTokenizerFast = (
+        tokenizer_modifier.modify_tokenizer(
+            tokenizer=base_tokenizer,
+        )
     )
-    base_model = tokenizer_modifier.update_model(
+    base_model: transformers.PreTrainedModel = tokenizer_modifier.update_model(
         model=base_model,
     )
 
@@ -142,7 +198,7 @@ def do_finetuning_process(
         verbosity=verbosity,
         logger=logger,
     )
-    modified_model = model_modifier.modify_model(
+    modified_model: ModifiedModel = model_modifier.modify_model(
         model=base_model,
     )
 
@@ -155,7 +211,7 @@ def do_finetuning_process(
         verbosity=verbosity,
         logger=logger,
     )
-    gradient_modified_model = gradient_modifier.modify_gradients(
+    gradient_modified_model: ModifiedModel = gradient_modifier.modify_gradients(
         model=modified_model,
     )
 
@@ -169,27 +225,52 @@ def do_finetuning_process(
         finetuning_config=finetuning_config,
     )
 
-    data_collator = prepare_data_collator(
-        finetuning_config=finetuning_config,
-        tokenizer=tokenizer,
-        verbosity=verbosity,
-        logger=logger,
+    if verbosity >= Verbosity.NORMAL:
+        log_huggingface_dataset_info(
+            dataset=train_dataset_mapped,
+            dataset_name="train_dataset_mapped",
+            logger=logger,
+        )
+        log_selected_dataset_elements_info(
+            dataset=train_dataset_mapped,
+            dataset_name="train_dataset_mapped",
+            logger=logger,
+        )
+
+        log_huggingface_dataset_info(
+            dataset=eval_dataset_mapped,
+            dataset_name="eval_dataset_mapped",
+            logger=logger,
+        )
+        log_selected_dataset_elements_info(
+            dataset=eval_dataset_mapped,
+            dataset_name="eval_dataset_mapped",
+            logger=logger,
+        )
+
+    data_collator: transformers.DataCollatorForLanguageModeling | transformers.DataCollatorForTokenClassification = (
+        prepare_data_collator(
+            finetuning_config=finetuning_config,
+            tokenizer=tokenizer,
+            verbosity=verbosity,
+            logger=logger,
+        )
     )
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Output paths
 
-    finetuning_path_manager = get_finetuning_path_manager(
+    finetuning_path_manager: FinetuningPathManager = get_finetuning_path_manager(
         main_config=main_config,
         logger=logger,
     )
 
-    finetuned_model_dir = prepare_finetuned_model_dir(
+    finetuned_model_dir: pathlib.Path = prepare_finetuned_model_dir(
         finetuning_path_manager=finetuning_path_manager,
         logger=logger,
     )
 
-    logging_dir = prepare_logging_dir(
+    logging_dir: pathlib.Path | None = prepare_logging_dir(
         finetuning_path_manager=finetuning_path_manager,
         logger=logger,
     )
@@ -197,20 +278,41 @@ def do_finetuning_process(
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Finetuning setup
 
-    training_args = prepare_training_args(
+    compute_metrics: Callable | None = get_compute_metrics(
+        finetuning_config=finetuning_config,
+        label_list=label_list,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+    training_args: transformers.TrainingArguments = prepare_training_args(
         finetuning_config=finetuning_config,
         seed=main_config.seed,
         finetuned_model_dir=finetuned_model_dir,
         logging_dir=logging_dir,
     )
 
-    trainer = transformers.Trainer(
+    trainer: transformers.Trainer = transformers.Trainer(
         model=gradient_modified_model,
         args=training_args,
         data_collator=data_collator,
         train_dataset=train_dataset_mapped,  # type: ignore - typing issue with Dataset
         eval_dataset=eval_dataset_mapped,  # type: ignore - typing issue with Dataset
         tokenizer=tokenizer,
+        compute_metrics=compute_metrics,
+    )
+
+    trainer_modifier: TrainerModifier = get_trainer_modifier(
+        finetuning_config=finetuning_config,
+        tokenizer=tokenizer,
+        dataset=eval_dataset_mapped,
+        label_list=label_list,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+    trainer: transformers.Trainer = trainer_modifier.modify_trainer(
+        trainer=trainer,
     )
 
     finetune_model(

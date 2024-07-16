@@ -41,19 +41,19 @@ class DataConfig(ConfigBaseModel):
     """Configuration for specifying data."""
 
     column_name: str = Field(
-        ...,
+        default="body",
         title="Column name to use for computing embeddings.",
         description="The column name to use for computing embeddings.",
     )
 
     context: str = Field(
-        ...,
+        default="dataset_entry",
         title="Context to use for computing embeddings.",
         description="The context to use for computing embeddings.",
     )
 
     dataset_description_string: str = Field(
-        ...,
+        default="one-year-of-tsla-on-reddit",
         title="Dataset description string.",
         description=("The dataset description string. This will be used for creating the file paths"),
     )
@@ -64,19 +64,19 @@ class DataConfig(ConfigBaseModel):
     )
 
     dataset_path: str = Field(
-        ...,
+        default="SocialGrep/one-year-of-tsla-on-reddit",
         title="Dataset identifier for huggingface datasets.",
         description="The dataset identifier for the huggingface datasets to use for computing embeddings.",
     )
 
     dataset_name: str | None = Field(
-        None,
+        default="comments",
         title="Dataset name.",
         description="The dataset name.",
     )
 
     dataset_type: DatasetType = Field(
-        ...,
+        default=DatasetType.HUGGINGFACE_DATASET,
         title="Dataset type.",
         description="The dataset type.",
     )
@@ -87,14 +87,19 @@ class DataConfig(ConfigBaseModel):
         description="The data split configuration. This is useful if the dataset is not already split.",
     )
 
+    feature_column_name: str = Field(
+        default="ner_tags",
+        title="Feature column name, will be used when finetuning a model on a specific tagging or classification task.",
+    )
+
     number_of_samples: int = Field(
-        ...,
+        default=5000,
         title="Number of samples to use for computing embeddings.",
         description="The number of samples to use for computing embeddings.",
     )
 
     split: Split = Field(
-        ...,
+        default=Split.TRAIN,
         title="Split to use for computing embeddings.",
         description="The split to use for computing embeddings.",
     )
@@ -103,7 +108,7 @@ class DataConfig(ConfigBaseModel):
     def config_description(
         self,
     ) -> str:
-        desc = (
+        description = (
             f"{NAME_PREFIXES['data']}"
             f"{KV_SEP}"
             f"{self.dataset_description_string}"
@@ -119,9 +124,13 @@ class DataConfig(ConfigBaseModel):
             f"{NAME_PREFIXES['number_of_samples']}"
             f"{KV_SEP}"
             f"{self.number_of_samples}"
+            f"{ITEM_SEP}"
+            f"{NAME_PREFIXES['feature_column_name']}"
+            f"{KV_SEP}"
+            f"{self.feature_column_name}"
         )
 
-        return desc
+        return description
 
     def get_config_description(
         self,
@@ -139,8 +148,10 @@ class DataConfig(ConfigBaseModel):
                     + self.split
                     + short_description_separator
                     + str(self.number_of_samples)
+                    + short_description_separator
+                    + self.feature_column_name
                 )
                 return short_description
             case _:
-                msg = f"Unknown description type: {description_type}"
+                msg = f"Unknown: {description_type = }"
                 raise ValueError(msg)

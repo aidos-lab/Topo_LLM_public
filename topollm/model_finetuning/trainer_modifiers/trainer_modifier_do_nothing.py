@@ -25,22 +25,34 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Configuration class for specifying batch sizes."""
+"""Gradient modifier that does not modify the model."""
 
-from pydantic import Field
+import logging
 
-from topollm.config_classes.config_base_model import ConfigBaseModel
+import transformers
+
+from topollm.typing.enums import Verbosity
+
+default_logger = logging.getLogger(__name__)
 
 
-class BatchSizesConfig(ConfigBaseModel):
-    """Configurations for specifying batch sizes."""
+class TrainerModifierDoNothing:
+    """Gradient modifier that does not modify the model."""
 
-    train: int = Field(
-        default=8,
-        description="The batch size for training.",
-    )
+    def __init__(
+        self,
+        verbosity: Verbosity = Verbosity.NORMAL,
+        logger: logging.Logger = default_logger,
+    ) -> None:
+        """Initialize the model modifier."""
+        self.verbosity = verbosity
+        self.logger = logger
 
-    eval: int = Field(
-        default=16,
-        description="The batch size for evaluation.",
-    )
+    def modify_trainer(
+        self,
+        trainer: transformers.Trainer,
+    ) -> transformers.Trainer:
+        if self.verbosity >= Verbosity.NORMAL:
+            self.logger.info("Returning unmodified trainer.")
+
+        return trainer

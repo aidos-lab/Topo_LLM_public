@@ -29,8 +29,7 @@
 
 from typing import Protocol
 
-import peft.peft_model
-from transformers import PreTrainedModel
+from topollm.typing.types import ModifiedModel
 
 
 class GradientModifier(Protocol):
@@ -38,5 +37,5 @@ class GradientModifier(Protocol):
 
     def modify_gradients(
         self,
-        model: PreTrainedModel | peft.peft_model.PeftModel,
-    ) -> PreTrainedModel | peft.peft_model.PeftModel: ...  # pragma: no cover
+        model: ModifiedModel,
+    ) -> ModifiedModel: ...  # pragma: no cover

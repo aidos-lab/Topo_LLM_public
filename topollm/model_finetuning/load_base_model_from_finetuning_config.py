@@ -28,12 +28,12 @@
 import logging
 
 import torch
-import transformers
+from pydantic import BaseModel
 from transformers import PreTrainedModel
 
 from topollm.config_classes.finetuning.finetuning_config import FinetuningConfig
-from topollm.model_handling.model.load_model import load_model
-from topollm.typing.enums import LMmode
+from topollm.model_handling.model.load_model_from_language_model_config import load_model_from_language_model_config
+from topollm.typing.enums import Verbosity
 
 default_device = torch.device("cpu")
 default_logger = logging.getLogger(__name__)
@@ -41,24 +41,17 @@ default_logger = logging.getLogger(__name__)
 
 def load_base_model_from_finetuning_config(
     finetuning_config: FinetuningConfig,
+    from_pretrained_kwargs_instance: BaseModel | dict | None = None,
     device: torch.device = default_device,
-    verbosity: int = 1,
+    verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> PreTrainedModel:
     """Interface function to load a model from a FinetuningConfig object."""
-    lm_mode = finetuning_config.lm_mode
+    language_model_config = finetuning_config.base_model
 
-    if lm_mode == LMmode.MLM:
-        model_loading_class = transformers.AutoModelForMaskedLM
-    elif lm_mode == LMmode.CLM:
-        model_loading_class = transformers.AutoModelForCausalLM
-    else:
-        msg = f"Invalid lm_mode: {lm_mode = }"
-        raise ValueError(msg)
-
-    model = load_model(
-        pretrained_model_name_or_path=finetuning_config.pretrained_model_name_or_path,
-        model_loading_class=model_loading_class,
+    model = load_model_from_language_model_config(
+        language_model_config=language_model_config,
+        from_pretrained_kwargs_instance=from_pretrained_kwargs_instance,
         device=device,
         verbosity=verbosity,
         logger=logger,

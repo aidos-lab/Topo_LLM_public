@@ -32,7 +32,7 @@ import logging
 import transformers
 
 from topollm.config_classes.finetuning.finetuning_config import FinetuningConfig
-from topollm.typing.enums import LMmode
+from topollm.typing.enums import LMmode, TaskType, Verbosity
 
 default_logger = logging.getLogger(__name__)
 
@@ -40,29 +40,33 @@ default_logger = logging.getLogger(__name__)
 def prepare_data_collator(
     finetuning_config: FinetuningConfig,
     tokenizer: transformers.PreTrainedTokenizerBase,
-    verbosity: int = 1,
+    verbosity: int = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
-) -> transformers.DataCollatorForLanguageModeling:
+) -> transformers.DataCollatorForLanguageModeling | transformers.DataCollatorForTokenClassification:
     """Prepare the data collator for the finetuning process."""
-    lm_mode = finetuning_config.lm_mode
+    match finetuning_config.base_model.task_type:
+        case TaskType.MASKED_LM:
+            data_collator = transformers.DataCollatorForLanguageModeling(
+                tokenizer=tokenizer,
+                mlm=True,
+                mlm_probability=finetuning_config.mlm_probability,
+            )
+        case TaskType.CAUSAL_LM:
+            data_collator = transformers.DataCollatorForLanguageModeling(
+                tokenizer=tokenizer,
+                mlm=False,
+            )
+        case TaskType.TOKEN_CLASSIFICATION:
+            data_collator = transformers.DataCollatorForTokenClassification(
+                tokenizer=tokenizer,
+            )
+        case _:
+            msg = f"Unknown {finetuning_config.base_model.task_type = }"
+            raise ValueError(msg)
 
-    if lm_mode == LMmode.MLM:
-        mlm = True
-    elif lm_mode == LMmode.CLM:
-        mlm = False
-    else:
-        msg = f"Unknown {lm_mode = }"
-        raise ValueError(msg)
-
-    data_collator = transformers.DataCollatorForLanguageModeling(
-        tokenizer=tokenizer,
-        mlm=mlm,
-        mlm_probability=finetuning_config.mlm_probability,
-    )
-
-    if verbosity >= 1:
-        logger.info(f"{lm_mode = }")
-        logger.info(f"{mlm = }")
-        logger.info(f"{data_collator = }")
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            f"{data_collator = }",  # noqa: G004 - low overhead
+        )
 
     return data_collator

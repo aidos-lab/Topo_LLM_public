@@ -1,0 +1,2 @@
+- Investigate correlation between local dimension estimates and perplexity/machine learning performance.
+- Significance tests comparing local dimension estimates between original and fine-tuned model: Make the same tables for perplexity (and machine learning performance).

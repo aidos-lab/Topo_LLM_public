@@ -33,18 +33,19 @@ import transformers
 
 from topollm.config_classes.finetuning.finetuning_config import FinetuningConfig
 from topollm.model_handling.tokenizer.load_tokenizer import load_tokenizer
+from topollm.typing.enums import Verbosity
 
-logger = logging.getLogger(__name__)
+default_logger = logging.getLogger(__name__)
 
 
 def load_tokenizer_from_finetuning_config(
     finetuning_config: FinetuningConfig,
-    verbosity: int = 1,
-    logger: logging.Logger = logger,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
 ) -> transformers.PreTrainedTokenizer | transformers.PreTrainedTokenizerFast:
     """Interface function to load a tokenizer from a FinetuningConfig object."""
     tokenizer = load_tokenizer(
-        pretrained_model_name_or_path=finetuning_config.pretrained_model_name_or_path,
+        pretrained_model_name_or_path=finetuning_config.base_model.pretrained_model_name_or_path,
         tokenizer_config=finetuning_config.tokenizer,
         verbosity=verbosity,
         logger=logger,

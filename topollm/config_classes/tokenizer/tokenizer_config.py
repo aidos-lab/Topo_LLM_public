@@ -47,6 +47,12 @@ class TokenizerConfig(ConfigBaseModel):
         description="The maximum length of the input sequence.",
     )
 
+    return_special_tokens_mask: bool = Field(
+        default=True,
+        title="Return special tokens mask.",
+        description="Whether to return special tokens mask.",
+    )
+
     @property
     def config_description(
         self,

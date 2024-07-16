@@ -1,0 +1,14 @@
+defaults:
+ - ../../data@eval_dataset: wnut_17
+ - ../../data@train_dataset: wnut_17
+ - _self_
+
+# Note: We should override the 'split' key of the datasets separately,
+# to make sure that they are set correctly for the training and evaluation datasets.
+
+eval_dataset:
+  split: validation
+  number_of_samples: -1
+train_dataset:
+  split: train
+  number_of_samples: -1

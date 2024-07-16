@@ -1,0 +1,14 @@
+defaults:
+  - base_model: roberta-base_for_token_classification
+  - gradient_modifier: do_nothing
+  - finetuning_datasets: train_and_eval_on_wnut_17
+  - finetuning_parameters@_here_: default_parameters
+  - ../tokenizer@tokenizer: basic_tokenizer
+  - peft: standard
+  - _self_
+
+# NOTE: We set `add_prefix_space` to True to be able to use the tokenizer
+# on data which is already split into words.
+# AssertionError: You need to instantiate RobertaTokenizerFast with add_prefix_space=True to use it with pretokenized inputs.
+tokenizer:
+  add_prefix_space: true

@@ -54,7 +54,9 @@ def get_dataset_preparer(
         logger=logger,
     )
     if verbosity >= 1:
-        logger.info(f"Using {dataset_splitter.__class__.__name__} as dataset splitter.")
+        logger.info(
+            f"Using {dataset_splitter.__class__.__name__} as dataset splitter.",
+        )
 
     if data_config.dataset_type == DatasetType.HUGGINGFACE_DATASET:
         result = dataset_preparer_huggingface.DatasetPreparerHuggingface(

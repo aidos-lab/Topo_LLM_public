@@ -1,4 +1,4 @@
 lm_mode: MLM
-masking_mode: no_masking
+
 pretrained_model_name_or_path: ${paths.data_dir}/models/finetuned_models/data-sgd_split-train_ctxt-dataset_entry_samples-10000/model-bert-base-uncased/ftm-lora/r-16_alpha-32_lora-target-['query', 'key', 'value']_lora-dropout-0.01/ep-5/model_files
 short_model_name: bert-base-uncased_finetuned-on-sgd_ftm-lora

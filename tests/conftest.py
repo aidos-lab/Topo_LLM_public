@@ -46,18 +46,18 @@ from topollm.config_classes.embeddings.embedding_extraction_config import (
 )
 from topollm.config_classes.embeddings.embeddings_config import EmbeddingsConfig
 from topollm.config_classes.embeddings_data_prep.embeddings_data_prep_config import EmbeddingsDataPrepConfig
-from topollm.config_classes.finetuning.batch_sizes_config import BatchSizesConfig
+from topollm.config_classes.finetuning.batch_sizes.batch_sizes_config import BatchSizesConfig
 from topollm.config_classes.finetuning.finetuning_config import FinetuningConfig
-from topollm.config_classes.finetuning.finetuning_datasets_config import (
+from topollm.config_classes.finetuning.finetuning_datasets.finetuning_datasets_config import (
     FinetuningDatasetsConfig,
 )
 from topollm.config_classes.finetuning.gradient_modifier.gradient_modifier_config import GradientModifierConfig
 from topollm.config_classes.finetuning.peft.peft_config import PEFTConfig
-from topollm.config_classes.finetuning.tokenizer_modifier_config import TokenizerModifierConfig
 from topollm.config_classes.inference.inference_config import InferenceConfig
 from topollm.config_classes.language_model.language_model_config import (
     LanguageModelConfig,
 )
+from topollm.config_classes.language_model.tokenizer_modifier.tokenizer_modifier_config import TokenizerModifierConfig
 from topollm.config_classes.main_config import MainConfig
 from topollm.config_classes.paths.paths_config import PathsConfig
 from topollm.config_classes.storage.storage_config import StorageConfig
@@ -82,9 +82,11 @@ from topollm.typing.enums import (
     GradientModifierMode,
     Level,
     LMmode,
+    MaskingMode,
     MetadataStorageType,
     PreferredTorchBackend,
     Split,
+    TaskType,
     TokenizerModifierMode,
     Verbosity,
 )
@@ -252,6 +254,7 @@ def data_config() -> DataConfig:
         data_dir=None,
         dataset_path="xsum",
         dataset_name=None,
+        feature_column_name="summary",
         number_of_samples=10,
         split=Split.TRAIN,
     )
@@ -285,6 +288,7 @@ def dataset_map_config() -> DatasetMapConfig:
 model_config_list_for_testing = [
     (
         LMmode.MLM,
+        TaskType.MASKED_LM,
         "roberta-base",
         "roberta-base",
         TokenizerModifierConfig(
@@ -294,6 +298,7 @@ model_config_list_for_testing = [
     ),
     (
         LMmode.MLM,
+        TaskType.MASKED_LM,
         "bert-base-uncased",
         "bert-base-uncased",
         TokenizerModifierConfig(
@@ -303,6 +308,7 @@ model_config_list_for_testing = [
     ),
     (
         LMmode.CLM,
+        TaskType.CAUSAL_LM,
         "gpt2-medium",
         "gpt2-medium",
         TokenizerModifierConfig(
@@ -321,11 +327,11 @@ def language_model_config(
     request: pytest.FixtureRequest,
 ) -> LanguageModelConfig:
     """Return a LanguageModelConfig object."""
-    lm_mode, pretrained_model_name_or_path, short_model_name, tokenizer_modifier_config = request.param
+    lm_mode, task_type, pretrained_model_name_or_path, short_model_name, tokenizer_modifier_config = request.param
 
     config = LanguageModelConfig(
         lm_mode=lm_mode,
-        masking_mode="no_masking",
+        task_type=task_type,
         pretrained_model_name_or_path=pretrained_model_name_or_path,
         short_model_name=short_model_name,
         tokenizer_modifier=tokenizer_modifier_config,
@@ -459,10 +465,9 @@ def gradient_modifier_config() -> GradientModifierConfig:
 
 @pytest.fixture(
     scope="session",
-    params=model_config_list_for_testing,
 )
 def finetuning_config(
-    request: pytest.FixtureRequest,
+    language_model_config: LanguageModelConfig,
     gradient_modifier_config: GradientModifierConfig,
     batch_sizes_config: BatchSizesConfig,
     finetuning_datasets_config: FinetuningDatasetsConfig,
@@ -470,19 +475,14 @@ def finetuning_config(
     tokenizer_config: TokenizerConfig,
 ) -> FinetuningConfig:
     """Return a FinetuningConfig object."""
-    lm_mode, pretrained_model_name_or_path, short_model_name, tokenizer_modifier_config = request.param
-
     config = FinetuningConfig(
+        base_model=language_model_config,
         gradient_modifier=gradient_modifier_config,
         peft=peft_config,
         batch_sizes=batch_sizes_config,
         finetuning_datasets=finetuning_datasets_config,
-        lm_mode=lm_mode,
         max_steps=2,
-        pretrained_model_name_or_path=pretrained_model_name_or_path,
-        short_model_name=short_model_name,
         tokenizer=tokenizer_config,
-        tokenizer_modifier=tokenizer_modifier_config,
     )
 
     return config

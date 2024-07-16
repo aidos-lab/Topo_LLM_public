@@ -34,8 +34,9 @@ import datasets
 from topollm.config_classes.data.data_config import DataConfig
 from topollm.data_handling.dataset_splitter.protocol import DatasetSplitter
 from topollm.logging.log_dataset_info import log_huggingface_dataset_info
+from topollm.typing.enums import Verbosity
 
-logger = logging.getLogger(__name__)
+default_logger = logging.getLogger(__name__)
 
 
 class DatasetPreparerHuggingface:
@@ -45,8 +46,8 @@ class DatasetPreparerHuggingface:
         self,
         data_config: DataConfig,
         dataset_splitter: DatasetSplitter,
-        verbosity: int = 1,
-        logger: logging.Logger = logger,
+        verbosity: int = Verbosity.NORMAL,
+        logger: logging.Logger = default_logger,
     ) -> None:
         """Initialize the dataset preparer."""
         self.data_config = data_config
@@ -86,7 +87,7 @@ class DatasetPreparerHuggingface:
             trust_remote_code=True,
         )
 
-        if self.verbosity >= 1:
+        if self.verbosity >= Verbosity.NORMAL:
             self.logger.info(
                 "dataset_dict:\n%s",
                 dataset_dict,
@@ -106,18 +107,18 @@ class DatasetPreparerHuggingface:
         dataset_dict: datasets.DatasetDict,
     ) -> datasets.Dataset:
         if self.verbosity >= 1:
-            logger.info(
+            default_logger.info(
                 "dataset_dict:\n%s",
                 dataset_dict,
             )
-            logger.info("Applying dataset splitter ...")
+            default_logger.info("Applying dataset splitter ...")
 
         # Apply the dataset splitter to the dataset
         new_dataset_dict = self.dataset_splitter.split_dataset(
             dataset_dict=dataset_dict,
         )
-        if self.verbosity >= 1:
-            logger.info(
+        if self.verbosity >= Verbosity.NORMAL:
+            default_logger.info(
                 "new_dataset_dict:\n%s",
                 new_dataset_dict,
             )
@@ -140,7 +141,7 @@ class DatasetPreparerHuggingface:
 
         self.dataset_length = len(dataset)
 
-        if self.verbosity >= 1:
+        if self.verbosity >= Verbosity.NORMAL:
             self.logger.info(
                 f"{self.dataset_length = }",  # noqa: G004 - no overhead
             )

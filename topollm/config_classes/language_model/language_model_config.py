@@ -33,10 +33,10 @@ from pydantic import Field
 
 from topollm.config_classes.config_base_model import ConfigBaseModel
 from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
-from topollm.config_classes.finetuning.tokenizer_modifier_config import (
+from topollm.config_classes.language_model.tokenizer_modifier.tokenizer_modifier_config import (
     TokenizerModifierConfig,
 )
-from topollm.typing.enums import LMmode
+from topollm.typing.enums import LMmode, TaskType
 
 
 class LanguageModelConfig(ConfigBaseModel):
@@ -49,31 +49,31 @@ class LanguageModelConfig(ConfigBaseModel):
     )
 
     lm_mode: LMmode = Field(
-        ...,
+        default=LMmode.MLM,
         title="Language model mode.",
         description="The language model mode.",
     )
 
-    masking_mode: str = Field(
-        ...,
-        title="Masking mode.",
-        description="The masking mode.",
+    task_type: TaskType = Field(
+        default=TaskType.MASKED_LM,
+        title="Task type.",
+        description="The task type.",
     )
 
     pretrained_model_name_or_path: str | pathlib.Path = Field(
-        ...,
+        default="roberta-base",
         title="Model identifier for huggingface transformers model.",
         description="The model identifier for the huggingface transformers model to use for computing embeddings.",
     )
 
     short_model_name: str = Field(
-        ...,
+        default="roberta-base",
         title="Short model name.",
         description="The short model name.",
     )
 
     tokenizer_modifier: TokenizerModifierConfig = Field(
-        ...,
+        default_factory=TokenizerModifierConfig,
         description="The configuration for modifying the tokenizer.",
     )
 
@@ -83,14 +83,14 @@ class LanguageModelConfig(ConfigBaseModel):
     ) -> str:
         # Construct and return the model parameters description
 
-        desc = (
+        description = (
             f"{NAME_PREFIXES['model']}"
             f"{KV_SEP}"
             f"{self.short_model_name}"
             f"{ITEM_SEP}"
-            f"{NAME_PREFIXES['masking_mode']}"
+            f"{NAME_PREFIXES['task_type']}"
             f"{KV_SEP}"
-            f"{self.masking_mode}"
+            f"{self.task_type}"
         )
 
-        return desc
+        return description

@@ -1,6 +1,4 @@
-batch_sizes:
-  train: 16
-  eval: 32
+compute_metrics_mode: FROM_TASK_TYPE
 eval_steps: 400
 fp16: false
 gradient_accumulation_steps: 2
@@ -9,7 +7,6 @@ learning_rate: 5e-5
 lr_scheduler_type: linear
 log_level: info
 logging_steps: 100
-max_length: 512
 max_steps: -1 # '-1' for no 'max_steps' limit
 mlm_probability: 0.15
 num_train_epochs: 5
