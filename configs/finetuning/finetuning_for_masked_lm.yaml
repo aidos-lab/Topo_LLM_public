@@ -1,5 +1,6 @@
 defaults:
   - base_model: roberta-base_for_masked_lm
+  - batch_sizes: default
   - gradient_modifier: do_nothing
   - finetuning_datasets: train_and_eval_on_one-year-of-tsla-on-reddit
   - finetuning_parameters@_here_: default_parameters
