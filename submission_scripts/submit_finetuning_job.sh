@@ -22,10 +22,13 @@ SAVE_STEPS="400"
 EVAL_STEPS="100"
 
 # FINETUNING_DATASETS_LIST="train_and_eval_on_bbc,train_and_eval_on_iclr_2024_submissions,train_and_eval_on_multiwoz21,train_and_eval_on_sgd,train_and_eval_on_wikitext"
-# FINETUNING_DATASETS_LIST="train_and_eval_on_iclr_2024_submissions"
-FINETUNING_DATASETS_LIST="train_and_eval_on_multiwoz21_10000_samples"
+# FINETUNING_DATASETS_LIST="train_and_eval_on_multiwoz21_train-samples-small"
 # FINETUNING_DATASETS_LIST="train_and_eval_on_multiwoz21_full"
-# FINETUNING_DATASETS_LIST="train_and_eval_on_one-year-of-tsla-on-reddit"
+
+# FINETUNING_DATASETS_LIST="train_and_eval_on_one-year-of-tsla-on-reddit_train-samples-small"
+
+FINETUNING_DATASETS_LIST="train_and_eval_on_iclr_2024_submissions_train-samples-5000"
+
 
 LR_SCHEDULER_TYPE="linear"
 # LR_SCHEDULER_TYPE="constant"
@@ -57,8 +60,12 @@ ADDITIONAL_OVERRIDES=""
 
 # ==================================================== #
 
+# TEMPLATE_STRING="A100_40GB"
+TEMPLATE_STRING="RTX6000"
+
 hpc run \
     -n "finetuning_job_submission_manual" \
+    --template "${TEMPLATE_STRING}" \
     -s "${RELATIVE_PYTHON_SCRIPT_PATH}" \
     -a "finetuning/base_model="${BASE_MODEL_LIST}" \
     finetuning.num_train_epochs="${NUM_TRAIN_EPOCHS}" \

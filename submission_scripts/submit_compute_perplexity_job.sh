@@ -25,18 +25,20 @@ ABSOLUTE_PYTHON_SCRIPT_PATH="${TOPO_LLM_REPOSITORY_BASE_PATH}/${RELATIVE_PYTHON_
 # DATA_LIST="multiwoz21,wikitext,iclr_2024_submissions"
 # DATA_LIST="wikitext,iclr_2024_submissions"
 
-# DATA_LIST="multiwoz21"
+DATA_LIST="multiwoz21"
 # DATA_LIST="iclr_2024_submissions"
-DATA_LIST="wikitext"
+# DATA_LIST="wikitext"
 
-# NUMBER_OF_SAMPLES="10000"
-NUMBER_OF_SAMPLES="-1"
+NUMBER_OF_SAMPLES="10000"
+# NUMBER_OF_SAMPLES="-1"
 
 # LANGUAGE_MODEL_LIST="roberta-base"
 # LANGUAGE_MODEL_LIST="roberta-base_finetuned-on-multiwoz21_ftm-standard"
 # LANGUAGE_MODEL_LIST="roberta-base_finetuned-on-multiwoz21_ftm-standard_overfitted"
 # LANGUAGE_MODEL_LIST="roberta-base_finetuned-on-multiwoz21_ftm-standard_full-dataset"
-LANGUAGE_MODEL_LIST="model-roberta-base_task-MASKED_LM_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
+
+# LANGUAGE_MODEL_LIST="model-roberta-base_task-MASKED_LM_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
+LANGUAGE_MODEL_LIST="model-roberta-base_task-MASKED_LM_iclr_2024_submissions-train-5000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
 
 # LANGUAGE_MODEL_LIST="roberta-base,roberta-base_finetuned-on-multiwoz21_ftm-lora"
 
@@ -61,6 +63,8 @@ ADDITIONAL_OVERRIDES=""
 
 # ==================================================== #
 
+TEMPLATE_STRING="A100_40GB"
+
 hpc run \
     -n "compute_perplexity_job_submission_manual" \
     -s "${RELATIVE_PYTHON_SCRIPT_PATH}" \
@@ -69,7 +73,7 @@ hpc run \
     data.split="validation" \
     language_model="$LANGUAGE_MODEL_LIST" \
     $ADDITIONAL_OVERRIDES" \
-    --template "A100_40GB"
+    --template "${TEMPLATE_STRING}"
 
 # Exit with the return code of the last command
 exit $?
