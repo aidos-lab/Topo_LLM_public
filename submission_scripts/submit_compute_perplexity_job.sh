@@ -25,12 +25,14 @@ ABSOLUTE_PYTHON_SCRIPT_PATH="${TOPO_LLM_REPOSITORY_BASE_PATH}/${RELATIVE_PYTHON_
 # DATA_LIST="multiwoz21,wikitext,iclr_2024_submissions"
 # DATA_LIST="wikitext,iclr_2024_submissions"
 
-# DATA_LIST="multiwoz21"
-# DATA_LIST="iclr_2024_submissions"
-DATA_LIST="wikitext"
+DATA_LIST="multiwoz21"
+NUMBER_OF_SAMPLES="10000"
 
-# NUMBER_OF_SAMPLES="10000"
-NUMBER_OF_SAMPLES="-1"
+# DATA_LIST="iclr_2024_submissions"
+# NUMBER_OF_SAMPLES="-1"
+
+# DATA_LIST="wikitext"
+# NUMBER_OF_SAMPLES="-1"
 
 # LANGUAGE_MODEL_LIST="roberta-base"
 # LANGUAGE_MODEL_LIST="roberta-base_finetuned-on-multiwoz21_ftm-standard"
@@ -39,7 +41,8 @@ NUMBER_OF_SAMPLES="-1"
 
 # LANGUAGE_MODEL_LIST="model-roberta-base_task-MASKED_LM_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
 # LANGUAGE_MODEL_LIST="model-roberta-base_task-MASKED_LM_iclr_2024_submissions-train-5000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
-LANGUAGE_MODEL_LIST="model-roberta-base_task-MASKED_LM_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
+# LANGUAGE_MODEL_LIST="model-roberta-base_task-MASKED_LM_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
+LANGUAGE_MODEL_LIST="model-roberta-base_task-MASKED_LM_wikitext-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
 
 # LANGUAGE_MODEL_LIST="roberta-base,roberta-base_finetuned-on-multiwoz21_ftm-lora"
 
