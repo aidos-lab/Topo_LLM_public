@@ -1,7 +1,8 @@
 defaults:
   - base_model: gpt2_for_causal_lm
+  - batch_sizes: default
   - gradient_modifier: do_nothing
-  - finetuning_datasets: train_and_eval_on_one-year-of-tsla-on-reddit
+  - finetuning_datasets: train_and_eval_on_one-year-of-tsla-on-reddit_train-samples-small
   - finetuning_parameters@_here_: default_parameters
   - ../tokenizer@tokenizer: basic_tokenizer
   - peft: standard

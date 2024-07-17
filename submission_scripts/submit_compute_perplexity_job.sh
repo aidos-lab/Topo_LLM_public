@@ -24,13 +24,19 @@ ABSOLUTE_PYTHON_SCRIPT_PATH="${TOPO_LLM_REPOSITORY_BASE_PATH}/${RELATIVE_PYTHON_
 # DATA_LIST="one-year-of-tsla-on-reddit_validation,multiwoz21_validation,sgd,iclr_2024_submissions,wikitext"
 # DATA_LIST="multiwoz21,wikitext,iclr_2024_submissions"
 # DATA_LIST="wikitext,iclr_2024_submissions"
+
+# DATA_LIST="multiwoz21"
 # DATA_LIST="iclr_2024_submissions"
 DATA_LIST="wikitext"
 
-LANGUAGE_MODEL_LIST="roberta-base"
+# NUMBER_OF_SAMPLES="10000"
+NUMBER_OF_SAMPLES="-1"
+
+# LANGUAGE_MODEL_LIST="roberta-base"
 # LANGUAGE_MODEL_LIST="roberta-base_finetuned-on-multiwoz21_ftm-standard"
 # LANGUAGE_MODEL_LIST="roberta-base_finetuned-on-multiwoz21_ftm-standard_overfitted"
 # LANGUAGE_MODEL_LIST="roberta-base_finetuned-on-multiwoz21_ftm-standard_full-dataset"
+LANGUAGE_MODEL_LIST="model-roberta-base_task-MASKED_LM_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
 
 # LANGUAGE_MODEL_LIST="roberta-base,roberta-base_finetuned-on-multiwoz21_ftm-lora"
 
@@ -38,8 +44,6 @@ LANGUAGE_MODEL_LIST="roberta-base"
 # LANGUAGE_MODEL_LIST="roberta-base_finetuned-on-one-year-of-tsla-on-reddit_ftm-standard_overfitted"
 # LANGUAGE_MODEL_LIST="roberta-base_finetuned-on-one-year-of-tsla-on-reddit_ftm-standard_freeze-first-6-layers_overfitted"
 
-# NUMBER_OF_SAMPLES="10000"
-NUMBER_OF_SAMPLES="-1"
 
 ADDITIONAL_OVERRIDES=""
 
