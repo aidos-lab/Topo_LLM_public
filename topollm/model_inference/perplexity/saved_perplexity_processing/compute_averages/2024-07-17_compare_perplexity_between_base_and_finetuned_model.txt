@@ -1,14 +1,14 @@
 Setting HYDRA_FULL_ERROR environment variable to '1'.
 os.environ['HYDRA_FULL_ERROR'] = '1'
-[2024-07-17 14:13:38,238][    INFO][__main__] Running script ... (run_load_saved_perplexity_and_compute_averages.py:79)
-[2024-07-17 14:13:38,280][    INFO][__main__] get_git_info() = 'feature/compatibility_with_local_hpc_tools/5ea65d418d0d11b561e9beced64f761e9f196788' (initialize_configuration_and_log.py:98)
-[2024-07-17 14:13:38,280][    INFO][__main__] Working directory:
+[2024-07-17 16:19:48,925][    INFO][__main__] Running script ... (run_load_saved_perplexity_and_compute_averages.py:79)
+[2024-07-17 16:19:48,966][    INFO][__main__] get_git_info() = 'feature/compatibility_with_local_hpc_tools/9779505711b4f345d038b616ab43339e5285817c' (initialize_configuration_and_log.py:98)
+[2024-07-17 16:19:48,967][    INFO][__main__] Working directory:
 pathlib.Path.cwd() = PosixPath('/Users/ruppik/git-source/Topo_LLM/topollm/model_inference/perplexity/saved_perplexity_processing/compute_averages') (initialize_configuration_and_log.py:69)
-[2024-07-17 14:13:38,280][    INFO][__main__] Hydra output directory:
-/Users/ruppik/git-source/Topo_LLM/hydra_output_dir/run/run_load_saved_perplexity_and_compute_averages/2024-07-17/14-13-38/seed=1234 (initialize_configuration_and_log.py:73)
-[2024-07-17 14:13:38,281][    INFO][__main__] omegaconf.DictConfig config:
+[2024-07-17 16:19:48,967][    INFO][__main__] Hydra output directory:
+/Users/ruppik/git-source/Topo_LLM/hydra_output_dir/run/run_load_saved_perplexity_and_compute_averages/2024-07-17/16-19-48/seed=1234 (initialize_configuration_and_log.py:73)
+[2024-07-17 16:19:48,967][    INFO][__main__] omegaconf.DictConfig config:
 {'data': {'data_split': {'data_split_mode': 'proportions', 'proportions': {'train': 0.8, 'validation': 0.1, 'test': 0.1}}, 'number_of_samples': 5000, 'split': 'train', 'column_name': 'body', 'context': 'dataset_entry', 'dataset_description_string': 'one-year-of-tsla-on-reddit', 'dataset_path': 'SocialGrep/one-year-of-tsla-on-reddit', 'dataset_name': 'comments', 'dataset_type': 'huggingface_dataset'}, 'embeddings_data_prep': {'num_samples': 30000}, 'embeddings': {'dataset_map': {'batch_size': 1000, 'num_proc': 1}, 'embedding_extraction': {'layer_indices': [-1], 'aggregation': 'mean'}, 'batch_size': 32, 'level': 'token', 'num_workers': 0}, 'feature_flags': {'embeddings_data_prep': {'write_sentences_to_meta': True}, 'finetuning': {'skip_finetuning': False, 'do_create_finetuned_language_model_config': True}, 'wandb': {'use_wandb': True}}, 'finetuning': {'base_model': {'lm_mode': 'MLM', 'pretrained_model_name_or_path': 'roberta-base', 'short_model_name': '${finetuning.base_model.pretrained_model_name_or_path}', 'task_type': 'MASKED_LM', 'tokenizer_modifier': {'mode': 'DO_NOTHING', 'padding_token': '<pad>'}}, 'batch_sizes': {'train': 16, 'eval': 16}, 'gradient_modifier': {'mode': 'DO_NOTHING'}, 'finetuning_datasets': {'eval_dataset': {'data_split': {'data_split_mode': 'proportions', 'proportions': {'train': 0.8, 'validation': 0.1, 'test': 0.1}}, 'number_of_samples': 10000, 'split': 'validation', 'column_name': 'body', 'context': 'dataset_entry', 'dataset_description_string': 'one-year-of-tsla-on-reddit', 'dataset_path': 'SocialGrep/one-year-of-tsla-on-reddit', 'dataset_name': 'comments', 'dataset_type': 'huggingface_dataset'}, 'train_dataset': {'data_split': {'data_split_mode': 'proportions', 'proportions': {'train': 0.8, 'validation': 0.1, 'test': 0.1}}, 'number_of_samples': 10000, 'split': 'train', 'column_name': 'body', 'context': 'dataset_entry', 'dataset_description_string': 'one-year-of-tsla-on-reddit', 'dataset_path': 'SocialGrep/one-year-of-tsla-on-reddit', 'dataset_name': 'comments', 'dataset_type': 'huggingface_dataset'}}, 'compute_metrics_mode': 'FROM_TASK_TYPE', 'eval_steps': 400, 'fp16': False, 'gradient_accumulation_steps': 2, 'gradient_checkpointing': True, 'learning_rate': 5e-05, 'lr_scheduler_type': 'linear', 'log_level': 'info', 'logging_steps': 100, 'max_steps': -1, 'mlm_probability': 0.15, 'num_train_epochs': 5, 'save_steps': 400, 'use_cpu': False, 'warmup_steps': 500, 'weight_decay': 0.01, 'tokenizer': {'add_prefix_space': False, 'max_length': 512}, 'peft': {'finetuning_mode': 'standard'}}, 'inference': {'max_length': 100, 'num_return_sequences': 3}, 'language_model': {'tokenizer_modifier': {'mode': 'DO_NOTHING', 'padding_token': '<pad>'}, 'lm_mode': 'MLM', 'pretrained_model_name_or_path': 'roberta-base', 'short_model_name': '${language_model.pretrained_model_name_or_path}'}, 'local_estimates': {'description': 'twonn', 'filtering': {'num_samples': 2500, 'zero_vector_handling_mode': 'keep'}}, 'paths': {'data_dir': '${paths.repository_base_path}/data', 'repository_base_path': '${oc.env:TOPO_LLM_REPOSITORY_BASE_PATH}'}, 'storage': {'array_storage_type': 'zarr', 'chunk_size': 512, 'metadata_storage_type': 'pickle'}, 'submit_jobs': {'machine_configuration': {'accelerator_model': 'rtx6000', 'queue': 'CUDA', 'walltime': '42:00:00', 'dry_run': False}, 'submit_finetuning_jobs': {'training_schedule': {'short_linear_lr_scheduler': {'num_train_epochs': 5, 'lr_scheduler_type': 'linear'}, 'long_constant_lr_scheduler': {'num_train_epochs': 30, 'lr_scheduler_type': 'constant'}}, 'base_model_list': ['roberta-base'], 'finetuning_dataset_list': ['train_and_eval_on_multiwoz21_10000_samples', 'train_and_eval_on_one-year-of-tsla-on-reddit'], 'peft_list': ['standard', 'lora'], 'gradient_modifier_list': ['do_nothing', 'freeze_first_layers_bert-style-models', 'freeze_last_layers_bert-style-models'], 'lora_parameters': {'first': {'lora_r': 16, 'lora_alpha': 32, 'use_rslora': False}}, 'wandb_project': 'Topo_LLM_run_combinations_for_single_r_choice'}, 'submit_pipeline_jobs': {'data_list': ['multiwoz21_validation', 'iclr_2024_submissions_validation'], 'language_model_list': ['model-roberta-base_multiwoz21-train-10000_ftm-lora_r-4_alpha-8_lora-target-query_key_value_lora-dropout-0.01_rslora-True_5e-05-constant-0.01-50.yaml', 'model-roberta-base_multiwoz21-train-10000_ftm-lora_r-8_alpha-16_lora-target-query_key_value_lora-dropout-0.01_rslora-True_5e-05-constant-0.01-50.yaml', 'model-roberta-base_multiwoz21-train-10000_ftm-lora_r-16_alpha-32_lora-target-query_key_value_lora-dropout-0.01_rslora-True_5e-05-constant-0.01-50.yaml', 'model-roberta-base_multiwoz21-train-10000_ftm-lora_r-32_alpha-64_lora-target-query_key_value_lora-dropout-0.01_rslora-True_5e-05-constant-0.01-50.yaml'], 'layer_indices_list': ['[-1]', '[-2]', '[-3]', '[-4]', '[-5]', '[-6]', '[-7]', '[-8]', '[-9]', '[-10]', '[-11]', '[-12]'], 'checkpoint_no_list': [400, 800, 1200, 1600], 'data_number_of_samples_list': [3000], 'embeddings_data_prep_num_samples_list': [30000], 'wandb_project': 'Topo_LLM_pipeline_jobs'}}, 'tokenizer': {'add_prefix_space': False, 'max_length': 512}, 'transformations': {'normalization': 'None', 'rotation': 'None'}, 'wandb': {'project': 'Topo_LLM_debug', 'entity': None, 'tags': ['model_finteuning'], 'dir': '${paths.repository_base_path}/wandb_output_dir/${wandb.project}/'}, 'seed': 1234, 'verbosity': 1, 'preferred_torch_backend': 'auto'} (initialize_configuration_and_log.py:84)
-[2024-07-17 14:13:38,283][    INFO][__main__] main_config:
+[2024-07-17 16:19:48,970][    INFO][__main__] main_config:
 {'data': {'column_name': 'body',
           'context': 'dataset_entry',
           'data_dir': None,
@@ -186,15 +186,15 @@ pathlib.Path.cwd() = PosixPath('/Users/ruppik/git-source/Topo_LLM/topollm/model_
            'entity': None,
            'project': 'Topo_LLM_debug',
            'tags': ['model_finteuning']}} (initialize_configuration_and_log.py:88)
-[2024-07-17 14:13:38,283][    INFO][__main__] data_dir:
+[2024-07-17 16:19:48,970][    INFO][__main__] data_dir:
 /Users/ruppik/git-source/Topo_LLM/data (run_load_saved_perplexity_and_compute_averages.py:89)
-[2024-07-17 14:13:38,283][    INFO][__main__] ============= START dataset_subdir:
+[2024-07-17 16:19:48,970][    INFO][__main__] ============= START dataset_subdir:
 data-multiwoz21_split-validation_ctxt-dataset_entry_samples-10000_feat-col-ner_tags (run_load_saved_perplexity_and_compute_averages.py:113)
-[2024-07-17 14:13:38,283][    INFO][__main__] path_list:
+[2024-07-17 16:19:48,970][    INFO][__main__] path_list:
 [PosixPath('/Users/ruppik/git-source/Topo_LLM/data/embeddings/perplexity/data-multiwoz21_split-validation_ctxt-dataset_entry_samples-10000_feat-col-ner_tags/lvl-token/add-prefix-space-False_max-len-512/model-roberta-base_task-MASKED_LM/layer--1_agg-mean/norm-None/perplexity_dir/perplexity_results_list.jsonl'), PosixPath('/Users/ruppik/git-source/Topo_LLM/data/embeddings/perplexity/data-multiwoz21_split-validation_ctxt-dataset_entry_samples-10000_feat-col-ner_tags/lvl-token/add-prefix-space-False_max-len-512/model-model-roberta-base_task-MASKED_LM_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5_ckpt-2800_task-MASKED_LM/layer--1_agg-mean/norm-None/perplexity_dir/perplexity_results_list.jsonl')] (run_load_saved_perplexity_and_compute_averages.py:164)
-[2024-07-17 14:13:38,684][    INFO][__main__] len(averages):
+[2024-07-17 16:19:49,240][    INFO][__main__] len(averages):
 10000 (log_list_info.py:73)
-[2024-07-17 14:13:38,684][    INFO][__main__] averages[:20]:
+[2024-07-17 16:19:49,240][    INFO][__main__] averages[:20]:
 [1.7880761244369852,
  0.4702073988155462,
  0.9633403985434086,
@@ -215,7 +215,7 @@ data-multiwoz21_split-validation_ctxt-dataset_entry_samples-10000_feat-col-ner_t
  0.489412046873688,
  3.4649636511291777,
  1.3516915596250327] (log_list_info.py:74)
-[2024-07-17 14:13:38,684][    INFO][__main__] averages[-20:]:
+[2024-07-17 16:19:49,241][    INFO][__main__] averages[-20:]:
 [2.04982127864579,
  1.49627710909859,
  1.731930857790368,
@@ -236,9 +236,9 @@ data-multiwoz21_split-validation_ctxt-dataset_entry_samples-10000_feat-col-ner_t
  1.0559834369007148,
  2.802161704759452,
  2.7952067446471616] (log_list_info.py:78)
-[2024-07-17 14:13:38,689][    INFO][__main__] len(averages):
+[2024-07-17 16:19:49,247][    INFO][__main__] len(averages):
 10000 (log_list_info.py:73)
-[2024-07-17 14:13:38,689][    INFO][__main__] averages[:20]:
+[2024-07-17 16:19:49,247][    INFO][__main__] averages[:20]:
 [0.4703042441348468,
  0.12306606154888869,
  0.16241353220510746,
@@ -259,7 +259,7 @@ data-multiwoz21_split-validation_ctxt-dataset_entry_samples-10000_feat-col-ner_t
  0.4013517371402651,
  0.9718651651951404,
  0.12178323719454057] (log_list_info.py:74)
-[2024-07-17 14:13:38,689][    INFO][__main__] averages[-20:]:
+[2024-07-17 16:19:49,247][    INFO][__main__] averages[-20:]:
 [0.8426458363981164,
  0.7515306375760247,
  0.47830853898943004,
@@ -280,9 +280,15 @@ data-multiwoz21_split-validation_ctxt-dataset_entry_samples-10000_feat-col-ner_t
  0.5187779661966487,
  1.8476799068726408,
  1.2385192446579987] (log_list_info.py:78)
-[2024-07-17 14:13:38,690][    INFO][__main__] len(differences):
+[2024-07-17 16:19:49,248][    INFO][__main__] len(average_of_averages):
+2 (log_list_info.py:73)
+[2024-07-17 16:19:49,248][    INFO][__main__] average_of_averages[:20]:
+[1.92974610629388, 0.783354237163783] (log_list_info.py:74)
+[2024-07-17 16:19:49,248][    INFO][__main__] average_of_averages[-20:]:
+[1.92974610629388, 0.783354237163783] (log_list_info.py:78)
+[2024-07-17 16:19:49,248][    INFO][__main__] len(differences_of_averages):
 10000 (log_list_info.py:73)
-[2024-07-17 14:13:38,690][    INFO][__main__] differences[:20]:
+[2024-07-17 16:19:49,248][    INFO][__main__] differences_of_averages[:20]:
 [-1.3177718803021383,
  -0.3471413372666575,
  -0.8009268663383011,
@@ -303,7 +309,7 @@ data-multiwoz21_split-validation_ctxt-dataset_entry_samples-10000_feat-col-ner_t
  -0.08806030973342288,
  -2.4930984859340373,
  -1.229908322430492] (log_list_info.py:74)
-[2024-07-17 14:13:38,690][    INFO][__main__] differences[-20:]:
+[2024-07-17 16:19:49,248][    INFO][__main__] differences_of_averages[-20:]:
 [-1.2071754422476737,
  -0.7447464715225653,
  -1.253622318800938,
@@ -324,19 +330,21 @@ data-multiwoz21_split-validation_ctxt-dataset_entry_samples-10000_feat-col-ner_t
  -0.5372054707040661,
  -0.9544817978868112,
  -1.556687499989163] (log_list_info.py:78)
-[2024-07-17 14:13:38,690][    INFO][__main__] average_difference:
--1.1463918691300854 (compute_averages_over_loaded_data_list.py:99)
-[2024-07-17 14:13:38,698][    INFO][__main__] average_difference_of_exps:
--13.233662262962191 (compute_averages_over_loaded_data_list.py:115)
-[2024-07-17 14:13:38,698][    INFO][__main__] ============= END dataset_subdir:
+[2024-07-17 16:19:49,248][    INFO][__main__] average_of_differences_of_averages:
+-1.1463918691300854 (compute_averages_over_loaded_data_list.py:109)
+[2024-07-17 16:19:49,256][    INFO][__main__] average_difference_of_exps:
+-13.233662262962191 (compute_averages_over_loaded_data_list.py:125)
+[2024-07-17 16:19:49,261][    INFO][__main__] stat_test_linear_result_on_averages:
+0.12353740211987048 (compute_averages_over_loaded_data_list.py:134)
+[2024-07-17 16:19:49,261][    INFO][__main__] ============= END dataset_subdir:
 data-multiwoz21_split-validation_ctxt-dataset_entry_samples-10000_feat-col-ner_tags (run_load_saved_perplexity_and_compute_averages.py:185)
-[2024-07-17 14:13:38,698][    INFO][__main__] ============= START dataset_subdir:
+[2024-07-17 16:19:49,261][    INFO][__main__] ============= START dataset_subdir:
 data-wikitext_split-validation_ctxt-dataset_entry_samples--1_feat-col-ner_tags (run_load_saved_perplexity_and_compute_averages.py:113)
-[2024-07-17 14:13:38,698][    INFO][__main__] path_list:
+[2024-07-17 16:19:49,261][    INFO][__main__] path_list:
 [PosixPath('/Users/ruppik/git-source/Topo_LLM/data/embeddings/perplexity/data-wikitext_split-validation_ctxt-dataset_entry_samples--1_feat-col-ner_tags/lvl-token/add-prefix-space-False_max-len-512/model-roberta-base_task-MASKED_LM/layer--1_agg-mean/norm-None/perplexity_dir/perplexity_results_list.jsonl'), PosixPath('/Users/ruppik/git-source/Topo_LLM/data/embeddings/perplexity/data-wikitext_split-validation_ctxt-dataset_entry_samples--1_feat-col-ner_tags/lvl-token/add-prefix-space-False_max-len-512/model-model-roberta-base_task-MASKED_LM_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5_ckpt-2800_task-MASKED_LM/layer--1_agg-mean/norm-None/perplexity_dir/perplexity_results_list.jsonl')] (run_load_saved_perplexity_and_compute_averages.py:164)
-[2024-07-17 14:13:38,926][    INFO][__main__] len(averages):
+[2024-07-17 16:19:49,558][    INFO][__main__] len(averages):
 3760 (log_list_info.py:73)
-[2024-07-17 14:13:38,926][    INFO][__main__] averages[:20]:
+[2024-07-17 16:19:49,558][    INFO][__main__] averages[:20]:
 [0.0,
  6.36088904467496,
  0.0,
@@ -357,7 +365,7 @@ data-wikitext_split-validation_ctxt-dataset_entry_samples--1_feat-col-ner_tags (
  1.5740921604465545,
  1.5280368030366556,
  0.0] (log_list_info.py:74)
-[2024-07-17 14:13:38,926][    INFO][__main__] averages[-20:]:
+[2024-07-17 16:19:49,558][    INFO][__main__] averages[-20:]:
 [0.0,
  5.085511010394177,
  0.0,
@@ -378,9 +386,9 @@ data-wikitext_split-validation_ctxt-dataset_entry_samples--1_feat-col-ner_tags (
  5.177986256390189,
  0.0,
  0.0] (log_list_info.py:78)
-[2024-07-17 14:13:38,930][    INFO][__main__] len(averages):
+[2024-07-17 16:19:49,562][    INFO][__main__] len(averages):
 3760 (log_list_info.py:73)
-[2024-07-17 14:13:38,930][    INFO][__main__] averages[:20]:
+[2024-07-17 16:19:49,562][    INFO][__main__] averages[:20]:
 [0.0,
  6.508092891086232,
  0.0,
@@ -401,7 +409,7 @@ data-wikitext_split-validation_ctxt-dataset_entry_samples--1_feat-col-ner_tags (
  2.4576475205997537,
  2.3066671073826877,
  0.0] (log_list_info.py:74)
-[2024-07-17 14:13:38,930][    INFO][__main__] averages[-20:]:
+[2024-07-17 16:19:49,562][    INFO][__main__] averages[-20:]:
 [0.0,
  2.9311758198521356,
  0.0,
@@ -422,9 +430,15 @@ data-wikitext_split-validation_ctxt-dataset_entry_samples--1_feat-col-ner_tags (
  3.8835408662756286,
  0.0,
  0.0] (log_list_info.py:78)
-[2024-07-17 14:13:38,930][    INFO][__main__] len(differences):
+[2024-07-17 16:19:49,562][    INFO][__main__] len(average_of_averages):
+2 (log_list_info.py:73)
+[2024-07-17 16:19:49,562][    INFO][__main__] average_of_averages[:20]:
+[1.9125691590594285, 2.148395356580405] (log_list_info.py:74)
+[2024-07-17 16:19:49,562][    INFO][__main__] average_of_averages[-20:]:
+[1.9125691590594285, 2.148395356580405] (log_list_info.py:78)
+[2024-07-17 16:19:49,562][    INFO][__main__] len(differences_of_averages):
 3760 (log_list_info.py:73)
-[2024-07-17 14:13:38,930][    INFO][__main__] differences[:20]:
+[2024-07-17 16:19:49,562][    INFO][__main__] differences_of_averages[:20]:
 [0.0,
  0.14720384641127193,
  0.0,
@@ -445,7 +459,7 @@ data-wikitext_split-validation_ctxt-dataset_entry_samples--1_feat-col-ner_tags (
  0.8835553601531991,
  0.7786303043460321,
  0.0] (log_list_info.py:74)
-[2024-07-17 14:13:38,931][    INFO][__main__] differences[-20:]:
+[2024-07-17 16:19:49,562][    INFO][__main__] differences_of_averages[-20:]:
 [0.0,
  -2.154335190542042,
  0.0,
@@ -466,19 +480,21 @@ data-wikitext_split-validation_ctxt-dataset_entry_samples--1_feat-col-ner_tags (
  -1.2944453901145603,
  0.0,
  0.0] (log_list_info.py:78)
-[2024-07-17 14:13:38,931][    INFO][__main__] average_difference:
-0.23582619752098183 (compute_averages_over_loaded_data_list.py:99)
-[2024-07-17 14:13:38,934][    INFO][__main__] average_difference_of_exps:
--91.3339498680266 (compute_averages_over_loaded_data_list.py:115)
-[2024-07-17 14:13:38,934][    INFO][__main__] ============= END dataset_subdir:
+[2024-07-17 16:19:49,563][    INFO][__main__] average_of_differences_of_averages:
+0.23582619752098183 (compute_averages_over_loaded_data_list.py:109)
+[2024-07-17 16:19:49,565][    INFO][__main__] average_difference_of_exps:
+-91.3339498680266 (compute_averages_over_loaded_data_list.py:125)
+[2024-07-17 16:19:49,566][    INFO][__main__] stat_test_linear_result_on_averages:
+0.7124385876187149 (compute_averages_over_loaded_data_list.py:134)
+[2024-07-17 16:19:49,566][    INFO][__main__] ============= END dataset_subdir:
 data-wikitext_split-validation_ctxt-dataset_entry_samples--1_feat-col-ner_tags (run_load_saved_perplexity_and_compute_averages.py:185)
-[2024-07-17 14:13:38,934][    INFO][__main__] ============= START dataset_subdir:
+[2024-07-17 16:19:49,566][    INFO][__main__] ============= START dataset_subdir:
 data-iclr_2024_submissions_split-validation_ctxt-dataset_entry_samples--1_feat-col-ner_tags (run_load_saved_perplexity_and_compute_averages.py:113)
-[2024-07-17 14:13:38,934][    INFO][__main__] path_list:
+[2024-07-17 16:19:49,566][    INFO][__main__] path_list:
 [PosixPath('/Users/ruppik/git-source/Topo_LLM/data/embeddings/perplexity/data-iclr_2024_submissions_split-validation_ctxt-dataset_entry_samples--1_feat-col-ner_tags/lvl-token/add-prefix-space-False_max-len-512/model-roberta-base_task-MASKED_LM/layer--1_agg-mean/norm-None/perplexity_dir/perplexity_results_list.jsonl'), PosixPath('/Users/ruppik/git-source/Topo_LLM/data/embeddings/perplexity/data-iclr_2024_submissions_split-validation_ctxt-dataset_entry_samples--1_feat-col-ner_tags/lvl-token/add-prefix-space-False_max-len-512/model-model-roberta-base_task-MASKED_LM_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5_ckpt-2800_task-MASKED_LM/layer--1_agg-mean/norm-None/perplexity_dir/perplexity_results_list.jsonl')] (run_load_saved_perplexity_and_compute_averages.py:164)
-[2024-07-17 14:13:39,091][    INFO][__main__] len(averages):
+[2024-07-17 16:19:49,725][    INFO][__main__] len(averages):
 721 (log_list_info.py:73)
-[2024-07-17 14:13:39,091][    INFO][__main__] averages[:20]:
+[2024-07-17 16:19:49,725][    INFO][__main__] averages[:20]:
 [1.4180901805431907,
  1.9744839291752214,
  1.4560689412361063,
@@ -499,7 +515,7 @@ data-iclr_2024_submissions_split-validation_ctxt-dataset_entry_samples--1_feat-c
  1.6340557240363418,
  1.1081487852150411,
  1.5286499904282282] (log_list_info.py:74)
-[2024-07-17 14:13:39,091][    INFO][__main__] averages[-20:]:
+[2024-07-17 16:19:49,725][    INFO][__main__] averages[-20:]:
 [1.5081523526716212,
  1.229602957520867,
  1.6489865211438288,
@@ -520,9 +536,9 @@ data-iclr_2024_submissions_split-validation_ctxt-dataset_entry_samples--1_feat-c
  1.519118475165583,
  1.4848002236520712,
  1.716748316428136] (log_list_info.py:78)
-[2024-07-17 14:13:39,093][    INFO][__main__] len(averages):
+[2024-07-17 16:19:49,726][    INFO][__main__] len(averages):
 721 (log_list_info.py:73)
-[2024-07-17 14:13:39,093][    INFO][__main__] averages[:20]:
+[2024-07-17 16:19:49,727][    INFO][__main__] averages[:20]:
 [2.2739536804559046,
  2.7599466411303224,
  2.0493938602508694,
@@ -543,7 +559,7 @@ data-iclr_2024_submissions_split-validation_ctxt-dataset_entry_samples--1_feat-c
  2.4284358900583114,
  1.5195309958934335,
  2.4194433811906415] (log_list_info.py:74)
-[2024-07-17 14:13:39,093][    INFO][__main__] averages[-20:]:
+[2024-07-17 16:19:49,727][    INFO][__main__] averages[-20:]:
 [2.314592121629941,
  1.9727645604666877,
  2.4519241458342633,
@@ -564,9 +580,15 @@ data-iclr_2024_submissions_split-validation_ctxt-dataset_entry_samples--1_feat-c
  2.2948629510578313,
  2.2356820360908873,
  2.512321596710103] (log_list_info.py:78)
-[2024-07-17 14:13:39,093][    INFO][__main__] len(differences):
+[2024-07-17 16:19:49,727][    INFO][__main__] len(average_of_averages):
+2 (log_list_info.py:73)
+[2024-07-17 16:19:49,727][    INFO][__main__] average_of_averages[:20]:
+[1.562841038885887, 2.238769582123767] (log_list_info.py:74)
+[2024-07-17 16:19:49,727][    INFO][__main__] average_of_averages[-20:]:
+[1.562841038885887, 2.238769582123767] (log_list_info.py:78)
+[2024-07-17 16:19:49,727][    INFO][__main__] len(differences_of_averages):
 721 (log_list_info.py:73)
-[2024-07-17 14:13:39,093][    INFO][__main__] differences[:20]:
+[2024-07-17 16:19:49,727][    INFO][__main__] differences_of_averages[:20]:
 [0.8558634999127139,
  0.785462711955101,
  0.5933249190147631,
@@ -587,7 +609,7 @@ data-iclr_2024_submissions_split-validation_ctxt-dataset_entry_samples--1_feat-c
  0.7943801660219696,
  0.4113822106783924,
  0.8907933907624133] (log_list_info.py:74)
-[2024-07-17 14:13:39,093][    INFO][__main__] differences[-20:]:
+[2024-07-17 16:19:49,727][    INFO][__main__] differences_of_averages[-20:]:
 [0.8064397689583198,
  0.7431616029458208,
  0.8029376246904345,
@@ -608,10 +630,12 @@ data-iclr_2024_submissions_split-validation_ctxt-dataset_entry_samples--1_feat-c
  0.7757444758922483,
  0.7508818124388161,
  0.795573280281967] (log_list_info.py:78)
-[2024-07-17 14:13:39,093][    INFO][__main__] average_difference:
-0.6759285432378751 (compute_averages_over_loaded_data_list.py:99)
-[2024-07-17 14:13:39,094][    INFO][__main__] average_difference_of_exps:
-4.917307164038316 (compute_averages_over_loaded_data_list.py:115)
-[2024-07-17 14:13:39,094][    INFO][__main__] ============= END dataset_subdir:
+[2024-07-17 16:19:49,727][    INFO][__main__] average_of_differences_of_averages:
+0.6759285432378751 (compute_averages_over_loaded_data_list.py:109)
+[2024-07-17 16:19:49,728][    INFO][__main__] average_difference_of_exps:
+4.917307164038316 (compute_averages_over_loaded_data_list.py:125)
+[2024-07-17 16:19:49,728][    INFO][__main__] stat_test_linear_result_on_averages:
+0.0004914175849526446 (compute_averages_over_loaded_data_list.py:134)
+[2024-07-17 16:19:49,728][    INFO][__main__] ============= END dataset_subdir:
 data-iclr_2024_submissions_split-validation_ctxt-dataset_entry_samples--1_feat-col-ner_tags (run_load_saved_perplexity_and_compute_averages.py:185)
-[2024-07-17 14:13:39,094][    INFO][__main__] Running script DONE (run_load_saved_perplexity_and_compute_averages.py:190)
+[2024-07-17 16:19:49,728][    INFO][__main__] Running script DONE (run_load_saved_perplexity_and_compute_averages.py:190)
