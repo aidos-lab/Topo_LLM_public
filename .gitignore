@@ -165,6 +165,7 @@ cython_debug/
 # Mac OS X hidden files
 .DS_Store
 */.DS_Store
+._.DS_Store
 
 # # # # # # # # # # # #
 # Project specific
@@ -189,6 +190,7 @@ data/models/finetuned_models/
 data/saved_plots/
 
 hydra_output_dir/
+hilbert_job_logs_backup/
 hilbert_job_logs/
 
 # Weights and Biases (wandb)
