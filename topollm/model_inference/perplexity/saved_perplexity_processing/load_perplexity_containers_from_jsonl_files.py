@@ -25,6 +25,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Load perplexity containers from jsonl files."""
+
 import json
 import logging
 import pathlib
@@ -67,6 +69,12 @@ def load_perplexity_containers_from_jsonl_files(
                 )
         loaded_data_list.append(
             perplexity_results_list,
+        )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.debug(
+            f"Loaded {len(loaded_data_list) = } perplexity results lists "  # noqa: G004 - low overhead
+            f"from {len(path_list) = } jsonl files.",
         )
 
     return loaded_data_list

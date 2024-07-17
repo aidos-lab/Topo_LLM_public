@@ -103,7 +103,7 @@ def compute_averages_over_loaded_data_list(
 
     # # # #
     # Take exponential of token level losses before computing the average
-    defferences_of_exps = [
+    differences_of_exps = [
         (np.exp(b) - np.exp(a))
         for a, b in zip(
             averages_list[0],
@@ -111,7 +111,7 @@ def compute_averages_over_loaded_data_list(
             strict=True,
         )
     ]
-    average_difference_of_exps = sum(defferences_of_exps) / len(defferences_of_exps)
+    average_difference_of_exps = sum(differences_of_exps) / len(differences_of_exps)
     logger.info(
         "average_difference_of_exps:\n%s",
         average_difference_of_exps,
