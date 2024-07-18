@@ -9,7 +9,8 @@ defaults:
 eval_dataset:
   split: validation
   # Note: the validation dataset in wikitext is quite small, 
-  # so we only use 1000 samples for evaluation
+  # so we only use 1000 samples for evaluation.
+  # Otherwise, we get an out of bounds index error.
   number_of_samples: 1000
 train_dataset:
   split: train

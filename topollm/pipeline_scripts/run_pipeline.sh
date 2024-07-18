@@ -3,14 +3,9 @@
 echo "TOPO_LLM_REPOSITORY_BASE_PATH=${TOPO_LLM_REPOSITORY_BASE_PATH}"
 
 PYTHON_SCRIPT_NAME="run_pipeline_embeddings_data_prep_local_estimate.py"
-PYTHON_SCRIPT_PATH="${TOPO_LLM_REPOSITORY_BASE_PATH}/topollm/pipeline_scripts/${PYTHON_SCRIPT_NAME}"
+RELATIVE_PYTHON_SCRIPT_PATH="topollm/pipeline_scripts/${PYTHON_SCRIPT_NAME}"
+ABSOLUTE_PYTHON_SCRIPT_PATH="${TOPO_LLM_REPOSITORY_BASE_PATH}/${RELATIVE_PYTHON_SCRIPT_PATH}"
 
-# ==================================================== #
-POETRY_ENV_PATH=$(poetry env info --path)
-echo "Using Poetry environment at $POETRY_ENV_PATH"
-
-source "$POETRY_ENV_PATH/bin/activate"
-# ==================================================== #
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # START: Python script - Command line arguments
@@ -45,7 +40,7 @@ ADDITIONAL_OVERRIDES=""
 
 echo "Calling python script PYTHON_SCRIPT_PATH=${PYTHON_SCRIPT_PATH} ..."
 
-python3 $PYTHON_SCRIPT_PATH \
+poetry run python3 $PYTHON_SCRIPT_PATH \
     --multirun \
     data=$DATA_LIST \
     language_model=$LANGUAGE_MODEL_LIST \

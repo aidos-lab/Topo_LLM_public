@@ -36,6 +36,7 @@ import hydra.core.hydra_config
 import omegaconf
 import torch
 
+from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
@@ -55,7 +56,6 @@ if TYPE_CHECKING:
 
 default_device = torch.device("cpu")
 default_logger = logging.getLogger(__name__)
-
 global_logger = logging.getLogger(__name__)
 
 setup_exception_logging(
@@ -67,9 +67,9 @@ setup_omega_conf()
 
 
 @hydra.main(
-    config_path="../../../../../configs",
+    config_path=f"{HYDRA_CONFIGS_BASE_PATH}",
     config_name="main_config",
-    version_base="1.2",
+    version_base="1.3",
 )
 def main(
     config: omegaconf.DictConfig,
@@ -94,88 +94,98 @@ def main(
     # # # #
     # Parameters
 
-    perplexity_container_save_format = PerplexityContainerSaveFormat.PICKLE
+    perplexity_container_save_format = PerplexityContainerSaveFormat.JSONL
 
-    dataset_subdir = pathlib.Path(
-        "data-one-year-of-tsla-on-reddit_split-validation_ctxt-dataset_entry_samples-10",
-    )
-    # dataset_subdir = pathlib.Path(
-    #     "data-multiwoz21_split-validation_ctxt-dataset_entry_samples-3000",
-    # )
-    # dataset_subdir = pathlib.Path(
-    #     "data-one-year-of-tsla-on-reddit_split-validation_ctxt-dataset_entry_samples-3000",
-    # )
+    dataset_subdir_list: list[pathlib.Path] = [
+        pathlib.Path(
+            "data-multiwoz21_split-validation_ctxt-dataset_entry_samples-10000_feat-col-ner_tags",
+        ),
+        pathlib.Path(
+            "data-wikitext_split-validation_ctxt-dataset_entry_samples--1_feat-col-ner_tags",
+        ),
+        pathlib.Path(
+            "data-iclr_2024_submissions_split-validation_ctxt-dataset_entry_samples--1_feat-col-ner_tags",
+        ),
+    ]
 
-    if perplexity_container_save_format == PerplexityContainerSaveFormat.PICKLE:
-        path_list: list[pathlib.Path] = [
-            pathlib.Path(
-                data_dir,
-                "embeddings/perplexity/",
-                dataset_subdir,
-                "lvl-token/add-prefix-space-False_max-len-512/",
-                "model-roberta-base_finetuned-on-one-year-of-tsla-on-reddit_ftm-standard_checkpoint-400_mask-no_masking/",
-                "layer-[-1]_agg-mean/norm-None/perplexity_dir/perplexity_results_list_new_format.pkl",
-            ),
-            pathlib.Path(
-                data_dir,
-                "embeddings/perplexity/",
-                dataset_subdir,
-                "lvl-token/add-prefix-space-False_max-len-512/",
-                "model-roberta-base_finetuned-on-one-year-of-tsla-on-reddit_ftm-standard_checkpoint-2800_mask-no_masking/",
-                "layer-[-1]_agg-mean/norm-None/perplexity_dir/perplexity_results_list_new_format.pkl",
-            ),
-        ]
+    for dataset_subdir in dataset_subdir_list:
         if verbosity >= Verbosity.NORMAL:
             logger.info(
-                "path_list:\n%s",
-                path_list,
+                "============= START dataset_subdir:\n%s",
+                dataset_subdir,
             )
 
-        loaded_data_list = load_perplexity_containers_from_pickle_files(
-            path_list=path_list,
+        if perplexity_container_save_format == PerplexityContainerSaveFormat.PICKLE:
+            path_list: list[pathlib.Path] = [
+                pathlib.Path(
+                    data_dir,
+                    "embeddings/perplexity/",
+                    dataset_subdir,
+                    "lvl-token/add-prefix-space-False_max-len-512/",
+                    "model-roberta-base_finetuned-on-one-year-of-tsla-on-reddit_ftm-standard_checkpoint-400_mask-no_masking/",
+                    "layer-[-1]_agg-mean/norm-None/perplexity_dir/perplexity_results_list_new_format.pkl",
+                ),
+                pathlib.Path(
+                    data_dir,
+                    "embeddings/perplexity/",
+                    dataset_subdir,
+                    "lvl-token/add-prefix-space-False_max-len-512/",
+                    "model-roberta-base_finetuned-on-one-year-of-tsla-on-reddit_ftm-standard_checkpoint-2800_mask-no_masking/",
+                    "layer-[-1]_agg-mean/norm-None/perplexity_dir/perplexity_results_list_new_format.pkl",
+                ),
+            ]
+            if verbosity >= Verbosity.NORMAL:
+                logger.info(
+                    "path_list:\n%s",
+                    path_list,
+                )
+
+            loaded_data_list = load_perplexity_containers_from_pickle_files(
+                path_list=path_list,
+                verbosity=verbosity,
+                logger=logger,
+            )
+        elif perplexity_container_save_format == PerplexityContainerSaveFormat.JSONL:
+            path_list: list[pathlib.Path] = [
+                pathlib.Path(
+                    data_dir,
+                    "embeddings/perplexity/",
+                    dataset_subdir,
+                    "lvl-token/add-prefix-space-False_max-len-512/model-roberta-base_task-MASKED_LM/layer--1_agg-mean/norm-None/perplexity_dir/perplexity_results_list.jsonl",
+                ),
+                pathlib.Path(
+                    data_dir,
+                    "embeddings/perplexity/",
+                    dataset_subdir,
+                    "lvl-token/add-prefix-space-False_max-len-512/model-model-roberta-base_task-MASKED_LM_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5_ckpt-2800_task-MASKED_LM/layer--1_agg-mean/norm-None/perplexity_dir/perplexity_results_list.jsonl",
+                ),
+            ]
+            if verbosity >= Verbosity.NORMAL:
+                logger.info(
+                    "path_list:\n%s",
+                    path_list,
+                )
+
+            loaded_data_list = load_perplexity_containers_from_jsonl_files(
+                path_list=path_list,
+                verbosity=verbosity,
+                logger=logger,
+            )
+        else:
+            msg = f"Unknown {perplexity_container_save_format = }"
+            raise ValueError(msg)
+
+        compute_averages_over_loaded_data_list(
+            loaded_data_list=loaded_data_list,
             verbosity=verbosity,
             logger=logger,
         )
-    elif perplexity_container_save_format == PerplexityContainerSaveFormat.JSONL:
-        path_list: list[pathlib.Path] = [
-            pathlib.Path(
-                data_dir,
-                "embeddings/perplexity/",
-                dataset_subdir,
-                "lvl-token/add-prefix-space-False_max-len-512/",
-                "model-roberta-base_mask-no_masking/",
-                "layer-[-1]_agg-mean/norm-None/perplexity_dir/perplexity_results_list.jsonl",
-            ),
-            # NOTE: Currently these two paths are the same
-            pathlib.Path(
-                data_dir,
-                "embeddings/perplexity/",
-                dataset_subdir,
-                "lvl-token/add-prefix-space-False_max-len-512/",
-                "model-roberta-base_mask-no_masking/",
-                "layer-[-1]_agg-mean/norm-None/perplexity_dir/perplexity_results_list.jsonl",
-            ),
-        ]
+
         if verbosity >= Verbosity.NORMAL:
             logger.info(
-                "path_list:\n%s",
-                path_list,
+                "============= END dataset_subdir:\n%s",
+                dataset_subdir,
             )
-
-        loaded_data_list = load_perplexity_containers_from_jsonl_files(
-            path_list=path_list,
-            verbosity=verbosity,
-            logger=logger,
-        )
-    else:
-        msg = f"Unknown perplexity_container_save_format: {perplexity_container_save_format}"
-        raise ValueError(msg)
-
-    compute_averages_over_loaded_data_list(
-        loaded_data_list=loaded_data_list,
-        verbosity=verbosity,
-        logger=logger,
-    )
 
     logger.info("Running script DONE")
 

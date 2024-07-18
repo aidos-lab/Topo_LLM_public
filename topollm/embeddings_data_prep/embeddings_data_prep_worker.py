@@ -260,6 +260,7 @@ def remove_padding_and_extra_tokens(
             msg,
         )
 
+    # TODO: Make configurable which special tokens to filter out
     filtered_df = full_df[(full_df["meta"] != eos_token_id) & (full_df["meta"] != pad_token_id)]
 
     # arr_no_pad.shape:
@@ -296,6 +297,8 @@ def select_subsets_of_arr_and_meta(
     np.ndarray,
 ]:
     """Select subsets of the arrays and metadata."""
+    # TODO: Make the sampling method configurable
+    # TODO: i.e., allow for sampling via the first sequences instead of random sampling
     rng = np.random.default_rng(
         seed=42,
     )

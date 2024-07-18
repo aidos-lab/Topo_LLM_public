@@ -1,5 +1,6 @@
 defaults:
   - base_model: roberta-base_for_token_classification
+  - batch_sizes: default
   - gradient_modifier: do_nothing
   - finetuning_datasets: train_and_eval_on_wnut_17
   - finetuning_parameters@_here_: default_parameters

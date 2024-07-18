@@ -5,11 +5,17 @@ __pycache__
 .coverage
 .coverage.*
 
+# VS Code settings
+.vscode
+
 # Large data directories
+data/analysis/
+data/embeddings/
 data/models/finetuned_models/
 
 # Log files
 hilbert_job_logs/
+hilbert_job_logs_backup/
 hydra_output_dir/
 wandb_output_dir/
 
