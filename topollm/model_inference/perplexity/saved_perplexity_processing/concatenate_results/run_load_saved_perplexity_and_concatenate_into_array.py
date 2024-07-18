@@ -209,6 +209,8 @@ def main(
             logger=logger,
         )
 
+    # TODO: Write a textfile with statistics of the dataframe (mean, std, ...)
+
     token_perplexities_df_save_path = pathlib.Path(
         perplexity_dir,
         "perplexity_results_df.csv",
