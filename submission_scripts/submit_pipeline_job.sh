@@ -55,10 +55,15 @@ language_models=(
 # Note: In the dimension experiments, we usually set `add_prefix_space=False` 
 # ADDITIONAL_OVERRIDES+=" tokenizer.add_prefix_space=True"
 
-# TODO(Ben): Iterate over the layer indices we want to process
 
-LAYER_INDICES_LIST="[-1]"
 # LAYER_INDICES_LIST="[-1],[-2]"
+# LAYER_INDICES_LIST="[-1],[-5],[-9]"
+
+layer_indices=(
+    "[-1]"
+    "[-5]"
+    "[-9]"
+)
 
 
 # EMBEDDINGS_DATA_PREP_NUM_SAMPLES="1000"
@@ -77,28 +82,30 @@ for i in "${!data_lists[@]}"; do
     DATA_NUMBER_OF_SAMPLES="${data_samples[$i]}"
 
     for LANGUAGE_MODEL_LIST in "${language_models[@]}"; do
-        echo "====================================================="
-        echo "DATA_LIST=${DATA_LIST}"
-        echo "DATA_NUMBER_OF_SAMPLES=${DATA_NUMBER_OF_SAMPLES}"
-        echo "LANGUAGE_MODEL_LIST=${LANGUAGE_MODEL_LIST}"
+        for LAYER_INDICES_LIST in "${layer_indices[@]}"; do
+            echo "====================================================="
+            echo "DATA_LIST=${DATA_LIST}"
+            echo "DATA_NUMBER_OF_SAMPLES=${DATA_NUMBER_OF_SAMPLES}"
+            echo "LANGUAGE_MODEL_LIST=${LANGUAGE_MODEL_LIST}"
+            echo "LAYER_INDICES_LIST=${LAYER_INDICES_LIST}"
 
-        hpc run \
-            -n "compute_perplexity_job_submission_manual" \
-            -s "${RELATIVE_PYTHON_SCRIPT_PATH}" \
-            -a "data="$DATA_LIST" \
-            data.number_of_samples="$DATA_NUMBER_OF_SAMPLES" \
-            data.split="validation" \
-            language_model="$LANGUAGE_MODEL_LIST" \
-            embeddings.embedding_extraction.layer_indices=$LAYER_INDICES_LIST \
-            embeddings_data_prep.num_samples=$EMBEDDINGS_DATA_PREP_NUM_SAMPLES \
-            $ADDITIONAL_OVERRIDES" \
-            --template "${TEMPLATE_STRING}" \
-            --ncpus 4 \
-            --accelerator_model "rtx6000" \
-            --queue "CUDA"
+            hpc run \
+                -n "compute_perplexity_job_submission_manual" \
+                -s "${RELATIVE_PYTHON_SCRIPT_PATH}" \
+                -a "data="$DATA_LIST" \
+                data.number_of_samples="$DATA_NUMBER_OF_SAMPLES" \
+                data.split="validation" \
+                language_model="$LANGUAGE_MODEL_LIST" \
+                embeddings.embedding_extraction.layer_indices=$LAYER_INDICES_LIST \
+                embeddings_data_prep.num_samples=$EMBEDDINGS_DATA_PREP_NUM_SAMPLES \
+                $ADDITIONAL_OVERRIDES" \
+                --template "${TEMPLATE_STRING}" \
+                --ncpus 4 \
+                --accelerator_model "rtx6000" \
+                --queue "CUDA"
 
-        echo "====================================================="
-
+            echo "====================================================="
+        done
     done
 done
 
