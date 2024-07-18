@@ -1,0 +1,100 @@
+#!/bin/bash
+
+# https://hydra.cc/docs/tutorials/basic/running_your_app/multi-run/
+
+echo "TOPO_LLM_REPOSITORY_BASE_PATH=${TOPO_LLM_REPOSITORY_BASE_PATH}"
+
+PYTHON_SCRIPT_NAME="run_pipeline_embeddings_data_prep_local_estimate.py"
+RELATIVE_PYTHON_SCRIPT_PATH="topollm/pipeline_scripts/${PYTHON_SCRIPT_NAME}"
+ABSOLUTE_PYTHON_SCRIPT_PATH="${TOPO_LLM_REPOSITORY_BASE_PATH}/${RELATIVE_PYTHON_SCRIPT_PATH}"
+
+# ==================================================== #
+# Select the parameters here
+
+# DATA_LIST="multiwoz21_validation"
+# DATA_LIST="sgd_test"
+# DATA_LIST="one-year-of-tsla-on-reddit"
+# DATA_LIST="one-year-of-tsla-on-reddit_validation"
+# DATA_LIST="iclr_2024_submissions"
+# DATA_LIST="one-year-of-tsla-on-reddit,one-year-of-tsla-on-reddit_validation,multiwoz21_validation,sgd,iclr_2024_submissions,wikitext"
+# DATA_LIST="one-year-of-tsla-on-reddit,one-year-of-tsla-on-reddit_validation"
+# DATA_LIST="bbc,multiwoz21,sgd,wikitext"
+# DATA_LIST="one-year-of-tsla-on-reddit_validation,multiwoz21_validation,sgd,iclr_2024_submissions,wikitext"
+# DATA_LIST="multiwoz21,wikitext,iclr_2024_submissions"
+# DATA_LIST="wikitext,iclr_2024_submissions"
+
+# Define arrays for DATA_LIST and DATA_NUMBER_OF_SAMPLES
+data_lists=(
+    "multiwoz21" 
+    "iclr_2024_submissions" 
+    "wikitext"
+    "one-year-of-tsla-on-reddit"
+)
+data_samples=(
+    "3000" 
+    "-1" 
+    "-1"
+    "3000"
+)
+
+
+LANGUAGE_MODEL_LIST="roberta-base"
+
+# LANGUAGE_MODEL_LIST="model-roberta-base_task-MASKED_LM_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
+# LANGUAGE_MODEL_LIST="model-roberta-base_task-MASKED_LM_iclr_2024_submissions-train-5000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
+# LANGUAGE_MODEL_LIST="model-roberta-base_task-MASKED_LM_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
+# LANGUAGE_MODEL_LIST="model-roberta-base_task-MASKED_LM_wikitext-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
+
+# LANGUAGE_MODEL_LIST="roberta-base,roberta-base_finetuned-on-multiwoz21_ftm-lora"
+
+# LANGUAGE_MODEL_LIST="roberta-base_finetuned-on-one-year-of-tsla-on-reddit_ftm-standard"
+# LANGUAGE_MODEL_LIST="roberta-base_finetuned-on-one-year-of-tsla-on-reddit_ftm-standard_overfitted"
+# LANGUAGE_MODEL_LIST="roberta-base_finetuned-on-one-year-of-tsla-on-reddit_ftm-standard_freeze-first-6-layers_overfitted"
+
+
+ADDITIONAL_OVERRIDES=""
+
+# Note: In the dimension experiments, we usually set `add_prefix_space=False` 
+# ADDITIONAL_OVERRIDES+=" tokenizer.add_prefix_space=True"
+
+LAYER_INDICES_LIST="[-1]"
+# LAYER_INDICES_LIST="[-1],[-2]"
+
+
+# EMBEDDINGS_DATA_PREP_NUM_SAMPLES="1000"
+EMBEDDINGS_DATA_PREP_NUM_SAMPLES="30000"
+# EMBEDDINGS_DATA_PREP_NUM_SAMPLES="10000,20000"
+
+
+# ==================================================== #
+
+TEMPLATE_STRING="A100_40GB"
+
+# Loop over the arrays
+for i in "${!data_lists[@]}"; do
+    DATA_LIST="${data_lists[$i]}"
+    DATA_NUMBER_OF_SAMPLES="${data_samples[$i]}"
+
+    echo "====================================================="
+    echo "DATA_LIST=${DATA_LIST}"
+    echo "DATA_NUMBER_OF_SAMPLES=${DATA_NUMBER_OF_SAMPLES}"
+
+    hpc run \
+        -n "compute_perplexity_job_submission_manual" \
+        -s "${RELATIVE_PYTHON_SCRIPT_PATH}" \
+        -a "data="$DATA_LIST" \
+        data.number_of_samples="$DATA_NUMBER_OF_SAMPLES" \
+        data.split="validation" \
+        language_model="$LANGUAGE_MODEL_LIST" \
+        embeddings.embedding_extraction.layer_indices=$LAYER_INDICES_LIST \
+        embeddings_data_prep.num_samples=$EMBEDDINGS_DATA_PREP_NUM_SAMPLES \
+        $ADDITIONAL_OVERRIDES" \
+        --template "${TEMPLATE_STRING}" \
+        --ncpus 4 \
+        --accelerator_model "rtx6000"
+
+    echo "====================================================="
+done
+
+# Exit with the return code of the last command
+exit $?

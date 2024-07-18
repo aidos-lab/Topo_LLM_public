@@ -38,7 +38,7 @@ echo "TARGET_FOLDER_BASE_PATH=$TARGET_FOLDER_BASE_PATH"
 
 
 REPOSITORY_SUBDIRECTORY_PATH_LIST=(
-    "data/analysis/prepared/"
+    # "data/analysis/prepared/"
     "data/analysis/twonn/"
 )
 
