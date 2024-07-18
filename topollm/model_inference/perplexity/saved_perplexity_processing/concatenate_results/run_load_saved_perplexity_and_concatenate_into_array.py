@@ -39,13 +39,14 @@ import torch
 import zarr
 from tqdm import tqdm
 
+from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.logging.log_list_info import log_list_info
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.model_inference.perplexity.saved_perplexity_processing.load_perplexity_containers_from_jsonl_files import (
-    load_perplexity_containers_from_jsonl_files,
+    load_multiple_perplexity_containers_from_jsonl_files,
 )
 from topollm.model_inference.perplexity.saved_perplexity_processing.load_perplexity_containers_from_pickle_files import (
     load_perplexity_containers_from_pickle_files,
@@ -71,9 +72,9 @@ setup_omega_conf()
 
 
 @hydra.main(
-    config_path="../../../../../configs",
+    config_path=f"{HYDRA_CONFIGS_BASE_PATH}",
     config_name="main_config",
-    version_base="1.2",
+    version_base="1.3",
 )
 def main(
     config: omegaconf.DictConfig,
@@ -113,7 +114,7 @@ def main(
             save_file_path_josnl,
         )
 
-    loaded_data_list = load_perplexity_containers_from_jsonl_files(
+    loaded_data_list = load_multiple_perplexity_containers_from_jsonl_files(
         path_list=[
             save_file_path_josnl,
         ],

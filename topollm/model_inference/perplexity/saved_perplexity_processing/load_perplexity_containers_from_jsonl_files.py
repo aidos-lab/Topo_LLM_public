@@ -40,35 +40,23 @@ from topollm.typing.types import PerplexityResultsList
 default_logger = logging.getLogger(__name__)
 
 
-def load_perplexity_containers_from_jsonl_files(
+def load_multiple_perplexity_containers_from_jsonl_files(
     path_list: list[pathlib.Path],
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> list[PerplexityResultsList]:
     """Load perplexity containers from pickle files."""
     loaded_data_list: list[PerplexityResultsList] = []
-    for path in tqdm(
+
+    for current_path in tqdm(
         path_list,
         desc="Iterating over path_list",
     ):
-        perplexity_results_list: PerplexityResultsList = []
-
-        with pathlib.Path(path).open(
-            mode="r",
-        ) as file:
-            # Iterate over lines in file
-            for line_idx, line in enumerate(
-                file,
-            ):
-                line_json = json.loads(line)
-                loaded_data = SentencePerplexityContainer.model_validate(
-                    obj=line_json,
-                )
-                perplexity_results_list.append(
-                    (line_idx, loaded_data),
-                )
+        current_perplexity_results_list = load_single_perplexity_container_from_jsonl_file(
+            path=current_path,
+        )
         loaded_data_list.append(
-            perplexity_results_list,
+            current_perplexity_results_list,
         )
 
     if verbosity >= Verbosity.NORMAL:
@@ -78,3 +66,32 @@ def load_perplexity_containers_from_jsonl_files(
         )
 
     return loaded_data_list
+
+
+def load_single_perplexity_container_from_jsonl_file(
+    path: pathlib.Path,
+) -> PerplexityResultsList:
+    """Load single perplexity container from jsonl file."""
+    perplexity_results_list: PerplexityResultsList = []
+
+    with pathlib.Path(path).open(
+        mode="r",
+    ) as file:
+        # Iterate over lines in file
+        for line_idx, line in enumerate(
+            file,
+        ):
+            line_json = json.loads(
+                line,
+            )
+            loaded_data = SentencePerplexityContainer.model_validate(
+                obj=line_json,
+            )
+            perplexity_results_list.append(
+                (
+                    line_idx,
+                    loaded_data,
+                ),
+            )
+
+    return perplexity_results_list
