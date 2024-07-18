@@ -37,13 +37,13 @@ data_samples=(
     "3000"
 )
 
-
-LANGUAGE_MODEL_LIST="roberta-base"
-
-# LANGUAGE_MODEL_LIST="model-roberta-base_task-MASKED_LM_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
-# LANGUAGE_MODEL_LIST="model-roberta-base_task-MASKED_LM_iclr_2024_submissions-train-5000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
-# LANGUAGE_MODEL_LIST="model-roberta-base_task-MASKED_LM_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
-# LANGUAGE_MODEL_LIST="model-roberta-base_task-MASKED_LM_wikitext-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
+language_models=(
+    "roberta-base"
+    "model-roberta-base_task-MASKED_LM_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
+    "model-roberta-base_task-MASKED_LM_iclr_2024_submissions-train-5000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
+    "model-roberta-base_task-MASKED_LM_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
+    "model-roberta-base_task-MASKED_LM_wikitext-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
+)
 
 # LANGUAGE_MODEL_LIST="roberta-base,roberta-base_finetuned-on-multiwoz21_ftm-lora"
 
@@ -52,10 +52,10 @@ LANGUAGE_MODEL_LIST="roberta-base"
 # LANGUAGE_MODEL_LIST="roberta-base_finetuned-on-one-year-of-tsla-on-reddit_ftm-standard_freeze-first-6-layers_overfitted"
 
 
-ADDITIONAL_OVERRIDES=""
-
 # Note: In the dimension experiments, we usually set `add_prefix_space=False` 
 # ADDITIONAL_OVERRIDES+=" tokenizer.add_prefix_space=True"
+
+# TODO(Ben): Iterate over the layer indices we want to process
 
 LAYER_INDICES_LIST="[-1]"
 # LAYER_INDICES_LIST="[-1],[-2]"
@@ -65,35 +65,41 @@ LAYER_INDICES_LIST="[-1]"
 EMBEDDINGS_DATA_PREP_NUM_SAMPLES="30000"
 # EMBEDDINGS_DATA_PREP_NUM_SAMPLES="10000,20000"
 
+ADDITIONAL_OVERRIDES=""
 
 # ==================================================== #
 
-TEMPLATE_STRING="A100_40GB"
+TEMPLATE_STRING="RTX6000"
 
 # Loop over the arrays
 for i in "${!data_lists[@]}"; do
     DATA_LIST="${data_lists[$i]}"
     DATA_NUMBER_OF_SAMPLES="${data_samples[$i]}"
 
-    echo "====================================================="
-    echo "DATA_LIST=${DATA_LIST}"
-    echo "DATA_NUMBER_OF_SAMPLES=${DATA_NUMBER_OF_SAMPLES}"
+    for LANGUAGE_MODEL_LIST in "${language_models[@]}"; do
+        echo "====================================================="
+        echo "DATA_LIST=${DATA_LIST}"
+        echo "DATA_NUMBER_OF_SAMPLES=${DATA_NUMBER_OF_SAMPLES}"
+        echo "LANGUAGE_MODEL_LIST=${LANGUAGE_MODEL_LIST}"
 
-    hpc run \
-        -n "compute_perplexity_job_submission_manual" \
-        -s "${RELATIVE_PYTHON_SCRIPT_PATH}" \
-        -a "data="$DATA_LIST" \
-        data.number_of_samples="$DATA_NUMBER_OF_SAMPLES" \
-        data.split="validation" \
-        language_model="$LANGUAGE_MODEL_LIST" \
-        embeddings.embedding_extraction.layer_indices=$LAYER_INDICES_LIST \
-        embeddings_data_prep.num_samples=$EMBEDDINGS_DATA_PREP_NUM_SAMPLES \
-        $ADDITIONAL_OVERRIDES" \
-        --template "${TEMPLATE_STRING}" \
-        --ncpus 4 \
-        --accelerator_model "rtx6000"
+        hpc run \
+            -n "compute_perplexity_job_submission_manual" \
+            -s "${RELATIVE_PYTHON_SCRIPT_PATH}" \
+            -a "data="$DATA_LIST" \
+            data.number_of_samples="$DATA_NUMBER_OF_SAMPLES" \
+            data.split="validation" \
+            language_model="$LANGUAGE_MODEL_LIST" \
+            embeddings.embedding_extraction.layer_indices=$LAYER_INDICES_LIST \
+            embeddings_data_prep.num_samples=$EMBEDDINGS_DATA_PREP_NUM_SAMPLES \
+            $ADDITIONAL_OVERRIDES" \
+            --template "${TEMPLATE_STRING}" \
+            --ncpus 4 \
+            --accelerator_model "rtx6000" \
+            --queue "CUDA"
 
-    echo "====================================================="
+        echo "====================================================="
+
+    done
 done
 
 # Exit with the return code of the last command
