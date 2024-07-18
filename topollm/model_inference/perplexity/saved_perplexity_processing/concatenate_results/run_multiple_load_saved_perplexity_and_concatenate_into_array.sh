@@ -29,7 +29,8 @@ language_models=(
     "model-roberta-base_task-MASKED_LM_wikitext-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
 )
 
-
+LAYER_INDICES_LIST="[-1]"
+EMBEDDINGS_DATA_PREP_NUM_SAMPLES="30000"
 
 ADDITIONAL_OVERRIDES=""
 # ADDITIONAL_OVERRIDES+="data.number_of_samples=50"
@@ -59,8 +60,11 @@ for i in "${!data_lists[@]}"; do
             data.number_of_samples="$DATA_NUMBER_OF_SAMPLES" \
             data.split="validation" \
             language_model=$LANGUAGE_MODEL_LIST \
+            embeddings.embedding_extraction.layer_indices=$LAYER_INDICES_LIST \
+            embeddings_data_prep.num_samples=$EMBEDDINGS_DATA_PREP_NUM_SAMPLES \
             $ADDITIONAL_OVERRIDES
 
+        exit 0 # TODO: Remove this line to run all the experiments
     done
 done
 

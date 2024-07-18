@@ -39,6 +39,7 @@ import torch
 import zarr
 from tqdm import tqdm
 
+from topollm.analysis.twonn.save_local_estimates import load_local_estimates
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
@@ -209,8 +210,6 @@ def main(
             logger=logger,
         )
 
-    # TODO: Write a textfile with statistics of the dataframe (mean, std, ...)
-
     token_perplexities_df_save_path = pathlib.Path(
         perplexity_dir,
         "perplexity_results_df.csv",
@@ -230,6 +229,99 @@ def main(
             "Saving token_perplexities_df to csv file DONE",
         )
 
+    # # # # # # # # # # # # # # # # # # # #
+    # Compute and save summary statistics
+
+    average_perplexity = token_perplexities_df["token_perplexity"].mean()
+    std_perplexity = token_perplexities_df["token_perplexity"].std()
+    num_samples = len(token_perplexities_df)
+
+    # TODO: This only currently works for the roberta tokenizer
+
+    bos_token_string = "<s>"
+    eos_token_string = "</s>"
+    average_perplexity_without_eos = token_perplexities_df[token_perplexities_df["token_string"] != eos_token_string][
+        "token_perplexity"
+    ].mean()
+    std_perplexity_without_eos = token_perplexities_df[token_perplexities_df["token_string"] != eos_token_string][
+        "token_perplexity"
+    ].std()
+    num_samples_without_eos = len(token_perplexities_df[token_perplexities_df["token_string"] != eos_token_string])
+
+    average_perplexity_without_special_tokens = token_perplexities_df[
+        ~token_perplexities_df["token_string"].isin([bos_token_string, eos_token_string])
+    ]["token_perplexity"].mean()
+    std_perplexity_without_special_tokens = token_perplexities_df[
+        ~token_perplexities_df["token_string"].isin([bos_token_string, eos_token_string])
+    ]["token_perplexity"].std()
+    num_samples_without_special_tokens = len(
+        token_perplexities_df[~token_perplexities_df["token_string"].isin([bos_token_string, eos_token_string])]
+    )
+
+    # Create string with statistics
+    statistics_string: str = (
+        f"{average_perplexity = }\n"
+        + f"{std_perplexity = }\n"
+        + f"{num_samples = }\n"
+        + f"{average_perplexity_without_eos = }\n"
+        + f"{std_perplexity_without_eos = }\n"
+        + f"{num_samples_without_eos = }\n"
+        + f"{average_perplexity_without_special_tokens = }\n"
+        + f"{std_perplexity_without_special_tokens = }\n"
+        + f"{num_samples_without_special_tokens = }\n"
+    )
+
+    # Write statistics to log
+    logger.info(
+        "statistics_string:\n%s",
+        statistics_string,
+    )
+
+    # Save statistics to text file in the perplexity directory
+
+    statistics_string_save_path = pathlib.Path(
+        perplexity_dir,
+        "perplexity_statistics.txt",
+    )
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            f"{statistics_string_save_path = }",  # noqa: G004 - low overhead
+        )
+        logger.info(
+            "Saving statistics_string to text file ...",
+        )
+
+    with statistics_string_save_path.open(
+        mode="w",
+    ) as f:
+        f.write(statistics_string)
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            "Saving statistics_string to text file DONE",
+        )
+
+    # # # # # # # # # # # # # # # # # # # #
+
+    # TODO: Make this more flexible
+
+    main_config.data.number_of_samples = 3000
+
+    local_estimates = load_local_estimates(
+        embeddings_path_manager=embeddings_path_manager,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+    print(local_estimates)
+    print(f"{local_estimates.shape = }")
+    print(f"{local_estimates.mean() = }")
+    print(f"{local_estimates.std() = }")
+
+    # TODO: Load the corresponding local dimension estimates and compute the correlation (naive t-test of unaligned data)
+    # TODO: Once we have the indices necessary for alignment, compute the pairwise correlation of the perplexities
+
+    # # # # # # # # # # # # # # # # # # # #
     logger.info("Running script DONE")
 
 

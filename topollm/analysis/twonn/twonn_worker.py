@@ -28,7 +28,6 @@
 """Run script to compute twoNN estimates from prepared embeddings."""
 
 import logging
-import pathlib
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -36,10 +35,10 @@ import skdim
 import torch
 
 from topollm.analysis.local_estimates.filter.get_local_estimates_filter import get_local_estimates_filter
+from topollm.analysis.twonn.save_local_estimates import save_local_estimates
 from topollm.config_classes.main_config import MainConfig
 from topollm.logging.log_array_info import log_array_info
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
-from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 from topollm.typing.enums import Verbosity
 
 if TYPE_CHECKING:
@@ -180,35 +179,3 @@ def twonn_worker(
         verbosity=verbosity,
         logger=logger,
     )
-
-
-def save_local_estimates(
-    embeddings_path_manager: EmbeddingsPathManager,
-    results_array_np: np.ndarray,
-    verbosity: Verbosity = Verbosity.NORMAL,
-    logger: logging.Logger = default_logger,
-) -> None:
-    """Save the local estimates array to disk."""
-    local_estimates_dir_absolute_path = embeddings_path_manager.get_local_estimates_dir_absolute_path()
-
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            f"{local_estimates_dir_absolute_path = }",  # noqa: G004 - low overhead
-        )
-
-    # Make sure the save path exists
-    pathlib.Path(local_estimates_dir_absolute_path).mkdir(
-        parents=True,
-        exist_ok=True,
-    )
-
-    if verbosity >= Verbosity.NORMAL:
-        logger.info("Saving local estimates array ...")
-
-    np.save(
-        file=embeddings_path_manager.get_local_estimates_array_save_path(),
-        arr=results_array_np,
-    )
-
-    if verbosity >= Verbosity.NORMAL:
-        logger.info("Saving local estimates array DONE")
