@@ -1,0 +1,8 @@
+- token-level perplexity distribution appears to be exponentially distributed
+  --> which statictical methods/significance tests apply here?
+- look at distributions of local topology measures and check whether they are always bimodal
+- align perplexity score with local dimension estimates
+- select model based on validation --> check on test set
+- do not measure linear correlation, but use the monotonous correlation:
+  - token level correlation analysis
+  - "model-level" correlation analysis
