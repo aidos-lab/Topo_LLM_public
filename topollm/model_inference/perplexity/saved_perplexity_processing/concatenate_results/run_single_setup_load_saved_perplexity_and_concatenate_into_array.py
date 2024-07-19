@@ -55,6 +55,7 @@ from topollm.model_inference.perplexity.saved_perplexity_processing.load_perplex
 from topollm.model_inference.perplexity.sentence_perplexity_container import SentencePerplexityContainer
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
 from topollm.typing.enums import PerplexityContainerSaveFormat, Verbosity
+from topollm.typing.types import PerplexityResultsList
 
 if TYPE_CHECKING:
     from topollm.config_classes.main_config import MainConfig
@@ -115,7 +116,7 @@ def main(
             save_file_path_josnl,
         )
 
-    loaded_data_list = load_multiple_perplexity_containers_from_jsonl_files(
+    loaded_data_list: list[PerplexityResultsList] = load_multiple_perplexity_containers_from_jsonl_files(
         path_list=[
             save_file_path_josnl,
         ],
@@ -124,7 +125,10 @@ def main(
     )
 
     # Since we are only loading one container, we can directly access the first element
-    loaded_data = loaded_data_list[0]
+    loaded_data: PerplexityResultsList = loaded_data_list[0]
+
+    # # # #
+    # Convert the token perplexities to a pandas dataframe
 
     # Empty lists for holding the concatenated data
     token_ids_list: list[int] = []
@@ -160,12 +164,28 @@ def main(
         )
         log_list_info(
             token_perplexities_list,
-            list_name="perplexity_list",
+            list_name="token_perplexities_list",
+            logger=logger,
+        )
+
+    token_perplexities_df = pd.DataFrame(
+        {
+            "token_id": token_ids_list,
+            "token_string": token_strings_list,
+            "token_perplexity": token_perplexities_list,
+        },
+    )
+
+    if verbosity >= Verbosity.NORMAL:
+        log_dataframe_info(
+            token_perplexities_df,
+            df_name="token_perplexities_df",
+            check_for_nan=True,
             logger=logger,
         )
 
     # # # #
-    # Convert the token perplexities list to a numpy array and save as zarr array
+    # Save token perplexities as zarr array
 
     token_perplexities_array = np.array(
         token_perplexities_list,
@@ -192,23 +212,7 @@ def main(
         )
 
     # # # #
-    # Convert the token perplexities to a pandas dataframe and save as csv
-
-    token_perplexities_df = pd.DataFrame(
-        {
-            "token_id": token_ids_list,
-            "token_string": token_strings_list,
-            "token_perplexity": token_perplexities_list,
-        },
-    )
-
-    if verbosity >= Verbosity.NORMAL:
-        log_dataframe_info(
-            token_perplexities_df,
-            df_name="token_perplexities_df",
-            check_for_nan=True,
-            logger=logger,
-        )
+    # Save token perplexities pandas dataframe as csv
 
     token_perplexities_df_save_path = pathlib.Path(
         perplexity_dir,
@@ -259,8 +263,8 @@ def main(
     )
 
     # Create string with statistics
-    statistics_string: str = (
-        f"{average_perplexity = }\n"
+    perplexities_statistics_string: str = (
+        f"{average_perplexity = }\n"  # noqa: ISC003 - explicit string concatenation to avoid confusion
         + f"{std_perplexity = }\n"
         + f"{num_samples = }\n"
         + f"{average_perplexity_without_eos = }\n"
@@ -272,40 +276,50 @@ def main(
     )
 
     # Write statistics to log
-    logger.info(
-        "statistics_string:\n%s",
-        statistics_string,
-    )
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            "perplexities_statistics_string:\n%s",
+            perplexities_statistics_string,
+        )
 
     # Save statistics to text file in the perplexity directory
 
-    statistics_string_save_path = pathlib.Path(
+    perplexities_statistics_string_save_path = pathlib.Path(
         perplexity_dir,
         "perplexity_statistics.txt",
     )
     if verbosity >= Verbosity.NORMAL:
         logger.info(
-            f"{statistics_string_save_path = }",  # noqa: G004 - low overhead
+            f"{perplexities_statistics_string_save_path = }",  # noqa: G004 - low overhead
         )
         logger.info(
-            "Saving statistics_string to text file ...",
+            "Saving perplexities_statistics_string to text file ...",
         )
 
-    with statistics_string_save_path.open(
+    with perplexities_statistics_string_save_path.open(
         mode="w",
     ) as f:
-        f.write(statistics_string)
+        f.write(
+            perplexities_statistics_string,
+        )
 
     if verbosity >= Verbosity.NORMAL:
         logger.info(
-            "Saving statistics_string to text file DONE",
+            "Saving perplexities_statistics_string to text file DONE",
         )
 
     # # # # # # # # # # # # # # # # # # # #
 
-    # TODO: Make this more flexible
+    # Set the parameters so that the correct local estimates are loaded.
+    # Note that we have to do this because the number of sequences for the perplexity computation
+    # might be different from the number of sequences for the local estimates computation.
 
-    main_config.data.number_of_samples = 3000
+    # TODO: Make this more flexible (we will make this an additional function parameter later)
+
+    if main_config.data.dataset_description_string == "multiwoz21":
+        main_config.data.number_of_samples = 3000
+    else:
+        main_config.data.number_of_samples = -1
 
     local_estimates = load_local_estimates(
         embeddings_path_manager=embeddings_path_manager,
@@ -313,13 +327,47 @@ def main(
         logger=logger,
     )
 
-    print(local_estimates)
-    print(f"{local_estimates.shape = }")
-    print(f"{local_estimates.mean() = }")
-    print(f"{local_estimates.std() = }")
+    # Create string with statistics
+    local_estimates_statistics_string: str = (
+        f"{local_estimates.shape = }\n"  # noqa: ISC003 - explicit string concatenation to avoid confusion
+        + f"{local_estimates.mean() = }\n"
+        + f"{local_estimates.std() = }\n"
+    )
 
-    # TODO: Load the corresponding local dimension estimates and compute the correlation (naive t-test of unaligned data)
-    # TODO: Once we have the indices necessary for alignment, compute the pairwise correlation of the perplexities
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            "local_estimates_statistics_string:\n%s",
+            local_estimates_statistics_string,
+        )
+
+    # Save statistics to text file in the perplexity directory
+
+    local_estimates_string_save_path = pathlib.Path(
+        perplexity_dir,
+        "local_estimates_statistics.txt",
+    )
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            f"{local_estimates_string_save_path = }",  # noqa: G004 - low overhead
+        )
+        logger.info(
+            "Saving local_estimates_statistics_string to text file ...",
+        )
+
+    with local_estimates_string_save_path.open(
+        mode="w",
+    ) as f:
+        f.write(
+            local_estimates_statistics_string,
+        )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            "Saving local_estimates_statistics_string to text file DONE",
+        )
+
+    # TODO: Synchronize the metadata of the local estimates from HHU hilbert and align with local estimates
+    # TODO: Align the corresponding local estimates of the tokens for which we have both measures, compute the pairwise correlation of the perplexities with the local estimates
 
     # # # # # # # # # # # # # # # # # # # #
     logger.info("Running script DONE")
