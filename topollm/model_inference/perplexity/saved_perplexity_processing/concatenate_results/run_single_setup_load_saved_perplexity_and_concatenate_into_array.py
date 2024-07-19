@@ -49,16 +49,13 @@ from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.model_inference.perplexity.saved_perplexity_processing.load_perplexity_containers_from_jsonl_files import (
     load_multiple_perplexity_containers_from_jsonl_files,
 )
-from topollm.model_inference.perplexity.saved_perplexity_processing.load_perplexity_containers_from_pickle_files import (
-    load_perplexity_containers_from_pickle_files,
-)
-from topollm.model_inference.perplexity.sentence_perplexity_container import SentencePerplexityContainer
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
-from topollm.typing.enums import PerplexityContainerSaveFormat, Verbosity
-from topollm.typing.types import PerplexityResultsList
+from topollm.typing.enums import Verbosity
 
 if TYPE_CHECKING:
     from topollm.config_classes.main_config import MainConfig
+    from topollm.model_inference.perplexity.sentence_perplexity_container import SentencePerplexityContainer
+    from topollm.typing.types import PerplexityResultsList
 
 default_device = torch.device("cpu")
 default_logger = logging.getLogger(__name__)
@@ -321,6 +318,10 @@ def main(
     else:
         main_config.data.number_of_samples = -1
 
+    # TODO: We currently set this manually here to run the script for different embedding indices
+    # TODO: This currently needs to happen after the perplexity loading, because otherwise we pick the wrong path to the perplexity directory (for legacy reasons, this contains the layer index, even though this would not be necessary)
+    main_config.embeddings.embedding_extraction.layer_indices = [-9]
+
     local_estimates = load_local_estimates(
         embeddings_path_manager=embeddings_path_manager,
         verbosity=verbosity,
@@ -332,6 +333,8 @@ def main(
         f"{local_estimates.shape = }\n"  # noqa: ISC003 - explicit string concatenation to avoid confusion
         + f"{local_estimates.mean() = }\n"
         + f"{local_estimates.std() = }\n"
+        + f"{main_config.data.number_of_samples = }\n"
+        + f"{main_config.embeddings.embedding_extraction.layer_indices = }\n"
     )
 
     if verbosity >= Verbosity.NORMAL:
@@ -342,9 +345,12 @@ def main(
 
     # Save statistics to text file in the perplexity directory
 
+    local_estimates_string_save_file_name: str = (
+        "local_estimates_statistics" + f"layer-{main_config.embeddings.embedding_extraction.layer_indices}" + ".txt"
+    )
     local_estimates_string_save_path = pathlib.Path(
         perplexity_dir,
-        "local_estimates_statistics.txt",
+        local_estimates_string_save_file_name,
     )
     if verbosity >= Verbosity.NORMAL:
         logger.info(
@@ -359,6 +365,10 @@ def main(
     ) as f:
         f.write(
             local_estimates_statistics_string,
+        )
+        # Write the main_config to the file as well
+        f.write(
+            f"\n\nmain_config:\n{main_config}\n",
         )
 
     if verbosity >= Verbosity.NORMAL:
