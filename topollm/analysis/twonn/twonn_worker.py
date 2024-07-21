@@ -35,6 +35,7 @@ import skdim
 import torch
 
 from topollm.analysis.local_estimates.filter.get_local_estimates_filter import get_local_estimates_filter
+from topollm.analysis.local_estimates.saving.local_estimates_containers import LocalEstimatesContainer
 from topollm.analysis.local_estimates.saving.save_local_estimates import save_local_estimates
 from topollm.config_classes.main_config import MainConfig
 from topollm.embeddings_data_prep.prepared_data_containers import PreparedData
@@ -173,12 +174,14 @@ def twonn_worker(
 
     # # # #
     # Save the results
-
-    # TODO: Implement saving of the metadata as well
+    local_estimates_container = LocalEstimatesContainer(
+        results_array_np=results_array_np,
+        results_meta_frame=prepared_data_filtered_truncated.meta_frame,
+    )
 
     save_local_estimates(
         embeddings_path_manager=embeddings_path_manager,
-        results_array_np=results_array_np,
+        local_estimates_container=local_estimates_container,
         verbosity=verbosity,
         logger=logger,
     )

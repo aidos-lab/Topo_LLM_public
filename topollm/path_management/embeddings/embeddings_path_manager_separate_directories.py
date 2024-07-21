@@ -293,3 +293,14 @@ class EmbeddingsPathManagerSeparateDirectories:
         )
 
         return path
+
+    def get_local_estimates_meta_save_path(
+        self,
+        local_estimates_meta_file_name: str = "local_estimates_paddings_removed_meta.pkl",
+    ) -> pathlib.Path:
+        path = pathlib.Path(
+            self.get_local_estimates_dir_absolute_path(),
+            local_estimates_meta_file_name,
+        )
+
+        return path

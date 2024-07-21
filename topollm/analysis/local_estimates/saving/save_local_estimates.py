@@ -30,6 +30,7 @@ import pathlib
 
 import numpy as np
 
+from topollm.analysis.local_estimates.saving.local_estimates_containers import LocalEstimatesContainer
 from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 from topollm.typing.enums import Verbosity
 
@@ -38,13 +39,14 @@ default_logger = logging.getLogger(__name__)
 
 def save_local_estimates(
     embeddings_path_manager: EmbeddingsPathManager,
-    results_array_np: np.ndarray,
+    local_estimates_container: LocalEstimatesContainer,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> None:
     """Save the local estimates array to disk."""
     local_estimates_dir_absolute_path = embeddings_path_manager.get_local_estimates_dir_absolute_path()
     local_estimates_array_save_path = embeddings_path_manager.get_local_estimates_array_save_path()
+    local_estimates_meta_save_path = embeddings_path_manager.get_local_estimates_meta_save_path()
 
     if verbosity >= Verbosity.NORMAL:
         logger.info(
@@ -52,6 +54,9 @@ def save_local_estimates(
         )
         logger.info(
             f"{local_estimates_array_save_path = }",  # noqa: G004 - low overhead
+        )
+        logger.info(
+            f"{local_estimates_meta_save_path = }",  # noqa: G004 - low overhead
         )
 
     # Make sure the save path exists
@@ -65,11 +70,25 @@ def save_local_estimates(
 
     np.save(
         file=local_estimates_array_save_path,
-        arr=results_array_np,
+        arr=local_estimates_container.results_array_np,
     )
 
     if verbosity >= Verbosity.NORMAL:
         logger.info("Saving local estimates array DONE")
+
+    if local_estimates_container.results_meta_frame is None:
+        logger.info("No meta data to save.")
+        return
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info("Saving local estimates meta ...")
+
+    local_estimates_container.results_meta_frame.to_pickle(
+        path=local_estimates_meta_save_path,
+    )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info("Saving local estimates meta DONE")
 
 
 def load_local_estimates(
@@ -78,6 +97,8 @@ def load_local_estimates(
     logger: logging.Logger = default_logger,
 ) -> np.ndarray:
     """Load the local estimates array from disk."""
+    # TODO: Update this to the container format
+
     local_estimates_dir_absolute_path = embeddings_path_manager.get_local_estimates_dir_absolute_path()
     local_estimates_array_save_path = embeddings_path_manager.get_local_estimates_array_save_path()
 
