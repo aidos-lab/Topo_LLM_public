@@ -39,6 +39,7 @@ import torch
 import zarr
 from tqdm import tqdm
 
+from topollm.analysis.local_estimates.saving.local_estimates_containers import LocalEstimatesContainer
 from topollm.analysis.local_estimates.saving.save_local_estimates import load_local_estimates
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
@@ -51,11 +52,11 @@ from topollm.model_inference.perplexity.saved_perplexity_processing.load_perplex
 )
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
 from topollm.typing.enums import Verbosity
+from topollm.typing.types import PerplexityResultsList
 
 if TYPE_CHECKING:
     from topollm.config_classes.main_config import MainConfig
     from topollm.model_inference.perplexity.sentence_perplexity_container import SentencePerplexityContainer
-    from topollm.typing.types import PerplexityResultsList
 
 default_device = torch.device("cpu")
 default_logger = logging.getLogger(__name__)
@@ -126,68 +127,14 @@ def main(
 
     # # # #
     # Convert the token perplexities to a pandas dataframe
-
-    # Empty lists for holding the concatenated data
-    token_ids_list: list[int] = []
-    token_strings_list: list[str] = []
-    token_perplexities_list: list[float] = []
-
-    for _, sentence_perplexity_container in tqdm(
-        loaded_data,
-        desc="Iterating over loaded_data",
-    ):
-        sentence_perplexity_container: SentencePerplexityContainer
-
-        token_ids_list.extend(
-            sentence_perplexity_container.token_ids,
-        )
-        token_strings_list.extend(
-            sentence_perplexity_container.token_strings,
-        )
-        token_perplexities_list.extend(
-            sentence_perplexity_container.token_perplexities,
-        )
-
-    if verbosity >= Verbosity.NORMAL:
-        log_list_info(
-            token_ids_list,
-            list_name="token_ids_list",
-            logger=logger,
-        )
-        log_list_info(
-            token_strings_list,
-            list_name="token_strings_list",
-            logger=logger,
-        )
-        log_list_info(
-            token_perplexities_list,
-            list_name="token_perplexities_list",
-            logger=logger,
-        )
-
-    token_perplexities_df = pd.DataFrame(
-        {
-            "token_id": token_ids_list,
-            "token_string": token_strings_list,
-            "token_perplexity": token_perplexities_list,
-        },
+    token_perplexities_df, token_perplexities_array = convert_perplexity_results_list_to_dataframe(
+        loaded_data=loaded_data,
+        verbosity=verbosity,
+        logger=logger,
     )
-
-    if verbosity >= Verbosity.NORMAL:
-        log_dataframe_info(
-            token_perplexities_df,
-            df_name="token_perplexities_df",
-            check_for_nan=True,
-            logger=logger,
-        )
 
     # # # #
     # Save token perplexities as zarr array
-
-    token_perplexities_array = np.array(
-        token_perplexities_list,
-    )
-
     token_perplexities_zarr_array_save_path = pathlib.Path(
         perplexity_dir,
         "perplexity_results_array.zarr",
@@ -322,17 +269,21 @@ def main(
     # TODO: This currently needs to happen after the perplexity loading, because otherwise we pick the wrong path to the perplexity directory (for legacy reasons, this contains the layer index, even though this would not be necessary)
     main_config.embeddings.embedding_extraction.layer_indices = [-9]
 
-    local_estimates = load_local_estimates(
+    local_estimates_container: LocalEstimatesContainer = load_local_estimates(
         embeddings_path_manager=embeddings_path_manager,
         verbosity=verbosity,
         logger=logger,
     )
 
+    # TODO: Handle the loaded metadata
+
+    local_estimates_array_np = local_estimates_container.results_array_np
+
     # Create string with statistics
     local_estimates_statistics_string: str = (
-        f"{local_estimates.shape = }\n"  # noqa: ISC003 - explicit string concatenation to avoid confusion
-        + f"{local_estimates.mean() = }\n"
-        + f"{local_estimates.std() = }\n"
+        f"{local_estimates_array_np.shape = }\n"  # noqa: ISC003 - explicit string concatenation to avoid confusion
+        + f"{local_estimates_array_np.mean() = }\n"
+        + f"{local_estimates_array_np.std() = }\n"
         + f"{main_config.data.number_of_samples = }\n"
         + f"{main_config.embeddings.embedding_extraction.layer_indices = }\n"
     )
@@ -381,6 +332,75 @@ def main(
 
     # # # # # # # # # # # # # # # # # # # #
     logger.info("Running script DONE")
+
+
+def convert_perplexity_results_list_to_dataframe(
+    loaded_data: PerplexityResultsList,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> tuple[
+    pd.DataFrame,
+    np.ndarray,
+]:
+    # Empty lists for holding the concatenated data
+    token_ids_list: list[int] = []
+    token_strings_list: list[str] = []
+    token_perplexities_list: list[float] = []
+
+    for _, sentence_perplexity_container in tqdm(
+        loaded_data,
+        desc="Iterating over loaded_data",
+    ):
+        sentence_perplexity_container: SentencePerplexityContainer
+
+        token_ids_list.extend(
+            sentence_perplexity_container.token_ids,
+        )
+        token_strings_list.extend(
+            sentence_perplexity_container.token_strings,
+        )
+        token_perplexities_list.extend(
+            sentence_perplexity_container.token_perplexities,
+        )
+
+    if verbosity >= Verbosity.NORMAL:
+        log_list_info(
+            token_ids_list,
+            list_name="token_ids_list",
+            logger=logger,
+        )
+        log_list_info(
+            token_strings_list,
+            list_name="token_strings_list",
+            logger=logger,
+        )
+        log_list_info(
+            token_perplexities_list,
+            list_name="token_perplexities_list",
+            logger=logger,
+        )
+
+    token_perplexities_df = pd.DataFrame(
+        {
+            "token_id": token_ids_list,
+            "token_string": token_strings_list,
+            "token_perplexity": token_perplexities_list,
+        },
+    )
+
+    if verbosity >= Verbosity.NORMAL:
+        log_dataframe_info(
+            token_perplexities_df,
+            df_name="token_perplexities_df",
+            check_for_nan=True,
+            logger=logger,
+        )
+
+    token_perplexities_array = np.array(
+        token_perplexities_list,
+    )
+
+    return token_perplexities_df, token_perplexities_array
 
 
 if __name__ == "__main__":

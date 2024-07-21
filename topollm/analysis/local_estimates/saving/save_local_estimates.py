@@ -29,6 +29,7 @@ import logging
 import pathlib
 
 import numpy as np
+import pandas as pd
 
 from topollm.analysis.local_estimates.saving.local_estimates_containers import LocalEstimatesContainer
 from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
@@ -95,12 +96,11 @@ def load_local_estimates(
     embeddings_path_manager: EmbeddingsPathManager,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
-) -> np.ndarray:
-    """Load the local estimates array from disk."""
-    # TODO: Update this to the container format
-
+) -> LocalEstimatesContainer:
+    """Load the local estimates from disk."""
     local_estimates_dir_absolute_path = embeddings_path_manager.get_local_estimates_dir_absolute_path()
     local_estimates_array_save_path = embeddings_path_manager.get_local_estimates_array_save_path()
+    local_estimates_meta_save_path = embeddings_path_manager.get_local_estimates_meta_save_path()
 
     if verbosity >= Verbosity.NORMAL:
         logger.info(
@@ -108,6 +108,9 @@ def load_local_estimates(
         )
         logger.info(
             f"{local_estimates_array_save_path = }",  # noqa: G004 - low overhead
+        )
+        logger.info(
+            f"{local_estimates_meta_save_path = }",  # noqa: G004 - low overhead
         )
 
     if verbosity >= Verbosity.NORMAL:
@@ -120,4 +123,29 @@ def load_local_estimates(
     if verbosity >= Verbosity.NORMAL:
         logger.info("Loading local estimates array DONE")
 
-    return local_estimates_array
+    # Check if the meta data exists
+    if not pathlib.Path(
+        local_estimates_meta_save_path,
+    ).exists():
+        logger.warning(
+            "No meta data found.",
+        )
+        return LocalEstimatesContainer(
+            results_array_np=local_estimates_array,
+            results_meta_frame=None,
+        )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info("Loading local estimates meta ...")
+
+    # Load the meta data
+    local_estimates_meta_frame: pd.DataFrame = pd.read_pickle(  # noqa: S301 - we trust our own data
+        filepath_or_buffer=local_estimates_meta_save_path,
+    )
+
+    local_estimates_container = LocalEstimatesContainer(
+        results_array_np=local_estimates_array,
+        results_meta_frame=local_estimates_meta_frame,
+    )
+
+    return local_estimates_container

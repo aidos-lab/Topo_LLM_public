@@ -198,7 +198,7 @@ def test_worker_for_pipeline(
     logger_fixture: logging.Logger,
 ) -> None:
     """Test the pipeline function."""
-    logger_fixture.info("Testing worker_for_pipeline ...")
+    logger_fixture.info("Testing `worker_for_pipeline` ...")
     logger_fixture.info(
         "main_config_with_small_dataset_and_model:%s",
         main_config_with_small_dataset_and_model,
