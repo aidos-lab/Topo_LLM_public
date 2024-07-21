@@ -25,7 +25,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Test the do_inference function."""
+"""Test the worker_for_pipeline function."""
 
 import logging
 
@@ -58,7 +58,6 @@ from topollm.typing.enums import (
     DatasetType,
     DataSplitMode,
     LMmode,
-    MaskingMode,
     MetadataStorageType,
     PreferredTorchBackend,
     Split,

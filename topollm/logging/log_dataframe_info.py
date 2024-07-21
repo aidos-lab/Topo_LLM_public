@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -27,6 +25,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Log information about a pandas DataFrame or an array."""
+
 import logging
 import pprint
 import warnings
@@ -34,18 +34,21 @@ import warnings
 import numpy as np
 import pandas as pd
 
+default_logger = logging.getLogger(__name__)
+
 
 def log_dataframe_info(
     df: pd.DataFrame,
     df_name: str,
     max_log_rows: int = 20,
+    *,
     check_for_nan: bool = True,
-    logger: logging.Logger = logging.getLogger(__name__),
+    logger: logging.Logger = default_logger,
 ) -> None:
-    """
-    Logs information about a pandas DataFrame.
+    """Log information about a pandas DataFrame.
 
     Args:
+    ----
         df (pd.DataFrame):
             The DataFrame to log information about.
         df_name (str):
@@ -66,80 +69,30 @@ def log_dataframe_info(
     Side effects:
         Logs information about the DataFrame to the logger.
     """
-
-    logger.info(f"{df_name}.shape:\n" f"{df.shape}")
-    logger.info(f"{df_name}.info():\n" f"{df.info()}")
     logger.info(
-        f"{df_name}.head({max_log_rows}):\n" f"{df.head(max_log_rows).to_string()}"
+        f"{df_name}.shape:\n{df.shape}",  # noqa: G004 - low overhead
     )
     logger.info(
-        f"{df_name}.tail({max_log_rows}):\n" f"{df.tail(max_log_rows).to_string()}"
+        f"{df_name}.info():\n{df.info()}",  # noqa: G004 - low overhead
+    )
+    logger.info(
+        f"{df_name}.head({max_log_rows}):\n{df.head(max_log_rows).to_string()}",  # noqa: G004 - low overhead
+    )
+    logger.info(
+        f"{df_name}.tail({max_log_rows}):\n{df.tail(max_log_rows).to_string()}",  # noqa: G004 - low overhead
     )
 
     if check_for_nan:
         # Check if the dataframe contains NaN values
         has_nan = df.isna().any().any()
-        logger.info(f"has_nan:\n" f"{has_nan}")
+        logger.info(
+            f"has_nan:\n{has_nan}",  # noqa: G004 - low overhead
+        )
 
         if has_nan:
-            logger.warning(f"{df_name}.isna().sum():\n" f"{df.isna().sum()}")
-            warnings.warn(
-                f"The dataframe contains NaN values. "
-                f"Please make sure that this is intended.",
+            logger.warning(
+                f"{df_name}.isna().sum():\n{df.isna().sum()}",  # noqa: G004 - low overhead
             )
-
-    return
-
-
-def log_array_info(
-    array_: np.ndarray,
-    array_name: str,
-    slice_size_to_log: int = 20,
-    log_array_size: bool = False,
-    log_row_l2_norms: bool = False,
-    log_chunks: bool = False,
-    logger: logging.Logger = logging.getLogger(__name__),
-) -> None:
-    logger.info(f"type({array_name}):\n" f"{type(array_)}")
-
-    logger.info(f"{array_name}.shape:\n" f"{array_.shape}")
-    logger.info(f"{array_name}.dtype:\n" f"{array_.dtype}")
-    logger.info(
-        f"{array_name}[:{slice_size_to_log}]:\n"
-        f"{pprint.pformat(array_[:slice_size_to_log])}"
-    )
-    logger.info(
-        f"{array_name}[-{slice_size_to_log}:]:\n"
-        f"{pprint.pformat(array_[-slice_size_to_log:])}"
-    )
-
-    if log_array_size:
-        # Estimate the size of the .npy file in MB
-        logger.info(f"{array_name}.nbytes:\n" f"{array_.nbytes}")
-        array_file_size_MB = array_.nbytes / 1024**2
-        logger.info(f"{array_name} size in MB:\n" f"{array_file_size_MB:.3f} MB")
-
-    if log_chunks:
-        # If array_ has a chunks attribute,
-        # for instance if it is a zarr.core.Array,
-        # log the chunks attribute
-        if hasattr(
-            array_,
-            "chunks",
-        ):
-            logger.info(f"{array_name}.chunks:\n" f"{array_.chunks}")  # type: ignore
-        else:
-            logger.info(f"{array_name} has no chunks attribute.")
-
-    if log_row_l2_norms:
-        # Log the L2-norms of the first and last 10 rows of features_np
-        logger.info(
-            f"np.linalg.norm({array_name}[:{slice_size_to_log}], axis=1):\n"
-            f"{np.linalg.norm(array_[:slice_size_to_log], axis=1)}"
-        )
-        logger.info(
-            f"np.linalg.norm({array_name}[-{slice_size_to_log}:], axis=1):\n"
-            f"{np.linalg.norm(array_[-slice_size_to_log:], axis=1)}"
-        )
-
-    return
+            warnings.warn(
+                f"The dataframe contains NaN values. " f"Please make sure that this is intended.",
+            )
