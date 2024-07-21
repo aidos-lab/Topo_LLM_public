@@ -99,12 +99,10 @@ def twonn_worker(
 
     # Restrict to the first `local_estimates_sample_size` samples
     local_estimates_sample_size = main_config.local_estimates.filtering.num_samples
-    local_estimates_sample_size = min(
-        local_estimates_sample_size,
-        arr_no_pad_filtered.shape[0],
+    arr_no_pad_truncated = truncate_data(
+        arr_no_pad_filtered=arr_no_pad_filtered,
+        local_estimates_sample_size=local_estimates_sample_size,
     )
-
-    arr_no_pad_truncated = arr_no_pad_filtered[:local_estimates_sample_size]
 
     if verbosity >= Verbosity.NORMAL:
         log_array_info(
@@ -180,3 +178,17 @@ def twonn_worker(
         verbosity=verbosity,
         logger=logger,
     )
+
+
+def truncate_data(
+    arr_no_pad_filtered: np.ndarray,
+    local_estimates_sample_size: int,
+) -> np.ndarray:
+    """Truncate the data to the first `local_estimates_sample_size` samples."""
+    local_estimates_sample_size = min(
+        local_estimates_sample_size,
+        arr_no_pad_filtered.shape[0],
+    )
+
+    arr_no_pad_truncated = arr_no_pad_filtered[:local_estimates_sample_size]
+    return arr_no_pad_truncated
