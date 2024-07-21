@@ -36,6 +36,7 @@ import torch
 
 from topollm.config_classes.main_config import MainConfig
 from topollm.embeddings_data_prep.load_and_stack_embedding_data import load_and_stack_embedding_data
+from topollm.embeddings_data_prep.prepared_data_containers import PreparedData
 from topollm.embeddings_data_prep.save_prepared_data import save_prepared_data
 from topollm.logging.log_array_info import log_array_info
 from topollm.logging.log_dataframe_info import log_dataframe_info
@@ -134,6 +135,11 @@ def embeddings_data_prep_worker(
         )
 
     if verbosity >= Verbosity.NORMAL:
+        log_array_info(
+            arr_no_pad_subsampled,
+            array_name="arr_no_pad_subsampled",
+            logger=logger,
+        )
         log_dataframe_info(
             meta_frame_no_pad_subsampled,
             df_name="meta_frame",
@@ -142,10 +148,14 @@ def embeddings_data_prep_worker(
 
     # # # #
     # Save the prepared data
-    save_prepared_data(
-        embeddings_path_manager=embeddings_path_manager,
+    prepared_data = PreparedData(
         arr_no_pad=arr_no_pad_subsampled,
         meta_frame=meta_frame_no_pad_subsampled,
+    )
+
+    save_prepared_data(
+        embeddings_path_manager=embeddings_path_manager,
+        prepared_data=prepared_data,
         verbosity=verbosity,
         logger=logger,
     )

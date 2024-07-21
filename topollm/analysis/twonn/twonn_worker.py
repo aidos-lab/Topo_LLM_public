@@ -37,6 +37,8 @@ import torch
 from topollm.analysis.local_estimates.filter.get_local_estimates_filter import get_local_estimates_filter
 from topollm.analysis.twonn.save_local_estimates import save_local_estimates
 from topollm.config_classes.main_config import MainConfig
+from topollm.embeddings_data_prep.prepared_data_containers import PreparedData
+from topollm.embeddings_data_prep.save_prepared_data import load_prepared_data
 from topollm.logging.log_array_info import log_array_info
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
 from topollm.typing.enums import Verbosity
@@ -61,16 +63,15 @@ def twonn_worker(
     )
 
     # # # #
-    # Load the prepared data array
-    prepared_data_array_save_path = embeddings_path_manager.get_prepared_data_array_save_path()
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            f"{prepared_data_array_save_path = }",  # noqa: G004 - low overhead
-        )
-
-    arr_no_pad = np.load(
-        file=prepared_data_array_save_path,
+    # Load the prepared data.
+    # Logging of the loaded data is handled in the loading function.
+    prepared_data: PreparedData = load_prepared_data(
+        embeddings_path_manager=embeddings_path_manager,
+        verbosity=verbosity,
+        logger=logger,
     )
+
+    arr_no_pad = prepared_data.arr_no_pad
 
     if verbosity >= Verbosity.NORMAL:
         log_array_info(

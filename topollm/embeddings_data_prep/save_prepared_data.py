@@ -25,12 +25,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Saving and loading of prepared data."""
+
 import logging
 import pathlib
 
 import numpy as np
 import pandas as pd
 
+from topollm.embeddings_data_prep.prepared_data_containers import PreparedData
+from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 from topollm.typing.enums import Verbosity
 
@@ -39,8 +43,7 @@ default_logger = logging.getLogger(__name__)
 
 def save_prepared_data(
     embeddings_path_manager: EmbeddingsPathManager,
-    arr_no_pad: np.ndarray,
-    meta_frame: pd.DataFrame,
+    prepared_data: PreparedData,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> None:
@@ -63,12 +66,47 @@ def save_prepared_data(
     # Save the prepared data
     np.save(
         file=embeddings_path_manager.get_prepared_data_array_save_path(),
-        arr=arr_no_pad,
+        arr=prepared_data.arr_no_pad,
     )
 
-    meta_frame.to_pickle(
+    prepared_data.meta_frame.to_pickle(
         path=embeddings_path_manager.get_prepared_data_meta_save_path(),
     )
 
 
-# TODO: Add function for loading prepared data (so that we have this in one place)
+def load_prepared_data(
+    embeddings_path_manager: EmbeddingsPathManager,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> PreparedData:
+    """Load the prepared data."""
+    prepared_data_array_save_path = embeddings_path_manager.get_prepared_data_array_save_path()
+    prepared_data_meta_save_path = embeddings_path_manager.get_prepared_data_meta_save_path()
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            f"{prepared_data_array_save_path = }",  # noqa: G004 - low overhead
+        )
+        logger.info(
+            f"{prepared_data_meta_save_path = }",  # noqa: G004 - low overhead
+        )
+
+    arr_no_pad = np.load(
+        file=prepared_data_array_save_path,
+    )
+
+    meta_frame = pd.read_pickle(  # noqa: S301 - we trust the data since it is our own
+        prepared_data_meta_save_path,
+    )
+
+    prepared_data = PreparedData(
+        arr_no_pad=arr_no_pad,
+        meta_frame=meta_frame,
+    )
+
+    if verbosity >= Verbosity.NORMAL:
+        prepared_data.log_info(
+            logger=logger,
+        )
+
+    return prepared_data
