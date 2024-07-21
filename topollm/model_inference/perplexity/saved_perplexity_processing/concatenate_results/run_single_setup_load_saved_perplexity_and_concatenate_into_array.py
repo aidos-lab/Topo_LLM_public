@@ -39,7 +39,7 @@ import torch
 import zarr
 from tqdm import tqdm
 
-from topollm.analysis.twonn.save_local_estimates import load_local_estimates
+from topollm.analysis.local_estimates.saving.save_local_estimates import load_local_estimates
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration

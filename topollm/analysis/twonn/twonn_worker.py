@@ -35,7 +35,7 @@ import skdim
 import torch
 
 from topollm.analysis.local_estimates.filter.get_local_estimates_filter import get_local_estimates_filter
-from topollm.analysis.twonn.save_local_estimates import save_local_estimates
+from topollm.analysis.local_estimates.saving.save_local_estimates import save_local_estimates
 from topollm.config_classes.main_config import MainConfig
 from topollm.embeddings_data_prep.prepared_data_containers import PreparedData
 from topollm.embeddings_data_prep.save_prepared_data import load_prepared_data
