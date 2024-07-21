@@ -71,12 +71,10 @@ def twonn_worker(
         logger=logger,
     )
 
-    arr_no_pad = prepared_data.arr_no_pad
-
     if verbosity >= Verbosity.NORMAL:
         log_array_info(
-            arr_no_pad,
-            array_name="arr_no_pad",
+            prepared_data.arr_no_pad,
+            array_name="prepared_data.arr_no_pad",
             log_array_size=True,
             log_row_l2_norms=True,
             logger=logger,
@@ -93,21 +91,24 @@ def twonn_worker(
     )
 
     # Filter the array, for example, by potentially removing zero vectors
-    arr_no_pad_filtered = local_estimates_filter.filter_data(
-        input_array=arr_no_pad,
+    prepared_data_filtered: PreparedData = local_estimates_filter.filter_data(
+        prepared_data=prepared_data,
     )
 
     # Restrict to the first `local_estimates_sample_size` samples
     local_estimates_sample_size = main_config.local_estimates.filtering.num_samples
-    arr_no_pad_truncated = truncate_data(
-        arr_no_pad_filtered=arr_no_pad_filtered,
+
+    prepared_data_filtered_truncated: PreparedData = truncate_data(
+        prepared_data=prepared_data_filtered,
         local_estimates_sample_size=local_estimates_sample_size,
     )
 
+    array_for_estimator = prepared_data_filtered_truncated.arr_no_pad
+
     if verbosity >= Verbosity.NORMAL:
         log_array_info(
-            arr_no_pad_truncated,
-            array_name="arr_no_pad_truncated",
+            array_for_estimator,
+            array_name="array_for_estimator",
             log_array_size=True,
             log_row_l2_norms=True,
             logger=logger,
@@ -123,7 +124,7 @@ def twonn_worker(
     n_jobs = 1
 
     # provide number of neighbors which are used for the computation
-    n_neighbors = round(len(arr_no_pad_truncated) * 0.8)
+    n_neighbors = round(len(array_for_estimator) * 0.8)
     if verbosity >= Verbosity.NORMAL:
         logger.info(
             f"{n_neighbors = }",  # noqa: G004 - low overhead
@@ -137,7 +138,7 @@ def twonn_worker(
         logger.info("Calling estimator.fit_pw() ...")
 
     fitted_estimator = estimator.fit_pw(
-        X=arr_no_pad_truncated,
+        X=array_for_estimator,
         precomputed_knn=None,
         smooth=False,
         n_neighbors=n_neighbors,
@@ -172,6 +173,9 @@ def twonn_worker(
 
     # # # #
     # Save the results
+
+    # TODO: Implement saving of the metadata as well
+
     save_local_estimates(
         embeddings_path_manager=embeddings_path_manager,
         results_array_np=results_array_np,
@@ -181,14 +185,25 @@ def twonn_worker(
 
 
 def truncate_data(
-    arr_no_pad_filtered: np.ndarray,
+    prepared_data: PreparedData,
     local_estimates_sample_size: int,
-) -> np.ndarray:
+) -> PreparedData:
     """Truncate the data to the first `local_estimates_sample_size` samples."""
+    input_array = prepared_data.arr_no_pad
+
     local_estimates_sample_size = min(
         local_estimates_sample_size,
-        arr_no_pad_filtered.shape[0],
+        input_array.shape[0],
     )
 
-    arr_no_pad_truncated = arr_no_pad_filtered[:local_estimates_sample_size]
-    return arr_no_pad_truncated
+    output_array = input_array[:local_estimates_sample_size,]
+
+    input_meta_frame = prepared_data.meta_frame
+    output_meta_frame = input_meta_frame.iloc[:local_estimates_sample_size,]
+
+    output_prepared_data = PreparedData(
+        arr_no_pad=output_array,
+        meta_frame=output_meta_frame,
+    )
+
+    return output_prepared_data

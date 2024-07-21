@@ -164,6 +164,7 @@ def main_config_with_small_dataset_and_model(
         num_samples=1_000,
     )
     local_estimates_filtering_config = LocalEstimatesFilteringConfig(
+        num_samples=400,
         zero_vector_handling_mode=ZeroVectorHandlingMode.REMOVE,
     )
     local_estimates_config = LocalEstimatesConfig(
