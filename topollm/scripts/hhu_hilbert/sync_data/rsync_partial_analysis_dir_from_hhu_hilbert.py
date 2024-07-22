@@ -1,7 +1,6 @@
 """Syncing parts of the analysis directory from HHU Hilbert to local machine."""
 
 import argparse
-import os
 import subprocess
 import sys
 
@@ -30,8 +29,8 @@ def sync_directories(
         include_pattern = ["--include='*'"]
 
     for directory in directories:
-        print("===========================================================")
-        print(f"{directory = }")
+        print("===========================================================")  # noqa: T201 - this script should print to stdout
+        print(f"{directory = }")  # noqa: T201 - this script should print to stdout
 
         src = f"Hilbert-Storage:{zim_topo_llm_repository_base_path}/{directory}"
         dest = f"{target_base_path}/{directory}"
@@ -50,33 +49,34 @@ def sync_directories(
         # Remove empty strings from the command
         rsync_command = [arg for arg in rsync_command if arg]
 
-        print(f"Running command: {rsync_command = }")
+        print(f"Running command: {rsync_command = }")  # noqa: T201 - this script should print to stdout
 
         try:
             result = subprocess.run(
-                rsync_command,
+                rsync_command,  # noqa: S603 - we trust the command
                 capture_output=True,
                 text=True,
                 check=True,
             )
-            print(result.stdout)
+            print(result.stdout)  # noqa: T201 - this script should print to stdout
         except subprocess.CalledProcessError as e:
-            print(f"Error syncing {directory}:")
-            print(e.stderr)
+            print(f"Error syncing {directory = }:")  # noqa: T201 - this script should print to stdout
+            print(e.stderr)  # noqa: T201 - this script should print to stdout
             sys.exit(e.returncode)
 
         if result.returncode != 0:
-            print(
-                f"Error syncing {directory}:",
+            print(  # noqa: T201 - this script should print to stdout
+                f"Error syncing {directory = }:",
                 result.stderr,
                 file=sys.stderr,
             )
             sys.exit(result.returncode)
 
-        print("===========================================================")
+        print("===========================================================")  # noqa: T201 - this script should print to stdout
 
 
-def main():
+def main() -> None:
+    """Run the main function."""
     args = parse_arguments()
 
     target_base_path = (
@@ -88,8 +88,8 @@ def main():
     if args.skip_prepared:
         directories_to_sync = [d for d in directories_to_sync if d != "data/analysis/prepared/"]
 
-    print(f"TOPO_LLM_REPOSITORY_BASE_PATH={TOPO_LLM_REPOSITORY_BASE_PATH}")
-    print(f"ZIM_TOPO_LLM_REPOSITORY_BASE_PATH={ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}")
+    print(f"{TOPO_LLM_REPOSITORY_BASE_PATH = }")  # noqa: T201 - this script should print to stdout
+    print(f"{ZIM_TOPO_LLM_REPOSITORY_BASE_PATH = }")  # noqa: T201 - this script should print to stdout
 
     sync_directories(
         directories=directories_to_sync,
