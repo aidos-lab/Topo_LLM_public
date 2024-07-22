@@ -304,3 +304,17 @@ class EmbeddingsPathManagerSeparateDirectories:
         )
 
         return path
+
+    # # # #
+    # analysed data directories
+
+    def get_analyzed_data_dir_absolute_path(
+        self,
+    ) -> pathlib.Path:
+        path: pathlib.Path = pathlib.Path(
+            self.perplexity_dir_absolute_path,
+            f"layer-{self.embeddings_config.embedding_extraction.layer_indices}",
+            self.local_estimates_config.config_description,
+        )
+
+        return path

@@ -309,11 +309,8 @@ def main(
         )
 
     # Save statistics to text file in the perplexity directory
-    processed_data_save_directory: pathlib.Path = pathlib.Path(
-        perplexity_dir,
-        f"layer-{main_config.embeddings.embedding_extraction.layer_indices}",
-    )
-    processed_data_save_directory.mkdir(
+    analyzed_data_save_directory: pathlib.Path = embeddings_path_manager.get_analyzed_data_dir_absolute_path()
+    analyzed_data_save_directory.mkdir(
         parents=True,
         exist_ok=True,
     )
@@ -325,7 +322,7 @@ def main(
         + ".txt"
     )
     local_estimates_string_save_path = pathlib.Path(
-        processed_data_save_directory,
+        analyzed_data_save_directory,
         local_estimates_string_save_file_name,
     )
     if verbosity >= Verbosity.NORMAL:
@@ -408,7 +405,7 @@ def main(
     # # # #
     # Saving aligned_df to csv file
     aligned_df_save_path = pathlib.Path(
-        processed_data_save_directory,
+        analyzed_data_save_directory,
         "aligned_df.csv",
     )
     if verbosity >= Verbosity.NORMAL:
@@ -462,7 +459,7 @@ def main(
 
         # Saving correlation_results_df to csv file
         correlation_results_df_save_path = pathlib.Path(
-            processed_data_save_directory,
+            analyzed_data_save_directory,
             f"correlation_results_{method}.csv",
         )
         if verbosity >= Verbosity.NORMAL:
