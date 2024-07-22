@@ -181,6 +181,10 @@ def main(
 
     bos_token_string: str = "<s>"
     eos_token_string: str = "</s>"
+    special_tokens_string_list = [
+        bos_token_string,
+        eos_token_string,
+    ]
 
     token_perplexities_without_eos_df: pd.DataFrame = token_perplexities_df[
         token_perplexities_df["token_string"] != eos_token_string
@@ -205,15 +209,14 @@ def main(
     average_log_perplexity_without_eos = token_perplexities_without_eos_df["token_log_perplexity"].mean()
     std_log_perplexity_without_eos = token_perplexities_without_eos_df["token_log_perplexity"].std()
 
-    average_perplexity_without_special_tokens = token_perplexities_df[
-        ~token_perplexities_df["token_string"].isin([bos_token_string, eos_token_string])
-    ]["token_perplexity"].mean()
-    std_perplexity_without_special_tokens = token_perplexities_df[
-        ~token_perplexities_df["token_string"].isin([bos_token_string, eos_token_string])
-    ]["token_perplexity"].std()
-    num_samples_without_special_tokens = len(
-        token_perplexities_df[~token_perplexities_df["token_string"].isin([bos_token_string, eos_token_string])]
-    )
+    # # # #
+    token_perplexities_without_special_tokens_df = token_perplexities_df[
+        ~token_perplexities_df["token_string"].isin(special_tokens_string_list)
+    ]
+
+    num_samples_without_special_tokens = len(token_perplexities_without_special_tokens_df)
+    average_perplexity_without_special_tokens = token_perplexities_without_special_tokens_df["token_perplexity"].mean()
+    std_perplexity_without_special_tokens = token_perplexities_without_special_tokens_df["token_perplexity"].std()
 
     # Create string with statistics
     perplexities_statistics_string: str = (
@@ -395,6 +398,11 @@ def main(
         axis=1,
     )
 
+    # Restrict to non-special tokens
+    without_special_tokens_aligned_df = aligned_df[
+        ~token_perplexities_df["token_string"].isin(special_tokens_string_list)
+    ]
+
     # TODO: Save the aligned_df to a csv file into the perplexity directory
 
     correlation_columns = [
@@ -450,13 +458,16 @@ def compare_columns(
     """Compare two columns from different DataFrames and return a DataFrame highlighting the differences.
 
     Args:
+    ----
         df1 (pd.DataFrame): First DataFrame.
         col1 (str): Column name in the first DataFrame.
         df2 (pd.DataFrame): Second DataFrame.
         col2 (str): Column name in the second DataFrame.
 
     Returns:
+    -------
         pd.DataFrame: DataFrame containing the rows where the columns differ.
+
     """
     # Reset indices to ensure comparison by position
     df1_reset = df1[col1].reset_index(drop=True)
