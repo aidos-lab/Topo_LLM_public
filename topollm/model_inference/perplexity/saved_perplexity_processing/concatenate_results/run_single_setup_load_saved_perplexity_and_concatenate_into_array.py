@@ -32,7 +32,9 @@ from typing import TYPE_CHECKING
 
 import hydra
 import hydra.core.hydra_config
+import numpy as np
 import omegaconf
+import pandas as pd
 import torch
 import zarr
 
@@ -171,21 +173,37 @@ def main(
     # # # # # # # # # # # # # # # # # # # #
     # Compute and save summary statistics
 
-    average_perplexity = token_perplexities_df["token_perplexity"].mean()
-    std_perplexity = token_perplexities_df["token_perplexity"].std()
-    num_samples = len(token_perplexities_df)
+    average_perplexity: float = token_perplexities_df["token_perplexity"].mean()
+    std_perplexity: float = token_perplexities_df["token_perplexity"].std()
+    num_samples: int = len(token_perplexities_df)
 
     # TODO: This only currently works for the roberta tokenizer
 
-    bos_token_string = "<s>"
-    eos_token_string = "</s>"
-    average_perplexity_without_eos = token_perplexities_df[token_perplexities_df["token_string"] != eos_token_string][
+    bos_token_string: str = "<s>"
+    eos_token_string: str = "</s>"
+
+    token_perplexities_without_eos_df: pd.DataFrame = token_perplexities_df[
+        token_perplexities_df["token_string"] != eos_token_string
+    ]
+    token_perplexities_without_eos_df["token_log_perplexity"] = token_perplexities_without_eos_df[
         "token_perplexity"
-    ].mean()
-    std_perplexity_without_eos = token_perplexities_df[token_perplexities_df["token_string"] != eos_token_string][
-        "token_perplexity"
-    ].std()
-    num_samples_without_eos = len(token_perplexities_df[token_perplexities_df["token_string"] != eos_token_string])
+    ].apply(
+        lambda x: np.log(x),
+    )
+    # Replace `-inf` values with `0.0`
+    token_perplexities_without_eos_df["token_log_perplexity"] = token_perplexities_without_eos_df[
+        "token_log_perplexity"
+    ].replace(
+        -np.inf,
+        0.0,
+    )
+
+    num_samples_without_eos = len(token_perplexities_without_eos_df)
+    average_perplexity_without_eos = token_perplexities_without_eos_df["token_perplexity"].mean()
+    std_perplexity_without_eos = token_perplexities_without_eos_df["token_perplexity"].std()
+
+    average_log_perplexity_without_eos = token_perplexities_without_eos_df["token_log_perplexity"].mean()
+    std_log_perplexity_without_eos = token_perplexities_without_eos_df["token_log_perplexity"].std()
 
     average_perplexity_without_special_tokens = token_perplexities_df[
         ~token_perplexities_df["token_string"].isin([bos_token_string, eos_token_string])
@@ -199,15 +217,17 @@ def main(
 
     # Create string with statistics
     perplexities_statistics_string: str = (
-        f"{average_perplexity = }\n"  # noqa: ISC003 - explicit string concatenation to avoid confusion
+        f"{num_samples = }\n"  # noqa: ISC003 - explicit string concatenation to avoid confusion
+        + f"{average_perplexity = }\n"
         + f"{std_perplexity = }\n"
-        + f"{num_samples = }\n"
+        + f"{num_samples_without_eos = }\n"
         + f"{average_perplexity_without_eos = }\n"
         + f"{std_perplexity_without_eos = }\n"
-        + f"{num_samples_without_eos = }\n"
+        + f"{average_log_perplexity_without_eos = }\n"
+        + f"{std_log_perplexity_without_eos = }\n"
+        + f"{num_samples_without_special_tokens = }\n"
         + f"{average_perplexity_without_special_tokens = }\n"
         + f"{std_perplexity_without_special_tokens = }\n"
-        + f"{num_samples_without_special_tokens = }\n"
     )
 
     # Write statistics to log
@@ -337,8 +357,115 @@ def main(
     # Add the local estimates to the local_estimates_meta_frame
     local_estimates_meta_frame["local_estimate"] = local_estimates_array_np
 
+    corresponding_token_perplexities_df = token_perplexities_without_eos_df.iloc[
+        local_estimates_meta_frame["subsample_idx"]
+    ]
+
+    # Check that local_estimates_meta_frame["token_name"] and corresponding_token_perplexities_df["token_string"] agree
+    discrepancies = compare_columns(
+        df1=local_estimates_meta_frame,
+        col1="token_name",
+        df2=corresponding_token_perplexities_df,
+        col2="token_string",
+    )
+
+    if not discrepancies.empty:
+        logger.error(
+            "local_estimates_meta_frame['token_name'] and "
+            "corresponding_token_perplexities_df['token_string'] do not agree."
+        )
+        logger.error("The function will return now without computing the correlations.")
+        logger.warning("Correlations between perplexities and local estimates cannot be computed.")
+        return
+
+    # Compute the correlation between the 'token_log_perplexity', and 'local_estimate'
+    aligned_df = pd.concat(
+        [
+            corresponding_token_perplexities_df.reset_index(drop=True),
+            local_estimates_meta_frame.reset_index(drop=True),
+        ],
+        axis=1,
+    )
+
+    correlation_columns = [
+        "token_perplexity",
+        "token_log_perplexity",
+        "local_estimate",
+    ]
+    only_correlation_columns_aligned_df = aligned_df[correlation_columns]
+
+    if verbosity >= Verbosity.NORMAL:
+        log_dataframe_info(
+            df=aligned_df,
+            df_name="aligned_df",
+            logger=logger,
+        )
+        log_dataframe_info(
+            df=only_correlation_columns_aligned_df,
+            df_name="only_correlation_columns_aligned_df",
+            logger=logger,
+        )
+
+    for method in [
+        "pearson",
+        "spearman",
+        "kendall",
+    ]:
+        correlation_results_df = only_correlation_columns_aligned_df.corr(
+            method=method,  # type: ignore - these methods are available
+        )
+        logger.info(
+            f"Correlation using '{method = }':\n{correlation_results_df}",  # noqa: G004 - low overhead
+        )
+        logger.info(
+            f"{correlation_results_df['local_estimate']['token_log_perplexity'] = }",  # noqa: G004 - low overhead
+        )
+
     # # # # # # # # # # # # # # # # # # # #
     logger.info("Running script DONE")
+
+
+def compare_columns(
+    df1: pd.DataFrame,
+    col1: str,
+    df2: pd.DataFrame,
+    col2: str,
+) -> pd.DataFrame:
+    """Compare two columns from different DataFrames and return a DataFrame highlighting the differences.
+
+    Args:
+        df1 (pd.DataFrame): First DataFrame.
+        col1 (str): Column name in the first DataFrame.
+        df2 (pd.DataFrame): Second DataFrame.
+        col2 (str): Column name in the second DataFrame.
+
+    Returns:
+        pd.DataFrame: DataFrame containing the rows where the columns differ.
+    """
+    # Reset indices to ensure comparison by position
+    df1_reset = df1[col1].reset_index(drop=True)
+    df2_reset = df2[col2].reset_index(drop=True)
+
+    # Ensure the columns have the same length
+    if len(df1_reset) != len(df2_reset):
+        msg = "The columns must have the same length to compare."
+        raise ValueError(msg)
+
+    # Create a DataFrame to compare the two columns
+    comparison_df = pd.DataFrame(
+        {
+            f"{col1}_df1": df1_reset,
+            f"{col2}_df2": df2_reset,
+        },
+    )
+
+    # Add a column to indicate where the values are not equal
+    comparison_df["Equal"] = comparison_df[f"{col1}_df1"] == comparison_df[f"{col2}_df2"]
+
+    # Filter rows where the values are not equal
+    discrepancies = comparison_df[~comparison_df["Equal"]]
+
+    return discrepancies
 
 
 if __name__ == "__main__":
