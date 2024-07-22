@@ -93,5 +93,20 @@
                 "wandb.project=Topo_LLM_finetuning_for_language_modeling_debug",
             ]
         },
+        {
+            "name": "run_single_setup_load_saved_perplexity_and_concatenate_into_array.py",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/model_inference/perplexity/saved_perplexity_processing/concatenate_results/run_single_setup_load_saved_perplexity_and_concatenate_into_array.py",
+            "console": "integratedTerminal",
+            "args": [
+                "data=multiwoz21",
+                "data.number_of_samples=10000",
+                "data.split=validation",
+                "language_model=roberta-base",
+                "embeddings.embedding_extraction.layer_indices=[-1]",
+                "embeddings_data_prep.num_samples=30000",
+            ]
+        },
     ]
 }

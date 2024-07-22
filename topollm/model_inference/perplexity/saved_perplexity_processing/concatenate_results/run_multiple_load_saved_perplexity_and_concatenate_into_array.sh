@@ -65,7 +65,6 @@ for i in "${!data_lists[@]}"; do
             embeddings.embedding_extraction.layer_indices=$LAYER_INDICES_LIST \
             embeddings_data_prep.num_samples=$EMBEDDINGS_DATA_PREP_NUM_SAMPLES \
             $ADDITIONAL_OVERRIDES
-
     done
 done
 
