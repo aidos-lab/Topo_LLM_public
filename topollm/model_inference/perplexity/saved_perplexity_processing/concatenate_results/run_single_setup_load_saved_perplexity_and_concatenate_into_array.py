@@ -281,7 +281,9 @@ def main(
 
     # TODO: We currently set this manually here to run the script for different embedding indices
     # TODO: This currently needs to happen after the perplexity loading, because otherwise we pick the wrong path to the perplexity directory (for legacy reasons, this contains the layer index, even though this would not be necessary)
-    main_config.embeddings.embedding_extraction.layer_indices = [-9]
+    # main_config.embeddings.embedding_extraction.layer_indices = [-1]
+    main_config.embeddings.embedding_extraction.layer_indices = [-5]
+    # main_config.embeddings.embedding_extraction.layer_indices = [-9]
 
     local_estimates_container: LocalEstimatesContainer = load_local_estimates(
         embeddings_path_manager=embeddings_path_manager,
@@ -403,7 +405,26 @@ def main(
         ~token_perplexities_df["token_string"].isin(special_tokens_string_list)
     ]
 
-    # TODO: Save the aligned_df to a csv file into the perplexity directory
+    # # # #
+    # Saving aligned_df to csv file
+    aligned_df_save_path = pathlib.Path(
+        processed_data_save_directory,
+        "aligned_df.csv",
+    )
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            f"{aligned_df_save_path = }",  # noqa: G004 - low overhead
+        )
+        logger.info(
+            "Saving aligned_df to csv file ...",
+        )
+    aligned_df.to_csv(
+        path_or_buf=aligned_df_save_path,
+    )
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            "Saving aligned_df to csv file DONE",
+        )
 
     correlation_columns = [
         "token_perplexity",
@@ -439,7 +460,25 @@ def main(
             f"{correlation_results_df['local_estimate']['token_log_perplexity'] = }",  # noqa: G004 - low overhead
         )
 
-    # TODO: Save the correlation_results_df to a csv file into the perplexity directory
+        # Saving correlation_results_df to csv file
+        correlation_results_df_save_path = pathlib.Path(
+            processed_data_save_directory,
+            f"correlation_results_{method}.csv",
+        )
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                f"{correlation_results_df_save_path = }",  # noqa: G004 - low overhead
+            )
+            logger.info(
+                f"Saving correlation_results_df using '{method}' to csv file ...",  # noqa: G004 - low overhead
+            )
+        correlation_results_df.to_csv(
+            path_or_buf=correlation_results_df_save_path,
+        )
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                f"Saving correlation_results_df using '{method}' to csv file DONE",  # noqa: G004 - low overhead
+            )
 
     # TODO: Scatter plot of perplexity vs. local estimate
 
