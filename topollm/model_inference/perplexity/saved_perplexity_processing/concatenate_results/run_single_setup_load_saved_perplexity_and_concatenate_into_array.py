@@ -304,12 +304,23 @@ def main(
         )
 
     # Save statistics to text file in the perplexity directory
+    processed_data_save_directory: pathlib.Path = pathlib.Path(
+        perplexity_dir,
+        f"layer-{main_config.embeddings.embedding_extraction.layer_indices}",
+    )
+    processed_data_save_directory.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
 
     local_estimates_string_save_file_name: str = (
-        "local_estimates_statistics" + f"layer-{main_config.embeddings.embedding_extraction.layer_indices}" + ".txt"
+        "local_estimates_statistics"  # noqa: ISC003 - explicit string concatenation to avoid confusion
+        + "_"
+        + f"layer-{main_config.embeddings.embedding_extraction.layer_indices}"
+        + ".txt"
     )
     local_estimates_string_save_path = pathlib.Path(
-        perplexity_dir,
+        processed_data_save_directory,
         local_estimates_string_save_file_name,
     )
     if verbosity >= Verbosity.NORMAL:
@@ -335,9 +346,6 @@ def main(
         logger.info(
             "Saving local_estimates_statistics_string to text file DONE",
         )
-
-    # TODO: Align the corresponding local estimates of the tokens for which we have both measures,
-    # TODO: compute the pairwise correlation of the perplexities with the local estimates
 
     local_estimates_meta_frame = local_estimates_container.results_meta_frame
 
@@ -387,6 +395,8 @@ def main(
         axis=1,
     )
 
+    # TODO: Save the aligned_df to a csv file into the perplexity directory
+
     correlation_columns = [
         "token_perplexity",
         "token_log_perplexity",
@@ -420,6 +430,12 @@ def main(
         logger.info(
             f"{correlation_results_df['local_estimate']['token_log_perplexity'] = }",  # noqa: G004 - low overhead
         )
+
+    # TODO: Save the correlation_results_df to a csv file into the perplexity directory
+
+    # TODO: Scatter plot of perplexity vs. local estimate
+
+    # TODO: Plot histograms of perplexity and local estimate
 
     # # # # # # # # # # # # # # # # # # # #
     logger.info("Running script DONE")
