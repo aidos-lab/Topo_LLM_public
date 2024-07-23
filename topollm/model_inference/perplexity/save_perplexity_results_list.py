@@ -31,6 +31,10 @@ import logging
 import pathlib
 import pickle
 
+import numpy as np
+import pandas as pd
+import zarr
+
 from topollm.model_inference.perplexity.sentence_perplexity_container import SentencePerplexityContainer
 from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 from topollm.typing.enums import PerplexityContainerSaveFormat, Verbosity
@@ -96,6 +100,53 @@ def save_perplexity_results_list_as_jsonl(
     if verbosity >= Verbosity.NORMAL:
         logger.info(
             f"Saving perplexity results to {save_file_path = } DONE",  # noqa: G004 - low overhead
+        )
+
+
+def save_perplexity_array_as_zarr(
+    perplexities_array: np.ndarray,
+    save_file_path: pathlib.Path,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
+    """Save the perplexities array to a zarr file."""
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            f"{save_file_path = }",  # noqa: G004 - low overhead
+        )
+        logger.info(
+            "Saving perplexities_array to zarr file ...",
+        )
+    zarr.save(
+        str(save_file_path),
+        perplexities_array,
+    )
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            "Saving perplexities_array to zarr file DONE",
+        )
+
+
+def save_perplexity_df_as_csv(
+    perplexities_df: pd.DataFrame,
+    save_file_path: pathlib.Path,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
+    """Save the perplexity dataframe to a csv file."""
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            f"{save_file_path = }",  # noqa: G004 - low overhead
+        )
+        logger.info(
+            "Saving dataframe to csv file ...",
+        )
+    perplexities_df.to_csv(
+        save_file_path,
+    )
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            "Saving dataframe to csv file DONE",
         )
 
 

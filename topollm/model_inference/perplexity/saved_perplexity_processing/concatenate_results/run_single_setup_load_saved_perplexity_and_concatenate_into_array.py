@@ -44,6 +44,10 @@ from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.logging.setup_exception_logging import setup_exception_logging
+from topollm.model_inference.perplexity.save_perplexity_results_list import (
+    save_perplexity_array_as_zarr,
+    save_perplexity_df_as_csv,
+)
 from topollm.model_inference.perplexity.saved_perplexity_processing.concatenate_results.convert_perplexity_results_list_to_dataframe import (
     convert_perplexity_results_list_to_dataframe,
 )
@@ -51,7 +55,7 @@ from topollm.model_inference.perplexity.saved_perplexity_processing.load_perplex
     load_multiple_perplexity_containers_from_jsonl_files,
 )
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
-from topollm.typing.enums import Verbosity
+from topollm.typing.enums import PerplexityContainerSaveFormat, Verbosity
 
 if TYPE_CHECKING:
     from topollm.analysis.local_estimates.saving.local_estimates_containers import LocalEstimatesContainer
@@ -95,17 +99,10 @@ def main(
         main_config=main_config,
         logger=logger,
     )
-    perplexity_dir = embeddings_path_manager.perplexity_dir_absolute_path
 
-    save_file_path_josnl = pathlib.Path(
-        perplexity_dir,
-        "perplexity_results_list.jsonl",
+    save_file_path_josnl = embeddings_path_manager.get_perplexity_container_save_file_absolute_path(
+        perplexity_container_save_format=PerplexityContainerSaveFormat.LIST_AS_JSONL,
     )
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            "save_file_path_josnl:\n%s",
-            save_file_path_josnl,
-        )
 
     loaded_data_list: list[PerplexityResultsList] = load_multiple_perplexity_containers_from_jsonl_files(
         path_list=[
@@ -126,49 +123,49 @@ def main(
         logger=logger,
     )
 
-    # # # #
-    # Save token perplexities as zarr array
-    token_perplexities_zarr_array_save_path = pathlib.Path(
-        perplexity_dir,
-        "perplexity_results_array.zarr",
+    # Add column with log perplexity
+    token_perplexities_df["token_log_perplexity"] = token_perplexities_df["token_perplexity"].apply(
+        lambda x: np.log(x),
     )
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            f"{token_perplexities_zarr_array_save_path = }",  # noqa: G004 - low overhead
-        )
-        logger.info(
-            "Saving token_perplexities_array to zarr file ...",
-        )
-    zarr.save(
-        str(token_perplexities_zarr_array_save_path),
-        token_perplexities_array,
+    # Replace `-inf` values with `0.0`
+    token_perplexities_df["token_log_perplexity"] = token_perplexities_df["token_log_perplexity"].replace(
+        -np.inf,
+        0.0,
     )
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            "Saving token_perplexities_array to zarr file DONE",
-        )
 
     # # # #
-    # Save token perplexities pandas dataframe as csv
+    # Save token perplexities as zarr array and pandas dataframe
+    for perplexity_container_save_format in [
+        PerplexityContainerSaveFormat.CONCATENATED_ARRAY_AS_ZARR,
+        PerplexityContainerSaveFormat.CONCATENATED_DATAFRAME_AS_CSV,
+    ]:
+        save_file_path = embeddings_path_manager.get_perplexity_container_save_file_absolute_path(
+            perplexity_container_save_format=perplexity_container_save_format,
+        )
 
-    token_perplexities_df_save_path = pathlib.Path(
-        perplexity_dir,
-        "perplexity_results_df.csv",
-    )
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            f"{token_perplexities_df_save_path = }",  # noqa: G004 - low overhead
+        save_file_path.parent.mkdir(
+            parents=True,
+            exist_ok=True,
         )
-        logger.info(
-            "Saving token_perplexities_df to csv file ...",
-        )
-    token_perplexities_df.to_csv(
-        token_perplexities_df_save_path,
-    )
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            "Saving token_perplexities_df to csv file DONE",
-        )
+
+        match perplexity_container_save_format:
+            case PerplexityContainerSaveFormat.CONCATENATED_ARRAY_AS_ZARR:
+                save_perplexity_array_as_zarr(
+                    perplexities_array=token_perplexities_array,
+                    save_file_path=save_file_path,
+                    verbosity=verbosity,
+                    logger=logger,
+                )
+            case PerplexityContainerSaveFormat.CONCATENATED_DATAFRAME_AS_CSV:
+                save_perplexity_df_as_csv(
+                    perplexities_df=token_perplexities_df,
+                    save_file_path=save_file_path,
+                    verbosity=verbosity,
+                    logger=logger,
+                )
+            case _:
+                msg = "Unsupported perplexity container save format for this script."
+                raise ValueError(msg)
 
     # # # # # # # # # # # # # # # # # # # #
     # Compute and save summary statistics
@@ -186,28 +183,16 @@ def main(
         eos_token_string,
     ]
 
-    token_perplexities_without_eos_df: pd.DataFrame = token_perplexities_df[
+    token_perplexities_df: pd.DataFrame = token_perplexities_df[
         token_perplexities_df["token_string"] != eos_token_string
     ]
-    token_perplexities_without_eos_df["token_log_perplexity"] = token_perplexities_without_eos_df[
-        "token_perplexity"
-    ].apply(
-        lambda x: np.log(x),
-    )
-    # Replace `-inf` values with `0.0`
-    token_perplexities_without_eos_df["token_log_perplexity"] = token_perplexities_without_eos_df[
-        "token_log_perplexity"
-    ].replace(
-        -np.inf,
-        0.0,
-    )
 
-    num_samples_without_eos = len(token_perplexities_without_eos_df)
-    average_perplexity_without_eos = token_perplexities_without_eos_df["token_perplexity"].mean()
-    std_perplexity_without_eos = token_perplexities_without_eos_df["token_perplexity"].std()
+    num_samples_without_eos = len(token_perplexities_df)
+    average_perplexity_without_eos = token_perplexities_df["token_perplexity"].mean()
+    std_perplexity_without_eos = token_perplexities_df["token_perplexity"].std()
 
-    average_log_perplexity_without_eos = token_perplexities_without_eos_df["token_log_perplexity"].mean()
-    std_log_perplexity_without_eos = token_perplexities_without_eos_df["token_log_perplexity"].std()
+    average_log_perplexity_without_eos = token_perplexities_df["token_log_perplexity"].mean()
+    std_log_perplexity_without_eos = token_perplexities_df["token_log_perplexity"].std()
 
     # # # #
     token_perplexities_without_special_tokens_df = token_perplexities_df[
@@ -242,6 +227,7 @@ def main(
 
     # Save statistics to text file in the perplexity directory
 
+    perplexity_dir = embeddings_path_manager.perplexity_dir_absolute_path
     perplexities_statistics_string_save_path = pathlib.Path(
         perplexity_dir,
         "perplexity_statistics.txt",
@@ -367,9 +353,7 @@ def main(
     # Add the local estimates to the local_estimates_meta_frame
     local_estimates_meta_frame["local_estimate"] = local_estimates_array_np
 
-    corresponding_token_perplexities_df = token_perplexities_without_eos_df.iloc[
-        local_estimates_meta_frame["subsample_idx"]
-    ]
+    corresponding_token_perplexities_df = token_perplexities_df.iloc[local_estimates_meta_frame["subsample_idx"]]
 
     # Check that local_estimates_meta_frame["token_name"] and corresponding_token_perplexities_df["token_string"] agree
     discrepancies = compare_columns(
@@ -398,9 +382,7 @@ def main(
     )
 
     # Restrict to non-special tokens
-    without_special_tokens_aligned_df = aligned_df[
-        ~token_perplexities_df["token_string"].isin(special_tokens_string_list)
-    ]
+    without_special_tokens_aligned_df = aligned_df[~aligned_df["token_string"].isin(special_tokens_string_list)]
 
     # # # #
     # Saving aligned_df to csv file

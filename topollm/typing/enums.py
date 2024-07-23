@@ -296,5 +296,5 @@ class PerplexityContainerSaveFormat(StrEnum):
 
     LIST_AS_JSONL = auto()
     LIST_AS_PICKLE = auto()
-    CONCATENATED_AS_PD_DATAFRAME_CSV = auto()
-    CONCATENATED_AS_ZARR = auto()
+    CONCATENATED_DATAFRAME_AS_CSV = auto()
+    CONCATENATED_ARRAY_AS_ZARR = auto()

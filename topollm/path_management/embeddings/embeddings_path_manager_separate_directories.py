@@ -316,11 +316,11 @@ def get_perplexity_container_save_file_name(
     match perplexity_container_save_format:
         case PerplexityContainerSaveFormat.LIST_AS_JSONL:
             file_name = "perplexity_results_list.jsonl"
-        case PerplexityContainerSaveFormat.CONCATENATED_AS_PD_DATAFRAME_CSV:
+        case PerplexityContainerSaveFormat.CONCATENATED_DATAFRAME_AS_CSV:
             file_name = "perplexity_results_df.csv"
         case PerplexityContainerSaveFormat.LIST_AS_PICKLE:
             file_name = "perplexity_results_list.pkl"
-        case PerplexityContainerSaveFormat.CONCATENATED_AS_ZARR:
+        case PerplexityContainerSaveFormat.CONCATENATED_ARRAY_AS_ZARR:
             file_name = "perplexity_results_array.zarr"
         case _:
             msg = f"Unsupported {perplexity_container_save_format = }."
