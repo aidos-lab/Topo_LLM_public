@@ -4,6 +4,6 @@ dataset_description_string: sgd
 dataset_path: json
 dataset_name: sgd
 data_dir: ${paths.data_dir}/datasets/dialogue_datasets/sgd
-dataset_type: huggingface_dataset
+dataset_type: HUGGINGFACE_DATASET
 number_of_samples: 5000
 split: validation

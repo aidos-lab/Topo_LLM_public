@@ -7,4 +7,4 @@ column_name: summary
 context: dataset_entry
 dataset_description_string: xsum
 dataset_path: xsum
-dataset_type: huggingface_dataset
+dataset_type: HUGGINGFACE_DATASET

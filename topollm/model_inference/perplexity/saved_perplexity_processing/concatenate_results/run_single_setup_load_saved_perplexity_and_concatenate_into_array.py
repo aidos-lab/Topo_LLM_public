@@ -38,7 +38,6 @@ import pandas as pd
 import torch
 import zarr
 
-from topollm.analysis.local_estimates.saving.local_estimates_containers import LocalEstimatesContainer
 from topollm.analysis.local_estimates.saving.save_local_estimates import load_local_estimates
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
@@ -53,10 +52,11 @@ from topollm.model_inference.perplexity.saved_perplexity_processing.load_perplex
 )
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
 from topollm.typing.enums import Verbosity
-from topollm.typing.types import PerplexityResultsList
 
 if TYPE_CHECKING:
+    from topollm.analysis.local_estimates.saving.local_estimates_containers import LocalEstimatesContainer
     from topollm.config_classes.main_config import MainConfig
+    from topollm.typing.types import PerplexityResultsList
 
 default_device = torch.device("cpu")
 default_logger = logging.getLogger(__name__)

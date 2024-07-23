@@ -94,7 +94,7 @@ def main(
     # # # #
     # Parameters
 
-    perplexity_container_save_format = PerplexityContainerSaveFormat.JSONL
+    perplexity_container_save_format = PerplexityContainerSaveFormat.LIST_AS_JSONL
 
     dataset_subdir_list: list[pathlib.Path] = [
         pathlib.Path(
@@ -115,7 +115,7 @@ def main(
                 dataset_subdir,
             )
 
-        if perplexity_container_save_format == PerplexityContainerSaveFormat.PICKLE:
+        if perplexity_container_save_format == PerplexityContainerSaveFormat.LIST_AS_PICKLE:
             path_list: list[pathlib.Path] = [
                 pathlib.Path(
                     data_dir,
@@ -145,7 +145,7 @@ def main(
                 verbosity=verbosity,
                 logger=logger,
             )
-        elif perplexity_container_save_format == PerplexityContainerSaveFormat.JSONL:
+        elif perplexity_container_save_format == PerplexityContainerSaveFormat.LIST_AS_JSONL:
             path_list: list[pathlib.Path] = [
                 pathlib.Path(
                     data_dir,

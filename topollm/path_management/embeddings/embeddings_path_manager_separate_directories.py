@@ -31,7 +31,7 @@ import logging
 import pathlib
 
 from topollm.config_classes.main_config import MainConfig
-from topollm.typing.enums import Verbosity
+from topollm.typing.enums import PerplexityContainerSaveFormat, Verbosity
 
 default_logger = logging.getLogger(__name__)
 
@@ -195,6 +195,21 @@ class EmbeddingsPathManagerSeparateDirectories:
     ) -> str:
         return "perplexity_dir"
 
+    def get_perplexity_container_save_file_absolute_path(
+        self,
+        perplexity_container_save_format: PerplexityContainerSaveFormat = PerplexityContainerSaveFormat.LIST_AS_JSONL,
+    ) -> pathlib.Path:
+        file_name = get_perplexity_container_save_file_name(
+            perplexity_container_save_format=perplexity_container_save_format,
+        )
+
+        path = pathlib.Path(
+            self.perplexity_dir_absolute_path,
+            file_name,
+        )
+
+        return path
+
     # # # #
     # prepared data directory
 
@@ -292,3 +307,23 @@ class EmbeddingsPathManagerSeparateDirectories:
         )
 
         return path
+
+
+def get_perplexity_container_save_file_name(
+    perplexity_container_save_format: PerplexityContainerSaveFormat = PerplexityContainerSaveFormat.LIST_AS_JSONL,
+) -> str:
+    """Get the file name for saving the perplexity container."""
+    match perplexity_container_save_format:
+        case PerplexityContainerSaveFormat.LIST_AS_JSONL:
+            file_name = "perplexity_results_list.jsonl"
+        case PerplexityContainerSaveFormat.CONCATENATED_AS_PD_DATAFRAME_CSV:
+            file_name = "perplexity_results_df.csv"
+        case PerplexityContainerSaveFormat.LIST_AS_PICKLE:
+            file_name = "perplexity_results_list.pkl"
+        case PerplexityContainerSaveFormat.CONCATENATED_AS_ZARR:
+            file_name = "perplexity_results_array.zarr"
+        case _:
+            msg = f"Unsupported {perplexity_container_save_format = }."
+            raise ValueError(msg)
+
+    return file_name

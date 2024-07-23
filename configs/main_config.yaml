@@ -18,7 +18,7 @@ defaults:
 
 seed: 1234
 verbosity: 1
-preferred_torch_backend: auto
+preferred_torch_backend: AUTO
 
 #------------------------- Hydra Config ------------------------#
 # Instructions for setting up the output directory paths:

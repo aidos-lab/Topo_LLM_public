@@ -5,7 +5,7 @@ train_dataset:
   dataset_path: json
   dataset_name: multiwoz21
   data_dir: ${paths.data_dir}/datasets/dialogue_datasets/multiwoz21
-  dataset_type: huggingface_dataset
+  dataset_type: HUGGINGFACE_DATASET
   number_of_samples: 10000
   split: train
 eval_dataset:
@@ -15,6 +15,6 @@ eval_dataset:
   dataset_path: json
   dataset_name: multiwoz21
   data_dir: ${paths.data_dir}/datasets/dialogue_datasets/multiwoz21
-  dataset_type: huggingface_dataset
+  dataset_type: HUGGINGFACE_DATASET
   number_of_samples: 10000
   split: validation

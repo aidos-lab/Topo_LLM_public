@@ -29,6 +29,8 @@
 import pathlib
 from typing import Protocol
 
+from topollm.typing.enums import PerplexityContainerSaveFormat
+
 
 class EmbeddingsPathManager(Protocol):
     """Protocol for managing paths to embeddings."""
@@ -51,6 +53,11 @@ class EmbeddingsPathManager(Protocol):
     @property
     def perplexity_dir_absolute_path(
         self,
+    ) -> pathlib.Path: ...  # pragma: no cover
+
+    def get_perplexity_container_save_file_absolute_path(
+        self,
+        perplexity_container_save_format: PerplexityContainerSaveFormat,
     ) -> pathlib.Path: ...  # pragma: no cover
 
     @property

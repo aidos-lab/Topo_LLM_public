@@ -8,4 +8,4 @@ context: dataset_entry
 dataset_description_string: one-year-of-tsla-on-reddit
 dataset_path: "SocialGrep/one-year-of-tsla-on-reddit"
 dataset_name: comments
-dataset_type: huggingface_dataset
+dataset_type: HUGGINGFACE_DATASET
