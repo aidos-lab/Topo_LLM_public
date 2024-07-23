@@ -55,6 +55,7 @@ from topollm.model_inference.perplexity.saved_perplexity_processing.load_perplex
     load_multiple_perplexity_containers_from_jsonl_files,
 )
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
+from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 from topollm.typing.enums import PerplexityContainerSaveFormat, Verbosity
 
 if TYPE_CHECKING:
@@ -123,49 +124,19 @@ def main(
         logger=logger,
     )
 
-    # Add column with log perplexity
-    token_perplexities_df["token_log_perplexity"] = token_perplexities_df["token_perplexity"].apply(
-        lambda x: np.log(x),
-    )
-    # Replace `-inf` values with `0.0`
-    token_perplexities_df["token_log_perplexity"] = token_perplexities_df["token_log_perplexity"].replace(
-        -np.inf,
-        0.0,
+    add_token_log_perplexity_column(
+        token_perplexities_df=token_perplexities_df,
     )
 
     # # # #
     # Save token perplexities as zarr array and pandas dataframe
-    for perplexity_container_save_format in [
-        PerplexityContainerSaveFormat.CONCATENATED_ARRAY_AS_ZARR,
-        PerplexityContainerSaveFormat.CONCATENATED_DATAFRAME_AS_CSV,
-    ]:
-        save_file_path = embeddings_path_manager.get_perplexity_container_save_file_absolute_path(
-            perplexity_container_save_format=perplexity_container_save_format,
-        )
-
-        save_file_path.parent.mkdir(
-            parents=True,
-            exist_ok=True,
-        )
-
-        match perplexity_container_save_format:
-            case PerplexityContainerSaveFormat.CONCATENATED_ARRAY_AS_ZARR:
-                save_perplexity_array_as_zarr(
-                    perplexities_array=token_perplexities_array,
-                    save_file_path=save_file_path,
-                    verbosity=verbosity,
-                    logger=logger,
-                )
-            case PerplexityContainerSaveFormat.CONCATENATED_DATAFRAME_AS_CSV:
-                save_perplexity_df_as_csv(
-                    perplexities_df=token_perplexities_df,
-                    save_file_path=save_file_path,
-                    verbosity=verbosity,
-                    logger=logger,
-                )
-            case _:
-                msg = "Unsupported perplexity container save format for this script."
-                raise ValueError(msg)
+    save_concatenated_perplexity_results(
+        token_perplexities_df=token_perplexities_df,
+        token_perplexities_array=token_perplexities_array,
+        embeddings_path_manager=embeddings_path_manager,
+        verbosity=verbosity,
+        logger=logger,
+    )
 
     # # # # # # # # # # # # # # # # # # # #
     # Compute and save summary statistics
@@ -465,6 +436,61 @@ def main(
 
     # # # # # # # # # # # # # # # # # # # #
     logger.info("Running script DONE")
+
+
+def save_concatenated_perplexity_results(
+    token_perplexities_df: pd.DataFrame,
+    token_perplexities_array: np.ndarray,
+    embeddings_path_manager: EmbeddingsPathManager,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
+    """Save the concatenated perplexity results to a zarr array and a csv file."""
+    for perplexity_container_save_format in [
+        PerplexityContainerSaveFormat.CONCATENATED_ARRAY_AS_ZARR,
+        PerplexityContainerSaveFormat.CONCATENATED_DATAFRAME_AS_CSV,
+    ]:
+        save_file_path = embeddings_path_manager.get_perplexity_container_save_file_absolute_path(
+            perplexity_container_save_format=perplexity_container_save_format,
+        )
+
+        save_file_path.parent.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+
+        match perplexity_container_save_format:
+            case PerplexityContainerSaveFormat.CONCATENATED_ARRAY_AS_ZARR:
+                save_perplexity_array_as_zarr(
+                    perplexities_array=token_perplexities_array,
+                    save_file_path=save_file_path,
+                    verbosity=verbosity,
+                    logger=logger,
+                )
+            case PerplexityContainerSaveFormat.CONCATENATED_DATAFRAME_AS_CSV:
+                save_perplexity_df_as_csv(
+                    perplexities_df=token_perplexities_df,
+                    save_file_path=save_file_path,
+                    verbosity=verbosity,
+                    logger=logger,
+                )
+            case _:
+                msg = "Unsupported perplexity container save format for this script."
+                raise ValueError(msg)
+
+
+def add_token_log_perplexity_column(
+    token_perplexities_df: pd.DataFrame,
+) -> None:
+    """Add a column with the log perplexity to the DataFrame."""
+    token_perplexities_df["token_log_perplexity"] = token_perplexities_df["token_perplexity"].apply(
+        lambda x: np.log(x),
+    )
+    # Replace `-inf` values with `0.0`
+    token_perplexities_df["token_log_perplexity"] = token_perplexities_df["token_log_perplexity"].replace(
+        -np.inf,
+        0.0,
+    )
 
 
 def compare_columns(
