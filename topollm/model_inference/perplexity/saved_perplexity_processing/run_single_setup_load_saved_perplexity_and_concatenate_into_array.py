@@ -44,18 +44,16 @@ from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.logging.setup_exception_logging import setup_exception_logging
-from topollm.model_inference.perplexity.save_perplexity_results_list import (
-    save_perplexity_array_as_zarr,
-    save_perplexity_df_as_csv,
-)
 from topollm.model_inference.perplexity.saved_perplexity_processing.concatenate_results.convert_perplexity_results_list_to_dataframe import (
     convert_perplexity_results_list_to_dataframe,
 )
-from topollm.model_inference.perplexity.saved_perplexity_processing.load_perplexity_containers_from_jsonl_files import (
+from topollm.model_inference.perplexity.saving.load_perplexity_containers_from_jsonl_files import (
     load_multiple_perplexity_containers_from_jsonl_files,
 )
+from topollm.model_inference.perplexity.saving.save_concatenated_perplexity_results import (
+    save_concatenated_perplexity_results,
+)
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
-from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 from topollm.typing.enums import PerplexityContainerSaveFormat, Verbosity
 
 if TYPE_CHECKING:
@@ -436,47 +434,6 @@ def main(
 
     # # # # # # # # # # # # # # # # # # # #
     logger.info("Running script DONE")
-
-
-def save_concatenated_perplexity_results(
-    token_perplexities_df: pd.DataFrame,
-    token_perplexities_array: np.ndarray,
-    embeddings_path_manager: EmbeddingsPathManager,
-    verbosity: Verbosity = Verbosity.NORMAL,
-    logger: logging.Logger = default_logger,
-) -> None:
-    """Save the concatenated perplexity results to a zarr array and a csv file."""
-    for perplexity_container_save_format in [
-        PerplexityContainerSaveFormat.CONCATENATED_ARRAY_AS_ZARR,
-        PerplexityContainerSaveFormat.CONCATENATED_DATAFRAME_AS_CSV,
-    ]:
-        save_file_path = embeddings_path_manager.get_perplexity_container_save_file_absolute_path(
-            perplexity_container_save_format=perplexity_container_save_format,
-        )
-
-        save_file_path.parent.mkdir(
-            parents=True,
-            exist_ok=True,
-        )
-
-        match perplexity_container_save_format:
-            case PerplexityContainerSaveFormat.CONCATENATED_ARRAY_AS_ZARR:
-                save_perplexity_array_as_zarr(
-                    perplexities_array=token_perplexities_array,
-                    save_file_path=save_file_path,
-                    verbosity=verbosity,
-                    logger=logger,
-                )
-            case PerplexityContainerSaveFormat.CONCATENATED_DATAFRAME_AS_CSV:
-                save_perplexity_df_as_csv(
-                    perplexities_df=token_perplexities_df,
-                    save_file_path=save_file_path,
-                    verbosity=verbosity,
-                    logger=logger,
-                )
-            case _:
-                msg = "Unsupported perplexity container save format for this script."
-                raise ValueError(msg)
 
 
 def add_token_log_perplexity_column(

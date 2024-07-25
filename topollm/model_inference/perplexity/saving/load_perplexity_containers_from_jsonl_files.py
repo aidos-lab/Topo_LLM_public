@@ -33,7 +33,7 @@ import pathlib
 
 from tqdm import tqdm
 
-from topollm.model_inference.perplexity.sentence_perplexity_container import SentencePerplexityContainer
+from topollm.model_inference.perplexity.saving.sentence_perplexity_container import SentencePerplexityContainer
 from topollm.typing.enums import Verbosity
 from topollm.typing.types import PerplexityResultsList
 

@@ -36,7 +36,7 @@ from topollm.model_handling.prepare_loaded_model_container import prepare_device
 from topollm.model_inference.perplexity.compute_perplexity_over_dataset import (
     compute_perplexity_over_dataset,
 )
-from topollm.model_inference.perplexity.save_perplexity_results_list import (
+from topollm.model_inference.perplexity.saving.save_perplexity_results_list import (
     save_perplexity_results_list_in_multiple_formats,
 )
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager

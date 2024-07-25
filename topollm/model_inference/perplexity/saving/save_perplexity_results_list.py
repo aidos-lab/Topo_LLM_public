@@ -35,7 +35,7 @@ import numpy as np
 import pandas as pd
 import zarr
 
-from topollm.model_inference.perplexity.sentence_perplexity_container import SentencePerplexityContainer
+from topollm.model_inference.perplexity.saving.sentence_perplexity_container import SentencePerplexityContainer
 from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 from topollm.typing.enums import PerplexityContainerSaveFormat, Verbosity
 from topollm.typing.types import PerplexityResultsList

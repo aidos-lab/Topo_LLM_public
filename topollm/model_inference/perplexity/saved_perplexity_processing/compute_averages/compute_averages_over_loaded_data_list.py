@@ -32,7 +32,7 @@ from tqdm import tqdm
 
 from topollm.analysis.stat_test import stat_test_linear
 from topollm.logging.log_list_info import log_list_info
-from topollm.model_inference.perplexity.sentence_perplexity_container import SentencePerplexityContainer
+from topollm.model_inference.perplexity.saving.sentence_perplexity_container import SentencePerplexityContainer
 from topollm.typing.enums import Verbosity
 from topollm.typing.types import PerplexityResultsList
 

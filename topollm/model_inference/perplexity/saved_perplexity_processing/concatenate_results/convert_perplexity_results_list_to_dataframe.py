@@ -37,7 +37,7 @@ from topollm.typing.enums import Verbosity
 from topollm.typing.types import PerplexityResultsList
 
 if TYPE_CHECKING:
-    from topollm.model_inference.perplexity.sentence_perplexity_container import SentencePerplexityContainer
+    from topollm.model_inference.perplexity.saving.sentence_perplexity_container import SentencePerplexityContainer
 
 default_logger = logging.getLogger(__name__)
 
