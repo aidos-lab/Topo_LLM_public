@@ -41,6 +41,7 @@ import transformers
 
 from topollm.analysis.local_estimates.saving.save_local_estimates import load_local_estimates
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
+from topollm.config_classes.main_config import MainConfig
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.embeddings_data_prep.get_token_ids_from_filter_tokens_config import get_token_ids_from_filter_tokens_config
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
@@ -63,7 +64,6 @@ from topollm.typing.enums import PerplexityContainerSaveFormat, Verbosity
 
 if TYPE_CHECKING:
     from topollm.analysis.local_estimates.saving.local_estimates_containers import LocalEstimatesContainer
-    from topollm.config_classes.main_config import MainConfig
     from topollm.typing.types import PerplexityResultsList
 
 default_device = torch.device("cpu")
@@ -97,10 +97,35 @@ def main(
     )
     verbosity = main_config.verbosity
 
+    load_perplexity_and_local_estimates_and_align(
+        perplexity_main_config=main_config,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+    logger.info("Running script DONE")
+
+
+def load_perplexity_and_local_estimates_and_align(
+    perplexity_main_config: MainConfig,
+    local_estimates_layer_indices: list[int] | None = None,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
+    """
+
+    # TODO: Document this function
+
+    # TODO: Make this function return the loaded arrays so that we can use its output
+    # TODO: to compute the correlations between different setups
+    """
+    if local_estimates_layer_indices is None:
+        local_estimates_layer_indices = [-1]
+
     # # # #
     # Get save paths
     perplexity_embeddings_path_manager = get_embeddings_path_manager(
-        main_config=main_config,
+        main_config=perplexity_main_config,
         logger=logger,
     )
 
@@ -146,7 +171,7 @@ def main(
 
     try:
         tokenizer, _ = load_modified_tokenizer_from_main_config(
-            main_config=main_config,
+            main_config=perplexity_main_config,
             verbosity=verbosity,
             logger=logger,
         )
@@ -161,7 +186,7 @@ def main(
 
     token_ids_to_filter: list[int] = get_token_ids_from_filter_tokens_config(
         tokenizer=tokenizer,
-        filter_tokens_config=main_config.embeddings_data_prep.filter_tokens,
+        filter_tokens_config=perplexity_main_config.embeddings_data_prep.filter_tokens,
         verbosity=verbosity,
         logger=logger,
     )
@@ -203,31 +228,30 @@ def main(
             )
 
     # # # # # # # # # # # # # # # # # # # #
-
     # Set the parameters so that the correct local estimates are loaded.
     # Note that we have to do this because the number of sequences for the perplexity computation
     # might be different from the number of sequences for the local estimates computation.
 
-    # TODO: Make this more flexible (we will make this an additional function parameter later)
-
     # Make a configuration for the local estimates
-    main_config_local_estimates = main_config.model_copy(
+    main_config_local_estimates = perplexity_main_config.model_copy(
         deep=True,
     )
+    main_config_local_estimates.embeddings.embedding_extraction.layer_indices = local_estimates_layer_indices
 
-    if main_config.data.dataset_description_string == "multiwoz21":
+    if perplexity_main_config.data.dataset_description_string == "multiwoz21":
         main_config_local_estimates.data.number_of_samples = 3000
     else:
         main_config_local_estimates.data.number_of_samples = -1
 
-    # TODO: We currently set this manually here to run the script for different embedding indices
-    # TODO: This currently needs to happen after the perplexity loading, because otherwise we pick the wrong path to the perplexity directory (for legacy reasons, this contains the layer index, even though this would not be necessary)
-    # main_config.embeddings.embedding_extraction.layer_indices = [-1]
-    main_config_local_estimates.embeddings.embedding_extraction.layer_indices = [-5]
-    # main_config.embeddings.embedding_extraction.layer_indices = [-9]
+    local_estimates_embeddings_path_manager = get_embeddings_path_manager(
+        main_config=perplexity_main_config,
+        logger=logger,
+    )
+
+    # TODO: Check whether this code works
 
     local_estimates_container: LocalEstimatesContainer = load_local_estimates(
-        embeddings_path_manager=perplexity_embeddings_path_manager,
+        embeddings_path_manager=local_estimates_embeddings_path_manager,
         verbosity=verbosity,
         logger=logger,
     )
@@ -239,8 +263,8 @@ def main(
         f"{local_estimates_array_np.shape = }\n"  # noqa: ISC003 - explicit string concatenation to avoid confusion
         + f"{local_estimates_array_np.mean() = }\n"
         + f"{local_estimates_array_np.std() = }\n"
-        + f"{main_config.data.number_of_samples = }\n"
-        + f"{main_config.embeddings.embedding_extraction.layer_indices = }\n"
+        + f"{perplexity_main_config.data.number_of_samples = }\n"
+        + f"{perplexity_main_config.embeddings.embedding_extraction.layer_indices = }\n"
     )
 
     if verbosity >= Verbosity.NORMAL:
@@ -261,7 +285,7 @@ def main(
     local_estimates_string_save_file_name: str = (
         "local_estimates_statistics"  # noqa: ISC003 - explicit string concatenation to avoid confusion
         + "_"
-        + f"layer-{main_config.embeddings.embedding_extraction.layer_indices}"
+        + f"layer-{perplexity_main_config.embeddings.embedding_extraction.layer_indices}"
         + ".txt"
     )
     local_estimates_string_save_path = pathlib.Path(
@@ -284,7 +308,7 @@ def main(
         )
         # Write the main_config to the file as well
         f.write(
-            f"\n\nmain_config:\n{main_config}\n",
+            f"\n\nmain_config:\n{perplexity_main_config}\n",
         )
 
     if verbosity >= Verbosity.NORMAL:

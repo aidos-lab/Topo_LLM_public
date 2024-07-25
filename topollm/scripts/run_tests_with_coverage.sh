@@ -3,8 +3,6 @@
 # This script will run all the tests in the tests directory,
 # and create an html coverage report in the htmlcov directory.
 
-source ${TOPO_LLM_REPOSITORY_BASE_PATH}/.venv/bin/activate
-
 # Add the flag --keep-test-data to keep the test data,
 # otherwise the test data will be placed into temporary directories
 # which are deleted after the tests are run.

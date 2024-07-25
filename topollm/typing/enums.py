@@ -29,8 +29,6 @@
 
 from enum import Enum, IntEnum, auto, unique
 
-from strenum import StrEnum
-
 try:
     # Try to import StrEnum from the standard library (Python 3.11 and later)
     from enum import StrEnum  # type: ignore - loading of the module is not guaranteed
