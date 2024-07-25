@@ -139,10 +139,6 @@ def main(
     # # # # # # # # # # # # # # # # # # # #
     # Compute and save summary statistics
 
-    average_perplexity: float = token_perplexities_df["token_perplexity"].mean()
-    std_perplexity: float = token_perplexities_df["token_perplexity"].std()
-    num_samples: int = len(token_perplexities_df)
-
     # TODO: This only currently works for the roberta tokenizer
 
     bos_token_string: str = "<s>"
@@ -152,47 +148,18 @@ def main(
         eos_token_string,
     ]
 
-    token_perplexities_df: pd.DataFrame = token_perplexities_df[
+    token_perplexities_without_eos_tokens_df: pd.DataFrame = token_perplexities_df[
         token_perplexities_df["token_string"] != eos_token_string
     ]
-
-    num_samples_without_eos = len(token_perplexities_df)
-    average_perplexity_without_eos = token_perplexities_df["token_perplexity"].mean()
-    std_perplexity_without_eos = token_perplexities_df["token_perplexity"].std()
-
-    average_log_perplexity_without_eos = token_perplexities_df["token_log_perplexity"].mean()
-    std_log_perplexity_without_eos = token_perplexities_df["token_log_perplexity"].std()
 
     # # # #
     token_perplexities_without_special_tokens_df = token_perplexities_df[
         ~token_perplexities_df["token_string"].isin(special_tokens_string_list)
     ]
 
-    num_samples_without_special_tokens = len(token_perplexities_without_special_tokens_df)
-    average_perplexity_without_special_tokens = token_perplexities_without_special_tokens_df["token_perplexity"].mean()
-    std_perplexity_without_special_tokens = token_perplexities_without_special_tokens_df["token_perplexity"].std()
+    # TODO: Create the statistics dfs
 
-    # Create string with statistics
-    perplexities_statistics_string: str = (
-        f"{num_samples = }\n"  # noqa: ISC003 - explicit string concatenation to avoid confusion
-        + f"{average_perplexity = }\n"
-        + f"{std_perplexity = }\n"
-        + f"{num_samples_without_eos = }\n"
-        + f"{average_perplexity_without_eos = }\n"
-        + f"{std_perplexity_without_eos = }\n"
-        + f"{average_log_perplexity_without_eos = }\n"
-        + f"{std_log_perplexity_without_eos = }\n"
-        + f"{num_samples_without_special_tokens = }\n"
-        + f"{average_perplexity_without_special_tokens = }\n"
-        + f"{std_perplexity_without_special_tokens = }\n"
-    )
-
-    # Write statistics to log
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            "perplexities_statistics_string:\n%s",
-            perplexities_statistics_string,
-        )
+    # TODO Write statistics to log
 
     # Save statistics to text file in the perplexity directory
 
@@ -209,12 +176,7 @@ def main(
             "Saving perplexities_statistics_string to text file ...",
         )
 
-    with perplexities_statistics_string_save_path.open(
-        mode="w",
-    ) as f:
-        f.write(
-            perplexities_statistics_string,
-        )
+    # TODO: Save
 
     if verbosity >= Verbosity.NORMAL:
         logger.info(
@@ -322,7 +284,9 @@ def main(
     # Add the local estimates to the local_estimates_meta_frame
     local_estimates_meta_frame["local_estimate"] = local_estimates_array_np
 
-    corresponding_token_perplexities_df = token_perplexities_df.iloc[local_estimates_meta_frame["subsample_idx"]]
+    corresponding_token_perplexities_df = token_perplexities_without_eos_tokens_df.iloc[
+        local_estimates_meta_frame["subsample_idx"]
+    ]
 
     # Check that local_estimates_meta_frame["token_name"] and corresponding_token_perplexities_df["token_string"] agree
     discrepancies = compare_columns(
