@@ -28,17 +28,13 @@
 """Perform the finetuning process."""
 
 import logging
-import pathlib
-from collections.abc import Callable
 from typing import TYPE_CHECKING
 
-import peft.peft_model
 import torch
 import transformers
 
 from topollm.config_classes.main_config import MainConfig
 from topollm.data_handling.dataset_preparer.factory import get_dataset_preparer
-from topollm.data_handling.dataset_preparer.protocol import DatasetPreparer
 from topollm.data_handling.dataset_preparer.select_random_elements import (
     log_selected_dataset_elements_info,
 )
@@ -69,27 +65,31 @@ from topollm.model_finetuning.prepare_model_input import prepare_model_input
 from topollm.model_finetuning.prepare_training_args import prepare_training_args
 from topollm.model_finetuning.save_tuned_model import save_tuned_model
 from topollm.model_finetuning.trainer_modifiers.factory import get_trainer_modifier
-from topollm.model_handling.model.token_classification_from_pretrained_kwargs import (
-    TokenClassificationFromPretrainedKwargs,
-)
 from topollm.model_handling.tokenizer.tokenizer_modifier.factory import (
     get_tokenizer_modifier,
 )
-from topollm.model_handling.tokenizer.tokenizer_modifier.protocol import TokenizerModifier
 from topollm.path_management.finetuning.factory import (
     get_finetuning_path_manager,
 )
-from topollm.path_management.finetuning.protocol import FinetuningPathManager
 from topollm.typing.enums import Verbosity
-from topollm.typing.types import ModifiedModel
 
 if TYPE_CHECKING:
+    import pathlib
+    from collections.abc import Callable
+
     import datasets
 
     from topollm.config_classes.finetuning.finetuning_config import FinetuningConfig
+    from topollm.data_handling.dataset_preparer.protocol import DatasetPreparer
     from topollm.model_finetuning.gradient_modifiers.protocol import GradientModifier
     from topollm.model_finetuning.model_modifiers.protocol import ModelModifier
     from topollm.model_finetuning.trainer_modifiers.protocol import TrainerModifier
+    from topollm.model_handling.model.token_classification_from_pretrained_kwargs import (
+        TokenClassificationFromPretrainedKwargs,
+    )
+    from topollm.model_handling.tokenizer.tokenizer_modifier.protocol import TokenizerModifier
+    from topollm.path_management.finetuning.protocol import FinetuningPathManager
+    from topollm.typing.types import ModifiedModel
 
 default_device = torch.device("cpu")
 default_logger = logging.getLogger(__name__)
@@ -136,14 +136,6 @@ def do_finetuning_process(
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Load tokenizer and model
 
-    base_tokenizer: transformers.PreTrainedTokenizer | transformers.PreTrainedTokenizerFast = (
-        load_tokenizer_from_finetuning_config(
-            finetuning_config=finetuning_config,
-            verbosity=verbosity,
-            logger=logger,
-        )
-    )
-
     label_list: list[str] | None = extract_label_list(
         finetuning_config=finetuning_config,
         train_dataset=train_dataset,
@@ -171,6 +163,14 @@ def do_finetuning_process(
     # (and the model if this is necessary for compatibility).
     # For instance, for some autoregressive models, the tokenizer
     # needs to be modified to add a padding token.
+
+    base_tokenizer: transformers.PreTrainedTokenizer | transformers.PreTrainedTokenizerFast = (
+        load_tokenizer_from_finetuning_config(
+            finetuning_config=finetuning_config,
+            verbosity=verbosity,
+            logger=logger,
+        )
+    )
 
     tokenizer_modifier: TokenizerModifier = get_tokenizer_modifier(
         tokenizer_modifier_config=finetuning_config.base_model.tokenizer_modifier,

@@ -620,23 +620,13 @@ def tokenizer(
     scope="session",
 )
 def embeddings_path_manager(
-    data_config: DataConfig,
-    embeddings_config: EmbeddingsConfig,
-    language_model_config: LanguageModelConfig,
-    paths_config: PathsConfig,
-    tokenizer_config: TokenizerConfig,
-    transformations_config: TransformationsConfig,
+    main_config: MainConfig,
     verbosity: Verbosity,
     logger_fixture: logging.Logger,
 ) -> EmbeddingsPathManagerSeparateDirectories:
     """Return an EmbeddingsPathManagerSeparateDirectories object."""
     path_manager = EmbeddingsPathManagerSeparateDirectories(
-        data_config=data_config,
-        embeddings_config=embeddings_config,
-        language_model_config=language_model_config,
-        paths_config=paths_config,
-        tokenizer_config=tokenizer_config,
-        transformations_config=transformations_config,
+        main_config=main_config,
         verbosity=verbosity,
         logger=logger_fixture,
     )

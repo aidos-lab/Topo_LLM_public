@@ -37,6 +37,7 @@ from topollm.config_classes.tokenizer.tokenizer_config import TokenizerConfig
 from topollm.model_handling.tokenizer.tokenizer_modifier.factory import get_tokenizer_modifier
 from topollm.model_handling.tokenizer.tokenizer_modifier.protocol import TokenizerModifier
 from topollm.typing.enums import Verbosity
+from topollm.typing.types import TransformersTokenizer
 
 default_logger = logging.getLogger(__name__)
 
@@ -49,7 +50,9 @@ def load_tokenizer(
 ) -> PreTrainedTokenizer | PreTrainedTokenizerFast:
     """Load the tokenizer based on the configuration."""
     if verbosity >= 1:
-        logger.info(f"Loading tokenizer {pretrained_model_name_or_path = } ...")
+        logger.info(
+            f"Loading tokenizer {pretrained_model_name_or_path = } ...",  # noqa: G004 - low overhead
+        )
 
     tokenizer = AutoTokenizer.from_pretrained(
         pretrained_model_name_or_path=pretrained_model_name_or_path,
@@ -57,7 +60,9 @@ def load_tokenizer(
     )
 
     if verbosity >= 1:
-        logger.info(f"Loading tokenizer {pretrained_model_name_or_path = } DONE")
+        logger.info(
+            f"Loading tokenizer {pretrained_model_name_or_path = } DONE",  # noqa: G004 - low overhead
+        )
         logger.info(
             "tokenizer:\n%s",
             tokenizer,
@@ -68,21 +73,22 @@ def load_tokenizer(
 
 def load_modified_tokenizer(
     main_config: MainConfig,
+    verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> tuple[
-    PreTrainedTokenizer | PreTrainedTokenizerFast,
+    TransformersTokenizer,
     TokenizerModifier,
 ]:
     """Load the tokenizer and modify it if necessary."""
     tokenizer = load_tokenizer(
         pretrained_model_name_or_path=main_config.language_model.pretrained_model_name_or_path,
         tokenizer_config=main_config.tokenizer,
-        verbosity=main_config.verbosity,
+        verbosity=verbosity,
         logger=logger,
     )
     tokenizer_modifier = get_tokenizer_modifier(
         tokenizer_modifier_config=main_config.language_model.tokenizer_modifier,
-        verbosity=main_config.verbosity,
+        verbosity=verbosity,
         logger=logger,
     )
 
