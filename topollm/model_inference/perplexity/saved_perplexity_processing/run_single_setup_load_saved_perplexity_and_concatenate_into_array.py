@@ -36,7 +36,6 @@ import numpy as np
 import omegaconf
 import pandas as pd
 import torch
-import zarr
 
 from topollm.analysis.local_estimates.saving.save_local_estimates import load_local_estimates
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
@@ -44,6 +43,9 @@ from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.logging.setup_exception_logging import setup_exception_logging
+from topollm.model_handling.tokenizer.load_modified_tokenizer_from_main_config import (
+    load_modified_tokenizer_from_main_config,
+)
 from topollm.model_inference.perplexity.saved_perplexity_processing.concatenate_results.convert_perplexity_results_list_to_dataframe import (
     convert_perplexity_results_list_to_dataframe,
 )
@@ -139,10 +141,16 @@ def main(
     # # # # # # # # # # # # # # # # # # # #
     # Compute and save summary statistics
 
+    tokenizer, _ = load_modified_tokenizer_from_main_config(
+        main_config=main_config,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
     # TODO: This only currently works for the roberta tokenizer
 
     bos_token_string: str = "<s>"
-    eos_token_string: str = "</s>"
+    eos_token_string: str = tokenizer.eos_token
     special_tokens_string_list = [
         bos_token_string,
         eos_token_string,

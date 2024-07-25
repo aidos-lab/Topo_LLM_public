@@ -70,7 +70,9 @@ def embeddings_data_prep_worker(
     )
 
     tokenizer, _ = load_modified_tokenizer(
-        main_config=main_config,
+        language_model_config=main_config.language_model,
+        tokenizer_config=main_config.tokenizer,
+        verbosity=verbosity,
         logger=logger,
     )
 

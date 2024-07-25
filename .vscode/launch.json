@@ -97,7 +97,7 @@
             "name": "run_single_setup_load_saved_perplexity_and_concatenate_into_array.py",
             "type": "debugpy",
             "request": "launch",
-            "program": "topollm/model_inference/perplexity/saved_perplexity_processing/concatenate_results/run_single_setup_load_saved_perplexity_and_concatenate_into_array.py",
+            "program": "topollm/model_inference/perplexity/saved_perplexity_processing/run_single_setup_load_saved_perplexity_and_concatenate_into_array.py",
             "console": "integratedTerminal",
             "args": [
                 "data=multiwoz21",

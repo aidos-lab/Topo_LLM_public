@@ -69,11 +69,14 @@ default_logger = logging.getLogger(__name__)
 def compute_and_store_embeddings(
     main_config: MainConfig,
     device: torch.device = default_device,
+    verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> None:
     """Compute and store embedding vectors."""
     tokenizer, tokenizer_modifier = load_modified_tokenizer(
-        main_config=main_config,
+        language_model_config=main_config.language_model,
+        tokenizer_config=main_config.tokenizer,
+        verbosity=verbosity,
         logger=logger,
     )
 
@@ -82,7 +85,7 @@ def compute_and_store_embeddings(
         pretrained_model_name_or_path=main_config.language_model.pretrained_model_name_or_path,
         device=device,
         logger=logger,
-        verbosity=main_config.verbosity,
+        verbosity=verbosity,
     )
 
     # Put the model in evaluation mode.
@@ -120,7 +123,7 @@ def compute_and_store_embeddings(
         tokenizer_config=main_config.tokenizer,
         tokenizer=tokenizer,
         collate_fn=partial_collate_fn,
-        verbosity=main_config.verbosity,
+        verbosity=verbosity,
         logger=logger,
     )
     embedding_dataloader_preparer = get_embedding_dataloader_preparer(

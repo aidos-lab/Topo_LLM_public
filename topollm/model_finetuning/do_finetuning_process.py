@@ -50,9 +50,6 @@ from topollm.model_finetuning.gradient_modifiers.factory import get_gradient_mod
 from topollm.model_finetuning.load_base_model_from_finetuning_config import (
     load_base_model_from_finetuning_config,
 )
-from topollm.model_finetuning.load_tokenizer_from_finetuning_config import (
-    load_tokenizer_from_finetuning_config,
-)
 from topollm.model_finetuning.model_modifiers.factory import (
     get_model_modifier,
 )
@@ -65,6 +62,9 @@ from topollm.model_finetuning.prepare_model_input import prepare_model_input
 from topollm.model_finetuning.prepare_training_args import prepare_training_args
 from topollm.model_finetuning.save_tuned_model import save_tuned_model
 from topollm.model_finetuning.trainer_modifiers.factory import get_trainer_modifier
+from topollm.model_handling.tokenizer.load_tokenizer_from_finetuning_config import (
+    load_modified_tokenizer_from_finetuning_config,
+)
 from topollm.model_handling.tokenizer.tokenizer_modifier.factory import (
     get_tokenizer_modifier,
 )
@@ -133,15 +133,15 @@ def do_finetuning_process(
             logger=logger,
         )
 
-    # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-    # Load tokenizer and model
-
     label_list: list[str] | None = extract_label_list(
         finetuning_config=finetuning_config,
         train_dataset=train_dataset,
         verbosity=verbosity,
         logger=logger,
     )
+
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    # Load tokenizer and model
 
     from_pretrained_kwargs_instance: TokenClassificationFromPretrainedKwargs | None = (
         generate_from_pretrained_kwargs_instance(
@@ -164,25 +164,12 @@ def do_finetuning_process(
     # For instance, for some autoregressive models, the tokenizer
     # needs to be modified to add a padding token.
 
-    base_tokenizer: transformers.PreTrainedTokenizer | transformers.PreTrainedTokenizerFast = (
-        load_tokenizer_from_finetuning_config(
-            finetuning_config=finetuning_config,
-            verbosity=verbosity,
-            logger=logger,
-        )
-    )
-
-    tokenizer_modifier: TokenizerModifier = get_tokenizer_modifier(
-        tokenizer_modifier_config=finetuning_config.base_model.tokenizer_modifier,
+    tokenizer, tokenizer_modifier = load_modified_tokenizer_from_finetuning_config(
+        finetuning_config=finetuning_config,
         verbosity=verbosity,
         logger=logger,
     )
 
-    tokenizer: transformers.PreTrainedTokenizer | transformers.PreTrainedTokenizerFast = (
-        tokenizer_modifier.modify_tokenizer(
-            tokenizer=base_tokenizer,
-        )
-    )
     base_model: transformers.PreTrainedModel = tokenizer_modifier.update_model(
         model=base_model,
     )

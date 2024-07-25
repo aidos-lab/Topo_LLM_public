@@ -605,11 +605,14 @@ def main_config(
 )
 def tokenizer(
     main_config: MainConfig,
+    verbosity: Verbosity,
     logger_fixture: logging.Logger,
 ) -> transformers.PreTrainedTokenizer | transformers.PreTrainedTokenizerFast:
     """Return a tokenizer object."""
     tokenizer, _ = load_modified_tokenizer(
-        main_config=main_config,
+        language_model_config=main_config.language_model,
+        tokenizer_config=main_config.tokenizer,
+        verbosity=verbosity,
         logger=logger_fixture,
     )
 
