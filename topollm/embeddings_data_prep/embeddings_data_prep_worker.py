@@ -37,13 +37,15 @@ import torch
 from topollm.config_classes.main_config import MainConfig
 from topollm.embeddings_data_prep.load_and_stack_embedding_data import load_and_stack_embedding_data
 from topollm.embeddings_data_prep.prepared_data_containers import PreparedData
+from topollm.embeddings_data_prep.remove_padding_and_extra_tokens import remove_padding_and_extra_tokens
 from topollm.embeddings_data_prep.save_prepared_data import save_prepared_data
 from topollm.logging.log_array_info import log_array_info
 from topollm.logging.log_dataframe_info import log_dataframe_info
-from topollm.model_handling.tokenizer.load_tokenizer import load_modified_tokenizer
+from topollm.model_handling.tokenizer.load_modified_tokenizer_from_main_config import (
+    load_modified_tokenizer_from_main_config,
+)
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
 from topollm.typing.enums import Verbosity
-from topollm.typing.types import TransformersTokenizer
 
 if TYPE_CHECKING:
     from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
@@ -63,15 +65,14 @@ def embeddings_data_prep_worker(
         logger=logger,
     )
 
-    full_df = load_and_stack_embedding_data(
+    full_df: pd.DataFrame = load_and_stack_embedding_data(
         embeddings_path_manager=embeddings_path_manager,
         verbosity=verbosity,
         logger=logger,
     )
 
-    tokenizer, _ = load_modified_tokenizer(
-        language_model_config=main_config.language_model,
-        tokenizer_config=main_config.tokenizer,
+    tokenizer, _ = load_modified_tokenizer_from_main_config(
+        main_config=main_config,
         verbosity=verbosity,
         logger=logger,
     )
@@ -79,6 +80,7 @@ def embeddings_data_prep_worker(
     arr_no_pad, meta_no_pad, sentence_idx_no_pad = remove_padding_and_extra_tokens(
         full_df=full_df,
         tokenizer=tokenizer,
+        filter_tokens_config=main_config.embeddings_data_prep.filter_tokens,
         verbosity=verbosity,
         logger=logger,
     )
@@ -89,7 +91,7 @@ def embeddings_data_prep_worker(
     sample_size = main_config.embeddings_data_prep.num_samples
 
     arr_no_pad_subsampled, meta_no_pad_subsampled, sentence_idx_no_pad_subsampled, subsample_idx = (
-        select_subsets_of_arr_and_meta(
+        select_subsets_of_arrays_and_meta(
             arr_no_pad=arr_no_pad,
             meta_no_pad=meta_no_pad,
             sentence_idx_no_pad=sentence_idx_no_pad,
@@ -108,7 +110,7 @@ def embeddings_data_prep_worker(
 
     token_names_no_pad_subsampled = [tokenizer.convert_ids_to_tokens(int(x)) for x in meta_no_pad_subsampled]
 
-    meta_frame_no_pad_subsampled = pd.DataFrame(
+    meta_frame_no_pad_subsampled: pd.DataFrame = pd.DataFrame(
         {
             "token_id": list(meta_no_pad_subsampled),
             "token_name": list(token_names_no_pad_subsampled),
@@ -163,59 +165,7 @@ def embeddings_data_prep_worker(
     )
 
 
-def remove_padding_and_extra_tokens(
-    full_df: pd.DataFrame,
-    tokenizer: TransformersTokenizer,
-    verbosity: Verbosity = Verbosity.NORMAL,
-    logger: logging.Logger = default_logger,
-) -> tuple[
-    np.ndarray,
-    np.ndarray,
-    np.ndarray,
-]:
-    """Remove padding and extra tokens from the data."""
-    eos_token_id = tokenizer.eos_token_id
-    pad_token_id = tokenizer.pad_token_id
-
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            f"{eos_token_id = }",  # noqa: G004 - low overhead
-        )
-        logger.info(
-            f"{pad_token_id = }",  # noqa: G004 - low overhead
-        )
-
-    if pad_token_id is None:
-        msg = "The padding token id is None."
-        raise ValueError(
-            msg,
-        )
-
-    # TODO: Make configurable which special tokens to filter out
-    filtered_df = full_df[(full_df["meta"] != eos_token_id) & (full_df["meta"] != pad_token_id)]
-
-    # arr_no_pad.shape:
-    # (number of non-padding tokens in subsample, embedding dimension)
-    arr_no_pad = np.array(
-        list(filtered_df.arr),
-    )
-
-    # meta_no_pad.shape:
-    # (number of non-padding tokens in subsample,)
-    meta_no_pad = np.array(
-        list(filtered_df.meta),
-    )
-
-    # sentence_idx_no_pad.shape:
-    # (number of non-padding tokens in subsample,)
-    sentence_idx_no_pad = np.array(
-        list(filtered_df.sentence_idx),
-    )
-
-    return arr_no_pad, meta_no_pad, sentence_idx_no_pad
-
-
-def select_subsets_of_arr_and_meta(
+def select_subsets_of_arrays_and_meta(
     arr_no_pad: np.ndarray,
     meta_no_pad: np.ndarray,
     sentence_idx_no_pad: np.ndarray,

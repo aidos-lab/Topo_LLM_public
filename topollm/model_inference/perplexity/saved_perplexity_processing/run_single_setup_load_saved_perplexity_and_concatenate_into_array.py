@@ -149,7 +149,7 @@ def main(
 
     # TODO: This only currently works for the roberta tokenizer
 
-    bos_token_string: str = "<s>"
+    bos_token_string: str = tokenizer.bos_token
     eos_token_string: str = tokenizer.eos_token
     special_tokens_string_list = [
         bos_token_string,
