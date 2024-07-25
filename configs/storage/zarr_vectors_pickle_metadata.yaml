@@ -1,3 +1,0 @@
-array_storage_type: ZARR
-chunk_size: 512
-metadata_storage_type: PICKLE

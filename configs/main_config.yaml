@@ -8,7 +8,7 @@ defaults:
   - language_model: roberta-base
   - local_estimates: twonn
   - paths: absolute_repository_base
-  - storage: zarr_vectors_pickle_metadata
+  - storage: default
   - submit_jobs: config
   - tokenizer: basic_tokenizer
   - transformations: none
@@ -18,7 +18,7 @@ defaults:
 
 seed: 1234
 verbosity: 1
-preferred_torch_backend: AUTO
+preferred_torch_backend: auto
 
 #------------------------- Hydra Config ------------------------#
 # Instructions for setting up the output directory paths:

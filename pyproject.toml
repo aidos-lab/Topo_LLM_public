@@ -37,32 +37,32 @@ pandas = "*"
 pydantic = "*"
 python = "3.12.*"
 scikit-learn = "*"
-scikit-dimension = "^0.3.4"
+scikit-dimension = "*"
 StrEnum = { version = "^0.4", markers = "python_version < '3.11'" }
 torch = "2.*"
 tqdm = "*"
 transformers = "*"
 zarr = "*"
-tensorboard = "^2.16.2"
-seaborn = "^0.13.2"
+tensorboard = "*"
+seaborn = "*"
 giotto-tda = "^0.6.2"
 umap-learn = "^0.5.5"
-peft = "^0.10.0"
-python-dotenv = "^1.0.1"
-graphriccicurvature = "^0.5.3.1"
-networkx = "^3.2.1"
-pyyaml = "^6.0.1"
-hydra-colorlog = "^1.2.0"
-wandb = "^0.17.0"
-rich = "^13.7.1"
-evaluate = "^0.4.2"
-seqeval = "^1.2.2"
+peft = "*"
+python-dotenv = "*"
+graphriccicurvature = "*"
+networkx = "*"
+pyyaml = "*"
+hydra-colorlog = "*"
+wandb = "*"
+rich = "*"
+evaluate = "*"
+seqeval = "*"
 
 [tool.poetry.group.dev.dependencies]
-hypothesis = "^6.99.13"
-pytest = "^8.0.1"
+hypothesis = "*"
+pytest = "*"
 pytest-cov = "*"
-ipykernel = "^6.29.5"
+ipykernel = "*"
 
 [tool.poetry.group.cpu]
 optional = true
@@ -75,7 +75,7 @@ optional = true
 
 [tool.poetry.group.gpu.dependencies]
 faiss-gpu = "*"
-gpustat = "^1.1.1"
+gpustat = "*"
 
 # This section is for using the PyPI mirror on hilbert (HHU internal)
 #
@@ -90,5 +90,8 @@ build-backend = "poetry.core.masonry.api"
 
 # Script entry points for various tasks
 [tool.poetry.scripts]
-compute-embeddings = "topollm.compute_embeddings.run_compute_embeddings:main"
-run-inference = "topollm.model_inference.run_inference_pipeline:main"
+run_finetune_language_model = "topollm.model_finetuning.run_finetune_language_model_on_huggingface_dataset:main"
+run_compute_embeddings = "topollm.compute_embeddings.run_compute_embeddings:main"
+run_compute_perplexity = "topollm.model_inference.perplexity.run_compute_perplexity:main"
+run_inference_pipeline = "topollm.model_inference.run_inference_pipeline:main"
+run_pipeline = "topollm.pipeline_scripts.run_pipeline_embeddings_data_prep_local_estimate:main"

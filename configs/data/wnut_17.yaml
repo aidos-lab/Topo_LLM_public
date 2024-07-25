@@ -7,5 +7,5 @@ column_name: tokens
 context: dataset_entry
 dataset_description_string: wnut_17
 dataset_path: wnut_17
-dataset_type: HUGGINGFACE_DATASET
+
 dataset_name: wnut_17

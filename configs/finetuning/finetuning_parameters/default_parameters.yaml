@@ -1,4 +1,4 @@
-compute_metrics_mode: FROM_TASK_TYPE
+compute_metrics_mode: from_task_type
 eval_steps: 400
 fp16: false
 gradient_accumulation_steps: 2
