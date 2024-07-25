@@ -30,12 +30,14 @@ import logging
 import pathlib
 from typing import TYPE_CHECKING
 
+import huggingface_hub
 import hydra
 import hydra.core.hydra_config
 import numpy as np
 import omegaconf
 import pandas as pd
 import torch
+import transformers
 
 from topollm.analysis.local_estimates.saving.save_local_estimates import load_local_estimates
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
@@ -97,12 +99,12 @@ def main(
 
     # # # #
     # Get save paths
-    embeddings_path_manager = get_embeddings_path_manager(
+    perplexity_embeddings_path_manager = get_embeddings_path_manager(
         main_config=main_config,
         logger=logger,
     )
 
-    save_file_path_josnl = embeddings_path_manager.get_perplexity_container_save_file_absolute_path(
+    save_file_path_josnl = perplexity_embeddings_path_manager.get_perplexity_container_save_file_absolute_path(
         perplexity_container_save_format=PerplexityContainerSaveFormat.LIST_AS_JSONL,
     )
 
@@ -134,7 +136,7 @@ def main(
     save_concatenated_perplexity_results(
         token_perplexities_df=token_perplexities_df,
         token_perplexities_array=token_perplexities_array,
-        embeddings_path_manager=embeddings_path_manager,
+        embeddings_path_manager=perplexity_embeddings_path_manager,
         verbosity=verbosity,
         logger=logger,
     )
@@ -142,11 +144,20 @@ def main(
     # # # # # # # # # # # # # # # # # # # #
     # Compute and save summary statistics
 
-    tokenizer, _ = load_modified_tokenizer_from_main_config(
-        main_config=main_config,
-        verbosity=verbosity,
-        logger=logger,
-    )
+    try:
+        tokenizer, _ = load_modified_tokenizer_from_main_config(
+            main_config=main_config,
+            verbosity=verbosity,
+            logger=logger,
+        )
+    except (huggingface_hub.exceptions.ModelHubError, FileNotFoundError):
+        logger.exception(
+            "Could not load the tokenizer.",
+        )
+        # Use "roberta-base" as a fallback
+        tokenizer = transformers.AutoTokenizer.from_pretrained(
+            "roberta-base",
+        )
 
     token_ids_to_filter: list[int] = get_token_ids_from_filter_tokens_config(
         tokenizer=tokenizer,
@@ -163,31 +174,33 @@ def main(
         ~token_perplexities_df["token_id"].isin(tokenizer.all_special_ids)
     ]
 
-    # TODO: Create the statistics dfs
-
-    # TODO Write statistics to log
-
-    # Save statistics to text file in the perplexity directory
-
-    perplexity_dir = embeddings_path_manager.perplexity_dir_absolute_path
-    perplexities_statistics_string_save_path = pathlib.Path(
-        perplexity_dir,
-        "perplexity_statistics.txt",
-    )
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            f"{perplexities_statistics_string_save_path = }",  # noqa: G004 - low overhead
+    # Save statistics about the perplexity dataframes into the perplexity directory
+    perplexity_dir = perplexity_embeddings_path_manager.perplexity_dir_absolute_path
+    for current_df, current_df_description in [
+        (token_perplexities_df, "token_perplexities_df"),
+        (token_perplexities_without_filtered_tokens_df, "token_perplexities_without_filtered_tokens_df"),
+        (token_perplexities_without_special_tokens_df, "token_perplexities_without_special_tokens_df"),
+    ]:
+        current_df_statistics_save_path = pathlib.Path(
+            perplexity_dir,
+            f"{current_df_description}_statistics.csv",
         )
-        logger.info(
-            "Saving perplexities_statistics_string to text file ...",
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                f"{current_df_statistics_save_path = }",  # noqa: G004 - low overhead
+            )
+            logger.info(
+                "Saving statistics to file ...",
+            )
+
+        current_df.describe().to_csv(
+            path_or_buf=current_df_statistics_save_path,
         )
 
-    # TODO: Save
-
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            "Saving perplexities_statistics_string to text file DONE",
-        )
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                "Saving statistics to file DONE",
+            )
 
     # # # # # # # # # # # # # # # # # # # #
 
@@ -197,19 +210,24 @@ def main(
 
     # TODO: Make this more flexible (we will make this an additional function parameter later)
 
+    # Make a configuration for the local estimates
+    main_config_local_estimates = main_config.model_copy(
+        deep=True,
+    )
+
     if main_config.data.dataset_description_string == "multiwoz21":
-        main_config.data.number_of_samples = 3000
+        main_config_local_estimates.data.number_of_samples = 3000
     else:
-        main_config.data.number_of_samples = -1
+        main_config_local_estimates.data.number_of_samples = -1
 
     # TODO: We currently set this manually here to run the script for different embedding indices
     # TODO: This currently needs to happen after the perplexity loading, because otherwise we pick the wrong path to the perplexity directory (for legacy reasons, this contains the layer index, even though this would not be necessary)
     # main_config.embeddings.embedding_extraction.layer_indices = [-1]
-    main_config.embeddings.embedding_extraction.layer_indices = [-5]
+    main_config_local_estimates.embeddings.embedding_extraction.layer_indices = [-5]
     # main_config.embeddings.embedding_extraction.layer_indices = [-9]
 
     local_estimates_container: LocalEstimatesContainer = load_local_estimates(
-        embeddings_path_manager=embeddings_path_manager,
+        embeddings_path_manager=perplexity_embeddings_path_manager,
         verbosity=verbosity,
         logger=logger,
     )
@@ -232,7 +250,9 @@ def main(
         )
 
     # Save statistics to text file in the perplexity directory
-    analyzed_data_save_directory: pathlib.Path = embeddings_path_manager.get_analyzed_data_dir_absolute_path()
+    analyzed_data_save_directory: pathlib.Path = (
+        perplexity_embeddings_path_manager.get_analyzed_data_dir_absolute_path()
+    )
     analyzed_data_save_directory.mkdir(
         parents=True,
         exist_ok=True,
@@ -321,7 +341,11 @@ def main(
     )
 
     # Restrict to non-special tokens
-    without_special_tokens_aligned_df = aligned_df[~aligned_df["token_string"].isin(special_tokens_string_list)]
+    aligned_without_special_tokens_df = aligned_df[
+        ~aligned_df["token_id"].isin(
+            tokenizer.all_special_ids,
+        )
+    ]
 
     # # # #
     # Saving aligned_df to csv file

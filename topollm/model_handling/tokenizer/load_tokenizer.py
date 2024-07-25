@@ -49,7 +49,7 @@ def load_tokenizer(
     logger: logging.Logger = default_logger,
 ) -> PreTrainedTokenizer | PreTrainedTokenizerFast:
     """Load the tokenizer based on the configuration."""
-    if verbosity >= 1:
+    if verbosity >= Verbosity.NORMAL:
         logger.info(
             f"Loading tokenizer {pretrained_model_name_or_path = } ...",  # noqa: G004 - low overhead
         )
@@ -59,7 +59,7 @@ def load_tokenizer(
         add_prefix_space=tokenizer_config.add_prefix_space,
     )
 
-    if verbosity >= 1:
+    if verbosity >= Verbosity.NORMAL:
         logger.info(
             f"Loading tokenizer {pretrained_model_name_or_path = } DONE",  # noqa: G004 - low overhead
         )

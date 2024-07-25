@@ -301,8 +301,11 @@ class EmbeddingsPathManagerSeparateDirectories:
         self,
     ) -> pathlib.Path:
         path: pathlib.Path = pathlib.Path(
-            self.perplexity_dir_absolute_path,
-            self.main_config.embeddings.embedding_extraction.config_description,
+            "analysis",
+            "aligned_and_analyzed",
+            self.main_config.local_estimates.description,
+            self.get_nested_subfolder_path(),
+            self.main_config.embeddings_data_prep.config_description,  # We include this because the local estimates are computed on the prepared data
             self.main_config.local_estimates.config_description,
         )
 
@@ -316,12 +319,12 @@ def get_perplexity_container_save_file_name(
     match perplexity_container_save_format:
         case PerplexityContainerSaveFormat.LIST_AS_JSONL:
             file_name = "perplexity_results_list.jsonl"
-        case PerplexityContainerSaveFormat.CONCATENATED_DATAFRAME_AS_CSV:
-            file_name = "perplexity_results_df.csv"
         case PerplexityContainerSaveFormat.LIST_AS_PICKLE:
             file_name = "perplexity_results_list.pkl"
+        case PerplexityContainerSaveFormat.CONCATENATED_DATAFRAME_AS_CSV:
+            file_name = "token_perplexities_df.csv"
         case PerplexityContainerSaveFormat.CONCATENATED_ARRAY_AS_ZARR:
-            file_name = "perplexity_results_array.zarr"
+            file_name = "token_perplexities_array.zarr"
         case _:
             msg = f"Unsupported {perplexity_container_save_format = }."
             raise ValueError(msg)

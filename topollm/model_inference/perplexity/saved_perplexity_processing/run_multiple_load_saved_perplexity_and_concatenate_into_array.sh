@@ -1,5 +1,8 @@
 #!/bin/bash
 
+set -e # Stop script at the first error
+
+
 # https://hydra.cc/docs/tutorials/basic/running_your_app/multi-run/
 
 PYTHON_SCRIPT_NAME="run_single_setup_load_saved_perplexity_and_concatenate_into_array.py"
