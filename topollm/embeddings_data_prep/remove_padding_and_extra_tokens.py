@@ -33,6 +33,7 @@ import numpy as np
 import pandas as pd
 
 from topollm.config_classes.embeddings_data_prep.embeddings_data_prep_config import FilterTokensConfig
+from topollm.embeddings_data_prep.get_token_ids_from_filter_tokens_config import get_token_ids_from_filter_tokens_config
 from topollm.typing.enums import Verbosity
 from topollm.typing.types import TransformersTokenizer
 
@@ -52,10 +53,10 @@ def remove_padding_and_extra_tokens(
 ]:
     """Remove padding and extra tokens from the data."""
     token_ids_to_filter: list[int] = get_token_ids_from_filter_tokens_config(
-        tokenizer,
-        filter_tokens_config,
-        verbosity,
-        logger,
+        tokenizer=tokenizer,
+        filter_tokens_config=filter_tokens_config,
+        verbosity=verbosity,
+        logger=logger,
     )
 
     filtered_df = full_df[
@@ -83,54 +84,3 @@ def remove_padding_and_extra_tokens(
     )
 
     return arr_no_pad, meta_no_pad, sentence_idx_no_pad
-
-
-def get_token_ids_from_filter_tokens_config(
-    tokenizer: TransformersTokenizer,
-    filter_tokens_config: FilterTokensConfig,
-    verbosity: Verbosity = Verbosity.NORMAL,
-    logger: logging.Logger = default_logger,
-) -> list[int]:
-    """Get the token ids to filter out from the tokenizer based on the filter tokens config."""
-    token_ids_to_filter = []
-    if filter_tokens_config.remove_bos_token:
-        if verbosity >= Verbosity.NORMAL:
-            logger.info(
-                f"{tokenizer.bos_token_id = }",  # noqa: G004 - low overhead
-            )
-        if tokenizer.bos_token_id is None:
-            msg = "The tokenizer beginning of sequence token id is None."
-            raise ValueError(
-                msg,
-            )
-        token_ids_to_filter.append(
-            tokenizer.bos_token_id,
-        )
-    if filter_tokens_config.remove_eos_token:
-        if verbosity >= Verbosity.NORMAL:
-            logger.info(
-                f"{tokenizer.eos_token_id = }",  # noqa: G004 - low overhead
-            )
-        if tokenizer.eos_token_id is None:
-            msg = "The tokenizer end of sequence token id is None."
-            raise ValueError(
-                msg,
-            )
-        token_ids_to_filter.append(
-            tokenizer.eos_token_id,
-        )
-    if filter_tokens_config.remove_pad_token:
-        if verbosity >= Verbosity.NORMAL:
-            logger.info(
-                f"{tokenizer.pad_token_id = }",  # noqa: G004 - low overhead
-            )
-        if tokenizer.pad_token_id is None:
-            msg = "The tokenizer padding token id is None."
-            raise ValueError(
-                msg,
-            )
-        token_ids_to_filter.append(
-            tokenizer.pad_token_id,
-        )
-
-    return token_ids_to_filter

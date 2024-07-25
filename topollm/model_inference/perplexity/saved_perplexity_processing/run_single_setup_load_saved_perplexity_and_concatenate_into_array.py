@@ -40,6 +40,7 @@ import torch
 from topollm.analysis.local_estimates.saving.save_local_estimates import load_local_estimates
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
+from topollm.embeddings_data_prep.get_token_ids_from_filter_tokens_config import get_token_ids_from_filter_tokens_config
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.logging.setup_exception_logging import setup_exception_logging
@@ -147,22 +148,19 @@ def main(
         logger=logger,
     )
 
-    # TODO: This only currently works for the roberta tokenizer
+    token_ids_to_filter: list[int] = get_token_ids_from_filter_tokens_config(
+        tokenizer=tokenizer,
+        filter_tokens_config=main_config.embeddings_data_prep.filter_tokens,
+        verbosity=verbosity,
+        logger=logger,
+    )
 
-    bos_token_string: str = tokenizer.bos_token
-    eos_token_string: str = tokenizer.eos_token
-    special_tokens_string_list = [
-        bos_token_string,
-        eos_token_string,
+    token_perplexities_without_filtered_tokens_df: pd.DataFrame = token_perplexities_df[
+        ~token_perplexities_df["token_id"].isin(token_ids_to_filter)
     ]
 
-    token_perplexities_without_eos_tokens_df: pd.DataFrame = token_perplexities_df[
-        token_perplexities_df["token_string"] != eos_token_string
-    ]
-
-    # # # #
     token_perplexities_without_special_tokens_df = token_perplexities_df[
-        ~token_perplexities_df["token_string"].isin(special_tokens_string_list)
+        ~token_perplexities_df["token_id"].isin(tokenizer.all_special_ids)
     ]
 
     # TODO: Create the statistics dfs
@@ -292,7 +290,7 @@ def main(
     # Add the local estimates to the local_estimates_meta_frame
     local_estimates_meta_frame["local_estimate"] = local_estimates_array_np
 
-    corresponding_token_perplexities_df = token_perplexities_without_eos_tokens_df.iloc[
+    corresponding_token_perplexities_df = token_perplexities_without_filtered_tokens_df.iloc[
         local_estimates_meta_frame["subsample_idx"]
     ]
 
