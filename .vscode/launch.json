@@ -108,5 +108,21 @@
                 "embeddings_data_prep.num_samples=30000",
             ]
         },
+        {
+            "name": "run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
+            "console": "integratedTerminal",
+            "args": [
+                "data=multiwoz21",
+                "data.number_of_samples=128",
+                "data.split=validation",
+                "language_model=roberta-base",
+                "embeddings.embedding_extraction.layer_indices=[-1]",
+                "embeddings_data_prep.num_samples=30000",
+                "local_estimates.filtering.num_samples=200",
+            ]
+        },
     ]
 }

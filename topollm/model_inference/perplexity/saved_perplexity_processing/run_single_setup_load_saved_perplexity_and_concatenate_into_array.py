@@ -98,7 +98,8 @@ def main(
     verbosity = main_config.verbosity
 
     load_perplexity_and_local_estimates_and_align(
-        perplexity_main_config=main_config,
+        main_config_for_perplexity=main_config,
+        local_estimates_layer_indices=None,
         verbosity=verbosity,
         logger=logger,
     )
@@ -107,7 +108,7 @@ def main(
 
 
 def load_perplexity_and_local_estimates_and_align(
-    perplexity_main_config: MainConfig,
+    main_config_for_perplexity: MainConfig,
     local_estimates_layer_indices: list[int] | None = None,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
@@ -116,8 +117,7 @@ def load_perplexity_and_local_estimates_and_align(
 
     # TODO: Document this function
 
-    # TODO: Make this function return the loaded arrays so that we can use its output
-    # TODO: to compute the correlations between different setups
+    # TODO: Make this function return the loaded arrays so that we can use its output to compute the correlations between different setups
     """
     if local_estimates_layer_indices is None:
         local_estimates_layer_indices = [-1]
@@ -125,7 +125,7 @@ def load_perplexity_and_local_estimates_and_align(
     # # # #
     # Get save paths
     perplexity_embeddings_path_manager = get_embeddings_path_manager(
-        main_config=perplexity_main_config,
+        main_config=main_config_for_perplexity,
         logger=logger,
     )
 
@@ -171,7 +171,7 @@ def load_perplexity_and_local_estimates_and_align(
 
     try:
         tokenizer, _ = load_modified_tokenizer_from_main_config(
-            main_config=perplexity_main_config,
+            main_config=main_config_for_perplexity,
             verbosity=verbosity,
             logger=logger,
         )
@@ -186,7 +186,7 @@ def load_perplexity_and_local_estimates_and_align(
 
     token_ids_to_filter: list[int] = get_token_ids_from_filter_tokens_config(
         tokenizer=tokenizer,
-        filter_tokens_config=perplexity_main_config.embeddings_data_prep.filter_tokens,
+        filter_tokens_config=main_config_for_perplexity.embeddings_data_prep.filter_tokens,
         verbosity=verbosity,
         logger=logger,
     )
@@ -233,18 +233,18 @@ def load_perplexity_and_local_estimates_and_align(
     # might be different from the number of sequences for the local estimates computation.
 
     # Make a configuration for the local estimates
-    main_config_local_estimates = perplexity_main_config.model_copy(
+    main_config_for_local_estimates = main_config_for_perplexity.model_copy(
         deep=True,
     )
-    main_config_local_estimates.embeddings.embedding_extraction.layer_indices = local_estimates_layer_indices
+    main_config_for_local_estimates.embeddings.embedding_extraction.layer_indices = local_estimates_layer_indices
 
-    if perplexity_main_config.data.dataset_description_string == "multiwoz21":
-        main_config_local_estimates.data.number_of_samples = 3000
+    if main_config_for_local_estimates.data.dataset_description_string == "multiwoz21":
+        main_config_for_local_estimates.data.number_of_samples = 3000
     else:
-        main_config_local_estimates.data.number_of_samples = -1
+        main_config_for_local_estimates.data.number_of_samples = -1
 
     local_estimates_embeddings_path_manager = get_embeddings_path_manager(
-        main_config=perplexity_main_config,
+        main_config=main_config_for_local_estimates,
         logger=logger,
     )
 
@@ -263,8 +263,8 @@ def load_perplexity_and_local_estimates_and_align(
         f"{local_estimates_array_np.shape = }\n"  # noqa: ISC003 - explicit string concatenation to avoid confusion
         + f"{local_estimates_array_np.mean() = }\n"
         + f"{local_estimates_array_np.std() = }\n"
-        + f"{perplexity_main_config.data.number_of_samples = }\n"
-        + f"{perplexity_main_config.embeddings.embedding_extraction.layer_indices = }\n"
+        + f"{main_config_for_perplexity.data.number_of_samples = }\n"
+        + f"{main_config_for_perplexity.embeddings.embedding_extraction.layer_indices = }\n"
     )
 
     if verbosity >= Verbosity.NORMAL:
@@ -285,7 +285,7 @@ def load_perplexity_and_local_estimates_and_align(
     local_estimates_string_save_file_name: str = (
         "local_estimates_statistics"  # noqa: ISC003 - explicit string concatenation to avoid confusion
         + "_"
-        + f"layer-{perplexity_main_config.embeddings.embedding_extraction.layer_indices}"
+        + f"layer-{main_config_for_perplexity.embeddings.embedding_extraction.layer_indices}"
         + ".txt"
     )
     local_estimates_string_save_path = pathlib.Path(
@@ -308,7 +308,7 @@ def load_perplexity_and_local_estimates_and_align(
         )
         # Write the main_config to the file as well
         f.write(
-            f"\n\nmain_config:\n{perplexity_main_config}\n",
+            f"\n\nmain_config:\n{main_config_for_perplexity}\n",
         )
 
     if verbosity >= Verbosity.NORMAL:

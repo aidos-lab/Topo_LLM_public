@@ -64,6 +64,12 @@ class EmbeddingsDataPrepConfig(ConfigBaseModel):
         description="The number of samples to be extracted.",
     )
 
+    meta_tokens_column_name: str = Field(
+        default="meta_tokens",
+        title="Column name for the decoded meta information.",
+        description="The column name for the decoded meta information.",
+    )
+
     filter_tokens: FilterTokensConfig = Field(
         default=FilterTokensConfig(),
         title="Filter tokens.",

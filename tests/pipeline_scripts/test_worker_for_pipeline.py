@@ -209,3 +209,4 @@ def test_worker_for_pipeline(
         device=device_fixture,
         logger=logger_fixture,
     )
+    logger_fixture.info("Testing `worker_for_pipeline` DONE.")

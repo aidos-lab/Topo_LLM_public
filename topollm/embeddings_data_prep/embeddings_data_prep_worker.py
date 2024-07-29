@@ -122,21 +122,29 @@ def embeddings_data_prep_worker(
     # # # #
     # Optionally add sentence information to the metadata
     if main_config.feature_flags.embeddings_data_prep.write_sentences_to_meta:
-        meta_names = [tokenizer.convert_ids_to_tokens(int(x)) for x in list(full_df.meta)]
-        full_df["meta_name"] = meta_names
+        # Decode the token ids to tokens
+        meta_tokens_column_name: str = main_config.embeddings_data_prep.meta_tokens_column_name
+        meta_tokens = [tokenizer.convert_ids_to_tokens(int(x)) for x in list(full_df.meta)]
+        full_df[meta_tokens_column_name] = meta_tokens  # Add the decoded tokens to the DataFrame
+
         grouped_df = (
             full_df.iloc[:, 1:]
             .groupby(
                 by="sentence_idx",
                 sort=False,
-            )["meta_name"]
+            )[meta_tokens_column_name]
             .apply(" ".join)
             .reset_index()
         )
+
+        # grouped_df["meta_tokens_joined"] = grouped_df[meta_tokens_column_name].apply(" ".join)
+
         meta_frame_no_pad_subsampled = meta_frame_no_pad_subsampled.merge(
             grouped_df,
             on="sentence_idx",
         )
+
+        pass
 
     if verbosity >= Verbosity.NORMAL:
         log_array_info(
