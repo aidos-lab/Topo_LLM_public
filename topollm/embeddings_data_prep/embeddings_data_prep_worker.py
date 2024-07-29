@@ -131,6 +131,9 @@ def embeddings_data_prep_worker(
             meta_tokens_column_name=meta_tokens_column_name,
         )
 
+        # TODO: Make the grouping into a separate function
+        # TODO: Use the new flags to decide which columns to save
+
         # Group by 'sentence_idx' and aggregate tokens into lists
         grouped_df = (
             full_df.groupby(
