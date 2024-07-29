@@ -301,6 +301,7 @@ class EmbeddingsPathManagerSeparateDirectories:
         self,
     ) -> pathlib.Path:
         path: pathlib.Path = pathlib.Path(
+            self.data_dir,
             "analysis",
             "aligned_and_analyzed",
             self.main_config.local_estimates.description,
