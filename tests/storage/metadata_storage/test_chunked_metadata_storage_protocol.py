@@ -32,8 +32,8 @@ from abc import ABC, abstractmethod
 
 import pytest
 
-import topollm.storage.metadata_storage.ChunkedMetadataStorageProtocol
 import topollm.storage.metadata_storage.MetadataChunk
+import topollm.storage.metadata_storage.protocol
 from topollm.storage import StorageDataclasses
 from topollm.storage.metadata_storage import ChunkedMetadataStoragePickle
 
@@ -44,11 +44,8 @@ class ChunkedMetadataStorageFactory(ABC):
     @abstractmethod
     def create_storage(
         self,
-    ) -> topollm.storage.metadata_storage.ChunkedMetadataStorageProtocol.ChunkedMetadataStorageProtocol:
-        """
-        Creates and returns a storage instance, with all necessary
-        arguments handled internally by the factory.
-        """
+    ) -> topollm.storage.metadata_storage.protocol.ChunkedMetadataStorageProtocol:
+        """Create and return a storage instance, with all necessary arguments handled internally by the factory."""
         pass
 
 
@@ -73,7 +70,7 @@ class _ChunkedMetadataStorageProtocol(ABC):
     def storage(
         self,
         storage_factory: ChunkedMetadataStorageFactory,
-    ) -> topollm.storage.metadata_storage.ChunkedMetadataStorageProtocol.ChunkedMetadataStorageProtocol:
+    ) -> topollm.storage.metadata_storage.protocol.ChunkedMetadataStorageProtocol:
         """
         Dynamic storage instance creation using the provided factory.
         """
@@ -81,7 +78,7 @@ class _ChunkedMetadataStorageProtocol(ABC):
 
     def test_write_and_read_chunk(
         self,
-        storage: topollm.storage.metadata_storage.ChunkedMetadataStorageProtocol.ChunkedMetadataStorageProtocol,
+        storage: topollm.storage.metadata_storage.protocol.ChunkedMetadataStorageProtocol,
         example_batch: dict,
         chunk_idx: int,
         logger_fixture: logging.Logger,

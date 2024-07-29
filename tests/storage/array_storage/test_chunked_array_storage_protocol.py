@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -34,12 +32,12 @@ from abc import ABC, abstractmethod
 import numpy as np
 import pytest
 
-import topollm.storage.array_storage.ChunkedArrayStorageProtocol
+import topollm.storage.array_storage.protocol
 from topollm.storage import StorageDataclasses
-from topollm.storage.array_storage import ChunkedArrayStorageZarr
+from topollm.storage.array_storage import chunked_array_storage_zarr
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture()
 def array_properties(
     request: pytest.FixtureRequest,
 ) -> StorageDataclasses.ArrayProperties:
@@ -58,20 +56,15 @@ class ChunkedArrayStorageFactory(ABC):
     @abstractmethod
     def create_storage(
         self,
-    ) -> topollm.storage.array_storage.ChunkedArrayStorageProtocol.ChunkedArrayStorageProtocol:
-        """
-        Creates and returns a storage instance, with all necessary
-        arguments handled internally by the factory.
-        """
+    ) -> topollm.storage.array_storage.protocol.ChunkedArrayStorageProtocol:
+        """Create and return a storage instance, with all necessary arguments handled internally by the factory."""
         pass
 
 
 class _ChunkedArrayStorageProtocol(ABC):
-    """
-    Abstract base class for testing implementations of ChunkedArrayStorageProtocol.
-    """
+    """Abstract base class for testing implementations of ChunkedArrayStorageProtocol."""
 
-    @pytest.fixture
+    @pytest.fixture()
     @abstractmethod
     def storage_factory(
         self,
@@ -83,11 +76,11 @@ class _ChunkedArrayStorageProtocol(ABC):
         """
         pass
 
-    @pytest.fixture
+    @pytest.fixture()
     def storage(
         self,
         storage_factory: ChunkedArrayStorageFactory,
-    ) -> topollm.storage.array_storage.ChunkedArrayStorageProtocol.ChunkedArrayStorageProtocol:
+    ) -> topollm.storage.array_storage.protocol.ChunkedArrayStorageProtocol:
         """
         Dynamic storage instance creation using the provided factory.
         """
@@ -108,7 +101,7 @@ class _ChunkedArrayStorageProtocol(ABC):
     )
     def test_write_and_read_chunk(
         self,
-        storage: topollm.storage.array_storage.ChunkedArrayStorageProtocol.ChunkedArrayStorageProtocol,
+        storage: topollm.storage.array_storage.protocol.ChunkedArrayStorageProtocol,
         array_properties: StorageDataclasses.ArrayProperties,
         chunk_length: int,
         start_idx: int,
@@ -176,7 +169,7 @@ class ChunkedArrayStorageZarrFactory(ChunkedArrayStorageFactory):
         )
         self.logger.info(f"Creating ZarrChunkedArrayStorage storage " f"at {storage_path = }")
 
-        return ChunkedArrayStorageZarr.ChunkedArrayStorageZarr(
+        return chunked_array_storage_zarr.ChunkedArrayStorageZarr(
             array_properties=self.array_properties,
             root_storage_path=storage_path,
             logger=self.logger,

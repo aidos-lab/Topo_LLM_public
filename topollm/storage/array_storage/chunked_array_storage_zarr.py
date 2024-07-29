@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -40,6 +38,8 @@ from topollm.storage.StorageDataclasses import (
     ChunkIdentifier,
 )
 
+default_logger = logging.getLogger(__name__)
+
 
 class ChunkedArrayStorageZarr:
     """Storage protocol backend for chunked arrays using Zarr.
@@ -52,7 +52,7 @@ class ChunkedArrayStorageZarr:
         self,
         array_properties: ArrayProperties,
         root_storage_path: os.PathLike,
-        logger: logging.Logger = logging.getLogger(__name__),
+        logger: logging.Logger = default_logger,
     ):
         self.array_properties = array_properties
         self.root_storage_path = pathlib.Path(
@@ -65,8 +65,8 @@ class ChunkedArrayStorageZarr:
     ) -> None:
         # # # #
         # Open zarr array (for embeddings)
-        os.makedirs(
-            self.root_storage_path,
+        pathlib.Path(self.root_storage_path).mkdir(
+            parents=True,
             exist_ok=True,
         )
 
@@ -75,10 +75,8 @@ class ChunkedArrayStorageZarr:
             mode="w",
             shape=self.array_properties.shape,
             dtype=self.array_properties.dtype,
-            chunks=self.array_properties.chunks,  # type: ignore
+            chunks=self.array_properties.chunks,  # type: ignore - problem with zarr chunk size typing
         )
-
-        return
 
     def write_chunk(
         self,
@@ -90,8 +88,6 @@ class ChunkedArrayStorageZarr:
         data = data_chunk.batch_of_sequences_embedding_array
 
         self.zarr_array[start_idx:end_idx,] = data
-
-        return
 
     def read_chunk(
         self,

@@ -25,6 +25,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Data Handler for computing and storing token-level embeddings."""
+
 import logging
 
 import numpy as np
@@ -38,13 +40,13 @@ from topollm.compute_embeddings.embedding_extractor.protocol import (
     EmbeddingExtractor,
 )
 from topollm.compute_embeddings.move_batch_to_cpu import move_batch_to_cpu
-from topollm.storage.array_storage.ChunkedArrayStorageProtocol import (
+from topollm.storage.array_storage.protocol import (
     ChunkedArrayStorageProtocol,
 )
-from topollm.storage.metadata_storage.ChunkedMetadataStorageProtocol import (
+from topollm.storage.metadata_storage.MetadataChunk import MetadataChunk
+from topollm.storage.metadata_storage.protocol import (
     ChunkedMetadataStorageProtocol,
 )
-from topollm.storage.metadata_storage.MetadataChunk import MetadataChunk
 from topollm.storage.StorageDataclasses import (
     ArrayDataChunk,
     ChunkIdentifier,
@@ -55,6 +57,8 @@ default_logger = logging.getLogger(__name__)
 
 
 class TokenLevelEmbeddingDataHandler:
+    """Data Handler for computing and storing token-level embeddings."""
+
     def __init__(
         self,
         array_storage_backend: ChunkedArrayStorageProtocol,
