@@ -31,28 +31,7 @@ from pydantic import Field
 
 from topollm.config_classes.config_base_model import ConfigBaseModel
 from topollm.config_classes.constants import KV_SEP, NAME_PREFIXES
-
-
-class FilterTokensConfig(ConfigBaseModel):
-    """Configurations for filtering tokens."""
-
-    remove_bos_token: bool = Field(
-        default=False,
-        title="Remove beginning of sequence token.",
-        description="Whether to remove the beginning of sequence token.",
-    )
-
-    remove_eos_token: bool = Field(
-        default=True,
-        title="Remove end of sequence token.",
-        description="Whether to remove the end of sequence token.",
-    )
-
-    remove_pad_token: bool = Field(
-        default=True,
-        title="Remove padding token.",
-        description="Whether to remove the padding token.",
-    )
+from topollm.config_classes.embeddings_data_prep.filter_tokens_config import FilterTokensConfig
 
 
 class EmbeddingsDataPrepConfig(ConfigBaseModel):
@@ -83,6 +62,6 @@ class EmbeddingsDataPrepConfig(ConfigBaseModel):
         self,
     ) -> str:
         """Get the description of the config."""
-        desc = f"{NAME_PREFIXES['num_samples']}{KV_SEP}{str(self.num_samples)}"
+        desc = f"{NAME_PREFIXES['num_samples']}{KV_SEP}{str(self.num_samples)}"  # noqa: RUF010 - we want to use the manual conversion here
 
         return desc

@@ -27,7 +27,7 @@
 
 import logging
 
-from topollm.config_classes.embeddings_data_prep.embeddings_data_prep_config import FilterTokensConfig
+from topollm.config_classes.embeddings_data_prep.filter_tokens_config import FilterTokensConfig
 from topollm.typing.enums import Verbosity
 from topollm.typing.types import TransformersTokenizer
 

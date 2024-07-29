@@ -30,16 +30,16 @@
 import logging
 from typing import TYPE_CHECKING
 
-import numpy as np
 import pandas as pd
 import torch
 
 from topollm.config_classes.main_config import MainConfig
-from topollm.embeddings_data_prep.create_grouped_df_by_sentence_idx import create_grouped_df_by_sentence_idx
+from topollm.embeddings_data_prep.add_additional_metadata_to_meta_df import add_additional_metadata_to_meta_df
 from topollm.embeddings_data_prep.load_and_stack_embedding_data import load_and_stack_embedding_data
 from topollm.embeddings_data_prep.prepared_data_containers import PreparedData
 from topollm.embeddings_data_prep.remove_padding_and_extra_tokens import remove_padding_and_extra_tokens
 from topollm.embeddings_data_prep.save_prepared_data import save_prepared_data
+from topollm.embeddings_data_prep.select_subsets_of_arrays_and_meta import select_subsets_of_arrays_and_meta
 from topollm.logging.log_array_info import log_array_info
 from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.model_handling.tokenizer.load_modified_tokenizer_from_main_config import (
@@ -47,7 +47,6 @@ from topollm.model_handling.tokenizer.load_modified_tokenizer_from_main_config i
 )
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
 from topollm.typing.enums import Verbosity
-from topollm.typing.types import TransformersTokenizer
 
 if TYPE_CHECKING:
     from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
@@ -123,39 +122,15 @@ def embeddings_data_prep_worker(
 
     # # # #
     # Optionally add sentence information to the metadata
-    write_tokens_list_to_meta: bool = main_config.feature_flags.embeddings_data_prep.write_tokens_list_to_meta
-    write_concatenated_tokens_to_meta: bool = (
-        main_config.feature_flags.embeddings_data_prep.write_concatenated_tokens_to_meta
-    )
-
     if main_config.feature_flags.embeddings_data_prep.add_additional_metadata:
-        meta_tokens_column_name: str = main_config.embeddings_data_prep.meta_tokens_column_name
-
-        full_df = add_meta_tokens_column_to_meta_frame(
-            input_df=full_df,
+        meta_frame_no_pad_subsampled = add_additional_metadata_to_meta_df(
+            full_df=full_df,
+            meta_df_to_modify=meta_frame_no_pad_subsampled,
             tokenizer=tokenizer,
-            meta_tokens_column_name=meta_tokens_column_name,
+            meta_tokens_column_name=main_config.embeddings_data_prep.meta_tokens_column_name,
+            write_tokens_list_to_meta=main_config.feature_flags.embeddings_data_prep.write_tokens_list_to_meta,
+            write_concatenated_tokens_to_meta=main_config.feature_flags.embeddings_data_prep.write_concatenated_tokens_to_meta,
         )
-
-        grouped_df = create_grouped_df_by_sentence_idx(
-            full_df,
-            meta_tokens_column_name,
-        )
-
-        meta_frame_no_pad_subsampled = meta_frame_no_pad_subsampled.merge(
-            right=grouped_df,
-            on="sentence_idx",
-        )
-
-        # Remove columns if they should not be saved
-        if not write_tokens_list_to_meta:
-            meta_frame_no_pad_subsampled = meta_frame_no_pad_subsampled.drop(
-                columns=["tokens_list"],
-            )
-        if not write_concatenated_tokens_to_meta:
-            meta_frame_no_pad_subsampled = meta_frame_no_pad_subsampled.drop(
-                columns=["concatenated_tokens"],
-            )
 
     if verbosity >= Verbosity.NORMAL:
         log_array_info(
@@ -182,82 +157,3 @@ def embeddings_data_prep_worker(
         verbosity=verbosity,
         logger=logger,
     )
-
-
-def add_meta_tokens_column_to_meta_frame(
-    input_df: pd.DataFrame,
-    tokenizer: TransformersTokenizer,
-    meta_tokens_column_name: str = "meta_tokens",
-) -> pd.DataFrame:
-    """Add a column with the meta tokens to the metadata DataFrame."""
-    # Check that the input DataFrame has the necessary columns
-    if "meta" not in input_df.columns:
-        msg = "The input DataFrame must have a column named 'meta'."
-        raise ValueError(msg)
-
-    meta_tokens = [tokenizer.convert_ids_to_tokens(int(x)) for x in list(input_df.meta)]
-    input_df[meta_tokens_column_name] = meta_tokens  # Add the decoded tokens to the DataFrame
-
-    return input_df
-
-
-def select_subsets_of_arrays_and_meta(
-    arr_no_pad: np.ndarray,
-    meta_no_pad: np.ndarray,
-    sentence_idx_no_pad: np.ndarray,
-    sample_size: int,
-    seed: int = 42,
-    verbosity: Verbosity = Verbosity.NORMAL,
-    logger: logging.Logger = default_logger,
-) -> tuple[
-    np.ndarray,
-    np.ndarray,
-    np.ndarray,
-    np.ndarray,
-]:
-    """Select subsets of the arrays and metadata."""
-    # TODO: Make the sampling method configurable
-    # TODO: i.e., allow for sampling via the first sequences instead of random sampling
-    rng = np.random.default_rng(
-        seed=seed,
-    )
-    if len(arr_no_pad) >= sample_size:
-        subsample_idx: np.ndarray = rng.choice(
-            range(len(arr_no_pad)),
-            replace=False,
-            size=sample_size,
-        )
-    else:
-        subsample_idx: np.ndarray = rng.choice(
-            range(len(arr_no_pad)),
-            replace=False,
-            size=len(arr_no_pad),
-        )
-
-    if verbosity >= Verbosity.NORMAL:
-        log_array_info(
-            subsample_idx,
-            array_name="subsample_idx",
-            logger=logger,
-        )
-
-    arr_no_pad_subsampled = arr_no_pad[subsample_idx]
-    meta_no_pad_subsampled = meta_no_pad[subsample_idx]
-    sentence_idx_no_pad_subsampled = sentence_idx_no_pad[subsample_idx]
-
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            f"{arr_no_pad_subsampled.shape = }",  # noqa: G004 - low overhead
-        )
-        logger.info(
-            f"Expected sample size: {sample_size = }",  # noqa: G004 - low overhead
-        )
-
-    return_value = (
-        arr_no_pad_subsampled,
-        meta_no_pad_subsampled,
-        sentence_idx_no_pad_subsampled,
-        subsample_idx,
-    )
-
-    return return_value

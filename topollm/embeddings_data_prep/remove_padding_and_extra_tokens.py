@@ -32,7 +32,7 @@ import logging
 import numpy as np
 import pandas as pd
 
-from topollm.config_classes.embeddings_data_prep.embeddings_data_prep_config import FilterTokensConfig
+from topollm.config_classes.embeddings_data_prep.filter_tokens_config import FilterTokensConfig
 from topollm.embeddings_data_prep.get_token_ids_from_filter_tokens_config import get_token_ids_from_filter_tokens_config
 from topollm.typing.enums import Verbosity
 from topollm.typing.types import TransformersTokenizer
