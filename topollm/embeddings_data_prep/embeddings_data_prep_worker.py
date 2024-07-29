@@ -35,6 +35,7 @@ import pandas as pd
 import torch
 
 from topollm.config_classes.main_config import MainConfig
+from topollm.embeddings_data_prep.create_grouped_df_by_sentence_idx import create_grouped_df_by_sentence_idx
 from topollm.embeddings_data_prep.load_and_stack_embedding_data import load_and_stack_embedding_data
 from topollm.embeddings_data_prep.prepared_data_containers import PreparedData
 from topollm.embeddings_data_prep.remove_padding_and_extra_tokens import remove_padding_and_extra_tokens
@@ -122,6 +123,11 @@ def embeddings_data_prep_worker(
 
     # # # #
     # Optionally add sentence information to the metadata
+    write_tokens_list_to_meta: bool = main_config.feature_flags.embeddings_data_prep.write_tokens_list_to_meta
+    write_concatenated_tokens_to_meta: bool = (
+        main_config.feature_flags.embeddings_data_prep.write_concatenated_tokens_to_meta
+    )
+
     if main_config.feature_flags.embeddings_data_prep.add_additional_metadata:
         meta_tokens_column_name: str = main_config.embeddings_data_prep.meta_tokens_column_name
 
@@ -131,30 +137,25 @@ def embeddings_data_prep_worker(
             meta_tokens_column_name=meta_tokens_column_name,
         )
 
-        # TODO: Make the grouping into a separate function
-        # TODO: Use the new flags to decide which columns to save
-
-        # Group by 'sentence_idx' and aggregate tokens into lists
-        grouped_df = (
-            full_df.groupby(
-                "sentence_idx",
-                sort=False,
-            )
-            .agg(
-                tokens_list=(meta_tokens_column_name, list),
-            )
-            .reset_index()
-        )
-
-        # Add an additional column with concatenated tokens
-        grouped_df["concatenated_tokens"] = grouped_df["tokens_list"].apply(
-            " ".join,
+        grouped_df = create_grouped_df_by_sentence_idx(
+            full_df,
+            meta_tokens_column_name,
         )
 
         meta_frame_no_pad_subsampled = meta_frame_no_pad_subsampled.merge(
             right=grouped_df,
             on="sentence_idx",
         )
+
+        # Remove columns if they should not be saved
+        if not write_tokens_list_to_meta:
+            meta_frame_no_pad_subsampled = meta_frame_no_pad_subsampled.drop(
+                columns=["tokens_list"],
+            )
+        if not write_concatenated_tokens_to_meta:
+            meta_frame_no_pad_subsampled = meta_frame_no_pad_subsampled.drop(
+                columns=["concatenated_tokens"],
+            )
 
     if verbosity >= Verbosity.NORMAL:
         log_array_info(
