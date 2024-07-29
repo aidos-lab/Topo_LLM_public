@@ -46,6 +46,7 @@ from topollm.model_handling.tokenizer.load_modified_tokenizer_from_main_config i
 )
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
 from topollm.typing.enums import Verbosity
+from topollm.typing.types import TransformersTokenizer
 
 if TYPE_CHECKING:
     from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
@@ -121,30 +122,36 @@ def embeddings_data_prep_worker(
 
     # # # #
     # Optionally add sentence information to the metadata
-    if main_config.feature_flags.embeddings_data_prep.write_sentences_to_meta:
-        # Decode the token ids to tokens
+    if main_config.feature_flags.embeddings_data_prep.add_additional_metadata:
         meta_tokens_column_name: str = main_config.embeddings_data_prep.meta_tokens_column_name
-        meta_tokens = [tokenizer.convert_ids_to_tokens(int(x)) for x in list(full_df.meta)]
-        full_df[meta_tokens_column_name] = meta_tokens  # Add the decoded tokens to the DataFrame
 
+        full_df = add_meta_tokens_column_to_meta_frame(
+            input_df=full_df,
+            tokenizer=tokenizer,
+            meta_tokens_column_name=meta_tokens_column_name,
+        )
+
+        # Group by 'sentence_idx' and aggregate tokens into lists
         grouped_df = (
-            full_df.iloc[:, 1:]
-            .groupby(
-                by="sentence_idx",
+            full_df.groupby(
+                "sentence_idx",
                 sort=False,
-            )[meta_tokens_column_name]
-            .apply(" ".join)
+            )
+            .agg(
+                tokens_list=(meta_tokens_column_name, list),
+            )
             .reset_index()
         )
 
-        # grouped_df["meta_tokens_joined"] = grouped_df[meta_tokens_column_name].apply(" ".join)
-
-        meta_frame_no_pad_subsampled = meta_frame_no_pad_subsampled.merge(
-            grouped_df,
-            on="sentence_idx",
+        # Add an additional column with concatenated tokens
+        grouped_df["concatenated_tokens"] = grouped_df["tokens_list"].apply(
+            " ".join,
         )
 
-        pass
+        meta_frame_no_pad_subsampled = meta_frame_no_pad_subsampled.merge(
+            right=grouped_df,
+            on="sentence_idx",
+        )
 
     if verbosity >= Verbosity.NORMAL:
         log_array_info(
@@ -171,6 +178,23 @@ def embeddings_data_prep_worker(
         verbosity=verbosity,
         logger=logger,
     )
+
+
+def add_meta_tokens_column_to_meta_frame(
+    input_df: pd.DataFrame,
+    tokenizer: TransformersTokenizer,
+    meta_tokens_column_name: str = "meta_tokens",
+) -> pd.DataFrame:
+    """Add a column with the meta tokens to the metadata DataFrame."""
+    # Check that the input DataFrame has the necessary columns
+    if "meta" not in input_df.columns:
+        msg = "The input DataFrame must have a column named 'meta'."
+        raise ValueError(msg)
+
+    meta_tokens = [tokenizer.convert_ids_to_tokens(int(x)) for x in list(input_df.meta)]
+    input_df[meta_tokens_column_name] = meta_tokens  # Add the decoded tokens to the DataFrame
+
+    return input_df
 
 
 def select_subsets_of_arrays_and_meta(
