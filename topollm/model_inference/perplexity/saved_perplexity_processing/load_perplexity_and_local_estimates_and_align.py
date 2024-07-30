@@ -52,16 +52,16 @@ from topollm.model_inference.perplexity.saved_perplexity_processing.compare_colu
 from topollm.model_inference.perplexity.saved_perplexity_processing.concatenate_results.convert_perplexity_results_list_to_dataframe import (
     convert_perplexity_results_list_to_dataframe,
 )
-from topollm.model_inference.perplexity.saving.load_perplexity_containers_from_jsonl_files import (
-    load_multiple_perplexity_containers_from_jsonl_files,
+from topollm.model_inference.perplexity.saved_perplexity_processing.load_perplexity_results import (
+    load_perplexity_results,
 )
 from topollm.model_inference.perplexity.saving.save_concatenated_perplexity_results import (
     save_concatenated_perplexity_results,
 )
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
 from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
-from topollm.typing.enums import PerplexityContainerSaveFormat, Verbosity
-from topollm.typing.types import PerplexityResultsList, TransformersTokenizer
+from topollm.typing.enums import Verbosity
+from topollm.typing.types import TransformersTokenizer
 
 if TYPE_CHECKING:
     pass
@@ -159,7 +159,7 @@ def load_perplexity_and_local_estimates_and_align(
         return None
 
     # Restrict to non-special tokens
-    aligned_without_special_tokens_df = aligned_df[
+    aligned_without_special_tokens_df: pd.DataFrame = aligned_df[
         ~aligned_df["token_id"].isin(
             tokenizer.all_special_ids,
         )
@@ -176,75 +176,43 @@ def load_perplexity_and_local_estimates_and_align(
         exist_ok=True,
     )
 
-    # TODO: Extract this into a function
+    save_aligned_df_and_statistics(
+        aligned_df=aligned_df,
+        aligned_without_special_tokens_df=aligned_without_special_tokens_df,
+        analyzed_data_save_directory=analyzed_data_save_directory,
+        verbosity=verbosity,
+        logger=logger,
+    )
 
-    for current_df, current_df_description in [
-        (
-            aligned_df,
-            "aligned_df",
-        ),
-        (
-            aligned_without_special_tokens_df,
-            "aligned_without_special_tokens_df",
-        ),
-    ]:
-        aligned_df_save_path = pathlib.Path(
-            analyzed_data_save_directory,
-            "aligned_df.csv",
-        )
-        if verbosity >= Verbosity.NORMAL:
-            logger.info(
-                f"{aligned_df_save_path = }",  # noqa: G004 - low overhead
-            )
-            logger.info(
-                "Saving aligned_df to csv file ...",
-            )
-        aligned_df.to_csv(
-            path_or_buf=aligned_df_save_path,
-        )
-        if verbosity >= Verbosity.NORMAL:
-            logger.info(
-                "Saving aligned_df to csv file DONE",
-            )
+    only_correlation_columns_aligned_df: pd.DataFrame = extract_correlation_columns(
+        aligned_df=aligned_df,
+        correlation_columns=None,
+        verbosity=verbosity,
+        logger=logger,
+    )
 
-        aligned_without_special_tokens_df_save_path = pathlib.Path(
-            analyzed_data_save_directory,
-            "aligned_without_special_tokens_df.csv",
-        )
-        if verbosity >= Verbosity.NORMAL:
-            logger.info(
-                f"{aligned_without_special_tokens_df_save_path = }",  # noqa: G004 - low overhead
-            )
-            logger.info(
-                "Saving aligned_without_special_tokens_df to csv file ...",
-            )
-        aligned_without_special_tokens_df.to_csv(
-            path_or_buf=aligned_without_special_tokens_df_save_path,
-        )
-        if verbosity >= Verbosity.NORMAL:
-            logger.info(
-                "Saving aligned_without_special_tokens_df to csv file DONE",
-            )
+    calculate_and_save_correlation_results(
+        only_correlation_columns_aligned_df=only_correlation_columns_aligned_df,
+        analyzed_data_save_directory=analyzed_data_save_directory,
+        verbosity=verbosity,
+        logger=logger,
+    )
 
-    correlation_columns = [
-        "token_perplexity",
-        "token_log_perplexity",
-        "local_estimate",
-    ]
-    only_correlation_columns_aligned_df = aligned_df[correlation_columns]
+    # TODO: Scatter plot of perplexity vs. local estimate
 
-    if verbosity >= Verbosity.NORMAL:
-        log_dataframe_info(
-            df=aligned_df,
-            df_name="aligned_df",
-            logger=logger,
-        )
-        log_dataframe_info(
-            df=only_correlation_columns_aligned_df,
-            df_name="only_correlation_columns_aligned_df",
-            logger=logger,
-        )
+    # TODO: Plot histograms of perplexity and local estimate
 
+    # # # # # # # # # # # # # # # # # # # #
+    logger.info("Running script DONE")
+
+
+def calculate_and_save_correlation_results(
+    only_correlation_columns_aligned_df: pd.DataFrame,
+    analyzed_data_save_directory: pathlib.Path,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
+    """Calculate and save the correlation results."""
     for method in [
         "pearson",
         "spearman",
@@ -263,7 +231,12 @@ def load_perplexity_and_local_estimates_and_align(
         # Saving correlation_results_df to csv file
         correlation_results_df_save_path = pathlib.Path(
             analyzed_data_save_directory,
+            "correlation_results",
             f"correlation_results_{method}.csv",
+        )
+        correlation_results_df_save_path.parent.mkdir(
+            parents=True,
+            exist_ok=True,
         )
         if verbosity >= Verbosity.NORMAL:
             logger.info(
@@ -280,17 +253,103 @@ def load_perplexity_and_local_estimates_and_align(
                 f"Saving correlation_results_df using '{method}' to csv file DONE",  # noqa: G004 - low overhead
             )
 
-    # TODO: Scatter plot of perplexity vs. local estimate
 
-    # TODO: Plot histograms of perplexity and local estimate
+def extract_correlation_columns(
+    aligned_df: pd.DataFrame,
+    correlation_columns: list[str] | None,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> pd.DataFrame:
+    """Extract the columns that are used for the correlation analysis."""
+    if correlation_columns is None:
+        correlation_columns = [
+            "token_perplexity",
+            "token_log_perplexity",
+            "local_estimate",
+        ]
 
-    # # # # # # # # # # # # # # # # # # # #
-    logger.info("Running script DONE")
+    only_correlation_columns_aligned_df = aligned_df[correlation_columns]
+
+    if verbosity >= Verbosity.NORMAL:
+        log_dataframe_info(
+            df=aligned_df,
+            df_name="aligned_df",
+            logger=logger,
+        )
+        log_dataframe_info(
+            df=only_correlation_columns_aligned_df,
+            df_name="only_correlation_columns_aligned_df",
+            logger=logger,
+        )
+
+    return only_correlation_columns_aligned_df
+
+
+def save_aligned_df_and_statistics(
+    aligned_df: pd.DataFrame,
+    aligned_without_special_tokens_df: pd.DataFrame,
+    analyzed_data_save_directory: pathlib.Path,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
+    """Save the aligned_df and the statistics of the aligned_df to csv files."""
+    for current_df, current_df_description in [
+        (
+            aligned_df,
+            "aligned_df",
+        ),
+        (
+            aligned_without_special_tokens_df,
+            "aligned_without_special_tokens_df",
+        ),
+    ]:
+        # # # #
+        # Save the current_df to a csv file
+        current_df_save_path = pathlib.Path(
+            analyzed_data_save_directory,
+            f"{current_df_description}.csv",
+        )
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                f"{current_df_save_path = }",  # noqa: G004 - low overhead
+            )
+            logger.info(
+                "Saving current_df to csv file ...",
+            )
+        current_df.to_csv(
+            path_or_buf=current_df_save_path,
+        )
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                "Saving current_df to csv file DONE",
+            )
+
+        # # # #
+        # Save the statistics of the current_df to a csv file
+        current_df_statistics_save_path = pathlib.Path(
+            analyzed_data_save_directory,
+            f"{current_df_description}_statistics.csv",
+        )
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                f"{current_df_statistics_save_path = }",  # noqa: G004 - low overhead
+            )
+            logger.info(
+                "Saving statistics to file ...",
+            )
+        current_df.describe().to_csv(
+            path_or_buf=current_df_statistics_save_path,
+        )
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                "Saving statistics to file DONE",
+            )
 
 
 def create_aligned_df(
     local_estimates_container: LocalEstimatesContainer,
     token_perplexities_without_filtered_tokens_df: pd.DataFrame,
+    aligned_df_local_estimate_column_name: str = "local_estimate",
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> pd.DataFrame | None:
@@ -311,7 +370,7 @@ def create_aligned_df(
         )
 
     # Add the local estimates to the local_estimates_meta_frame
-    local_estimates_meta_frame["local_estimate"] = local_estimates_container.results_array_np
+    local_estimates_meta_frame[aligned_df_local_estimate_column_name] = local_estimates_container.results_array_np
 
     corresponding_token_perplexities_df = token_perplexities_without_filtered_tokens_df.iloc[
         local_estimates_meta_frame["subsample_idx"]
@@ -466,27 +525,3 @@ def load_tokenizer_with_roberta_fallback(
         )
 
     return tokenizer
-
-
-def load_perplexity_results(
-    embeddings_path_manager: EmbeddingsPathManager,
-    verbosity: Verbosity = Verbosity.NORMAL,
-    logger: logging.Logger = default_logger,
-) -> PerplexityResultsList:
-    """Load the perplexity results from the saved file."""
-    save_file_path_josnl = embeddings_path_manager.get_perplexity_container_save_file_absolute_path(
-        perplexity_container_save_format=PerplexityContainerSaveFormat.LIST_AS_JSONL,
-    )
-
-    loaded_data_list: list[PerplexityResultsList] = load_multiple_perplexity_containers_from_jsonl_files(
-        path_list=[
-            save_file_path_josnl,
-        ],
-        verbosity=verbosity,
-        logger=logger,
-    )
-
-    # Since we are only loading one container, we can directly access the first element
-    loaded_data: PerplexityResultsList = loaded_data_list[0]
-
-    return loaded_data
