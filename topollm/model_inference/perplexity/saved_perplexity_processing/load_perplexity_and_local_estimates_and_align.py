@@ -58,11 +58,12 @@ from topollm.model_inference.perplexity.saving.save_concatenated_perplexity_resu
     save_concatenated_perplexity_results,
 )
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
+from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 from topollm.typing.enums import PerplexityContainerSaveFormat, Verbosity
+from topollm.typing.types import PerplexityResultsList, TransformersTokenizer
 
 if TYPE_CHECKING:
     from topollm.analysis.local_estimates.saving.local_estimates_containers import LocalEstimatesContainer
-    from topollm.typing.types import PerplexityResultsList
 
 default_logger = logging.getLogger(__name__)
 
@@ -73,9 +74,7 @@ def load_perplexity_and_local_estimates_and_align(
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> None:
-    """
-
-    # TODO: Document this function
+    """Load the perplexity results and the local estimates and align them.
 
     # TODO: Make this function return the loaded arrays so that we can use its output to compute the correlations between different setups
     """
@@ -89,20 +88,11 @@ def load_perplexity_and_local_estimates_and_align(
         logger=logger,
     )
 
-    save_file_path_josnl = perplexity_embeddings_path_manager.get_perplexity_container_save_file_absolute_path(
-        perplexity_container_save_format=PerplexityContainerSaveFormat.LIST_AS_JSONL,
-    )
-
-    loaded_data_list: list[PerplexityResultsList] = load_multiple_perplexity_containers_from_jsonl_files(
-        path_list=[
-            save_file_path_josnl,
-        ],
+    loaded_data = load_perplexity_results(
+        embeddings_path_manager=perplexity_embeddings_path_manager,
         verbosity=verbosity,
         logger=logger,
     )
-
-    # Since we are only loading one container, we can directly access the first element
-    loaded_data: PerplexityResultsList = loaded_data_list[0]
 
     # # # #
     # Convert the token perplexities to a pandas dataframe
@@ -112,7 +102,7 @@ def load_perplexity_and_local_estimates_and_align(
         logger=logger,
     )
 
-    add_token_log_perplexity_column(
+    token_perplexities_df = add_token_log_perplexity_column(
         token_perplexities_df=token_perplexities_df,
     )
 
@@ -129,63 +119,20 @@ def load_perplexity_and_local_estimates_and_align(
     # # # # # # # # # # # # # # # # # # # #
     # Compute and save summary statistics
 
-    try:
-        tokenizer, _ = load_modified_tokenizer_from_main_config(
-            main_config=main_config_for_perplexity,
-            verbosity=verbosity,
-            logger=logger,
-        )
-    except (huggingface_hub.exceptions.ModelHubError, FileNotFoundError):
-        logger.exception(
-            "Could not load the tokenizer.",
-        )
-        # Use "roberta-base" as a fallback
-        tokenizer = transformers.AutoTokenizer.from_pretrained(
-            "roberta-base",
-        )
-
-    token_ids_to_filter: list[int] = get_token_ids_from_filter_tokens_config(
-        tokenizer=tokenizer,
-        filter_tokens_config=main_config_for_perplexity.embeddings_data_prep.filter_tokens,
+    tokenizer = load_tokenizer_with_roberta_fallback(
+        main_config=main_config_for_perplexity,
         verbosity=verbosity,
         logger=logger,
     )
 
-    token_perplexities_without_filtered_tokens_df: pd.DataFrame = token_perplexities_df[
-        ~token_perplexities_df["token_id"].isin(token_ids_to_filter)
-    ]
-
-    token_perplexities_without_special_tokens_df = token_perplexities_df[
-        ~token_perplexities_df["token_id"].isin(tokenizer.all_special_ids)
-    ]
-
-    # Save statistics about the perplexity dataframes into the perplexity directory
-    perplexity_dir = perplexity_embeddings_path_manager.perplexity_dir_absolute_path
-    for current_df, current_df_description in [
-        (token_perplexities_df, "token_perplexities_df"),
-        (token_perplexities_without_filtered_tokens_df, "token_perplexities_without_filtered_tokens_df"),
-        (token_perplexities_without_special_tokens_df, "token_perplexities_without_special_tokens_df"),
-    ]:
-        current_df_statistics_save_path = pathlib.Path(
-            perplexity_dir,
-            f"{current_df_description}_statistics.csv",
-        )
-        if verbosity >= Verbosity.NORMAL:
-            logger.info(
-                f"{current_df_statistics_save_path = }",  # noqa: G004 - low overhead
-            )
-            logger.info(
-                "Saving statistics to file ...",
-            )
-
-        current_df.describe().to_csv(
-            path_or_buf=current_df_statistics_save_path,
-        )
-
-        if verbosity >= Verbosity.NORMAL:
-            logger.info(
-                "Saving statistics to file DONE",
-            )
+    token_perplexities_without_filtered_tokens_df = save_perplexity_statistics(
+        main_config=main_config_for_perplexity,
+        embeddings_path_manager=perplexity_embeddings_path_manager,
+        token_perplexities_df=token_perplexities_df,
+        tokenizer=tokenizer,
+        verbosity=verbosity,
+        logger=logger,
+    )
 
     # # # # # # # # # # # # # # # # # # # #
     # Set the parameters so that the correct local estimates are loaded.
@@ -216,22 +163,7 @@ def load_perplexity_and_local_estimates_and_align(
 
     local_estimates_array_np = local_estimates_container.results_array_np
 
-    # Create string with statistics
-    local_estimates_statistics_string: str = (
-        f"{local_estimates_array_np.shape = }\n"  # noqa: ISC003 - explicit string concatenation to avoid confusion
-        + f"{local_estimates_array_np.mean() = }\n"
-        + f"{local_estimates_array_np.std() = }\n"
-        + f"{main_config_for_perplexity.data.number_of_samples = }\n"
-        + f"{main_config_for_perplexity.embeddings.embedding_extraction.layer_indices = }\n"
-    )
-
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            "local_estimates_statistics_string:\n%s",
-            local_estimates_statistics_string,
-        )
-
-    # Save statistics to text file in the perplexity directory
+    # Directory to save the analyzed data
     analyzed_data_save_directory: pathlib.Path = (
         perplexity_embeddings_path_manager.get_analyzed_data_dir_absolute_path()
     )
@@ -240,39 +172,7 @@ def load_perplexity_and_local_estimates_and_align(
         exist_ok=True,
     )
 
-    local_estimates_string_save_file_name: str = (
-        "local_estimates_statistics"  # noqa: ISC003 - explicit string concatenation to avoid confusion
-        + "_"
-        + f"layer-{main_config_for_perplexity.embeddings.embedding_extraction.layer_indices}"
-        + ".txt"
-    )
-    local_estimates_string_save_path = pathlib.Path(
-        analyzed_data_save_directory,
-        local_estimates_string_save_file_name,
-    )
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            f"{local_estimates_string_save_path = }",  # noqa: G004 - low overhead
-        )
-        logger.info(
-            "Saving local_estimates_statistics_string to text file ...",
-        )
-
-    with local_estimates_string_save_path.open(
-        mode="w",
-    ) as f:
-        f.write(
-            local_estimates_statistics_string,
-        )
-        # Write the main_config to the file as well
-        f.write(
-            f"\n\nmain_config:\n{main_config_for_perplexity}\n",
-        )
-
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            "Saving local_estimates_statistics_string to text file DONE",
-        )
+    # TODO: Extract method for aligning data
 
     local_estimates_meta_frame = local_estimates_container.results_meta_frame
 
@@ -336,11 +236,14 @@ def load_perplexity_and_local_estimates_and_align(
         columns="token_id",
     )
 
-    # Compute the correlation between the 'token_log_perplexity', and 'local_estimate'
     aligned_df = pd.concat(
         [
-            corresponding_token_perplexities_df.reset_index(drop=True),
-            local_estimates_meta_frame.reset_index(drop=True),
+            corresponding_token_perplexities_df.reset_index(
+                drop=True,
+            ),
+            local_estimates_meta_frame.reset_index(
+                drop=True,
+            ),
         ],
         axis=1,
     )
@@ -452,3 +355,125 @@ def load_perplexity_and_local_estimates_and_align(
 
     # # # # # # # # # # # # # # # # # # # #
     logger.info("Running script DONE")
+
+
+def save_perplexity_statistics(
+    main_config: MainConfig,
+    embeddings_path_manager: EmbeddingsPathManager,
+    token_perplexities_df: pd.DataFrame,
+    tokenizer: TransformersTokenizer,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> pd.DataFrame:
+    """Save statistics about the perplexity dataframes into the perplexity directory.
+
+    This function returns the token_perplexities_without_filtered_tokens_df.
+    """
+    token_ids_to_filter: list[int] = get_token_ids_from_filter_tokens_config(
+        tokenizer=tokenizer,
+        filter_tokens_config=main_config.embeddings_data_prep.filter_tokens,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+    token_perplexities_without_filtered_tokens_df: pd.DataFrame = token_perplexities_df[
+        ~token_perplexities_df["token_id"].isin(
+            token_ids_to_filter,
+        )
+    ]
+
+    token_perplexities_without_special_tokens_df = token_perplexities_df[
+        ~token_perplexities_df["token_id"].isin(
+            tokenizer.all_special_ids,
+        )
+    ]
+
+    # Save statistics about the perplexity dataframes into the perplexity directory
+    perplexity_dir = embeddings_path_manager.perplexity_dir_absolute_path
+    for current_df, current_df_description in [
+        (
+            token_perplexities_df,
+            "token_perplexities_df",
+        ),
+        (
+            token_perplexities_without_filtered_tokens_df,
+            "token_perplexities_without_filtered_tokens_df",
+        ),
+        (
+            token_perplexities_without_special_tokens_df,
+            "token_perplexities_without_special_tokens_df",
+        ),
+    ]:
+        current_df_statistics_save_path = pathlib.Path(
+            perplexity_dir,
+            f"{current_df_description}_statistics.csv",
+        )
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                f"{current_df_statistics_save_path = }",  # noqa: G004 - low overhead
+            )
+            logger.info(
+                "Saving statistics to file ...",
+            )
+
+        current_df.describe().to_csv(
+            path_or_buf=current_df_statistics_save_path,
+        )
+
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                "Saving statistics to file DONE",
+            )
+
+    return token_perplexities_without_filtered_tokens_df
+
+
+def load_tokenizer_with_roberta_fallback(
+    main_config: MainConfig,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> TransformersTokenizer:
+    """Load the tokenizer with a fallback to "roberta-base"."""
+    try:
+        tokenizer, _ = load_modified_tokenizer_from_main_config(
+            main_config=main_config,
+            verbosity=verbosity,
+            logger=logger,
+        )
+    except (
+        huggingface_hub.exceptions.ModelHubError,
+        FileNotFoundError,
+    ):
+        logger.exception(
+            "Could not load the tokenizer.",
+        )
+        # Use "roberta-base" as a fallback
+        tokenizer = transformers.AutoTokenizer.from_pretrained(
+            "roberta-base",
+        )
+
+    return tokenizer
+
+
+def load_perplexity_results(
+    embeddings_path_manager: EmbeddingsPathManager,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> PerplexityResultsList:
+    """Load the perplexity results from the saved file."""
+    save_file_path_josnl = embeddings_path_manager.get_perplexity_container_save_file_absolute_path(
+        perplexity_container_save_format=PerplexityContainerSaveFormat.LIST_AS_JSONL,
+    )
+
+    loaded_data_list: list[PerplexityResultsList] = load_multiple_perplexity_containers_from_jsonl_files(
+        path_list=[
+            save_file_path_josnl,
+        ],
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+    # Since we are only loading one container, we can directly access the first element
+    loaded_data: PerplexityResultsList = loaded_data_list[0]
+
+    return loaded_data
