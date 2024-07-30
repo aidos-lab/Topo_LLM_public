@@ -161,8 +161,6 @@ def load_perplexity_and_local_estimates_and_align(
         logger=logger,
     )
 
-    local_estimates_array_np = local_estimates_container.results_array_np
-
     # Directory to save the analyzed data
     analyzed_data_save_directory: pathlib.Path = (
         perplexity_embeddings_path_manager.get_analyzed_data_dir_absolute_path()
@@ -190,7 +188,7 @@ def load_perplexity_and_local_estimates_and_align(
         )
 
     # Add the local estimates to the local_estimates_meta_frame
-    local_estimates_meta_frame["local_estimate"] = local_estimates_array_np
+    local_estimates_meta_frame["local_estimate"] = local_estimates_container.results_array_np
 
     corresponding_token_perplexities_df = token_perplexities_without_filtered_tokens_df.iloc[
         local_estimates_meta_frame["subsample_idx"]
@@ -207,10 +205,14 @@ def load_perplexity_and_local_estimates_and_align(
     if not discrepancies_token_string.empty:
         logger.error(
             "local_estimates_meta_frame['token_name'] and "
-            "corresponding_token_perplexities_df['token_string'] do not agree."
+            "corresponding_token_perplexities_df['token_string'] do not agree.",
         )
-        logger.error("The function will return now without computing the correlations.")
-        logger.warning("Correlations between perplexities and local estimates cannot be computed.")
+        logger.error(
+            "The function will return now without computing the correlations.",
+        )
+        logger.warning(
+            "Correlations between perplexities and local estimates cannot be computed.",
+        )
         return
 
     # Check that local_estimates_meta_frame["token_id"] and corresponding_token_perplexities_df["token_id"] agree
