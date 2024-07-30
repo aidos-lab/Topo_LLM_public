@@ -100,14 +100,17 @@ def main(
     else:
         main_config_for_local_estimates.data.number_of_samples = -1
 
-    load_perplexity_and_local_estimates_and_align(
+    aligned_df = load_perplexity_and_local_estimates_and_align(
         main_config_for_perplexity=main_config_for_perplexity,
         main_config_for_local_estimates=main_config_for_local_estimates,
         verbosity=verbosity,
         logger=logger,
     )
 
+    # TODO: Use the function on multiple language models and datasets
+
     logger.info("Running script DONE")
+    # # # # # # # # # # # # # # # # # # # #
 
 
 if __name__ == "__main__":
