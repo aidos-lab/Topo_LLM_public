@@ -76,9 +76,33 @@ def main(
     )
     verbosity = main_config.verbosity
 
+    # # # #
+    main_config_for_perplexity = main_config
+
+    # # # # # # # # # # # # # # # # # # # #
+    # Set the parameters so that the correct local estimates are loaded.
+    # Note that we have to do this because the number of sequences for the perplexity computation
+    # might be different from the number of sequences for the local estimates computation.
+
+    local_estimates_layer_indices = None
+
+    if local_estimates_layer_indices is None:
+        local_estimates_layer_indices = [-1]
+
+    # Make a configuration for the local estimates
+    main_config_for_local_estimates = main_config_for_perplexity.model_copy(
+        deep=True,
+    )
+    main_config_for_local_estimates.embeddings.embedding_extraction.layer_indices = local_estimates_layer_indices
+
+    if main_config_for_local_estimates.data.dataset_description_string == "multiwoz21":
+        main_config_for_local_estimates.data.number_of_samples = 3000
+    else:
+        main_config_for_local_estimates.data.number_of_samples = -1
+
     load_perplexity_and_local_estimates_and_align(
-        main_config_for_perplexity=main_config,
-        local_estimates_layer_indices=None,
+        main_config_for_perplexity=main_config_for_perplexity,
+        main_config_for_local_estimates=main_config_for_local_estimates,
         verbosity=verbosity,
         logger=logger,
     )

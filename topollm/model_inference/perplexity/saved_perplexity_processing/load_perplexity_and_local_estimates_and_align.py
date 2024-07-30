@@ -35,6 +35,7 @@ import huggingface_hub
 import pandas as pd
 import transformers
 
+from topollm.analysis.local_estimates.saving.local_estimates_containers import LocalEstimatesContainer
 from topollm.analysis.local_estimates.saving.save_local_estimates import load_local_estimates
 from topollm.config_classes.main_config import MainConfig
 from topollm.embeddings_data_prep.get_token_ids_from_filter_tokens_config import get_token_ids_from_filter_tokens_config
@@ -63,14 +64,14 @@ from topollm.typing.enums import PerplexityContainerSaveFormat, Verbosity
 from topollm.typing.types import PerplexityResultsList, TransformersTokenizer
 
 if TYPE_CHECKING:
-    from topollm.analysis.local_estimates.saving.local_estimates_containers import LocalEstimatesContainer
+    pass
 
 default_logger = logging.getLogger(__name__)
 
 
 def load_perplexity_and_local_estimates_and_align(
     main_config_for_perplexity: MainConfig,
-    local_estimates_layer_indices: list[int] | None = None,
+    main_config_for_local_estimates: MainConfig,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> None:
@@ -78,9 +79,6 @@ def load_perplexity_and_local_estimates_and_align(
 
     # TODO: Make this function return the loaded arrays so that we can use its output to compute the correlations between different setups
     """
-    if local_estimates_layer_indices is None:
-        local_estimates_layer_indices = [-1]
-
     # # # #
     # Get save paths
     perplexity_embeddings_path_manager = get_embeddings_path_manager(
@@ -134,22 +132,6 @@ def load_perplexity_and_local_estimates_and_align(
         logger=logger,
     )
 
-    # # # # # # # # # # # # # # # # # # # #
-    # Set the parameters so that the correct local estimates are loaded.
-    # Note that we have to do this because the number of sequences for the perplexity computation
-    # might be different from the number of sequences for the local estimates computation.
-
-    # Make a configuration for the local estimates
-    main_config_for_local_estimates = main_config_for_perplexity.model_copy(
-        deep=True,
-    )
-    main_config_for_local_estimates.embeddings.embedding_extraction.layer_indices = local_estimates_layer_indices
-
-    if main_config_for_local_estimates.data.dataset_description_string == "multiwoz21":
-        main_config_for_local_estimates.data.number_of_samples = 3000
-    else:
-        main_config_for_local_estimates.data.number_of_samples = -1
-
     local_estimates_embeddings_path_manager = get_embeddings_path_manager(
         main_config=main_config_for_local_estimates,
         logger=logger,
@@ -161,94 +143,20 @@ def load_perplexity_and_local_estimates_and_align(
         logger=logger,
     )
 
-    # Directory to save the analyzed data
-    analyzed_data_save_directory: pathlib.Path = (
-        perplexity_embeddings_path_manager.get_analyzed_data_dir_absolute_path()
+    aligned_df = create_aligned_df(
+        local_estimates_container=local_estimates_container,
+        token_perplexities_without_filtered_tokens_df=token_perplexities_without_filtered_tokens_df,
+        verbosity=verbosity,
+        logger=logger,
     )
-    analyzed_data_save_directory.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
-
-    # TODO: Extract method for aligning data
-
-    local_estimates_meta_frame = local_estimates_container.results_meta_frame
-
-    if local_estimates_meta_frame is None:
-        logger.info("local_estimates_meta_frame is None.")
-        logger.info("The function will return now without computing the correlations.")
-        logger.warning("Correlations between perplexities and local estimates cannot be computed.")
-        return
-
-    if verbosity >= Verbosity.NORMAL:
-        log_dataframe_info(
-            df=local_estimates_meta_frame,
-            df_name="local_estimates_meta_frame",
-            logger=logger,
-        )
-
-    # Add the local estimates to the local_estimates_meta_frame
-    local_estimates_meta_frame["local_estimate"] = local_estimates_container.results_array_np
-
-    corresponding_token_perplexities_df = token_perplexities_without_filtered_tokens_df.iloc[
-        local_estimates_meta_frame["subsample_idx"]
-    ]
-
-    # Check that local_estimates_meta_frame["token_name"] and corresponding_token_perplexities_df["token_string"] agree
-    discrepancies_token_string = compare_columns(
-        df1=local_estimates_meta_frame,
-        col1="token_name",
-        df2=corresponding_token_perplexities_df,
-        col2="token_string",
-    )
-
-    if not discrepancies_token_string.empty:
-        logger.error(
-            "local_estimates_meta_frame['token_name'] and "
-            "corresponding_token_perplexities_df['token_string'] do not agree.",
-        )
-        logger.error(
-            "The function will return now without computing the correlations.",
+    if aligned_df is None:
+        logger.warning(
+            "aligned_df is None. This function will return None.",
         )
         logger.warning(
             "Correlations between perplexities and local estimates cannot be computed.",
         )
-        return
-
-    # Check that local_estimates_meta_frame["token_id"] and corresponding_token_perplexities_df["token_id"] agree
-    discrepancies_token_id = compare_columns(
-        df1=local_estimates_meta_frame,
-        col1="token_id",
-        df2=corresponding_token_perplexities_df,
-        col2="token_id",
-    )
-
-    if not discrepancies_token_id.empty:
-        logger.error(
-            "local_estimates_meta_frame['token_id'] and "
-            "corresponding_token_perplexities_df['token_id'] do not agree."
-        )
-        logger.error("The function will return now without computing the correlations.")
-        logger.warning("Correlations between perplexities and local estimates cannot be computed.")
-        return
-
-    # Remove one instance of the 'token_id' column,
-    # to avoid the `ValueError: cannot reindex on an axis with duplicate labels`
-    corresponding_token_perplexities_df = corresponding_token_perplexities_df.drop(
-        columns="token_id",
-    )
-
-    aligned_df = pd.concat(
-        [
-            corresponding_token_perplexities_df.reset_index(
-                drop=True,
-            ),
-            local_estimates_meta_frame.reset_index(
-                drop=True,
-            ),
-        ],
-        axis=1,
-    )
+        return None
 
     # Restrict to non-special tokens
     aligned_without_special_tokens_df = aligned_df[
@@ -259,43 +167,64 @@ def load_perplexity_and_local_estimates_and_align(
 
     # # # #
     # Saving aligned_df to csv file
-    aligned_df_save_path = pathlib.Path(
-        analyzed_data_save_directory,
-        "aligned_df.csv",
+    # Directory to save the analyzed data
+    analyzed_data_save_directory: pathlib.Path = (
+        perplexity_embeddings_path_manager.get_analyzed_data_dir_absolute_path()
     )
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            f"{aligned_df_save_path = }",  # noqa: G004 - low overhead
-        )
-        logger.info(
-            "Saving aligned_df to csv file ...",
-        )
-    aligned_df.to_csv(
-        path_or_buf=aligned_df_save_path,
+    analyzed_data_save_directory.mkdir(
+        parents=True,
+        exist_ok=True,
     )
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            "Saving aligned_df to csv file DONE",
-        )
 
-    aligned_without_special_tokens_df_save_path = pathlib.Path(
-        analyzed_data_save_directory,
-        "aligned_without_special_tokens_df.csv",
-    )
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            f"{aligned_without_special_tokens_df_save_path = }",  # noqa: G004 - low overhead
+    # TODO: Extract this into a function
+
+    for current_df, current_df_description in [
+        (
+            aligned_df,
+            "aligned_df",
+        ),
+        (
+            aligned_without_special_tokens_df,
+            "aligned_without_special_tokens_df",
+        ),
+    ]:
+        aligned_df_save_path = pathlib.Path(
+            analyzed_data_save_directory,
+            "aligned_df.csv",
         )
-        logger.info(
-            "Saving aligned_without_special_tokens_df to csv file ...",
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                f"{aligned_df_save_path = }",  # noqa: G004 - low overhead
+            )
+            logger.info(
+                "Saving aligned_df to csv file ...",
+            )
+        aligned_df.to_csv(
+            path_or_buf=aligned_df_save_path,
         )
-    aligned_without_special_tokens_df.to_csv(
-        path_or_buf=aligned_without_special_tokens_df_save_path,
-    )
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            "Saving aligned_without_special_tokens_df to csv file DONE",
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                "Saving aligned_df to csv file DONE",
+            )
+
+        aligned_without_special_tokens_df_save_path = pathlib.Path(
+            analyzed_data_save_directory,
+            "aligned_without_special_tokens_df.csv",
         )
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                f"{aligned_without_special_tokens_df_save_path = }",  # noqa: G004 - low overhead
+            )
+            logger.info(
+                "Saving aligned_without_special_tokens_df to csv file ...",
+            )
+        aligned_without_special_tokens_df.to_csv(
+            path_or_buf=aligned_without_special_tokens_df_save_path,
+        )
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                "Saving aligned_without_special_tokens_df to csv file DONE",
+            )
 
     correlation_columns = [
         "token_perplexity",
@@ -357,6 +286,88 @@ def load_perplexity_and_local_estimates_and_align(
 
     # # # # # # # # # # # # # # # # # # # #
     logger.info("Running script DONE")
+
+
+def create_aligned_df(
+    local_estimates_container: LocalEstimatesContainer,
+    token_perplexities_without_filtered_tokens_df: pd.DataFrame,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> pd.DataFrame | None:
+    """Create an aligned dataframe from the local estimates and the token perplexities."""
+    local_estimates_meta_frame = local_estimates_container.results_meta_frame
+
+    if local_estimates_meta_frame is None:
+        logger.error(
+            "local_estimates_meta_frame is None. The function will return None.",
+        )
+        return None
+
+    if verbosity >= Verbosity.NORMAL:
+        log_dataframe_info(
+            df=local_estimates_meta_frame,
+            df_name="local_estimates_meta_frame",
+            logger=logger,
+        )
+
+    # Add the local estimates to the local_estimates_meta_frame
+    local_estimates_meta_frame["local_estimate"] = local_estimates_container.results_array_np
+
+    corresponding_token_perplexities_df = token_perplexities_without_filtered_tokens_df.iloc[
+        local_estimates_meta_frame["subsample_idx"]
+    ]
+
+    # Check that local_estimates_meta_frame["token_name"] and corresponding_token_perplexities_df["token_string"] agree
+    discrepancies_token_string = compare_columns(
+        df1=local_estimates_meta_frame,
+        col1="token_name",
+        df2=corresponding_token_perplexities_df,
+        col2="token_string",
+    )
+
+    if not discrepancies_token_string.empty:
+        logger.error(
+            "local_estimates_meta_frame['token_name'] and "
+            "corresponding_token_perplexities_df['token_string'] do not agree. "
+            "The function will return None.",
+        )
+        return None
+
+    # Check that local_estimates_meta_frame["token_id"] and corresponding_token_perplexities_df["token_id"] agree
+    discrepancies_token_id = compare_columns(
+        df1=local_estimates_meta_frame,
+        col1="token_id",
+        df2=corresponding_token_perplexities_df,
+        col2="token_id",
+    )
+
+    if not discrepancies_token_id.empty:
+        logger.error(
+            "local_estimates_meta_frame['token_id'] and "
+            "corresponding_token_perplexities_df['token_id'] do not agree. "
+            "The function will return None.",
+        )
+        return None
+
+    # Remove one instance of the 'token_id' column,
+    # to avoid the `ValueError: cannot reindex on an axis with duplicate labels`
+    corresponding_token_perplexities_df = corresponding_token_perplexities_df.drop(
+        columns="token_id",
+    )
+
+    aligned_df = pd.concat(
+        [
+            corresponding_token_perplexities_df.reset_index(
+                drop=True,
+            ),
+            local_estimates_meta_frame.reset_index(
+                drop=True,
+            ),
+        ],
+        axis=1,
+    )
+
+    return aligned_df
 
 
 def save_perplexity_statistics(
