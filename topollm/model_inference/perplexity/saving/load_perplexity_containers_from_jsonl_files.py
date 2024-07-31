@@ -33,7 +33,7 @@ import pathlib
 
 from tqdm import tqdm
 
-from topollm.model_inference.perplexity.sentence_perplexity_container import SentencePerplexityContainer
+from topollm.model_inference.perplexity.saving.sentence_perplexity_container import SentencePerplexityContainer
 from topollm.typing.enums import Verbosity
 from topollm.typing.types import PerplexityResultsList
 
@@ -70,9 +70,16 @@ def load_multiple_perplexity_containers_from_jsonl_files(
 
 def load_single_perplexity_container_from_jsonl_file(
     path: pathlib.Path,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
 ) -> PerplexityResultsList:
     """Load single perplexity container from jsonl file."""
     perplexity_results_list: PerplexityResultsList = []
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.debug(
+            f"Loading from {path = } ...",  # noqa: G004 - low overhead
+        )
 
     with pathlib.Path(path).open(
         mode="r",
@@ -93,5 +100,10 @@ def load_single_perplexity_container_from_jsonl_file(
                     loaded_data,
                 ),
             )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.debug(
+            f"Loading from {path = } DONE",  # noqa: G004 - low overhead
+        )
 
     return perplexity_results_list

@@ -29,8 +29,6 @@
 
 from enum import Enum, IntEnum, auto, unique
 
-from strenum import StrEnum
-
 try:
     # Try to import StrEnum from the standard library (Python 3.11 and later)
     from enum import StrEnum  # type: ignore - loading of the module is not guaranteed
@@ -63,10 +61,10 @@ class Verbosity(IntEnum):
 class PreferredTorchBackend(StrEnum):
     """The preferred backend for PyTorch."""
 
-    CPU = "cpu"
-    CUDA = "cuda"
-    MPS = "mps"
-    AUTO = "auto"
+    CPU = auto()
+    CUDA = auto()
+    MPS = auto()
+    AUTO = auto()
 
 
 # ==============================
@@ -87,7 +85,7 @@ class JobRunMode(StrEnum):
 class DatasetType(StrEnum):
     """The different types of datasets."""
 
-    HUGGINGFACE_DATASET = "huggingface_dataset"
+    HUGGINGFACE_DATASET = auto()
 
 
 # ==============================
@@ -97,15 +95,15 @@ class DatasetType(StrEnum):
 class ArrayStorageType(StrEnum):
     """The different types of array storage."""
 
-    ZARR = "zarr"
+    ZARR = auto()
 
 
 @unique
 class MetadataStorageType(StrEnum):
     """The different types of metadata storage."""
 
-    XARRAY = "xarray"
-    PICKLE = "pickle"
+    XARRAY = auto()
+    PICKLE = auto()
 
 
 # ==============================
@@ -183,18 +181,6 @@ class ZeroVectorHandlingMode(StrEnum):
 
 
 @unique
-class DialogueDatasetDesc(StrEnum):  # type: ignore
-    MULTIWOZ21 = "multiwoz21"
-    MULTIWOZ21_TRAIN = "multiwoz21-train"
-    MULTIWOZ21_VALIDATION = "multiwoz21-validation"
-    MULTIWOZ21_TEST = "multiwoz21-test"
-    SGD = "sgd"
-    SGD_TRAIN = "sgd-train"
-    SGD_VALIDATION = "sgd-validation"
-    SGD_TEST = "sgd-test"
-
-
-@unique
 class DataSplitMode(StrEnum):
     """The different modes for splitting the data."""
 
@@ -203,19 +189,21 @@ class DataSplitMode(StrEnum):
 
 
 @unique
-class WordSeparationMethod(StrEnum):  # type: ignore
+class WordSeparationMethod(StrEnum):
+    """The different methods for separating words."""
+
     # Option 1:
     # WordSeparationMethod.FROM_TOKENIZER means:
     # Use the word separation created by the tokenizer
     # via the tokenizer.encode() method and returned word_ids.
     # Note that in that case, you have no control over the word separation.
-    FROM_TOKENIZER = "from_tokenizer"
+    FROM_TOKENIZER = auto()
     # Option 2:
     # WordSeparationMethod.FROM_DATASET means:
     # Use the word separation created by the dataset
     # (for instance, the CoNLL2003 dataset comes separated into words,
     # with each word associated with a label on a separate line)
-    FROM_DATASET = "from_dataset"
+    FROM_DATASET = auto()
 
 
 @unique
@@ -304,5 +292,7 @@ class MLMPseudoperplexityGranularity(StrEnum):
 class PerplexityContainerSaveFormat(StrEnum):
     """The different formats in which the perplexity container can be saved."""
 
-    PICKLE = "pickle"
-    JSONL = "jsonl"
+    LIST_AS_JSONL = auto()
+    LIST_AS_PICKLE = auto()
+    CONCATENATED_DATAFRAME_AS_CSV = auto()
+    CONCATENATED_ARRAY_AS_ZARR = auto()

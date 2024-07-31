@@ -35,8 +35,11 @@ import skdim
 import torch
 
 from topollm.analysis.local_estimates.filter.get_local_estimates_filter import get_local_estimates_filter
-from topollm.analysis.twonn.save_local_estimates import save_local_estimates
+from topollm.analysis.local_estimates.saving.local_estimates_containers import LocalEstimatesContainer
+from topollm.analysis.local_estimates.saving.save_local_estimates import save_local_estimates
 from topollm.config_classes.main_config import MainConfig
+from topollm.embeddings_data_prep.prepared_data_containers import PreparedData
+from topollm.embeddings_data_prep.save_prepared_data import load_prepared_data
 from topollm.logging.log_array_info import log_array_info
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
 from topollm.typing.enums import Verbosity
@@ -61,21 +64,18 @@ def twonn_worker(
     )
 
     # # # #
-    # Load the prepared data array
-    prepared_data_array_save_path = embeddings_path_manager.get_prepared_data_array_save_path()
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            f"{prepared_data_array_save_path = }",  # noqa: G004 - low overhead
-        )
-
-    arr_no_pad = np.load(
-        file=prepared_data_array_save_path,
+    # Load the prepared data.
+    # Logging of the loaded data is handled in the loading function.
+    prepared_data: PreparedData = load_prepared_data(
+        embeddings_path_manager=embeddings_path_manager,
+        verbosity=verbosity,
+        logger=logger,
     )
 
     if verbosity >= Verbosity.NORMAL:
         log_array_info(
-            arr_no_pad,
-            array_name="arr_no_pad",
+            prepared_data.arr_no_pad,
+            array_name="prepared_data.arr_no_pad",
             log_array_size=True,
             log_row_l2_norms=True,
             logger=logger,
@@ -92,23 +92,24 @@ def twonn_worker(
     )
 
     # Filter the array, for example, by potentially removing zero vectors
-    arr_no_pad_filtered = local_estimates_filter.filter_data(
-        input_array=arr_no_pad,
+    prepared_data_filtered: PreparedData = local_estimates_filter.filter_data(
+        prepared_data=prepared_data,
     )
 
     # Restrict to the first `local_estimates_sample_size` samples
     local_estimates_sample_size = main_config.local_estimates.filtering.num_samples
-    local_estimates_sample_size = min(
-        local_estimates_sample_size,
-        arr_no_pad_filtered.shape[0],
+
+    prepared_data_filtered_truncated: PreparedData = truncate_data(
+        prepared_data=prepared_data_filtered,
+        local_estimates_sample_size=local_estimates_sample_size,
     )
 
-    arr_no_pad_truncated = arr_no_pad_filtered[:local_estimates_sample_size]
+    array_for_estimator = prepared_data_filtered_truncated.arr_no_pad
 
     if verbosity >= Verbosity.NORMAL:
         log_array_info(
-            arr_no_pad_truncated,
-            array_name="arr_no_pad_truncated",
+            array_for_estimator,
+            array_name="array_for_estimator",
             log_array_size=True,
             log_row_l2_norms=True,
             logger=logger,
@@ -124,7 +125,7 @@ def twonn_worker(
     n_jobs = 1
 
     # provide number of neighbors which are used for the computation
-    n_neighbors = round(len(arr_no_pad_truncated) * 0.8)
+    n_neighbors = round(len(array_for_estimator) * 0.8)
     if verbosity >= Verbosity.NORMAL:
         logger.info(
             f"{n_neighbors = }",  # noqa: G004 - low overhead
@@ -138,7 +139,7 @@ def twonn_worker(
         logger.info("Calling estimator.fit_pw() ...")
 
     fitted_estimator = estimator.fit_pw(
-        X=arr_no_pad_truncated,
+        X=array_for_estimator,
         precomputed_knn=None,
         smooth=False,
         n_neighbors=n_neighbors,
@@ -173,9 +174,39 @@ def twonn_worker(
 
     # # # #
     # Save the results
+    local_estimates_container = LocalEstimatesContainer(
+        results_array_np=results_array_np,
+        results_meta_frame=prepared_data_filtered_truncated.meta_frame,
+    )
+
     save_local_estimates(
         embeddings_path_manager=embeddings_path_manager,
-        results_array_np=results_array_np,
+        local_estimates_container=local_estimates_container,
         verbosity=verbosity,
         logger=logger,
     )
+
+
+def truncate_data(
+    prepared_data: PreparedData,
+    local_estimates_sample_size: int,
+) -> PreparedData:
+    """Truncate the data to the first `local_estimates_sample_size` samples."""
+    input_array = prepared_data.arr_no_pad
+
+    local_estimates_sample_size = min(
+        local_estimates_sample_size,
+        input_array.shape[0],
+    )
+
+    output_array = input_array[:local_estimates_sample_size,]
+
+    input_meta_frame = prepared_data.meta_frame
+    output_meta_frame = input_meta_frame.iloc[:local_estimates_sample_size,]
+
+    output_prepared_data = PreparedData(
+        arr_no_pad=output_array,
+        meta_frame=output_meta_frame,
+    )
+
+    return output_prepared_data

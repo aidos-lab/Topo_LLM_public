@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -27,29 +25,36 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Protocol, runtime_checkable
+import logging
+from dataclasses import dataclass
 
-from topollm.storage.StorageDataclasses import ArrayDataChunk, ChunkIdentifier
+import numpy as np
+import pandas as pd
+
+from topollm.logging.log_array_info import log_array_info
+from topollm.logging.log_dataframe_info import log_dataframe_info
+
+default_logger = logging.getLogger(__name__)
 
 
-@runtime_checkable
-class ChunkedArrayStorageProtocol(Protocol):
-    def open(
+@dataclass
+class PreparedData:
+    """Container for prepared data."""
+
+    arr_no_pad: np.ndarray
+    meta_frame: pd.DataFrame
+
+    def log_info(
         self,
+        logger: logging.Logger = default_logger,
     ) -> None:
-        """Initializes the storage with specified configuration."""
-        ...  # pragma: no cover
-
-    def write_chunk(
-        self,
-        data_chunk: ArrayDataChunk,
-    ) -> None:
-        """Writes a chunk of data starting from a specific index."""
-        ...  # pragma: no cover
-
-    def read_chunk(
-        self,
-        chunk_identifier: ChunkIdentifier,
-    ) -> ArrayDataChunk:
-        """Reads a chunk of data determined by the identifier."""
-        ...  # pragma: no cover
+        log_array_info(
+            self.arr_no_pad,
+            array_name="arr_no_pad",
+            logger=logger,
+        )
+        log_dataframe_info(
+            self.meta_frame,
+            df_name="meta_frame",
+            logger=logger,
+        )

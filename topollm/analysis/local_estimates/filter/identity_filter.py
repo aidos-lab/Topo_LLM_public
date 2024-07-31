@@ -25,7 +25,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import numpy as np
+
+from topollm.embeddings_data_prep.prepared_data_containers import PreparedData
 
 
 class IdentityFilter:
@@ -33,7 +34,7 @@ class IdentityFilter:
 
     def filter_data(
         self,
-        input_array: np.ndarray,
-    ) -> np.ndarray:
+        prepared_data: PreparedData,
+    ) -> PreparedData:
         """Filter the data for local estimates computation."""
-        return input_array
+        return prepared_data

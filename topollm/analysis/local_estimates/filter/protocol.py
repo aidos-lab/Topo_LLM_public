@@ -27,7 +27,7 @@
 
 from typing import Protocol
 
-import numpy as np
+from topollm.embeddings_data_prep.prepared_data_containers import PreparedData
 
 
 class LocalEstimatesFilter(Protocol):
@@ -35,7 +35,7 @@ class LocalEstimatesFilter(Protocol):
 
     def filter_data(
         self,
-        input_array: np.ndarray,
-    ) -> np.ndarray:
+        prepared_data: PreparedData,
+    ) -> PreparedData:
         """Filter the data for local estimates computation."""
         ...  # pragma: no cover

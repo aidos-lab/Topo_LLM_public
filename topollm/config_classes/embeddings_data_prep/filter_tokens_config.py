@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -27,30 +25,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Protocol, runtime_checkable
+from pydantic import Field
 
-from topollm.storage.metadata_storage.MetadataChunk import MetadataChunk
-from topollm.storage.StorageDataclasses import ChunkIdentifier
+from topollm.config_classes.config_base_model import ConfigBaseModel
 
 
-@runtime_checkable
-class ChunkedMetadataStorageProtocol(Protocol):
-    def open(
-        self,
-    ) -> None:
-        """Initializes the storage with specified configuration."""
-        ...  # pragma: no cover
+class FilterTokensConfig(ConfigBaseModel):
+    """Configurations for filtering tokens."""
 
-    def write_chunk(
-        self,
-        data_chunk: MetadataChunk,
-    ) -> None:
-        """Writes a chunk of data starting from a specific index."""
-        ...  # pragma: no cover
+    remove_bos_token: bool = Field(
+        default=False,
+        title="Remove beginning of sequence token.",
+        description="Whether to remove the beginning of sequence token.",
+    )
 
-    def read_chunk(
-        self,
-        chunk_identifier: ChunkIdentifier,
-    ) -> MetadataChunk:
-        """Reads a chunk of data determined by the identifier."""
-        ...  # pragma: no cover
+    remove_eos_token: bool = Field(
+        default=True,
+        title="Remove end of sequence token.",
+        description="Whether to remove the end of sequence token.",
+    )
+
+    remove_pad_token: bool = Field(
+        default=True,
+        title="Remove padding token.",
+        description="Whether to remove the padding token.",
+    )

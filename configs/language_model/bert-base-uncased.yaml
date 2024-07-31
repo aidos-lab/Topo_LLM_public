@@ -2,7 +2,7 @@ defaults:
   - tokenizer_modifier: bert
   - _self_
 
-lm_mode: MLM
+lm_mode: mlm
 
 pretrained_model_name_or_path: bert-base-uncased
 short_model_name: ${language_model.pretrained_model_name_or_path}

@@ -46,6 +46,7 @@ from topollm.config_classes.embeddings.embedding_extraction_config import (
 )
 from topollm.config_classes.embeddings.embeddings_config import EmbeddingsConfig
 from topollm.config_classes.embeddings_data_prep.embeddings_data_prep_config import EmbeddingsDataPrepConfig
+from topollm.config_classes.feature_flags.feature_flags_config import FeatureFlagsConfig, WandbFeatureFlagsConfig
 from topollm.config_classes.finetuning.batch_sizes.batch_sizes_config import BatchSizesConfig
 from topollm.config_classes.finetuning.finetuning_config import FinetuningConfig
 from topollm.config_classes.finetuning.finetuning_datasets.finetuning_datasets_config import (
@@ -425,6 +426,22 @@ def peft_config(
 @pytest.fixture(
     scope="session",
 )
+def feature_flags_config() -> FeatureFlagsConfig:
+    """Return a FeatureFlagsConfig object."""
+    wandb_config = WandbFeatureFlagsConfig(
+        use_wandb=False,
+    )
+
+    config = FeatureFlagsConfig(
+        wandb=wandb_config,
+    )
+
+    return config
+
+
+@pytest.fixture(
+    scope="session",
+)
 def finetuning_datasets_config(
     data_config: DataConfig,
 ) -> FinetuningDatasetsConfig:
@@ -493,9 +510,16 @@ def finetuning_config(
 )
 def device_fixture() -> torch.device:
     """Return the device to use for the tests."""
-    device = torch.device(
-        "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu",
-    )
+    use_mps_if_available = False
+
+    if use_mps_if_available:
+        device = torch.device(
+            "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu",
+        )
+    else:
+        device = torch.device(
+            "cuda" if torch.cuda.is_available() else "cpu",
+        )
 
     return device
 
@@ -570,6 +594,7 @@ def main_config(
     data_config: DataConfig,
     embeddings_config: EmbeddingsConfig,
     embeddings_data_prep_config: EmbeddingsDataPrepConfig,
+    feature_flags_config: FeatureFlagsConfig,
     finetuning_config: FinetuningConfig,
     inference_config: InferenceConfig,
     language_model_config: LanguageModelConfig,
@@ -583,8 +608,9 @@ def main_config(
     """Return a MainConfig object."""
     config = MainConfig(
         data=data_config,
-        embeddings=embeddings_config,
         embeddings_data_prep=embeddings_data_prep_config,
+        embeddings=embeddings_config,
+        feature_flags=feature_flags_config,
         finetuning=finetuning_config,
         inference=inference_config,
         language_model=language_model_config,
@@ -605,11 +631,14 @@ def main_config(
 )
 def tokenizer(
     main_config: MainConfig,
+    verbosity: Verbosity,
     logger_fixture: logging.Logger,
 ) -> transformers.PreTrainedTokenizer | transformers.PreTrainedTokenizerFast:
     """Return a tokenizer object."""
     tokenizer, _ = load_modified_tokenizer(
-        main_config=main_config,
+        language_model_config=main_config.language_model,
+        tokenizer_config=main_config.tokenizer,
+        verbosity=verbosity,
         logger=logger_fixture,
     )
 
@@ -620,23 +649,13 @@ def tokenizer(
     scope="session",
 )
 def embeddings_path_manager(
-    data_config: DataConfig,
-    embeddings_config: EmbeddingsConfig,
-    language_model_config: LanguageModelConfig,
-    paths_config: PathsConfig,
-    tokenizer_config: TokenizerConfig,
-    transformations_config: TransformationsConfig,
+    main_config: MainConfig,
     verbosity: Verbosity,
     logger_fixture: logging.Logger,
 ) -> EmbeddingsPathManagerSeparateDirectories:
     """Return an EmbeddingsPathManagerSeparateDirectories object."""
     path_manager = EmbeddingsPathManagerSeparateDirectories(
-        data_config=data_config,
-        embeddings_config=embeddings_config,
-        language_model_config=language_model_config,
-        paths_config=paths_config,
-        tokenizer_config=tokenizer_config,
-        transformations_config=transformations_config,
+        main_config=main_config,
         verbosity=verbosity,
         logger=logger_fixture,
     )

@@ -63,6 +63,8 @@ Edit the script `scripts/setup_environment.sh` with the correct paths and run it
 ./scripts/setup_environment.sh
 ```
 
+1. Set the correct environment variables in the `.env` file in the project root directory.
+
 ## Project Structure
 
 ### Config file management

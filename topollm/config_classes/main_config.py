@@ -122,7 +122,7 @@ class MainConfig(ConfigBaseModel):
     )
 
     storage: StorageConfig = Field(
-        ...,
+        default=StorageConfig(),
         title="Storage configuration.",
         description="The configuration for specifying storage.",
     )

@@ -43,10 +43,10 @@ from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.model_inference.perplexity.saved_perplexity_processing.compute_averages.compute_averages_over_loaded_data_list import (
     compute_averages_over_loaded_data_list,
 )
-from topollm.model_inference.perplexity.saved_perplexity_processing.load_perplexity_containers_from_jsonl_files import (
+from topollm.model_inference.perplexity.saving.load_perplexity_containers_from_jsonl_files import (
     load_multiple_perplexity_containers_from_jsonl_files,
 )
-from topollm.model_inference.perplexity.saved_perplexity_processing.load_perplexity_containers_from_pickle_files import (
+from topollm.model_inference.perplexity.saving.load_perplexity_containers_from_pickle_files import (
     load_perplexity_containers_from_pickle_files,
 )
 from topollm.typing.enums import PerplexityContainerSaveFormat, Verbosity
@@ -94,7 +94,7 @@ def main(
     # # # #
     # Parameters
 
-    perplexity_container_save_format = PerplexityContainerSaveFormat.JSONL
+    perplexity_container_save_format = PerplexityContainerSaveFormat.LIST_AS_JSONL
 
     dataset_subdir_list: list[pathlib.Path] = [
         pathlib.Path(
@@ -115,7 +115,7 @@ def main(
                 dataset_subdir,
             )
 
-        if perplexity_container_save_format == PerplexityContainerSaveFormat.PICKLE:
+        if perplexity_container_save_format == PerplexityContainerSaveFormat.LIST_AS_PICKLE:
             path_list: list[pathlib.Path] = [
                 pathlib.Path(
                     data_dir,
@@ -145,7 +145,7 @@ def main(
                 verbosity=verbosity,
                 logger=logger,
             )
-        elif perplexity_container_save_format == PerplexityContainerSaveFormat.JSONL:
+        elif perplexity_container_save_format == PerplexityContainerSaveFormat.LIST_AS_JSONL:
             path_list: list[pathlib.Path] = [
                 pathlib.Path(
                     data_dir,

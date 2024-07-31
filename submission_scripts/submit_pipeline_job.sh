@@ -11,18 +11,6 @@ ABSOLUTE_PYTHON_SCRIPT_PATH="${TOPO_LLM_REPOSITORY_BASE_PATH}/${RELATIVE_PYTHON_
 # ==================================================== #
 # Select the parameters here
 
-# DATA_LIST="multiwoz21_validation"
-# DATA_LIST="sgd_test"
-# DATA_LIST="one-year-of-tsla-on-reddit"
-# DATA_LIST="one-year-of-tsla-on-reddit_validation"
-# DATA_LIST="iclr_2024_submissions"
-# DATA_LIST="one-year-of-tsla-on-reddit,one-year-of-tsla-on-reddit_validation,multiwoz21_validation,sgd,iclr_2024_submissions,wikitext"
-# DATA_LIST="one-year-of-tsla-on-reddit,one-year-of-tsla-on-reddit_validation"
-# DATA_LIST="bbc,multiwoz21,sgd,wikitext"
-# DATA_LIST="one-year-of-tsla-on-reddit_validation,multiwoz21_validation,sgd,iclr_2024_submissions,wikitext"
-# DATA_LIST="multiwoz21,wikitext,iclr_2024_submissions"
-# DATA_LIST="wikitext,iclr_2024_submissions"
-
 # Define arrays for DATA_LIST and DATA_NUMBER_OF_SAMPLES
 data_lists=(
     "multiwoz21" 
@@ -45,19 +33,11 @@ language_models=(
     "model-roberta-base_task-MASKED_LM_wikitext-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
 )
 
-# LANGUAGE_MODEL_LIST="roberta-base,roberta-base_finetuned-on-multiwoz21_ftm-lora"
-
-# LANGUAGE_MODEL_LIST="roberta-base_finetuned-on-one-year-of-tsla-on-reddit_ftm-standard"
-# LANGUAGE_MODEL_LIST="roberta-base_finetuned-on-one-year-of-tsla-on-reddit_ftm-standard_overfitted"
-# LANGUAGE_MODEL_LIST="roberta-base_finetuned-on-one-year-of-tsla-on-reddit_ftm-standard_freeze-first-6-layers_overfitted"
-
 
 # Note: In the dimension experiments, we usually set `add_prefix_space=False` 
 # ADDITIONAL_OVERRIDES+=" tokenizer.add_prefix_space=True"
 
-
-# LAYER_INDICES_LIST="[-1],[-2]"
-# LAYER_INDICES_LIST="[-1],[-5],[-9]"
+# LAYER_INDICES_LIST="[-1]"
 
 layer_indices=(
     "[-1]"
@@ -65,10 +45,7 @@ layer_indices=(
     "[-9]"
 )
 
-
-# EMBEDDINGS_DATA_PREP_NUM_SAMPLES="1000"
 EMBEDDINGS_DATA_PREP_NUM_SAMPLES="30000"
-# EMBEDDINGS_DATA_PREP_NUM_SAMPLES="10000,20000"
 
 ADDITIONAL_OVERRIDES=""
 

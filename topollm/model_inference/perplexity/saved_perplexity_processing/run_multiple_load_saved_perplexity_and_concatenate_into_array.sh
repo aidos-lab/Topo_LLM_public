@@ -1,5 +1,8 @@
 #!/bin/bash
 
+set -e # Stop script at the first error
+
+
 # https://hydra.cc/docs/tutorials/basic/running_your_app/multi-run/
 
 PYTHON_SCRIPT_NAME="run_single_setup_load_saved_perplexity_and_concatenate_into_array.py"
@@ -23,13 +26,15 @@ data_samples=(
 
 language_models=(
     "roberta-base"
-    "model-roberta-base_task-MASKED_LM_iclr_2024_submissions-train-5000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
-    "model-roberta-base_task-MASKED_LM_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
-    "model-roberta-base_task-MASKED_LM_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
-    "model-roberta-base_task-MASKED_LM_wikitext-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
+    # "model-roberta-base_task-MASKED_LM_iclr_2024_submissions-train-5000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
+    # "model-roberta-base_task-MASKED_LM_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
+    # "model-roberta-base_task-MASKED_LM_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
+    # "model-roberta-base_task-MASKED_LM_wikitext-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
 )
 
 LAYER_INDICES_LIST="[-1]"
+# LAYER_INDICES_LIST="[-5]"
+
 EMBEDDINGS_DATA_PREP_NUM_SAMPLES="30000"
 
 ADDITIONAL_OVERRIDES=""
@@ -63,7 +68,6 @@ for i in "${!data_lists[@]}"; do
             embeddings.embedding_extraction.layer_indices=$LAYER_INDICES_LIST \
             embeddings_data_prep.num_samples=$EMBEDDINGS_DATA_PREP_NUM_SAMPLES \
             $ADDITIONAL_OVERRIDES
-
     done
 done
 

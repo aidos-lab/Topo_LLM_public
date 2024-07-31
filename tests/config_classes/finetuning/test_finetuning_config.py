@@ -40,13 +40,14 @@ logger = logging.getLogger(__name__)
 
 
 def test_hydra_with_finetuning_config() -> None:
+    """Test Hydra with FinetuningConfig."""
     with initialize_config_module(
         version_base=None,
         config_module="configs.finetuning",
     ):
         # config is relative to a module
         cfg: omegaconf.DictConfig = compose(
-            config_name="finetuning",
+            config_name="finetuning_for_masked_lm",
             overrides=[
                 "batch_sizes.eval=42",
             ],
@@ -62,7 +63,9 @@ def test_hydra_with_finetuning_config() -> None:
             obj=cfg,
         )
 
-        logger.info(f"{type(config) = }")
+        logger.info(
+            f"{type(config) = }",  # noqa: G004 - low overhead
+        )
         logger.info(
             "config:\n%s",
             pprint.pformat(config),

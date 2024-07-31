@@ -9,5 +9,5 @@ dataset_description_string: iclr_2024_submissions
 dataset_path: json
 dataset_name: iclr_2024_submissions
 data_dir: ${paths.data_dir}/datasets/iclr_2024_submissions/jsonl_format
-dataset_type: huggingface_dataset
+
 split: validation

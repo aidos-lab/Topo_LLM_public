@@ -46,8 +46,22 @@
             }
         },
         {
-            "label": "rsync parts of analysis directory from hhu hilbert",
-            "command": "./topollm/scripts/hhu_hilbert/sync_data/rsync_partial_analysis_dir_from_hhu_hilbert.sh --sync_to_external_drive",
+            "label": "rsync analysis/prepared and analysis/twonn directories to external drive from HHU Hilbert",
+            "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_partial_analysis_dir_from_hhu_hilbert.py --sync_to_external_drive --file-type all",
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": false,
+            }
+        },
+        {
+            "label": "rsync analysis/twonn directories to local repository folder from HHU Hilbert",
+            "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_partial_analysis_dir_from_hhu_hilbert.py --skip-prepared --file-type all",
             "type": "shell",
             "group": {
                 "kind": "build",

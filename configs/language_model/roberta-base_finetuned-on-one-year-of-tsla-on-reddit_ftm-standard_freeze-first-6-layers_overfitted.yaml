@@ -3,7 +3,7 @@ defaults:
   - _self_
 
 checkpoint_no: 31200
-lm_mode: MLM
+lm_mode: mlm
 
 pretrained_model_name_or_path: ${paths.data_dir}/models/finetuned_models/data-one-year-of-tsla-on-reddit_split-train_ctxt-dataset_entry_samples-10000/model-roberta-base/ftm-standard/lora-None/gradmod-freeze_layers_target-freeze-['encoder.layer.0.', 'encoder.layer.1.', 'encoder.layer.2.', 'encoder.layer.3.', 'encoder.layer.4.', 'encoder.layer.5.']/lr-5e-05_lr_scheduler_type-constant_wd-0.01/ep-50/model_files/checkpoint-${language_model.checkpoint_no}
 short_model_name: roberta-base_finetuned-on-one-year-of-tsla-on-reddit_ftm-standard_freeze-first-6-layers_overfitted_checkpoint-${language_model.checkpoint_no}

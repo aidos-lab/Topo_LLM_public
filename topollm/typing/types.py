@@ -31,7 +31,7 @@ import peft.peft_model
 import transformers
 from transformers import PreTrainedTokenizer, PreTrainedTokenizerFast
 
-from topollm.model_inference.perplexity.sentence_perplexity_container import SentencePerplexityContainer
+from topollm.model_inference.perplexity.saving.sentence_perplexity_container import SentencePerplexityContainer
 
 PerplexityResultsList: TypeAlias = list[tuple[int, SentencePerplexityContainer]]
 

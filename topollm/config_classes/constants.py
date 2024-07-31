@@ -29,8 +29,12 @@
 
 import os
 
+from dotenv import load_dotenv
+
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # START Globals
+
+load_dotenv()
 
 # # # #
 # The following options are inspired by the hydra framework
@@ -102,12 +106,25 @@ NAME_PREFIXES: dict[
 # Limit for length of file names
 FILE_NAME_TRUNCATION_LENGTH: int = 200
 
-TOPO_LLM_REPOSITORY_BASE_PATH = os.getenv(
-    key="TOPO_LLM_REPOSITORY_BASE_PATH",
-    default="$HOME/git-source/Topo_LLM",
+EXTERNAL_DRIVE_TOPO_LLM_REPOSITORY_BASE_PATH: str = os.getenv(
+    key="EXTERNAL_DRIVE_TOPO_LLM_REPOSITORY_BASE_PATH",
+    default="/Volumes/ruppik_external/research_data/Topo_LLM",
+)
+TOPO_LLM_REPOSITORY_BASE_PATH: str = os.path.expandvars(
+    os.getenv(
+        key="TOPO_LLM_REPOSITORY_BASE_PATH",
+        default="$HOME/git-source/Topo_LLM",
+    ),
+)
+ZIM_TOPO_LLM_REPOSITORY_BASE_PATH: str = os.path.expandvars(
+    os.getenv(
+        key="ZIM_TOPO_LLM_REPOSITORY_BASE_PATH",
+        default="/gpfs/project/${ZIM_USERNAME}/git-source/Topo_LLM",
+    ),
 )
 
-HYDRA_CONFIGS_BASE_PATH = f"{TOPO_LLM_REPOSITORY_BASE_PATH}/configs"
+
+HYDRA_CONFIGS_BASE_PATH: str = f"{TOPO_LLM_REPOSITORY_BASE_PATH}/configs"
 
 # END Globals
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #

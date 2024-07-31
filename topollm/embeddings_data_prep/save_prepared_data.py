@@ -25,78 +25,88 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Saving and loading of prepared data."""
+
 import logging
 import pathlib
 
 import numpy as np
+import pandas as pd
 
+from topollm.embeddings_data_prep.prepared_data_containers import PreparedData
+from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 from topollm.typing.enums import Verbosity
 
 default_logger = logging.getLogger(__name__)
 
 
-def save_local_estimates(
+def save_prepared_data(
     embeddings_path_manager: EmbeddingsPathManager,
-    results_array_np: np.ndarray,
+    prepared_data: PreparedData,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> None:
-    """Save the local estimates array to disk."""
-    local_estimates_dir_absolute_path = embeddings_path_manager.get_local_estimates_dir_absolute_path()
-    local_estimates_array_save_path = embeddings_path_manager.get_local_estimates_array_save_path()
+    """Save the prepared data."""
+    prepared_data_dir_absolute_path = embeddings_path_manager.prepared_data_dir_absolute_path
 
     if verbosity >= Verbosity.NORMAL:
         logger.info(
-            f"{local_estimates_dir_absolute_path = }",  # noqa: G004 - low overhead
-        )
-        logger.info(
-            f"{local_estimates_array_save_path = }",  # noqa: G004 - low overhead
+            "prepared_data_dir_absolute_path:%s",
+            prepared_data_dir_absolute_path,
         )
 
-    # Make sure the save path exists
-    pathlib.Path(local_estimates_dir_absolute_path).mkdir(
+    # Make sure the save directory exists
+    pathlib.Path(prepared_data_dir_absolute_path).mkdir(
         parents=True,
         exist_ok=True,
     )
 
-    if verbosity >= Verbosity.NORMAL:
-        logger.info("Saving local estimates array ...")
-
+    # # # #
+    # Save the prepared data
     np.save(
-        file=local_estimates_array_save_path,
-        arr=results_array_np,
+        file=embeddings_path_manager.get_prepared_data_array_save_path(),
+        arr=prepared_data.arr_no_pad,
     )
 
-    if verbosity >= Verbosity.NORMAL:
-        logger.info("Saving local estimates array DONE")
+    prepared_data.meta_frame.to_pickle(
+        path=embeddings_path_manager.get_prepared_data_meta_save_path(),
+    )
 
 
-def load_local_estimates(
+def load_prepared_data(
     embeddings_path_manager: EmbeddingsPathManager,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
-) -> np.ndarray:
-    """Load the local estimates array from disk."""
-    local_estimates_dir_absolute_path = embeddings_path_manager.get_local_estimates_dir_absolute_path()
-    local_estimates_array_save_path = embeddings_path_manager.get_local_estimates_array_save_path()
+) -> PreparedData:
+    """Load the prepared data."""
+    prepared_data_array_save_path = embeddings_path_manager.get_prepared_data_array_save_path()
+    prepared_data_meta_save_path = embeddings_path_manager.get_prepared_data_meta_save_path()
 
     if verbosity >= Verbosity.NORMAL:
         logger.info(
-            f"{local_estimates_dir_absolute_path = }",  # noqa: G004 - low overhead
+            f"{prepared_data_array_save_path = }",  # noqa: G004 - low overhead
         )
         logger.info(
-            f"{local_estimates_array_save_path = }",  # noqa: G004 - low overhead
+            f"{prepared_data_meta_save_path = }",  # noqa: G004 - low overhead
         )
 
-    if verbosity >= Verbosity.NORMAL:
-        logger.info("Loading local estimates array ...")
+    arr_no_pad = np.load(
+        file=prepared_data_array_save_path,
+    )
 
-    local_estimates_array = np.load(
-        file=local_estimates_array_save_path,
+    meta_frame = pd.read_pickle(  # noqa: S301 - we trust the data since it is our own
+        prepared_data_meta_save_path,
+    )
+
+    prepared_data = PreparedData(
+        arr_no_pad=arr_no_pad,
+        meta_frame=meta_frame,
     )
 
     if verbosity >= Verbosity.NORMAL:
-        logger.info("Loading local estimates array DONE")
+        prepared_data.log_info(
+            logger=logger,
+        )
 
-    return local_estimates_array
+    return prepared_data

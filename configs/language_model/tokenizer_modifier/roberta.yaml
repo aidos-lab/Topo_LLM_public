@@ -1,2 +1,2 @@
-mode: DO_NOTHING
+mode: do_nothing
 padding_token: "<pad>"

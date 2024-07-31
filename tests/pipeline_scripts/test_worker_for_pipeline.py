@@ -25,7 +25,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Test the do_inference function."""
+"""Test the worker_for_pipeline function."""
 
 import logging
 
@@ -58,7 +58,6 @@ from topollm.typing.enums import (
     DatasetType,
     DataSplitMode,
     LMmode,
-    MaskingMode,
     MetadataStorageType,
     PreferredTorchBackend,
     Split,
@@ -165,6 +164,7 @@ def main_config_with_small_dataset_and_model(
         num_samples=1_000,
     )
     local_estimates_filtering_config = LocalEstimatesFilteringConfig(
+        num_samples=400,
         zero_vector_handling_mode=ZeroVectorHandlingMode.REMOVE,
     )
     local_estimates_config = LocalEstimatesConfig(
@@ -198,7 +198,7 @@ def test_worker_for_pipeline(
     logger_fixture: logging.Logger,
 ) -> None:
     """Test the pipeline function."""
-    logger_fixture.info("Testing worker_for_pipeline ...")
+    logger_fixture.info("Testing `worker_for_pipeline` ...")
     logger_fixture.info(
         "main_config_with_small_dataset_and_model:%s",
         main_config_with_small_dataset_and_model,
@@ -209,3 +209,4 @@ def test_worker_for_pipeline(
         device=device_fixture,
         logger=logger_fixture,
     )
+    logger_fixture.info("Testing `worker_for_pipeline` DONE.")
