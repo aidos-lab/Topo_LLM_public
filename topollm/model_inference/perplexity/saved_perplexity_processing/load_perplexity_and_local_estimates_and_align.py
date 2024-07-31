@@ -181,7 +181,7 @@ def load_perplexity_and_local_estimates_and_align(
 
     # Directory to save the analyzed data
     analyzed_data_save_directory: pathlib.Path = (
-        perplexity_embeddings_path_manager.get_analyzed_data_dir_absolute_path()
+        local_estimates_embeddings_path_manager.get_analyzed_data_dir_absolute_path()
     )
     analyzed_data_save_directory.mkdir(
         parents=True,

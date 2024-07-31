@@ -88,6 +88,7 @@ def main(
 
     if local_estimates_layer_indices is None:
         local_estimates_layer_indices = [-1]
+        # local_estimates_layer_indices = [-5]
 
     # Make a configuration for the local estimates
     main_config_for_local_estimates = main_config_for_perplexity.model_copy(
