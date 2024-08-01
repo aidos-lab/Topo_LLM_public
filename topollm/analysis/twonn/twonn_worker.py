@@ -104,7 +104,7 @@ def twonn_worker(
         arr_no_pad_filtered.shape[0],
     )
 
-    arr_no_pad_truncated = arr_no_pad_filtered[:local_estimates_sample_size]
+    arr_no_pad_truncated = arr_no_pad_filtered[:]
 
     if verbosity >= Verbosity.NORMAL:
         log_array_info(
@@ -144,6 +144,7 @@ def twonn_worker(
         smooth=False,
         n_neighbors=n_neighbors,
         n_jobs=n_jobs,
+        subsample_size=local_estimates_sample_size,
     )
 
     if verbosity >= Verbosity.NORMAL:
