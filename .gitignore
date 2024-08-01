@@ -165,6 +165,7 @@ cython_debug/
 # Mac OS X hidden files
 .DS_Store
 */.DS_Store
+._.DS_Store
 
 # # # # # # # # # # # #
 # Project specific
@@ -174,6 +175,7 @@ data/datasets/dialogue_datasets/
 data/datasets/iclr_2024_submissions/csv_format/ICLR_Mistral_Embeddings.csv
 data/datasets/tokenised_datasets_dataframes/
 
+data/analysis/aligned_and_analyzed/
 data/analysis/prepared/
 data/analysis/twonn/
 
@@ -189,6 +191,7 @@ data/models/finetuned_models/
 data/saved_plots/
 
 hydra_output_dir/
+hilbert_job_logs_backup/
 hilbert_job_logs/
 
 # Weights and Biases (wandb)

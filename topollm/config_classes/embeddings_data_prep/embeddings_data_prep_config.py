@@ -31,6 +31,7 @@ from pydantic import Field
 
 from topollm.config_classes.config_base_model import ConfigBaseModel
 from topollm.config_classes.constants import KV_SEP, NAME_PREFIXES
+from topollm.config_classes.embeddings_data_prep.filter_tokens_config import FilterTokensConfig
 
 
 class EmbeddingsDataPrepConfig(ConfigBaseModel):
@@ -42,14 +43,25 @@ class EmbeddingsDataPrepConfig(ConfigBaseModel):
         description="The number of samples to be extracted.",
     )
 
-    # TODO(Ben): Add configuration options for the type of metadata to save
-    # (i.e., whether the sentences should be included or not).
+    meta_tokens_column_name: str = Field(
+        default="meta_tokens",
+        title="Column name for the decoded meta information.",
+        description="The column name for the decoded meta information.",
+    )
+
+    filter_tokens: FilterTokensConfig = Field(
+        default=FilterTokensConfig(),
+        title="Filter tokens.",
+        description="Configurations for filtering tokens.",
+    )
+
+    # Note: We use a feature flag in a different config group to enable or disable saving of the metadata sentences.
 
     @property
     def config_description(
         self,
     ) -> str:
         """Get the description of the config."""
-        desc = f"{NAME_PREFIXES['num_samples']}{KV_SEP}{str(self.num_samples)}"
+        desc = f"{NAME_PREFIXES['num_samples']}{KV_SEP}{str(self.num_samples)}"  # noqa: RUF010 - we want to use the manual conversion here
 
         return desc

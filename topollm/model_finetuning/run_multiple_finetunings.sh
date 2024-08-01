@@ -11,7 +11,7 @@ PYTHON_SCRIPT_PATH="${TOPO_LLM_REPOSITORY_BASE_PATH}/topollm/model_finetuning/${
 # Select the parameters here
 
 # BASE_MODEL_LIST="gpt2-medium"
-BASE_MODEL_LIST="roberta-base"
+BASE_MODEL_LIST="roberta-base_for_masked_lm"
 # BASE_MODEL_LIST="bert-base-uncased,roberta-base"
 
 NUM_TRAIN_EPOCHS="5"
@@ -37,6 +37,11 @@ GRADIENT_MODIFIER_LIST="do_nothing"
 # GRADIENT_MODIFIER_LIST="freeze_first_layers_bert-style-models"
 # GRADIENT_MODIFIER_LIST="do_nothing,freeze_first_layers_bert-style-models"
 
+COMMON_BATCH_SIZE="8"
+
+BATCH_SIZE_TRAIN="${COMMON_BATCH_SIZE}"
+BATCH_SIZE_EVAL="${COMMON_BATCH_SIZE}"
+
 # CUDA_VISIBLE_DEVICES=0
 
 ADDITIONAL_OVERRIDES=""
@@ -50,18 +55,18 @@ ADDITIONAL_OVERRIDES+=" ++finetuning.peft.use_rslora=True"
 
 echo "Calling script from PYTHON_SCRIPT_PATH=${PYTHON_SCRIPT_PATH} ..."
 
-source ${TOPO_LLM_REPOSITORY_BASE_PATH}/.venv/bin/activate
-
 echo "CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES}"
 
-python3 $PYTHON_SCRIPT_PATH \
+poetry run python3 $PYTHON_SCRIPT_PATH \
     --multirun \
-    finetuning/base_model@finetuning="${BASE_MODEL_LIST}" \
+    finetuning/base_model="${BASE_MODEL_LIST}" \
     finetuning.num_train_epochs="${NUM_TRAIN_EPOCHS}" \
     finetuning.lr_scheduler_type="${LR_SCHEDULER_TYPE}" \
     finetuning.save_steps="${SAVE_STEPS}" \
     finetuning.eval_steps="${EVAL_STEPS}" \
     finetuning.fp16="true" \
+    finetuning.batch_sizes.train="${BATCH_SIZE_TRAIN}" \
+    finetuning.batch_sizes.eval="${BATCH_SIZE_EVAL}" \
     finetuning/finetuning_datasets="${FINETUNING_DATASETS_LIST}" \
     finetuning/peft="${PEFT_LIST}" \
     finetuning/gradient_modifier="${GRADIENT_MODIFIER_LIST}" \

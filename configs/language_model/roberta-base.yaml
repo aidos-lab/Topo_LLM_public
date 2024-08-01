@@ -2,7 +2,7 @@ defaults:
   - tokenizer_modifier: roberta
   - _self_
 
-lm_mode: MLM
+lm_mode: mlm
 
 pretrained_model_name_or_path: roberta-base
 short_model_name: ${language_model.pretrained_model_name_or_path}

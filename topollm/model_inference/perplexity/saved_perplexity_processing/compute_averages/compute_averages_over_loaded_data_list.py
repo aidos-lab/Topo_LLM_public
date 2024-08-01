@@ -30,8 +30,9 @@ import logging
 import numpy as np
 from tqdm import tqdm
 
+from topollm.analysis.stat_test import stat_test_linear
 from topollm.logging.log_list_info import log_list_info
-from topollm.model_inference.perplexity.sentence_perplexity_container import SentencePerplexityContainer
+from topollm.model_inference.perplexity.saving.sentence_perplexity_container import SentencePerplexityContainer
 from topollm.typing.enums import Verbosity
 from topollm.typing.types import PerplexityResultsList
 
@@ -80,7 +81,16 @@ def compute_averages_over_loaded_data_list(
                 logger=logger,
             )
 
-    differences = [
+    # Compute the average of each list of averages
+    average_of_averages = [sum(averages) / len(averages) for averages in averages_list]
+    if verbosity >= Verbosity.NORMAL:
+        log_list_info(
+            average_of_averages,
+            list_name="average_of_averages",
+            logger=logger,
+        )
+
+    differences_of_averages = [
         (b - a)
         for a, b in zip(
             averages_list[0],
@@ -88,22 +98,22 @@ def compute_averages_over_loaded_data_list(
             strict=True,
         )
     ]
-    average_difference = sum(differences) / len(differences)
+    average_of_differences_of_averages = sum(differences_of_averages) / len(differences_of_averages)
 
     if verbosity >= Verbosity.NORMAL:
         log_list_info(
-            differences,
-            list_name="differences",
+            differences_of_averages,
+            list_name="differences_of_averages",
             logger=logger,
         )
         logger.info(
-            "average_difference:\n%s",
-            average_difference,
+            "average_of_differences_of_averages:\n%s",
+            average_of_differences_of_averages,
         )
 
     # # # #
     # Take exponential of token level losses before computing the average
-    defferences_of_exps = [
+    differences_of_exps = [
         (np.exp(b) - np.exp(a))
         for a, b in zip(
             averages_list[0],
@@ -111,8 +121,17 @@ def compute_averages_over_loaded_data_list(
             strict=True,
         )
     ]
-    average_difference_of_exps = sum(defferences_of_exps) / len(defferences_of_exps)
+    average_difference_of_exps = sum(differences_of_exps) / len(differences_of_exps)
     logger.info(
         "average_difference_of_exps:\n%s",
         average_difference_of_exps,
+    )
+
+    stat_test_linear_result_on_averages = stat_test_linear(
+        data1=averages_list[0],
+        data2=averages_list[1],
+    )
+    logger.info(
+        "stat_test_linear_result_on_averages:\n%s",
+        stat_test_linear_result_on_averages,
     )

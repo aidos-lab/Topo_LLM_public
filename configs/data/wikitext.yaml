@@ -8,4 +8,3 @@ context: dataset_entry
 dataset_description_string: wikitext
 dataset_path: wikitext
 dataset_name: wikitext-103-v1
-dataset_type: huggingface_dataset

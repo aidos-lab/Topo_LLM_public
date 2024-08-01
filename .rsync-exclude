@@ -1,0 +1,27 @@
+.hypothesis
+.pytest_cache
+__pycache__
+.venv
+.coverage
+.coverage.*
+
+# VS Code settings
+.vscode
+
+# Large data directories
+data/analysis/
+data/embeddings/
+data/models/finetuned_models/
+
+# Log files
+hilbert_job_logs/
+hilbert_job_logs_backup/
+hydra_output_dir/
+wandb_output_dir/
+
+# OSX files
+.DS_Store
+
+# Exclude the pyproject.toml to prevent overwriting the HPC pip configuration 
+pyproject.toml
+poetry.lock

@@ -37,7 +37,7 @@ from topollm.model_handling.get_torch_device import get_torch_device
 from topollm.model_handling.loaded_model_container import LoadedModelContainer
 from topollm.model_handling.model.load_model import load_model
 from topollm.model_handling.tokenizer.load_tokenizer import load_modified_tokenizer
-from topollm.typing.enums import LMmode
+from topollm.typing.enums import LMmode, Verbosity
 
 if TYPE_CHECKING:
     import torch
@@ -47,17 +47,20 @@ default_logger = logging.getLogger(__name__)
 
 def prepare_device_and_tokenizer_and_model(
     main_config: MainConfig,
+    verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> LoadedModelContainer:
     """Prepare device, tokenizer, and model."""
     device: torch.device = get_torch_device(
         preferred_torch_backend=main_config.preferred_torch_backend,
-        verbosity=main_config.verbosity,
+        verbosity=verbosity,
         logger=logger,
     )
 
     tokenizer, tokenizer_modifier = load_modified_tokenizer(
-        main_config=main_config,
+        language_model_config=main_config.language_model,
+        tokenizer_config=main_config.tokenizer,
+        verbosity=verbosity,
         logger=logger,
     )
 
@@ -89,7 +92,7 @@ def prepare_device_and_tokenizer_and_model(
         pretrained_model_name_or_path=main_config.language_model.pretrained_model_name_or_path,
         model_loading_class=model_loading_class,
         device=device,
-        verbosity=main_config.verbosity,
+        verbosity=verbosity,
         logger=logger,
     )
 

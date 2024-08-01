@@ -2,7 +2,7 @@ defaults:
   - _self_
 
 embeddings_data_prep:
-  write_sentences_to_meta: true
+  add_additional_metadata: true
 
 finetuning:
   skip_finetuning: false

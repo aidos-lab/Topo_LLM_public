@@ -35,8 +35,22 @@ from topollm.config_classes.config_base_model import ConfigBaseModel
 class EmbeddingsDataPrepFeatureFlagsConfig(ConfigBaseModel):
     """Feature flags for the embeddings data preparation process."""
 
-    write_sentences_to_meta: bool = Field(
+    add_additional_metadata: bool = Field(
         default=True,
+        title="Add additional metadata to the saved metadata.",
+        description="Whether to add additional metadata to the saved metadata. "
+        "This needs to be enabled for the other flags to take effect.",
+    )
+
+    write_tokens_list_to_meta: bool = Field(
+        default=True,
+        title="Write tokens_list to the metadata "
+        "(i.e., the list of tokens in the sequence/sentence in which a token appears).",
+    )
+
+    write_concatenated_tokens_to_meta: bool = Field(
+        default=True,
+        title="Write concatenated_tokens to the metadata (i.e., the sequence/sentence string in which a token appears).",
     )
 
 

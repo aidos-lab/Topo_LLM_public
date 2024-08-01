@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -35,6 +33,8 @@ import pickle
 from topollm.storage.metadata_storage.MetadataChunk import MetadataChunk
 from topollm.storage.StorageDataclasses import ChunkIdentifier
 
+default_logger = logging.getLogger(__name__)
+
 
 def chunk_identifier_str(
     chunk_identifier: ChunkIdentifier,
@@ -44,8 +44,7 @@ def chunk_identifier_str(
 
 
 class ChunkedMetadataStoragePickle:
-    """
-    A storage protocol backend for embedding metadata using Pickles.
+    """Storage protocol backend for embedding metadata using Pickle.
 
     Note: We do not need to inherit from the storage protocols,
     since we are not relying on an abstract base class.
@@ -54,7 +53,7 @@ class ChunkedMetadataStoragePickle:
     def __init__(
         self,
         root_storage_path: os.PathLike,
-        logger: logging.Logger = logging.getLogger(__name__),
+        logger: logging.Logger = default_logger,
     ):
         self.root_storage_path = root_storage_path
         self.storage_dir = pathlib.Path(
@@ -63,8 +62,6 @@ class ChunkedMetadataStoragePickle:
         )
 
         self.logger = logger
-
-        return None
 
     def open(
         self,
@@ -75,8 +72,6 @@ class ChunkedMetadataStoragePickle:
             self.storage_dir,
             exist_ok=True,
         )
-
-        return None
 
     @classmethod
     def chunk_file_name(
@@ -114,8 +109,6 @@ class ChunkedMetadataStoragePickle:
                 obj=data_chunk.batch,
                 file=file,
             )
-
-        return None
 
     def read_chunk(
         self,

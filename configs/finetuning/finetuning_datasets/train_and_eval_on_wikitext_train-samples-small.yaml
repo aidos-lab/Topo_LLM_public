@@ -1,0 +1,17 @@
+defaults:
+ - ../../data@eval_dataset: wikitext
+ - ../../data@train_dataset: wikitext
+ - _self_
+
+# Note: We should override the 'split' key of the datasets separately,
+# to make sure that they are set correctly for the training and evaluation datasets.
+
+eval_dataset:
+  split: validation
+  # Note: the validation dataset in wikitext is quite small, 
+  # so we only use 1000 samples for evaluation.
+  # Otherwise, we get an out of bounds index error.
+  number_of_samples: 1000
+train_dataset:
+  split: train
+  number_of_samples: 10000

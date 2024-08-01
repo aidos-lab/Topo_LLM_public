@@ -29,15 +29,15 @@ import logging
 from dataclasses import dataclass
 from os import PathLike
 
-from topollm.storage.array_storage import ChunkedArrayStorageZarr
-from topollm.storage.array_storage.ChunkedArrayStorageProtocol import (
+from topollm.storage.array_storage import chunked_array_storage_zarr
+from topollm.storage.array_storage.protocol import (
     ChunkedArrayStorageProtocol,
 )
 from topollm.storage.metadata_storage import (
     ChunkedMetadataStoragePickle,
     ChunkedMetadataStorageXarray,
 )
-from topollm.storage.metadata_storage.ChunkedMetadataStorageProtocol import (
+from topollm.storage.metadata_storage.protocol import (
     ChunkedMetadataStorageProtocol,
 )
 from topollm.storage.StorageDataclasses import (
@@ -50,12 +50,16 @@ default_logger = logging.getLogger(__name__)
 
 @dataclass
 class StoragePaths:
+    """Container for paths to the storage directories."""
+
     array_dir: PathLike
     metadata_dir: PathLike
 
 
 @dataclass
 class StorageSpecification:
+    """Container for storage specifications."""
+
     array_storage_type: ArrayStorageType
     metadata_storage_type: MetadataStorageType
     array_properties: ArrayProperties
@@ -63,6 +67,8 @@ class StorageSpecification:
 
 
 class StorageFactory:
+    """Factory for creating storage instances based on the storage type."""
+
     def __init__(
         self,
         storage_specification: StorageSpecification,
@@ -76,7 +82,7 @@ class StorageFactory:
     ) -> ChunkedArrayStorageProtocol:
         """Instantiate array storage backends based on the storage type."""
         if self.storage_specification.array_storage_type == ArrayStorageType.ZARR:
-            storage_backend = ChunkedArrayStorageZarr.ChunkedArrayStorageZarr(
+            storage_backend = chunked_array_storage_zarr.ChunkedArrayStorageZarr(
                 array_properties=self.storage_specification.array_properties,
                 root_storage_path=self.storage_specification.storage_paths.array_dir,
             )
@@ -90,19 +96,20 @@ class StorageFactory:
     def get_metadata_storage(
         self,
     ) -> ChunkedMetadataStorageProtocol:
-        if self.storage_specification.metadata_storage_type == MetadataStorageType.XARRAY:
-            storage_backend = ChunkedMetadataStorageXarray.ChunkedMetadataStorageXarray(
-                array_properties=self.storage_specification.array_properties,
-                root_storage_path=self.storage_specification.storage_paths.metadata_dir,
-                logger=self.logger,
-            )
-        elif self.storage_specification.metadata_storage_type == MetadataStorageType.PICKLE:
-            storage_backend = ChunkedMetadataStoragePickle.ChunkedMetadataStoragePickle(
-                root_storage_path=self.storage_specification.storage_paths.metadata_dir,
-                logger=self.logger,
-            )
-        else:
-            msg = f"Unsupported {self.storage_specification.metadata_storage_type = }"
-            raise ValueError(msg)
+        match self.storage_specification.metadata_storage_type:
+            case MetadataStorageType.XARRAY:
+                storage_backend = ChunkedMetadataStorageXarray.ChunkedMetadataStorageXarray(
+                    array_properties=self.storage_specification.array_properties,
+                    root_storage_path=self.storage_specification.storage_paths.metadata_dir,
+                    logger=self.logger,
+                )
+            case MetadataStorageType.PICKLE:
+                storage_backend = ChunkedMetadataStoragePickle.ChunkedMetadataStoragePickle(
+                    root_storage_path=self.storage_specification.storage_paths.metadata_dir,
+                    logger=self.logger,
+                )
+            case _:
+                msg = f"Unsupported {self.storage_specification.metadata_storage_type = }"
+                raise ValueError(msg)
 
         return storage_backend

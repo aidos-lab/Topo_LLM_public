@@ -37,7 +37,7 @@ from transformers import PreTrainedModel, PreTrainedTokenizer, PreTrainedTokeniz
 
 from topollm.config_classes.tokenizer.tokenizer_config import TokenizerConfig
 from topollm.model_handling.loaded_model_container import LoadedModelContainer
-from topollm.model_inference.perplexity.sentence_perplexity_container import SentencePerplexityContainer
+from topollm.model_inference.perplexity.saving.sentence_perplexity_container import SentencePerplexityContainer
 from topollm.typing.enums import LMmode, MLMPseudoperplexityGranularity, Verbosity
 from topollm.typing.types import PerplexityResultsList
 

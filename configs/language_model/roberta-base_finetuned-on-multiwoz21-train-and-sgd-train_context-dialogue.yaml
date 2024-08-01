@@ -1,4 +1,4 @@
-lm_mode: MLM
+lm_mode: mlm
 
 pretrained_model_name_or_path: ${paths.data_dir}/models/architecture-roberta-base/roberta-base_finetuned-on-multiwoz21-train-and-sgd-train_context-dialogue
 short_model_name: roberta-base_finetuned-on-multiwoz21-train-and-sgd-train_context-dialogue

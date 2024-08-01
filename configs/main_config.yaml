@@ -8,7 +8,7 @@ defaults:
   - language_model: roberta-base
   - local_estimates: twonn
   - paths: absolute_repository_base
-  - storage: zarr_vectors_pickle_metadata
+  - storage: default
   - submit_jobs: config
   - tokenizer: basic_tokenizer
   - transformations: none
