@@ -98,6 +98,7 @@ def small_data_config() -> DataConfig:
 def pretrained_model_name_or_path_and_short_model_name() -> tuple[str, str]:
     """Return a pretrained_model_name_or_path string."""
     # NOTE: There appears to be a problem with the compatibility of the embeddings of these debugging models.
+    # The problem appears to be that the tokenizer is not compatible with the embedding layer of the model.
     #
     # result = (
     #     "hf-internal-testing/tiny-random-RobertaModel",
@@ -140,7 +141,7 @@ def main_config_with_small_dataset_and_model(
     storage_config = StorageConfig(
         array_storage_type=ArrayStorageType.ZARR,
         metadata_storage_type=MetadataStorageType.PICKLE,
-        chunk_size=512,
+        chunk_size=30,
     )
     dataset_map_config = DatasetMapConfig()
     batch_sizes_config = BatchSizesConfig()
