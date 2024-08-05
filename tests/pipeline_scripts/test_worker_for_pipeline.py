@@ -97,9 +97,16 @@ def small_data_config() -> DataConfig:
 )
 def pretrained_model_name_or_path_and_short_model_name() -> tuple[str, str]:
     """Return a pretrained_model_name_or_path string."""
+    # NOTE: There appears to be a problem with the compatibility of the embeddings of these debugging models.
+    #
+    # result = (
+    #     "hf-internal-testing/tiny-random-RobertaModel",
+    #     "tiny-random-RobertaModel",
+    # )
+
     result = (
-        "hf-internal-testing/tiny-random-RobertaModel",
-        "tiny-random-RobertaModel",
+        "roberta-base",
+        "roberta-base",
     )
 
     return result

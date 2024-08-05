@@ -45,6 +45,7 @@ def test_compute_and_store_embeddings(
     device_fixture: torch.device,
     logger_fixture: logging.Logger,
 ) -> None:
+    """Test the compute_and_store_embeddings function."""
     compute_and_store_embeddings(
         main_config=main_config,
         device=device_fixture,
