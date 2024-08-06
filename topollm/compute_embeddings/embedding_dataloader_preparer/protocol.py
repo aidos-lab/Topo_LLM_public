@@ -26,6 +26,7 @@
 # limitations under the License.
 
 import logging
+import nltk
 from abc import ABC, abstractmethod
 
 import torch
@@ -82,6 +83,16 @@ class EmbeddingDataLoaderPreparer(ABC):
         )
 
         return features
+
+    @staticmethod
+    def convert_dataset_entry_to_word_tokens(
+        dataset_entry: dict,
+        column_name: str = "text",
+    ) -> BatchEncoding:
+        text_data = dataset_entry[column_name]
+        word_tokens = [nltk.word_tokenize(x) for x in text_data]
+        return word_tokens
+
 
     @abstractmethod
     def prepare_dataloader(
