@@ -27,6 +27,7 @@
 """Load computed perplexity and concatente sequences into single array and df."""
 
 import logging
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 import hydra
