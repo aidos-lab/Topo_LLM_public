@@ -1,4 +1,33 @@
+# Copyright 2024
+# Heinrich Heine University Dusseldorf,
+# Faculty of Mathematics and Natural Sciences,
+# Computer Science Department
+#
+# Authors:
+# Benjamin Ruppik (ruppik@hhu.de)
+#
+# Code generation tools and workflows:
+# First versions of this code were potentially generated
+# with the help of AI writing assistants including
+# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
+# Afterwards, the generated segments were manually reviewed and edited.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""Plotting functions for histograms."""
+
 import logging
+import os
 import pathlib
 from dataclasses import dataclass
 
@@ -33,8 +62,14 @@ def plot_histograms(
             The dataframe containing the data.
         settings:
             Dictionary specifying the settings for each column.
-            Each setting includes 'scale' (optional tuple of min and max for x-axis) and 'bins' (int for number of bins).
+            Each setting includes
+            'scale' (optional tuple of min and max for x-axis)
+            and 'bins' (int for number of bins).
             If None, the histograms will be automatically scaled and use default bin count of 30.
+        verbosity:
+            The verbosity level.
+        logger:
+            The logger.
 
     """
     columns_to_plot = df.select_dtypes(include="number").columns.tolist() if settings is None else list(settings.keys())
@@ -113,7 +148,7 @@ def plot_histograms(
 
 def save_plot(
     figure: matplotlib.figure.Figure,
-    path: pathlib.Path,
+    path: os.PathLike,
 ) -> None:
     """Save the given plot to a specified path.
 
@@ -123,6 +158,11 @@ def save_plot(
         path: The path where the plot should be saved.
 
     """
+    pathlib.Path(path).parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
     figure.savefig(
         path,
     )

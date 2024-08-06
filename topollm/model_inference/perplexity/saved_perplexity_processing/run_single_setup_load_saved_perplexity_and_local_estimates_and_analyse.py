@@ -31,7 +31,6 @@ from typing import TYPE_CHECKING
 
 import hydra
 import hydra.core.hydra_config
-import matplotlib.pyplot as plt
 import omegaconf
 import torch
 
@@ -41,10 +40,6 @@ from topollm.logging.initialize_configuration_and_log import initialize_configur
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.model_inference.perplexity.saved_perplexity_processing.load_perplexity_and_local_estimates_and_align import (
     load_perplexity_and_local_estimates_and_align,
-)
-from topollm.model_inference.perplexity.saved_perplexity_processing.plot_histograms import (
-    HistogramSettings,
-    plot_histograms,
 )
 
 if TYPE_CHECKING:
@@ -124,63 +119,9 @@ def main(
         msg = "aligned_local_estimates_data_container is None"
         raise ValueError(msg)
 
-    # # # #
-    # Saving aligned_df and statistics to csv files
-    aligned_local_estimates_data_container.save_aligned_df_and_statistics()
-
-    # # # #
-    # Point-level correlation analysis
-    aligned_local_estimates_data_container.run_point_level_correlation_analysis_and_save(
-        correlation_columns=None,
+    aligned_local_estimates_data_container.run_analysis_and_save_results(
+        display_plots=True,
     )
-
-    # # # #
-    # Plot and save histograms
-
-    # TODO: Continue here
-
-    # Manual settings for the columns
-    manual_settings = {
-        "token_perplexity": HistogramSettings(
-            scale=(0, 10),
-            bins=30,
-        ),
-        "token_log_perplexity": HistogramSettings(
-            scale=(-10, 3),
-            bins=50,
-        ),
-        "local_estimate": HistogramSettings(
-            scale=(7, 10),
-            bins=50,
-        ),
-    }
-
-    # Automatic settings (select specific columns and use default bins)
-    automatic_settings = {
-        "token_perplexity": HistogramSettings(),
-        "token_log_perplexity": HistogramSettings(),
-        "local_estimate": HistogramSettings(),
-    }
-
-    # Plot histograms with automatic scaling (selected columns)
-    figure = plot_histograms(
-        df=aligned_local_estimates_data_container.aligned_df,
-        settings=automatic_settings,
-    )
-    if figure is not None:
-        plt.figure(figure)
-        plt.show()
-
-    # Plot histograms with manual scaling and configurable bins
-    figure = plot_histograms(
-        df=aligned_local_estimates_data_container.aligned_df,
-        settings=manual_settings,
-    )
-    if figure is not None:
-        plt.figure(figure)
-        plt.show()
-
-    # TODO(Ben): Implement saving of the histograms
 
     # TODO(Ben): Scatter plot of perplexity vs. local estimate
 

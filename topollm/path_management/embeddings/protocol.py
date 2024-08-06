@@ -98,3 +98,8 @@ class EmbeddingsPathManager(Protocol):
         self,
         method: str,
     ) -> pathlib.Path: ...  # pragma: no cover
+
+    def get_aligned_histograms_plot_save_path(
+        self,
+        plot_name: str,
+    ) -> pathlib.Path: ...  # pragma: no cover

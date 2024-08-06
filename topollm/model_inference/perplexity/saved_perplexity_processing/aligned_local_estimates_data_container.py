@@ -29,12 +29,19 @@
 import logging
 import pathlib
 
+import matplotlib.figure
+import matplotlib.pyplot as plt
 import pandas as pd
 
 from topollm.config_classes.main_config import MainConfig
 from topollm.model_inference.perplexity.saved_perplexity_processing.correlation_analysis import (
     compute_and_save_correlation_results_on_all_input_columns,
     extract_correlation_columns,
+)
+from topollm.model_inference.perplexity.saved_perplexity_processing.plot_histograms import (
+    HistogramSettings,
+    plot_histograms,
+    save_plot,
 )
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
 from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
@@ -74,6 +81,28 @@ class AlignedLocalEstimatesDataContainer:
         self,
     ) -> EmbeddingsPathManager:
         return self.local_estimates_embeddings_path_manager
+
+    def run_analysis_and_save_results(
+        self,
+        correlation_columns: list[str] | None = None,
+        *,
+        display_plots: bool = False,
+    ) -> None:
+        # # # #
+        # Save aligned_df and statistics to csv files
+        self.save_aligned_df_and_statistics()
+
+        # # # #
+        # Point-level correlation analysis
+        self.run_point_level_correlation_analysis_and_save(
+            correlation_columns=correlation_columns,
+        )
+
+        # # # #
+        # Plot and save histograms
+        self.create_and_save_histograms(
+            display_plots=display_plots,
+        )
 
     def save_aligned_df_and_statistics(
         self,
@@ -157,3 +186,102 @@ class AlignedLocalEstimatesDataContainer:
             verbosity=self.verbosity,
             logger=self.logger,
         )
+
+    def create_and_save_histograms(
+        self,
+        *,
+        display_plots: bool = False,
+    ) -> None:
+        figure_automatic_scale, figure_manual_scale = self.create_histograms(
+            display_plots=display_plots,
+        )
+
+        for figure, description in [
+            (
+                figure_automatic_scale,
+                "histograms_automatic_scale",
+            ),
+            (
+                figure_manual_scale,
+                "histograms_manual_scale",
+            ),
+        ]:
+            if figure is not None:
+                self.save_histograms(
+                    figure=figure,
+                    description=description,
+                )
+
+    def create_histograms(
+        self,
+        *,
+        display_plots: bool = False,
+    ) -> tuple[matplotlib.figure.Figure | None, matplotlib.figure.Figure | None]:
+        # Manual settings for the columns
+        manual_settings = {
+            "token_perplexity": HistogramSettings(
+                scale=(0, 10),
+                bins=30,
+            ),
+            "token_log_perplexity": HistogramSettings(
+                scale=(-10, 3),
+                bins=50,
+            ),
+            "local_estimate": HistogramSettings(
+                scale=(7, 10),
+                bins=50,
+            ),
+        }
+
+        # Automatic settings (select specific columns and use default bins)
+        automatic_settings = {
+            "token_perplexity": HistogramSettings(),
+            "token_log_perplexity": HistogramSettings(),
+            "local_estimate": HistogramSettings(),
+        }
+
+        # Plot histograms with automatic scaling (selected columns)
+        figure_automatic_scale = plot_histograms(
+            df=self.aligned_df,
+            settings=automatic_settings,
+        )
+        if figure_automatic_scale is not None and display_plots:
+            plt.figure(figure_automatic_scale)
+            plt.show()
+
+        # Plot histograms with manual scaling and configurable bins
+        figure_manual_scale = plot_histograms(
+            df=self.aligned_df,
+            settings=manual_settings,
+        )
+        if figure_manual_scale is not None and display_plots:
+            plt.figure(figure_manual_scale)
+            plt.show()
+
+        return figure_automatic_scale, figure_manual_scale
+
+    def save_histograms(
+        self,
+        figure: matplotlib.figure.Figure,
+        description: str = "histograms",
+    ) -> None:
+        """Save the histograms to a file."""
+        save_path = self.embeddings_path_manager.get_aligned_histograms_plot_save_path(
+            plot_name=f"{description}.pdf",
+        )
+
+        if self.verbosity >= Verbosity.NORMAL:
+            self.logger.info(
+                f"{save_path = }",  # noqa: G004 - low overhead
+            )
+            self.logger.info(
+                "Saving histograms to file ...",
+            )
+        save_plot(
+            figure=figure,
+            path=save_path,
+        )
+        if self.verbosity >= Verbosity.NORMAL:
+            self.logger.info(
+                "Saving histograms to file DONE",
+            )

@@ -344,6 +344,27 @@ class EmbeddingsPathManagerSeparateDirectories:
 
         return path
 
+    def get_aligned_histograms_dir_absolute_path(
+        self,
+    ) -> pathlib.Path:
+        path = pathlib.Path(
+            self.get_analyzed_data_dir_absolute_path(),
+            "histograms",
+        )
+
+        return path
+
+    def get_aligned_histograms_plot_save_path(
+        self,
+        plot_name: str,
+    ) -> pathlib.Path:
+        path = pathlib.Path(
+            self.get_aligned_histograms_dir_absolute_path(),
+            plot_name,
+        )
+
+        return path
+
 
 def get_perplexity_container_save_file_name(
     perplexity_container_save_format: PerplexityContainerSaveFormat = PerplexityContainerSaveFormat.LIST_AS_JSONL,
