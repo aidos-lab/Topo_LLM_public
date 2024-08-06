@@ -146,6 +146,61 @@ def plot_histograms(
     return fig
 
 
+@dataclass
+class ScatterPlotSettings:
+    """Settings for plotting scatter plots."""
+
+    x_scale: tuple[float, float] | None = None
+    y_scale: tuple[float, float] | None = None
+
+
+def create_scatter_plot(
+    df: pd.DataFrame,
+    x_column: str,
+    y_column: str,
+    settings: ScatterPlotSettings | None = None,
+) -> matplotlib.figure.Figure | None:
+    """Create a scatter plot comparing two columns of a dataframe with optional manual scaling.
+
+    Args:
+    ----
+        df (pd.DataFrame): The dataframe containing the data.
+        x_column (str): The column name to be used for the x-axis.
+        y_column (str): The column name to be used for the y-axis.
+        settings (ScatterPlotSettings | None): Settings for manual scaling of the axes.
+
+    Returns:
+    -------
+        plt.Figure: The matplotlib figure object containing the scatter plot.
+
+    """
+    fig, ax = plt.subplots(
+        figsize=(10, 6),
+    )
+
+    if settings:
+        x_scale = settings.x_scale
+        y_scale = settings.y_scale
+
+        if x_scale is not None:
+            ax.set_xlim(x_scale)
+        if y_scale is not None:
+            ax.set_ylim(y_scale)
+
+    ax.scatter(
+        df[x_column],
+        df[y_column],
+        alpha=0.7,
+        color="blue",
+        edgecolor="black",
+    )
+    ax.set_title(f"Scatter Plot of {x_column} vs {y_column}")
+    ax.set_xlabel(x_column)
+    ax.set_ylabel(y_column)
+
+    return fig
+
+
 def save_plot(
     figure: matplotlib.figure.Figure,
     path: os.PathLike,

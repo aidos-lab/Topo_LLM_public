@@ -38,8 +38,10 @@ from topollm.model_inference.perplexity.saved_perplexity_processing.correlation_
     compute_and_save_correlation_results_on_all_input_columns,
     extract_correlation_columns,
 )
-from topollm.model_inference.perplexity.saved_perplexity_processing.plot_histograms import (
+from topollm.model_inference.perplexity.saved_perplexity_processing.plot_histograms_and_scatter import (
     HistogramSettings,
+    ScatterPlotSettings,
+    create_scatter_plot,
     plot_histograms,
     save_plot,
 )
@@ -101,6 +103,12 @@ class AlignedLocalEstimatesDataContainer:
         # # # #
         # Plot and save histograms
         self.create_and_save_histograms(
+            display_plots=display_plots,
+        )
+
+        # # # #
+        # Plot and save scatter plots
+        self.create_and_save_scatter_plots(
             display_plots=display_plots,
         )
 
@@ -187,6 +195,98 @@ class AlignedLocalEstimatesDataContainer:
             logger=self.logger,
         )
 
+    def create_and_save_scatter_plots(
+        self,
+        *,
+        display_plots: bool = False,
+    ) -> None:
+        figure_automatic_scale, figure_manual_scale = self.create_scatter_plots(
+            display_plots=display_plots,
+        )
+
+        for figure, description in [
+            (
+                figure_automatic_scale,
+                "scatter_plot_automatic_scale",
+            ),
+            (
+                figure_manual_scale,
+                "scatter_plot_manual_scale",
+            ),
+        ]:
+            if figure is not None:
+                self.save_scatter_plots(
+                    figure=figure,
+                    description=description,
+                )
+
+    def create_scatter_plots(
+        self,
+        *,
+        display_plots: bool = False,
+    ) -> tuple[matplotlib.figure.Figure | None, matplotlib.figure.Figure | None]:
+        """Create scatter plots for the aligned data."""
+        scatter_settings_auto = ScatterPlotSettings()
+        scatter_settings_manual = ScatterPlotSettings(
+            x_scale=(-10, 1),
+            y_scale=(7, 16),
+        )
+
+        figure_automatic_scale = create_scatter_plot(
+            df=self.aligned_df,
+            x_column="token_log_perplexity",
+            y_column="local_estimate",
+            settings=scatter_settings_auto,
+        )
+        figure_manual_scale = create_scatter_plot(
+            df=self.aligned_df,
+            x_column="token_log_perplexity",
+            y_column="local_estimate",
+            settings=scatter_settings_manual,
+        )
+
+        for current_figure in [
+            figure_automatic_scale,
+            figure_manual_scale,
+        ]:
+            if current_figure is not None and display_plots:
+                self.logger.info(
+                    f"Displaying scatter plot {current_figure = } ...",  # noqa: G004 - low overhead
+                )
+                plt.figure(current_figure)
+                plt.show()
+                self.logger.info(
+                    f"Displaying scatter plot {current_figure = } DONE",  # noqa: G004 - low overhead
+                )
+
+        return figure_automatic_scale, figure_manual_scale
+
+    def save_scatter_plots(
+        self,
+        figure: matplotlib.figure.Figure,
+        description: str = "scatter_plot",
+    ) -> None:
+        """Save the scatterplot to a file."""
+        save_path = self.embeddings_path_manager.get_aligned_scatter_plot_save_path(
+            plot_name=f"{description}.pdf",
+        )
+
+        if self.verbosity >= Verbosity.NORMAL:
+            self.logger.info(
+                f"{save_path = }",  # noqa: G004 - low overhead
+            )
+            self.logger.info(
+                "Saving scatterplot to file ...",
+            )
+        save_plot(
+            figure=figure,
+            path=save_path,
+        )
+        if self.verbosity >= Verbosity.NORMAL:
+            self.logger.info(
+                "Saving scatterplot to file DONE",
+            )
+
     def create_and_save_histograms(
         self,
         *,
@@ -245,18 +345,26 @@ class AlignedLocalEstimatesDataContainer:
             df=self.aligned_df,
             settings=automatic_settings,
         )
-        if figure_automatic_scale is not None and display_plots:
-            plt.figure(figure_automatic_scale)
-            plt.show()
-
         # Plot histograms with manual scaling and configurable bins
         figure_manual_scale = plot_histograms(
             df=self.aligned_df,
             settings=manual_settings,
         )
-        if figure_manual_scale is not None and display_plots:
-            plt.figure(figure_manual_scale)
-            plt.show()
+
+        for current_figure in [
+            figure_automatic_scale,
+            figure_manual_scale,
+        ]:
+            if current_figure is not None and display_plots:
+                self.logger.info(
+                    f"Displaying histogram plot {current_figure = } ...",  # noqa: G004 - low overhead
+                )
+                plt.figure(current_figure)
+                plt.show()
+                plt.close(current_figure)
+                self.logger.info(
+                    f"Displaying histogram plot {current_figure = } DONE",  # noqa: G004 - low overhead
+                )
 
         return figure_automatic_scale, figure_manual_scale
 

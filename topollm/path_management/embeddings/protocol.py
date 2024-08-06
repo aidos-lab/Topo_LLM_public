@@ -103,3 +103,8 @@ class EmbeddingsPathManager(Protocol):
         self,
         plot_name: str,
     ) -> pathlib.Path: ...  # pragma: no cover
+
+    def get_aligned_scatter_plot_save_path(
+        self,
+        plot_name: str,
+    ) -> pathlib.Path: ...  # pragma: no cover
