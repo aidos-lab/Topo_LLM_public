@@ -26,11 +26,11 @@
 # limitations under the License.
 
 import logging
-import pathlib
 
 import pandas as pd
 
 from topollm.logging.log_dataframe_info import log_dataframe_info
+from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 from topollm.typing.enums import Verbosity
 
 default_logger = logging.getLogger(__name__)
@@ -67,9 +67,9 @@ def extract_correlation_columns(
     return only_correlation_columns_aligned_df
 
 
-def calculate_and_save_correlation_results(
+def compute_and_save_correlation_results_on_all_input_columns(
     only_correlation_columns_aligned_df: pd.DataFrame,
-    analyzed_data_save_directory: pathlib.Path,
+    embeddings_path_manager: EmbeddingsPathManager,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> None:
@@ -90,26 +90,25 @@ def calculate_and_save_correlation_results(
         )
 
         # Saving correlation_results_df to csv file
-        correlation_results_df_save_path = pathlib.Path(
-            analyzed_data_save_directory,
-            "correlation_results",
-            f"correlation_results_{method}.csv",
+        correlation_results_df_save_path = embeddings_path_manager.get_correlation_results_df_save_path(
+            method=method,
         )
         correlation_results_df_save_path.parent.mkdir(
             parents=True,
             exist_ok=True,
         )
+
         if verbosity >= Verbosity.NORMAL:
             logger.info(
                 f"{correlation_results_df_save_path = }",  # noqa: G004 - low overhead
             )
             logger.info(
-                f"Saving correlation_results_df using '{method}' to csv file ...",  # noqa: G004 - low overhead
+                f"Saving correlation_results_df using '{method = }' to csv file ...",  # noqa: G004 - low overhead
             )
         correlation_results_df.to_csv(
             path_or_buf=correlation_results_df_save_path,
         )
         if verbosity >= Verbosity.NORMAL:
             logger.info(
-                f"Saving correlation_results_df using '{method}' to csv file DONE",  # noqa: G004 - low overhead
+                f"Saving correlation_results_df using '{method} = ' to csv file DONE",  # noqa: G004 - low overhead
             )

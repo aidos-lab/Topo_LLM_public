@@ -312,6 +312,38 @@ class EmbeddingsPathManagerSeparateDirectories:
 
         return path
 
+    def get_aligned_df_save_path(
+        self,
+        aligned_df_file_name: str = "aligned_df.csv",
+    ) -> pathlib.Path:
+        path = pathlib.Path(
+            self.get_analyzed_data_dir_absolute_path(),
+            aligned_df_file_name,
+        )
+
+        return path
+
+    def get_correlation_results_dir_absolute_path(
+        self,
+    ) -> pathlib.Path:
+        path = pathlib.Path(
+            self.get_analyzed_data_dir_absolute_path(),
+            "correlation_results",
+        )
+
+        return path
+
+    def get_correlation_results_df_save_path(
+        self,
+        method: str,
+    ) -> pathlib.Path:
+        path = pathlib.Path(
+            self.get_correlation_results_dir_absolute_path(),
+            f"correlation_results_{method}.csv",
+        )
+
+        return path
+
 
 def get_perplexity_container_save_file_name(
     perplexity_container_save_format: PerplexityContainerSaveFormat = PerplexityContainerSaveFormat.LIST_AS_JSONL,

@@ -88,3 +88,13 @@ class EmbeddingsPathManager(Protocol):
     def get_analyzed_data_dir_absolute_path(
         self,
     ) -> pathlib.Path: ...  # pragma: no cover
+
+    def get_aligned_df_save_path(
+        self,
+        aligned_df_file_name: str,
+    ) -> pathlib.Path: ...  # pragma: no cover
+
+    def get_correlation_results_df_save_path(
+        self,
+        method: str,
+    ) -> pathlib.Path: ...  # pragma: no cover
