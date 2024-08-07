@@ -133,20 +133,9 @@ class EmbeddingDataLoaderPreparerHuggingfaceNamedEntity(EmbeddingDataLoaderPrepa
             word_tags_one_sentence = pos_tag[sentence_idx]
             word_tags_one_sentence = [word_tags_one_sentence[i][1] for i in range(len(word_tags_one_sentence))]
             word_ids_one_sentence = word_ids[sentence_idx]
+            # TODO: handle None
             word_tags_one_sentence_tokens = [word_tags_one_sentence[i] for i in word_ids_one_sentence]
             all_word_tags_one_sentence_tokens.append(word_tags_one_sentence_tokens)
-
-
-        if self.verbosity >= 1:
-            self.logger.info(
-                "dataset_tokenized:\n%s",
-                dataset_tokenized,
-            )
-            log_huggingface_dataset_info(
-                dataset=dataset_tokenized,
-                dataset_name="dataset_tokenized",
-                logger=self.logger,
-            )
 
         return all_word_tags_one_sentence_tokens
 
