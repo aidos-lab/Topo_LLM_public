@@ -8,7 +8,7 @@ This repository contains code for analyzing the representations produced by cont
 
 ### Prerequisites
 
-- Python 3.10
+- Python 3.12
 - `pyenv` for managing Python versions
 - `pipx` for managing Python packages
 - `poetry` package manager
@@ -21,8 +21,8 @@ You can install `poetry` with `pipx` via: `pipx install poetry`.
 1. Install python version with `pyenv` and set local python version for the project.
 
 ```bash
-pyenv install 3.10
-pyenv local 3.10
+pyenv install 3.12
+pyenv local 3.12
 ```
 
 1. Tell poetry to use the local python version.
@@ -32,7 +32,7 @@ pyenv local 3.10
 # inside the project directory.
 poetry config virtualenvs.in-project true
 
-poetry env use 3.10
+poetry env use 3.12
 ```
 
 You can manage the poetry environments with the following commands:
@@ -60,7 +60,7 @@ poetry install --with cpu,dev --without gpu
 Edit the script `scripts/setup_environment.sh` with the correct paths and run it once.
 
 ```bash
-./scripts/setup_environment.sh
+./topollm/scripts/setup_environment.sh
 ```
 
 1. Set the correct environment variables in the `.env` file in the project root directory.

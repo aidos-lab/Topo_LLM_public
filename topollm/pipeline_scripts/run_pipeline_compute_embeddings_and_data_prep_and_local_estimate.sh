@@ -2,7 +2,7 @@
 
 echo "TOPO_LLM_REPOSITORY_BASE_PATH=${TOPO_LLM_REPOSITORY_BASE_PATH}"
 
-PYTHON_SCRIPT_NAME="run_pipeline_embeddings_data_prep_local_estimate.py"
+PYTHON_SCRIPT_NAME="run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py"
 RELATIVE_PYTHON_SCRIPT_PATH="topollm/pipeline_scripts/${PYTHON_SCRIPT_NAME}"
 ABSOLUTE_PYTHON_SCRIPT_PATH="${TOPO_LLM_REPOSITORY_BASE_PATH}/${RELATIVE_PYTHON_SCRIPT_PATH}"
 
@@ -38,9 +38,9 @@ ADDITIONAL_OVERRIDES=""
 
 # ==================================================== #
 
-echo "Calling python script PYTHON_SCRIPT_PATH=${PYTHON_SCRIPT_PATH} ..."
+echo "Calling python script ABSOLUTE_PYTHON_SCRIPT_PATH=${ABSOLUTE_PYTHON_SCRIPT_PATH} ..."
 
-poetry run python3 $PYTHON_SCRIPT_PATH \
+poetry run python3 $ABSOLUTE_PYTHON_SCRIPT_PATH \
     --multirun \
     data=$DATA_LIST \
     language_model=$LANGUAGE_MODEL_LIST \
