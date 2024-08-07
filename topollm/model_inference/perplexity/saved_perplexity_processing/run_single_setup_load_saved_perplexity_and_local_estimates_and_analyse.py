@@ -120,10 +120,8 @@ def main(
         raise ValueError(msg)
 
     aligned_local_estimates_data_container.run_analysis_and_save_results(
-        display_plots=True,
+        display_plots=False,
     )
-
-    # TODO(Ben): Scatter plot of perplexity vs. local estimate
 
     logger.info("Running script DONE")
     # # # # # # # # # # # # # # # # # # # #
