@@ -78,6 +78,8 @@ def embeddings_data_prep_worker(
         logger=logger,
     )
 
+    # TODO: Make this more general so that arbitrary metadata can be passed through the processing pipeline
+
     arr_no_pad, meta_no_pad, sentence_idx_no_pad = remove_padding_and_extra_tokens(
         full_df=full_df,
         tokenizer=tokenizer,
