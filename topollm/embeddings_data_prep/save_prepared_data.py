@@ -66,7 +66,7 @@ def save_prepared_data(
     # Save the prepared data
     np.save(
         file=embeddings_path_manager.get_prepared_data_array_save_path(),
-        arr=prepared_data.arr_no_pad,
+        arr=prepared_data.array_no_pad,
     )
 
     prepared_data.meta_frame.to_pickle(
@@ -100,7 +100,7 @@ def load_prepared_data(
     )
 
     prepared_data = PreparedData(
-        arr_no_pad=arr_no_pad,
+        array_no_pad=arr_no_pad,
         meta_frame=meta_frame,
     )
 

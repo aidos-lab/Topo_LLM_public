@@ -93,6 +93,8 @@ NAME_PREFIXES: dict[
     "num_samples": "samples",
     "n_neighbors": "n-neighbors",
     "query": "query",
+    "sampling_mode": "sampling",
+    "seed": "seed",
     "split": "split",
     "target_modules_to_freeze": "target-freeze",
     "task_type": "task",

@@ -74,7 +74,7 @@ def twonn_worker(
 
     if verbosity >= Verbosity.NORMAL:
         log_array_info(
-            prepared_data.arr_no_pad,
+            prepared_data.array_no_pad,
             array_name="prepared_data.arr_no_pad",
             log_array_size=True,
             log_row_l2_norms=True,
@@ -104,7 +104,7 @@ def twonn_worker(
         local_estimates_sample_size=local_estimates_sample_size,
     )
 
-    array_for_estimator = prepared_data_filtered_truncated.arr_no_pad
+    array_for_estimator = prepared_data_filtered_truncated.array_no_pad
 
     if verbosity >= Verbosity.NORMAL:
         log_array_info(
@@ -192,7 +192,7 @@ def truncate_data(
     local_estimates_sample_size: int,
 ) -> PreparedData:
     """Truncate the data to the first `local_estimates_sample_size` samples."""
-    input_array = prepared_data.arr_no_pad
+    input_array = prepared_data.array_no_pad
 
     local_estimates_sample_size = min(
         local_estimates_sample_size,
@@ -205,7 +205,7 @@ def truncate_data(
     output_meta_frame = input_meta_frame.iloc[:local_estimates_sample_size,]
 
     output_prepared_data = PreparedData(
-        arr_no_pad=output_array,
+        array_no_pad=output_array,
         meta_frame=output_meta_frame,
     )
 

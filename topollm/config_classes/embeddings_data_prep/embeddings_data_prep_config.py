@@ -41,7 +41,8 @@ class EmbeddingsDataPrepSamplingConfig(ConfigBaseModel):
     num_samples: int = Field(
         default=30_000,
         title="Number of samples.",
-        description="The number of samples to be extracted.",
+        description="The number of samples to be extracted."
+        "Choose size of a sample which is used to take subsets for a point-wise computation of local estimators.",
     )
 
     sampling_mode: EmbeddingsDataPrepSamplingMode = Field(
@@ -50,12 +51,22 @@ class EmbeddingsDataPrepSamplingConfig(ConfigBaseModel):
         description="The sampling mode to be used.",
     )
 
+    seed: int = Field(
+        default=42,
+        title="Seed.",
+        description="The seed for the random number generator.",
+    )
+
     @property
     def config_description(
         self,
     ) -> str:
         """Get the description of the config."""
-        desc = f"{NAME_PREFIXES['num_samples']}{KV_SEP}{str(self.num_samples)}"  # noqa: RUF010 - we want to use the manual conversion here
+        desc = (
+            f"{NAME_PREFIXES['sampling_mode']}{KV_SEP}{self.sampling_mode}"
+            f"{NAME_PREFIXES['seed']}{KV_SEP}{self.seed!s}"
+            f"{NAME_PREFIXES['num_samples']}{KV_SEP}{str(self.num_samples)}"  # noqa: RUF010 - we want to use the manual conversion here
+        )
 
         return desc
 

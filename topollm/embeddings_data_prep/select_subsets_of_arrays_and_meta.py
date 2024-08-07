@@ -29,6 +29,7 @@ import logging
 
 import numpy as np
 
+from topollm.config_classes.embeddings_data_prep.embeddings_data_prep_config import EmbeddingsDataPrepSamplingConfig
 from topollm.logging.log_array_info import log_array_info
 from topollm.typing.enums import Verbosity
 
@@ -39,8 +40,7 @@ def select_subsets_of_arrays_and_meta(
     arr_no_pad: np.ndarray,
     meta_no_pad: np.ndarray,
     sentence_idx_no_pad: np.ndarray,
-    sample_size: int,
-    seed: int = 42,
+    embeddings_data_prep_sampling_config: EmbeddingsDataPrepSamplingConfig,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> tuple[
@@ -53,13 +53,13 @@ def select_subsets_of_arrays_and_meta(
     # TODO: Make the sampling method configurable
     # TODO: i.e., allow for sampling via the first sequences instead of random sampling
     rng = np.random.default_rng(
-        seed=seed,
+        seed=embeddings_data_prep_sampling_config.seed,
     )
-    if len(arr_no_pad) >= sample_size:
+    if len(arr_no_pad) >= embeddings_data_prep_sampling_config.num_samples:
         subsample_idx: np.ndarray = rng.choice(
             range(len(arr_no_pad)),
             replace=False,
-            size=sample_size,
+            size=embeddings_data_prep_sampling_config.num_samples,
         )
     else:
         subsample_idx: np.ndarray = rng.choice(
@@ -84,7 +84,7 @@ def select_subsets_of_arrays_and_meta(
             f"{arr_no_pad_subsampled.shape = }",  # noqa: G004 - low overhead
         )
         logger.info(
-            f"Expected sample size: {sample_size = }",  # noqa: G004 - low overhead
+            f"Expected sample size: {embeddings_data_prep_sampling_config.num_samples = }",  # noqa: G004 - low overhead
         )
 
     return_value = (
