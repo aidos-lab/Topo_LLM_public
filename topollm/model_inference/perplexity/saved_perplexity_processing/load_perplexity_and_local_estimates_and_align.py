@@ -28,7 +28,6 @@
 """Loading perplexity and local estimates."""
 
 import logging
-from typing import TYPE_CHECKING
 
 import huggingface_hub
 import pandas as pd
@@ -44,9 +43,8 @@ from topollm.model_handling.tokenizer.load_modified_tokenizer_from_main_config i
 from topollm.model_inference.perplexity.saved_perplexity_processing.add_token_log_perplexity_column import (
     add_token_log_perplexity_column,
 )
-from topollm.model_inference.perplexity.saved_perplexity_processing.calculate_and_save_correlation_results import (
-    calculate_and_save_correlation_results,
-    extract_correlation_columns,
+from topollm.model_inference.perplexity.saved_perplexity_processing.aligned_local_estimates_data_container import (
+    AlignedLocalEstimatesDataContainer,
 )
 from topollm.model_inference.perplexity.saved_perplexity_processing.compare_columns import (
     compare_columns,
@@ -57,9 +55,6 @@ from topollm.model_inference.perplexity.saved_perplexity_processing.concatenate_
 from topollm.model_inference.perplexity.saved_perplexity_processing.load_perplexity_results import (
     load_perplexity_results,
 )
-from topollm.model_inference.perplexity.saved_perplexity_processing.save_aligned_df_and_statistics import (
-    save_aligned_df_and_statistics,
-)
 from topollm.model_inference.perplexity.saved_perplexity_processing.save_perplexity_statistics import (
     save_perplexity_statistics,
 )
@@ -68,10 +63,7 @@ from topollm.model_inference.perplexity.saving.save_concatenated_perplexity_resu
 )
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
 from topollm.typing.enums import Verbosity
-from topollm.typing.types import TransformersTokenizer
-
-if TYPE_CHECKING:
-    import pathlib
+from topollm.typing.types import PerplexityResultsList, TransformersTokenizer
 
 default_logger = logging.getLogger(__name__)
 
@@ -81,7 +73,7 @@ def load_perplexity_and_local_estimates_and_align(
     main_config_for_local_estimates: MainConfig,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
-) -> pd.DataFrame | None:
+) -> AlignedLocalEstimatesDataContainer | None:
     """Load the perplexity results and the local estimates and align them.
 
     Returns
@@ -97,7 +89,7 @@ def load_perplexity_and_local_estimates_and_align(
         logger=logger,
     )
 
-    loaded_data = load_perplexity_results(
+    loaded_data: PerplexityResultsList = load_perplexity_results(
         embeddings_path_manager=perplexity_embeddings_path_manager,
         verbosity=verbosity,
         logger=logger,
@@ -154,7 +146,7 @@ def load_perplexity_and_local_estimates_and_align(
         logger=logger,
     )
 
-    aligned_df = create_aligned_df(
+    aligned_df: pd.DataFrame | None = create_aligned_df(
         local_estimates_container=local_estimates_container,
         token_perplexities_without_filtered_tokens_df=token_perplexities_without_filtered_tokens_df,
         verbosity=verbosity,
@@ -176,45 +168,16 @@ def load_perplexity_and_local_estimates_and_align(
         )
     ]
 
-    # # # #
-    # Saving aligned_df and statistics to csv files
-
-    # Directory to save the analyzed data
-    analyzed_data_save_directory: pathlib.Path = (
-        local_estimates_embeddings_path_manager.get_analyzed_data_dir_absolute_path()
-    )
-    analyzed_data_save_directory.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
-
-    save_aligned_df_and_statistics(
+    data_container = AlignedLocalEstimatesDataContainer(
+        main_config_for_perplexity=main_config_for_perplexity,
+        main_config_for_local_estimates=main_config_for_local_estimates,
         aligned_df=aligned_df,
         aligned_without_special_tokens_df=aligned_without_special_tokens_df,
-        analyzed_data_save_directory=analyzed_data_save_directory,
         verbosity=verbosity,
         logger=logger,
     )
 
-    only_correlation_columns_aligned_df: pd.DataFrame = extract_correlation_columns(
-        aligned_df=aligned_df,
-        correlation_columns=None,
-        verbosity=verbosity,
-        logger=logger,
-    )
-
-    calculate_and_save_correlation_results(
-        only_correlation_columns_aligned_df=only_correlation_columns_aligned_df,
-        analyzed_data_save_directory=analyzed_data_save_directory,
-        verbosity=verbosity,
-        logger=logger,
-    )
-
-    # TODO: Scatter plot of perplexity vs. local estimate
-
-    # TODO: Plot histograms of perplexity and local estimate
-
-    return aligned_df
+    return data_container
 
 
 def create_aligned_df(
