@@ -133,7 +133,7 @@ def main(
             f"++language_model.checkpoint_no={checkpoint_no}",
             f"embeddings.embedding_extraction.layer_indices={layer_indices}",
             f"data.number_of_samples={data_number_of_samples}",
-            f"embeddings_data_prep.num_samples={embeddings_data_prep_num_samples}",
+            f"embeddings_data_prep.sampling.num_samples={embeddings_data_prep_num_samples}",
             f"wandb.project={wandb_project}",
         ]
 

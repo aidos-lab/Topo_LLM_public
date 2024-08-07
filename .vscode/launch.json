@@ -105,7 +105,8 @@
                 "data.split=validation",
                 "language_model=roberta-base",
                 "embeddings.embedding_extraction.layer_indices=[-1]",
-                "embeddings_data_prep.num_samples=30000",
+                "embeddings_data_prep.sampling.num_samples=30000",
+                // "embeddings_data_prep.sampling.num_samples=50000",
                 "local_estimates.filtering.num_samples=200",
             ]
         },
@@ -121,7 +122,7 @@
                 "data.split=validation",
                 "language_model=roberta-base",
                 "embeddings.embedding_extraction.layer_indices=[-1]",
-                "embeddings_data_prep.num_samples=30000",
+                "embeddings_data_prep.sampling.num_samples=30000",
             ]
         },
     ]

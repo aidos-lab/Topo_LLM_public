@@ -88,10 +88,13 @@ def embeddings_data_prep_worker(
         logger=logger,
     )
 
+    # TODO: Pass the EmbeddingsDataPrepSamplingConfig to the sampling function instead,
+    # which will then select the correct subsampling method
+
     # Choose size of a meta sample which is used to take subsets for a point-wise
     # comparison of local estimators.
     # Sample size of the arrays
-    sample_size = main_config.embeddings_data_prep.num_samples
+    sample_size = main_config.embeddings_data_prep.sampling.num_samples
 
     arr_no_pad_subsampled, meta_no_pad_subsampled, sentence_idx_no_pad_subsampled, subsample_idx = (
         select_subsets_of_arrays_and_meta(

@@ -32,15 +32,41 @@ from pydantic import Field
 from topollm.config_classes.config_base_model import ConfigBaseModel
 from topollm.config_classes.constants import KV_SEP, NAME_PREFIXES
 from topollm.config_classes.embeddings_data_prep.filter_tokens_config import FilterTokensConfig
+from topollm.typing.enums import EmbeddingsDataPrepSamplingMode
 
 
-class EmbeddingsDataPrepConfig(ConfigBaseModel):
-    """Configurations for specifying data preparation."""
+class EmbeddingsDataPrepSamplingConfig(ConfigBaseModel):
+    """Configurations for specifying sampling in the embeddings data prep step."""
 
     num_samples: int = Field(
         default=30_000,
         title="Number of samples.",
         description="The number of samples to be extracted.",
+    )
+
+    sampling_mode: EmbeddingsDataPrepSamplingMode = Field(
+        default=EmbeddingsDataPrepSamplingMode.RANDOM,
+        title="Sampling mode.",
+        description="The sampling mode to be used.",
+    )
+
+    @property
+    def config_description(
+        self,
+    ) -> str:
+        """Get the description of the config."""
+        desc = f"{NAME_PREFIXES['num_samples']}{KV_SEP}{str(self.num_samples)}"  # noqa: RUF010 - we want to use the manual conversion here
+
+        return desc
+
+
+class EmbeddingsDataPrepConfig(ConfigBaseModel):
+    """Configurations for specifying data preparation."""
+
+    sampling: EmbeddingsDataPrepSamplingConfig = Field(
+        default=EmbeddingsDataPrepSamplingConfig(),
+        title="Sampling configurations.",
+        description="Configurations for specifying sampling.",
     )
 
     meta_tokens_column_name: str = Field(
@@ -56,12 +82,11 @@ class EmbeddingsDataPrepConfig(ConfigBaseModel):
     )
 
     # Note: We use a feature flag in a different config group to enable or disable saving of the metadata sentences.
-
     @property
     def config_description(
         self,
     ) -> str:
         """Get the description of the config."""
-        desc = f"{NAME_PREFIXES['num_samples']}{KV_SEP}{str(self.num_samples)}"  # noqa: RUF010 - we want to use the manual conversion here
+        desc = f"{self.sampling.config_description}"
 
         return desc
