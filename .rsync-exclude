@@ -23,5 +23,6 @@ wandb_output_dir/
 .DS_Store
 
 # Exclude the pyproject.toml to prevent overwriting the HPC pip configuration 
-pyproject.toml
+#
+# pyproject.toml
 poetry.lock

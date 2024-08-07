@@ -53,7 +53,7 @@
                 "finetuning.finetuning_datasets.train_dataset.number_of_samples=100",
                 "finetuning.finetuning_datasets.eval_dataset.number_of_samples=20",
                 "finetuning.eval_steps=2",
-                "+finetuning.trainer_modifier.mode=ADD_WANDB_PREDICTION_PROGRESS_CALLBACK",
+                "+finetuning.trainer_modifier.mode=add_wandb_prediction_progress_callback",
                 "+finetuning.trainer_modifier.frequency=4",
                 "feature_flags.wandb.use_wandb=false",
                 "wandb.project=Topo_LLM_finetuning_for_token_classification_debug",
@@ -70,7 +70,7 @@
                 "finetuning.finetuning_datasets.train_dataset.number_of_samples=100",
                 "finetuning.finetuning_datasets.eval_dataset.number_of_samples=20",
                 "finetuning.eval_steps=2",
-                "+finetuning.trainer_modifier.mode=ADD_WANDB_PREDICTION_PROGRESS_CALLBACK",
+                "+finetuning.trainer_modifier.mode=add_wandb_prediction_progress_callback",
                 "+finetuning.trainer_modifier.frequency=4",
                 "feature_flags.wandb.use_wandb=false",
                 "wandb.project=Topo_LLM_finetuning_for_language_modeling_debug",
@@ -87,25 +87,10 @@
                 "finetuning.finetuning_datasets.train_dataset.number_of_samples=100",
                 "finetuning.finetuning_datasets.eval_dataset.number_of_samples=20",
                 "finetuning.eval_steps=2",
-                "+finetuning.trainer_modifier.mode=ADD_WANDB_PREDICTION_PROGRESS_CALLBACK",
+                "+finetuning.trainer_modifier.mode=add_wandb_prediction_progress_callback",
                 "+finetuning.trainer_modifier.frequency=4",
                 "feature_flags.wandb.use_wandb=false",
                 "wandb.project=Topo_LLM_finetuning_for_language_modeling_debug",
-            ]
-        },
-        {
-            "name": "run_single_setup_load_saved_perplexity_and_concatenate_into_array.py",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "topollm/model_inference/perplexity/saved_perplexity_processing/run_single_setup_load_saved_perplexity_and_concatenate_into_array.py",
-            "console": "integratedTerminal",
-            "args": [
-                "data=multiwoz21",
-                "data.number_of_samples=10000",
-                "data.split=validation",
-                "language_model=roberta-base",
-                "embeddings.embedding_extraction.layer_indices=[-1]",
-                "embeddings_data_prep.num_samples=30000",
             ]
         },
         {
@@ -122,6 +107,21 @@
                 "embeddings.embedding_extraction.layer_indices=[-1]",
                 "embeddings_data_prep.num_samples=30000",
                 "local_estimates.filtering.num_samples=200",
+            ]
+        },
+        {
+            "name": "run_single_setup_load_saved_perplexity_and_local_estimates_and_analyse.py",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/model_inference/perplexity/saved_perplexity_processing/run_single_setup_load_saved_perplexity_and_local_estimates_and_analyse.py",
+            "console": "integratedTerminal",
+            "args": [
+                "data=multiwoz21",
+                "data.number_of_samples=10000",
+                "data.split=validation",
+                "language_model=roberta-base",
+                "embeddings.embedding_extraction.layer_indices=[-1]",
+                "embeddings_data_prep.num_samples=30000",
             ]
         },
     ]

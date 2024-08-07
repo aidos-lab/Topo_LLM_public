@@ -65,9 +65,6 @@ from topollm.model_finetuning.trainer_modifiers.factory import get_trainer_modif
 from topollm.model_handling.tokenizer.load_tokenizer_from_finetuning_config import (
     load_modified_tokenizer_from_finetuning_config,
 )
-from topollm.model_handling.tokenizer.tokenizer_modifier.factory import (
-    get_tokenizer_modifier,
-)
 from topollm.path_management.finetuning.factory import (
     get_finetuning_path_manager,
 )

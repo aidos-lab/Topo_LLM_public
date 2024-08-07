@@ -28,10 +28,7 @@ import torch
 
 
 class LayerAggregatorMean:
-    """
-    Implementation of the LayerAggregator protocol
-    which computes the mean of the layers to be extracted.
-    """
+    """Implementation of the LayerAggregator protocol which computes the mean of the layers to be extracted."""
 
     def aggregate_layers(
         self,

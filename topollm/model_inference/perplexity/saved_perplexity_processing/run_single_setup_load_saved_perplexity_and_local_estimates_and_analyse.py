@@ -44,6 +44,9 @@ from topollm.model_inference.perplexity.saved_perplexity_processing.load_perplex
 
 if TYPE_CHECKING:
     from topollm.config_classes.main_config import MainConfig
+    from topollm.model_inference.perplexity.saved_perplexity_processing.aligned_local_estimates_data_container import (
+        AlignedLocalEstimatesDataContainer,
+    )
 
 default_device = torch.device("cpu")
 default_logger = logging.getLogger(__name__)
@@ -56,6 +59,8 @@ setup_exception_logging(
 
 
 setup_omega_conf()
+
+# TODO: Use the function on multiple language models and datasets
 
 
 @hydra.main(
@@ -101,14 +106,22 @@ def main(
     else:
         main_config_for_local_estimates.data.number_of_samples = -1
 
-    aligned_df = load_perplexity_and_local_estimates_and_align(
-        main_config_for_perplexity=main_config_for_perplexity,
-        main_config_for_local_estimates=main_config_for_local_estimates,
-        verbosity=verbosity,
-        logger=logger,
+    aligned_local_estimates_data_container: AlignedLocalEstimatesDataContainer | None = (
+        load_perplexity_and_local_estimates_and_align(
+            main_config_for_perplexity=main_config_for_perplexity,
+            main_config_for_local_estimates=main_config_for_local_estimates,
+            verbosity=verbosity,
+            logger=logger,
+        )
     )
 
-    # TODO: Use the function on multiple language models and datasets
+    if aligned_local_estimates_data_container is None:
+        msg = "aligned_local_estimates_data_container is None"
+        raise ValueError(msg)
+
+    aligned_local_estimates_data_container.run_analysis_and_save_results(
+        display_plots=False,
+    )
 
     logger.info("Running script DONE")
     # # # # # # # # # # # # # # # # # # # #

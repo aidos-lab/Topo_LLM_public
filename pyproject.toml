@@ -77,11 +77,13 @@ optional = true
 faiss-gpu = "*"
 gpustat = "*"
 
-# This section is for using the PyPI mirror on hilbert (HHU internal)
+# This section is for using the PyPI mirror on Hilbert (HHU internal).
+# Note: You need to uncomment this section if you do not have access to the Hilbert PyPI mirror.
+# This should be commented out before releasing the package.
 #
-# [[tool.poetry.source]]
-#     name = "hhu"
-#     url = "http://pypi.repo.test.hhu.de/simple/"
+[[tool.poetry.source]]
+name = "hhu"
+url = "http://pypi.repo.test.hhu.de/simple/"
 
 
 [build-system]
@@ -95,3 +97,4 @@ run_compute_embeddings = "topollm.compute_embeddings.run_compute_embeddings:main
 run_compute_perplexity = "topollm.model_inference.perplexity.run_compute_perplexity:main"
 run_inference_pipeline = "topollm.model_inference.run_inference_pipeline:main"
 run_pipeline_compute_embeddings_and_data_prep_and_local_estimate = "topollm.pipeline_scripts.run_pipeline_compute_embeddings_and_data_prep_and_local_estimate:main"
+tests = "topollm.scripts.run_tests_with_coverage:main"
