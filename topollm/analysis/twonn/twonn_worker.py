@@ -73,8 +73,6 @@ def twonn_worker(
         logger=logger,
     )
 
-    # TODO: Add functionality to create and save a t-SNE plot of the embedding vectors here (controllable by feature flag)
-
     # # # #
     if verbosity >= Verbosity.NORMAL:
         logger.info("Filtering local estimates and truncating to first vectors ...")
@@ -116,9 +114,38 @@ def twonn_worker(
     # Local estimates computation
 
     # provide number of jobs for the computation
-    n_jobs = 1
+    results_array_np = run_local_estimates_computation(
+        array_for_estimator=array_for_estimator,
+        verbosity=verbosity,
+        logger=logger,
+    )
 
-    # provide number of neighbors which are used for the computation
+    # # # #
+    # Save the results
+    local_estimates_container = LocalEstimatesContainer(
+        results_array_np=results_array_np,
+        results_meta_frame=prepared_data_filtered_truncated.meta_df,
+    )
+
+    save_local_estimates(
+        embeddings_path_manager=embeddings_path_manager,
+        local_estimates_container=local_estimates_container,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+    # TODO: Add functionality to create and save a t-SNE plot of the embedding vectors here (controllable by feature flag)
+
+
+def run_local_estimates_computation(
+    array_for_estimator: np.ndarray,
+    discard_fraction: float = 0.1,
+    n_jobs: int = 1,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> np.ndarray:
+    """Run the local estimates computation."""
+    # Number of neighbors which are used for the computation
     n_neighbors = round(len(array_for_estimator) * 0.8)
     if verbosity >= Verbosity.NORMAL:
         logger.info(
@@ -126,7 +153,7 @@ def twonn_worker(
         )
 
     estimator = skdim.id.TwoNN(
-        discard_fraction=0.1,
+        discard_fraction=discard_fraction,
     )
 
     if verbosity >= Verbosity.NORMAL:
@@ -166,19 +193,7 @@ def twonn_worker(
             f"Standard deviation of local estimates: {results_array_np.std() = }",  # noqa: G004 - low overhead
         )
 
-    # # # #
-    # Save the results
-    local_estimates_container = LocalEstimatesContainer(
-        results_array_np=results_array_np,
-        results_meta_frame=prepared_data_filtered_truncated.meta_df,
-    )
-
-    save_local_estimates(
-        embeddings_path_manager=embeddings_path_manager,
-        local_estimates_container=local_estimates_container,
-        verbosity=verbosity,
-        logger=logger,
-    )
+    return results_array_np
 
 
 def truncate_data(
