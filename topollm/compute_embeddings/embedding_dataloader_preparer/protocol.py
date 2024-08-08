@@ -85,14 +85,52 @@ class EmbeddingDataLoaderPreparer(ABC):
         return features
 
     @staticmethod
-    def convert_dataset_entry_to_word_tokens(
-        dataset_entry: dict,
-        column_name: str = "text",
+    def convert_dataset_entry_to_features_named_entity(
+            dataset_entry: dict,
+            tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast,
+            column_name: str = "text",
+            max_length: int = 512,
     ) -> BatchEncoding:
-        text_data = dataset_entry[column_name]
-        word_tokens = [nltk.word_tokenize(x) for x in text_data]
-        return word_tokens
+        """Convert dataset entires/examples to features by tokenizing the text and padding/truncating to a maximum length."""
+        split_words = [nltk.word_tokenize(sent) for sent in dataset_entry[column_name]]
+        features = tokenizer(
+            split_words,
+            max_length=max_length,
+            padding="max_length",
+            truncation="longest_first",
+            is_split_into_words=True,
+            add_prefix_space=True
+        )
+        word_ids = [features.word_ids(batch_index=i) for i in range(len(features))]
 
+        dataset_tokenized = features.input_ids
+
+        pos_tag = [nltk.pos_tag(sent) for sent in split_words]
+
+
+        all_word_tags_one_sentence_tokens = []
+
+        for sentence_idx in range(len(dataset_tokenized)):
+            word_tags_one_sentence = pos_tag[sentence_idx]
+            word_tags_one_sentence = [word_tags_one_sentence[i][1] for i in range(len(word_tags_one_sentence))]
+            word_ids_one_sentence = word_ids[sentence_idx]
+
+            print(
+                f"------------------------{(word_ids_one_sentence)}-----------------------:")
+            print(
+                f"------------------------{(word_tags_one_sentence)}-----------------------:")
+
+            word_tags_one_sentence_tokens = []
+            for i in word_ids_one_sentence:
+                if i != None:
+                    word_tags_one_sentence_tokens.append(word_tags_one_sentence[i])
+                else:
+                    word_tags_one_sentence_tokens.append(None)
+            all_word_tags_one_sentence_tokens.append(word_tags_one_sentence_tokens)
+
+        features['POS'] = all_word_tags_one_sentence_tokens
+
+        return features
 
     @abstractmethod
     def prepare_dataloader(

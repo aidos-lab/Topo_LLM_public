@@ -39,8 +39,6 @@ import nltk
 from nltk.tokenize import word_tokenize
 from nltk.tag import pos_tag
 
-nltk.download('punkt')
-nltk.download('averaged_perceptron_tagger')
 
 class EmbeddingDataLoaderPreparerHuggingfaceNamedEntity(EmbeddingDataLoaderPreparer):
     """Prepare a dataloader for computing embeddings using Huggingface datasets."""
@@ -64,7 +62,7 @@ class EmbeddingDataLoaderPreparerHuggingfaceNamedEntity(EmbeddingDataLoaderPrepa
         """Tokenizes dataset."""
         # Make a partial function for mapping tokenizer over the dataset
         partial_map_fn = partial(
-            self.convert_dataset_entry_to_features,
+            self.convert_dataset_entry_to_features_named_entity,
             tokenizer=self.preparer_context.tokenizer,
             column_name=self.preparer_context.data_config.column_name,
             max_length=self.sequence_length,
@@ -89,55 +87,6 @@ class EmbeddingDataLoaderPreparerHuggingfaceNamedEntity(EmbeddingDataLoaderPrepa
             )
 
         return dataset_tokenized
-
-    def create_pos_tagging_tokenized(
-        self,
-        dataset: datasets.Dataset,
-    ) -> datasets.Dataset:
-        """Tokenizes dataset."""
-        # Make a partial function for mapping tokenizer over the dataset
-        partial_map_fn = partial(
-            self.convert_dataset_entry_to_features,
-            tokenizer=self.preparer_context.tokenizer,
-            column_name=self.preparer_context.data_config.column_name,
-            max_length=self.sequence_length,
-        )
-
-
-        dataset_tokenized = dataset.map(
-            partial_map_fn,
-            batched=True,
-            batch_size=self.preparer_context.embeddings_config.dataset_map.batch_size,
-            num_proc=self.preparer_context.embeddings_config.dataset_map.num_proc,
-        )
-
-        word_ids = [dataset_tokenized.word_ids(batch_index=i) for i in range(len(dataset_tokenized))]
-
-        partial_map_fn_text = partial(
-            self.convert_dataset_entry_to_word_tokens,
-            column_name=self.preparer_context.data_config.column_name,
-        )
-
-
-        dataset_words = dataset.map(
-            partial_map_fn_text,
-            batched=True,
-            batch_size=self.preparer_context.embeddings_config.dataset_map.batch_size,
-            num_proc=self.preparer_context.embeddings_config.dataset_map.num_proc,
-        )
-
-        pos_tag = [nltk.pos_tag(sent) for sent in dataset_words]
-
-        all_word_tags_one_sentence_tokens = []
-        for sentence_idx in range(len(dataset_tokenized)):
-            word_tags_one_sentence = pos_tag[sentence_idx]
-            word_tags_one_sentence = [word_tags_one_sentence[i][1] for i in range(len(word_tags_one_sentence))]
-            word_ids_one_sentence = word_ids[sentence_idx]
-            # TODO: handle None
-            word_tags_one_sentence_tokens = [word_tags_one_sentence[i] for i in word_ids_one_sentence]
-            all_word_tags_one_sentence_tokens.append(word_tags_one_sentence_tokens)
-
-        return all_word_tags_one_sentence_tokens
 
 
     def create_dataloader_from_tokenized_dataset(
@@ -198,7 +147,6 @@ class EmbeddingDataLoaderPreparerHuggingfaceNamedEntity(EmbeddingDataLoaderPrepa
         dataset_tokenized = self.create_dataset_tokenized(
             dataset=dataset,
         )
-
         dataloader = self.create_dataloader_from_tokenized_dataset(
             dataset_tokenized=dataset_tokenized,
         )
