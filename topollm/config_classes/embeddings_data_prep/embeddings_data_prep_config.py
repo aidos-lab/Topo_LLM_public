@@ -30,7 +30,7 @@
 from pydantic import Field
 
 from topollm.config_classes.config_base_model import ConfigBaseModel
-from topollm.config_classes.constants import KV_SEP, NAME_PREFIXES
+from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
 from topollm.config_classes.embeddings_data_prep.filter_tokens_config import FilterTokensConfig
 from topollm.typing.enums import EmbeddingsDataPrepSamplingMode
 
@@ -64,8 +64,10 @@ class EmbeddingsDataPrepSamplingConfig(ConfigBaseModel):
         """Get the description of the config."""
         desc = (
             f"{NAME_PREFIXES['sampling_mode']}{KV_SEP}{self.sampling_mode}"
+            f"{ITEM_SEP}"
             f"{NAME_PREFIXES['seed']}{KV_SEP}{self.seed!s}"
-            f"{NAME_PREFIXES['num_samples']}{KV_SEP}{str(self.num_samples)}"  # noqa: RUF010 - we want to use the manual conversion here
+            f"{ITEM_SEP}"
+            f"{NAME_PREFIXES['num_samples']}{KV_SEP}{self.num_samples!s}"
         )
 
         return desc
@@ -78,12 +80,6 @@ class EmbeddingsDataPrepConfig(ConfigBaseModel):
         default=EmbeddingsDataPrepSamplingConfig(),
         title="Sampling configurations.",
         description="Configurations for specifying sampling.",
-    )
-
-    meta_tokens_column_name: str = Field(
-        default="meta_tokens",
-        title="Column name for the decoded meta information.",
-        description="The column name for the decoded meta information.",
     )
 
     filter_tokens: FilterTokensConfig = Field(

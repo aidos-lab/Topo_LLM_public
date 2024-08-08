@@ -31,6 +31,7 @@ from pydantic import Field
 
 from topollm.config_classes.config_base_model import ConfigBaseModel
 from topollm.config_classes.data.data_config import DataConfig
+from topollm.config_classes.data_processing_column_names.data_processing_column_names import DataProcessingColumnNames
 from topollm.config_classes.embeddings.embeddings_config import EmbeddingsConfig
 from topollm.config_classes.embeddings_data_prep.embeddings_data_prep_config import EmbeddingsDataPrepConfig
 from topollm.config_classes.feature_flags.feature_flags_config import FeatureFlagsConfig
@@ -59,6 +60,12 @@ class MainConfig(ConfigBaseModel):
         ...,
         title="Data configuration.",
         description="The configuration for specifying data.",
+    )
+
+    data_processing_column_names: DataProcessingColumnNames = Field(
+        default_factory=DataProcessingColumnNames,
+        title="Data processing column names.",
+        description="The column names for data processing.",
     )
 
     embeddings_data_prep: EmbeddingsDataPrepConfig = Field(
@@ -104,7 +111,7 @@ class MainConfig(ConfigBaseModel):
     )
 
     paths: PathsConfig = Field(
-        ...,
+        default_factory=PathsConfig,
         title="Paths configuration.",
         description="The configuration for specifying paths.",
     )

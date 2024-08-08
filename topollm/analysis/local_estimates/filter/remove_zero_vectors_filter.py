@@ -38,7 +38,7 @@ class RemoveZeroVectorsFilter:
         prepared_data: PreparedData,
     ) -> PreparedData:
         """Filter the data for local estimates computation."""
-        input_array = prepared_data.array_no_pad
+        input_array = prepared_data.array
 
         indices_to_keep = ~np.all(
             input_array == 0,
@@ -49,13 +49,13 @@ class RemoveZeroVectorsFilter:
         output_array = input_array[indices_to_keep]
 
         # Take the same rows from the meta frame
-        inpute_meta_frame = prepared_data.meta_frame
+        inpute_meta_frame = prepared_data.meta_df
 
         output_meta_frame = inpute_meta_frame.iloc[indices_to_keep]
 
         output_data = PreparedData(
-            array_no_pad=output_array,
-            meta_frame=output_meta_frame,
+            array=output_array,
+            meta_df=output_meta_frame,
         )
 
         return output_data

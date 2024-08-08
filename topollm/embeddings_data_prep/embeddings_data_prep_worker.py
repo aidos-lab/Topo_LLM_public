@@ -34,7 +34,10 @@ import pandas as pd
 import torch
 
 from topollm.config_classes.main_config import MainConfig
-from topollm.embeddings_data_prep.add_additional_metadata_to_meta_df import add_additional_metadata_to_meta_df
+from topollm.embeddings_data_prep.add_additional_metadata_to_meta_df import (
+    add_additional_metadata_to_meta_df,
+    add_token_name_column_to_meta_frame,
+)
 from topollm.embeddings_data_prep.load_and_stack_embedding_data import load_and_stack_embedding_data
 from topollm.embeddings_data_prep.prepared_data_containers import PreparedData
 from topollm.embeddings_data_prep.remove_padding_and_extra_tokens import remove_padding_and_extra_tokens
@@ -68,6 +71,7 @@ def embeddings_data_prep_worker(
 
     full_df: pd.DataFrame = load_and_stack_embedding_data(
         embeddings_path_manager=embeddings_path_manager,
+        data_processing_column_names=main_config.data_processing_column_names,
         verbosity=verbosity,
         logger=logger,
     )
@@ -78,21 +82,19 @@ def embeddings_data_prep_worker(
         logger=logger,
     )
 
-    # TODO: Make this more general so that arbitrary metadata can be passed through the processing pipeline
-
-    arr_no_pad, meta_no_pad, sentence_idx_no_pad = remove_padding_and_extra_tokens(
+    filtered_array, filtered_without_array_df = remove_padding_and_extra_tokens(
         full_df=full_df,
         tokenizer=tokenizer,
         filter_tokens_config=main_config.embeddings_data_prep.filter_tokens,
+        data_processing_column_names=main_config.data_processing_column_names,
         verbosity=verbosity,
         logger=logger,
     )
 
-    arr_no_pad_subsampled, meta_no_pad_subsampled, sentence_idx_no_pad_subsampled, subsample_idx = (
+    filtered_subsampled_array, filtered_subsampled_without_array_df, subsample_idx_vector = (
         select_subsets_of_arrays_and_meta(
-            arr_no_pad=arr_no_pad,
-            meta_no_pad=meta_no_pad,
-            sentence_idx_no_pad=sentence_idx_no_pad,
+            array=filtered_array,
+            without_array_df=filtered_without_array_df,
             embeddings_data_prep_sampling_config=main_config.embeddings_data_prep.sampling,
             verbosity=verbosity,
             logger=logger,
@@ -100,52 +102,47 @@ def embeddings_data_prep_worker(
     )
 
     # # # #
-    # Convert the metadata to a DataFrame
+    # Add the subsample index to the metadata DataFrame
+    filtered_subsampled_without_array_df[main_config.data_processing_column_names.subsample_idx] = list(
+        subsample_idx_vector,
+    )
 
-    # x of type 'numpy.int64' needs to be explicitly converted to an integer,
-    # otherwise the convert_ids_to_tokens() method will raise the error:
-    # TypeError: 'numpy.int64' object is not iterable
-
-    token_names_no_pad_subsampled = [tokenizer.convert_ids_to_tokens(int(x)) for x in meta_no_pad_subsampled]
-
-    meta_frame_no_pad_subsampled: pd.DataFrame = pd.DataFrame(
-        {
-            "token_id": list(meta_no_pad_subsampled),
-            "token_name": list(token_names_no_pad_subsampled),
-            "sentence_idx": list(sentence_idx_no_pad_subsampled),
-            "subsample_idx": list(subsample_idx),
-        },
+    # Add the token names to the metadata DataFrame
+    filtered_subsampled_augmented_without_array_df = add_token_name_column_to_meta_frame(
+        input_df=filtered_subsampled_without_array_df,
+        tokenizer=tokenizer,
+        data_processing_column_names=main_config.data_processing_column_names,
     )
 
     # # # #
     # Optionally add sentence information to the metadata
     if main_config.feature_flags.embeddings_data_prep.add_additional_metadata:
-        meta_frame_no_pad_subsampled = add_additional_metadata_to_meta_df(
+        filtered_subsampled_augmented_without_array_df = add_additional_metadata_to_meta_df(
             full_df=full_df,
-            meta_df_to_modify=meta_frame_no_pad_subsampled,
+            meta_df_to_modify=filtered_subsampled_augmented_without_array_df,
             tokenizer=tokenizer,
-            meta_tokens_column_name=main_config.embeddings_data_prep.meta_tokens_column_name,
+            data_processing_column_names=main_config.data_processing_column_names,
             write_tokens_list_to_meta=main_config.feature_flags.embeddings_data_prep.write_tokens_list_to_meta,
             write_concatenated_tokens_to_meta=main_config.feature_flags.embeddings_data_prep.write_concatenated_tokens_to_meta,
         )
 
     if verbosity >= Verbosity.NORMAL:
         log_array_info(
-            arr_no_pad_subsampled,
-            array_name="arr_no_pad_subsampled",
+            filtered_subsampled_array,
+            array_name="filtered_subsampled_array",
             logger=logger,
         )
         log_dataframe_info(
-            meta_frame_no_pad_subsampled,
-            df_name="meta_frame",
+            filtered_subsampled_augmented_without_array_df,
+            df_name="filtered_subsampled_augmented_without_array_df",
             logger=logger,
         )
 
     # # # #
     # Save the prepared data
     prepared_data = PreparedData(
-        array_no_pad=arr_no_pad_subsampled,
-        meta_frame=meta_frame_no_pad_subsampled,
+        array=filtered_subsampled_array,
+        meta_df=filtered_subsampled_augmented_without_array_df,
     )
 
     save_prepared_data(

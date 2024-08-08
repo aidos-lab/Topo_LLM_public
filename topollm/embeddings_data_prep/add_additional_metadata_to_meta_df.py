@@ -25,25 +25,40 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Add additional metadata to the metadata DataFrame."""
+
 import pandas as pd
 
+from topollm.config_classes.data_processing_column_names.data_processing_column_names import DataProcessingColumnNames
 from topollm.embeddings_data_prep.create_grouped_df_by_sentence_idx import create_grouped_df_by_sentence_idx
 from topollm.typing.types import TransformersTokenizer
 
+default_data_processing_column_names = DataProcessingColumnNames()
 
-def add_meta_tokens_column_to_meta_frame(
+
+def add_token_name_column_to_meta_frame(
     input_df: pd.DataFrame,
     tokenizer: TransformersTokenizer,
-    meta_tokens_column_name: str = "meta_tokens",
+    data_processing_column_names: DataProcessingColumnNames = default_data_processing_column_names,
 ) -> pd.DataFrame:
     """Add a column with the meta tokens to the metadata DataFrame."""
     # Check that the input DataFrame has the necessary columns
-    if "meta" not in input_df.columns:
-        msg = "The input DataFrame must have a column named 'meta'."
+    if data_processing_column_names.token_id not in input_df.columns:
+        msg = f"The input DataFrame must have a column named {data_processing_column_names.token_id = }."
         raise ValueError(msg)
 
-    meta_tokens = [tokenizer.convert_ids_to_tokens(int(x)) for x in list(input_df.meta)]
-    input_df[meta_tokens_column_name] = meta_tokens  # Add the decoded tokens to the DataFrame
+    # x of type 'numpy.int64' needs to be explicitly converted to an integer,
+    # otherwise the convert_ids_to_tokens() method will raise the error:
+    # TypeError: 'numpy.int64' object is not iterable
+    token_names_list = [
+        tokenizer.convert_ids_to_tokens(int(x))
+        for x in list(
+            input_df[data_processing_column_names.token_id],
+        )
+    ]
+
+    # Add the decoded tokens to the DataFrame
+    input_df[data_processing_column_names.token_name] = token_names_list
 
     return input_df
 
@@ -52,36 +67,36 @@ def add_additional_metadata_to_meta_df(
     full_df: pd.DataFrame,
     meta_df_to_modify: pd.DataFrame,
     tokenizer: TransformersTokenizer,
-    meta_tokens_column_name: str = "meta_tokens",
+    data_processing_column_names: DataProcessingColumnNames = default_data_processing_column_names,
     *,
     write_tokens_list_to_meta: bool = True,
     write_concatenated_tokens_to_meta: bool = True,
 ) -> pd.DataFrame:
     """Add additional metadata to the metadata DataFrame."""
-    full_df = add_meta_tokens_column_to_meta_frame(
+    full_with_token_name_df: pd.DataFrame = add_token_name_column_to_meta_frame(
         input_df=full_df,
         tokenizer=tokenizer,
-        meta_tokens_column_name=meta_tokens_column_name,
+        data_processing_column_names=data_processing_column_names,
     )
 
-    grouped_df = create_grouped_df_by_sentence_idx(
-        full_df=full_df,
-        meta_tokens_column_name=meta_tokens_column_name,
+    grouped_df: pd.DataFrame = create_grouped_df_by_sentence_idx(
+        full_df=full_with_token_name_df,
+        data_processing_column_names=data_processing_column_names,
     )
 
     meta_df_to_modify = meta_df_to_modify.merge(
         right=grouped_df,
-        on="sentence_idx",
+        on=data_processing_column_names.sentence_idx,
     )
 
     # Remove columns if they should not be saved
     if not write_tokens_list_to_meta:
         meta_df_to_modify = meta_df_to_modify.drop(
-            columns=["tokens_list"],
+            columns=[data_processing_column_names.tokens_list],
         )
     if not write_concatenated_tokens_to_meta:
         meta_df_to_modify = meta_df_to_modify.drop(
-            columns=["concatenated_tokens"],
+            columns=[data_processing_column_names.concatenated_tokens],
         )
 
     return meta_df_to_modify

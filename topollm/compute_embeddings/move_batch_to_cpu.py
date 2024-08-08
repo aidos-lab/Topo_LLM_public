@@ -33,10 +33,7 @@ import torch
 def move_batch_to_cpu(
     batch: dict,
 ) -> dict:
-    """
-    Move all tensors in the batch to CPU.
-    """
-
+    """Move all tensors in the batch to CPU."""
     batch_cpu = {
         key: value.cpu()
         for key, value in batch.items()

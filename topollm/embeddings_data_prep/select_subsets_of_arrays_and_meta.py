@@ -28,6 +28,7 @@
 import logging
 
 import numpy as np
+import pandas as pd
 
 from topollm.config_classes.embeddings_data_prep.embeddings_data_prep_config import EmbeddingsDataPrepSamplingConfig
 from topollm.logging.log_array_info import log_array_info
@@ -37,16 +38,14 @@ default_logger = logging.getLogger(__name__)
 
 
 def select_subsets_of_arrays_and_meta(
-    arr_no_pad: np.ndarray,
-    meta_no_pad: np.ndarray,
-    sentence_idx_no_pad: np.ndarray,
+    array: np.ndarray,
+    without_array_df: pd.DataFrame,
     embeddings_data_prep_sampling_config: EmbeddingsDataPrepSamplingConfig,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> tuple[
     np.ndarray,
-    np.ndarray,
-    np.ndarray,
+    pd.DataFrame,
     np.ndarray,
 ]:
     """Select subsets of the arrays and metadata."""
@@ -55,43 +54,41 @@ def select_subsets_of_arrays_and_meta(
     rng = np.random.default_rng(
         seed=embeddings_data_prep_sampling_config.seed,
     )
-    if len(arr_no_pad) >= embeddings_data_prep_sampling_config.num_samples:
-        subsample_idx: np.ndarray = rng.choice(
-            range(len(arr_no_pad)),
+    if len(array) >= embeddings_data_prep_sampling_config.num_samples:
+        subsample_idx_vector: np.ndarray = rng.choice(
+            range(len(array)),
             replace=False,
             size=embeddings_data_prep_sampling_config.num_samples,
         )
     else:
-        subsample_idx: np.ndarray = rng.choice(
-            range(len(arr_no_pad)),
+        subsample_idx_vector: np.ndarray = rng.choice(
+            range(len(array)),
             replace=False,
-            size=len(arr_no_pad),
+            size=len(array),
         )
 
     if verbosity >= Verbosity.NORMAL:
         log_array_info(
-            subsample_idx,
+            subsample_idx_vector,
             array_name="subsample_idx",
             logger=logger,
         )
 
-    arr_no_pad_subsampled = arr_no_pad[subsample_idx]
-    meta_no_pad_subsampled = meta_no_pad[subsample_idx]
-    sentence_idx_no_pad_subsampled = sentence_idx_no_pad[subsample_idx]
+    subsampled_array = array[subsample_idx_vector]
+    without_array_subsampled_df = without_array_df.iloc[subsample_idx_vector]
 
     if verbosity >= Verbosity.NORMAL:
         logger.info(
-            f"{arr_no_pad_subsampled.shape = }",  # noqa: G004 - low overhead
+            f"{subsampled_array.shape = }",  # noqa: G004 - low overhead
         )
         logger.info(
             f"Expected sample size: {embeddings_data_prep_sampling_config.num_samples = }",  # noqa: G004 - low overhead
         )
 
     return_value = (
-        arr_no_pad_subsampled,
-        meta_no_pad_subsampled,
-        sentence_idx_no_pad_subsampled,
-        subsample_idx,
+        subsampled_array,
+        without_array_subsampled_df,
+        subsample_idx_vector,
     )
 
     return return_value

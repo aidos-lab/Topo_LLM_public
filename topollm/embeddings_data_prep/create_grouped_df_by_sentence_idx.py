@@ -25,28 +25,36 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Grouping data frame by sentence index."""
+
 import pandas as pd
+
+from topollm.config_classes.data_processing_column_names.data_processing_column_names import DataProcessingColumnNames
+
+default_data_processing_column_names = DataProcessingColumnNames()
 
 
 def create_grouped_df_by_sentence_idx(
     full_df: pd.DataFrame,
-    meta_tokens_column_name: str = "meta_tokens",
+    data_processing_column_names: DataProcessingColumnNames = default_data_processing_column_names,
 ) -> pd.DataFrame:
-    """Group the DataFrame by 'sentence_idx', aggregate tokens into lists and concatenate them."""
-    # Group by 'sentence_idx' and aggregate tokens into lists
+    """Group the DataFrame by the sentence index, aggregate tokens into lists and concatenate them."""
+    # Group by sentence index and aggregate tokens into lists
     grouped_df: pd.DataFrame = (
         full_df.groupby(
-            "sentence_idx",
+            data_processing_column_names.sentence_idx,
             sort=False,
         )
         .agg(
-            tokens_list=(meta_tokens_column_name, list),
+            tokens_list=(data_processing_column_names.token_name, list),
         )
         .reset_index()
     )
 
     # Add an additional column with concatenated tokens
-    grouped_df["concatenated_tokens"] = grouped_df["tokens_list"].apply(
+    grouped_df[data_processing_column_names.concatenated_tokens] = grouped_df[
+        data_processing_column_names.tokens_list
+    ].apply(
         " ".join,
     )
 

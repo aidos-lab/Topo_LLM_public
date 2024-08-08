@@ -66,10 +66,10 @@ def save_prepared_data(
     # Save the prepared data
     np.save(
         file=embeddings_path_manager.get_prepared_data_array_save_path(),
-        arr=prepared_data.array_no_pad,
+        arr=prepared_data.array,
     )
 
-    prepared_data.meta_frame.to_pickle(
+    prepared_data.meta_df.to_pickle(
         path=embeddings_path_manager.get_prepared_data_meta_save_path(),
     )
 
@@ -100,8 +100,8 @@ def load_prepared_data(
     )
 
     prepared_data = PreparedData(
-        array_no_pad=arr_no_pad,
-        meta_frame=meta_frame,
+        array=arr_no_pad,
+        meta_df=meta_frame,
     )
 
     if verbosity >= Verbosity.NORMAL:
