@@ -153,6 +153,8 @@ def twonn_worker(
             tsne_result=tsne_array,
             meta_df=prepared_data_filtered_truncated.meta_df,
             output_folder=pathlib.Path("/Users/ruppik/git-source/Topo_LLM/data/saved_plots/local_estimates_projection"),
+            verbosity=verbosity,
+            logger=logger,
         )
 
         pass  # for setting a breakpoint here
@@ -162,8 +164,28 @@ def create_projection_plot(
     tsne_result: np.ndarray,
     meta_df: pd.DataFrame,
     output_folder: os.PathLike,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
 ) -> pd.DataFrame:
-    """Create a"""
+    """Create a plot annotated with the metadata and save it.
+
+    Args:
+    ----
+        tsne_result:
+            The t-SNE result array, its coordinates are used for the plot.
+        meta_df:
+            The metadata DataFrame, used for annotating the points in the plot.
+        output_folder:
+            The output folder for the plot files.
+            Will be created if it does not exist, and the plot will be saved as HTML and PDF.
+
+    Returns:
+    -------
+        tsne_df:
+            The DataFrame used for the plot, including the t-SNE results and the metadata
+            (with truncated elements for better display).
+
+    """
     tsne_df = pd.DataFrame(
         tsne_result,
         columns=[
@@ -183,7 +205,7 @@ def create_projection_plot(
     # For better display in the plot, we truncate certain elements:
     # in the 'tokens_list' column to a maximum of 10 elements
     tsne_df["tokens_list"] = tsne_df["tokens_list"].apply(
-        lambda x: x[:10],
+        lambda x: x[:20],
     )
     # in the concatenated_tokens column to a maximum of 100 characters
     tsne_df["concatenated_tokens"] = tsne_df["concatenated_tokens"].apply(
@@ -232,8 +254,18 @@ def create_projection_plot(
         height=1600,
     )
 
-    print(f"Plot saved as HTML to {html_file}")
-    print(f"Plot saved as PDF to {pdf_file}")
+    if verbosity >= Verbosity.NORMAL:
+        log_dataframe_info(
+            tsne_df,
+            df_name="tsne_df",
+            logger=logger,
+        )
+        logger.info(
+            f"Plot saved as HTML to {html_file = }",  # noqa: G004 - low overhead
+        )
+        logger.info(
+            f"Plot saved as PDF to {pdf_file = }",  # noqa: G004 - low overhead
+        )
 
     return tsne_df
 
