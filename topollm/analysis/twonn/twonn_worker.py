@@ -37,6 +37,7 @@ import torch
 from topollm.analysis.local_estimates.filter.get_local_estimates_filter import get_local_estimates_filter
 from topollm.analysis.local_estimates.saving.local_estimates_containers import LocalEstimatesContainer
 from topollm.analysis.local_estimates.saving.save_local_estimates import save_local_estimates
+from topollm.analysis.twonn.truncate_prepared_data import truncate_prepared_data
 from topollm.config_classes.main_config import MainConfig
 from topollm.embeddings_data_prep.prepared_data_containers import PreparedData
 from topollm.embeddings_data_prep.save_prepared_data import load_prepared_data
@@ -91,7 +92,7 @@ def twonn_worker(
     # Restrict to the first `local_estimates_sample_size` samples
     local_estimates_sample_size = main_config.local_estimates.filtering.num_samples
 
-    prepared_data_filtered_truncated: PreparedData = truncate_data(
+    prepared_data_filtered_truncated: PreparedData = truncate_prepared_data(
         prepared_data=prepared_data_filtered,
         local_estimates_sample_size=local_estimates_sample_size,
     )
@@ -134,7 +135,11 @@ def twonn_worker(
         logger=logger,
     )
 
-    # TODO: Add functionality to create and save a t-SNE plot of the embedding vectors here (controllable by feature flag)
+    # # # #
+    # Create plots
+    if main_config.feature_flags.analysis.create_plots_in_local_estimates_worker:
+        # TODO: Add functionality to create and save a t-SNE plot of the embedding vectors here (controllable by feature flag)
+        pass
 
 
 def run_local_estimates_computation(
@@ -194,28 +199,3 @@ def run_local_estimates_computation(
         )
 
     return results_array_np
-
-
-def truncate_data(
-    prepared_data: PreparedData,
-    local_estimates_sample_size: int,
-) -> PreparedData:
-    """Truncate the data to the first `local_estimates_sample_size` samples."""
-    input_array = prepared_data.array
-
-    local_estimates_sample_size = min(
-        local_estimates_sample_size,
-        input_array.shape[0],
-    )
-
-    output_array = input_array[:local_estimates_sample_size,]
-
-    input_meta_frame = prepared_data.meta_df
-    output_meta_frame = input_meta_frame.iloc[:local_estimates_sample_size,]
-
-    output_prepared_data = PreparedData(
-        array=output_array,
-        meta_df=output_meta_frame,
-    )
-
-    return output_prepared_data

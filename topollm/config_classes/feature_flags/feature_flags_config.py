@@ -80,8 +80,24 @@ class WandbFeatureFlagsConfig(ConfigBaseModel):
     )
 
 
+class AnalysisFeatureFlagsConfig(ConfigBaseModel):
+    """Feature flags for the analysis process."""
+
+    create_plots_in_local_estimates_worker: bool = Field(
+        default=True,
+        title="Create plots in local estimates worker.",
+        description="Whether to create plots in the local estimates worker.",
+    )
+
+
 class FeatureFlagsConfig(ConfigBaseModel):
     """Configurations for specifying feature flags."""
+
+    analysis: AnalysisFeatureFlagsConfig = Field(
+        default_factory=AnalysisFeatureFlagsConfig,
+        title="Analysis feature flags.",
+        description="Feature flags for the analysis process.",
+    )
 
     embeddings_data_prep: EmbeddingsDataPrepFeatureFlagsConfig = Field(
         default_factory=EmbeddingsDataPrepFeatureFlagsConfig,
