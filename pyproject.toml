@@ -34,7 +34,7 @@ hydra-core = "*"
 gitpython = "*"
 gudhi = "*"
 pandas = "*"
-pydantic = "*"
+pydantic = "^2.8.2"
 python = "^3.12"
 scikit-learn = "*"
 scikit-dimension = "*"
@@ -46,7 +46,7 @@ zarr = "*"
 tensorboard = "*"
 seaborn = "*"
 giotto-tda = "^0.6.2"
-umap-learn = "^0.5.5"
+umap-learn = "^0.5"
 peft = "*"
 python-dotenv = "*"
 graphriccicurvature = "*"
@@ -57,6 +57,9 @@ wandb = "*"
 rich = "*"
 evaluate = "*"
 seqeval = "*"
+kaleido = "0.2.1"
+annotated-types = "^0.7.0"
+pydantic-core = "^2.21.0"
 
 [tool.poetry.group.dev.dependencies]
 hypothesis = "*"
@@ -84,7 +87,11 @@ gpustat = "*"
 [[tool.poetry.source]]
 name = "hhu"
 url = "http://pypi.repo.test.hhu.de/simple/"
+priority = "primary"
 
+
+[[tool.poetry.source]]
+name = "PyPI"
 
 [build-system]
 requires = ["poetry-core"]

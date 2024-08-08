@@ -28,10 +28,17 @@
 """Run script to compute twoNN estimates from prepared embeddings."""
 
 import logging
+import os
+import pathlib
 from typing import TYPE_CHECKING
 
 import numpy as np
+import pandas as pd
+import plotly.express as px
+import plotly.io as pio
 import skdim
+import sklearn.decomposition
+import sklearn.manifold
 import torch
 
 from topollm.analysis.local_estimates.filter.get_local_estimates_filter import get_local_estimates_filter
@@ -91,7 +98,6 @@ def twonn_worker(
 
     # Restrict to the first `local_estimates_sample_size` samples
     local_estimates_sample_size = main_config.local_estimates.filtering.num_samples
-
     prepared_data_filtered_truncated: PreparedData = truncate_prepared_data(
         prepared_data=prepared_data_filtered,
         local_estimates_sample_size=local_estimates_sample_size,
@@ -138,8 +144,126 @@ def twonn_worker(
     # # # #
     # Create plots
     if main_config.feature_flags.analysis.create_plots_in_local_estimates_worker:
-        # TODO: Add functionality to create and save a t-SNE plot of the embedding vectors here (controllable by feature flag)
-        pass
+        tsne_array = create_projected_data(
+            array=prepared_data_filtered_truncated.array,
+        )
+
+        # TODO: Get a proper path from the embeddings path manager
+        tsne_df = create_projection_plot(
+            tsne_result=tsne_array,
+            meta_df=prepared_data_filtered_truncated.meta_df,
+            output_folder=pathlib.Path("/Users/ruppik/git-source/Topo_LLM/data/saved_plots/local_estimates_projection"),
+        )
+
+        pass  # for setting a breakpoint here
+
+
+def create_projection_plot(
+    tsne_result: np.ndarray,
+    meta_df: pd.DataFrame,
+    output_folder: os.PathLike,
+) -> pd.DataFrame:
+    """Create a"""
+    tsne_df = pd.DataFrame(
+        tsne_result,
+        columns=[
+            "TSNE-1",
+            "TSNE-2",
+        ],
+    )
+    tsne_df = pd.concat(
+        [
+            tsne_df,
+            meta_df.reset_index(),
+        ],
+        axis=1,
+    )
+
+    # # # #
+    # For better display in the plot, we truncate certain elements:
+    # in the 'tokens_list' column to a maximum of 10 elements
+    tsne_df["tokens_list"] = tsne_df["tokens_list"].apply(
+        lambda x: x[:10],
+    )
+    # in the concatenated_tokens column to a maximum of 100 characters
+    tsne_df["concatenated_tokens"] = tsne_df["concatenated_tokens"].apply(
+        lambda x: x[:100],
+    )
+
+    fig = px.scatter(
+        tsne_df,
+        x="TSNE-1",
+        y="TSNE-2",
+        text="token_name",
+        hover_data={
+            "token_id": True,
+            "sentence_idx": True,
+            "subsample_idx": True,
+            "token_name": True,
+            "tokens_list": True,
+            "concatenated_tokens": True,
+        },
+    )
+
+    pathlib.Path(output_folder).mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    html_file = pathlib.Path(
+        output_folder,
+        "tsne_plot.html",
+    )
+    pdf_file = pathlib.Path(
+        output_folder,
+        "tsne_plot.pdf",
+    )
+
+    pio.write_html(
+        fig=fig,
+        file=html_file,
+        auto_open=False,
+    )
+    pio.write_image(
+        fig=fig,
+        file=pdf_file,
+        format="pdf",
+        width=2400,
+        height=1600,
+    )
+
+    print(f"Plot saved as HTML to {html_file}")
+    print(f"Plot saved as PDF to {pdf_file}")
+
+    return tsne_df
+
+
+def create_projected_data(
+    array: np.ndarray,
+    pca_n_components: int | None = 50,
+    tsne_n_components: int = 2,
+    tsne_random_state: int = 42,
+) -> np.ndarray:
+    """Create a projection of the input data using PCA and t-SNE."""
+    # Apply PCA if requested
+    if pca_n_components:
+        pca = sklearn.decomposition.PCA(
+            n_components=pca_n_components,
+        )
+        array = pca.fit_transform(
+            array,
+        )
+
+    # Apply t-SNE
+    tsne = sklearn.manifold.TSNE(
+        n_components=tsne_n_components,
+        random_state=tsne_random_state,
+    )
+    tsne_array = tsne.fit_transform(
+        array,
+    )
+
+    return tsne_array
 
 
 def run_local_estimates_computation(
