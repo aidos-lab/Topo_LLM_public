@@ -24,27 +24,3 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-import logging
-import math
-
-import transformers
-
-
-def evaluate_tuned_model(
-    trainer: transformers.Trainer,
-    logger: logging.Logger = logging.getLogger(__name__),
-) -> None:
-    logger.info("Evaluating the model ...")
-
-    eval_results = trainer.evaluate()
-    logger.info(f"eval_results:\n{eval_results}")
-
-    # Since the model evaluation might not return the 'eval_loss' key, we need to check for it
-    if "eval_loss" in eval_results:
-        perplexity = math.exp(eval_results["eval_loss"])
-        logger.info(f"perplexity:\n{perplexity:.2f}")
-    else:
-        logger.warning(f"Could not calculate perplexity, " f"because 'eval_loss' was not in eval_results")
-
-    logger.info("Evaluating the model DONE")

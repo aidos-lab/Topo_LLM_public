@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -29,6 +27,7 @@
 
 ########################################################
 import pathlib
+
 import hydra
 import numpy as np
 import pandas as pd
@@ -42,65 +41,73 @@ from sklearn.decomposition import PCA
     version_base="1.2",
 )
 def main(cfg):
-    array_name_1 = 'embeddings_' + str(cfg.embedding_level_1) + '_' + str(cfg.samples_1) + '_samples_paddings_removed.npy'
-    array_name_2 = 'embeddings_' + str(cfg.embedding_level_2) + '_' + str(cfg.samples_2) + '_samples_paddings_removed.npy'
+    array_name_1 = (
+        "embeddings_" + str(cfg.embedding_level_1) + "_" + str(cfg.samples_1) + "_samples_paddings_removed.npy"
+    )
+    array_name_2 = (
+        "embeddings_" + str(cfg.embedding_level_2) + "_" + str(cfg.samples_2) + "_samples_paddings_removed.npy"
+    )
 
-    path_1 = pathlib.Path("..", "..", "data", "analysis", "prepared",
-                          cfg.data_name_1,
-                          cfg.level_1,
-                          cfg.prefix_1,
-                          cfg.model_1,
-                          cfg.layer_1,
-                          cfg.norm_1,
-                          cfg.array_dir_1,
-                          array_name_1
-                          )
+    path_1 = pathlib.Path(
+        "..",
+        "..",
+        "data",
+        "analysis",
+        "prepared",
+        cfg.data_name_1,
+        cfg.level_1,
+        cfg.prefix_1,
+        cfg.model_1,
+        cfg.layer_1,
+        cfg.norm_1,
+        cfg.array_dir_1,
+        array_name_1,
+    )
 
-    path_2 = pathlib.Path("..", "..", "data", "analysis", "prepared",
-                          cfg.data_name_2,
-                          cfg.level_2,
-                          cfg.prefix_2,
-                          cfg.model_2,
-                          cfg.layer_2,
-                          cfg.norm_2,
-                          cfg.array_dir_2,
-                          array_name_2
-                          )
+    path_2 = pathlib.Path(
+        "..",
+        "..",
+        "data",
+        "analysis",
+        "prepared",
+        cfg.data_name_2,
+        cfg.level_2,
+        cfg.prefix_2,
+        cfg.model_2,
+        cfg.layer_2,
+        cfg.norm_2,
+        cfg.array_dir_2,
+        array_name_2,
+    )
 
     arr_no_pad = np.load(path_1)
     arr_no_pad_finetuned = np.load(path_2)
 
-    dataset = pd.DataFrame({f'Column{i+1}': arr_no_pad[:,i] for i in range(arr_no_pad.shape[1])})
-    dataset['class'] = 'base'
+    dataset = pd.DataFrame({f"Column{i+1}": arr_no_pad[:, i] for i in range(arr_no_pad.shape[1])})
+    dataset["class"] = "base"
 
-    dataset_finetuned = pd.DataFrame({f'Column{i+1}': arr_no_pad_finetuned[:,i] for i in
-                                      range(arr_no_pad_finetuned.shape[1])})
-    dataset_finetuned['class'] = 'finetuned'
+    dataset_finetuned = pd.DataFrame(
+        {f"Column{i+1}": arr_no_pad_finetuned[:, i] for i in range(arr_no_pad_finetuned.shape[1])}
+    )
+    dataset_finetuned["class"] = "finetuned"
 
-    df = pd.concat((dataset,dataset_finetuned))
+    df = pd.concat((dataset, dataset_finetuned))
 
     df.reset_index(inplace=True)
-    df.drop(columns='index',inplace=True)
+    df.drop(columns="index", inplace=True)
 
     features = list(df.columns)[:-1]
 
     pca = PCA(n_components=10)
     components = pca.fit_transform(df[features])
-    labels = {
-        str(i): f"PC{i+1}"
-        for i, var in enumerate(pca.explained_variance_ratio_ * 100)
-    }
+    labels = {str(i): f"PC{i+1}" for i, var in enumerate(pca.explained_variance_ratio_ * 100)}
 
-    fig = px.scatter_matrix(
-        components,
-        labels=labels,
-        dimensions=range(10),
-        color=df["class"]
-    )
+    fig = px.scatter_matrix(components, labels=labels, dimensions=range(10), color=df["class"])
     fig.update_traces(diagonal_visible=False)
     fig.show()
 
     return None
+
 
 if __name__ == "__main__":
     main()  # type: ignore

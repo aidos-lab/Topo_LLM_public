@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -71,13 +69,7 @@ def log_list_info(
     """
 
     logger.info(f"len({list_name}):\n" f"{len(list_)}")
-    logger.info(
-        f"{list_name}[:{max_log_elements}]:\n"
-        f"{pprint.pformat(list_[:max_log_elements])}"
-    )
-    logger.info(
-        f"{list_name}[-{max_log_elements}:]:\n"
-        f"{pprint.pformat(list_[-max_log_elements:])}"
-    )
+    logger.info(f"{list_name}[:{max_log_elements}]:\n" f"{pprint.pformat(list_[:max_log_elements])}")
+    logger.info(f"{list_name}[-{max_log_elements}:]:\n" f"{pprint.pformat(list_[-max_log_elements:])}")
 
     return

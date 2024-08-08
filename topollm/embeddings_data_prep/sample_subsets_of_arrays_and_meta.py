@@ -25,6 +25,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Sample subsets of the arrays and metadata."""
+
 import logging
 
 import numpy as np
@@ -43,7 +45,7 @@ default_data_processing_column_names = DataProcessingColumnNames()
 default_logger = logging.getLogger(__name__)
 
 
-def select_subsets_of_array_and_meta_df(
+def sample_subsets_of_array_and_meta_df(
     input_data: PreparedData,
     embeddings_data_prep_sampling_config: EmbeddingsDataPrepSamplingConfig,
     data_processing_column_names: DataProcessingColumnNames = default_data_processing_column_names,
@@ -53,7 +55,7 @@ def select_subsets_of_array_and_meta_df(
     PreparedData,
     np.ndarray,
 ]:
-    """Select subsets of the arrays and metadata."""
+    """Sample subsets of the arrays and metadata."""
     # TODO: Make the sampling method configurable
     # TODO: i.e., allow for sampling via the first sequences instead of random sampling
     array = input_data.array

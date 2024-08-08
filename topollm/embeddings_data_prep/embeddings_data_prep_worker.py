@@ -41,8 +41,8 @@ from topollm.embeddings_data_prep.add_additional_metadata_to_meta_df import (
 from topollm.embeddings_data_prep.load_and_stack_embedding_data import load_and_stack_embedding_data
 from topollm.embeddings_data_prep.prepared_data_containers import PreparedData
 from topollm.embeddings_data_prep.remove_padding_and_extra_tokens import remove_padding_and_extra_tokens
+from topollm.embeddings_data_prep.sample_subsets_of_arrays_and_meta import sample_subsets_of_array_and_meta_df
 from topollm.embeddings_data_prep.save_prepared_data import save_prepared_data
-from topollm.embeddings_data_prep.select_subsets_of_arrays_and_meta import select_subsets_of_array_and_meta_df
 from topollm.model_handling.tokenizer.load_modified_tokenizer_from_main_config import (
     load_modified_tokenizer_from_main_config,
 )
@@ -102,7 +102,7 @@ def embeddings_data_prep_worker(
             logger=logger,
         )
 
-    filtered_subsampled_data, _ = select_subsets_of_array_and_meta_df(
+    filtered_subsampled_data, _ = sample_subsets_of_array_and_meta_df(
         input_data=filtered_data,
         embeddings_data_prep_sampling_config=main_config.embeddings_data_prep.sampling,
         data_processing_column_names=main_config.data_processing_column_names,
