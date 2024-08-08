@@ -99,7 +99,6 @@ class EmbeddingDataLoaderPreparer(ABC):
             padding="max_length",
             truncation="longest_first",
             is_split_into_words=True,
-            add_prefix_space=True
         )
         word_ids = [features.word_ids(batch_index=i) for i in range(len(features))]
 

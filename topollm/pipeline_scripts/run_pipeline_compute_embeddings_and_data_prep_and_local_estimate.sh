@@ -49,6 +49,7 @@ poetry run python3 $ABSOLUTE_PYTHON_SCRIPT_PATH \
     embeddings.embedding_extraction.layer_indices=$LAYER_INDICES_LIST \
     data.number_of_samples=$DATA_NUMBER_OF_SAMPLES \
     embeddings_data_prep.num_samples=$EMBEDDINGS_DATA_PREP_NUM_SAMPLES \
+    tokenizer.add_prefix_space=True \
     $ADDITIONAL_OVERRIDES
 
 
