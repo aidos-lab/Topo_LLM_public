@@ -30,27 +30,33 @@ import logging
 import numpy as np
 import pandas as pd
 
+from topollm.config_classes.data_processing_column_names.data_processing_column_names import DataProcessingColumnNames
 from topollm.config_classes.embeddings_data_prep.embeddings_data_prep_config import EmbeddingsDataPrepSamplingConfig
+from topollm.embeddings_data_prep.prepared_data_containers import PreparedData
 from topollm.logging.log_array_info import log_array_info
 from topollm.typing.enums import Verbosity
+
+default_data_processing_column_names = DataProcessingColumnNames()
 
 default_logger = logging.getLogger(__name__)
 
 
-def select_subsets_of_arrays_and_meta(
-    array: np.ndarray,
-    without_array_df: pd.DataFrame,
+def select_subsets_of_array_and_meta_df(
+    input_data: PreparedData,
     embeddings_data_prep_sampling_config: EmbeddingsDataPrepSamplingConfig,
+    data_processing_column_names: DataProcessingColumnNames = default_data_processing_column_names,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> tuple[
-    np.ndarray,
-    pd.DataFrame,
+    PreparedData,
     np.ndarray,
 ]:
     """Select subsets of the arrays and metadata."""
     # TODO: Make the sampling method configurable
     # TODO: i.e., allow for sampling via the first sequences instead of random sampling
+    array = input_data.array
+    meta_df = input_data.meta_df
+
     rng = np.random.default_rng(
         seed=embeddings_data_prep_sampling_config.seed,
     )
@@ -67,15 +73,15 @@ def select_subsets_of_arrays_and_meta(
             size=len(array),
         )
 
+    subsampled_array = array[subsample_idx_vector]
+    without_array_subsampled_df = meta_df.iloc[subsample_idx_vector]
+
     if verbosity >= Verbosity.NORMAL:
         log_array_info(
             subsample_idx_vector,
-            array_name="subsample_idx",
+            array_name="subsample_idx_vector",
             logger=logger,
         )
-
-    subsampled_array = array[subsample_idx_vector]
-    without_array_subsampled_df = without_array_df.iloc[subsample_idx_vector]
 
     if verbosity >= Verbosity.NORMAL:
         logger.info(
@@ -85,9 +91,19 @@ def select_subsets_of_arrays_and_meta(
             f"Expected sample size: {embeddings_data_prep_sampling_config.num_samples = }",  # noqa: G004 - low overhead
         )
 
+    # # # #
+    # Add the subsample index to the metadata DataFrame
+    without_array_subsampled_df[data_processing_column_names.subsample_idx] = list(
+        subsample_idx_vector,
+    )
+
+    output_data = PreparedData(
+        array=subsampled_array,
+        meta_df=without_array_subsampled_df,
+    )
+
     return_value = (
-        subsampled_array,
-        without_array_subsampled_df,
+        output_data,
         subsample_idx_vector,
     )
 

@@ -42,9 +42,7 @@ from topollm.embeddings_data_prep.load_and_stack_embedding_data import load_and_
 from topollm.embeddings_data_prep.prepared_data_containers import PreparedData
 from topollm.embeddings_data_prep.remove_padding_and_extra_tokens import remove_padding_and_extra_tokens
 from topollm.embeddings_data_prep.save_prepared_data import save_prepared_data
-from topollm.embeddings_data_prep.select_subsets_of_arrays_and_meta import select_subsets_of_arrays_and_meta
-from topollm.logging.log_array_info import log_array_info
-from topollm.logging.log_dataframe_info import log_dataframe_info
+from topollm.embeddings_data_prep.select_subsets_of_arrays_and_meta import select_subsets_of_array_and_meta_df
 from topollm.model_handling.tokenizer.load_modified_tokenizer_from_main_config import (
     load_modified_tokenizer_from_main_config,
 )
@@ -91,25 +89,30 @@ def embeddings_data_prep_worker(
         logger=logger,
     )
 
-    filtered_subsampled_array, filtered_subsampled_without_array_df, subsample_idx_vector = (
-        select_subsets_of_arrays_and_meta(
-            array=filtered_array,
-            without_array_df=filtered_without_array_df,
-            embeddings_data_prep_sampling_config=main_config.embeddings_data_prep.sampling,
-            verbosity=verbosity,
-            logger=logger,
-        )
+    filtered_data = PreparedData(
+        array=filtered_array,
+        meta_df=filtered_without_array_df,
     )
 
-    # # # #
-    # Add the subsample index to the metadata DataFrame
-    filtered_subsampled_without_array_df[main_config.data_processing_column_names.subsample_idx] = list(
-        subsample_idx_vector,
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            "Logging information about `filtered_data`:",
+        )
+        filtered_data.log_info(
+            logger=logger,
+        )
+
+    filtered_subsampled_data, _ = select_subsets_of_array_and_meta_df(
+        input_data=filtered_data,
+        embeddings_data_prep_sampling_config=main_config.embeddings_data_prep.sampling,
+        data_processing_column_names=main_config.data_processing_column_names,
+        verbosity=verbosity,
+        logger=logger,
     )
 
     # Add the token names to the metadata DataFrame
     filtered_subsampled_augmented_without_array_df = add_token_name_column_to_meta_frame(
-        input_df=filtered_subsampled_without_array_df,
+        input_df=filtered_subsampled_data.meta_df,
         tokenizer=tokenizer,
         data_processing_column_names=main_config.data_processing_column_names,
     )
@@ -126,28 +129,24 @@ def embeddings_data_prep_worker(
             write_concatenated_tokens_to_meta=main_config.feature_flags.embeddings_data_prep.write_concatenated_tokens_to_meta,
         )
 
-    if verbosity >= Verbosity.NORMAL:
-        log_array_info(
-            filtered_subsampled_array,
-            array_name="filtered_subsampled_array",
-            logger=logger,
-        )
-        log_dataframe_info(
-            filtered_subsampled_augmented_without_array_df,
-            df_name="filtered_subsampled_augmented_without_array_df",
-            logger=logger,
-        )
-
     # # # #
     # Save the prepared data
-    prepared_data = PreparedData(
-        array=filtered_subsampled_array,
+    filtered_subsampled_prepared_data = PreparedData(
+        array=filtered_subsampled_data.array,
         meta_df=filtered_subsampled_augmented_without_array_df,
     )
 
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            "Logging information about `filtered_subsampled_prepared_data`:",
+        )
+        filtered_subsampled_prepared_data.log_info(
+            logger=logger,
+        )
+
     save_prepared_data(
         embeddings_path_manager=embeddings_path_manager,
-        prepared_data=prepared_data,
+        prepared_data=filtered_subsampled_prepared_data,
         verbosity=verbosity,
         logger=logger,
     )
