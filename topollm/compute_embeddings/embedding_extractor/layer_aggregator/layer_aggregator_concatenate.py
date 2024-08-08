@@ -1,16 +1,17 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 # Benjamin Ruppik (ruppik@hhu.de)
+# Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
-# This code was generated with the help of AI writing assistants
-# including GitHub Copilot, ChatGPT, Bing Chat.
+# Code generation tools and workflows:
+# First versions of this code were potentially generated
+# with the help of AI writing assistants including
+# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
+# Afterwards, the generated segments were manually reviewed and edited.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -27,19 +28,16 @@
 import torch
 
 
-class LayerAggregatorMean:
-    """Implementation of the LayerAggregator protocol which computes the mean of the layers to be extracted."""
+class LayerAggregatorConcatenate:
+    """Implementation of the LayerAggregator protocol which concatenates the layers to be extracted."""
 
     def aggregate_layers(
         self,
         layers_to_extract: list[torch.Tensor],
     ) -> torch.Tensor:
-        # Mean across the layers
-        aggregated_layers = torch.mean(
-            torch.stack(
-                layers_to_extract,
-                dim=0,
-            ),
-            dim=0,
+        # Concatenate across the last dimension
+        aggregated_layers = torch.cat(
+            layers_to_extract,
+            dim=-1,
         )
         return aggregated_layers

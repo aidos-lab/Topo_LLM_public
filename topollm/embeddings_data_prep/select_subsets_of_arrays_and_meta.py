@@ -31,7 +31,9 @@ import numpy as np
 import pandas as pd
 
 from topollm.config_classes.data_processing_column_names.data_processing_column_names import DataProcessingColumnNames
-from topollm.config_classes.embeddings_data_prep.embeddings_data_prep_config import EmbeddingsDataPrepSamplingConfig
+from topollm.config_classes.embeddings_data_prep.sampling_config import (
+    EmbeddingsDataPrepSamplingConfig,
+)
 from topollm.embeddings_data_prep.prepared_data_containers import PreparedData
 from topollm.logging.log_array_info import log_array_info
 from topollm.typing.enums import Verbosity
@@ -82,8 +84,6 @@ def select_subsets_of_array_and_meta_df(
             array_name="subsample_idx_vector",
             logger=logger,
         )
-
-    if verbosity >= Verbosity.NORMAL:
         logger.info(
             f"{subsampled_array.shape = }",  # noqa: G004 - low overhead
         )
