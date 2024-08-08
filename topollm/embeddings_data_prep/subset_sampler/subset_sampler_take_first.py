@@ -39,7 +39,7 @@ from topollm.typing.enums import Verbosity
 default_logger = logging.getLogger(__name__)
 
 
-class SubsetSamplerRandom:
+class SubsetSamplerTakeFirst:
     """Implementation of the SubsetSampler protocol for random sampling."""
 
     def __init__(
@@ -48,12 +48,8 @@ class SubsetSamplerRandom:
         verbosity: Verbosity = Verbosity.NORMAL,
         logger: logging.Logger = default_logger,
     ) -> None:
-        """Initialize the SubsetSamplerRandom."""
+        """Initialize the SubsetSamplerTakeFirst."""
         self.embeddings_data_prep_sampling_config = embeddings_data_prep_sampling_config
-
-        self.rng = np.random.default_rng(
-            seed=embeddings_data_prep_sampling_config.seed,
-        )
 
         self.verbosity = verbosity
         self.logger = logger
@@ -65,30 +61,23 @@ class SubsetSamplerRandom:
         PreparedData,
         np.ndarray,
     ]:
-        """Sample a random subset of the rows of the array and the corresponding metadata."""
+        """Take the first num_samples many rows from the array and meta_df."""
         array = input_data.array
         meta_df = input_data.meta_df
 
         requested_num_samples = self.embeddings_data_prep_sampling_config.num_samples
 
-        if len(array) >= requested_num_samples:
-            subsample_idx_vector: np.ndarray = self.rng.choice(
-                range(len(array)),
-                replace=False,
-                size=requested_num_samples,
-            )
-        else:
+        if array.shape[0] < requested_num_samples:
+            actual_num_samples = array.shape[0]
             self.logger.warning(
                 f"{requested_num_samples = } is larger than the number of available samples {array.shape[0] = }.",  # noqa: G004 - low overhead
             )
-            subsample_idx_vector: np.ndarray = self.rng.choice(
-                range(len(array)),
-                replace=False,
-                size=len(array),
-            )
+        else:
+            actual_num_samples = requested_num_samples
 
-        subsampled_array = array[subsample_idx_vector]
-        subsampled_df = meta_df.iloc[subsample_idx_vector]
+        subsampled_array = array[:actual_num_samples]
+        subsampled_df = meta_df.iloc[:actual_num_samples]
+        subsample_idx_vector = np.arange(actual_num_samples)
 
         sampled_data = PreparedData(
             array=subsampled_array,
