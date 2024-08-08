@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -27,12 +25,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Generate text based on the provided prompts using causal language modeling."""
+
 import logging
 import pprint
 
 import torch
 import transformers
 from tqdm import tqdm
+
+default_device = torch.device("cpu")
+default_logger = logging.getLogger(__name__)
 
 
 def do_text_generation(
@@ -41,14 +44,15 @@ def do_text_generation(
     prompts: list[str],
     max_length: int = 50,
     num_return_sequences: int = 3,
-    device: torch.device = torch.device("cpu"),
-    logger: logging.Logger = logging.getLogger(__name__),
+    device: torch.device = default_device,
+    logger: logging.Logger = default_logger,
 ) -> list[list[str]]:
-    """
-    Generates text based on the provided prompts using causal language modeling,
-    with support for multiple generations per prompt.
+    """Generate text based on the provided prompts using causal language modeling.
+
+    Support for multiple generations per prompt.
 
     Args:
+    ----
         tokenizer: A tokenizer instance compatible with the provided model.
         model: A pre-trained model instance capable of text generation.
         prompts: A list of strings, each being a prompt to generate text from.
@@ -58,9 +62,10 @@ def do_text_generation(
         logger: Logger instance for logging information.
 
     Returns:
+    -------
         A list of lists containing generated text sequences for each prompt.
-    """
 
+    """
     text_generation_pipeline = transformers.pipeline(
         task="text-generation",
         model=model,
@@ -70,7 +75,10 @@ def do_text_generation(
         num_return_sequences=num_return_sequences,
     )
 
-    logger.info(f"prompts:\n{pprint.pformat(prompts)}")
+    logger.info(
+        "prompts:\n%s",
+        pprint.pformat(prompts),
+    )
 
     all_generated_texts: list[list[str]] = []
 
@@ -80,15 +88,17 @@ def do_text_generation(
     ):
         results: list[dict] = text_generation_pipeline(
             prompt,
-        )  # type: ignore
+        )  # type: ignore - problem with the type hint in the transformers library
 
         if results is None:
-            raise ValueError("No results were generated.")
+            msg = "No results were generated."
+            raise TypeError(msg)
         if not isinstance(
             results,
             list,
         ):
-            raise ValueError(f"{results = } must be a list.")
+            msg = f"{results = } must be a list."
+            raise TypeError(msg)
 
         generated_texts: list[str] = [result["generated_text"] for result in results]
 
@@ -98,7 +108,12 @@ def do_text_generation(
         )
 
         # Logging each generated text for the current prompt
-        logger.info(f"{prompt = }")
-        logger.info(f"generated_texts:\n" f"{pprint.pformat(generated_texts)}")
+        logger.info(
+            f"{prompt = }",  # noqa: G004 - low overhead
+        )
+        logger.info(
+            "generated_texts:\n%s",
+            pprint.pformat(generated_texts),
+        )
 
     return all_generated_texts

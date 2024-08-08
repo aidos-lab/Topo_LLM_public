@@ -25,60 +25,60 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Remove padding and extra tokens from the data."""
+"""Sample subsets of the arrays and metadata."""
 
 import logging
 
 import numpy as np
-import pandas as pd
 
 from topollm.config_classes.data_processing_column_names.data_processing_column_names import DataProcessingColumnNames
-from topollm.config_classes.embeddings_data_prep.filter_tokens_config import FilterTokensConfig
-from topollm.embeddings_data_prep.get_token_ids_from_filter_tokens_config import get_token_ids_from_filter_tokens_config
+from topollm.config_classes.embeddings_data_prep.sampling_config import (
+    EmbeddingsDataPrepSamplingConfig,
+)
+from topollm.embeddings_data_prep.prepared_data_containers import PreparedData
+from topollm.embeddings_data_prep.subset_sampler.factory import get_subset_sampler
 from topollm.typing.enums import Verbosity
-from topollm.typing.types import TransformersTokenizer
 
-default_logger = logging.getLogger(__name__)
 default_data_processing_column_names = DataProcessingColumnNames()
 
+default_logger = logging.getLogger(__name__)
 
-def remove_padding_and_extra_tokens(
-    full_df: pd.DataFrame,
-    tokenizer: TransformersTokenizer,
-    filter_tokens_config: FilterTokensConfig,
+
+def sample_subsets_of_array_and_meta_df(
+    input_data: PreparedData,
+    embeddings_data_prep_sampling_config: EmbeddingsDataPrepSamplingConfig,
     data_processing_column_names: DataProcessingColumnNames = default_data_processing_column_names,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> tuple[
+    PreparedData,
     np.ndarray,
-    pd.DataFrame,
 ]:
-    """Remove padding and extra tokens from the data."""
-    token_ids_to_filter: list[int] = get_token_ids_from_filter_tokens_config(
-        tokenizer=tokenizer,
-        filter_tokens_config=filter_tokens_config,
+    """Sample subsets of the arrays and metadata."""
+    subset_sampler = get_subset_sampler(
+        embeddings_data_prep_sampling_config=embeddings_data_prep_sampling_config,
         verbosity=verbosity,
         logger=logger,
     )
-
-    # Remove the specified tokens from the data
-    filtered_df = full_df[
-        ~full_df[data_processing_column_names.token_id].isin(
-            token_ids_to_filter,
-        )
-    ]
-
-    # Construct the array from the filtered data
-    #
-    # arr_no_pad.shape:
-    # (number of non-padding tokens in subsample, embedding dimension)
-    filtered_array = np.array(
-        list(filtered_df[data_processing_column_names.embedding_vectors]),
+    sampled_data, subsample_idx_vector = subset_sampler.sample_subsets(
+        input_data=input_data,
     )
 
-    # Remove the array column from the DataFrame
-    filtered_without_array_df = filtered_df.drop(
-        columns=[data_processing_column_names.embedding_vectors],
+    # # # #
+    # Add the subsample index to the metadata DataFrame
+    subsampled_df = sampled_data.meta_df
+    subsampled_df[data_processing_column_names.subsample_idx] = list(
+        subsample_idx_vector,
     )
 
-    return filtered_array, filtered_without_array_df
+    output_data = PreparedData(
+        array=sampled_data.array,
+        meta_df=subsampled_df,
+    )
+
+    return_value = (
+        output_data,
+        subsample_idx_vector,
+    )
+
+    return return_value

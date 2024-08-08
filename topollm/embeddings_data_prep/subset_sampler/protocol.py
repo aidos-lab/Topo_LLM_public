@@ -25,26 +25,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
-import math
+"""Protocol class for sampling in the embeddings data preparation."""
 
-import transformers
+from typing import Protocol
+
+import numpy as np
+
+from topollm.embeddings_data_prep.prepared_data_containers import PreparedData
 
 
-def evaluate_tuned_model(
-    trainer: transformers.Trainer,
-    logger: logging.Logger = logging.getLogger(__name__),
-) -> None:
-    logger.info("Evaluating the model ...")
+class SubsetSampler(Protocol):
+    """Protocol class for sampling in the embeddings data preparation."""
 
-    eval_results = trainer.evaluate()
-    logger.info(f"eval_results:\n{eval_results}")
+    def sample_subsets(
+        self,
+        input_data: PreparedData,
+    ) -> tuple[
+        PreparedData,
+        np.ndarray,
+    ]:
+        """Sample subsets of the arrays and metadata in the input_data.
 
-    # Since the model evaluation might not return the 'eval_loss' key, we need to check for it
-    if "eval_loss" in eval_results:
-        perplexity = math.exp(eval_results["eval_loss"])
-        logger.info(f"perplexity:\n{perplexity:.2f}")
-    else:
-        logger.warning(f"Could not calculate perplexity, " f"because 'eval_loss' was not in eval_results")
+        Returns
+        -------
+            A tuple of the prepared data and the sampling indices.
 
-    logger.info("Evaluating the model DONE")
+        """
+        ...  # pragma: no cover

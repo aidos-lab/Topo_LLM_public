@@ -1,16 +1,17 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 # Benjamin Ruppik (ruppik@hhu.de)
+# Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
-# This code was generated with the help of AI writing assistants
-# including GitHub Copilot, ChatGPT, Bing Chat.
+# Code generation tools and workflows:
+# First versions of this code were potentially generated
+# with the help of AI writing assistants including
+# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
+# Afterwards, the generated segments were manually reviewed and edited.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -24,9 +25,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import torch
-
 from typing import Protocol
+
+import torch
 
 
 class LayerAggregator(Protocol):
@@ -34,7 +35,5 @@ class LayerAggregator(Protocol):
         self,
         layers_to_extract: list[torch.Tensor],
     ) -> torch.Tensor:
-        """
-        This method aggregates the layers to be extracted into a single tensor.
-        """
+        """Aggregate the layers to be extracted into a single tensor."""
         ...

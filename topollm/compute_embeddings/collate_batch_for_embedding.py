@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -27,8 +25,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-"""
+""" """
 
 import torch
 
@@ -66,11 +63,7 @@ def move_collated_batch_to_device(
         "attention_mask",
     ],
 ):
-    collated_batch = {
-        key: value.to(device)
-        for key, value in collated_batch.items()
-        if key in model_input_names
-    }
+    collated_batch = {key: value.to(device) for key, value in collated_batch.items() if key in model_input_names}
 
     return collated_batch
 

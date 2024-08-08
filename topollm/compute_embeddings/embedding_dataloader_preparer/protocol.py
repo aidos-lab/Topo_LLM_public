@@ -27,6 +27,7 @@
 
 import logging
 from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING
 
 import torch
 import torch.utils.data
@@ -36,7 +37,9 @@ from topollm.compute_embeddings.embedding_dataloader_preparer.embedding_dataload
     EmbeddingDataLoaderPreparerContext,
 )
 from topollm.data_handling.dataset_preparer.factory import get_dataset_preparer
-from topollm.data_handling.dataset_preparer.protocol import DatasetPreparer
+
+if TYPE_CHECKING:
+    from topollm.data_handling.dataset_preparer.protocol import DatasetPreparer
 
 
 class EmbeddingDataLoaderPreparer(ABC):
@@ -88,7 +91,7 @@ class EmbeddingDataLoaderPreparer(ABC):
         self,
     ) -> torch.utils.data.DataLoader:
         """Load a dataset and prepare a dataloader."""
-        pass  # pragma: no cover
+        ...  # pragma: no cover
 
     @property
     @abstractmethod

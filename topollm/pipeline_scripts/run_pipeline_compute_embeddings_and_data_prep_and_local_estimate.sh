@@ -47,7 +47,7 @@ poetry run python3 $ABSOLUTE_PYTHON_SCRIPT_PATH \
     +language_model.checkpoint_no=$CHECKPOINT_NO \
     embeddings.embedding_extraction.layer_indices=$LAYER_INDICES_LIST \
     data.number_of_samples=$DATA_NUMBER_OF_SAMPLES \
-    embeddings_data_prep.num_samples=$EMBEDDINGS_DATA_PREP_NUM_SAMPLES \
+    embeddings_data_prep.sampling.num_samples=$EMBEDDINGS_DATA_PREP_NUM_SAMPLES \
     $ADDITIONAL_OVERRIDES
 
 

@@ -41,6 +41,7 @@ from topollm.config_classes.main_config import MainConfig
 from topollm.embeddings_data_prep.prepared_data_containers import PreparedData
 from topollm.embeddings_data_prep.save_prepared_data import load_prepared_data
 from topollm.logging.log_array_info import log_array_info
+from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
 from topollm.typing.enums import Verbosity
 
@@ -72,14 +73,7 @@ def twonn_worker(
         logger=logger,
     )
 
-    if verbosity >= Verbosity.NORMAL:
-        log_array_info(
-            prepared_data.arr_no_pad,
-            array_name="prepared_data.arr_no_pad",
-            log_array_size=True,
-            log_row_l2_norms=True,
-            logger=logger,
-        )
+    # TODO: Add functionality to create and save a t-SNE plot of the embedding vectors here (controllable by feature flag)
 
     # # # #
     if verbosity >= Verbosity.NORMAL:
@@ -104,7 +98,7 @@ def twonn_worker(
         local_estimates_sample_size=local_estimates_sample_size,
     )
 
-    array_for_estimator = prepared_data_filtered_truncated.arr_no_pad
+    array_for_estimator = prepared_data_filtered_truncated.array
 
     if verbosity >= Verbosity.NORMAL:
         log_array_info(
@@ -176,7 +170,7 @@ def twonn_worker(
     # Save the results
     local_estimates_container = LocalEstimatesContainer(
         results_array_np=results_array_np,
-        results_meta_frame=prepared_data_filtered_truncated.meta_frame,
+        results_meta_frame=prepared_data_filtered_truncated.meta_df,
     )
 
     save_local_estimates(
@@ -192,7 +186,7 @@ def truncate_data(
     local_estimates_sample_size: int,
 ) -> PreparedData:
     """Truncate the data to the first `local_estimates_sample_size` samples."""
-    input_array = prepared_data.arr_no_pad
+    input_array = prepared_data.array
 
     local_estimates_sample_size = min(
         local_estimates_sample_size,
@@ -201,12 +195,12 @@ def truncate_data(
 
     output_array = input_array[:local_estimates_sample_size,]
 
-    input_meta_frame = prepared_data.meta_frame
+    input_meta_frame = prepared_data.meta_df
     output_meta_frame = input_meta_frame.iloc[:local_estimates_sample_size,]
 
     output_prepared_data = PreparedData(
-        arr_no_pad=output_array,
-        meta_frame=output_meta_frame,
+        array=output_array,
+        meta_df=output_meta_frame,
     )
 
     return output_prepared_data

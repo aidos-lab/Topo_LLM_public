@@ -25,26 +25,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
-import math
-
-import transformers
+import torch
 
 
-def evaluate_tuned_model(
-    trainer: transformers.Trainer,
-    logger: logging.Logger = logging.getLogger(__name__),
-) -> None:
-    logger.info("Evaluating the model ...")
+class LayerAggregatorMean:
+    """Implementation of the LayerAggregator protocol which computes the mean of the layers to be extracted."""
 
-    eval_results = trainer.evaluate()
-    logger.info(f"eval_results:\n{eval_results}")
-
-    # Since the model evaluation might not return the 'eval_loss' key, we need to check for it
-    if "eval_loss" in eval_results:
-        perplexity = math.exp(eval_results["eval_loss"])
-        logger.info(f"perplexity:\n{perplexity:.2f}")
-    else:
-        logger.warning(f"Could not calculate perplexity, " f"because 'eval_loss' was not in eval_results")
-
-    logger.info("Evaluating the model DONE")
+    def aggregate_layers(
+        self,
+        layers_to_extract: list[torch.Tensor],
+    ) -> torch.Tensor:
+        # Mean across the layers
+        aggregated_layers = torch.mean(
+            torch.stack(
+                layers_to_extract,
+                dim=0,
+            ),
+            dim=0,
+        )
+        return aggregated_layers

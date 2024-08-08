@@ -66,7 +66,7 @@ for i in "${!data_lists[@]}"; do
             data.split="validation" \
             language_model=$LANGUAGE_MODEL_LIST \
             embeddings.embedding_extraction.layer_indices=$LAYER_INDICES_LIST \
-            embeddings_data_prep.num_samples=$EMBEDDINGS_DATA_PREP_NUM_SAMPLES \
+            embeddings_data_prep.sampling.num_samples=$EMBEDDINGS_DATA_PREP_NUM_SAMPLES \
             $ADDITIONAL_OVERRIDES
     done
 done

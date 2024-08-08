@@ -215,6 +215,19 @@ class LrSchedulerType(StrEnum):
 
 
 # ==============================
+# Enums used for embeddings data preparation
+# ==============================
+
+
+@unique
+class EmbeddingsDataPrepSamplingMode(StrEnum):
+    """The different modes for sampling in the embeddings data prep step."""
+
+    RANDOM = "random"
+    TAKE_FIRST = "take_first"
+
+
+# ==============================
 # Enums used for finetuning parameters
 # ==============================
 

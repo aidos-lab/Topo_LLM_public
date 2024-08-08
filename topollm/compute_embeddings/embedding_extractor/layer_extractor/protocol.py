@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -24,17 +22,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import torch
-
 from typing import Protocol
+
+import torch
 
 
 class LayerExtractor(Protocol):
+    """Protocol for the layer extractor."""
+
     def extract_layers_from_model_outputs(
         self,
         hidden_states,
     ) -> list[torch.Tensor]:
-        """
-        This method extracts layers from the model outputs.
-        """
+        """Extract layers from the model outputs."""
         ...

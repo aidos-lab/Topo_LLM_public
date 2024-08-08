@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -67,9 +65,7 @@ def prepare_lora_model(
         lora_model,
         peft.peft_model.PeftModel,
     ):
-        raise ValueError(
-            f"Expected peft.peft_model.PeftModel, " f"but got {type(lora_model) = }"
-        )
+        raise ValueError(f"Expected peft.peft_model.PeftModel, " f"but got {type(lora_model) = }")
 
     if verbosity >= 1:
         logger.info(f"lora_model after modification:")

@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -38,17 +36,19 @@
 # `data_prep.py` may be used.
 
 # third party imports
+import os
 import pathlib
-import hydra
+
 import gudhi as gd
+import hydra
+import joblib
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import joblib
-import os
-import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn.neighbors import KDTree
 from gph import ripser_parallel
+from sklearn.neighbors import KDTree
+
 
 @hydra.main(
     config_path="../../configs/analysis",
@@ -56,30 +56,44 @@ from gph import ripser_parallel
     version_base="1.2",
 )
 def main(cfg):
-    array_name_1 = 'embeddings_' + str(cfg.embedding_level_1) + '_' + str(cfg.samples_1) + '_samples_paddings_removed.npy'
-    array_name_2 = 'embeddings_' + str(cfg.embedding_level_2) + '_' + str(cfg.samples_2) + '_samples_paddings_removed.npy'
+    array_name_1 = (
+        "embeddings_" + str(cfg.embedding_level_1) + "_" + str(cfg.samples_1) + "_samples_paddings_removed.npy"
+    )
+    array_name_2 = (
+        "embeddings_" + str(cfg.embedding_level_2) + "_" + str(cfg.samples_2) + "_samples_paddings_removed.npy"
+    )
 
-    path_1 = pathlib.Path("..", "..", "data", "analysis", "prepared",
-                          cfg.data_name_1,
-                          cfg.level_1,
-                          cfg.prefix_1,
-                          cfg.model_1,
-                          cfg.layer_1,
-                          cfg.norm_1,
-                          cfg.array_dir_1,
-                          array_name_1
-                          )
+    path_1 = pathlib.Path(
+        "..",
+        "..",
+        "data",
+        "analysis",
+        "prepared",
+        cfg.data_name_1,
+        cfg.level_1,
+        cfg.prefix_1,
+        cfg.model_1,
+        cfg.layer_1,
+        cfg.norm_1,
+        cfg.array_dir_1,
+        array_name_1,
+    )
 
-    path_2 = pathlib.Path("..", "..", "data", "analysis", "prepared",
-                          cfg.data_name_2,
-                          cfg.level_2,
-                          cfg.prefix_2,
-                          cfg.model_2,
-                          cfg.layer_2,
-                          cfg.norm_2,
-                          cfg.array_dir_2,
-                          array_name_2
-                          )
+    path_2 = pathlib.Path(
+        "..",
+        "..",
+        "data",
+        "analysis",
+        "prepared",
+        cfg.data_name_2,
+        cfg.level_2,
+        cfg.prefix_2,
+        cfg.model_2,
+        cfg.layer_2,
+        cfg.norm_2,
+        cfg.array_dir_2,
+        array_name_2,
+    )
 
     arr_no_pad = np.load(path_1)
     arr_no_pad_finetuned = np.load(path_2)
@@ -111,11 +125,7 @@ def main(cfg):
             np.array
                 Full barcode (persistence diagram) of the data set.
             """
-            barcodes = (
-                gd.RipsComplex(points=X)
-                .create_simplex_tree(max_dimension=max_dim)
-                .persistence()
-            )
+            barcodes = gd.RipsComplex(points=X).create_simplex_tree(max_dimension=max_dim).persistence()
 
             if len(barcodes) == 0:
                 return None, -1
@@ -135,15 +145,12 @@ def main(cfg):
             """Calculate Bottleneck distance between two persistence diagrams."""
             return gd.bottleneck_distance(D1, D2)
 
-
     class Ripser:
         def __call__(self, X, max_dim):
             if len(X) == 0:
                 return [], -1
 
-            diagrams = ripser_parallel(
-                X, maxdim=max_dim, collapse_edges=True, n_threads=-1
-            )
+            diagrams = ripser_parallel(X, maxdim=max_dim, collapse_edges=True, n_threads=-1)
 
             diagrams = diagrams["dgms"]
 
@@ -155,7 +162,6 @@ def main(cfg):
 
         def distance(self, D1, D2):
             return gd.bottleneck_distance(D1, D2)
-
 
     def sample_from_ball(n=100, d=2, r=1, seed=None):
         """Sample `n` data points from a `d`-ball in `d` dimensions.
@@ -198,7 +204,6 @@ def main(cfg):
 
         return np.asarray(X)
 
-
     def sample_from_annulus(n, r, R, d=2, seed=None):
         """Sample points from an annulus.
         This function samples `N` points from an annulus with inner radius `r`
@@ -227,9 +232,7 @@ def main(cfg):
             Array containing sampled coordinates.
         """
         if r >= R:
-            raise RuntimeError(
-                "Inner radius must be less than or equal to outer radius"
-            )
+            raise RuntimeError("Inner radius must be less than or equal to outer radius")
 
         rng = np.random.default_rng(seed)
 
@@ -238,7 +241,7 @@ def main(cfg):
 
             # Need to sample based on squared radii to account for density
             # differences.
-            radii = np.sqrt(rng.uniform(r ** 2, R ** 2, n))
+            radii = np.sqrt(rng.uniform(r**2, R**2, n))
 
             X = np.column_stack((radii * np.cos(thetas), radii * np.sin(thetas)))
         else:
@@ -256,24 +259,22 @@ def main(cfg):
 
         return X
 
-
     """Euclidicity implementation."""
-
 
     class Euclidicity:
         """Functor for calculating Euclidicity of a point cloud."""
 
         def __init__(
-                self,
-                max_dim,
-                r=None,
-                R=None,
-                s=None,
-                S=None,
-                n_steps=10,
-                data=None,
-                method="gudhi",
-                model_sample_fn=None,
+            self,
+            max_dim,
+            r=None,
+            R=None,
+            s=None,
+            S=None,
+            n_steps=10,
+            data=None,
+            method="gudhi",
+            model_sample_fn=None,
         ):
             """Initialise new instance of functor.
             Sets up a new instance of the Euclidicity functor and stores
@@ -380,9 +381,7 @@ def main(cfg):
             for r in np.linspace(r, R, self.n_steps):
                 for s in np.linspace(s, S, self.n_steps):
                     if r < s:
-                        dist, dim = self._calculate_euclidicity(
-                            r, s, X, x, self.max_dim
-                        )
+                        dist, dim = self._calculate_euclidicity(r, s, X, x, self.max_dim)
 
                         bottleneck_distances.append(dist)
                         dimensions.append(dim)
@@ -400,12 +399,7 @@ def main(cfg):
                 annulus = X[annulus_indices]
             else:
                 annulus = np.asarray(
-                    [
-                        np.asarray(p)
-                        for p in X
-                        if np.linalg.norm(x - p) <= s
-                           and np.linalg.norm(x - p) >= r
-                    ]
+                    [np.asarray(p) for p in X if np.linalg.norm(x - p) <= s and np.linalg.norm(x - p) >= r]
                 )
 
             barcodes, max_dim = self.vr(annulus, d)
@@ -414,9 +408,7 @@ def main(cfg):
                 return np.nan, max_dim
 
             if self.model_sample_fn is not None:
-                euclidean_annulus = self.model_sample_fn(
-                    n=len(annulus), r=r, R=s, d=d
-                )
+                euclidean_annulus = self.model_sample_fn(n=len(annulus), r=r, R=s, d=d)
                 barcodes_euclidean, _ = self.vr(euclidean_annulus, d)
 
             # No sampling function has been specified. Compare to a fixed
@@ -434,7 +426,6 @@ def main(cfg):
             dist = self.vr.distance(barcodes, barcodes_euclidean)
             return dist, max_dim
 
-
     X = arr_no_pad
     X_finetuned = arr_no_pad_finetuned
 
@@ -442,7 +433,6 @@ def main(cfg):
 
     query_points = X[sub_idx]
     query_points_finetuned = X_finetuned[sub_idx]
-
 
     def estimate_scales(X, query_points, k_max):
         """Perform simple scale estimation of the data set.
@@ -477,7 +467,6 @@ def main(cfg):
 
         return scales
 
-
     scales = estimate_scales(X, query_points, k)
     scales_finetuned = estimate_scales(X_finetuned, query_points_finetuned, k)
 
@@ -494,7 +483,6 @@ def main(cfg):
         method="ripser",
         data=X_finetuned,
     )
-
 
     def _process(x, scale=None):
         values = euclidicity(X, x, **scale)
@@ -516,54 +504,46 @@ def main(cfg):
         print(s)
         return score
 
-
-    scores = joblib.Parallel(n_jobs=None)(
-        joblib.delayed(_process)(x, scale)
-        for x, scale in zip(query_points, scales)
-    )
+    scores = joblib.Parallel(n_jobs=None)(joblib.delayed(_process)(x, scale) for x, scale in zip(query_points, scales))
 
     scores_finetuned = joblib.Parallel(n_jobs=None)(
-        joblib.delayed(_process_finetuned)(x, scale)
-        for x, scale in zip(query_points_finetuned, scales_finetuned)
+        joblib.delayed(_process_finetuned)(x, scale) for x, scale in zip(query_points_finetuned, scales_finetuned)
     )
 
-
-    euc_frame = pd.DataFrame({
-                             'euclidicity_finetuned':scores_finetuned,
-                             'euclidicity':scores
-                             })
+    euc_frame = pd.DataFrame({"euclidicity_finetuned": scores_finetuned, "euclidicity": scores})
 
     print(euc_frame.corr())
 
     plt.ioff()
-    scatter_plot = sns.scatterplot(x = scores,y = scores_finetuned)
+    scatter_plot = sns.scatterplot(x=scores, y=scores_finetuned)
     scatter_fig = scatter_plot.get_figure()
 
     # use savefig function to save the plot and give
     # a desired name to the plot.
 
-    file_name = ''
+    file_name = ""
     if cfg.data_name_1 == cfg.data_name_2:
-        file_name += str(cfg.data_name_1) + '_'
+        file_name += str(cfg.data_name_1) + "_"
     if cfg.model_1 == cfg.model_2:
-        file_name += str(cfg.model_1) + '_'
+        file_name += str(cfg.model_1) + "_"
     names = set([name[:-1] for name in cfg.keys()])
     for name in names:
         if cfg[name + str(1)] != cfg[name + str(2)]:
-            additional_string = str(cfg[name + str(1)]) + '_vs_' + str(cfg[name + str(2)] + '_')
+            additional_string = str(cfg[name + str(1)]) + "_vs_" + str(cfg[name + str(2)] + "_")
             file_name += additional_string
 
-    save_path = '../../data/analysis/euclidicity/' + str(cfg.embedding_level_1) + '/'
+    save_path = "../../data/analysis/euclidicity/" + str(cfg.embedding_level_1) + "/"
     if not os.path.exists(save_path):
         os.makedirs(save_path)
 
-    save_name = save_path + file_name + str(len(arr_no_pad)) + '_samples_'+str(cfg.layer_1) + '.pkl'
-    scatter_fig.savefig(save_name+'.png')
+    save_name = save_path + file_name + str(len(arr_no_pad)) + "_samples_" + str(cfg.layer_1) + ".pkl"
+    scatter_fig.savefig(save_name + ".png")
     euc_frame.to_pickle(save_name)
 
-    #plt.show()
+    # plt.show()
     plt.close()
     return None
+
 
 if __name__ == "__main__":
     main()  # type: ignore

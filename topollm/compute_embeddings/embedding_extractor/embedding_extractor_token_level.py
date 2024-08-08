@@ -28,7 +28,7 @@
 import numpy as np
 import transformers.modeling_outputs
 
-from topollm.compute_embeddings.embedding_extractor.layer_aggregator.LayerAggregatorProtocol import (
+from topollm.compute_embeddings.embedding_extractor.layer_aggregator.protocol import (
     LayerAggregator,
 )
 from topollm.compute_embeddings.embedding_extractor.layer_extractor.protocol import (
