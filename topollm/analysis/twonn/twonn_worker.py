@@ -149,7 +149,6 @@ def twonn_worker(
             tsne_random_state=local_estimates_plot_config.tsne_random_state,
         )
 
-        # TODO: Get a proper path from the embeddings path manager
         figure, tsne_df = create_projection_plot(
             tsne_result=tsne_array,
             meta_df=prepared_data_filtered_truncated.meta_df,
@@ -159,7 +158,7 @@ def twonn_worker(
         save_projection_plot(
             figure=figure,
             tsne_df=tsne_df,
-            output_folder=pathlib.Path("/Users/ruppik/git-source/Topo_LLM/data/saved_plots/local_estimates_projection"),
+            output_folder=embeddings_path_manager.get_saved_plots_local_estimates_projection_dir_absolute_path(),
             save_html=local_estimates_plot_config.saving.save_html,
             save_pdf=local_estimates_plot_config.saving.save_pdf,
             save_csv=local_estimates_plot_config.saving.save_csv,

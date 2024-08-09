@@ -40,15 +40,24 @@ class EmbeddingsPathManager(Protocol):
         self,
     ) -> pathlib.Path: ...  # pragma: no cover
 
+    # # # #
+    # array directory
+
     @property
     def array_dir_absolute_path(
         self,
     ) -> pathlib.Path: ...  # pragma: no cover
 
+    # # # #
+    # metadata directory
+
     @property
     def metadata_dir_absolute_path(
         self,
     ) -> pathlib.Path: ...  # pragma: no cover
+
+    # # # #
+    # perplexity directory
 
     @property
     def perplexity_dir_absolute_path(
@@ -59,6 +68,9 @@ class EmbeddingsPathManager(Protocol):
         self,
         perplexity_container_save_format: PerplexityContainerSaveFormat,
     ) -> pathlib.Path: ...  # pragma: no cover
+
+    # # # #
+    # prepared data directory
 
     @property
     def prepared_data_dir_absolute_path(
@@ -73,6 +85,9 @@ class EmbeddingsPathManager(Protocol):
         self,
     ) -> pathlib.Path: ...  # pragma: no cover
 
+    # # # #
+    # local estimates directories
+
     def get_local_estimates_dir_absolute_path(
         self,
     ) -> pathlib.Path: ...  # pragma: no cover
@@ -84,6 +99,21 @@ class EmbeddingsPathManager(Protocol):
     def get_local_estimates_meta_save_path(
         self,
     ) -> pathlib.Path: ...  # pragma: no cover
+
+    # # # #
+    # saved plots directories
+
+    def get_saved_plots_local_estimates_projection_dir_absolute_path(
+        self,
+    ) -> pathlib.Path: ...  # pragma: no cover
+
+    def get_local_estimates_projection_plot_save_path(
+        self,
+        file_name: str,
+    ) -> pathlib.Path: ...  # pragma: no cover
+
+    # # # #
+    # analyzed data directories
 
     def get_analyzed_data_dir_absolute_path(
         self,

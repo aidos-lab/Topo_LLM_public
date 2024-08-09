@@ -32,9 +32,10 @@ import logging
 import numpy as np
 import skdim
 
-from topollm.analysis.twonn.twonn_worker import default_logger
 from topollm.logging.log_array_info import log_array_info
 from topollm.typing.enums import Verbosity
+
+default_logger = logging.getLogger(__name__)
 
 
 def twonn_local_estimates_computation(
