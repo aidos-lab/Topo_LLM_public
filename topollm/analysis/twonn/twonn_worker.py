@@ -28,9 +28,11 @@
 """Run script to compute twoNN estimates from prepared embeddings."""
 
 import logging
+import pathlib
 from typing import TYPE_CHECKING
 
 import torch
+from tqdm import tqdm
 
 from topollm.analysis.local_estimates.filter.get_local_estimates_filter import get_local_estimates_filter
 from topollm.analysis.local_estimates.saving.local_estimates_containers import LocalEstimatesContainer
@@ -147,22 +149,48 @@ def twonn_worker(
             pca_n_components=local_estimates_plot_config.pca_n_components,
             tsne_n_components=local_estimates_plot_config.tsne_n_components,
             tsne_random_state=local_estimates_plot_config.tsne_random_state,
+            verbosity=verbosity,
+            logger=logger,
         )
 
-        figure, tsne_df = create_projection_plot(
-            tsne_result=tsne_array,
-            meta_df=prepared_data_filtered.meta_df,
-            results_array_np=results_array_np,
-            verbosity=verbosity,
-            logger=logger,
-        )
-        save_projection_plot(
-            figure=figure,
-            tsne_df=tsne_df,
-            output_folder=embeddings_path_manager.get_saved_plots_local_estimates_projection_dir_absolute_path(),
-            save_html=local_estimates_plot_config.saving.save_html,
-            save_pdf=local_estimates_plot_config.saving.save_pdf,
-            save_csv=local_estimates_plot_config.saving.save_csv,
-            verbosity=verbosity,
-            logger=logger,
-        )
+        for maximum_number_of_points in tqdm(
+            [
+                500,
+                1_000,
+                5_000,
+                10_000,
+                25_000,
+                50_000,
+                None,
+            ],
+            desc="Creating projection plots",
+        ):
+            figure, tsne_df = create_projection_plot(
+                tsne_result=tsne_array,
+                meta_df=prepared_data_filtered.meta_df,
+                results_array_np=results_array_np,
+                maximum_number_of_points=maximum_number_of_points,
+                verbosity=verbosity,
+                logger=logger,
+            )
+
+            number_of_points_in_plot = len(tsne_df)
+            output_folder = pathlib.Path(
+                embeddings_path_manager.get_saved_plots_local_estimates_projection_dir_absolute_path(),
+                f"no-points-in-plot-{number_of_points_in_plot}",
+            )
+            if verbosity >= Verbosity.NORMAL:
+                logger.info(
+                    f"Saving projection plot to {output_folder = }",  # noqa: G004 - low overhead
+                )
+
+            save_projection_plot(
+                figure=figure,
+                tsne_df=tsne_df,
+                output_folder=output_folder,
+                save_html=local_estimates_plot_config.saving.save_html,
+                save_pdf=local_estimates_plot_config.saving.save_pdf,
+                save_csv=local_estimates_plot_config.saving.save_csv,
+                verbosity=verbosity,
+                logger=logger,
+            )

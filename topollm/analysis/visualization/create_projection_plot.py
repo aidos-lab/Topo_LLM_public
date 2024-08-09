@@ -64,6 +64,7 @@ def create_projection_plot(
     tsne_result: np.ndarray,
     meta_df: pd.DataFrame,
     results_array_np: np.ndarray | None = None,
+    maximum_number_of_points: int | None = None,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> tuple[
@@ -114,7 +115,10 @@ def create_projection_plot(
 
     # If results_array_np is provided, populate the estimate column
     if results_array_np is not None:
-        tsne_df.loc[: len(results_array_np) - 1, "estimate"] = results_array_np
+        tsne_df.loc[
+            : len(results_array_np) - 1,
+            "estimate",
+        ] = results_array_np
 
     # # # #
     # For better display in the plot, we truncate certain elements:
@@ -139,6 +143,13 @@ def create_projection_plot(
     for column in columns_to_sanitize:
         tsne_df[column] = tsne_df[column].apply(
             sanitize_html,
+        )
+
+    # # # #
+    # If a maximum number of points is specified, we only keep the first n points
+    if maximum_number_of_points is not None:
+        tsne_df = tsne_df.head(
+            maximum_number_of_points,
         )
 
     figure = px.scatter(
