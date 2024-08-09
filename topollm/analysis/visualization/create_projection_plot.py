@@ -46,6 +46,7 @@ default_logger = logging.getLogger(__name__)
 def create_projection_plot(
     tsne_result: np.ndarray,
     meta_df: pd.DataFrame,
+    results_array_np: np.ndarray | None = None,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> tuple[
@@ -60,6 +61,8 @@ def create_projection_plot(
             The t-SNE result array, its coordinates are used for the plot.
         meta_df:
             The metadata DataFrame, used for annotating the points in the plot.
+        results_array_np:
+            Optional, the results array used for coloring the points in the plot.
         verbosity:
             The verbosity level.
         logger:
@@ -74,8 +77,6 @@ def create_projection_plot(
             (with truncated elements for better display).
 
     """
-    # TODO(Ben): Add the option of coloring by local estimates to the plot
-
     tsne_df = pd.DataFrame(
         tsne_result,
         columns=[
@@ -90,6 +91,13 @@ def create_projection_plot(
         ],
         axis=1,
     )
+
+    # Add a new column for the local estimates, initialize with NaN
+    tsne_df["estimate"] = np.nan
+
+    # If results_array_np is provided, populate the estimate column
+    if results_array_np is not None:
+        tsne_df.loc[: len(results_array_np) - 1, "estimate"] = results_array_np
 
     # # # #
     # For better display in the plot, we truncate certain elements:
@@ -107,6 +115,7 @@ def create_projection_plot(
         x="TSNE-1",
         y="TSNE-2",
         text="token_name",
+        color="estimate",
         hover_data={
             "token_id": True,
             "sentence_idx": True,
@@ -114,7 +123,9 @@ def create_projection_plot(
             "token_name": True,
             "tokens_list_truncated_str": True,
             "concatenated_tokens_truncated_str": True,
+            "estimate": True,
         },
+        color_continuous_scale="Viridis",  # Optional: Choose a color scale
     )
 
     return figure, tsne_df

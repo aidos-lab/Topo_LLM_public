@@ -28,10 +28,8 @@
 """Run script to compute twoNN estimates from prepared embeddings."""
 
 import logging
-import pathlib
 from typing import TYPE_CHECKING
 
-import numpy as np
 import torch
 
 from topollm.analysis.local_estimates.filter.get_local_estimates_filter import get_local_estimates_filter
@@ -45,12 +43,14 @@ from topollm.config_classes.main_config import MainConfig
 from topollm.embeddings_data_prep.save_prepared_data import load_prepared_data
 from topollm.logging.log_array_info import log_array_info
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
-from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 from topollm.typing.enums import Verbosity
 
 if TYPE_CHECKING:
+    import numpy as np
+
     from topollm.analysis.local_estimates.filter.protocol import LocalEstimatesFilter
     from topollm.embeddings_data_prep.prepared_data_containers import PreparedData
+    from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 
 default_device = torch.device("cpu")
 default_logger = logging.getLogger(__name__)
@@ -143,7 +143,7 @@ def twonn_worker(
         local_estimates_plot_config = main_config.local_estimates.plot
 
         tsne_array: np.ndarray = create_projected_data(
-            array=prepared_data_filtered_truncated.array,
+            array=prepared_data_filtered.array,
             pca_n_components=local_estimates_plot_config.pca_n_components,
             tsne_n_components=local_estimates_plot_config.tsne_n_components,
             tsne_random_state=local_estimates_plot_config.tsne_random_state,
@@ -151,7 +151,8 @@ def twonn_worker(
 
         figure, tsne_df = create_projection_plot(
             tsne_result=tsne_array,
-            meta_df=prepared_data_filtered_truncated.meta_df,
+            meta_df=prepared_data_filtered.meta_df,
+            results_array_np=results_array_np,
             verbosity=verbosity,
             logger=logger,
         )
