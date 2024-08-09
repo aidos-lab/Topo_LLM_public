@@ -58,8 +58,8 @@ rich = "*"
 evaluate = "*"
 seqeval = "*"
 kaleido = "0.2.1"
-annotated-types = "^0.7.0"
-pydantic-core = "^2.21.0"
+annotated-types = "*"
+pydantic-core = "*"
 
 [tool.poetry.group.dev.dependencies]
 hypothesis = "*"
@@ -89,9 +89,9 @@ name = "hhu"
 url = "http://pypi.repo.test.hhu.de/simple/"
 priority = "primary"
 
-
-[[tool.poetry.source]]
-name = "PyPI"
+# [[tool.poetry.source]]
+# name = "PyPI"
+# priority = "primary"
 
 [build-system]
 requires = ["poetry-core"]
