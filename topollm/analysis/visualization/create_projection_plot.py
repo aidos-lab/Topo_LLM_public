@@ -43,6 +43,23 @@ from topollm.typing.enums import Verbosity
 default_logger = logging.getLogger(__name__)
 
 
+def sanitize_html(
+    text: str,
+) -> str:
+    """Sanitize HTML tags in a string by escaping < and > characters.
+
+    Args:
+    ----
+        text: The string to sanitize.
+
+    Returns:
+    -------
+        Sanitized string with < and > characters replaced with &lt; and &gt;.
+
+    """
+    return text.replace("<", "&lt;").replace(">", "&gt;")
+
+
 def create_projection_plot(
     tsne_result: np.ndarray,
     meta_df: pd.DataFrame,
@@ -109,6 +126,20 @@ def create_projection_plot(
     tsne_df["concatenated_tokens_truncated_str"] = tsne_df["concatenated_tokens"].apply(
         lambda x: str(x[:120]),
     )
+
+    # Define the list of columns that need HTML sanitization.
+    # Note: We do not apply this to "token_name", because in this column the <s> and </s> do not appear in pairs.
+    # If we would apply the sanitization, the token_name label would not appear correctly in the plot.
+    columns_to_sanitize = [
+        "tokens_list_truncated_str",
+        "concatenated_tokens_truncated_str",
+    ]
+
+    # Apply the sanitize_html function to the specified columns
+    for column in columns_to_sanitize:
+        tsne_df[column] = tsne_df[column].apply(
+            sanitize_html,
+        )
 
     figure = px.scatter(
         tsne_df,
