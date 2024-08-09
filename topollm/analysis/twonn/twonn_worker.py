@@ -32,13 +32,13 @@ import pathlib
 from typing import TYPE_CHECKING
 
 import numpy as np
-import skdim
 import torch
 
 from topollm.analysis.local_estimates.filter.get_local_estimates_filter import get_local_estimates_filter
 from topollm.analysis.local_estimates.saving.local_estimates_containers import LocalEstimatesContainer
 from topollm.analysis.local_estimates.saving.save_local_estimates import save_local_estimates
 from topollm.analysis.twonn.truncate_prepared_data import truncate_prepared_data
+from topollm.analysis.twonn.twonn_local_estimates_computation import twonn_local_estimates_computation
 from topollm.analysis.visualization.create_projected_data import create_projected_data
 from topollm.analysis.visualization.create_projection_plot import create_projection_plot, save_projection_plot
 from topollm.config_classes.main_config import MainConfig
@@ -117,7 +117,7 @@ def twonn_worker(
     # Local estimates computation
 
     # provide number of jobs for the computation
-    results_array_np = run_local_estimates_computation(
+    results_array_np = twonn_local_estimates_computation(
         array_for_estimator=array_for_estimator,
         verbosity=verbosity,
         logger=logger,
@@ -140,8 +140,13 @@ def twonn_worker(
     # # # #
     # Create plots
     if main_config.feature_flags.analysis.create_plots_in_local_estimates_worker:
-        tsne_array = create_projected_data(
+        local_estimates_plot_config = main_config.local_estimates.plot
+
+        tsne_array: np.ndarray = create_projected_data(
             array=prepared_data_filtered_truncated.array,
+            pca_n_components=local_estimates_plot_config.pca_n_components,
+            tsne_n_components=local_estimates_plot_config.tsne_n_components,
+            tsne_random_state=local_estimates_plot_config.tsne_random_state,
         )
 
         # TODO: Get a proper path from the embeddings path manager
@@ -155,67 +160,11 @@ def twonn_worker(
             figure=figure,
             tsne_df=tsne_df,
             output_folder=pathlib.Path("/Users/ruppik/git-source/Topo_LLM/data/saved_plots/local_estimates_projection"),
+            save_html=local_estimates_plot_config.saving.save_html,
+            save_pdf=local_estimates_plot_config.saving.save_pdf,
+            save_csv=local_estimates_plot_config.saving.save_csv,
             verbosity=verbosity,
             logger=logger,
         )
 
         pass  # for setting a breakpoint here
-
-
-def run_local_estimates_computation(
-    array_for_estimator: np.ndarray,
-    discard_fraction: float = 0.1,
-    n_jobs: int = 1,
-    verbosity: Verbosity = Verbosity.NORMAL,
-    logger: logging.Logger = default_logger,
-) -> np.ndarray:
-    """Run the local estimates computation."""
-    # Number of neighbors which are used for the computation
-    n_neighbors = round(len(array_for_estimator) * 0.8)
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            f"{n_neighbors = }",  # noqa: G004 - low overhead
-        )
-
-    estimator = skdim.id.TwoNN(
-        discard_fraction=discard_fraction,
-    )
-
-    if verbosity >= Verbosity.NORMAL:
-        logger.info("Calling estimator.fit_pw() ...")
-
-    fitted_estimator = estimator.fit_pw(
-        X=array_for_estimator,
-        precomputed_knn=None,
-        smooth=False,
-        n_neighbors=n_neighbors,
-        n_jobs=n_jobs,
-    )
-
-    if verbosity >= Verbosity.NORMAL:
-        logger.info("Calling estimator.fit_pw() DONE")
-
-    results_array = list(fitted_estimator.dimension_pw_)
-
-    results_array_np = np.array(
-        results_array,
-    )
-
-    if verbosity >= Verbosity.NORMAL:
-        log_array_info(
-            results_array_np,
-            array_name="results_array_np",
-            log_array_size=True,
-            log_row_l2_norms=False,  # Note: This is a one-dimensional array, so the l2-norms are not meaningful
-            logger=logger,
-        )
-
-        # Log the mean and standard deviation of the local estimates
-        logger.info(
-            f"Mean of local estimates: {results_array_np.mean() = }",  # noqa: G004 - low overhead
-        )
-        logger.info(
-            f"Standard deviation of local estimates: {results_array_np.std() = }",  # noqa: G004 - low overhead
-        )
-
-    return results_array_np
