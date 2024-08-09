@@ -165,5 +165,3 @@ def twonn_worker(
             verbosity=verbosity,
             logger=logger,
         )
-
-        pass  # for setting a breakpoint here
