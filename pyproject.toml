@@ -89,9 +89,10 @@ name = "hhu"
 url = "http://pypi.repo.test.hhu.de/simple/"
 priority = "primary"
 
-# [[tool.poetry.source]]
-# name = "PyPI"
-# priority = "primary"
+
+[[tool.poetry.source]]
+name = "PyPI"
+priority = "primary"
 
 [build-system]
 requires = ["poetry-core"]
