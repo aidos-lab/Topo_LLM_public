@@ -82,6 +82,12 @@ optional = true
 faiss-gpu = "*"
 gpustat = "*"
 
+# Note: Commenting this out appears to lead to hanging install on HHU Hilbert.
+#
+# [[tool.poetry.source]]
+# name = "PyPI"
+# priority = "primary"
+
 # This section is for using the PyPI mirror on Hilbert (HHU internal).
 # Note: You need to uncomment this section if you do not have access to the Hilbert PyPI mirror.
 # This should be commented out before releasing the package.
@@ -91,10 +97,6 @@ name = "hhu"
 url = "http://pypi.repo.test.hhu.de/simple/"
 priority = "primary"
 
-
-[[tool.poetry.source]]
-name = "PyPI"
-priority = "primary"
 
 [build-system]
 requires = ["poetry-core"]
