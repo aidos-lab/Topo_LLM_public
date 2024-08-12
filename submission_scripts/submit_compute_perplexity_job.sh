@@ -34,9 +34,6 @@ NUMBER_OF_SAMPLES="10000"
 # DATA_LIST="wikitext"
 # NUMBER_OF_SAMPLES="-1"
 
-# TODO: Add loops to iterate over different datasets
-# TODO: Add option for reddit dataset
-
 # LANGUAGE_MODEL_LIST="roberta-base"
 # LANGUAGE_MODEL_LIST="model-roberta-base_task-MASKED_LM_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
 # LANGUAGE_MODEL_LIST="model-roberta-base_task-MASKED_LM_iclr_2024_submissions-train-5000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"

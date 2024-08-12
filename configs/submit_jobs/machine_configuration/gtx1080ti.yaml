@@ -1,8 +1,0 @@
-defaults:
-  - _self_
-
-accelerator_model: "gtx1080ti"
-queue: "CUDA"
-walltime: "42:00:00"
-
-dry_run: false

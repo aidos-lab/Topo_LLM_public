@@ -14,30 +14,29 @@ ABSOLUTE_PYTHON_SCRIPT_PATH="${TOPO_LLM_REPOSITORY_BASE_PATH}/${RELATIVE_PYTHON_
 # Define arrays for DATA_LIST and DATA_NUMBER_OF_SAMPLES
 data_lists=(
     "multiwoz21" 
-    "iclr_2024_submissions" 
-    "wikitext"
-    "one-year-of-tsla-on-reddit"
+    # "iclr_2024_submissions" 
+    # "wikitext"
+    # "one-year-of-tsla-on-reddit"
 )
 data_samples=(
     "3000" 
-    "-1" 
-    "-1"
-    "3000"
+    # "-1" 
+    # "-1"
+    # "3000"
 )
 
 language_models=(
     "roberta-base"
-    "model-roberta-base_task-MASKED_LM_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
-    "model-roberta-base_task-MASKED_LM_iclr_2024_submissions-train-5000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
-    "model-roberta-base_task-MASKED_LM_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
-    "model-roberta-base_task-MASKED_LM_wikitext-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
+    # "model-roberta-base_task-MASKED_LM_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
+    # "model-roberta-base_task-MASKED_LM_iclr_2024_submissions-train-5000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
+    # "model-roberta-base_task-MASKED_LM_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
+    # "model-roberta-base_task-MASKED_LM_wikitext-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
 )
 
 
 # Note: In the dimension experiments, we usually set `add_prefix_space=False` 
 # ADDITIONAL_OVERRIDES+=" tokenizer.add_prefix_space=True"
 
-# LAYER_INDICES_LIST="[-1]"
 
 layer_indices=(
     "[-1]"

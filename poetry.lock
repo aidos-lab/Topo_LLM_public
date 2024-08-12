@@ -1571,6 +1571,32 @@ url = "http://pypi.repo.test.hhu.de/simple"
 reference = "hhu"
 
 [[package]]
+name = "hydra-zen"
+version = "0.13.0"
+description = "Configurable, reproducible, and scalable workflows in Python, via Hydra"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "hydra_zen-0.13.0-py3-none-any.whl", hash = "sha256:6050b62be96d2a47b2abf0e9c0ebcce1e9a4e259e173870338ab049b833f26cf"},
+    {file = "hydra_zen-0.13.0.tar.gz", hash = "sha256:1b53d74aa1f0baa04fafdac6aba7a94ae40929e7b0a5a5081d8740f74322052d"},
+]
+
+[package.dependencies]
+hydra-core = ">=1.2.0"
+omegaconf = ">=2.2.1"
+typing-extensions = ">=4.1.0,<4.6.0 || >4.6.0"
+
+[package.extras]
+beartype = ["beartype (>=0.8.0)"]
+pydantic = ["pydantic (>=1.10.14,<2.0.0)"]
+test = ["hypothesis (>=6.28.0)", "pytest (>=3.8)", "pytest-trio (>=0.8.0)"]
+
+[package.source]
+type = "legacy"
+url = "http://pypi.repo.test.hhu.de/simple"
+reference = "hhu"
+
+[[package]]
 name = "hypothesis"
 version = "6.111.0"
 description = "A library for property-based testing"
@@ -5389,4 +5415,4 @@ reference = "hhu"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "07e2b06bfe34a9e844f97241084c4e3c38ecc1cb737b9040dd3a3b28843a308b"
+content-hash = "e69fdd626ada0f0e59b25909310f3592c043a146963094346b9736672a96d956"
