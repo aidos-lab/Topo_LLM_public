@@ -69,7 +69,7 @@ Edit the script `scripts/setup_environment.sh` with the correct paths and run it
 
 ### Config file management
 
-- We want to use Hydra for the config managment:
+- We use Hydra for the config managment:
   [https://hydra.cc/docs/patterns/configuring_experiments/]
 
 - Overwrite config variable:
@@ -77,6 +77,9 @@ Edit the script `scripts/setup_environment.sh` with the correct paths and run it
 
 - Multirun example:
   `python run.py --multirun run.seed=1,2,3,4`
+
+- See the instructions here for the HHU Hilbert HPC launcher:
+  [https://gitlab.cs.uni-duesseldorf.de/dsml/HydraHPCLauncher]
 
 ## Datasets
 

@@ -190,9 +190,10 @@ data/models/finetuned_models/
 
 data/saved_plots/
 
-hydra_output_dir/
-hilbert_job_logs_backup/
 hilbert_job_logs/
+hilbert_job_logs_backup/
+hydra_output_dir/
+hydra_plugins/
 
 # Weights and Biases (wandb)
 wandb/
