@@ -46,17 +46,22 @@ zarr = "*"
 tensorboard = "*"
 seaborn = "*"
 giotto-tda = "^0.6.2"
-umap-learn = "^0.5.5"
+umap-learn = "^0.5"
 peft = "*"
 python-dotenv = "*"
 graphriccicurvature = "*"
 networkx = "*"
 pyyaml = "*"
 hydra-colorlog = "*"
-wandb = "*"
+wandb = "0.16.*"                                                    # We currently need to pin the wandb version because 0.17 does not work locally on the MacBook
 rich = "*"
 evaluate = "*"
 seqeval = "*"
+kaleido = "0.2.1"
+annotated-types = "*"
+pydantic-core = "*"
+click = "*"
+platformdirs = "*"
 
 [tool.poetry.group.dev.dependencies]
 hypothesis = "*"
@@ -77,6 +82,12 @@ optional = true
 faiss-gpu = "*"
 gpustat = "*"
 
+# Note: Commenting this out appears to lead to hanging install on HHU Hilbert.
+#
+# [[tool.poetry.source]]
+# name = "PyPI"
+# priority = "primary"
+
 # This section is for using the PyPI mirror on Hilbert (HHU internal).
 # Note: You need to uncomment this section if you do not have access to the Hilbert PyPI mirror.
 # This should be commented out before releasing the package.
@@ -84,6 +95,7 @@ gpustat = "*"
 [[tool.poetry.source]]
 name = "hhu"
 url = "http://pypi.repo.test.hhu.de/simple/"
+priority = "primary"
 
 
 [build-system]
@@ -92,9 +104,9 @@ build-backend = "poetry.core.masonry.api"
 
 # Script entry points for various tasks
 [tool.poetry.scripts]
-run_finetune_language_model = "topollm.model_finetuning.run_finetune_language_model_on_huggingface_dataset:main"
-run_compute_embeddings = "topollm.compute_embeddings.run_compute_embeddings:main"
-run_compute_perplexity = "topollm.model_inference.perplexity.run_compute_perplexity:main"
-run_inference_pipeline = "topollm.model_inference.run_inference_pipeline:main"
-run_pipeline_compute_embeddings_and_data_prep_and_local_estimate = "topollm.pipeline_scripts.run_pipeline_compute_embeddings_and_data_prep_and_local_estimate:main"
+finetune_language_model = "topollm.model_finetuning.run_finetune_language_model_on_huggingface_dataset:main"
+compute_embeddings = "topollm.compute_embeddings.run_compute_embeddings:main"
+compute_perplexity = "topollm.model_inference.perplexity.run_compute_perplexity:main"
+pipeline_inference = "topollm.model_inference.run_inference_pipeline:main"
+pipeline_local_estimates = "topollm.pipeline_scripts.run_pipeline_compute_embeddings_and_data_prep_and_local_estimate:main"
 tests = "topollm.scripts.run_tests_with_coverage:main"

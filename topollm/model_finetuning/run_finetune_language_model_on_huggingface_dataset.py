@@ -52,9 +52,12 @@ if TYPE_CHECKING:
 # Increase the wandb service wait time to prevent errors.
 # https://github.com/wandb/wandb/issues/5214
 os.environ["WANDB__SERVICE_WAIT"] = "300"
-wandb.require(
-    "core",
-)
+
+# The "core" argument is only available from wandb 0.17 onwards
+#
+# wandb.require(
+#     "core",
+# )
 
 global_logger = logging.getLogger(__name__)
 
