@@ -93,7 +93,7 @@ class EmbeddingDataLoaderPreparer(ABC):
     ) -> BatchEncoding:
         """Convert dataset entires/examples to features by tokenizing the text and padding/truncating to a maximum length."""
 
-        """
+
         split_words = [nltk.word_tokenize(sent) for sent in dataset_entry[column_name]]
         
         features = tokenizer(
@@ -127,7 +127,7 @@ class EmbeddingDataLoaderPreparer(ABC):
             all_word_tags_one_sentence_tokens.append(word_tags_one_sentence_tokens)
 
         dataset_tokenized['POS'] = all_word_tags_one_sentence_tokens
-        """
+
 
         features = tokenizer(
             dataset_entry[column_name],
