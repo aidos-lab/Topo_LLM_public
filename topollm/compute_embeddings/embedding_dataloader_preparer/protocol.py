@@ -128,15 +128,7 @@ class EmbeddingDataLoaderPreparer(ABC):
 
         dataset_tokenized['POS'] = all_word_tags_one_sentence_tokens
 
-
-        features = tokenizer(
-            dataset_entry[column_name],
-            max_length=max_length,
-            padding="max_length",
-            truncation="longest_first",
-        )
-
-        return features
+        return dataset_tokenized
 
     @abstractmethod
     def prepare_dataloader(
