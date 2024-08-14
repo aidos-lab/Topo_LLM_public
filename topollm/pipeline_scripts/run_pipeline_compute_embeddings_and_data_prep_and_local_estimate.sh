@@ -40,7 +40,7 @@ ADDITIONAL_OVERRIDES=""
 
 echo "Calling python script ABSOLUTE_PYTHON_SCRIPT_PATH=${ABSOLUTE_PYTHON_SCRIPT_PATH} ..."
 
-poetry run python3 $ABSOLUTE_PYTHON_SCRIPT_PATH \
+echo $ABSOLUTE_PYTHON_SCRIPT_PATH \
     --multirun \
     data=$DATA_LIST \
     +data.dataset_type=huggingface_dataset_named_entity \

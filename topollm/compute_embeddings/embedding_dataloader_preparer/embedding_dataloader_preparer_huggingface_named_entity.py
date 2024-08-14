@@ -73,6 +73,7 @@ class EmbeddingDataLoaderPreparerHuggingfaceNamedEntity(EmbeddingDataLoaderPrepa
             batched=True,
             batch_size=self.preparer_context.embeddings_config.dataset_map.batch_size,
             num_proc=self.preparer_context.embeddings_config.dataset_map.num_proc,
+            keep_in_memory=True
         )
 
         if self.verbosity >= 1:

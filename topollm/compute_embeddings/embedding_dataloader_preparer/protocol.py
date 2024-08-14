@@ -126,9 +126,9 @@ class EmbeddingDataLoaderPreparer(ABC):
                     word_tags_one_sentence_tokens.append(None)
             all_word_tags_one_sentence_tokens.append(word_tags_one_sentence_tokens)
 
-        dataset_tokenized['POS'] = all_word_tags_one_sentence_tokens
+        features['POS'] = all_word_tags_one_sentence_tokens
 
-        return dataset_tokenized
+        return features
 
     @abstractmethod
     def prepare_dataloader(
