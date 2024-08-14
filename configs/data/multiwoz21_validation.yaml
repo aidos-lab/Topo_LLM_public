@@ -5,5 +5,5 @@ dataset_path: json
 dataset_name: multiwoz21
 data_dir: ${paths.data_dir}/datasets/dialogue_datasets/multiwoz21
 
-number_of_samples: 5000
+number_of_samples: 3000
 split: validation

@@ -13,7 +13,7 @@ ABSOLUTE_PYTHON_SCRIPT_PATH="${TOPO_LLM_REPOSITORY_BASE_PATH}/${RELATIVE_PYTHON_
 
 # Define arrays for DATA_LIST and DATA_NUMBER_OF_SAMPLES
 data_lists=(
-    "multiwoz21" 
+    "multiwoz21_train" 
     # "iclr_2024_submissions" 
     # "wikitext"
     # "one-year-of-tsla-on-reddit"
@@ -40,7 +40,8 @@ LANGUAGE_MODEL_LIST="roberta-base,model-roberta-base_task-MASKED_LM_multiwoz21-t
 
 # Note: In the dimension experiments, we usually set `add_prefix_space=False` 
 
-LAYER_INDICES_LIST="[-1],[-5],[-9]"
+LAYER_INDICES_LIST="[-1]"
+# LAYER_INDICES_LIST="[-1],[-5],[-9]"
 
 EMBEDDINGS_DATA_PREP_NUM_SAMPLES="30000"
 
@@ -72,18 +73,18 @@ for i in "${!data_lists[@]}"; do
 
     poetry run python3 ${RELATIVE_PYTHON_SCRIPT_PATH} \
         --multirun \
-        hydra/launcher=hpc_submission \
+        hydra/launcher=basic \
         hydra/sweeper=basic \
-        hydra.launcher.queue="$QUEUE" \
-        hydra.launcher.template="$TEMPLATE" \
         data="$DATA_LIST" \
-        data.number_of_samples="$DATA_NUMBER_OF_SAMPLES" \
         data.split="$SPLIT" \
         language_model="$LANGUAGE_MODEL_LIST" \
         embeddings.embedding_extraction.layer_indices=$LAYER_INDICES_LIST \
         embeddings_data_prep.sampling.num_samples=$EMBEDDINGS_DATA_PREP_NUM_SAMPLES \
         tokenizer.add_prefix_space=False \
         $ADDITIONAL_OVERRIDES
+        # data.number_of_samples="$DATA_NUMBER_OF_SAMPLES" \
+        # hydra.launcher.queue="$QUEUE" \
+        # hydra.launcher.template="$TEMPLATE" \
 
     echo "====================================================="
 done
