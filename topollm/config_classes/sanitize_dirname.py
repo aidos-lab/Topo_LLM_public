@@ -55,4 +55,7 @@ def sanitize_dirname(
         desc=result,
     )
 
+    if len(result) == 0:
+        result = "no_overrides"
+
     return result

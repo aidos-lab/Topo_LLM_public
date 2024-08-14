@@ -1,8 +1,0 @@
-defaults:
-  - _self_
-
-accelerator_model: "rtx6000"
-queue: "CUDA"
-walltime: "42:00:00"
-
-dry_run: false

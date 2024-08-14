@@ -44,6 +44,13 @@ from topollm.pipeline_scripts.worker_for_pipeline import worker_for_pipeline
 if TYPE_CHECKING:
     from topollm.config_classes.main_config import MainConfig
 
+try:
+    from hydra_plugins import hpc_submission_launcher
+
+    hpc_submission_launcher.register_plugin()
+except ImportError:
+    pass
+
 # logger for this file
 global_logger = logging.getLogger(__name__)
 

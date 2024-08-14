@@ -62,6 +62,7 @@ annotated-types = "*"
 pydantic-core = "*"
 click = "*"
 platformdirs = "*"
+hydra-zen = "^0.13.0"
 
 [tool.poetry.group.dev.dependencies]
 hypothesis = "*"

@@ -9,7 +9,6 @@ defaults:
   - local_estimates: twonn
   - paths: absolute_repository_base
   - storage: default
-  - submit_jobs: config
   - tokenizer: basic_tokenizer
   - transformations: none
   - wandb: default
