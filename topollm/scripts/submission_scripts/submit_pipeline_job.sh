@@ -18,6 +18,9 @@ data_lists=(
     # "wikitext"
     # "one-year-of-tsla-on-reddit"
 )
+
+SPLIT="validation"
+
 data_samples=(
     "3000" 
     # "-1" 
@@ -33,16 +36,11 @@ language_models=(
     # "model-roberta-base_task-MASKED_LM_wikitext-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
 )
 
+LANGUAGE_MODEL_LIST="roberta-base,model-roberta-base_task-MASKED_LM_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
 
 # Note: In the dimension experiments, we usually set `add_prefix_space=False` 
-# ADDITIONAL_OVERRIDES+=" tokenizer.add_prefix_space=True"
 
-
-layer_indices=(
-    "[-1]"
-    "[-5]"
-    # "[-9]"
-)
+LAYER_INDICES_LIST="[-1],[-5],[-9]"
 
 EMBEDDINGS_DATA_PREP_NUM_SAMPLES="30000"
 
@@ -50,20 +48,15 @@ ADDITIONAL_OVERRIDES=""
 
 # ==================================================== #
 
-TEMPLATE_STRING="RTX6000"
+QUEUE="DSML"
+TEMPLATE="DSML"
 
-# The following is for trying out the hydra launcher.
-# We will update the hpc run command below to use the hydra launcher.
+# QUEUE="CUDA"
+# TEMPLATE="RTX6000"
+
+# Alternative:
 #
-# poetry run python3 ${RELATIVE_PYTHON_SCRIPT_PATH} \
-#     --multirun \
-#     hydra/launcher=hpc_submission \
-#     hydra/sweeper=basic \
-#     hydra.launcher.queue="DSML" \
-#     hydra.launcher.template="DSML"
-#     # hydra/launcher=basic \
-#     # data="multiwoz21"
-
+# hydra/launcher=basic
 
 # Loop over the arrays
 #
@@ -71,29 +64,28 @@ for i in "${!data_lists[@]}"; do
     DATA_LIST="${data_lists[$i]}"
     DATA_NUMBER_OF_SAMPLES="${data_samples[$i]}"
 
-    for LANGUAGE_MODEL_LIST in "${language_models[@]}"; do
-        for LAYER_INDICES_LIST in "${layer_indices[@]}"; do
-            echo "====================================================="
-            echo "DATA_LIST=${DATA_LIST}"
-            echo "DATA_NUMBER_OF_SAMPLES=${DATA_NUMBER_OF_SAMPLES}"
-            echo "LANGUAGE_MODEL_LIST=${LANGUAGE_MODEL_LIST}"
-            echo "LAYER_INDICES_LIST=${LAYER_INDICES_LIST}"
+    echo "====================================================="
+    echo "DATA_LIST=${DATA_LIST}"
+    echo "DATA_NUMBER_OF_SAMPLES=${DATA_NUMBER_OF_SAMPLES}"
+    echo "LANGUAGE_MODEL_LIST=${LANGUAGE_MODEL_LIST}"
+    echo "LAYER_INDICES_LIST=${LAYER_INDICES_LIST}"
 
-            hpc run \
-                -n "compute_perplexity_job_submission_manual" \
-                -s "${RELATIVE_PYTHON_SCRIPT_PATH}" \
-                -a "data="$DATA_LIST" \
-                data.number_of_samples="$DATA_NUMBER_OF_SAMPLES" \
-                data.split="validation" \
-                language_model="$LANGUAGE_MODEL_LIST" \
-                embeddings.embedding_extraction.layer_indices=$LAYER_INDICES_LIST \
-                embeddings_data_prep.sampling.num_samples=$EMBEDDINGS_DATA_PREP_NUM_SAMPLES \
-                $ADDITIONAL_OVERRIDES" \
-                --template "${TEMPLATE_STRING}"
+    poetry run python3 ${RELATIVE_PYTHON_SCRIPT_PATH} \
+        --multirun \
+        hydra/launcher=hpc_submission \
+        hydra/sweeper=basic \
+        hydra.launcher.queue="$QUEUE" \
+        hydra.launcher.template="$TEMPLATE" \
+        data="$DATA_LIST" \
+        data.number_of_samples="$DATA_NUMBER_OF_SAMPLES" \
+        data.split="$SPLIT" \
+        language_model="$LANGUAGE_MODEL_LIST" \
+        embeddings.embedding_extraction.layer_indices=$LAYER_INDICES_LIST \
+        embeddings_data_prep.sampling.num_samples=$EMBEDDINGS_DATA_PREP_NUM_SAMPLES \
+        tokenizer.add_prefix_space=False \
+        $ADDITIONAL_OVERRIDES
 
-            echo "====================================================="
-        done
-    done
+    echo "====================================================="
 done
 
 # Exit with the return code of the last command
