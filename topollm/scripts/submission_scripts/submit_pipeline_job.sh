@@ -41,7 +41,7 @@ language_models=(
 layer_indices=(
     "[-1]"
     "[-5]"
-    "[-9]"
+    # "[-9]"
 )
 
 EMBEDDINGS_DATA_PREP_NUM_SAMPLES="30000"
@@ -75,10 +75,7 @@ for i in "${!data_lists[@]}"; do
                 embeddings.embedding_extraction.layer_indices=$LAYER_INDICES_LIST \
                 embeddings_data_prep.sampling.num_samples=$EMBEDDINGS_DATA_PREP_NUM_SAMPLES \
                 $ADDITIONAL_OVERRIDES" \
-                --template "${TEMPLATE_STRING}" \
-                --ncpus 4 \
-                --accelerator_model "rtx6000" \
-                --queue "CUDA"
+                --template "${TEMPLATE_STRING}"
 
             echo "====================================================="
         done
