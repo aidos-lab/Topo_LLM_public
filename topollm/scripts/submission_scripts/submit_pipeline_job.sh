@@ -4,7 +4,7 @@
 
 echo "TOPO_LLM_REPOSITORY_BASE_PATH=${TOPO_LLM_REPOSITORY_BASE_PATH}"
 
-PYTHON_SCRIPT_NAME="run_pipeline_embeddings_data_prep_local_estimate.py"
+PYTHON_SCRIPT_NAME="run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py"
 RELATIVE_PYTHON_SCRIPT_PATH="topollm/pipeline_scripts/${PYTHON_SCRIPT_NAME}"
 ABSOLUTE_PYTHON_SCRIPT_PATH="${TOPO_LLM_REPOSITORY_BASE_PATH}/${RELATIVE_PYTHON_SCRIPT_PATH}"
 
@@ -52,7 +52,21 @@ ADDITIONAL_OVERRIDES=""
 
 TEMPLATE_STRING="RTX6000"
 
+# The following is for trying out the hydra launcher.
+# We will update the hpc run command below to use the hydra launcher.
+#
+# poetry run python3 ${RELATIVE_PYTHON_SCRIPT_PATH} \
+#     --multirun \
+#     hydra/launcher=hpc_submission \
+#     hydra/sweeper=basic \
+#     hydra.launcher.queue="DSML" \
+#     hydra.launcher.template="DSML"
+#     # hydra/launcher=basic \
+#     # data="multiwoz21"
+
+
 # Loop over the arrays
+#
 for i in "${!data_lists[@]}"; do
     DATA_LIST="${data_lists[$i]}"
     DATA_NUMBER_OF_SAMPLES="${data_samples[$i]}"
