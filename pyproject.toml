@@ -111,3 +111,5 @@ compute_perplexity = "topollm.model_inference.perplexity.run_compute_perplexity:
 pipeline_inference = "topollm.model_inference.run_inference_pipeline:main"
 pipeline_local_estimates = "topollm.pipeline_scripts.run_pipeline_compute_embeddings_and_data_prep_and_local_estimate:main"
 tests = "topollm.scripts.run_tests_with_coverage:main"
+# Submit multiple jobs
+submit_jobs = "topollm.scripts.submission_scripts.submit_jobs:main"

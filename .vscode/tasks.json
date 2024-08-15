@@ -74,6 +74,20 @@
             }
         },
         {
+            "label": "submit_jobs pipeline",
+            "command": "poetry run submit_jobs --task=pipeline --submission_mode=local",
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": false,
+            }
+        },
+        {
             "label": "Generate Email",
             "command": "/Users/carel17/Projects/SeminarEmailGenerator/.venv/bin/python /Users/carel17/Projects/SeminarEmailGenerator/generate_email.py && code /Users/carel17/Projects/SeminarEmailGenerator/templates/email.json",
             "type": "shell",

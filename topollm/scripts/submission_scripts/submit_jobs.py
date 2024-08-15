@@ -240,8 +240,8 @@ def run_task(
     )
 
 
-def main() -> None:
-    """Run the submission."""
+def parse_arguments() -> argparse.Namespace:
+    """Parse command line arguments."""
     parser = argparse.ArgumentParser(
         description="Run computations for pipeline, perplexity, or finetuning.",
     )
@@ -278,7 +278,13 @@ def main() -> None:
     )
 
     args = parser.parse_args()
+    return args
 
+
+def make_config_and_run_task(
+    args: argparse.Namespace,
+) -> None:
+    """Make a submission configuration and run the task."""
     submissions_config = SubmissionConfig(
         submission_mode=args.submission_mode,
         queue=args.queue,
@@ -289,6 +295,15 @@ def main() -> None:
     run_task(
         submissions_config=submissions_config,
         task=args.task,
+    )
+
+
+def main() -> None:
+    """Run the submission."""
+    args = parse_arguments()
+
+    make_config_and_run_task(
+        args=args,
     )
 
 
