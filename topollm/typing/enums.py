@@ -27,7 +27,7 @@
 
 """Enums used in the configuration classes."""
 
-from enum import Enum, IntEnum, auto, unique
+from enum import Enum, IntEnum, StrEnum, auto, unique
 
 try:
     # Try to import StrEnum from the standard library (Python 3.11 and later)
@@ -309,3 +309,18 @@ class PerplexityContainerSaveFormat(StrEnum):
     LIST_AS_PICKLE = auto()
     CONCATENATED_DATAFRAME_AS_CSV = auto()
     CONCATENATED_ARRAY_AS_ZARR = auto()
+
+
+class SubmissionMode(StrEnum):
+    """Submission mode for running scripts."""
+
+    LOCAL = auto()
+    HPC_SUBMISSION = auto()
+
+
+class Task(StrEnum):
+    """Enumeration of tasks."""
+
+    PIPELINE = auto()
+    PERPLEXITY = auto()
+    FINETUNING = auto()
