@@ -65,6 +65,9 @@ Edit the script `scripts/setup_environment.sh` with the correct paths and run it
 
 1. Set the correct environment variables in the `.env` file in the project root directory.
 
+1. For setting up the repository to support job submissions to the HHU Hilbert HPC, follow the instructions here: [https://gitlab.cs.uni-duesseldorf.de/dsml/HydraHPCLauncher].
+Submission scripts are located in the `topollm/scripts/submission_scripts` directory.
+
 ## Project Structure
 
 ### Config file management
@@ -96,10 +99,10 @@ If you run the commands from the command line, make sure to activate the poetry 
 poetry shell
 ```
 
-### Computing and storing embeddings
-
-In the directory `topollm/compute_embeddings`, call the embedding script:
+You can also check the `[tool.poetry.scripts]` block in the `pyproject.toml` file for available entry points. For example, the following commands give access to the main entry points:
 
 ```bash
-python3 run_compute_embeddings.py
+poetry run pipeline_local_estimates # This runs the full pipeline embedding -> embeddings_data_prep -> compute local estimates
+poetry run compute_perplexity
+poetry run finetune_language_model
 ```
