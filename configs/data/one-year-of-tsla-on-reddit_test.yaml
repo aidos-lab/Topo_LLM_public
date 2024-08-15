@@ -3,4 +3,4 @@ defaults:
   - _self_
 
 number_of_samples: 3000
-split: validation
+split: test

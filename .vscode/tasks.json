@@ -75,7 +75,7 @@
         },
         {
             "label": "submit_jobs pipeline",
-            "command": "poetry run submit_jobs --task=pipeline --submission_mode=local",
+            "command": "poetry run submit_jobs --task=pipeline --submission_mode=hpc_submission --queue=DSML --template=DSML",
             "type": "shell",
             "group": {
                 "kind": "build",

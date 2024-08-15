@@ -1,5 +1,5 @@
 defaults:
-  - .@_here_: one-year-of-tsla-on-reddit
+  - .@_here_: sgd
   - _self_
 
 number_of_samples: 3000

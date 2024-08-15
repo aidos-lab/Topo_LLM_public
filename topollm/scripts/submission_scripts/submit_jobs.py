@@ -60,18 +60,42 @@ class SubmissionConfig(BaseModel):
 
     # Common parameters
     add_prefix_space: bool = False
-    data_lists: list[str] = Field(
+    data_list: list[str] = Field(
         default_factory=lambda: [
-            "multiwoz21_validation",
+            "iclr_2024_submissions_validation",
+            "iclr_2024_submissions_test",
+            # "multiwoz21_train",
+            # "multiwoz21_validation",
+            # "multiwoz21_test",
+            # "one-year-of-tsla-on-reddit_validation",
+            # "one-year-of-tsla-on-reddit_test",
+            # "sgd_validation",
+            # "sgd_test",
         ],
     )
-    language_models: list[str] = Field(
+    language_model_list: list[str] = Field(
         default_factory=lambda: [
             "roberta-base",
+            # "model-roberta-base_task-MASKED_LM_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
+            # "model-roberta-base_task-MASKED_LM_iclr_2024_submissions-train-5000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
+            # "model-roberta-base_task-MASKED_LM_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
+            # "model-roberta-base_task-MASKED_LM_wikitext-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
         ],
     )
-    layer_indices_list: str | None = "[-1]"
+
+    # The following line are checkpoints from 400 to 2800 (for ep-5 and batch size 8)
+    # ADDITIONAL_OVERRIDES+=" language_model.checkpoint_no=400,800,1200,1600,2000,2400,2800"
+
+    # The following line are checkpoints from 400 to 15600 (for ep-50 and batch size 16)
+    # ADDITIONAL_OVERRIDES+=" language_model.checkpoint_no=400,800,1200,1600,2000,2400,2800,3200,3600,4000,4400,4800,5200,5600,6000,6400,6800,7200,7600,8000,8400,8800,9200,9600,10000,10400,10800,11200,11600,12000,12400,12800,13200,13600,14000,14400,14800,15200,15600"
+
+    # The following line are checkpoints from 400 to 31200 (for ep-50 and batch size 8)
+    # ADDITIONAL_OVERRIDES+=" language_model.checkpoint_no=400,800,1200,1600,2000,2400,2800,3200,3600,4000,4400,4800,5200,5600,6000,6400,6800,7200,7600,8000,8400,8800,9200,9600,10000,10400,10800,11200,11600,12000,12400,12800,13200,13600,14000,14400,14800,15200,15600,16000,16400,16800,17200,17600,18000,18400,18800,19200,19600,20000,20400,20800,21200,21600,22000,22400,22800,23200,23600,24000,24400,24800,25200,25600,26000,26400,26800,27200,27600,28000,28400,28800,29200,29600,30000,30400,30800,31200"
+
+    layer_indices: str | None = "[-1]"
+    # layer_indices: str | None = "[-1],[-5],[-9]"
     embeddings_data_prep_num_samples: str | None = "30000"
+    embeddings_data_prep_sampling_mode: str | None = "take_first"
     additional_overrides: str | None = ""
 
     # Finetuning-specific parameters
@@ -136,16 +160,25 @@ class SubmissionConfig(BaseModel):
                     str(self.relative_python_script_path),
                     "--multirun",
                     "hydra/sweeper=basic",
-                    f"data={','.join(self.data_lists)}",
-                    f"language_model={','.join(self.language_models)}",
+                    f"data={','.join(self.data_list)}",
+                    f"language_model={','.join(self.language_model_list)}",
                     f"tokenizer.add_prefix_space={self.add_prefix_space}",
                 ]
 
-                if self.layer_indices_list:
-                    command.append(f"embeddings.embedding_extraction.layer_indices={self.layer_indices_list}")
+                if self.layer_indices:
+                    command.append(
+                        f"embeddings.embedding_extraction.layer_indices={self.layer_indices}",
+                    )
 
                 if self.embeddings_data_prep_num_samples:
-                    command.append(f"embeddings_data_prep.sampling.num_samples={self.embeddings_data_prep_num_samples}")
+                    command.append(
+                        f"embeddings_data_prep.sampling.num_samples={self.embeddings_data_prep_num_samples}",
+                    )
+
+                if self.embeddings_data_prep_sampling_mode:
+                    command.append(
+                        f"+embeddings_data_prep.sampling.sampling_mode={self.embeddings_data_prep_sampling_mode}",
+                    )
             case Task.PERPLEXITY:
                 command = [
                     "poetry",
@@ -154,8 +187,8 @@ class SubmissionConfig(BaseModel):
                     str(self.relative_python_script_path),
                     "--multirun",
                     "hydra/sweeper=basic",
-                    f"data={','.join(self.data_lists)}",
-                    f"language_model={','.join(self.language_models)}",
+                    f"data={','.join(self.data_list)}",
+                    f"language_model={','.join(self.language_model_list)}",
                     f"tokenizer.add_prefix_space={self.add_prefix_space}",
                 ]
             case Task.FINETUNING:
@@ -165,6 +198,7 @@ class SubmissionConfig(BaseModel):
                     "python3",
                     str(self.relative_python_script_path),
                     "--multirun",
+                    "hydra/sweeper=basic",
                     f"finetuning/base_model={','.join(self.base_model_list)}",
                     f"finetuning.num_train_epochs={self.num_train_epochs}",
                     f"finetuning.lr_scheduler_type={self.lr_scheduler_type}",
