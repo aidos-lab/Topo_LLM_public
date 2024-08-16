@@ -158,8 +158,6 @@ def twonn_worker(
                 500,
                 1_000,
                 5_000,
-                10_000,
-                None,
             ],
             desc="Creating projection plots",
         ):

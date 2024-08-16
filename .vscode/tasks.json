@@ -74,6 +74,20 @@
             }
         },
         {
+            "label": "rsync data/embeddings/perplexity to local repository folder from HHU Hilbert",
+            "command": "./topollm/scripts/hhu_hilbert/sync_data/rsync_perplexity_dir_from_hhu_hilbert.sh",
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": false,
+            }
+        },
+        {
             "label": "submit_jobs pipeline",
             "command": "poetry run submit_jobs --task=pipeline --submission_mode=hpc_submission --queue=DSML --template=DSML",
             "type": "shell",

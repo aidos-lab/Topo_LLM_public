@@ -121,7 +121,7 @@ class EmbeddingsPathManager(Protocol):
 
     def get_aligned_df_save_path(
         self,
-        aligned_df_file_name: str,
+        file_name: str,
     ) -> pathlib.Path: ...  # pragma: no cover
 
     def get_correlation_results_df_save_path(
@@ -131,10 +131,10 @@ class EmbeddingsPathManager(Protocol):
 
     def get_aligned_histograms_plot_save_path(
         self,
-        plot_name: str,
+        file_name: str,
     ) -> pathlib.Path: ...  # pragma: no cover
 
     def get_aligned_scatter_plot_save_path(
         self,
-        plot_name: str,
+        file_name: str,
     ) -> pathlib.Path: ...  # pragma: no cover
