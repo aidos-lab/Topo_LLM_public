@@ -101,10 +101,10 @@ def main(
     )
     main_config_for_local_estimates.embeddings.embedding_extraction.layer_indices = local_estimates_layer_indices
 
-    if main_config_for_local_estimates.data.dataset_description_string == "multiwoz21":
-        main_config_for_local_estimates.data.number_of_samples = 3000
-    else:
-        main_config_for_local_estimates.data.number_of_samples = -1
+    # if main_config_for_local_estimates.data.dataset_description_string == "multiwoz21":
+    #     main_config_for_local_estimates.data.number_of_samples = 3000
+    # else:
+    #     main_config_for_local_estimates.data.number_of_samples = -1
 
     aligned_local_estimates_data_container: AlignedLocalEstimatesDataContainer | None = (
         load_perplexity_and_local_estimates_and_align(

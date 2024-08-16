@@ -41,6 +41,7 @@ class SubmissionConfig(BaseModel):
     # Submission parameters
     queue: str | None = "DSML"
     template: str | None = "DSML"
+    memory: str | None = "64"
     submission_mode: SubmissionMode = SubmissionMode.HPC_SUBMISSION
 
     # Common parameters
@@ -195,6 +196,7 @@ class SubmissionConfig(BaseModel):
                     f"hydra/launcher={self.submission_mode.value}",
                     f"hydra.launcher.queue={self.queue}",
                     f"hydra.launcher.template={self.template}",
+                    f"hydra.launcher.memory={self.memory}",
                 ],
             )
 

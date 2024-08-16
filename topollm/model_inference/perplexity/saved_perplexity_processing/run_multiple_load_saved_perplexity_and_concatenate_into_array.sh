@@ -9,18 +9,34 @@ PYTHON_SCRIPT_NAME="run_single_setup_load_saved_perplexity_and_local_estimates_a
 # ==================================================== #
 # Select the parameters here
 
-DATA_LIST="iclr_2024_submissions_test,iclr_2024_submissions_validation"
+datas=(
+    "iclr_2024_submissions_test"
+    "iclr_2024_submissions_validation"
+    "multiwoz21_test"
+    "multiwoz21_validation"
+    "one-year-of-tsla-on-reddit_test"
+    "one-year-of-tsla-on-reddit_validation"
+    "sgd_test"
+    "sgd_validation"
+    "wikitext_test"
+    "wikitext_validation"
+)
+
+DATA_LIST=$(IFS=,; echo "${datas[*]}")
 
 language_models=(
-    "roberta-base"
+    # "roberta-base"
     # "model-roberta-base_task-MASKED_LM_iclr_2024_submissions-train-5000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
     "model-roberta-base_task-MASKED_LM_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
     "model-roberta-base_task-MASKED_LM_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
     # "model-roberta-base_task-MASKED_LM_wikitext-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
 )
 
-# LANGUAGE_MODEL_LIST="roberta-base"
-LANGUAGE_MODEL_LIST="model-roberta-base_task-MASKED_LM_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5,model-roberta-base_task-MASKED_LM_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
+LANGUAGE_MODEL_LIST=$(IFS=,; echo "${language_models[*]}")
+
+echo "DATA_LIST: $DATA_LIST"
+echo "LANGUAGE_MODEL_LIST: $LANGUAGE_MODEL_LIST"
+
 
 LAYER_INDICES_LIST="[-1]"
 # LAYER_INDICES_LIST="[-5]"
@@ -41,6 +57,7 @@ poetry run python3 $PYTHON_SCRIPT_NAME \
     --multirun \
     data=$DATA_LIST \
     language_model=$LANGUAGE_MODEL_LIST \
+    ++language_model.checkpoint_no=400,1200,2000,2800 \
     embeddings.embedding_extraction.layer_indices=$LAYER_INDICES_LIST \
     embeddings_data_prep.sampling.num_samples=$EMBEDDINGS_DATA_PREP_NUM_SAMPLES \
     +embeddings_data_prep.sampling.sampling_mode="take_first" \
