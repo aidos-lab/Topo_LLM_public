@@ -32,6 +32,7 @@ import logging
 import huggingface_hub
 import pandas as pd
 import transformers
+from huggingface_hub.errors import HFValidationError
 
 from topollm.analysis.local_estimates.saving.local_estimates_containers import LocalEstimatesContainer
 from topollm.analysis.local_estimates.saving.save_local_estimates import load_local_estimates
@@ -120,7 +121,7 @@ def load_perplexity_and_local_estimates_and_align(
     # # # # # # # # # # # # # # # # # # # #
     # Compute and save summary statistics
 
-    tokenizer = load_tokenizer_with_roberta_fallback(
+    tokenizer = load_tokenizer_with_fallback(
         main_config=main_config_for_perplexity,
         verbosity=verbosity,
         logger=logger,
@@ -263,12 +264,13 @@ def create_aligned_df(
     return aligned_df
 
 
-def load_tokenizer_with_roberta_fallback(
+def load_tokenizer_with_fallback(
     main_config: MainConfig,
+    fallback_pretrained_model_name_or_path: str = "roberta-base",
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> TransformersTokenizer:
-    """Load the tokenizer with a fallback to "roberta-base"."""
+    """Load the tokenizer with a fallback to `fallback_pretrained_model_name_or_path`."""
     try:
         tokenizer, _ = load_modified_tokenizer_from_main_config(
             main_config=main_config,
@@ -276,15 +278,24 @@ def load_tokenizer_with_roberta_fallback(
             logger=logger,
         )
     except (
-        huggingface_hub.exceptions.ModelHubError,
+        HFValidationError,
         FileNotFoundError,
-    ):
+        OSError,  # Add OSError to handle issues with paths or files
+    ) as e:
         logger.exception(
-            "Could not load the tokenizer.",
+            "Could not load the tokenizer from the provided configuration. Falling back to 'roberta-base'."
         )
-        # Use "roberta-base" as a fallback
-        tokenizer = transformers.AutoTokenizer.from_pretrained(
-            "roberta-base",
-        )
+        try:
+            tokenizer = transformers.AutoTokenizer.from_pretrained(
+                fallback_pretrained_model_name_or_path,
+            )
+            logger.info(
+                f"Successfully loaded fallback tokenizer {fallback_pretrained_model_name_or_path = }.",  # noqa: G004 - low overhead
+            )
+        except Exception as fallback_error:
+            logger.exception(
+                f"Fallback to {fallback_pretrained_model_name_or_path = } failed.",  # noqa: G004 - low overhead
+            )
+            raise fallback_error from e
 
     return tokenizer

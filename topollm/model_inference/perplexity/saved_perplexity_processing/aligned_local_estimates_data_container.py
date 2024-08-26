@@ -129,7 +129,7 @@ class AlignedLocalEstimatesDataContainer:
             # # # #
             # Save the current_df to a csv file
             current_df_save_path = self.embeddings_path_manager.get_aligned_df_save_path(
-                aligned_df_file_name=f"{current_df_description}.csv",
+                file_name=f"{current_df_description}.csv",
             )
             current_df_save_path.parent.mkdir(
                 parents=True,
@@ -154,7 +154,7 @@ class AlignedLocalEstimatesDataContainer:
             # # # #
             # Save the statistics of the current_df to a csv file
             current_df_statistics_save_path = self.embeddings_path_manager.get_aligned_df_save_path(
-                aligned_df_file_name=f"{current_df_description}_statistics.csv",
+                file_name=f"{current_df_description}_statistics.csv",
             )
             current_df_statistics_save_path.parent.mkdir(
                 parents=True,
@@ -268,7 +268,7 @@ class AlignedLocalEstimatesDataContainer:
     ) -> None:
         """Save the scatterplot to a file."""
         save_path = self.embeddings_path_manager.get_aligned_scatter_plot_save_path(
-            plot_name=f"{description}.pdf",
+            file_name=f"{description}.pdf",
         )
 
         if self.verbosity >= Verbosity.NORMAL:
@@ -375,7 +375,7 @@ class AlignedLocalEstimatesDataContainer:
     ) -> None:
         """Save the histograms to a file."""
         save_path = self.embeddings_path_manager.get_aligned_histograms_plot_save_path(
-            plot_name=f"{description}.pdf",
+            file_name=f"{description}.pdf",
         )
 
         if self.verbosity >= Verbosity.NORMAL:

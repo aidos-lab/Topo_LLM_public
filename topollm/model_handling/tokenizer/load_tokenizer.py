@@ -54,10 +54,16 @@ def load_tokenizer(
             f"Loading tokenizer {pretrained_model_name_or_path = } ...",  # noqa: G004 - low overhead
         )
 
-    tokenizer = AutoTokenizer.from_pretrained(
-        pretrained_model_name_or_path=pretrained_model_name_or_path,
-        add_prefix_space=tokenizer_config.add_prefix_space,
-    )
+    try:
+        tokenizer = AutoTokenizer.from_pretrained(
+            pretrained_model_name_or_path=pretrained_model_name_or_path,
+            add_prefix_space=tokenizer_config.add_prefix_space,
+        )
+    except Exception as e:
+        logger.exception(
+            f"Failed to load tokenizer {pretrained_model_name_or_path = }",  # noqa: G004 - low overhead
+        )
+        raise
 
     if verbosity >= Verbosity.NORMAL:
         logger.info(

@@ -2,5 +2,5 @@ defaults:
   - .@_here_: iclr_2024_submissions
   - _self_
 
-split: validation
+split: test
 number_of_samples: -1
