@@ -59,9 +59,7 @@ setup_omega_conf()
 
 @dataclass
 class AlignedDFMetadata:
-    """
-    A dataclass that holds metadata extracted from the file path of an aligned_df.csv file.
-    """
+    """Dataclass that holds metadata extracted from the file path of an aligned_df.csv file."""
 
     dataset: str | None = None
     model: str | None = None
@@ -71,18 +69,20 @@ class AlignedDFMetadata:
     def from_path(
         file_path: os.PathLike,
     ) -> "AlignedDFMetadata":
-        """
-        Extracts metadata from the given file path.
+        """Extract metadata from the given file path.
 
         Args:
+        ----
             file_path (str): The full path to an aligned_df.csv file.
 
         Returns:
+        -------
             AlignedDFMetadata: An instance of AlignedDFMetadata with extracted metadata.
-        """
-        file_path_str = str(file_path)
 
-        components = file_path_str.split(os.sep)
+        """
+        file_path = pathlib.Path(file_path)
+
+        components = file_path.parts
         dataset, model, checkpoint = None, None, None
 
         for component in components:
@@ -95,16 +95,34 @@ class AlignedDFMetadata:
 
         return AlignedDFMetadata(dataset=dataset, model=model, checkpoint=checkpoint)
 
+    def model_without_checkpoint(self) -> str | None:
+        """Return the model identifier without the checkpoint, but includes any suffix after the checkpoint.
+
+        Returns
+        -------
+            str | None: The model identifier without the checkpoint.
+
+        """
+        if self.model:
+            parts = self.model.split("_ckpt-")
+            if len(parts) > 1:
+                # Reassemble the model string without the checkpoint but include the part after it
+                return f"{parts[0]}_{parts[1].split('_', 1)[1]}"
+            return parts[0]
+        return None
+
 
 @dataclass
 class AlignedDF:
-    """Dataclass that holds the path to an aligned_df.csv file, the associated DataFrame,
-    and metadata extracted from the file path.
-    """
+    """Dataclass that holds the path to an aligned_df.csv file, the associated DataFrame, and metadata extracted from the file path."""
 
     file_path: pathlib.Path
-    dataframe: pd.DataFrame = field(init=False)
-    metadata: AlignedDFMetadata = field(init=False)
+    dataframe: pd.DataFrame = field(
+        init=False,
+    )
+    metadata: AlignedDFMetadata = field(
+        init=False,
+    )
 
     def __post_init__(self) -> None:
         self.dataframe = pd.read_csv(self.file_path)
@@ -115,18 +133,63 @@ class AlignedDF:
 class AlignedDFCollection:
     """Dataclass to manage a collection of AlignedDF objects for analysis."""
 
-    aligned_dfs: list[AlignedDF] = field(default_factory=list)
+    aligned_dfs: list[AlignedDF] = field(
+        default_factory=list,
+    )
 
-    def add_aligned_df(self, aligned_df: AlignedDF) -> None:
+    def __len__(self) -> int:
+        """Return the number of AlignedDF objects in the collection."""
+        return len(self.aligned_dfs)
+
+    def __getitem__(
+        self,
+        index: int,
+    ) -> AlignedDF:
+        """Return the AlignedDF object at the given index."""
+        return self.aligned_dfs[index]
+
+    def add_aligned_df(
+        self,
+        aligned_df: AlignedDF,
+    ) -> None:
         self.aligned_dfs.append(aligned_df)
 
-    def filter_by_model(self, model_name: str) -> list[AlignedDF]:
+    def filter_by_model(
+        self,
+        model_name: str,
+    ) -> list[AlignedDF]:
         return [df for df in self.aligned_dfs if df.metadata.model == model_name]
 
-    def filter_by_dataset(self, dataset_name: str) -> list[AlignedDF]:
+    def filter_by_dataset(
+        self,
+        dataset_name: str,
+    ) -> list[AlignedDF]:
         return [df for df in self.aligned_dfs if df.metadata.dataset == dataset_name]
 
-    def filter_by_checkpoint(self, checkpoint: str) -> list[AlignedDF]:
+    def filter_by_dataset_and_model(
+        self,
+        dataset_name: str,
+        model_without_ckpt: str,
+    ) -> list[AlignedDF]:
+        """Filter AlignedDF objects by dataset name and model identifier without checkpoint.
+
+        Args:
+            dataset_name (str): The name of the dataset.
+            model_without_ckpt (str): The model identifier without the checkpoint.
+
+        Returns:
+            list[AlignedDF]: A list of filtered AlignedDF objects.
+        """
+        return [
+            df
+            for df in self.aligned_dfs
+            if df.metadata.dataset == dataset_name and df.metadata.model_without_checkpoint() == model_without_ckpt
+        ]
+
+    def filter_by_checkpoint(
+        self,
+        checkpoint: str,
+    ) -> list[AlignedDF]:
         return [df for df in self.aligned_dfs if df.metadata.checkpoint == checkpoint]
 
     def get_aggregated_statistics(self) -> pd.DataFrame:
@@ -138,12 +201,16 @@ class AlignedDFCollection:
         aggregated_data = []
         for df in self.aligned_dfs:
             stats = df.dataframe.describe().transpose()
-            stats["Dataset"] = df.metadata.dataset
-            stats["Model"] = df.metadata.model
-            stats["Checkpoint"] = df.metadata.checkpoint
+            stats["dataset"] = df.metadata.dataset
+            stats["model"] = df.metadata.model
+            stats["checkpoint"] = df.metadata.checkpoint
+            stats["model_without_checkpoint"] = df.metadata.model_without_checkpoint()
             aggregated_data.append(stats)
 
-        return pd.concat(aggregated_data, axis=0)
+        return pd.concat(
+            aggregated_data,
+            axis=0,
+        )
 
 
 def find_aligned_dfs(
@@ -185,6 +252,12 @@ def find_aligned_dfs(
             aligned_df_object = AlignedDF(
                 file_path=file_path,
             )
+
+            if verbosity >= Verbosity.NORMAL:
+                logger.info(
+                    f"{aligned_df_object.metadata = }",  # noqa: G004 - low overhead
+                )
+
             if aligned_df_object.metadata.dataset == dataset:
                 aligned_df_collection.add_aligned_df(
                     aligned_df=aligned_df_object,
@@ -257,8 +330,7 @@ def main(
         embeddings_path_manager.data_dir,
         "analysis/aligned_and_analyzed/twonn",
     )
-    dataset_name = "multiwoz21"
-    # TODO: This currently does not match the correct dataset name
+    dataset_name = "multiwoz21_split-validation_ctxt-dataset_entry_samples-3000_feat-col-ner_tags"
 
     output_plot_directory = pathlib.Path(
         embeddings_path_manager.saved_plots_dir_absolute_path,
@@ -269,9 +341,12 @@ def main(
         root_dir=root_directory,
         dataset=dataset_name,
     )
+    logger.info(
+        f"Found {len(aligned_df_collection) = } aligned_df.csv files.",  # noqa: G004 - low overhead
+    )
 
-    # TODO: Currently, we cannot filter for differnt checkpoints of the same model
     aggregated_statistics = aligned_df_collection.get_aggregated_statistics()
+    # TODO: Currently, we cannot filter for different checkpoints of the same model
 
     # Example: plot the mean comparison across checkpoints
     plot_statistics_comparison(
