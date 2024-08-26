@@ -310,12 +310,22 @@ class EmbeddingsPathManagerSeparateDirectories:
     # # # #
     # saved plots directories
 
-    def get_saved_plots_local_estimates_projection_dir_absolute_path(
+    @property
+    def saved_plots_dir_absolute_path(
         self,
     ) -> pathlib.Path:
         path = pathlib.Path(
             self.data_dir,
             "saved_plots",
+        )
+
+        return path
+
+    def get_saved_plots_local_estimates_projection_dir_absolute_path(
+        self,
+    ) -> pathlib.Path:
+        path = pathlib.Path(
+            self.saved_plots_dir_absolute_path,
             "local_estimates_projection",
             self.get_local_estimates_subfolder_path(),
         )
