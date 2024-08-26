@@ -294,27 +294,20 @@ def plot_statistics_comparison(
         y_limits:
             Optional. Set the fixed y-axis limits for the plot (min, max).
     """
-    # Replace non-finite values in checkpoint with -1
-    df["checkpoint"] = (
-        pd.to_numeric(
-            df["checkpoint"],
-            errors="coerce",
-        )
-        .fillna(-1)
-        .astype(int)
-    )
+    # Replace non-finite values in checkpoint with -1 and convert to int
+    df["checkpoint"] = pd.to_numeric(df["checkpoint"], errors="coerce").fillna(-1).astype(int)
+
+    # Sort by checkpoint to ensure smooth lines
+    df = df.sort_values(by="checkpoint")
 
     # Unique models to differentiate colors
     unique_models = df["model_without_checkpoint"].unique()
 
-    # Initialize the plot
-    plt.figure(figsize=(12, 8))
+    # Initialize the plot with a larger figure size for better readability in the PDF
+    plt.figure(figsize=(28, 20))
 
     # Define markers for different statistics
-    markers = {
-        "token_perplexity": "o",
-        "local_estimate": "s",
-    }
+    markers = {"token_perplexity": "o", "local_estimate": "s"}
 
     # Plot data for each model
     for model in unique_models:
@@ -324,7 +317,7 @@ def plot_statistics_comparison(
             model_df["token_perplexity"],
             marker=markers["token_perplexity"],
             linestyle="-",
-            label=f"{model} - token_perplexity",
+            label=f"{model} - perplexity",
         )
         plt.plot(
             model_df["checkpoint"],
@@ -346,9 +339,12 @@ def plot_statistics_comparison(
 
     plt.grid(True)
 
-    # Save the plot
-    output_path = f"{output_dir}/comparison_plot.pdf"
-    plt.savefig(output_path)
+    # Save the plot with increased size as PDF
+    output_path_pdf = f"{output_dir}/comparison_plot.pdf"
+    plt.savefig(
+        output_path_pdf,
+        format="pdf",
+    )
     plt.show()
 
 
@@ -380,7 +376,9 @@ def main(
         "aligned_and_analyzed",
         "twonn",
     )
-    dataset_name = "multiwoz21_split-validation_ctxt-dataset_entry_samples-3000_feat-col-ner_tags"
+
+    # dataset_name = "multiwoz21_split-validation_ctxt-dataset_entry_samples-3000_feat-col-ner_tags"
+    dataset_name = "multiwoz21_split-test_ctxt-dataset_entry_samples-3000_feat-col-ner_tags"
 
     output_plot_directory = pathlib.Path(
         embeddings_path_manager.saved_plots_dir_absolute_path,
@@ -402,7 +400,7 @@ def main(
 
     results_save_directory = pathlib.Path(
         output_plot_directory,
-        "dataset_name",
+        dataset_name,
         f"statistic-{statistic}",
     )
 
