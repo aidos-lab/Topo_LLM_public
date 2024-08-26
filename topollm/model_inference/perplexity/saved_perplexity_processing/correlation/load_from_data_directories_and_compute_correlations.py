@@ -192,25 +192,38 @@ class AlignedDFCollection:
     ) -> list[AlignedDF]:
         return [df for df in self.aligned_dfs if df.metadata.checkpoint == checkpoint]
 
-    def get_aggregated_statistics(self) -> pd.DataFrame:
-        """Aggregate the statistics from all loaded DataFrames.
+    def get_aggregated_statistics(
+        self,
+        statistic: str = "mean",
+    ) -> pd.DataFrame:
+        """Aggregate the statistics from all loaded DataFrames based on the selected statistic.
+
+        Args:
+            statistic (str): The statistic to aggregate (e.g., 'mean', 'std', 'min', 'max').
 
         Returns:
-            pd.DataFrame: Aggregated statistics for each checkpoint.
+            pd.DataFrame: Aggregated statistics for the selected statistic, with metadata.
         """
         aggregated_data = []
+
         for df in self.aligned_dfs:
             stats = df.dataframe.describe().transpose()
-            stats["dataset"] = df.metadata.dataset
-            stats["model"] = df.metadata.model
-            stats["checkpoint"] = df.metadata.checkpoint
-            stats["model_without_checkpoint"] = df.metadata.model_without_checkpoint()
-            aggregated_data.append(stats)
+            if statistic not in stats.columns:
+                raise ValueError(f"Statistic '{statistic}' is not available in the DataFrame.")
 
-        return pd.concat(
-            aggregated_data,
-            axis=0,
-        )
+            # Create a new DataFrame to hold the selected statistic and metadata
+            selected_stats = pd.DataFrame({column: [stats.at[column, statistic]] for column in stats.index})
+            selected_stats["dataset"] = df.metadata.dataset
+            selected_stats["model"] = df.metadata.model
+            selected_stats["checkpoint"] = df.metadata.checkpoint
+            selected_stats["model_without_checkpoint"] = df.metadata.model_without_checkpoint()
+
+            aggregated_data.append(selected_stats)
+
+        # Concatenate all statistics into a single DataFrame
+        result_df = pd.concat(aggregated_data, axis=0).reset_index(drop=True)
+
+        return result_df
 
 
 def find_aligned_dfs(
@@ -267,40 +280,75 @@ def find_aligned_dfs(
 
 
 def plot_statistics_comparison(
-    aggregated_stats: pd.DataFrame,
-    stat: str,
-    output_dir: os.PathLike,
+    df: pd.DataFrame,
+    output_dir: pathlib.Path,
+    y_limits: tuple[float, float] | None = None,
 ) -> None:
-    """Plot statistics comparison over different checkpoints.
+    """Plot token_perplexity and local_estimate over different checkpoints for different models.
 
     Args:
-    ----
-        aggregated_stats (pd.DataFrame): DataFrame with aggregated statistics.
-        stat (str): Statistic to compare (e.g., 'mean', 'std', etc.).
-        output_dir (str): Directory to save the plots.
-
+        df:
+            The DataFrame containing the aggregated statistics.
+        output_dir:
+            Directory to save the plots.
+        y_limits:
+            Optional. Set the fixed y-axis limits for the plot (min, max).
     """
-    plt.figure(figsize=(10, 6))
-    for column in aggregated_stats.columns[:-3]:  # Exclude 'Dataset', 'Model', and 'Checkpoint' columns
+    # Replace non-finite values in checkpoint with -1
+    df["checkpoint"] = (
+        pd.to_numeric(
+            df["checkpoint"],
+            errors="coerce",
+        )
+        .fillna(-1)
+        .astype(int)
+    )
+
+    # Unique models to differentiate colors
+    unique_models = df["model_without_checkpoint"].unique()
+
+    # Initialize the plot
+    plt.figure(figsize=(12, 8))
+
+    # Define markers for different statistics
+    markers = {
+        "token_perplexity": "o",
+        "local_estimate": "s",
+    }
+
+    # Plot data for each model
+    for model in unique_models:
+        model_df = df[df["model_without_checkpoint"] == model]
         plt.plot(
-            aggregated_stats["Checkpoint"],
-            aggregated_stats.loc[aggregated_stats.index == stat, column],
-            marker="o",
-            label=column,
+            model_df["checkpoint"],
+            model_df["token_perplexity"],
+            marker=markers["token_perplexity"],
+            linestyle="-",
+            label=f"{model} - token_perplexity",
+        )
+        plt.plot(
+            model_df["checkpoint"],
+            model_df["local_estimate"],
+            marker=markers["local_estimate"],
+            linestyle="--",
+            label=f"{model} - local estimate",
         )
 
-    plt.title(f"Comparison of {stat} across Checkpoints")
+    # Set labels and title
     plt.xlabel("Checkpoint")
-    plt.ylabel(stat)
-    plt.legend(title="Feature")
+    plt.ylabel("Value")
+    plt.title("Token Perplexity and Local Estimate Comparison Over Checkpoints")
+    plt.legend()
+
+    # Apply fixed scale if provided
+    if y_limits:
+        plt.ylim(y_limits)
+
     plt.grid(True)
-    plt.xticks(rotation=45)
-    plt.tight_layout()
 
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
-
-    plt.savefig(os.path.join(output_dir, f"{stat}_comparison.png"))
+    # Save the plot
+    output_path = f"{output_dir}/comparison_plot.pdf"
+    plt.savefig(output_path)
     plt.show()
 
 
@@ -328,7 +376,9 @@ def main(
 
     root_directory = pathlib.Path(
         embeddings_path_manager.data_dir,
-        "analysis/aligned_and_analyzed/twonn",
+        "analysis",
+        "aligned_and_analyzed",
+        "twonn",
     )
     dataset_name = "multiwoz21_split-validation_ctxt-dataset_entry_samples-3000_feat-col-ner_tags"
 
@@ -345,14 +395,35 @@ def main(
         f"Found {len(aligned_df_collection) = } aligned_df.csv files.",  # noqa: G004 - low overhead
     )
 
-    aggregated_statistics = aligned_df_collection.get_aggregated_statistics()
-    # TODO: Currently, we cannot filter for different checkpoints of the same model
+    statistic = "mean"
+    aggregated_statistics = aligned_df_collection.get_aggregated_statistics(
+        statistic=statistic,
+    )
+
+    results_save_directory = pathlib.Path(
+        output_plot_directory,
+        "dataset_name",
+        f"statistic-{statistic}",
+    )
+
+    # # # #
+    # Save the aggregated statistics to a CSV file
+    aggregated_statistics_save_path = pathlib.Path(
+        results_save_directory,
+        "aggregated_statistics.csv",
+    )
+    aggregated_statistics_save_path.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+    aggregated_statistics.to_csv(
+        aggregated_statistics_save_path,
+    )
 
     # Example: plot the mean comparison across checkpoints
     plot_statistics_comparison(
-        aggregated_statistics,
-        "mean",
-        output_plot_directory,
+        df=aggregated_statistics,
+        output_dir=results_save_directory,
     )
 
 
