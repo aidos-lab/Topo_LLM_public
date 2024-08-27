@@ -85,29 +85,52 @@ def compute_and_save_correlation_results_via_mapping_on_all_input_columns(
 
     for method, func in methods.items():
         # Compute correlation and p-values in a vectorized manner
-        corr_df = only_correlation_columns_df.corr(method=method)
-        pval_df = only_correlation_columns_df.corr(method=lambda x, y: func(x, y)[1])
+        corr_df = only_correlation_columns_df.corr(
+            method=method,  # type: ignore - corr can accept a callable
+        )
+        pval_df = only_correlation_columns_df.corr(
+            method=lambda x, y, func=func: func(x, y)[1],  # type: ignore - corr can accept a callable
+        )
 
         if verbosity >= Verbosity.NORMAL:
-            logger.info(f"correlation_results_df using '{method}':\n{corr_df}")
-            logger.info(f"p_value_results_df using '{method}':\n{pval_df}")
+            logger.info(
+                f"correlation_results_df using '{method}':\n{corr_df}",  # noqa: G004 - low overhead
+            )
+            logger.info(
+                f"p_value_results_df using '{method}':\n{pval_df}",  # noqa: G004 - low overhead
+            )
 
         # Save correlation and p-value DataFrames to CSV files
-        corr_df_save_path = pathlib.Path(output_directory, f"correlation_results_df_{method}.csv")
-        pval_df_save_path = pathlib.Path(output_directory, f"p_value_results_df_{method}.csv")
+        corr_df_save_path = pathlib.Path(
+            output_directory,
+            f"correlation_results_df_{method}.csv",
+        )
+        pval_df_save_path = pathlib.Path(
+            output_directory,
+            f"p_value_results_df_{method}.csv",
+        )
 
-        corr_df_save_path.parent.mkdir(parents=True, exist_ok=True)
+        corr_df_save_path.parent.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
 
         if verbosity >= Verbosity.NORMAL:
-            logger.info(f"Saving correlation_results_df to {corr_df_save_path}")
+            logger.info(
+                f"Saving correlation_results_df to {corr_df_save_path}",  # noqa: G004 - low overhead
+            )
         corr_df.to_csv(corr_df_save_path)
 
         if verbosity >= Verbosity.NORMAL:
-            logger.info(f"Saving p_value_results_df to {pval_df_save_path}")
+            logger.info(
+                f"Saving p_value_results_df to {pval_df_save_path}",  # noqa: G004 - low overhead
+            )
         pval_df.to_csv(pval_df_save_path)
 
         if verbosity >= Verbosity.NORMAL:
-            logger.info(f"Saving correlation_results_df and p_value_results_df using '{method}' to CSV files DONE")
+            logger.info(
+                f"Saving correlation_results_df and p_value_results_df using '{method}' to CSV files DONE",  # noqa: G004 - low overhead
+            )
 
 
 def compute_and_save_correlation_results_via_corr_on_all_input_columns(
