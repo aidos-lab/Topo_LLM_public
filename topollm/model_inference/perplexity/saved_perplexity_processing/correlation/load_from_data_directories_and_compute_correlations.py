@@ -26,26 +26,28 @@
 
 """Load aligned_df.csv files from a directory and compute aggregated statistics for comparison."""
 
-import itertools
 import logging
 import os
 import pathlib
-from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 import hydra
 import hydra.core.hydra_config
-import matplotlib.pyplot as plt
 import omegaconf
-import pandas as pd
 from tqdm import tqdm
 
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
+from topollm.model_inference.perplexity.saved_perplexity_processing.correlation.aligned_df_containers import (
+    AlignedDF,
+    AlignedDFCollection,
+)
+from topollm.model_inference.perplexity.saved_perplexity_processing.correlation.plot_statistics_comparison import (
+    plot_statistics_comparison,
+)
 from topollm.model_inference.perplexity.saved_perplexity_processing.correlation_analysis import (
-    compute_and_save_correlation_results_via_corr_on_all_input_columns,
     compute_and_save_correlation_results_via_mapping_on_all_input_columns,
 )
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
@@ -63,191 +65,7 @@ setup_exception_logging(
     logger=global_logger,
 )
 
-
 setup_omega_conf()
-
-
-@dataclass
-class AlignedDFMetadata:
-    """Dataclass that holds metadata extracted from the file path of an aligned_df.csv file."""
-
-    dataset: str | None = None
-    model: str | None = None
-    checkpoint: str | None = None
-
-    @staticmethod
-    def from_path(
-        file_path: os.PathLike,
-    ) -> "AlignedDFMetadata":
-        """Extract metadata from the given file path.
-
-        Args:
-        ----
-            file_path (str): The full path to an aligned_df.csv file.
-
-        Returns:
-        -------
-            AlignedDFMetadata: An instance of AlignedDFMetadata with extracted metadata.
-
-        """
-        file_path = pathlib.Path(file_path)
-
-        components = file_path.parts
-        dataset, model, checkpoint = None, None, None
-
-        for component in components:
-            if "data-" in component:
-                dataset = component.split("data-")[-1]
-            if "model-" in component:
-                model = component.split("model-")[-1]
-            if "ckpt-" in component:
-                checkpoint = component.split("ckpt-")[-1].split("_")[0]
-
-        return AlignedDFMetadata(dataset=dataset, model=model, checkpoint=checkpoint)
-
-    def model_without_checkpoint(self) -> str | None:
-        """Return the model identifier without the checkpoint, but includes any suffix after the checkpoint.
-
-        Returns
-        -------
-            str | None: The model identifier without the checkpoint.
-
-        """
-        if self.model:
-            parts = self.model.split("_ckpt-")
-            if len(parts) > 1:
-                # Reassemble the model string without the checkpoint but include the part after it
-                return f"{parts[0]}_{parts[1].split('_', 1)[1]}"
-            return parts[0]
-        return None
-
-
-@dataclass
-class AlignedDF:
-    """Dataclass that holds the path to an aligned_df.csv file, the associated DataFrame, and metadata extracted from the file path."""
-
-    file_path: pathlib.Path
-    dataframe: pd.DataFrame = field(
-        init=False,
-    )
-    metadata: AlignedDFMetadata = field(
-        init=False,
-    )
-
-    def __post_init__(self) -> None:
-        """Initialize the DataFrame and metadata from the file path."""
-        self.dataframe = pd.read_csv(
-            self.file_path,
-        )
-        self.metadata = AlignedDFMetadata.from_path(
-            self.file_path,
-        )
-
-
-@dataclass
-class AlignedDFCollection:
-    """Dataclass to manage a collection of AlignedDF objects for analysis."""
-
-    aligned_dfs: list[AlignedDF] = field(
-        default_factory=list,
-    )
-
-    def __len__(self) -> int:
-        """Return the number of AlignedDF objects in the collection."""
-        return len(self.aligned_dfs)
-
-    def __getitem__(
-        self,
-        index: int,
-    ) -> AlignedDF:
-        """Return the AlignedDF object at the given index."""
-        return self.aligned_dfs[index]
-
-    def add_aligned_df(
-        self,
-        aligned_df: AlignedDF,
-    ) -> None:
-        self.aligned_dfs.append(aligned_df)
-
-    def filter_by_model(
-        self,
-        model_name: str,
-    ) -> list[AlignedDF]:
-        return [df for df in self.aligned_dfs if df.metadata.model == model_name]
-
-    def filter_by_dataset(
-        self,
-        dataset_name: str,
-    ) -> list[AlignedDF]:
-        return [df for df in self.aligned_dfs if df.metadata.dataset == dataset_name]
-
-    def filter_by_dataset_and_model(
-        self,
-        dataset_name: str,
-        model_without_ckpt: str,
-    ) -> list[AlignedDF]:
-        """Filter AlignedDF objects by dataset name and model identifier without checkpoint.
-
-        Args:
-        ----
-            dataset_name (str): The name of the dataset.
-            model_without_ckpt (str): The model identifier without the checkpoint.
-
-        Returns:
-        -------
-            list[AlignedDF]: A list of filtered AlignedDF objects.
-
-        """
-        return [
-            df
-            for df in self.aligned_dfs
-            if df.metadata.dataset == dataset_name and df.metadata.model_without_checkpoint() == model_without_ckpt
-        ]
-
-    def filter_by_checkpoint(
-        self,
-        checkpoint: str,
-    ) -> list[AlignedDF]:
-        return [df for df in self.aligned_dfs if df.metadata.checkpoint == checkpoint]
-
-    def get_aggregated_statistics(
-        self,
-        statistic: str = "mean",
-    ) -> pd.DataFrame:
-        """Aggregate the statistics from all loaded DataFrames based on the selected statistic.
-
-        Args:
-        ----
-            statistic (str): The statistic to aggregate (e.g., 'mean', 'std', 'min', 'max').
-
-        Returns:
-        -------
-            pd.DataFrame: Aggregated statistics for the selected statistic, with metadata.
-
-        """
-        aggregated_data = []
-
-        for df in self.aligned_dfs:
-            stats = df.dataframe.describe().transpose()
-            if statistic not in stats.columns:
-                msg = f"{statistic = } is not available in the DataFrame."
-                raise ValueError(msg)
-
-            # Create a new DataFrame to hold the selected statistic and metadata
-            selected_stats = pd.DataFrame(
-                {column: [stats.at[column, statistic]] for column in stats.index},
-            )
-            selected_stats["dataset"] = df.metadata.dataset
-            selected_stats["model"] = df.metadata.model
-            selected_stats["checkpoint"] = df.metadata.checkpoint
-            selected_stats["model_without_checkpoint"] = df.metadata.model_without_checkpoint()
-
-            aggregated_data.append(selected_stats)
-
-        # Concatenate all statistics into a single DataFrame
-        result_df = pd.concat(aggregated_data, axis=0).reset_index(drop=True)
-
-        return result_df
 
 
 def find_aligned_dfs(
@@ -309,109 +127,78 @@ def find_aligned_dfs(
     return aligned_df_collection
 
 
-def plot_statistics_comparison(
-    df: pd.DataFrame,
-    output_dir: pathlib.Path,
-    y_limits: tuple[float, float] | None = None,
+def load_aligned_dfs_and_analyse_data(
+    root_directory: pathlib.Path,
+    output_directory: pathlib.Path,
+    dataset_name: str | None = None,
+    statistic: str = "mean",
     *,
     show_plot: bool = False,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
 ) -> None:
-    """Plot token_perplexity and local_estimate over different checkpoints for different models.
-
-    Args:
-    ----
-        df:
-            The DataFrame containing the aggregated statistics.
-        output_dir:
-            Directory to save the plots.
-        y_limits:
-            Set the fixed y-axis limits for the plot (min, max).
-        show_plot:
-            Show the plot in a window.
-
-    """
-    # Replace non-finite values in checkpoint with -1 and convert to int
-    df["checkpoint"] = pd.to_numeric(df["checkpoint"], errors="coerce").fillna(-1).astype(int)
-
-    # Sort by checkpoint to ensure smooth lines
-    df = df.sort_values(
-        by="checkpoint",
+    """Load aligned_df.csv files from a directory and compute aggregated statistics for comparison."""
+    results_save_directory = pathlib.Path(
+        output_directory,
+        str(dataset_name),
+        f"statistic-{statistic}",
     )
 
-    # Unique models to differentiate colors
-    unique_models = df["model_without_checkpoint"].unique()
-
-    # Initialize the plot with a larger figure size for better readability in the PDF
-    plt.figure(figsize=(28, 20))
-
-    # Define markers for different statistics
-    markers = {
-        "token_perplexity": "o",
-        "token_log_perplexity": "x",
-        "local_estimate": "s",
-    }
-
-    # Use itertools.cycle to iterate over a list of colors.
-    # Alternative: plt.cm.viridis.colors for a different palette
-    colors = itertools.cycle(plt.cm.tab10.colors)  # type: ignore - colormap is not found
-
-    # Plot data for each model
-    for model in unique_models:
-        model_df = df[df["model_without_checkpoint"] == model]
-
-        # Use the same color for all three plots of the same model
-        color = next(colors)
-
-        plt.plot(
-            model_df["checkpoint"],
-            model_df["token_perplexity"],
-            marker=markers["token_perplexity"],
-            linestyle="-",
-            label=f"{model} - token_perplexity",
-            color=color,
-        )
-        plt.plot(
-            model_df["checkpoint"],
-            model_df["token_log_perplexity"],
-            marker=markers["token_log_perplexity"],
-            linestyle="--",
-            label=f"{model} - token_log_perplexity",
-            color=color,
-        )
-        plt.plot(
-            model_df["checkpoint"],
-            model_df["local_estimate"],
-            marker=markers["local_estimate"],
-            linestyle="dotted",
-            label=f"{model} - local_estimate",
-            color=color,
-        )
-
-    # Set labels and title
-    plt.xlabel("Checkpoint")
-    plt.ylabel("Value")
-    plt.title("Token Perplexity and Local Estimate Comparison Over Checkpoints")
-    plt.legend()
-
-    # Apply fixed scale if provided
-    if y_limits:
-        plt.ylim(y_limits)
-
-    plt.grid(
-        visible=True,
+    aligned_df_collection: AlignedDFCollection = find_aligned_dfs(
+        root_dir=root_directory,
+        dataset=dataset_name,
+        verbosity=verbosity,
+        logger=logger,
+    )
+    logger.info(
+        f"Found {len(aligned_df_collection) = } aligned_df.csv files.",  # noqa: G004 - low overhead
     )
 
-    # Save the plot with increased size as PDF
-    output_path_pdf = pathlib.Path(
-        output_dir,
-        "comparison_plot.pdf",
+    aggregated_statistics = aligned_df_collection.get_aggregated_statistics(
+        statistic=statistic,
     )
-    plt.savefig(
-        output_path_pdf,
-        format="pdf",
+
+    # # # #
+    # Save the aggregated statistics to a CSV file
+    aggregated_statistics_save_path = pathlib.Path(
+        results_save_directory,
+        "aggregated_statistics.csv",
     )
-    if show_plot:
-        plt.show()
+    aggregated_statistics_save_path.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+    aggregated_statistics.to_csv(
+        aggregated_statistics_save_path,
+    )
+
+    # # # #
+    # Compute and save correlation matrices
+    correlation_columns = [
+        "token_perplexity",
+        "token_log_perplexity",
+        "local_estimate",
+    ]
+
+    correlation_results_save_directory = pathlib.Path(
+        results_save_directory,
+        "correlation_results",
+    )
+
+    compute_and_save_correlation_results_via_mapping_on_all_input_columns(
+        only_correlation_columns_df=aggregated_statistics[correlation_columns],
+        output_directory=correlation_results_save_directory,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+    # # # #
+    # Plot comparison across checkpoints
+    plot_statistics_comparison(
+        df=aggregated_statistics,
+        output_dir=results_save_directory,
+        show_plot=show_plot,
+    )
 
 
 @hydra.main(
@@ -478,75 +265,6 @@ def main(
         )
 
     logger.info("Running script DONE")
-
-
-def load_aligned_dfs_and_analyse_data(
-    root_directory: pathlib.Path,
-    output_directory: pathlib.Path,
-    dataset_name: str | None = None,
-    statistic: str = "mean",
-    *,
-    show_plot: bool = False,
-    verbosity: Verbosity = Verbosity.NORMAL,
-    logger: logging.Logger = default_logger,
-) -> None:
-    """Load aligned_df.csv files from a directory and compute aggregated statistics for comparison."""
-    results_save_directory = pathlib.Path(
-        output_directory,
-        str(dataset_name),
-        f"statistic-{statistic}",
-    )
-
-    aligned_df_collection: AlignedDFCollection = find_aligned_dfs(
-        root_dir=root_directory,
-        dataset=dataset_name,
-        verbosity=verbosity,
-        logger=logger,
-    )
-    logger.info(
-        f"Found {len(aligned_df_collection) = } aligned_df.csv files.",  # noqa: G004 - low overhead
-    )
-
-    aggregated_statistics = aligned_df_collection.get_aggregated_statistics(
-        statistic=statistic,
-    )
-
-    # # # #
-    # Save the aggregated statistics to a CSV file
-    aggregated_statistics_save_path = pathlib.Path(
-        results_save_directory,
-        "aggregated_statistics.csv",
-    )
-    aggregated_statistics_save_path.parent.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
-    aggregated_statistics.to_csv(
-        aggregated_statistics_save_path,
-    )
-
-    # # # #
-    # Compute and save correlation matrices
-    correlation_columns = [
-        "token_perplexity",
-        "token_log_perplexity",
-        "local_estimate",
-    ]
-
-    compute_and_save_correlation_results_via_mapping_on_all_input_columns(
-        only_correlation_columns_df=aggregated_statistics[correlation_columns],
-        output_directory=results_save_directory,
-        verbosity=verbosity,
-        logger=logger,
-    )
-
-    # # # #
-    # Plot comparison across checkpoints
-    plot_statistics_comparison(
-        df=aggregated_statistics,
-        output_dir=results_save_directory,
-        show_plot=show_plot,
-    )
 
 
 if __name__ == "__main__":
