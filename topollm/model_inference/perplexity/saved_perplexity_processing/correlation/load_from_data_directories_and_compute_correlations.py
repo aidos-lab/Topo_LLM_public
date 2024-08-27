@@ -26,6 +26,7 @@
 
 """Load aligned_df.csv files from a directory and compute aggregated statistics for comparison."""
 
+import itertools
 import logging
 import os
 import pathlib
@@ -34,10 +35,10 @@ from typing import TYPE_CHECKING
 
 import hydra
 import hydra.core.hydra_config
+import matplotlib
 import matplotlib.pyplot as plt
 import omegaconf
 import pandas as pd
-from scipy.__config__ import show
 from tqdm import tqdm
 
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
@@ -345,15 +346,23 @@ def plot_statistics_comparison(
         "local_estimate": "s",
     }
 
+    # Use itertools.cycle to iterate over a list of colors
+    colors = itertools.cycle(plt.cm.tab10.colors)  # or plt.cm.viridis.colors for a different palette
+
     # Plot data for each model
     for model in unique_models:
         model_df = df[df["model_without_checkpoint"] == model]
+
+        # Use the same color for all three plots of the same model
+        color = next(colors)
+
         plt.plot(
             model_df["checkpoint"],
             model_df["token_perplexity"],
             marker=markers["token_perplexity"],
             linestyle="-",
             label=f"{model} - token_perplexity",
+            color=color,
         )
         plt.plot(
             model_df["checkpoint"],
@@ -361,6 +370,7 @@ def plot_statistics_comparison(
             marker=markers["token_log_perplexity"],
             linestyle="--",
             label=f"{model} - token_log_perplexity",
+            color=color,
         )
         plt.plot(
             model_df["checkpoint"],
@@ -368,6 +378,7 @@ def plot_statistics_comparison(
             marker=markers["local_estimate"],
             linestyle="dotted",
             label=f"{model} - local_estimate",
+            color=color,
         )
 
     # Set labels and title
@@ -432,10 +443,16 @@ def main(
     )
 
     dataset_name_list = [
-        "multiwoz21_split-validation_ctxt-dataset_entry_samples-3000_feat-col-ner_tags",
+        "iclr_2024_submissions_split-test_ctxt-dataset_entry_samples--1_feat-col-ner_tags",
+        "iclr_2024_submissions_split-validation_ctxt-dataset_entry_samples--1_feat-col-ner_tags",
         "multiwoz21_split-test_ctxt-dataset_entry_samples-3000_feat-col-ner_tags",
-        "one-year-of-tsla-on-reddit_split-validation_ctxt-dataset_entry_samples-3000_feat-col-ner_tags",
+        "multiwoz21_split-validation_ctxt-dataset_entry_samples-3000_feat-col-ner_tags",
         "one-year-of-tsla-on-reddit_split-test_ctxt-dataset_entry_samples-3000_feat-col-ner_tags",
+        "one-year-of-tsla-on-reddit_split-validation_ctxt-dataset_entry_samples-3000_feat-col-ner_tags",
+        "sgd_split-test_ctxt-dataset_entry_samples-3000_feat-col-ner_tags",
+        "sgd_split-validation_ctxt-dataset_entry_samples-3000_feat-col-ner_tags",
+        "wikitext_split-test_ctxt-dataset_entry_samples--1_feat-col-ner_tags",
+        "wikitext_split-validation_ctxt-dataset_entry_samples--1_feat-col-ner_tags",
     ]
 
     statistic = "mean"
