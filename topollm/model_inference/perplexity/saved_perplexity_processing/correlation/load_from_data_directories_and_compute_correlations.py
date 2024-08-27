@@ -35,7 +35,6 @@ from typing import TYPE_CHECKING
 
 import hydra
 import hydra.core.hydra_config
-import matplotlib
 import matplotlib.pyplot as plt
 import omegaconf
 import pandas as pd
@@ -45,6 +44,10 @@ from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
+from topollm.model_inference.perplexity.saved_perplexity_processing.correlation_analysis import (
+    compute_and_save_correlation_results_via_corr_on_all_input_columns,
+    compute_and_save_correlation_results_via_mapping_on_all_input_columns,
+)
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
 from topollm.typing.enums import Verbosity
 
@@ -231,7 +234,9 @@ class AlignedDFCollection:
                 raise ValueError(msg)
 
             # Create a new DataFrame to hold the selected statistic and metadata
-            selected_stats = pd.DataFrame({column: [stats.at[column, statistic]] for column in stats.index})
+            selected_stats = pd.DataFrame(
+                {column: [stats.at[column, statistic]] for column in stats.index},
+            )
             selected_stats["dataset"] = df.metadata.dataset
             selected_stats["model"] = df.metadata.model
             selected_stats["checkpoint"] = df.metadata.checkpoint
@@ -247,7 +252,7 @@ class AlignedDFCollection:
 
 def find_aligned_dfs(
     root_dir: os.PathLike,
-    dataset: str,
+    dataset: str | None = None,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> AlignedDFCollection:
@@ -296,7 +301,7 @@ def find_aligned_dfs(
                     f"{aligned_df_object.metadata = }",  # noqa: G004 - low overhead
                 )
 
-            if aligned_df_object.metadata.dataset == dataset:
+            if aligned_df_object.metadata.dataset == dataset or dataset is None:
                 aligned_df_collection.add_aligned_df(
                     aligned_df=aligned_df_object,
                 )
@@ -346,8 +351,9 @@ def plot_statistics_comparison(
         "local_estimate": "s",
     }
 
-    # Use itertools.cycle to iterate over a list of colors
-    colors = itertools.cycle(plt.cm.tab10.colors)  # or plt.cm.viridis.colors for a different palette
+    # Use itertools.cycle to iterate over a list of colors.
+    # Alternative: plt.cm.viridis.colors for a different palette
+    colors = itertools.cycle(plt.cm.tab10.colors)  # type: ignore - colormap is not found
 
     # Plot data for each model
     for model in unique_models:
@@ -443,6 +449,7 @@ def main(
     )
 
     dataset_name_list = [
+        None,
         "iclr_2024_submissions_split-test_ctxt-dataset_entry_samples--1_feat-col-ner_tags",
         "iclr_2024_submissions_split-validation_ctxt-dataset_entry_samples--1_feat-col-ner_tags",
         "multiwoz21_split-test_ctxt-dataset_entry_samples-3000_feat-col-ner_tags",
@@ -476,16 +483,17 @@ def main(
 def load_aligned_dfs_and_analyse_data(
     root_directory: pathlib.Path,
     output_directory: pathlib.Path,
-    dataset_name: str,
+    dataset_name: str | None = None,
     statistic: str = "mean",
     *,
     show_plot: bool = False,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> None:
+    """Load aligned_df.csv files from a directory and compute aggregated statistics for comparison."""
     results_save_directory = pathlib.Path(
         output_directory,
-        dataset_name,
+        str(dataset_name),
         f"statistic-{statistic}",
     )
 
@@ -517,6 +525,22 @@ def load_aligned_dfs_and_analyse_data(
         aggregated_statistics_save_path,
     )
 
+    # # # #
+    # Compute and save correlation matrices
+    correlation_columns = [
+        "token_perplexity",
+        "token_log_perplexity",
+        "local_estimate",
+    ]
+
+    compute_and_save_correlation_results_via_mapping_on_all_input_columns(
+        only_correlation_columns_df=aggregated_statistics[correlation_columns],
+        output_directory=results_save_directory,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+    # # # #
     # Plot comparison across checkpoints
     plot_statistics_comparison(
         df=aggregated_statistics,

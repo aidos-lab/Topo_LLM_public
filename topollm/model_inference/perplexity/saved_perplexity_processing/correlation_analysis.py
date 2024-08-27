@@ -26,8 +26,11 @@
 # limitations under the License.
 
 import logging
+import os
+import pathlib
 
 import pandas as pd
+from scipy.stats import kendalltau, pearsonr, spearmanr
 
 from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
@@ -67,8 +70,95 @@ def extract_correlation_columns(
     return only_correlation_columns_aligned_df
 
 
-def compute_and_save_correlation_results_on_all_input_columns(
-    only_correlation_columns_aligned_df: pd.DataFrame,
+def compute_and_save_correlation_results_via_mapping_on_all_input_columns(
+    only_correlation_columns_df: pd.DataFrame,
+    output_directory: os.PathLike,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
+    """Calculate and save the correlation results and p-values."""
+    methods = {
+        "pearson": pearsonr,
+        "spearman": spearmanr,
+        "kendall": kendalltau,
+    }
+
+    for method, func in methods.items():
+        # Compute correlation and p-values in a vectorized manner
+        corr_df = only_correlation_columns_df.corr(method=method)
+        pval_df = only_correlation_columns_df.corr(method=lambda x, y: func(x, y)[1])
+
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(f"correlation_results_df using '{method}':\n{corr_df}")
+            logger.info(f"p_value_results_df using '{method}':\n{pval_df}")
+
+        # Save correlation and p-value DataFrames to CSV files
+        corr_df_save_path = pathlib.Path(output_directory, f"correlation_results_df_{method}.csv")
+        pval_df_save_path = pathlib.Path(output_directory, f"p_value_results_df_{method}.csv")
+
+        corr_df_save_path.parent.mkdir(parents=True, exist_ok=True)
+
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(f"Saving correlation_results_df to {corr_df_save_path}")
+        corr_df.to_csv(corr_df_save_path)
+
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(f"Saving p_value_results_df to {pval_df_save_path}")
+        pval_df.to_csv(pval_df_save_path)
+
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(f"Saving correlation_results_df and p_value_results_df using '{method}' to CSV files DONE")
+
+
+def compute_and_save_correlation_results_via_corr_on_all_input_columns(
+    only_correlation_columns_df: pd.DataFrame,
+    output_directory: os.PathLike,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
+    """Calculate and save the correlation results."""
+    for method in [
+        "pearson",
+        "spearman",
+        "kendall",
+    ]:
+        correlation_results_df = only_correlation_columns_df.corr(
+            method=method,  # type: ignore - these methods are available
+        )
+
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                f"correlation_results_df using '{method = }':\n{correlation_results_df}",  # noqa: G004 - low overhead
+            )
+
+        # Saving correlation_results_df to csv file
+        correlation_results_df_save_path = pathlib.Path(
+            output_directory,
+            f"correlation_via_corr_results_df_{method}.csv",
+        )
+        correlation_results_df_save_path.parent.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                f"{correlation_results_df_save_path = }",  # noqa: G004 - low overhead
+            )
+            logger.info(
+                f"Saving correlation_results_df using '{method = }' to csv file ...",  # noqa: G004 - low overhead
+            )
+        correlation_results_df.to_csv(
+            path_or_buf=correlation_results_df_save_path,
+        )
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                f"Saving correlation_results_df using '{method} = ' to csv file DONE",  # noqa: G004 - low overhead
+            )
+
+
+def compute_and_save_correlation_results_on_all_input_columns_with_embeddings_path_manager(
+    only_correlation_columns_df: pd.DataFrame,
     embeddings_path_manager: EmbeddingsPathManager,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
@@ -79,15 +169,17 @@ def compute_and_save_correlation_results_on_all_input_columns(
         "spearman",
         "kendall",
     ]:
-        correlation_results_df = only_correlation_columns_aligned_df.corr(
+        correlation_results_df = only_correlation_columns_df.corr(
             method=method,  # type: ignore - these methods are available
         )
-        logger.info(
-            f"Correlation using '{method = }':\n{correlation_results_df}",  # noqa: G004 - low overhead
-        )
-        logger.info(
-            f"{correlation_results_df['local_estimate']['token_log_perplexity'] = }",  # noqa: G004 - low overhead
-        )
+
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                f"Correlation using '{method = }':\n{correlation_results_df}",  # noqa: G004 - low overhead
+            )
+            logger.info(
+                f"{correlation_results_df['local_estimate']['token_log_perplexity'] = }",  # noqa: G004 - low overhead
+            )
 
         # Saving correlation_results_df to csv file
         correlation_results_df_save_path = embeddings_path_manager.get_correlation_results_df_save_path(

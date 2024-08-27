@@ -35,7 +35,7 @@ import pandas as pd
 
 from topollm.config_classes.main_config import MainConfig
 from topollm.model_inference.perplexity.saved_perplexity_processing.correlation_analysis import (
-    compute_and_save_correlation_results_on_all_input_columns,
+    compute_and_save_correlation_results_on_all_input_columns_with_embeddings_path_manager,
     extract_correlation_columns,
 )
 from topollm.model_inference.perplexity.saved_perplexity_processing.plot_histograms_and_scatter import (
@@ -188,8 +188,8 @@ class AlignedLocalEstimatesDataContainer:
             logger=self.logger,
         )
 
-        compute_and_save_correlation_results_on_all_input_columns(
-            only_correlation_columns_aligned_df=only_correlation_columns_aligned_df,
+        compute_and_save_correlation_results_on_all_input_columns_with_embeddings_path_manager(
+            only_correlation_columns_df=only_correlation_columns_aligned_df,
             embeddings_path_manager=self.embeddings_path_manager,
             verbosity=self.verbosity,
             logger=self.logger,
