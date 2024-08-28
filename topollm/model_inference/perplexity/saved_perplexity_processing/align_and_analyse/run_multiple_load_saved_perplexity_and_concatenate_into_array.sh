@@ -33,8 +33,6 @@ language_models=(
     # "model-roberta-base_task-MASKED_LM_wikitext-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
 )
 
-LANGUAGE_MODEL_LIST=$(IFS=,; echo "${language_models[*]}")
-echo "LANGUAGE_MODEL_LIST: $LANGUAGE_MODEL_LIST"
 
 
 LAYER_INDICES_LIST="[-1]"
@@ -54,17 +52,31 @@ ADDITIONAL_OVERRIDES=""
 # `hydra/launcher=basic`
 # `hydra/launcher=joblib`
 
-poetry run python3 $PYTHON_SCRIPT_NAME \
-    --multirun \
-    hydra/launcher=joblib \
-    data=$DATA_LIST \
-    language_model=$LANGUAGE_MODEL_LIST \
-    ++language_model.checkpoint_no=400,1200,2000,2800 \
-    embeddings.embedding_extraction.layer_indices=$LAYER_INDICES_LIST \
-    embeddings_data_prep.sampling.num_samples=$EMBEDDINGS_DATA_PREP_NUM_SAMPLES \
-    +embeddings_data_prep.sampling.sampling_mode="take_first" \
-    $ADDITIONAL_OVERRIDES
+# Iterate over each language model
+for language_model in "${language_models[@]}"; do
+    if [ "$language_model" == "roberta-base" ]; then
+        # Checkpoints for roberta-base
+        CHECKPOINTS="0"
+    else
+        # Define checkpoints for other models here
+        # Adjust the checkpoints as per your requirements for other models
+        CHECKPOINTS="400,1200,2000,2800"
+    fi
 
+    # Run the Python script with the selected checkpoints for the current model
+    echo "Running analysis for model: $language_model with checkpoints: $CHECKPOINTS"
+    
+    poetry run python3 $PYTHON_SCRIPT_NAME \
+        --multirun \
+        hydra/launcher=joblib \
+        data=$DATA_LIST \
+        language_model=$language_model \
+        ++language_model.checkpoint_no=$CHECKPOINTS \
+        embeddings.embedding_extraction.layer_indices=$LAYER_INDICES_LIST \
+        embeddings_data_prep.sampling.num_samples=$EMBEDDINGS_DATA_PREP_NUM_SAMPLES \
+        +embeddings_data_prep.sampling.sampling_mode="take_first" \
+        $ADDITIONAL_OVERRIDES
+done
 
 # Exit with the return code of the last command
 exit $?
