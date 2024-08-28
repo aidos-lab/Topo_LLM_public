@@ -24,18 +24,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
+import os
+import pathlib
 from collections.abc import Callable
 
 import pandas as pd
 from scipy.stats import kendalltau, pearsonr, spearmanr
 
+from topollm.typing.enums import Verbosity
 
-# Function to load the dataset from a CSV file
-def load_dataset(
-    file_path: str,
-) -> pd.DataFrame:
-    """Load the dataset from a CSV file."""
-    return pd.read_csv(file_path)
+P_VALUE_COLUMN_NAME = "p_value"
+IS_SIGNIFICANT_COLUMN_NAME = "is_significant"
+
+default_logger = logging.getLogger(__name__)
 
 
 # Function to compute correlations with significance and count of data points
@@ -53,17 +55,20 @@ def compute_correlations_with_count(
                 col1, col2 = cols[i], cols[j]
                 valid_data = df[[col1, col2]].dropna()
                 n = len(valid_data)
-                if n >= 2:  # Ensure sufficient data points
-                    correlation, p_value = method_func(valid_data[col1], valid_data[col2])
+                if n >= 2:  # Ensure sufficient data points  # noqa: PLR2004 - This is a valid check
+                    correlation, p_value = method_func(
+                        valid_data[col1],
+                        valid_data[col2],
+                    )
                     results.append(
                         {
-                            "Method": method_name,
-                            "Variable 1": col1,
-                            "Variable 2": col2,
-                            "Correlation": correlation,
-                            "P-Value": p_value,
-                            "Significant": p_value < significance_level,
-                            "N": n,
+                            "method": method_name,
+                            "column_1": col1,
+                            "column_2": col2,
+                            "correlation": correlation,
+                            P_VALUE_COLUMN_NAME: p_value,
+                            IS_SIGNIFICANT_COLUMN_NAME: p_value < significance_level,
+                            "n": n,
                         },
                     )
     return pd.DataFrame(results)
@@ -77,12 +82,23 @@ def compute_correlations_by_dataset(
 ) -> pd.DataFrame:
     """Compute correlations over all models and checkpoints for each dataset."""
     results = []
-    for dataset_name, dataset_group in df.groupby("dataset"):
-        correlations_df = compute_correlations_with_count(dataset_group, columns_to_correlate, methods)
-        correlations_df["Dataset"] = dataset_name
-        correlations_df["Model"] = "All Models"
-        results.append(correlations_df)
-    return pd.concat(results, ignore_index=True)
+    for dataset_name, dataset_group in df.groupby(
+        "dataset",
+    ):
+        correlations_df = compute_correlations_with_count(
+            df=dataset_group,
+            cols=columns_to_correlate,
+            methods=methods,
+        )
+        correlations_df["dataset"] = dataset_name
+        correlations_df["model_without_checkpoint"] = "All Available Models"
+        results.append(
+            correlations_df,
+        )
+    return pd.concat(
+        results,
+        ignore_index=True,
+    )
 
 
 # Function to compute correlations by dataset and model (excluding checkpoints)
@@ -93,61 +109,106 @@ def compute_correlations_by_dataset_and_model(
 ) -> pd.DataFrame:
     """Compute correlations for each unique combination of dataset and model (without checkpoints)."""
     results = []
-    for dataset_name, dataset_group in df.groupby("dataset"):
-        for model_name, model_group in dataset_group.groupby("model_without_checkpoint"):
-            correlations_df = compute_correlations_with_count(model_group, columns_to_correlate, methods)
-            correlations_df["Dataset"] = dataset_name
-            correlations_df["Model"] = model_name
-            results.append(correlations_df)
-    return pd.concat(results, ignore_index=True)
+    for dataset_name, dataset_group in df.groupby(
+        "dataset",
+    ):
+        for model_name, model_group in dataset_group.groupby(
+            "model_without_checkpoint",
+        ):
+            correlations_df = compute_correlations_with_count(
+                df=model_group,
+                cols=columns_to_correlate,
+                methods=methods,
+            )
+            correlations_df["dataset"] = dataset_name
+            correlations_df["model_without_checkpoint"] = model_name
+            results.append(
+                correlations_df,
+            )
+    return pd.concat(
+        results,
+        ignore_index=True,
+    )
 
 
-# Function to save the correlation results to a CSV file
 def save_correlation_results(
     df: pd.DataFrame,
-    file_path: str,
+    file_path: os.PathLike,
     *,
     sort_by_significance: bool = True,
 ) -> None:
     """Save the correlation results to a CSV file, optionally sorting by significance."""
     if sort_by_significance:
         df = df.sort_values(
-            by=["Significant", "P-Value"],
+            by=[
+                IS_SIGNIFICANT_COLUMN_NAME,
+                P_VALUE_COLUMN_NAME,
+            ],
             ascending=[False, True],
         )
+
+    pathlib.Path(file_path).parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
     df.to_csv(
         file_path,
         index=False,
     )
 
 
-def main() -> None:
-    # TODO: Update the file paths as needed
-    # TODO: Call this function from the main entry point
-
-    # File paths
-    input_file_path = "/mnt/data/aggregated_statistics.csv"
-    output_file_path = "/mnt/data/correlation_significance_sorted_with_counts.csv"
-
-    # Load the dataset
-    df = load_dataset(input_file_path)
-
+def compute_and_save_correlations_from_aggregated_statistics_df(
+    df: pd.DataFrame,
+    output_folder: os.PathLike,
+    columns_to_correlate: list[str] | None = None,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
     # Columns to correlate
-    columns_to_correlate = ["token_perplexity", "token_log_perplexity", "local_estimate"]
+    if columns_to_correlate is None:
+        columns_to_correlate = [
+            "token_perplexity",
+            "token_log_perplexity",
+            "local_estimate",
+        ]
 
     # Correlation methods to use
-    correlation_methods = {"pearson": pearsonr, "spearman": spearmanr, "kendall": kendalltau}
+    correlation_methods = {
+        "pearson": pearsonr,
+        "spearman": spearmanr,
+        "kendall": kendalltau,
+    }
 
-    # Step 1: Compute correlations over all models and checkpoints for each dataset
-    dataset_level_correlations = compute_correlations_by_dataset(df, columns_to_correlate, correlation_methods)
+    # Compute correlations over all models and checkpoints for each dataset
+    dataset_level_correlations = compute_correlations_by_dataset(
+        df=df,
+        columns_to_correlate=columns_to_correlate,
+        methods=correlation_methods,
+    )
 
-    # Step 2: Compute correlations for each dataset and model without checkpoints
-    model_level_correlations = compute_correlations_by_dataset_and_model(df, columns_to_correlate, correlation_methods)
+    # Compute correlations for each dataset and model without checkpoints
+    model_level_correlations = compute_correlations_by_dataset_and_model(
+        df=df,
+        columns_to_correlate=columns_to_correlate,
+        methods=correlation_methods,
+    )
 
     # Combine both results
-    combined_results_df = pd.concat([dataset_level_correlations, model_level_correlations], ignore_index=True)
+    combined_results_df = pd.concat(
+        [
+            dataset_level_correlations,
+            model_level_correlations,
+        ],
+        ignore_index=True,
+    )
 
-    # Step 3: Save the results to a CSV file, sorted by significance
-    save_correlation_results(combined_results_df, output_file_path)
+    # Save the results to a CSV file
+    output_file_path = pathlib.Path(
+        output_folder,
+        "correlation_significance_sorted.csv",
+    )
 
-    print(f"Correlation results saved to {output_file_path}")
+    save_correlation_results(
+        df=combined_results_df,
+        file_path=output_file_path,
+    )

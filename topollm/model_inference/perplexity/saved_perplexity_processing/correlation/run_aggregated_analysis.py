@@ -39,6 +39,9 @@ from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
+from topollm.model_inference.perplexity.saved_perplexity_processing.correlation.compute_correlations_and_plots_from_aggregated_statistics import (
+    compute_and_save_correlations_from_aggregated_statistics_df,
+)
 from topollm.model_inference.perplexity.saved_perplexity_processing.correlation.load_aligned_dfs_and_create_aggregated_statistics_and_analyse_data import (
     load_aligned_dfs_and_create_aggregated_statistics_and_analyse_data,
 )
@@ -129,7 +132,12 @@ def main(
             logger=logger,
         )
 
-        # TODO: Call the further analysis functions here
+        compute_and_save_correlations_from_aggregated_statistics_df(
+            df=aggregated_statistics,
+            output_folder=output_directory,
+            verbosity=verbosity,
+            logger=logger,
+        )
 
     logger.info("Running script DONE")
 
