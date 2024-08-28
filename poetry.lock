@@ -1571,6 +1571,26 @@ url = "http://pypi.repo.test.hhu.de/simple"
 reference = "hhu"
 
 [[package]]
+name = "hydra-joblib-launcher"
+version = "1.2.0"
+description = "Joblib Launcher for Hydra apps"
+optional = false
+python-versions = "*"
+files = [
+    {file = "hydra-joblib-launcher-1.2.0.tar.gz", hash = "sha256:b4dc8b990221a0df048c094954356c6532585557e708e8198c46a877b379a6d5"},
+    {file = "hydra_joblib_launcher-1.2.0-py3-none-any.whl", hash = "sha256:57bfd042b015056157297de93e8ec1c6bc75fd39bd3b300e1599db0c5d992eee"},
+]
+
+[package.dependencies]
+hydra-core = ">=1.1.0.dev7"
+joblib = ">=0.14.0"
+
+[package.source]
+type = "legacy"
+url = "http://pypi.repo.test.hhu.de/simple"
+reference = "hhu"
+
+[[package]]
 name = "hydra-zen"
 version = "0.13.0"
 description = "Configurable, reproducible, and scalable workflows in Python, via Hydra"
@@ -5415,4 +5435,4 @@ reference = "hhu"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "e69fdd626ada0f0e59b25909310f3592c043a146963094346b9736672a96d956"
+content-hash = "303b25a1f5dbd2188fc73527f436d45d3d6ca4c7766c79a28c6a1ed511949301"

@@ -34,16 +34,16 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 from topollm.config_classes.main_config import MainConfig
-from topollm.model_inference.perplexity.saved_perplexity_processing.correlation_analysis import (
-    compute_and_save_correlation_results_on_all_input_columns_with_embeddings_path_manager,
-    extract_correlation_columns,
-)
-from topollm.model_inference.perplexity.saved_perplexity_processing.plot_histograms_and_scatter import (
+from topollm.model_inference.perplexity.saved_perplexity_processing.align_and_analyse.plot_histograms_and_scatter import (
     HistogramSettings,
     ScatterPlotSettings,
     create_scatter_plot,
     plot_histograms,
     save_plot,
+)
+from topollm.model_inference.perplexity.saved_perplexity_processing.correlation_analysis import (
+    compute_and_save_correlation_results_on_all_input_columns_with_embeddings_path_manager,
+    extract_correlation_columns,
 )
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
 from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
@@ -316,20 +316,23 @@ class AlignedLocalEstimatesDataContainer:
         self,
         *,
         display_plots: bool = False,
-    ) -> tuple[matplotlib.figure.Figure | None, matplotlib.figure.Figure | None]:
+    ) -> tuple[
+        matplotlib.figure.Figure | None,
+        matplotlib.figure.Figure | None,
+    ]:
         # Manual settings for the columns
         manual_settings = {
             "token_perplexity": HistogramSettings(
                 scale=(0, 10),
-                bins=30,
+                bins=100,
             ),
             "token_log_perplexity": HistogramSettings(
-                scale=(-10, 3),
-                bins=50,
+                scale=(-15, 5),
+                bins=200,
             ),
             "local_estimate": HistogramSettings(
-                scale=(7, 10),
-                bins=50,
+                scale=(1, 20),
+                bins=200,
             ),
         }
 

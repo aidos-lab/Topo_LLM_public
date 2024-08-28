@@ -44,7 +44,7 @@ from topollm.model_handling.tokenizer.load_modified_tokenizer_from_main_config i
 from topollm.model_inference.perplexity.saved_perplexity_processing.add_token_log_perplexity_column import (
     add_token_log_perplexity_column,
 )
-from topollm.model_inference.perplexity.saved_perplexity_processing.aligned_local_estimates_data_container import (
+from topollm.model_inference.perplexity.saved_perplexity_processing.align_and_analyse.aligned_local_estimates_data_container import (
     AlignedLocalEstimatesDataContainer,
 )
 from topollm.model_inference.perplexity.saved_perplexity_processing.compare_columns import (

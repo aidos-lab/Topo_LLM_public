@@ -63,6 +63,7 @@ pydantic-core = "*"
 click = "*"
 platformdirs = "*"
 hydra-zen = "^0.13.0"
+hydra-joblib-launcher = "^1.2.0"
 
 [tool.poetry.group.dev.dependencies]
 hypothesis = "*"

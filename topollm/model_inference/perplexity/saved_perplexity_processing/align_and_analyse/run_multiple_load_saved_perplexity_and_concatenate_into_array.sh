@@ -23,9 +23,10 @@ datas=(
 )
 
 DATA_LIST=$(IFS=,; echo "${datas[*]}")
+echo "DATA_LIST: $DATA_LIST"
 
 language_models=(
-    # "roberta-base"
+    "roberta-base"
     # "model-roberta-base_task-MASKED_LM_iclr_2024_submissions-train-5000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
     "model-roberta-base_task-MASKED_LM_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
     "model-roberta-base_task-MASKED_LM_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
@@ -33,8 +34,6 @@ language_models=(
 )
 
 LANGUAGE_MODEL_LIST=$(IFS=,; echo "${language_models[*]}")
-
-echo "DATA_LIST: $DATA_LIST"
 echo "LANGUAGE_MODEL_LIST: $LANGUAGE_MODEL_LIST"
 
 
@@ -44,8 +43,6 @@ LAYER_INDICES_LIST="[-1]"
 EMBEDDINGS_DATA_PREP_NUM_SAMPLES="30000"
 
 ADDITIONAL_OVERRIDES=""
-# ADDITIONAL_OVERRIDES+="data.number_of_samples=50"
-# ADDITIONAL_OVERRIDES+="data.number_of_samples=3000"
 
 # Note: In the dimension experiments, we usually set `add_prefix_space=False` 
 # ADDITIONAL_OVERRIDES+=" tokenizer.add_prefix_space=True"
@@ -53,8 +50,13 @@ ADDITIONAL_OVERRIDES=""
 
 # ==================================================== #
 
+# For the lancher, we can use the following options:
+# `hydra/launcher=basic`
+# `hydra/launcher=joblib`
+
 poetry run python3 $PYTHON_SCRIPT_NAME \
     --multirun \
+    hydra/launcher=joblib \
     data=$DATA_LIST \
     language_model=$LANGUAGE_MODEL_LIST \
     ++language_model.checkpoint_no=400,1200,2000,2800 \

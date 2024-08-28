@@ -1,0 +1,6 @@
+defaults:
+  - .@_here_: wikitext
+  - _self_
+
+number_of_samples: 10000
+split: train

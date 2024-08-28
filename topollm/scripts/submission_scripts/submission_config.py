@@ -193,10 +193,16 @@ class SubmissionConfig(BaseModel):
         if self.submission_mode == SubmissionMode.HPC_SUBMISSION:
             command.extend(
                 [
-                    f"hydra/launcher={self.submission_mode.value}",
+                    "hydra/launcher=hpc_submission",
                     f"hydra.launcher.queue={self.queue}",
                     f"hydra.launcher.template={self.template}",
                     f"hydra.launcher.memory={self.memory}",
+                ],
+            )
+        elif self.submission_mode == SubmissionMode.LOCAL:
+            command.extend(
+                [
+                    "hydra/launcher=basic",
                 ],
             )
 
