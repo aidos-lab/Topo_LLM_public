@@ -27,6 +27,7 @@
 """Load computed perplexity and concatente sequences into single array and df."""
 
 import logging
+import sys
 from typing import TYPE_CHECKING
 
 import hydra
@@ -93,14 +94,20 @@ def main(
     # For the perplexity paths, we use layer index -1, so we need to set the layer index to -1 here.
     main_config_for_perplexity.embeddings.embedding_extraction.layer_indices = [-1]
 
-    aligned_local_estimates_data_container: AlignedLocalEstimatesDataContainer | None = (
-        load_perplexity_and_local_estimates_and_align(
-            main_config_for_perplexity=main_config_for_perplexity,
-            main_config_for_local_estimates=main_config_for_local_estimates,
-            verbosity=verbosity,
-            logger=logger,
+    try:
+        aligned_local_estimates_data_container: AlignedLocalEstimatesDataContainer | None = (
+            load_perplexity_and_local_estimates_and_align(
+                main_config_for_perplexity=main_config_for_perplexity,
+                main_config_for_local_estimates=main_config_for_local_estimates,
+                verbosity=verbosity,
+                logger=logger,
+            )
         )
-    )
+    except FileNotFoundError as e:
+        msg = f"FileNotFoundError: {e}"
+        logger.exception(msg)
+        logger.info("Running script FAILED. Exiting.")
+        return
 
     if aligned_local_estimates_data_container is None:
         msg = "aligned_local_estimates_data_container is None"

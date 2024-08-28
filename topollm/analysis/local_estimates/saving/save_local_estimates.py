@@ -116,9 +116,14 @@ def load_local_estimates(
     if verbosity >= Verbosity.NORMAL:
         logger.info("Loading local estimates array ...")
 
-    local_estimates_array = np.load(
-        file=local_estimates_array_save_path,
-    )
+    try:
+        local_estimates_array = np.load(
+            file=local_estimates_array_save_path,
+        )
+    except FileNotFoundError as e:
+        msg = f"FileNotFoundError: {e}"
+        logger.exception(msg)
+        raise
 
     if verbosity >= Verbosity.NORMAL:
         logger.info("Loading local estimates array DONE")

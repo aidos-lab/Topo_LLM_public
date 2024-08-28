@@ -141,11 +141,16 @@ def load_perplexity_and_local_estimates_and_align(
         logger=logger,
     )
 
-    local_estimates_container: LocalEstimatesContainer = load_local_estimates(
-        embeddings_path_manager=local_estimates_embeddings_path_manager,
-        verbosity=verbosity,
-        logger=logger,
-    )
+    try:
+        local_estimates_container: LocalEstimatesContainer = load_local_estimates(
+            embeddings_path_manager=local_estimates_embeddings_path_manager,
+            verbosity=verbosity,
+            logger=logger,
+        )
+    except FileNotFoundError as e:
+        msg = f"FileNotFoundError: {e}"
+        logger.exception(msg)
+        raise
 
     aligned_df: pd.DataFrame | None = create_aligned_df(
         local_estimates_container=local_estimates_container,
