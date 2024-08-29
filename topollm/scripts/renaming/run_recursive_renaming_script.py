@@ -27,10 +27,14 @@
 
 """Recursively rename all directories within a base directory that contain a specific substring."""
 
+import argparse
 import logging
 import os
 import pathlib
 import sys
+from dataclasses import dataclass
+
+from tqdm import tqdm
 
 from topollm.config_classes.constants import TOPO_LLM_REPOSITORY_BASE_PATH
 from topollm.typing.enums import Verbosity
@@ -56,6 +60,15 @@ def configure_logger() -> logging.Logger:
         logger.addHandler(handler)
 
     return logger
+
+
+@dataclass
+class RenameOperation:
+    """Class representing a single renaming operation."""
+
+    base_dir: pathlib.Path
+    old_substring: str
+    new_substring: str
 
 
 def recursively_rename_in_directory_names(
@@ -144,42 +157,6 @@ def recursively_rename_in_directory_names(
                     )
                     error_count += 1
 
-    return rename_count, error_count
-
-
-def main() -> None:
-    """Call the recursive renaming script."""
-    logger = configure_logger()
-    verbosity = Verbosity.VERBOSE
-
-    # # # #
-    # Example configuration for the base directory and the substrings to replace.
-    #
-    # base_dir = pathlib.Path(
-    #     TOPO_LLM_REPOSITORY_BASE_PATH,
-    #     "data/analysis/prepared",
-    # )
-
-    base_dir = pathlib.Path(
-        TOPO_LLM_REPOSITORY_BASE_PATH,
-        "data/analysis/twonn",
-    )
-
-    # old_substring = "<AggregationType.MEAN: 'mean'>"
-    # new_substring = "mean"
-
-    old_substring = "task-MASKED_LM"
-    new_substring = "task-masked_lm"
-
-    # Call the renaming function.
-    rename_count, error_count = recursively_rename_in_directory_names(
-        base_dir=base_dir,
-        old_substring=old_substring,
-        new_substring=new_substring,
-        verbosity=verbosity,
-        logger=logger,
-    )
-
     logger.info(
         f"Renaming completed. {rename_count = } directories were renamed.",  # noqa: G004 - low overhead
     )
@@ -187,6 +164,134 @@ def main() -> None:
         logger.warning(
             f"{error_count = } errors were encountered during the renaming process.",  # noqa: G004 - low overhead
         )
+
+    return rename_count, error_count
+
+
+def batch_rename_operations(
+    operations: list[RenameOperation],
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
+    """Perform multiple renaming operations as specified in the operations list.
+
+    Args:
+    ----
+        operations: A list of RenameOperation instances.
+        verbosity: The verbosity level for logging.
+        logger: The logger to use for logging.
+
+    """
+    for operation in tqdm(
+        operations,
+        desc="Renaming operations",
+    ):
+        rename_count, error_count = recursively_rename_in_directory_names(
+            base_dir=operation.base_dir,
+            old_substring=operation.old_substring,
+            new_substring=operation.new_substring,
+            verbosity=verbosity,
+            logger=logger,
+        )
+
+
+def parse_arguments() -> argparse.Namespace:
+    """Parse command-line arguments."""
+    parser = argparse.ArgumentParser(
+        description="Recursively rename directories containing a specific substring.",
+    )
+
+    subparsers = parser.add_subparsers(
+        dest="mode",
+        required=True,
+        help="Mode of operation",
+    )
+
+    # Single operation mode
+    single_parser = subparsers.add_parser(
+        "single",
+        help="Perform a single renaming operation",
+    )
+    single_parser.add_argument(
+        "--base-dir",
+        type=pathlib.Path,
+        required=True,
+        help="Base directory where the renaming process will start.",
+    )
+    single_parser.add_argument(
+        "--old-substring",
+        type=str,
+        required=True,
+        help="The substring to search for in directory names.",
+    )
+    single_parser.add_argument(
+        "--new-substring",
+        type=str,
+        required=True,
+        help="The substring to replace the old one with.",
+    )
+
+    # Batch operation mode
+    batch_parser = subparsers.add_parser(  # noqa: F841 - we might want to use this in the future
+        "batch",
+        help="Perform multiple renaming operations preconfigured in the python script.",
+    )
+
+    return parser.parse_args()
+
+
+def main() -> None:
+    """Handle command-line arguments and call the appropriate renaming function."""
+    args = parse_arguments()
+
+    logger = configure_logger()
+    verbosity = Verbosity.VERBOSE
+
+    if args.mode == "single":
+        # Call the renaming function.
+        rename_count, error_count = recursively_rename_in_directory_names(
+            base_dir=args.base_dir,
+            old_substring=args.old_substring,
+            new_substring=args.new_substring,
+            verbosity=verbosity,
+            logger=logger,
+        )
+    elif args.mode == "batch":
+        # Batch operation mode
+        operations = [
+            RenameOperation(
+                base_dir=pathlib.Path(
+                    TOPO_LLM_REPOSITORY_BASE_PATH,
+                    "data/analysis/twonn",
+                ),
+                old_substring="task-MASKED_LM",
+                new_substring="task-masked_lm",
+            ),
+            RenameOperation(
+                base_dir=pathlib.Path(
+                    TOPO_LLM_REPOSITORY_BASE_PATH,
+                    "data/analysis/prepared",
+                ),
+                old_substring="<AggregationType.MEAN: 'mean'>",
+                new_substring="mean",
+            ),
+            RenameOperation(
+                base_dir=pathlib.Path(
+                    TOPO_LLM_REPOSITORY_BASE_PATH,
+                    "data/embeddings/perplexity",
+                ),
+                old_substring="task-MASKED_LM",
+                new_substring="task-masked_lm",
+            ),
+            # Add more RenameOperation instances as needed
+        ]
+        batch_rename_operations(
+            operations=operations,
+            verbosity=verbosity,
+            logger=logger,
+        )
+
+    logger.info("Exiting the renaming script.")
 
 
 if __name__ == "__main__":
