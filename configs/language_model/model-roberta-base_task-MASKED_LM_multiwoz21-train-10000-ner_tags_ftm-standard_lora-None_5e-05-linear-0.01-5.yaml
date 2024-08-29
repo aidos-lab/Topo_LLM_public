@@ -2,7 +2,7 @@ checkpoint_no: 2800
 lm_mode: mlm
 task_type: masked_lm
 pretrained_model_name_or_path: ${paths.data_dir}/models/finetuned_models/data-multiwoz21_split-train_ctxt-dataset_entry_samples-10000_feat-col-ner_tags/model-roberta-base_task-MASKED_LM/ftm-standard/lora-None/gradmod-DO_NOTHING_target-freeze-/lr-5e-05_lr_scheduler_type-linear_wd-0.01/bs-train-8/ep-5/model_files/checkpoint-${language_model.checkpoint_no}
-short_model_name: model-roberta-base_task-MASKED_LM_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5_ckpt-${language_model.checkpoint_no}
+short_model_name: model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5_ckpt-${language_model.checkpoint_no}
 tokenizer_modifier:
   mode: do_nothing
   padding_token: <pad>
