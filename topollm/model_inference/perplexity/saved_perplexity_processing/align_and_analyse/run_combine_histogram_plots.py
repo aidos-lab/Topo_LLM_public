@@ -42,10 +42,7 @@ def get_checkpoint(path: str) -> int | None:
 
 def find_histograms(
     base_dir: os.PathLike,
-) -> tuple[
-    list[str],
-    dict[str, list[tuple[int, str]]],
-]:
+) -> tuple[list[str], dict[str, list[tuple[int, str]]]]:
     """Traverse the directory structure to find relevant histogram files.
 
     Args:
@@ -65,8 +62,9 @@ def find_histograms(
                 checkpoint = get_checkpoint(root)
 
                 # Check if it's the base model directory
-                if os.path.basename(root).startswith("model-roberta-base_task-masked_lm"):
+                if "model-roberta-base_task-masked_lm" in root and "ckpt-" not in root:
                     base_histograms.append(os.path.join(root, file))
+                    print(f"Base model histogram found: {os.path.join(root, file)}")  # Debug log
 
                 # Check for finetuned models by matching a specific naming pattern
                 elif checkpoint is not None:
@@ -77,6 +75,9 @@ def find_histograms(
                         if model_name not in finetuned_histograms:
                             finetuned_histograms[model_name] = []
                         finetuned_histograms[model_name].append((checkpoint, os.path.join(root, file)))
+                        print(
+                            f"Finetuned model histogram found: {model_name} - {os.path.join(root, file)}"
+                        )  # Debug log
 
     # Sort the histograms by checkpoint values for each finetuned model
     for model, files in finetuned_histograms.items():
@@ -87,9 +88,9 @@ def find_histograms(
 
 def create_title_pdf(title: str, output_path: str):
     """Create a simple PDF with the title using reportlab."""
-    c = canvas.Canvas(output_path, pagesize=(595.2, 841.8))  # A4 size
+    c = canvas.Canvas(output_path, pagesize=(800, 100))
     c.setFont("Helvetica", 12)
-    c.drawString(72, 800, title)  # Draw text near the top of the page
+    c.drawString(20, 10, title)  # Draw text near the top of the page
     c.showPage()
     c.save()
 
@@ -105,7 +106,10 @@ def add_title_page(pdf_writer: PdfWriter, title: str):
 
 
 def combine_histograms_for_model(
-    base_histograms: list[str], finetuned_histograms: list[tuple[int, str]], model_name: str, output_file: str
+    base_histograms: list[str],
+    finetuned_histograms: list[tuple[int, str]],
+    model_name: str,
+    output_file: str,
 ):
     """Combine histograms into a single PDF file, including headers, for a specific model."""
     pdf_writer = PdfWriter()
