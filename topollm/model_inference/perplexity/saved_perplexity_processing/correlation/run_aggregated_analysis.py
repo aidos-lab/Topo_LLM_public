@@ -80,16 +80,16 @@ def main(
     )
     verbosity = main_config.verbosity
 
-    statistic = "mean"
-
     create_individual_dataset_analysis = False
 
     if create_individual_dataset_analysis:
         dataset_name_list = [
             None,  # 'None' means all datasets
             "iclr_2024_submissions_split-test_ctxt-dataset_entry_samples--1_feat-col-ner_tags",
+            "iclr_2024_submissions_split-train_ctxt-dataset_entry_samples-5000_feat-col-ner_tags",
             "iclr_2024_submissions_split-validation_ctxt-dataset_entry_samples--1_feat-col-ner_tags",
             "multiwoz21_split-test_ctxt-dataset_entry_samples-3000_feat-col-ner_tags",
+            "multiwoz21_split-train_ctxt-dataset_entry_samples-10000_feat-col-ner_tags",
             "multiwoz21_split-validation_ctxt-dataset_entry_samples-3000_feat-col-ner_tags",
             "one-year-of-tsla-on-reddit_split-test_ctxt-dataset_entry_samples-3000_feat-col-ner_tags",
             "one-year-of-tsla-on-reddit_split-validation_ctxt-dataset_entry_samples-3000_feat-col-ner_tags",
@@ -123,21 +123,26 @@ def main(
         dataset_name_list,
         desc="Processing datasets",
     ):
-        aggregated_statistics = load_aligned_dfs_and_create_aggregated_statistics_and_analyse_data(
-            root_directory=root_directory,
-            output_directory=output_directory,
-            dataset_name=dataset_name,
-            statistic=statistic,
-            verbosity=verbosity,
-            logger=logger,
-        )
+        for statistic in [
+            "mean",
+            "std",
+        ]:
+            aggregated_statistics = load_aligned_dfs_and_create_aggregated_statistics_and_analyse_data(
+                root_directory=root_directory,
+                output_directory=output_directory,
+                dataset_name=dataset_name,
+                statistic=statistic,
+                verbosity=verbosity,
+                logger=logger,
+            )
 
-        compute_and_save_correlations_from_aggregated_statistics_df(
-            df=aggregated_statistics,
-            output_folder=output_directory,
-            verbosity=verbosity,
-            logger=logger,
-        )
+            if statistic == "mean":
+                compute_and_save_correlations_from_aggregated_statistics_df(
+                    df=aggregated_statistics,
+                    output_folder=output_directory,
+                    verbosity=verbosity,
+                    logger=logger,
+                )
 
     logger.info("Running script DONE")
 

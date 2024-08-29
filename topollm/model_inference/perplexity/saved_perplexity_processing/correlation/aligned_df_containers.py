@@ -190,7 +190,8 @@ class AlignedDFCollection:
 
         Args:
         ----
-            statistic (str): The statistic to aggregate (e.g., 'mean', 'std', 'min', 'max').
+            statistic:
+                The statistic to aggregate (e.g., 'mean', 'std', 'min', 'max').
 
         Returns:
         -------
@@ -217,6 +218,11 @@ class AlignedDFCollection:
             aggregated_data.append(selected_stats)
 
         # Concatenate all statistics into a single DataFrame
-        result_df = pd.concat(aggregated_data, axis=0).reset_index(drop=True)
+        result_df = pd.concat(
+            aggregated_data,
+            axis=0,
+        ).reset_index(
+            drop=True,
+        )
 
         return result_df

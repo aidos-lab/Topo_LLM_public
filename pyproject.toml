@@ -64,6 +64,8 @@ click = "*"
 platformdirs = "*"
 hydra-zen = "^0.13.0"
 hydra-joblib-launcher = "^1.2.0"
+pypdf = "^4.3.1"
+reportlab = "^4.2.2"
 
 [tool.poetry.group.dev.dependencies]
 hypothesis = "*"

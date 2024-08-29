@@ -228,8 +228,8 @@ class AlignedLocalEstimatesDataContainer:
         """Create scatter plots for the aligned data."""
         scatter_settings_auto = ScatterPlotSettings()
         scatter_settings_manual = ScatterPlotSettings(
-            x_scale=(-10, 1),
-            y_scale=(7, 16),
+            x_scale=(-15, 5),
+            y_scale=(1, 20),
         )
 
         figure_automatic_scale = create_scatter_plot(
