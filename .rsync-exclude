@@ -12,6 +12,7 @@ __pycache__
 data/analysis/
 data/embeddings/
 data/models/finetuned_models/
+data/saved_plots
 
 # Log files
 hilbert_job_logs/

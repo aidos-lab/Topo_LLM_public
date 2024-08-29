@@ -11,14 +11,19 @@ PYTHON_SCRIPT_NAME="run_single_setup_load_saved_perplexity_and_local_estimates_a
 
 datas=(
     "iclr_2024_submissions_test"
+    "iclr_2024_submissions_train"
     "iclr_2024_submissions_validation"
     "multiwoz21_test"
+    "multiwoz21_train"
     "multiwoz21_validation"
     "one-year-of-tsla-on-reddit_test"
+    "one-year-of-tsla-on-reddit_train"
     "one-year-of-tsla-on-reddit_validation"
     "sgd_test"
+    "sgd_train"
     "sgd_validation"
     "wikitext_test"
+    "wikitext_train"
     "wikitext_validation"
 )
 
@@ -27,10 +32,10 @@ echo "DATA_LIST: $DATA_LIST"
 
 language_models=(
     "roberta-base"
-    # "model-roberta-base_task-MASKED_LM_iclr_2024_submissions-train-5000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
-    "model-roberta-base_task-MASKED_LM_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
-    "model-roberta-base_task-MASKED_LM_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
-    # "model-roberta-base_task-MASKED_LM_wikitext-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
+    # "model-roberta-base_task-masked_lm_iclr_2024_submissions-train-5000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
+    "model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
+    "model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
+    # "model-roberta-base_task-masked_lm_wikitext-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
 )
 
 

@@ -147,23 +147,23 @@ def make_config_and_run_task(
         "roberta-base",
     ]
     selected_finetuned_from_roberta_base_language_model_list = [
-        "model-roberta-base_task-MASKED_LM_iclr_2024_submissions-train-5000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
-        "model-roberta-base_task-MASKED_LM_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
+        "model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
+        "model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
     ]
     full_finetuned_from_roberta_base_language_model_list = [
-        "model-roberta-base_task-MASKED_LM_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
-        "model-roberta-base_task-MASKED_LM_iclr_2024_submissions-train-5000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
-        "model-roberta-base_task-MASKED_LM_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
-        "model-roberta-base_task-MASKED_LM_wikitext-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
+        "model-roberta-base_task-masked_lm_iclr_2024_submissions-train-5000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
+        "model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
+        "model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
+        "model-roberta-base_task-masked_lm_wikitext-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
     ]
 
-    data_list = only_train_data_list
+    data_list = full_data_list
     language_model_list = selected_finetuned_from_roberta_base_language_model_list
 
     # checkpoint_no = None
-    # checkpoint_no="400,1200,2000,2800"
+    checkpoint_no = "400,1200,2000,2800"
     # The following line contains checkpoints from 400 to 2800 (for ep-5 and batch size 8)
-    checkpoint_no = "400,800,1200,1600,2000,2400,2800"
+    # checkpoint_no = "400,800,1200,1600,2000,2400,2800"
     # The following line contains checkpoints from 400 to 15600 (for ep-50 and batch size 16)
     # checkpoint_no="400,800,1200,1600,2000,2400,2800,3200,3600,4000,4400,4800,5200,5600,6000,6400,6800,7200,7600,8000,8400,8800,9200,9600,10000,10400,10800,11200,11600,12000,12400,12800,13200,13600,14000,14400,14800,15200,15600"
     # The following line contains checkpoints from 400 to 31200 (for ep-50 and batch size 8)
