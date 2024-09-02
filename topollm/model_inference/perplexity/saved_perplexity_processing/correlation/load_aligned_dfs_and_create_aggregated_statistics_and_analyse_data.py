@@ -32,12 +32,12 @@ import pandas as pd
 from topollm.model_inference.perplexity.saved_perplexity_processing.correlation.aligned_df_containers import (
     AlignedDFCollection,
 )
+from topollm.model_inference.perplexity.saved_perplexity_processing.correlation.correlation_analysis import (
+    compute_and_save_correlation_results_via_mapping_on_all_input_columns,
+)
 from topollm.model_inference.perplexity.saved_perplexity_processing.correlation.find_aligned_dfs import find_aligned_dfs
 from topollm.model_inference.perplexity.saved_perplexity_processing.correlation.plot_statistics_comparison import (
     plot_statistics_comparison,
-)
-from topollm.model_inference.perplexity.saved_perplexity_processing.correlation_analysis import (
-    compute_and_save_correlation_results_via_mapping_on_all_input_columns,
 )
 from topollm.typing.enums import Verbosity
 

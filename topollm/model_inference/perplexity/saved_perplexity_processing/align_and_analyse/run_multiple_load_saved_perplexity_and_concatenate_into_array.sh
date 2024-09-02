@@ -4,7 +4,11 @@ set -e # Stop script at the first error
 
 # https://hydra.cc/docs/tutorials/basic/running_your_app/multi-run/
 
+echo "TOPO_LLM_REPOSITORY_BASE_PATH=${TOPO_LLM_REPOSITORY_BASE_PATH}"
+
 PYTHON_SCRIPT_NAME="run_single_setup_load_saved_perplexity_and_local_estimates_and_analyse.py"
+RELATIVE_PYTHON_SCRIPT_PATH="topollm/model_inference/perplexity/saved_perplexity_processing/align_and_analyse/${PYTHON_SCRIPT_NAME}"
+ABSOLUTE_PYTHON_SCRIPT_PATH="${TOPO_LLM_REPOSITORY_BASE_PATH}/${RELATIVE_PYTHON_SCRIPT_PATH}"
 
 # ==================================================== #
 # Select the parameters here
@@ -71,7 +75,7 @@ for language_model in "${language_models[@]}"; do
     # Run the Python script with the selected checkpoints for the current model
     echo "Running analysis for model: $language_model with checkpoints: $CHECKPOINTS"
     
-    poetry run python3 $PYTHON_SCRIPT_NAME \
+    poetry run python3 $ABSOLUTE_PYTHON_SCRIPT_PATH \
         --multirun \
         hydra/launcher=joblib \
         data=$DATA_LIST \

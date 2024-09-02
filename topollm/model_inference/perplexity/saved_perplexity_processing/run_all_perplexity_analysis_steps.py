@@ -24,52 +24,129 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Run all perplexity analysis steps in sequence."""
+
+import os
+import pathlib
+import sys
+from enum import StrEnum, auto
 from subprocess import CalledProcessError, run
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
+
+from topollm.config_classes.constants import TOPO_LLM_REPOSITORY_BASE_PATH
+
+
+class ScriptType(StrEnum):
+    """Enumeration for supported script types."""
+
+    SHELL = auto()
+    PYTHON = auto()
 
 
 class ScriptConfig(BaseModel):
     """Configuration model for scripts using Pydantic."""
 
-    type: Literal["shell", "python"]
-    path: str
+    type: ScriptType = Field(
+        default=ScriptType.SHELL,
+    )
+    path: os.PathLike
     args: list[str] = []
 
     @field_validator("path")
-    def validate_path(cls, v, values):
+    def validate_path(
+        cls,
+        v,
+        values,
+    ):
         if not v:
-            raise ValueError("Script path cannot be empty.")
+            msg = "Script path cannot be empty."
+            raise ValueError(msg)
         return v
 
     def construct_command(self) -> list[str]:
         """Construct the command based on the script type."""
-        if self.type == "shell":
-            return [self.path] + self.args
-        elif self.type == "python":
-            return ["poetry", "run", "python", self.path] + self.args
+        if self.type == ScriptType.SHELL:
+            return [
+                str(self.path),
+                *self.args,
+            ]
+        elif self.type == ScriptType.PYTHON:
+            return [
+                "poetry",
+                "run",
+                "python",
+                str(self.path),
+                *self.args,
+            ]
         else:
-            raise ValueError(f"Unsupported script type: {self.type}")
+            msg = f"Unsupported script type: {self.type}"
+            raise ValueError(msg)
 
 
 def run_script(command: list[str]) -> None:
     """Run a shell or Python script command using poetry."""
     try:
-        print(f"Running: {' '.join(command)}")
-        run(command, check=True)
+        print(
+            f"Running: {' '.join(command)}",
+        )
+        run(  # noqa: S603 - we trust the command construction
+            command,
+            check=True,
+        )
     except CalledProcessError as e:
-        print(f"Error while running command: {' '.join(command)}")
-        print(f"Exit code: {e.returncode}")
-        exit(1)
+        print(
+            f"Error while running command: {' '.join(command)}",
+        )
+        print(
+            f"Exit code: {e.returncode}",
+        )
+        sys.exit(1)
 
 
 def main() -> None:
+    """Run all perplexity analysis steps in sequence."""
     # Define script configurations using Pydantic models
     scripts = [
-        ScriptConfig(type="shell", path="./script1.sh", args=["arg1", "arg2"]),
-        ScriptConfig(type="python", path="script1.py", args=["--arg1", "value1", "--arg2", "value2"]),
-        ScriptConfig(type="shell", path="./script2.sh", args=["arg1", "arg2"]),
-        ScriptConfig(type="python", path="script2.py", args=["--arg1", "value1", "--arg2", "value2"]),
+        ScriptConfig(
+            type=ScriptType.SHELL,
+            path=pathlib.Path(
+                TOPO_LLM_REPOSITORY_BASE_PATH,
+                "topollm",
+                "model_inference",
+                "perplexity",
+                "saved_perplexity_processing",
+                "align_and_analyse",
+                "run_multiple_load_saved_perplexity_and_concatenate_into_array.sh",
+            ),
+            args=[],
+        ),
+        ScriptConfig(
+            type=ScriptType.PYTHON,
+            path=pathlib.Path(
+                TOPO_LLM_REPOSITORY_BASE_PATH,
+                "topollm",
+                "model_inference",
+                "perplexity",
+                "saved_perplexity_processing",
+                "align_and_analyse",
+                "run_combine_histogram_plots.py",
+            ),
+            args=[],
+        ),
+        ScriptConfig(
+            type=ScriptType.PYTHON,
+            path=pathlib.Path(
+                TOPO_LLM_REPOSITORY_BASE_PATH,
+                "topollm",
+                "model_inference",
+                "perplexity",
+                "saved_perplexity_processing",
+                "correlation",
+                "run_aggregated_analysis.py",
+            ),
+            args=[],
+        ),
     ]
 
     # Loop through each script configuration, construct the command, and execute it
@@ -77,11 +154,10 @@ def main() -> None:
         command = script.construct_command()
         run_script(command)
 
-    print("All scripts executed successfully!")
+    print(
+        "All scripts executed successfully!",
+    )
 
 
 if __name__ == "__main__":
     main()
-
-
-# TODO(Ben): Implement this script which runs the steps one after another

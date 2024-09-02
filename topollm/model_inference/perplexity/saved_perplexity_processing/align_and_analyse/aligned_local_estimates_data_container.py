@@ -41,7 +41,7 @@ from topollm.model_inference.perplexity.saved_perplexity_processing.align_and_an
     plot_histograms,
     save_plot,
 )
-from topollm.model_inference.perplexity.saved_perplexity_processing.correlation_analysis import (
+from topollm.model_inference.perplexity.saved_perplexity_processing.correlation.correlation_analysis import (
     compute_and_save_correlation_results_on_all_input_columns_with_embeddings_path_manager,
     extract_correlation_columns,
 )
