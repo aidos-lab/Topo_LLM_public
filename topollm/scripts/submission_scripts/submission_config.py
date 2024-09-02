@@ -70,17 +70,42 @@ class SubmissionConfig(BaseModel):
             "roberta-base_for_masked_lm",
         ],
     )
+    fp16: str = Field(
+        default="true",
+        examples=[
+            "true",
+            "false",
+        ],
+    )
     num_train_epochs: str | None = "5"
     save_steps: str | None = "400"
     eval_steps: str | None = "100"
     finetuning_datasets_list: list[str] = Field(
         default_factory=lambda: [
-            "multiwoz21_train",
+            "train_and_eval_on_multiwoz21_train-samples-small",
         ],
     )
-    lr_scheduler_type: str | None = "linear"
-    peft_list: str | None = "standard"
-    gradient_modifier_list: str | None = "do_nothing"
+    lr_scheduler_type: str | None = Field(
+        default="linear",
+        examples=[
+            "linear",
+            "constant",
+        ],
+    )
+    peft_list: str | None = Field(
+        default="standard",
+        examples=[
+            "standard",
+            "lora",
+        ],
+    )
+    gradient_modifier_list: str | None = Field(
+        default="do_nothing",
+        examples=[
+            "do_nothing",
+            "freeze_first_layers_bert-style-models",
+        ],
+    )
     batch_size_train: str | None = "8"
     batch_size_eval: str | None = "8"
 
@@ -176,7 +201,7 @@ class SubmissionConfig(BaseModel):
                     f"finetuning.lr_scheduler_type={self.lr_scheduler_type}",
                     f"finetuning.save_steps={self.save_steps}",
                     f"finetuning.eval_steps={self.eval_steps}",
-                    "finetuning.fp16=true",
+                    f"finetuning.fp16={self.fp16}",
                     f"finetuning.batch_sizes.train={self.batch_size_train}",
                     f"finetuning.batch_sizes.eval={self.batch_size_eval}",
                     f"finetuning/finetuning_datasets={','.join(self.finetuning_datasets_list)}",

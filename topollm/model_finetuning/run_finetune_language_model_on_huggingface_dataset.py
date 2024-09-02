@@ -46,6 +46,13 @@ from topollm.model_finetuning.do_finetuning_process import do_finetuning_process
 from topollm.model_finetuning.initialize_wandb import initialize_wandb
 from topollm.model_handling.get_torch_device import get_torch_device
 
+try:
+    from hydra_plugins import hpc_submission_launcher
+
+    hpc_submission_launcher.register_plugin()
+except ImportError:
+    pass
+
 if TYPE_CHECKING:
     from topollm.config_classes.main_config import MainConfig
 

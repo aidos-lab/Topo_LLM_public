@@ -89,12 +89,26 @@ class DataListOption(StrEnum):
     ONLY_TRAIN = auto()
 
 
+class FinetuningDatasetsListOption(StrEnum):
+    """Options for the finetuning dataset list."""
+
+    DEBUG = auto()
+    MANUAL_IN_PYTHON_SCRIPT = auto()
+
+
 class LanguageModelListOption(StrEnum):
     """Options for the language model list."""
 
     ONLY_ROBERTA_BASE = auto()
     SELECTED_FINETUNED_FEW_EPOCHS_FROM_ROBERTA_BASE = auto()
     FULL_FINETUNED_FEW_EPOCHS_FROM_ROBERTA_BASE = auto()
+
+
+class FinetuningRegimeOption(StrEnum):
+    """Options for the finetuning regime."""
+
+    FEW_EPOCHS = auto()
+    MANY_EPOCHS_WITH_OVERFITTING_RISK = auto()
 
 
 def parse_arguments() -> argparse.Namespace:
@@ -146,6 +160,18 @@ def parse_arguments() -> argparse.Namespace:
         type=LanguageModelListOption,
         default=LanguageModelListOption.SELECTED_FINETUNED_FEW_EPOCHS_FROM_ROBERTA_BASE,
         help="Language model list to use.",
+    )
+    parser.add_argument(
+        "--finetuning_datasets_list",
+        type=FinetuningDatasetsListOption,
+        default=FinetuningDatasetsListOption.DEBUG,
+        help="Finetuning datasets list to use.",
+    )
+    parser.add_argument(
+        "--finetuning_regime",
+        type=FinetuningRegimeOption,
+        default=FinetuningRegimeOption.FEW_EPOCHS,
+        help="Finetuning regime to use.",
     )
 
     args = parser.parse_args()
@@ -240,6 +266,31 @@ def make_config_and_run_task(
             msg = f"Unknown {args.language_model_list = }"
             raise ValueError(msg)
 
+    match args.finetuning_datasets_list:
+        case FinetuningDatasetsListOption.DEBUG:
+            finetuning_datasets_list = [
+                "train_and_eval_on_multiwoz21_train-samples-small",
+            ]
+        case FinetuningDatasetsListOption.MANUAL_IN_PYTHON_SCRIPT:
+            finetuning_datasets_list = [
+                "train_and_eval_on_multiwoz21_train-samples-small",
+                "train_and_eval_on_one-year-of-tsla-on-reddit_train-samples-small",
+            ]
+        case _:
+            msg = f"Unknown {args.finetuning_datasets_list = }"
+            raise ValueError(msg)
+
+    match args.finetuning_regime:
+        case FinetuningRegimeOption.FEW_EPOCHS:
+            num_train_epochs = "5"
+            lr_scheduler_type = "linear"
+        case FinetuningRegimeOption.MANY_EPOCHS_WITH_OVERFITTING_RISK:
+            num_train_epochs = "50"
+            lr_scheduler_type = "constant"
+        case _:
+            msg = f"Unknown {args.finetuning_regime = }"
+            raise ValueError(msg)
+
     submissions_config = SubmissionConfig(
         submission_mode=args.submission_mode,
         queue=args.queue,
@@ -248,6 +299,9 @@ def make_config_and_run_task(
         data_list=data_list,
         language_model_list=language_model_list,
         checkpoint_no=checkpoint_no,
+        finetuning_datasets_list=finetuning_datasets_list,
+        num_train_epochs=num_train_epochs,
+        lr_scheduler_type=lr_scheduler_type,
     )
 
     run_task(
