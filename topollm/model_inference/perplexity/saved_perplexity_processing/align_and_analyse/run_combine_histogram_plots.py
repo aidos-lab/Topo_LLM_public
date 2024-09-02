@@ -24,12 +24,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Combine histograms for base and finetuned models into a single PDF file."""
+
 import os
 import pathlib
 import re
 
 from pypdf import PdfReader, PdfWriter
 from reportlab.pdfgen import canvas
+from tqdm import tqdm
 
 from topollm.config_classes.constants import TOPO_LLM_REPOSITORY_BASE_PATH
 
@@ -46,12 +49,15 @@ def find_histograms(
     """Traverse the directory structure to find relevant histogram files.
 
     Args:
+    ----
         base_dir: The base directory to search for histogram files.
 
     Returns:
+    -------
         A tuple containing:
         - A list of paths to base model histograms.
         - A dictionary mapping model names to lists of tuples, each containing a checkpoint number and histogram file path.
+
     """
     base_histograms = []
     finetuned_histograms = {}
@@ -59,12 +65,25 @@ def find_histograms(
     for root, _, files in os.walk(base_dir):
         for file in files:
             if file == "histograms_manual_scale.pdf":
-                checkpoint = get_checkpoint(root)
+                checkpoint = get_checkpoint(
+                    path=root,
+                )
+                file_path = pathlib.Path(
+                    root,
+                    file,
+                )
 
                 # Check if it's the base model directory
                 if "model-roberta-base_task-masked_lm" in root and "ckpt-" not in root:
-                    base_histograms.append(os.path.join(root, file))
-                    print(f"Base model histogram found: {os.path.join(root, file)}")  # Debug log
+                    base_histograms.append(
+                        pathlib.Path(
+                            root,
+                            file,
+                        ),
+                    )
+                    print(  # noqa: T201 - we want the script to print debug output
+                        f"Base model histogram found: {file_path = }",
+                    )
 
                 # Check for finetuned models by matching a specific naming pattern
                 elif checkpoint is not None:
@@ -78,29 +97,32 @@ def find_histograms(
                         if model_name not in finetuned_histograms:
                             finetuned_histograms[model_name] = []
                         finetuned_histograms[model_name].append(
-                            (checkpoint, os.path.join(root, file)),
+                            (checkpoint, file_path),
                         )
-                        print(
-                            f"Finetuned model histogram found: {model_name} - {os.path.join(root, file)}"
-                        )  # Debug log
+                        print(  # noqa: T201 - we want the script to print debug output
+                            f"Finetuned model histogram found: {model_name} - {file_path}",
+                        )
 
     # Sort the histograms by checkpoint values for each finetuned model
     for model, files in finetuned_histograms.items():
-        finetuned_histograms[model] = sorted(files, key=lambda x: x[0])
+        finetuned_histograms[model] = sorted(
+            files,
+            key=lambda x: x[0],
+        )
 
     return base_histograms, finetuned_histograms
 
 
 def create_title_pdf(
     title: str,
-    output_path: str,
-):
+    output_path: os.PathLike,
+) -> None:
     """Create a simple PDF with the title using reportlab."""
 
     # TODO: Fix the problem that this string is too long and not properly displayed in the PDF
 
     c = canvas.Canvas(
-        output_path,
+        filename=str(output_path),
         pagesize=(800, 100),
     )
     c.setFont("Helvetica", 12)
@@ -112,17 +134,26 @@ def create_title_pdf(
 def add_title_page(
     pdf_writer: PdfWriter,
     title: str,
-):
+) -> None:
     """Create a title page and add it to the PdfWriter."""
-    title_pdf_path = "temp_title.pdf"
+    title_pdf_path = pathlib.Path(
+        "temp_title.pdf",
+    )
+    title_pdf_path.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
     create_title_pdf(
-        title,
-        title_pdf_path,
+        title=title,
+        output_path=title_pdf_path,
     )
 
     # TODO: Find a way to remove the temp page after this script is run
 
-    with open(title_pdf_path, "rb") as temp_pdf:
+    # Add the title page to the PdfWriter
+    with pathlib.Path(title_pdf_path).open(
+        mode="rb",
+    ) as temp_pdf:
         reader = PdfReader(temp_pdf)
         pdf_writer.add_page(reader.pages[0])
 
@@ -132,7 +163,7 @@ def combine_histograms_for_model(
     finetuned_histograms: list[tuple[int, str]],
     model_name: str,
     output_file: os.PathLike,
-):
+) -> None:
     """Combine histograms into a single PDF file, including headers, for a specific model."""
     pdf_writer = PdfWriter()
 
@@ -149,11 +180,16 @@ def combine_histograms_for_model(
         add_pdf_to_writer(histogram_path, pdf_writer)
 
     # Write the combined PDF
-    with open(output_file, "wb") as f_out:
+    with pathlib.Path(output_file).open(
+        mode="wb",
+    ) as f_out:
         pdf_writer.write(f_out)
 
 
-def add_pdf_to_writer(pdf_path: str, pdf_writer: PdfWriter):
+def add_pdf_to_writer(
+    pdf_path: str,
+    pdf_writer: PdfWriter,
+) -> None:
     """Add all pages of a PDF to the PdfWriter object."""
     reader = PdfReader(pdf_path)
     for page in reader.pages:
@@ -177,24 +213,42 @@ def main() -> None:
     )
 
     # Process each folder
-    for data_directory in data_directories:
-        print(f"Processing directory: {data_directory}")
+    for data_directory in tqdm(
+        data_directories,
+        desc="Processing data directories",
+    ):
+        print(  # noqa: T201 - we want the script to print debug output
+            f"Processing {data_directory = } ...",
+        )
 
         # Find relevant histograms in the current data directory
-        base_histograms, finetuned_histograms = find_histograms(data_directory)
+        base_histograms, finetuned_histograms = find_histograms(
+            base_dir=data_directory,
+        )
 
         # Combine and save the histograms for each finetuning model
         for model_name, histograms in finetuned_histograms.items():
             output_file_name = f"{model_name}_combined_histograms.pdf"
-            output_file_path = data_directory / "combined_histograms" / output_file_name
-            output_file_path.parent.mkdir(parents=True, exist_ok=True)
+            output_file_path = pathlib.Path(
+                data_directory,
+                "combined_histograms",
+                output_file_name,
+            )
+            output_file_path.parent.mkdir(
+                parents=True,
+                exist_ok=True,
+            )
 
             combine_histograms_for_model(
-                base_histograms,
-                histograms,
-                model_name,
-                output_file_path,
+                base_histograms=base_histograms,
+                finetuned_histograms=histograms,
+                model_name=model_name,
+                output_file=output_file_path,
             )
+
+        print(  # noqa: T201 - we want the script to print debug output
+            f"Processing {data_directory = } DONE",
+        )
 
 
 if __name__ == "__main__":
