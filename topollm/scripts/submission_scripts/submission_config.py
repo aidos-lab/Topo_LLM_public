@@ -57,7 +57,7 @@ class SubmissionConfig(BaseModel):
             "roberta-base",
         ],
     )
-    checkpoint_no: str | None = None
+    checkpoint_no_list: list[str] | None = None
 
     layer_indices: str | None = "[-1]"
     embeddings_data_prep_num_samples: str | None = "30000"
@@ -158,42 +158,9 @@ class SubmissionConfig(BaseModel):
         """Get the command to run the task."""
         match task:
             case Task.PIPELINE:
-                task_specific_command = [
-                    f"data={','.join(self.data_list)}",
-                    f"language_model={','.join(self.language_model_list)}",
-                    f"tokenizer.add_prefix_space={self.add_prefix_space}",
-                ]
-
-                if self.checkpoint_no:
-                    task_specific_command.append(
-                        f"language_model.checkpoint_no={self.checkpoint_no}",
-                    )
-
-                if self.layer_indices:
-                    task_specific_command.append(
-                        f"embeddings.embedding_extraction.layer_indices={self.layer_indices}",
-                    )
-
-                if self.embeddings_data_prep_num_samples:
-                    task_specific_command.append(
-                        f"embeddings_data_prep.sampling.num_samples={self.embeddings_data_prep_num_samples}",
-                    )
-
-                if self.embeddings_data_prep_sampling_mode:
-                    task_specific_command.append(
-                        f"+embeddings_data_prep.sampling.sampling_mode={self.embeddings_data_prep_sampling_mode}",
-                    )
+                task_specific_command = self.generate_task_specific_command_pipeline()
             case Task.PERPLEXITY:
-                task_specific_command = [
-                    f"data={','.join(self.data_list)}",
-                    f"language_model={','.join(self.language_model_list)}",
-                    f"tokenizer.add_prefix_space={self.add_prefix_space}",
-                ]
-                if self.checkpoint_no:
-                    task_specific_command.append(
-                        f"language_model.checkpoint_no={self.checkpoint_no}",
-                    )
-
+                task_specific_command = self.generate_task_specific_command_perplexity()
             case Task.FINETUNING:
                 task_specific_command = [
                     f"finetuning/base_model={','.join(self.base_model_list)}",
@@ -235,3 +202,49 @@ class SubmissionConfig(BaseModel):
             command.append(self.additional_overrides)
 
         return command
+
+    def generate_task_specific_command_perplexity(
+        self,
+    ) -> list[str]:
+        task_specific_command = [
+            f"data={','.join(self.data_list)}",
+            f"language_model={','.join(self.language_model_list)}",
+            f"tokenizer.add_prefix_space={self.add_prefix_space}",
+        ]
+        if self.checkpoint_no_list:
+            task_specific_command.append(
+                f"language_model.checkpoint_no={','.join(self.checkpoint_no_list)}",
+            )
+
+        return task_specific_command
+
+    def generate_task_specific_command_pipeline(
+        self,
+    ) -> list[str]:
+        task_specific_command = [
+            f"data={','.join(self.data_list)}",
+            f"language_model={','.join(self.language_model_list)}",
+            f"tokenizer.add_prefix_space={self.add_prefix_space}",
+        ]
+
+        if self.checkpoint_no_list:
+            task_specific_command.append(
+                f"language_model.checkpoint_no={','.join(self.checkpoint_no_list)}",
+            )
+
+        if self.layer_indices:
+            task_specific_command.append(
+                f"embeddings.embedding_extraction.layer_indices={self.layer_indices}",
+            )
+
+        if self.embeddings_data_prep_num_samples:
+            task_specific_command.append(
+                f"embeddings_data_prep.sampling.num_samples={self.embeddings_data_prep_num_samples}",
+            )
+
+        if self.embeddings_data_prep_sampling_mode:
+            task_specific_command.append(
+                f"+embeddings_data_prep.sampling.sampling_mode={self.embeddings_data_prep_sampling_mode}",
+            )
+
+        return task_specific_command

@@ -18,28 +18,53 @@ ABSOLUTE_PYTHON_SCRIPT_PATH="${TOPO_LLM_REPOSITORY_BASE_PATH}/${RELATIVE_PYTHON_
 # Define an array of language models and checkpoints
 #
 
-# Version 1: Checkpoints from training for 5 epochs
+# # === START Version 1: Checkpoints from training for 5 epochs
+# #
+
+# LANGUAGE_MODEL_ARRAY=(
+#   "model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
+#   "model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
+# )
+# CHECKPOINT_NO_ARRAY=(
+#     "400"
+#     "800"
+#     "1200"
+#     "1600"
+#     "2000"
+#     "2400"
+#     "2800"
+# )
+
+# #
+# # === END Version 1: Checkpoints from training for 5 epochs
+
+# === START Version 2: Checkpoints from training for 50 epochs
 #
-LANGUAGE_MODELS_ARRAY=(
-  "model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
-  "model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
-)
-CHECKPOINT_NO_ARRAY=(
-    "400"
-    "800"
-    "1200"
-    "1600"
-    "2000"
-    "2400"
-    "2800"
+
+LANGUAGE_MODEL_ARRAY=(
+  "model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50"
+  "model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50"
 )
 
+# Loop from 400 to 31200 with a step of 400.
+# This will generate an array of checkpoint numbers from 400 to 31200.
+for ((i=400; i<=31200; i+=400)); do
+  CHECKPOINT_NO_ARRAY+=("$i")
+done
 
+#
+# === END Version 2: Checkpoints from training for 50 epochs
 
 # # # #
 # Concatenate array elements into a comma-separated string
-LANGUAGE_MODEL_LIST=$(IFS=,; echo "${LANGUAGE_MODELS_ARRAY[*]}")
+LANGUAGE_MODEL_LIST=$(IFS=,; echo "${LANGUAGE_MODEL_ARRAY[*]}")
 CHECKPOINT_NO_LIST=$(IFS=,; echo "${CHECKPOINT_NO_ARRAY[*]}")
+
+echo "LANGUAGE_MODEL_ARRAY=${LANGUAGE_MODEL_ARRAY[@]}"
+echo "LANGUAGE_MODEL_LIST=${LANGUAGE_MODEL_LIST}"
+
+echo "CHECKPOINT_NO_ARRAY=${CHECKPOINT_NO_ARRAY[@]}"
+echo "CHECKPOINT_NO_LIST=${CHECKPOINT_NO_LIST}"
 
 PREFERRED_TORCH_BACKEND="auto"
 # PREFERRED_TORCH_BACKEND="cpu"
