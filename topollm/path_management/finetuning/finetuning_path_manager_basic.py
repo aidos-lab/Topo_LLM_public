@@ -134,17 +134,17 @@ class FinetuningPathManagerBasic:
         self,
     ) -> str:
         description = (
-            f"{NAME_PREFIXES['learning_rate']}"
-            f"{KV_SEP}"
-            f"{self.finetuning_config.learning_rate}"
-            f"{ITEM_SEP}"
-            f"{NAME_PREFIXES['lr_scheduler_type']}"
-            f"{KV_SEP}"
-            f"{self.finetuning_config.lr_scheduler_type}"
-            f"{ITEM_SEP}"
-            f"{NAME_PREFIXES['weight_decay']}"
-            f"{KV_SEP}"
-            f"{self.finetuning_config.weight_decay}"
+            NAME_PREFIXES["learning_rate"]
+            + KV_SEP
+            + str(self.finetuning_config.learning_rate)
+            + ITEM_SEP
+            + NAME_PREFIXES["lr_scheduler_type"]
+            + KV_SEP
+            + str(self.finetuning_config.lr_scheduler_type)
+            + ITEM_SEP
+            + NAME_PREFIXES["weight_decay"]
+            + KV_SEP
+            + str(self.finetuning_config.weight_decay)
         )
 
         return description
@@ -162,7 +162,7 @@ class FinetuningPathManagerBasic:
                 short_description = (
                     str(self.finetuning_config.learning_rate)
                     + short_description_separator
-                    + self.finetuning_config.lr_scheduler_type
+                    + str(self.finetuning_config.lr_scheduler_type)
                     + short_description_separator
                     + str(self.finetuning_config.weight_decay)
                     + short_description_separator
