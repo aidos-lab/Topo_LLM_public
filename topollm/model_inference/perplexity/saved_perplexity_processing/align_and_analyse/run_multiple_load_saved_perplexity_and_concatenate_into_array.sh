@@ -14,32 +14,34 @@ ABSOLUTE_PYTHON_SCRIPT_PATH="${TOPO_LLM_REPOSITORY_BASE_PATH}/${RELATIVE_PYTHON_
 # Select the parameters here
 
 datas=(
-    "iclr_2024_submissions_test"
-    "iclr_2024_submissions_train"
-    "iclr_2024_submissions_validation"
+    # "iclr_2024_submissions_test"
+    # "iclr_2024_submissions_train"
+    # "iclr_2024_submissions_validation"
     "multiwoz21_test"
     "multiwoz21_train"
     "multiwoz21_validation"
     "one-year-of-tsla-on-reddit_test"
     "one-year-of-tsla-on-reddit_train"
     "one-year-of-tsla-on-reddit_validation"
-    "sgd_test"
-    "sgd_train"
-    "sgd_validation"
-    "wikitext_test"
-    "wikitext_train"
-    "wikitext_validation"
+    # "sgd_test"
+    # "sgd_train"
+    # "sgd_validation"
+    # "wikitext_test"
+    # "wikitext_train"
+    # "wikitext_validation"
 )
 
 DATA_LIST=$(IFS=,; echo "${datas[*]}")
 echo "DATA_LIST: $DATA_LIST"
 
 language_models=(
-    "roberta-base"
+    # "roberta-base"
     # "model-roberta-base_task-masked_lm_iclr_2024_submissions-train-5000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
-    "model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
-    "model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
+    # "model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
+    # "model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
     # "model-roberta-base_task-masked_lm_wikitext-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5"
+    "model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50"
+    "model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50"
 )
 
 
@@ -69,7 +71,25 @@ for language_model in "${language_models[@]}"; do
     else
         # Define checkpoints for other models here
         # Adjust the checkpoints as per your requirements for other models
-        CHECKPOINTS="400,1200,2000,2800"
+        #
+        # CHECKPOINTS="400,1200,2000,2800"
+
+        CHECKPOINTS_ARRAY=(
+            "400"
+            "3200"
+            "6000"
+            "8800"
+            "11600"
+            "14400"
+            "17200"
+            "20000"
+            "22800"
+            "25600"
+            "28400"
+            "31200"
+        )
+
+        CHECKPOINTS=$(IFS=,; echo "${CHECKPOINTS_ARRAY[*]}")
     fi
 
     # Run the Python script with the selected checkpoints for the current model
