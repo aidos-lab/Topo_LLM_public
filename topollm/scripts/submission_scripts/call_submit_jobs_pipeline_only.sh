@@ -1,6 +1,8 @@
 #!/bin/bash
 
-DATA_LIST="multiwoz21_only"
+# DATA_LIST="multiwoz21_only"
+DATA_LIST="multiwoz21_and_reddit"
+
 LANGUAGE_MODEL_LIST="setsumbt_selected"
 
 # Note: These are not necessary for this setup
@@ -9,8 +11,8 @@ FINETUNING_REGIME="few_epochs"
 
 # ====================
 
-SUBMISSION_MODE="local"
-# SUBMISSION_MODE="hpc_submission"
+# SUBMISSION_MODE="local"
+SUBMISSION_MODE="hpc_submission"
 
 # DRY_RUN_FLAG="--dry_run"
 DRY_RUN_FLAG=""

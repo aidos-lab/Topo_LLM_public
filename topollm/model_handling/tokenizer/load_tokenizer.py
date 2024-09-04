@@ -87,12 +87,29 @@ def load_modified_tokenizer(
     TokenizerModifier,
 ]:
     """Load the tokenizer and modify it if necessary."""
-    tokenizer = load_tokenizer(
-        pretrained_model_name_or_path=language_model_config.pretrained_model_name_or_path,
-        tokenizer_config=tokenizer_config,
-        verbosity=verbosity,
-        logger=logger,
-    )
+    if language_model_config.manual_tokenizer_override_pretrained_model_name_or_path is not None:
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                "@@@ Note: Using manual tokenizer override. @@@",
+            )
+        tokenizer = load_tokenizer(
+            pretrained_model_name_or_path=language_model_config.manual_tokenizer_override_pretrained_model_name_or_path,
+            tokenizer_config=tokenizer_config,
+            verbosity=verbosity,
+            logger=logger,
+        )
+    else:
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                "Loading tokenizer without manual override.",
+            )
+        tokenizer = load_tokenizer(
+            pretrained_model_name_or_path=language_model_config.pretrained_model_name_or_path,
+            tokenizer_config=tokenizer_config,
+            verbosity=verbosity,
+            logger=logger,
+        )
+
     tokenizer_modifier = get_tokenizer_modifier(
         tokenizer_modifier_config=language_model_config.tokenizer_modifier,
         verbosity=verbosity,

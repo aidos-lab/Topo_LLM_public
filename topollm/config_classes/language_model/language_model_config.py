@@ -66,6 +66,12 @@ class LanguageModelConfig(ConfigBaseModel):
         description="The model identifier for the huggingface transformers model to use for computing embeddings.",
     )
 
+    manual_tokenizer_override_pretrained_model_name_or_path: str | pathlib.Path | None = Field(
+        default=None,
+        title="If this is not None, it will be used for loading the tokenizer.",
+        description="Tokenizer which will be loaded instead of the one set in 'pretrained_model_name_or_path'.",
+    )
+
     short_model_name: str = Field(
         default="roberta-base",
         title="Short model name.",

@@ -287,11 +287,11 @@ def load_tokenizer_with_fallback(
         OSError,  # Add OSError to handle issues with paths or files
     ) as e:
         logger.exception(
-            "Could not load the tokenizer from the provided configuration. Falling back to 'roberta-base'."
+            "Could not load the tokenizer from the provided configuration. Falling back to 'roberta-base'.",
         )
         try:
             tokenizer = transformers.AutoTokenizer.from_pretrained(
-                fallback_pretrained_model_name_or_path,
+                pretrained_model_name_or_path=fallback_pretrained_model_name_or_path,
             )
             logger.info(
                 f"Successfully loaded fallback tokenizer {fallback_pretrained_model_name_or_path = }.",  # noqa: G004 - low overhead
