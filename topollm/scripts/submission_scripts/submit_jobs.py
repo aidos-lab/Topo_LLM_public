@@ -30,6 +30,7 @@
 import argparse
 import pathlib
 import subprocess
+from enum import StrEnum, auto
 
 from topollm.scripts.submission_scripts.submission_config import SubmissionConfig
 from topollm.typing.enums import SubmissionMode, Task
@@ -38,6 +39,8 @@ from topollm.typing.enums import SubmissionMode, Task
 def run_task(
     submissions_config: SubmissionConfig,
     task: Task,
+    *,
+    dry_run: bool = False,
 ) -> None:
     """Run a task with the given configuration."""
     match task:
@@ -70,13 +73,59 @@ def run_task(
         task=task,
     )
     print(  # noqa: T201 - We want this submission script to print the command
-        "Running command:",
+        "Running command:\n",
         " ".join(command),
     )
-    subprocess.run(  # noqa: S603 - We trust the command
-        command,
-        check=True,
-    )
+
+    if dry_run:
+        print(  # noqa: T201 - We want this submission script to print this output
+            "Dry run, not running the command.",
+        )
+    else:
+        subprocess.run(  # noqa: S603 - We trust the command
+            command,
+            check=True,
+        )
+
+
+class DataListOption(StrEnum):
+    """Options for the data list."""
+
+    DEBUG = auto()
+    FULL = auto()
+    MANUAL_IN_PYTHON_SCRIPT = auto()
+    ONLY_TRAIN = auto()
+    MULTIWOZ_AND_REDDIT = auto()
+
+
+class FinetuningDatasetsListOption(StrEnum):
+    """Options for the finetuning dataset list."""
+
+    DEBUG = auto()
+    MANUAL_IN_PYTHON_SCRIPT = auto()
+
+
+class LanguageModelListOption(StrEnum):
+    """Options for the language model list."""
+
+    ONLY_ROBERTA_BASE = auto()
+    SELECTED_FINETUNED_FEW_EPOCHS_FROM_ROBERTA_BASE = auto()
+    SELECTED_FINETUNED_MANY_EPOCHS_FROM_ROBERTA_BASE = auto()
+    FULL_FINETUNED_FEW_EPOCHS_FROM_ROBERTA_BASE = auto()
+
+
+class CheckpointNoListOption(StrEnum):
+    """Options for the checkpoint number list."""
+
+    SELECTED = auto()
+    FULL = auto()
+
+
+class FinetuningRegimeOption(StrEnum):
+    """Options for the finetuning regime."""
+
+    FEW_EPOCHS = auto()
+    MANY_EPOCHS_WITH_OVERFITTING_RISK = auto()
 
 
 def parse_arguments() -> argparse.Namespace:
@@ -110,10 +159,48 @@ def parse_arguments() -> argparse.Namespace:
         help="Template name for HPC submission.",
     )
     parser.add_argument(
-        "--additional-overrides",
+        "--additional_overrides",
         type=str,
         default="",
         help="Additional overrides for Hydra.",
+    )
+
+    # Selecting groups of data and language models
+    parser.add_argument(
+        "--data_list",
+        type=DataListOption,
+        default=DataListOption.DEBUG,
+        help="Data list to use.",
+    )
+    parser.add_argument(
+        "--language_model_list",
+        type=LanguageModelListOption,
+        default=LanguageModelListOption.SELECTED_FINETUNED_FEW_EPOCHS_FROM_ROBERTA_BASE,
+        help="Language model list to use.",
+    )
+    parser.add_argument(
+        "--finetuning_datasets_list",
+        type=FinetuningDatasetsListOption,
+        default=FinetuningDatasetsListOption.DEBUG,
+        help="Finetuning datasets list to use.",
+    )
+    parser.add_argument(
+        "--checkpoint_no_list",
+        type=CheckpointNoListOption,
+        default=CheckpointNoListOption.SELECTED,
+        help="Checkpoint number list to use.",
+    )
+    parser.add_argument(
+        "--finetuning_regime",
+        type=FinetuningRegimeOption,
+        default=FinetuningRegimeOption.FEW_EPOCHS,
+        help="Finetuning regime to use.",
+    )
+
+    parser.add_argument(
+        "--dry_run",
+        action="store_true",
+        help="Dry run the command.",
     )
 
     args = parser.parse_args()
@@ -124,45 +211,285 @@ def make_config_and_run_task(
     args: argparse.Namespace,
 ) -> None:
     """Make a submission configuration and run the task."""
+    full_data_list = [
+        "iclr_2024_submissions_test",
+        "iclr_2024_submissions_train",
+        "iclr_2024_submissions_validation",
+        "multiwoz21_test",
+        "multiwoz21_train",
+        "multiwoz21_validation",
+        "one-year-of-tsla-on-reddit_test",
+        "one-year-of-tsla-on-reddit_train",
+        "one-year-of-tsla-on-reddit_validation",
+        "sgd_test",
+        "sgd_train",
+        "sgd_validation",
+        "wikitext_test",
+        "wikitext_train",
+        "wikitext_validation",
+    ]
+    only_train_data_list = [data_name for data_name in full_data_list if "_train" in data_name]
+
+    only_roberta_base_language_model_list = [
+        "roberta-base",
+    ]
+    selected_finetuned_few_epochs_from_roberta_base_language_model_list = [
+        "model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
+        "model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
+    ]
+    selected_finetuned_many_epochs_from_roberta_base_language_model_list = [
+        "model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50",
+        "model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50",
+    ]
+    full_finetuned_few_epochs_from_roberta_base_language_model_list = [
+        "model-roberta-base_task-masked_lm_iclr_2024_submissions-train-5000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
+        "model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
+        "model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
+        "model-roberta-base_task-masked_lm_wikitext-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
+    ]
+
+    match args.data_list:
+        case DataListOption.FULL:
+            data_list = full_data_list
+        case DataListOption.ONLY_TRAIN:
+            data_list = only_train_data_list
+        case DataListOption.DEBUG:
+            data_list = [
+                "multiwoz21_test",
+                "sgd_test",
+            ]
+        case DataListOption.MANUAL_IN_PYTHON_SCRIPT:
+            data_list = [
+                "iclr_2024_submissions_test",
+                "multiwoz21_test",
+                "one-year-of-tsla-on-reddit_test",
+                "sgd_test",
+                "wikitext_test",
+            ]
+        case DataListOption.MULTIWOZ_AND_REDDIT:
+            data_list = [
+                "multiwoz21_test",
+                "multiwoz21_train",
+                "multiwoz21_validation",
+                "one-year-of-tsla-on-reddit_test",
+                "one-year-of-tsla-on-reddit_train",
+                "one-year-of-tsla-on-reddit_validation",
+            ]
+        case _:
+            msg = f"Unknown {args.data_list = }"
+            raise ValueError(msg)
+
+    match args.finetuning_regime:
+        case FinetuningRegimeOption.FEW_EPOCHS:
+            num_train_epochs = "5"
+            lr_scheduler_type = "linear"
+        case FinetuningRegimeOption.MANY_EPOCHS_WITH_OVERFITTING_RISK:
+            num_train_epochs = "50"
+            lr_scheduler_type = "constant"
+        case _:
+            msg = f"Unknown {args.finetuning_regime = }"
+            raise ValueError(msg)
+
+    match args.language_model_list:
+        case LanguageModelListOption.ONLY_ROBERTA_BASE:
+            language_model_list = only_roberta_base_language_model_list
+            # No checkpoints for the base model
+            checkpoint_no_list = None
+        case LanguageModelListOption.SELECTED_FINETUNED_FEW_EPOCHS_FROM_ROBERTA_BASE:
+            language_model_list = selected_finetuned_few_epochs_from_roberta_base_language_model_list
+
+            checkpoint_no_list = get_checkpoint_no_list(
+                checkpoint_no_list_option=args.checkpoint_no_list,
+                num_train_epochs=int(num_train_epochs),
+            )
+        case LanguageModelListOption.FULL_FINETUNED_FEW_EPOCHS_FROM_ROBERTA_BASE:
+            language_model_list = full_finetuned_few_epochs_from_roberta_base_language_model_list
+
+            checkpoint_no_list = get_checkpoint_no_list(
+                checkpoint_no_list_option=args.checkpoint_no_list,
+                num_train_epochs=int(num_train_epochs),
+            )
+        case LanguageModelListOption.SELECTED_FINETUNED_MANY_EPOCHS_FROM_ROBERTA_BASE:
+            language_model_list = selected_finetuned_many_epochs_from_roberta_base_language_model_list
+
+            checkpoint_no_list = get_checkpoint_no_list(
+                checkpoint_no_list_option=args.checkpoint_no_list,
+                num_train_epochs=int(num_train_epochs),
+            )
+        case _:
+            msg = f"Unknown {args.language_model_list = }"
+            raise ValueError(msg)
+
+    match args.finetuning_datasets_list:
+        case FinetuningDatasetsListOption.DEBUG:
+            finetuning_datasets_list = [
+                "train_and_eval_on_multiwoz21_train-samples-small",
+            ]
+        case FinetuningDatasetsListOption.MANUAL_IN_PYTHON_SCRIPT:
+            finetuning_datasets_list = [
+                "train_and_eval_on_multiwoz21_train-samples-small",
+                "train_and_eval_on_one-year-of-tsla-on-reddit_train-samples-small",
+            ]
+        case _:
+            msg = f"Unknown {args.finetuning_datasets_list = }"
+            raise ValueError(msg)
+
     submissions_config = SubmissionConfig(
         submission_mode=args.submission_mode,
         queue=args.queue,
         template=args.template,
         additional_overrides=args.additional_overrides,
-        data_list=[
-            "iclr_2024_submissions_test",
-            "iclr_2024_submissions_validation",
-            "multiwoz21_test",
-            "multiwoz21_train",
-            "multiwoz21_validation",
-            "one-year-of-tsla-on-reddit_test",
-            "one-year-of-tsla-on-reddit_validation",
-            "sgd_test",
-            "sgd_validation",
-            "wikitext_test",
-            "wikitext_validation",
-        ],
-        # layer_indices="[-1],[-5],[-9]",
-        language_model_list=[
-            "roberta-base",
-            # "model-roberta-base_task-MASKED_LM_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
-            # "model-roberta-base_task-MASKED_LM_iclr_2024_submissions-train-5000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
-            # "model-roberta-base_task-MASKED_LM_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
-            # "model-roberta-base_task-MASKED_LM_wikitext-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
-        ],
-        # checkpoint_no="400,1200,2000,2800",
-        # The following line contains checkpoints from 400 to 2800 (for ep-5 and batch size 8)
-        # checkpoint_no="400,800,1200,1600,2000,2400,2800",
-        # The following line contains checkpoints from 400 to 15600 (for ep-50 and batch size 16)
-        # checkpoint_no="400,800,1200,1600,2000,2400,2800,3200,3600,4000,4400,4800,5200,5600,6000,6400,6800,7200,7600,8000,8400,8800,9200,9600,10000,10400,10800,11200,11600,12000,12400,12800,13200,13600,14000,14400,14800,15200,15600"
-        # The following line contains checkpoints from 400 to 31200 (for ep-50 and batch size 8)
-        # checkpoint_no="400,800,1200,1600,2000,2400,2800,3200,3600,4000,4400,4800,5200,5600,6000,6400,6800,7200,7600,8000,8400,8800,9200,9600,10000,10400,10800,11200,11600,12000,12400,12800,13200,13600,14000,14400,14800,15200,15600,16000,16400,16800,17200,17600,18000,18400,18800,19200,19600,20000,20400,20800,21200,21600,22000,22400,22800,23200,23600,24000,24400,24800,25200,25600,26000,26400,26800,27200,27600,28000,28400,28800,29200,29600,30000,30400,30800,31200"
+        data_list=data_list,
+        language_model_list=language_model_list,
+        checkpoint_no_list=checkpoint_no_list,
+        finetuning_datasets_list=finetuning_datasets_list,
+        num_train_epochs=num_train_epochs,
+        lr_scheduler_type=lr_scheduler_type,
     )
 
     run_task(
         submissions_config=submissions_config,
         task=args.task,
+        dry_run=args.dry_run,
     )
+
+
+def get_checkpoint_no_list(
+    checkpoint_no_list_option: CheckpointNoListOption,
+    num_train_epochs: int = 5,
+) -> list[str]:
+    # TODO: Make this more flexible (work for other numbers of epochs)
+    match checkpoint_no_list_option:
+        case CheckpointNoListOption.SELECTED:
+            if num_train_epochs == 5:
+                checkpoint_no_list = [
+                    "400",
+                    "1200",
+                    "2000",
+                    "2800",
+                ]
+            elif num_train_epochs == 50:
+                checkpoint_no_list = [
+                    "400",
+                    "3200",
+                    "6000",
+                    "8800",
+                    "11600",
+                    "14400",
+                    "17200",
+                    "20000",
+                    "22800",
+                    "25600",
+                    "28400",
+                    "31200",
+                ]
+            else:
+                msg = f"Unknown {num_train_epochs = }"
+                raise ValueError(msg)
+        case CheckpointNoListOption.FULL:
+            if num_train_epochs == 5:
+                # All checkpoints from 400 to 2800
+                # (for ep-5 and batch size 8)
+                checkpoint_no_list = [
+                    "400",
+                    "800",
+                    "1200",
+                    "1600",
+                    "2000",
+                    "2400",
+                    "2800",
+                ]
+            elif num_train_epochs == 50:
+                # All checkpoints from 400 to 31200
+                # (for ep-50 and batch size 8)
+                checkpoint_no_list = [
+                    "400",
+                    "800",
+                    "1200",
+                    "1600",
+                    "2000",
+                    "2400",
+                    "2800",
+                    "3200",
+                    "3600",
+                    "4000",
+                    "4400",
+                    "4800",
+                    "5200",
+                    "5600",
+                    "6000",
+                    "6400",
+                    "6800",
+                    "7200",
+                    "7600",
+                    "8000",
+                    "8400",
+                    "8800",
+                    "9200",
+                    "9600",
+                    "10000",
+                    "10400",
+                    "10800",
+                    "11200",
+                    "11600",
+                    "12000",
+                    "12400",
+                    "12800",
+                    "13200",
+                    "13600",
+                    "14000",
+                    "14400",
+                    "14800",
+                    "15200",
+                    "15600",
+                    "16000",
+                    "16400",
+                    "16800",
+                    "17200",
+                    "17600",
+                    "18000",
+                    "18400",
+                    "18800",
+                    "19200",
+                    "19600",
+                    "20000",
+                    "20400",
+                    "20800",
+                    "21200",
+                    "21600",
+                    "22000",
+                    "22400",
+                    "22800",
+                    "23200",
+                    "23600",
+                    "24000",
+                    "24400",
+                    "24800",
+                    "25200",
+                    "25600",
+                    "26000",
+                    "26400",
+                    "26800",
+                    "27200",
+                    "27600",
+                    "28000",
+                    "28400",
+                    "28800",
+                    "29200",
+                    "29600",
+                    "30000",
+                    "30400",
+                    "30800",
+                    "31200",
+                ]
+            else:
+                msg = f"Unknown {num_train_epochs = }"
+                raise ValueError(msg)
+        case _:
+            msg = f"Unknown {checkpoint_no_list_option = }"
+            raise ValueError(msg)
+
+    return checkpoint_no_list
 
 
 def main() -> None:

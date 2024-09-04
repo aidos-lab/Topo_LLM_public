@@ -57,7 +57,7 @@ class SubmissionConfig(BaseModel):
             "roberta-base",
         ],
     )
-    checkpoint_no: str | None = None
+    checkpoint_no_list: list[str] | None = None
 
     layer_indices: str | None = "[-1]"
     embeddings_data_prep_num_samples: str | None = "30000"
@@ -70,17 +70,42 @@ class SubmissionConfig(BaseModel):
             "roberta-base_for_masked_lm",
         ],
     )
+    fp16: str = Field(
+        default="true",
+        examples=[
+            "true",
+            "false",
+        ],
+    )
     num_train_epochs: str | None = "5"
     save_steps: str | None = "400"
     eval_steps: str | None = "100"
     finetuning_datasets_list: list[str] = Field(
         default_factory=lambda: [
-            "multiwoz21_train",
+            "train_and_eval_on_multiwoz21_train-samples-small",
         ],
     )
-    lr_scheduler_type: str | None = "linear"
-    peft_list: str | None = "standard"
-    gradient_modifier_list: str | None = "do_nothing"
+    lr_scheduler_type: str | None = Field(
+        default="linear",
+        examples=[
+            "linear",
+            "constant",
+        ],
+    )
+    peft_list: str | None = Field(
+        default="standard",
+        examples=[
+            "standard",
+            "lora",
+        ],
+    )
+    gradient_modifier_list: str | None = Field(
+        default="do_nothing",
+        examples=[
+            "do_nothing",
+            "freeze_first_layers_bert-style-models",
+        ],
+    )
     batch_size_train: str | None = "8"
     batch_size_eval: str | None = "8"
 
@@ -133,42 +158,9 @@ class SubmissionConfig(BaseModel):
         """Get the command to run the task."""
         match task:
             case Task.PIPELINE:
-                task_specific_command = [
-                    f"data={','.join(self.data_list)}",
-                    f"language_model={','.join(self.language_model_list)}",
-                    f"tokenizer.add_prefix_space={self.add_prefix_space}",
-                ]
-
-                if self.checkpoint_no:
-                    task_specific_command.append(
-                        f"language_model.checkpoint_no={self.checkpoint_no}",
-                    )
-
-                if self.layer_indices:
-                    task_specific_command.append(
-                        f"embeddings.embedding_extraction.layer_indices={self.layer_indices}",
-                    )
-
-                if self.embeddings_data_prep_num_samples:
-                    task_specific_command.append(
-                        f"embeddings_data_prep.sampling.num_samples={self.embeddings_data_prep_num_samples}",
-                    )
-
-                if self.embeddings_data_prep_sampling_mode:
-                    task_specific_command.append(
-                        f"+embeddings_data_prep.sampling.sampling_mode={self.embeddings_data_prep_sampling_mode}",
-                    )
+                task_specific_command = self.generate_task_specific_command_pipeline()
             case Task.PERPLEXITY:
-                task_specific_command = [
-                    f"data={','.join(self.data_list)}",
-                    f"language_model={','.join(self.language_model_list)}",
-                    f"tokenizer.add_prefix_space={self.add_prefix_space}",
-                ]
-                if self.checkpoint_no:
-                    task_specific_command.append(
-                        f"language_model.checkpoint_no={self.checkpoint_no}",
-                    )
-
+                task_specific_command = self.generate_task_specific_command_perplexity()
             case Task.FINETUNING:
                 task_specific_command = [
                     f"finetuning/base_model={','.join(self.base_model_list)}",
@@ -176,7 +168,7 @@ class SubmissionConfig(BaseModel):
                     f"finetuning.lr_scheduler_type={self.lr_scheduler_type}",
                     f"finetuning.save_steps={self.save_steps}",
                     f"finetuning.eval_steps={self.eval_steps}",
-                    "finetuning.fp16=true",
+                    f"finetuning.fp16={self.fp16}",
                     f"finetuning.batch_sizes.train={self.batch_size_train}",
                     f"finetuning.batch_sizes.eval={self.batch_size_eval}",
                     f"finetuning/finetuning_datasets={','.join(self.finetuning_datasets_list)}",
@@ -193,10 +185,16 @@ class SubmissionConfig(BaseModel):
         if self.submission_mode == SubmissionMode.HPC_SUBMISSION:
             command.extend(
                 [
-                    f"hydra/launcher={self.submission_mode.value}",
+                    "hydra/launcher=hpc_submission",
                     f"hydra.launcher.queue={self.queue}",
                     f"hydra.launcher.template={self.template}",
                     f"hydra.launcher.memory={self.memory}",
+                ],
+            )
+        elif self.submission_mode == SubmissionMode.LOCAL:
+            command.extend(
+                [
+                    "hydra/launcher=basic",
                 ],
             )
 
@@ -204,3 +202,49 @@ class SubmissionConfig(BaseModel):
             command.append(self.additional_overrides)
 
         return command
+
+    def generate_task_specific_command_perplexity(
+        self,
+    ) -> list[str]:
+        task_specific_command = [
+            f"data={','.join(self.data_list)}",
+            f"language_model={','.join(self.language_model_list)}",
+            f"tokenizer.add_prefix_space={self.add_prefix_space}",
+        ]
+        if self.checkpoint_no_list:
+            task_specific_command.append(
+                f"language_model.checkpoint_no={','.join(self.checkpoint_no_list)}",
+            )
+
+        return task_specific_command
+
+    def generate_task_specific_command_pipeline(
+        self,
+    ) -> list[str]:
+        task_specific_command = [
+            f"data={','.join(self.data_list)}",
+            f"language_model={','.join(self.language_model_list)}",
+            f"tokenizer.add_prefix_space={self.add_prefix_space}",
+        ]
+
+        if self.checkpoint_no_list:
+            task_specific_command.append(
+                f"language_model.checkpoint_no={','.join(self.checkpoint_no_list)}",
+            )
+
+        if self.layer_indices:
+            task_specific_command.append(
+                f"embeddings.embedding_extraction.layer_indices={self.layer_indices}",
+            )
+
+        if self.embeddings_data_prep_num_samples:
+            task_specific_command.append(
+                f"embeddings_data_prep.sampling.num_samples={self.embeddings_data_prep_num_samples}",
+            )
+
+        if self.embeddings_data_prep_sampling_mode:
+            task_specific_command.append(
+                f"+embeddings_data_prep.sampling.sampling_mode={self.embeddings_data_prep_sampling_mode}",
+            )
+
+        return task_specific_command

@@ -25,6 +25,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Create the config for the language model resulting from fine-tuning."""
+
 import logging
 import pathlib
 from typing import TYPE_CHECKING
@@ -82,8 +84,40 @@ def dump_language_model_config_to_file(
         )
 
     # Convert to yaml string
+    #
+    # Note: One needs to be careful in how the StrEnum instances will be serialized.
+    # https://stackoverflow.com/questions/65209934/pydantic-enum-field-does-not-get-converted-to-string
+    # For instance, language_model_config.model_dump() will return a dictionary with actual Enum instances,
+    # for example:
+    # ```
+    # < language_model_config.model_dump(mode="json")
+    # > {
+    # >     'checkpoint_no': -1,
+    # >     'lm_mode': <LMmode.MLM: 'mlm'>,
+    # >     'task_type': <TaskType.MASKED_LM: 'masked_lm'>,
+    # >     'pretrained_model_name_or_path': 'roberta-base',
+    # >     'short_model_name': 'roberta-base',
+    # >     'tokenizer_modifier': {'mode': <TokenizerModifierMode.DO_NOTHING: 'do_nothing'>, 'padding_token': '<pad>'}
+    # > }
+    # ```
+    #
+    # What we actually want is a dictionary with the string representation of the Enum instances,
+    # which we can get by using the `mode="json"` argument of the `model_dump` method:
+    # ```
+    # < language_model_config.model_dump(mode="json")
+    # > {
+    # >     "checkpoint_no": -1,
+    # >     "lm_mode": "mlm",
+    # >     "task_type": "masked_lm",
+    # >     "pretrained_model_name_or_path": "roberta-base",
+    # >     "short_model_name": "roberta-base",
+    # >     "tokenizer_modifier": {"mode": "do_nothing", "padding_token": "<pad>"},
+    # > }
+    # ```
     new_language_model_config_yaml_data: str = omegaconf.OmegaConf.to_yaml(
-        language_model_config.model_dump(),
+        language_model_config.model_dump(
+            mode="json",
+        ),
     )
 
     if verbosity >= Verbosity.NORMAL:

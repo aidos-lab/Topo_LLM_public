@@ -45,8 +45,8 @@ transformers = "*"
 zarr = "*"
 tensorboard = "*"
 seaborn = "*"
-giotto-tda = "^0.6.2"
-umap-learn = "^0.5"
+giotto-tda = "^0.6.2"                                               # need to pin this version because otherwise installation fails on MacBook
+umap-learn = "*"
 peft = "*"
 python-dotenv = "*"
 graphriccicurvature = "*"
@@ -57,12 +57,15 @@ wandb = "0.16.*"                                                    # We current
 rich = "*"
 evaluate = "*"
 seqeval = "*"
-kaleido = "0.2.1"
+kaleido = "0.2.1"                                                   # need to pin this version because otherwise installation fails on MacBook
 annotated-types = "*"
 pydantic-core = "*"
 click = "*"
 platformdirs = "*"
-hydra-zen = "^0.13.0"
+hydra-zen = "*"
+hydra-joblib-launcher = "*"
+pypdf = "*"
+reportlab = "*"
 
 [tool.poetry.group.dev.dependencies]
 hypothesis = "*"
@@ -105,11 +108,12 @@ build-backend = "poetry.core.masonry.api"
 
 # Script entry points for various tasks
 [tool.poetry.scripts]
+tests = "topollm.scripts.run_tests_with_coverage:main"
 finetune_language_model = "topollm.model_finetuning.run_finetune_language_model_on_huggingface_dataset:main"
 compute_embeddings = "topollm.compute_embeddings.run_compute_embeddings:main"
 compute_perplexity = "topollm.model_inference.perplexity.run_compute_perplexity:main"
 pipeline_inference = "topollm.model_inference.run_inference_pipeline:main"
 pipeline_local_estimates = "topollm.pipeline_scripts.run_pipeline_compute_embeddings_and_data_prep_and_local_estimate:main"
-tests = "topollm.scripts.run_tests_with_coverage:main"
-# Submit multiple jobs
+# Submit multiple jobs using one of the launchers
 submit_jobs = "topollm.scripts.submission_scripts.submit_jobs:main"
+all_perplexity_analysis_steps = "topollm.model_inference.perplexity.saved_perplexity_processing.run_all_perplexity_analysis_steps.py:main"

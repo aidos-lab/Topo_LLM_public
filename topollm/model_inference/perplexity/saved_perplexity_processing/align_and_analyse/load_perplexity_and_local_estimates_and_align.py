@@ -29,7 +29,6 @@
 
 import logging
 
-import huggingface_hub
 import pandas as pd
 import transformers
 from huggingface_hub.errors import HFValidationError
@@ -44,8 +43,11 @@ from topollm.model_handling.tokenizer.load_modified_tokenizer_from_main_config i
 from topollm.model_inference.perplexity.saved_perplexity_processing.add_token_log_perplexity_column import (
     add_token_log_perplexity_column,
 )
-from topollm.model_inference.perplexity.saved_perplexity_processing.aligned_local_estimates_data_container import (
+from topollm.model_inference.perplexity.saved_perplexity_processing.align_and_analyse.aligned_local_estimates_data_container import (
     AlignedLocalEstimatesDataContainer,
+)
+from topollm.model_inference.perplexity.saved_perplexity_processing.align_and_analyse.save_perplexity_statistics import (
+    save_perplexity_statistics,
 )
 from topollm.model_inference.perplexity.saved_perplexity_processing.compare_columns import (
     compare_columns,
@@ -53,11 +55,8 @@ from topollm.model_inference.perplexity.saved_perplexity_processing.compare_colu
 from topollm.model_inference.perplexity.saved_perplexity_processing.concatenate_results.convert_perplexity_results_list_to_dataframe import (
     convert_perplexity_results_list_to_dataframe,
 )
-from topollm.model_inference.perplexity.saved_perplexity_processing.load_perplexity_results import (
+from topollm.model_inference.perplexity.saving.load_perplexity_results import (
     load_perplexity_results,
-)
-from topollm.model_inference.perplexity.saved_perplexity_processing.save_perplexity_statistics import (
-    save_perplexity_statistics,
 )
 from topollm.model_inference.perplexity.saving.save_concatenated_perplexity_results import (
     save_concatenated_perplexity_results,
@@ -141,11 +140,16 @@ def load_perplexity_and_local_estimates_and_align(
         logger=logger,
     )
 
-    local_estimates_container: LocalEstimatesContainer = load_local_estimates(
-        embeddings_path_manager=local_estimates_embeddings_path_manager,
-        verbosity=verbosity,
-        logger=logger,
-    )
+    try:
+        local_estimates_container: LocalEstimatesContainer = load_local_estimates(
+            embeddings_path_manager=local_estimates_embeddings_path_manager,
+            verbosity=verbosity,
+            logger=logger,
+        )
+    except FileNotFoundError as e:
+        msg = f"FileNotFoundError: {e}"
+        logger.exception(msg)
+        raise
 
     aligned_df: pd.DataFrame | None = create_aligned_df(
         local_estimates_container=local_estimates_container,

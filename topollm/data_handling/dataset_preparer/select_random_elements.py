@@ -92,13 +92,15 @@ def select_random_elements_and_create_dataframe_with_classlabel(
 
 def log_selected_dataset_elements_info(
     dataset: datasets.Dataset,
-    dataset_name: str = "dataset",
+    dataset_name: str = "selected_dataset_elements",
+    num_examples: int = 20,
     logger: logging.Logger = default_logger,
 ) -> None:
     """Select random elements from a dataset and log information about them."""
     try:
         selected_elements_df = select_random_elements_and_create_dataframe_with_classlabel(
             dataset=dataset,
+            num_examples=num_examples,
         )
         log_dataframe_info(
             df=selected_elements_df,

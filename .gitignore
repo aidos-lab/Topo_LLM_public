@@ -185,8 +185,8 @@ data/embeddings/arrays/
 data/embeddings/metadata/
 data/embeddings/perplexity/
 
-data/models/architecture-roberta-base/
 data/models/finetuned_models/
+data/models/trippy_checkpoints/
 
 data/saved_plots/
 

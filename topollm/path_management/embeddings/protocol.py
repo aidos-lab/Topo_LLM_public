@@ -103,6 +103,11 @@ class EmbeddingsPathManager(Protocol):
     # # # #
     # saved plots directories
 
+    @property
+    def saved_plots_dir_absolute_path(
+        self,
+    ) -> pathlib.Path: ...  # pragma: no cover
+
     def get_saved_plots_local_estimates_projection_dir_absolute_path(
         self,
     ) -> pathlib.Path: ...  # pragma: no cover

@@ -94,7 +94,8 @@ def plot_histograms(
         num_cols,
         figsize=(18, 6 * num_rows),
     )
-    axs = axs.flatten()  # Flatten in case of multiple rows
+    # Flatten in case of multiple rows
+    axs = axs.flatten()  # type: ignore - this is a valid method
 
     if columns_to_plot == []:
         logger.warning(

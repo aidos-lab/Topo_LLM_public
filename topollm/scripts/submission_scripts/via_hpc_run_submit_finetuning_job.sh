@@ -11,9 +11,7 @@ ABSOLUTE_PYTHON_SCRIPT_PATH="${TOPO_LLM_REPOSITORY_BASE_PATH}/${RELATIVE_PYTHON_
 # ==================================================== #
 # Select the parameters here
 
-# BASE_MODEL_LIST="gpt2-medium"
 BASE_MODEL_LIST="roberta-base_for_masked_lm"
-# BASE_MODEL_LIST="bert-base-uncased,roberta-base"
 
 NUM_TRAIN_EPOCHS="5"
 # NUM_TRAIN_EPOCHS="50"
@@ -21,16 +19,7 @@ NUM_TRAIN_EPOCHS="5"
 SAVE_STEPS="400"
 EVAL_STEPS="100"
 
-# FINETUNING_DATASETS_LIST="train_and_eval_on_bbc,train_and_eval_on_iclr_2024_submissions,train_and_eval_on_multiwoz21,train_and_eval_on_sgd,train_and_eval_on_wikitext"
-# FINETUNING_DATASETS_LIST="train_and_eval_on_multiwoz21_train-samples-small"
-# FINETUNING_DATASETS_LIST="train_and_eval_on_multiwoz21_full"
-
-# FINETUNING_DATASETS_LIST="train_and_eval_on_one-year-of-tsla-on-reddit_train-samples-small"
-
-# FINETUNING_DATASETS_LIST="train_and_eval_on_iclr_2024_submissions_train-samples-5000"
-
 FINETUNING_DATASETS_LIST="train_and_eval_on_wikitext_train-samples-small"
-
 
 LR_SCHEDULER_TYPE="linear"
 # LR_SCHEDULER_TYPE="constant"
