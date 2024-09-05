@@ -1,3 +1,5 @@
+# Note: Do NOT put comments on the same line as an exclude pattern, as they will be treated as part of the pattern.
+
 .hypothesis
 .pytest_cache
 __pycache__

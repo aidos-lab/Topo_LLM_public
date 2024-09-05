@@ -329,31 +329,30 @@ def make_config_and_run_task(
                 num_train_epochs=int(num_train_epochs),
             )
         case LanguageModelListOption.SETSUMBT_SELECTED:
-            # Note: For the different seeds, we have saved checkpoints at different steps
-
             setsumbt_seed: int = 0
             language_model_list = setsumbt_model_list
 
+            # Note: For the different seeds in the SETSUMBT training,
+            # we have saved checkpoints at different global steps.
             if setsumbt_seed == 0:
-                # TODO: Remove the comments
                 checkpoint_no_list = [
-                    # "2813",
-                    # "5626",
-                    # "8439",
-                    # "11252",
-                    # "14065",
-                    # "16878",
-                    # "19691",
-                    # "25317",
-                    # "33756",
-                    # "36569",
-                    # "39382",
-                    # "42195",
-                    # "50634",
-                    # "56260",
-                    # "70325",
-                    # "90016",
-                    # "109707",
+                    "2813",
+                    "5626",
+                    "8439",
+                    "11252",
+                    "14065",
+                    "16878",
+                    "19691",
+                    "25317",
+                    "33756",
+                    "36569",
+                    "39382",
+                    "42195",
+                    "50634",
+                    "56260",
+                    "70325",
+                    "90016",
+                    "109707",
                     "115333",
                     "126585",
                 ]
