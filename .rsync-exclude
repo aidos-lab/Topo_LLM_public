@@ -12,8 +12,10 @@ __pycache__
 data/analysis/
 data/embeddings/
 data/models/finetuned_models/
-data/models/setsumbt_checkpoints/
-data/models/trippy_checkpoints/
+# do not add a slash at the end, since then the symlink will be deleted on the remote machine
+data/models/setsumbt_checkpoints
+# do not add a slash at the end, since then the symlink will be deleted on the remote machine
+data/models/trippy_checkpoints
 data/saved_plots
 
 # Log files

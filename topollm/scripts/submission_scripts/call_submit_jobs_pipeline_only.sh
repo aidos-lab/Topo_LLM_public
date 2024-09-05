@@ -1,7 +1,8 @@
 #!/bin/bash
 
+DATA_LIST="debug"
 # DATA_LIST="multiwoz21_only"
-DATA_LIST="multiwoz21_and_reddit"
+# DATA_LIST="multiwoz21_and_reddit"
 
 LANGUAGE_MODEL_LIST="setsumbt_selected"
 
