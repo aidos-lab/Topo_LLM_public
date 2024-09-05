@@ -12,6 +12,8 @@ __pycache__
 data/analysis/
 data/embeddings/
 data/models/finetuned_models/
+data/models/setsumbt_checkpoints/
+data/models/trippy_checkpoints/
 data/saved_plots
 
 # Log files
