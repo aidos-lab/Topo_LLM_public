@@ -13,7 +13,16 @@ if [[ -z "${TOPO_LLM_REPOSITORY_BASE_PATH}" ]]; then
   exit 1
 fi
 
-GPFS_PROJECT_DIR_DSML="/gpfs/project/projects/dsml"
+source "${TOPO_LLM_REPOSITORY_BASE_PATH}/.env"
+
+if [[ -z "${GPFS_PROJECT_DIR_DSML}" ]]; then
+  echo "Error: GPFS_PROJECT_DIR_DSML is not set."
+  exit 1
+fi
+
+# Print variables
+echo "TOPO_LLM_REPOSITORY_BASE_PATH=$TOPO_LLM_REPOSITORY_BASE_PATH"
+echo "GPFS_PROJECT_DIR_DSML=$GPFS_PROJECT_DIR_DSML"
 
 # Define target (actual data) and link (symlink) directories
 DATA_DIR_SETSUMBT="${GPFS_PROJECT_DIR_DSML}/data/data-exp-eriments-zetsumbt"
