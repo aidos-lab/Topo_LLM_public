@@ -88,6 +88,7 @@ class FinetuningPathManagerBasic:
             self.finetuning_parameters_description,
             self.batch_size_description,
             self.training_progress_subdir,
+            # TODO: Add description for seed
             "model_files",
         )
 

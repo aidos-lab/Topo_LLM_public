@@ -26,25 +26,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import numpy as np
-import random
 import logging
+import random
 
+import numpy as np
 import torch
 import torch.backends.cudnn
+
+default_logger = logging.getLogger(__name__)
 
 
 def set_seed(
     seed: int,
-    logger: logging.Logger = logging.getLogger(__name__),
+    logger: logging.Logger = default_logger,
 ) -> None:
-    """
-    Sets the seed for generating random numbers in PyTorch and numpy.
+    """Set the seed for generating random numbers in PyTorch and numpy.
 
     Args:
+    ----
         seed (int): The seed for the random number generator.
 
     Notes:
+    -----
         1. The RNG state for the CUDA is set, which makes CUDA operations deterministic.
         2. A seed for the Python built-in random module is also set.
         3. PyTorch's cuDNN uses nondeterministic algorithms which can be
@@ -56,6 +59,7 @@ def set_seed(
            the computations deterministic.
         5. For operations performed on CPU and CUDA, setting the seed ensures
            reproducibility across multiple runs.
+
     """
     random.seed(seed)  # Set the seed for Python's built-in random module
 
@@ -69,6 +73,6 @@ def set_seed(
     torch.backends.cudnn.deterministic = True  # Disable nondeterministic algorithms
     torch.backends.cudnn.benchmark = False  # Disable hardware optimizations
 
-    logger.info(f"seed set to {seed = }.")
-
-    return None
+    logger.info(
+        f"seed set to {seed = }.",  # noqa: G004 - low overhead
+    )
