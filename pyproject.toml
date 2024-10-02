@@ -57,6 +57,7 @@ wandb = "0.16.*"                                                    # We current
 rich = "*"
 evaluate = "*"
 seqeval = "*"
+nltk = "^3.8.1"
 kaleido = "0.2.1"                                                   # need to pin this version because otherwise installation fails on MacBook
 annotated-types = "*"
 pydantic-core = "*"

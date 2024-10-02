@@ -43,6 +43,7 @@ echo "Calling python script ABSOLUTE_PYTHON_SCRIPT_PATH=${ABSOLUTE_PYTHON_SCRIPT
 poetry run python3 $ABSOLUTE_PYTHON_SCRIPT_PATH \
     --multirun \
     data=$DATA_LIST \
+    +data.dataset_type=huggingface_dataset_named_entity \
     language_model=$LANGUAGE_MODEL_LIST \
     +language_model.checkpoint_no=$CHECKPOINT_NO \
     embeddings.embedding_extraction.layer_indices=$LAYER_INDICES_LIST \

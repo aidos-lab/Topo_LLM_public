@@ -65,6 +65,13 @@ def get_dataset_preparer(
             verbosity=verbosity,
             logger=logger,
         )
+    elif data_config.dataset_type == DatasetType.HUGGINGFACE_DATASET_NAMED_ENTITY:
+        result = dataset_preparer_huggingface.DatasetPreparerHuggingface(
+            data_config=data_config,
+            dataset_splitter=dataset_splitter,
+            verbosity=verbosity,
+            logger=logger,
+        )
     else:
         msg = f"Unsupported {data_config.dataset_type = }"
         raise ValueError(msg)
