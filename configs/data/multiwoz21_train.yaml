@@ -1,9 +1,6 @@
-column_name: text
-context: dataset_entry
-dataset_description_string: multiwoz21
-dataset_path: json
-dataset_name: multiwoz21
-data_dir: ${paths.data_dir}/datasets/dialogue_datasets/multiwoz21
+defaults:
+  - .@_here_: multiwoz21
+  - _self_
 
-number_of_samples: 5000
+number_of_samples: 10000
 split: train

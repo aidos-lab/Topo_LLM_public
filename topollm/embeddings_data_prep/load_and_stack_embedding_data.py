@@ -32,15 +32,18 @@ import numpy as np
 import pandas as pd
 import zarr
 
+from topollm.config_classes.data_processing_column_names.data_processing_column_names import DataProcessingColumnNames
 from topollm.embeddings_data_prep.load_pickle_files_from_meta_path import load_pickle_files_from_meta_path
 from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 from topollm.typing.enums import Verbosity
 
 default_logger = logging.getLogger(__name__)
+default_data_processing_column_names = DataProcessingColumnNames()
 
 
 def load_and_stack_embedding_data(
     embeddings_path_manager: EmbeddingsPathManager,
+    data_processing_column_names: DataProcessingColumnNames = default_data_processing_column_names,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> pd.DataFrame:
@@ -86,8 +89,8 @@ def load_and_stack_embedding_data(
     array_np = np.array(
         array_zarr,
     )
-    sentence_num = array_np.shape[0]
-    token_num = array_np.shape[1]
+    number_of_sentences = array_np.shape[0]
+    number_of_tokens_per_sentence = array_np.shape[1]
 
     array_np = array_np.reshape(
         array_np.shape[0] * array_np.shape[1],
@@ -106,18 +109,24 @@ def load_and_stack_embedding_data(
 
     input_ids_collection: list[list] = [metadata_chunk["input_ids"].tolist() for metadata_chunk in loaded_metadata]
 
-    stacked_meta: np.ndarray = np.vstack(
+    stacked_input_ids: np.ndarray = np.vstack(
         input_ids_collection,
     )
-    stacked_meta: np.ndarray = stacked_meta.reshape(
-        stacked_meta.shape[0] * stacked_meta.shape[1],
+    stacked_input_ids: np.ndarray = stacked_input_ids.reshape(
+        stacked_input_ids.shape[0] * stacked_input_ids.shape[1],
     )
-    sentence_idx = np.array([np.ones(token_num) * i for i in range(sentence_num)]).reshape(sentence_num * token_num)
+
+    sentence_idx = np.array(
+        [np.ones(number_of_tokens_per_sentence) * i for i in range(number_of_sentences)],
+    ).reshape(
+        number_of_sentences * number_of_tokens_per_sentence,
+    )
+
     full_df = pd.DataFrame(
         {
-            "arr": list(array_np),
-            "meta": list(stacked_meta),
-            "sentence_idx": [int(x) for x in sentence_idx],
+            data_processing_column_names.embedding_vectors: list(array_np),
+            data_processing_column_names.token_id: list(stacked_input_ids),
+            data_processing_column_names.sentence_idx: [int(x) for x in sentence_idx],
         },
     )
 

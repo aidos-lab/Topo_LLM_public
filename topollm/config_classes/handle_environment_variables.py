@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -28,8 +26,8 @@
 # limitations under the License.
 
 import logging
-import pathlib
 import os
+import pathlib
 
 
 def get_data_dir_path_from_environment_variable(
@@ -49,9 +47,7 @@ def get_data_dir_path_from_environment_variable(
         data_dir_env_variable_name,
     )
     if data_dir_env is None:
-        raise ValueError(
-            f"Environment variable {data_dir_env_variable_name = !r} is not set"
-        )
+        raise ValueError(f"Environment variable {data_dir_env_variable_name = !r} is not set")
     else:
         data_dir_env = os.path.expandvars(
             data_dir_env,

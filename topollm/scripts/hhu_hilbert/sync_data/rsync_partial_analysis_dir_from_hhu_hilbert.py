@@ -49,19 +49,25 @@ def sync_directories(
         # Remove empty strings from the command
         rsync_command = [arg for arg in rsync_command if arg]
 
-        print(f"Running command: {rsync_command = }")  # noqa: T201 - this script should print to stdout
+        print(  # noqa: T201 - this script should print to stdout
+            f"Running command: {rsync_command = }",
+        )
 
         try:
-            result = subprocess.run(
-                rsync_command,  # noqa: S603 - we trust the command
+            result = subprocess.run(  # noqa: S603 - we trust the command
+                rsync_command,
                 capture_output=True,
                 text=True,
                 check=True,
             )
             print(result.stdout)  # noqa: T201 - this script should print to stdout
         except subprocess.CalledProcessError as e:
-            print(f"Error syncing {directory = }:")  # noqa: T201 - this script should print to stdout
-            print(e.stderr)  # noqa: T201 - this script should print to stdout
+            print(  # noqa: T201 - this script should print to stdout
+                f"Error syncing {directory = }:",
+            )
+            print(  # noqa: T201 - this script should print to stdout
+                e.stderr,
+            )
             sys.exit(e.returncode)
 
         if result.returncode != 0:

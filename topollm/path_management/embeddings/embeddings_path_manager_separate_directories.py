@@ -79,7 +79,7 @@ class EmbeddingsPathManagerSeparateDirectories:
         return path
 
     # # # #
-    # array_dir
+    # array directory
 
     @property
     def array_dir_absolute_path(
@@ -118,7 +118,7 @@ class EmbeddingsPathManagerSeparateDirectories:
         return "array_dir"
 
     # # # #
-    # metadata_dir
+    # metadata directory
 
     @property
     def metadata_dir_absolute_path(
@@ -258,16 +258,29 @@ class EmbeddingsPathManagerSeparateDirectories:
     # # # #
     # local estimates directories
 
+    def get_local_estimates_subfolder_path(
+        self,
+    ) -> pathlib.Path:
+        """Construct a nested subfolder path to describe the local estimates."""
+        # We include the
+        # `embeddings_data_prep.config_description`
+        # because the local estimates are computed on the prepared data.
+        path = pathlib.Path(
+            self.main_config.local_estimates.description,
+            self.get_nested_subfolder_path(),
+            self.main_config.embeddings_data_prep.config_description,
+            self.main_config.local_estimates.config_description,
+        )
+
+        return path
+
     def get_local_estimates_dir_absolute_path(
         self,
     ) -> pathlib.Path:
         path = pathlib.Path(
             self.data_dir,
             "analysis",
-            self.main_config.local_estimates.description,
-            self.get_nested_subfolder_path(),
-            self.main_config.embeddings_data_prep.config_description,  # We include this because the local estimates are computed on the prepared data
-            self.main_config.local_estimates.config_description,
+            self.get_local_estimates_subfolder_path(),
         )
 
         return path
@@ -295,7 +308,43 @@ class EmbeddingsPathManagerSeparateDirectories:
         return path
 
     # # # #
-    # analysed data directories
+    # saved plots directories
+
+    @property
+    def saved_plots_dir_absolute_path(
+        self,
+    ) -> pathlib.Path:
+        path = pathlib.Path(
+            self.data_dir,
+            "saved_plots",
+        )
+
+        return path
+
+    def get_saved_plots_local_estimates_projection_dir_absolute_path(
+        self,
+    ) -> pathlib.Path:
+        path = pathlib.Path(
+            self.saved_plots_dir_absolute_path,
+            "local_estimates_projection",
+            self.get_local_estimates_subfolder_path(),
+        )
+
+        return path
+
+    def get_local_estimates_projection_plot_save_path(
+        self,
+        file_name: str = "tsne_plot.html",
+    ) -> pathlib.Path:
+        path = pathlib.Path(
+            self.get_saved_plots_local_estimates_projection_dir_absolute_path(),
+            file_name,
+        )
+
+        return path
+
+    # # # #
+    # analyzed data directories
 
     def get_analyzed_data_dir_absolute_path(
         self,
@@ -304,21 +353,18 @@ class EmbeddingsPathManagerSeparateDirectories:
             self.data_dir,
             "analysis",
             "aligned_and_analyzed",
-            self.main_config.local_estimates.description,
-            self.get_nested_subfolder_path(),
-            self.main_config.embeddings_data_prep.config_description,  # We include this because the local estimates are computed on the prepared data
-            self.main_config.local_estimates.config_description,
+            self.get_local_estimates_subfolder_path(),
         )
 
         return path
 
     def get_aligned_df_save_path(
         self,
-        aligned_df_file_name: str = "aligned_df.csv",
+        file_name: str = "aligned_df.csv",
     ) -> pathlib.Path:
         path = pathlib.Path(
             self.get_analyzed_data_dir_absolute_path(),
-            aligned_df_file_name,
+            file_name,
         )
 
         return path
@@ -335,7 +381,7 @@ class EmbeddingsPathManagerSeparateDirectories:
 
     def get_correlation_results_df_save_path(
         self,
-        method: str,
+        method: str = "kendall",
     ) -> pathlib.Path:
         path = pathlib.Path(
             self.get_correlation_results_dir_absolute_path(),
@@ -356,11 +402,11 @@ class EmbeddingsPathManagerSeparateDirectories:
 
     def get_aligned_histograms_plot_save_path(
         self,
-        plot_name: str,
+        file_name: str = "histograms.pdf",
     ) -> pathlib.Path:
         path = pathlib.Path(
             self.get_aligned_histograms_dir_absolute_path(),
-            plot_name,
+            file_name,
         )
 
         return path
@@ -377,11 +423,11 @@ class EmbeddingsPathManagerSeparateDirectories:
 
     def get_aligned_scatter_plot_save_path(
         self,
-        plot_name: str,
+        file_name: str = "scatter_plot.pdf",
     ) -> pathlib.Path:
         path = pathlib.Path(
             self.get_aligned_scatter_plots_dir_absolute_path(),
-            plot_name,
+            file_name,
         )
 
         return path

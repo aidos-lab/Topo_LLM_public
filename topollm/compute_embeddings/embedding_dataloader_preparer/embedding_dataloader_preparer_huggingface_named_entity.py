@@ -28,16 +28,15 @@
 from functools import partial
 
 import datasets
+import nltk
 import torch.utils.data
+from nltk.tag import pos_tag
+from nltk.tokenize import word_tokenize
 
 from topollm.compute_embeddings.embedding_dataloader_preparer.protocol import (
     EmbeddingDataLoaderPreparer,
 )
 from topollm.logging.log_dataset_info import log_huggingface_dataset_info
-
-import nltk
-from nltk.tokenize import word_tokenize
-from nltk.tag import pos_tag
 
 
 class EmbeddingDataLoaderPreparerHuggingfaceNamedEntity(EmbeddingDataLoaderPreparer):
@@ -73,7 +72,7 @@ class EmbeddingDataLoaderPreparerHuggingfaceNamedEntity(EmbeddingDataLoaderPrepa
             batched=True,
             batch_size=self.preparer_context.embeddings_config.dataset_map.batch_size,
             num_proc=self.preparer_context.embeddings_config.dataset_map.num_proc,
-            keep_in_memory=True
+            keep_in_memory=True,
         )
 
         if self.verbosity >= 1:
@@ -88,7 +87,6 @@ class EmbeddingDataLoaderPreparerHuggingfaceNamedEntity(EmbeddingDataLoaderPrepa
             )
 
         return dataset_tokenized
-
 
     def create_dataloader_from_tokenized_dataset(
         self,

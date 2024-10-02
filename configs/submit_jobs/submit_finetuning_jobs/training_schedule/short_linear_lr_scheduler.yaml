@@ -1,6 +1,0 @@
-defaults:
-  - _self_
-
-short_linear_lr_scheduler:
-  num_train_epochs: 5
-  lr_scheduler_type: "linear"

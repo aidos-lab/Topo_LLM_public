@@ -41,20 +41,20 @@ default_logger = logging.getLogger(__name__)
 class PreparedData:
     """Container for prepared data."""
 
-    arr_no_pad: np.ndarray
-    meta_frame: pd.DataFrame
+    array: np.ndarray
+    meta_df: pd.DataFrame
 
     def log_info(
         self,
         logger: logging.Logger = default_logger,
     ) -> None:
         log_array_info(
-            self.arr_no_pad,
-            array_name="arr_no_pad",
+            self.array,
+            array_name="array",
             logger=logger,
         )
         log_dataframe_info(
-            self.meta_frame,
-            df_name="meta_frame",
+            self.meta_df,
+            df_name="meta_df",
             logger=logger,
         )

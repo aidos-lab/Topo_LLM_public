@@ -46,10 +46,10 @@ def log_huggingface_dataset_info(
         pprint.pformat(dataset.info),
     )
     logger.info(
-        f"{dataset_name}.column_names:\n" f"{pprint.pformat(dataset.column_names)}",
+        f"{dataset_name}.column_names:\n{pprint.pformat(dataset.column_names)}",  # noqa: G004 - low overhead
     )
     logger.info(
-        f"{dataset_name}:\n" f"{pprint.pformat(dataset)}",
+        f"{dataset_name}:\n{pprint.pformat(dataset)}",  # noqa: G004 - low overhead
     )
 
     # Log the first and last few samples of the dataset
@@ -71,10 +71,10 @@ def log_torch_dataset_info(
 ) -> None:
     """Log information about the dataset."""
     logger.info(
-        f"{dataset_name = }",
+        f"{dataset_name = }",  # noqa: G004 - low overhead
     )
     logger.info(
-        f"{dataset_name}:\n" f"{pprint.pformat(dataset)}",
+        f"{dataset_name}:\n{pprint.pformat(dataset)}",  # noqa: G004 - low overhead
     )
 
     # Log the first and last few samples of the dataset.
@@ -83,14 +83,16 @@ def log_torch_dataset_info(
     for idx in range(
         num_samples_to_log,
     ):
+        # Do not use pprint for 'dataset[idx]', as it will not be readable
         logger.info(
-            f"{dataset_name}[{idx}]:\n" f"{(dataset[idx])}",  # Do not use pprint here, as it will not be readable
+            f"{dataset_name}[{idx}]:\n{(dataset[idx])}",  # noqa: G004 - low overhead
         )
 
     for idx in range(
         -num_samples_to_log,
         0,
     ):
+        # Do not use pprint for 'dataset[idx]', as it will not be readable
         logger.info(
-            f"{dataset_name}[{idx}]:\n" f"{(dataset[idx])}",  # Do not use pprint here, as it will not be readable
+            f"{dataset_name}[{idx}]:\n{(dataset[idx])}",  # noqa: G004 - low overhead
         )

@@ -4,11 +4,14 @@
 # Computer Science Department
 #
 # Authors:
-# Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 # Benjamin Ruppik (ruppik@hhu.de)
+# Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
-# This code was generated with the help of AI writing assistants
-# including GitHub Copilot, ChatGPT, Bing Chat.
+# Code generation tools and workflows:
+# First versions of this code were potentially generated
+# with the help of AI writing assistants including
+# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
+# Afterwards, the generated segments were manually reviewed and edited.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,13 +28,13 @@
 from topollm.compute_embeddings.embedding_extractor.embedding_extractor_token_level import (
     EmbeddingExtractorTokenLevel,
 )
-from topollm.compute_embeddings.embedding_extractor.layer_aggregator.LayerAggregatorConcatenate import (
+from topollm.compute_embeddings.embedding_extractor.layer_aggregator.layer_aggregator_concatenate import (
     LayerAggregatorConcatenate,
 )
-from topollm.compute_embeddings.embedding_extractor.layer_aggregator.LayerAggregatorMean import (
+from topollm.compute_embeddings.embedding_extractor.layer_aggregator.layer_aggregator_mean import (
     LayerAggregatorMean,
 )
-from topollm.compute_embeddings.embedding_extractor.layer_extractor.LayerExtractorFromIndices import (
+from topollm.compute_embeddings.embedding_extractor.layer_extractor.layer_extractor_from_indices import (
     LayerExtractorFromIndices,
 )
 from topollm.compute_embeddings.embedding_extractor.protocol import (
@@ -47,6 +50,7 @@ def get_embedding_extractor(
     embedding_extraction_config: EmbeddingExtractionConfig,
     model_hidden_size: int,
 ) -> EmbeddingExtractor:
+    """Create an embedding extractor."""
     layer_extractor = LayerExtractorFromIndices(
         layer_indices=embedding_extraction_config.layer_indices,
     )

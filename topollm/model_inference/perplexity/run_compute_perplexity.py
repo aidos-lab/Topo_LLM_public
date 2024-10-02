@@ -41,6 +41,13 @@ from topollm.logging.initialize_configuration_and_log import initialize_configur
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.model_inference.perplexity.do_perplexity_processing import do_perplexity_computation
 
+try:
+    from hydra_plugins import hpc_submission_launcher
+
+    hpc_submission_launcher.register_plugin()
+except ImportError:
+    pass
+
 if TYPE_CHECKING:
     from topollm.config_classes.main_config import MainConfig
 

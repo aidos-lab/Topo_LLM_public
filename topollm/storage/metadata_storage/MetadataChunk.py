@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -37,9 +35,7 @@ from topollm.storage.StorageDataclasses import ChunkIdentifier
 
 @dataclass
 class MetadataChunk:
-    """
-    Dataclass to hold a single metadata chunk.
-    """
+    """Dataclass to hold a single metadata chunk."""
 
     batch: dict
     chunk_identifier: ChunkIdentifier

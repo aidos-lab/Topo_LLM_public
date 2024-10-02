@@ -1,13 +1,6 @@
 defaults:
-  - data_split: do_nothing
-  - subset@_here_: train_split_and_truncation
+  - .@_here_: iclr_2024_submissions
   - _self_
 
-column_name: text
-context: dataset_entry
-dataset_description_string: iclr_2024_submissions
-dataset_path: json
-dataset_name: iclr_2024_submissions
-data_dir: ${paths.data_dir}/datasets/iclr_2024_submissions/jsonl_format
-
 split: validation
+number_of_samples: -1

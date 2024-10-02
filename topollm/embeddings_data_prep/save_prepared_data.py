@@ -34,7 +34,6 @@ import numpy as np
 import pandas as pd
 
 from topollm.embeddings_data_prep.prepared_data_containers import PreparedData
-from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 from topollm.typing.enums import Verbosity
 
@@ -64,14 +63,24 @@ def save_prepared_data(
 
     # # # #
     # Save the prepared data
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            f"Saving prepared data to {prepared_data_dir_absolute_path = } ...",  # noqa: G004 - low overhead
+        )
+
     np.save(
         file=embeddings_path_manager.get_prepared_data_array_save_path(),
-        arr=prepared_data.arr_no_pad,
+        arr=prepared_data.array,
     )
 
-    prepared_data.meta_frame.to_pickle(
+    prepared_data.meta_df.to_pickle(
         path=embeddings_path_manager.get_prepared_data_meta_save_path(),
     )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            f"Saving prepared data to {prepared_data_dir_absolute_path = } DONE",  # noqa: G004 - low overhead
+        )
 
 
 def load_prepared_data(
@@ -91,17 +100,17 @@ def load_prepared_data(
             f"{prepared_data_meta_save_path = }",  # noqa: G004 - low overhead
         )
 
-    arr_no_pad = np.load(
+    array = np.load(
         file=prepared_data_array_save_path,
     )
 
-    meta_frame = pd.read_pickle(  # noqa: S301 - we trust the data since it is our own
+    meta_df = pd.read_pickle(  # noqa: S301 - we trust the data since it is our own
         prepared_data_meta_save_path,
     )
 
     prepared_data = PreparedData(
-        arr_no_pad=arr_no_pad,
-        meta_frame=meta_frame,
+        array=array,
+        meta_df=meta_df,
     )
 
     if verbosity >= Verbosity.NORMAL:

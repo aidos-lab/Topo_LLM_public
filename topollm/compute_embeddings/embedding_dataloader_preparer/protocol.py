@@ -26,9 +26,10 @@
 # limitations under the License.
 
 import logging
-import nltk
 from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING
 
+import nltk
 import torch
 import torch.utils.data
 from transformers import BatchEncoding, PreTrainedTokenizer, PreTrainedTokenizerFast
@@ -37,7 +38,9 @@ from topollm.compute_embeddings.embedding_dataloader_preparer.embedding_dataload
     EmbeddingDataLoaderPreparerContext,
 )
 from topollm.data_handling.dataset_preparer.factory import get_dataset_preparer
-from topollm.data_handling.dataset_preparer.protocol import DatasetPreparer
+
+if TYPE_CHECKING:
+    from topollm.data_handling.dataset_preparer.protocol import DatasetPreparer
 
 
 class EmbeddingDataLoaderPreparer(ABC):
@@ -92,10 +95,8 @@ class EmbeddingDataLoaderPreparer(ABC):
         max_length: int = 512,
     ) -> BatchEncoding:
         """Convert dataset entires/examples to features by tokenizing the text and padding/truncating to a maximum length."""
-
-
         split_words = [nltk.word_tokenize(sent) for sent in dataset_entry[column_name]]
-        
+
         features = tokenizer(
             split_words,
             max_length=max_length,
@@ -103,7 +104,7 @@ class EmbeddingDataLoaderPreparer(ABC):
             truncation="longest_first",
             is_split_into_words=True,
         )
-        
+
         word_ids = [features.word_ids(batch_index=i) for i in range(len(split_words))]
 
         dataset_tokenized = features.input_ids
@@ -112,7 +113,6 @@ class EmbeddingDataLoaderPreparer(ABC):
 
         all_word_tags_one_sentence_tokens = []
 
-        
         for sentence_idx in range(len(dataset_tokenized)):
             word_tags_one_sentence = pos_tag[sentence_idx]
             word_tags_one_sentence = [word_tags_one_sentence[i][1] for i in range(len(word_tags_one_sentence))]
@@ -126,7 +126,7 @@ class EmbeddingDataLoaderPreparer(ABC):
                     word_tags_one_sentence_tokens.append(None)
             all_word_tags_one_sentence_tokens.append(word_tags_one_sentence_tokens)
 
-        features['POS'] = all_word_tags_one_sentence_tokens
+        features["POS"] = all_word_tags_one_sentence_tokens
 
         return features
 
@@ -135,7 +135,7 @@ class EmbeddingDataLoaderPreparer(ABC):
         self,
     ) -> torch.utils.data.DataLoader:
         """Load a dataset and prepare a dataloader."""
-        pass  # pragma: no cover
+        ...  # pragma: no cover
 
     @property
     @abstractmethod

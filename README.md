@@ -8,7 +8,7 @@ This repository contains code for analyzing the representations produced by cont
 
 ### Prerequisites
 
-- Python 3.10
+- Python 3.12
 - `pyenv` for managing Python versions
 - `pipx` for managing Python packages
 - `poetry` package manager
@@ -21,8 +21,8 @@ You can install `poetry` with `pipx` via: `pipx install poetry`.
 1. Install python version with `pyenv` and set local python version for the project.
 
 ```bash
-pyenv install 3.10
-pyenv local 3.10
+pyenv install 3.12
+pyenv local 3.12
 ```
 
 1. Tell poetry to use the local python version.
@@ -32,7 +32,7 @@ pyenv local 3.10
 # inside the project directory.
 poetry config virtualenvs.in-project true
 
-poetry env use 3.10
+poetry env use 3.12
 ```
 
 You can manage the poetry environments with the following commands:
@@ -60,16 +60,19 @@ poetry install --with cpu,dev --without gpu
 Edit the script `scripts/setup_environment.sh` with the correct paths and run it once.
 
 ```bash
-./scripts/setup_environment.sh
+./topollm/scripts/setup_environment.sh
 ```
 
 1. Set the correct environment variables in the `.env` file in the project root directory.
+
+1. For setting up the repository to support job submissions to the HHU Hilbert HPC, follow the instructions here: [https://gitlab.cs.uni-duesseldorf.de/dsml/HydraHPCLauncher].
+Submission scripts are located in the `topollm/scripts/submission_scripts` directory.
 
 ## Project Structure
 
 ### Config file management
 
-- We want to use Hydra for the config managment:
+- We use Hydra for the config managment:
   [https://hydra.cc/docs/patterns/configuring_experiments/]
 
 - Overwrite config variable:
@@ -77,6 +80,9 @@ Edit the script `scripts/setup_environment.sh` with the correct paths and run it
 
 - Multirun example:
   `python run.py --multirun run.seed=1,2,3,4`
+
+- See the instructions here for the HHU Hilbert HPC launcher:
+  [https://gitlab.cs.uni-duesseldorf.de/dsml/HydraHPCLauncher]
 
 ## Datasets
 
@@ -93,10 +99,10 @@ If you run the commands from the command line, make sure to activate the poetry 
 poetry shell
 ```
 
-### Computing and storing embeddings
-
-In the directory `topollm/compute_embeddings`, call the embedding script:
+You can also check the `[tool.poetry.scripts]` block in the `pyproject.toml` file for available entry points. For example, the following commands give access to the main entry points:
 
 ```bash
-python3 run_compute_embeddings.py
+poetry run pipeline_local_estimates # This runs the full pipeline embedding -> embeddings_data_prep -> compute local estimates
+poetry run compute_perplexity
+poetry run finetune_language_model
 ```

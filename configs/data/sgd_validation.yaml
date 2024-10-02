@@ -1,0 +1,6 @@
+defaults:
+  - .@_here_: sgd
+  - _self_
+
+number_of_samples: 3000
+split: validation

@@ -14,7 +14,7 @@
             "presentation": {
                 "reveal": "always",
                 "panel": "new",
-                "focus": false,
+                "focus": false
             }
         },
         {
@@ -28,12 +28,12 @@
             "presentation": {
                 "reveal": "always",
                 "panel": "new",
-                "focus": false,
+                "focus": false
             }
         },
         {
-            "label": "rsync hydra_output_dir and job_logs from hhu hilbert",
-            "command": "./topollm/scripts/hhu_hilbert/sync_data/rsync_hydra_output_dir_from_hhu_hilbert.sh && ./topollm/scripts/hhu_hilbert/sync_data/rsync_job_logs_dir_from_hhu_hilbert.sh",
+            "label": "rsync hydra_output_dir from hhu hilbert",
+            "command": "./topollm/scripts/hhu_hilbert/sync_data/rsync_hydra_output_dir_from_hhu_hilbert.sh",
             "type": "shell",
             "group": {
                 "kind": "build",
@@ -42,8 +42,9 @@
             "presentation": {
                 "reveal": "always",
                 "panel": "new",
-                "focus": false,
-            }
+                "focus": false
+            },
+            "problemMatcher": []
         },
         {
             "label": "rsync analysis/prepared and analysis/twonn directories to external drive from HHU Hilbert",
@@ -56,7 +57,7 @@
             "presentation": {
                 "reveal": "always",
                 "panel": "new",
-                "focus": false,
+                "focus": false
             }
         },
         {
@@ -70,7 +71,63 @@
             "presentation": {
                 "reveal": "always",
                 "panel": "new",
-                "focus": false,
+                "focus": false
+            }
+        },
+        {
+            "label": "rsync language model config dir to local repository folder from HHU Hilbert",
+            "command": "./topollm/scripts/hhu_hilbert/sync_data/rsync_language_model_config_dir_from_hhu_hilbert.sh",
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": false
+            }
+        },
+        {
+            "label": "rsync data/embeddings/perplexity to local repository folder from HHU Hilbert",
+            "command": "./topollm/scripts/hhu_hilbert/sync_data/rsync_perplexity_dir_from_hhu_hilbert.sh",
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": false
+            }
+        },
+        {
+            "label": "submit_jobs pipeline",
+            "command": "poetry run submit_jobs --task=pipeline --submission_mode=hpc_submission --queue=DSML --template=DSML",
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": false
+            }
+        },
+        {
+            "label": "submit_jobs perplexity",
+            "command": "poetry run submit_jobs --task=perplexity --submission_mode=hpc_submission --queue=DSML --template=DSML",
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": false
             }
         },
         {
@@ -84,8 +141,8 @@
             "presentation": {
                 "reveal": "never",
                 "panel": "new",
-                "focus": false,
+                "focus": false
             }
-        },
+        }
     ]
 }

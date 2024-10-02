@@ -94,6 +94,25 @@
             ]
         },
         {
+            "name": "run_twonn.py",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/analysis/twonn/run_twonn.py",
+            "console": "integratedTerminal",
+            "args": [
+                "data=multiwoz21",
+                "data.number_of_samples=128",
+                "data.split=validation",
+                "language_model=roberta-base",
+                "embeddings.embedding_extraction.layer_indices=[-1]",
+                "embeddings_data_prep.sampling.num_samples=3000",
+                // "embeddings_data_prep.sampling.num_samples=30000",
+                // "+embeddings_data_prep.sampling.sampling_mode=random",
+                "+embeddings_data_prep.sampling.sampling_mode=take_first",
+                "local_estimates.filtering.num_samples=300",
+            ]
+        },
+        {
             "name": "run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
             "type": "debugpy",
             "request": "launch",
@@ -105,8 +124,10 @@
                 "data.split=validation",
                 "language_model=roberta-base",
                 "embeddings.embedding_extraction.layer_indices=[-1]",
-                "embeddings_data_prep.num_samples=30000",
-                "local_estimates.filtering.num_samples=200",
+                "embeddings_data_prep.sampling.num_samples=3000",
+                // "+embeddings_data_prep.sampling.sampling_mode=random",
+                "+embeddings_data_prep.sampling.sampling_mode=take_first",
+                "local_estimates.filtering.num_samples=300",
             ]
         },
         {
@@ -116,12 +137,13 @@
             "program": "topollm/model_inference/perplexity/saved_perplexity_processing/run_single_setup_load_saved_perplexity_and_local_estimates_and_analyse.py",
             "console": "integratedTerminal",
             "args": [
-                "data=multiwoz21",
-                "data.number_of_samples=10000",
-                "data.split=validation",
-                "language_model=roberta-base",
+                // "data=multiwoz21",
+                "data=iclr_2024_submissions_test",
+                // "language_model=roberta-base",
+                "language_model=model-roberta-base_task-MASKED_LM_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
                 "embeddings.embedding_extraction.layer_indices=[-1]",
-                "embeddings_data_prep.num_samples=30000",
+                "embeddings_data_prep.sampling.num_samples=30000",
+                "+embeddings_data_prep.sampling.sampling_mode=take_first",
             ]
         },
     ]

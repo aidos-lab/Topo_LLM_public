@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -38,12 +36,14 @@
 # third party imports
 import os
 import pathlib
+
 import hydra
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import skdim
-import matplotlib.pyplot as plt
 import seaborn as sns
+import skdim
+
 
 @hydra.main(
     config_path="../../configs/analysis",
@@ -51,36 +51,50 @@ import seaborn as sns
     version_base="1.2",
 )
 def main(cfg):
-    array_name_1 = 'embeddings_' + str(cfg.embedding_level_1) + '_' + str(cfg.samples_1) + '_samples_paddings_removed.npy'
-    array_name_2 = 'embeddings_' + str(cfg.embedding_level_2) + '_' + str(cfg.samples_2) + '_samples_paddings_removed.npy'
+    array_name_1 = (
+        "embeddings_" + str(cfg.embedding_level_1) + "_" + str(cfg.samples_1) + "_samples_paddings_removed.npy"
+    )
+    array_name_2 = (
+        "embeddings_" + str(cfg.embedding_level_2) + "_" + str(cfg.samples_2) + "_samples_paddings_removed.npy"
+    )
 
-    path_1 = pathlib.Path("..", "..", "data", "analysis", "prepared",
-                          cfg.data_name_1,
-                          cfg.level_1,
-                          cfg.prefix_1,
-                          cfg.model_1,
-                          cfg.layer_1,
-                          cfg.norm_1,
-                          cfg.array_dir_1,
-                          array_name_1
-                          )
+    path_1 = pathlib.Path(
+        "..",
+        "..",
+        "data",
+        "analysis",
+        "prepared",
+        cfg.data_name_1,
+        cfg.level_1,
+        cfg.prefix_1,
+        cfg.model_1,
+        cfg.layer_1,
+        cfg.norm_1,
+        cfg.array_dir_1,
+        array_name_1,
+    )
 
-    path_2 = pathlib.Path("..", "..", "data", "analysis", "prepared",
-                          cfg.data_name_2,
-                          cfg.level_2,
-                          cfg.prefix_2,
-                          cfg.model_2,
-                          cfg.layer_2,
-                          cfg.norm_2,
-                          cfg.array_dir_2,
-                          array_name_2
-                          )
+    path_2 = pathlib.Path(
+        "..",
+        "..",
+        "data",
+        "analysis",
+        "prepared",
+        cfg.data_name_2,
+        cfg.level_2,
+        cfg.prefix_2,
+        cfg.model_2,
+        cfg.layer_2,
+        cfg.norm_2,
+        cfg.array_dir_2,
+        array_name_2,
+    )
 
     arr_no_pad = np.load(path_1)
     arr_no_pad_finetuned = np.load(path_2)
 
     similarities = []
-    for A,B in zip(arr_no_pad,arr_no_pad_finetuned):
+    for A, B in zip(arr_no_pad, arr_no_pad_finetuned):
         dot_product = np.dot(A, B)
         magnitude_A = np.linalg.norm(A)
         magnitude_B = np.linalg.norm(B)
@@ -91,27 +105,27 @@ def main(cfg):
     similarities = np.array(similarities)
     similarities = similarities[~np.isnan(similarities)]
 
-    print(sum(similarities)/len(similarities))
+    print(sum(similarities) / len(similarities))
 
-    file_name = ''
+    file_name = ""
     if cfg.data_name_1 == cfg.data_name_2:
-        file_name += str(cfg.data_name_1) + '_'
+        file_name += str(cfg.data_name_1) + "_"
     if cfg.model_1 == cfg.model_2:
-        file_name += str(cfg.model_1) + '_'
+        file_name += str(cfg.model_1) + "_"
     names = set([name[:-1] for name in cfg.keys()])
     for name in names:
         if cfg[name + str(1)] != cfg[name + str(2)]:
-            additional_string = str(cfg[name + str(1)]) + '_vs_' + str(cfg[name + str(2)] + '_')
+            additional_string = str(cfg[name + str(1)]) + "_vs_" + str(cfg[name + str(2)] + "_")
             file_name += additional_string
 
-    save_path = '../../data/analysis/cosine/' + str(cfg.embedding_level_1) + '/'
+    save_path = "../../data/analysis/cosine/" + str(cfg.embedding_level_1) + "/"
     if not os.path.exists(save_path):
         os.makedirs(save_path)
 
-    save_name = save_path + file_name + str(len(arr_no_pad)) + '_samples'
-    np.save(save_name,similarities)
+    save_name = save_path + file_name + str(len(arr_no_pad)) + "_samples"
+    np.save(save_name, similarities)
     return None
+
 
 if __name__ == "__main__":
     main()  # type: ignore
-

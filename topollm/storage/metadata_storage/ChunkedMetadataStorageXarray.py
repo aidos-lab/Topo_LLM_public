@@ -1,5 +1,3 @@
-# coding=utf-8
-#
 # Copyright 2024
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -36,12 +34,11 @@ import os
 import warnings
 
 # Third party imports
-
 # Local imports
 from topollm.storage.metadata_storage.MetadataChunk import MetadataChunk
 from topollm.storage.StorageDataclasses import (
-    ChunkIdentifier,
     ArrayProperties,
+    ChunkIdentifier,
 )
 
 # END Imports

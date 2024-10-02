@@ -27,7 +27,7 @@
 
 """Enums used in the configuration classes."""
 
-from enum import Enum, IntEnum, auto, unique
+from enum import Enum, IntEnum, StrEnum, auto, unique
 
 try:
     # Try to import StrEnum from the standard library (Python 3.11 and later)
@@ -216,6 +216,19 @@ class LrSchedulerType(StrEnum):
 
 
 # ==============================
+# Enums used for embeddings data preparation
+# ==============================
+
+
+@unique
+class EmbeddingsDataPrepSamplingMode(StrEnum):
+    """The different modes for sampling in the embeddings data prep step."""
+
+    RANDOM = "random"
+    TAKE_FIRST = "take_first"
+
+
+# ==============================
 # Enums used for finetuning parameters
 # ==============================
 
@@ -297,3 +310,18 @@ class PerplexityContainerSaveFormat(StrEnum):
     LIST_AS_PICKLE = auto()
     CONCATENATED_DATAFRAME_AS_CSV = auto()
     CONCATENATED_ARRAY_AS_ZARR = auto()
+
+
+class SubmissionMode(StrEnum):
+    """Submission mode for running scripts."""
+
+    LOCAL = auto()
+    HPC_SUBMISSION = auto()
+
+
+class Task(StrEnum):
+    """Enumeration of tasks."""
+
+    PIPELINE = auto()
+    PERPLEXITY = auto()
+    FINETUNING = auto()

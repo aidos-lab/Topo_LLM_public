@@ -32,24 +32,26 @@ import logging
 import numpy as np
 import pandas as pd
 
+from topollm.config_classes.data_processing_column_names.data_processing_column_names import DataProcessingColumnNames
 from topollm.config_classes.embeddings_data_prep.filter_tokens_config import FilterTokensConfig
 from topollm.embeddings_data_prep.get_token_ids_from_filter_tokens_config import get_token_ids_from_filter_tokens_config
 from topollm.typing.enums import Verbosity
 from topollm.typing.types import TransformersTokenizer
 
 default_logger = logging.getLogger(__name__)
+default_data_processing_column_names = DataProcessingColumnNames()
 
 
 def remove_padding_and_extra_tokens(
     full_df: pd.DataFrame,
     tokenizer: TransformersTokenizer,
     filter_tokens_config: FilterTokensConfig,
+    data_processing_column_names: DataProcessingColumnNames = default_data_processing_column_names,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> tuple[
     np.ndarray,
-    np.ndarray,
-    np.ndarray,
+    pd.DataFrame,
 ]:
     """Remove padding and extra tokens from the data."""
     token_ids_to_filter: list[int] = get_token_ids_from_filter_tokens_config(
@@ -59,28 +61,24 @@ def remove_padding_and_extra_tokens(
         logger=logger,
     )
 
+    # Remove the specified tokens from the data
     filtered_df = full_df[
-        ~full_df["meta"].isin(
+        ~full_df[data_processing_column_names.token_id].isin(
             token_ids_to_filter,
         )
     ]
 
+    # Construct the array from the filtered data
+    #
     # arr_no_pad.shape:
     # (number of non-padding tokens in subsample, embedding dimension)
-    arr_no_pad = np.array(
-        list(filtered_df.arr),
+    filtered_array = np.array(
+        list(filtered_df[data_processing_column_names.embedding_vectors]),
     )
 
-    # meta_no_pad.shape:
-    # (number of non-padding tokens in subsample,)
-    meta_no_pad = np.array(
-        list(filtered_df.meta),
+    # Remove the array column from the DataFrame
+    filtered_without_array_df = filtered_df.drop(
+        columns=[data_processing_column_names.embedding_vectors],
     )
 
-    # sentence_idx_no_pad.shape:
-    # (number of non-padding tokens in subsample,)
-    sentence_idx_no_pad = np.array(
-        list(filtered_df.sentence_idx),
-    )
-
-    return arr_no_pad, meta_no_pad, sentence_idx_no_pad
+    return filtered_array, filtered_without_array_df

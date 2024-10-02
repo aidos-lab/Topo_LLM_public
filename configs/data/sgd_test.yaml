@@ -1,9 +1,6 @@
-column_name: text
-context: dataset_entry
-dataset_description_string: sgd
-dataset_path: json
-dataset_name: sgd
-data_dir: ${paths.data_dir}/datasets/dialogue_datasets/sgd
+defaults:
+  - .@_here_: sgd
+  - _self_
 
-number_of_samples: -1
+number_of_samples: 3000
 split: test
