@@ -64,8 +64,8 @@ class EmbeddingDataLoaderPreparerHuggingface(EmbeddingDataLoaderPreparer):
             max_length=self.sequence_length,
         )
 
-        dataset_tokenized = dataset.map(
-            partial_map_fn,
+        dataset_tokenized: datasets.Dataset = dataset.map(
+            function=partial_map_fn,
             batched=True,
             batch_size=self.preparer_context.embeddings_config.dataset_map.batch_size,
             num_proc=self.preparer_context.embeddings_config.dataset_map.num_proc,
@@ -137,9 +137,9 @@ class EmbeddingDataLoaderPreparerHuggingface(EmbeddingDataLoaderPreparer):
         self,
     ) -> torch.utils.data.DataLoader:
         """Load and prepare a dataset, return a dataloader."""
-        dataset = self.dataset_preparer.prepare_dataset()
+        dataset: datasets.Dataset = self.dataset_preparer.prepare_dataset()
 
-        dataset_tokenized = self.create_dataset_tokenized(
+        dataset_tokenized: datasets.Dataset = self.create_dataset_tokenized(
             dataset=dataset,
         )
 

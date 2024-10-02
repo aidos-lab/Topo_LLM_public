@@ -95,9 +95,9 @@ class EmbeddingDataLoaderPreparer(ABC):
         max_length: int = 512,
     ) -> BatchEncoding:
         """Convert dataset entires/examples to features by tokenizing the text and padding/truncating to a maximum length."""
-        split_words = [nltk.word_tokenize(sent) for sent in dataset_entry[column_name]]
+        split_words: list[list[str]] = [nltk.word_tokenize(sent) for sent in dataset_entry[column_name]]
 
-        features = tokenizer(
+        features: BatchEncoding = tokenizer(
             split_words,
             max_length=max_length,
             padding="max_length",
@@ -120,7 +120,7 @@ class EmbeddingDataLoaderPreparer(ABC):
 
             word_tags_one_sentence_tokens = []
             for i in word_ids_one_sentence:
-                if i != None:
+                if i is not None:
                     word_tags_one_sentence_tokens.append(word_tags_one_sentence[i])
                 else:
                     word_tags_one_sentence_tokens.append(None)

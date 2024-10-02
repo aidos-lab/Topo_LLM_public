@@ -52,7 +52,6 @@ def get_embedding_dataloader_preparer(
         An instance of a DatasetPreparer subclass.
 
     """
-
     if preparer_context.data_config.dataset_type == DatasetType.HUGGINGFACE_DATASET:
         result = EmbeddingDataLoaderPreparerHuggingface(
             preparer_context=preparer_context,

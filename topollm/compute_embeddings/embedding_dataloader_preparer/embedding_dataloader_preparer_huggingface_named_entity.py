@@ -25,6 +25,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# TODO: Integrate this functionality into the usual embedding_dataloader_preparer so we do not have code duplication
+
 from functools import partial
 
 import datasets
@@ -122,12 +124,13 @@ class EmbeddingDataLoaderPreparerHuggingfaceNamedEntity(EmbeddingDataLoaderPrepa
         # runs in the main process.
         # This appears to be necessary with the "mps" backend.
         dataloader = torch.utils.data.DataLoader(
-            dataset_tokenized,  # type: ignore - typing issue with Dataset
+            dataset=dataset_tokenized,  # type: ignore - typing issue with Dataset
             batch_size=self.preparer_context.embeddings_config.batch_size,
             shuffle=False,
             collate_fn=self.preparer_context.collate_fn,
             num_workers=self.preparer_context.embeddings_config.num_workers,
         )
+        # TODO: Figure out how I can push additional metadata through this dataloader
 
         if self.verbosity >= 1:
             self.logger.info(

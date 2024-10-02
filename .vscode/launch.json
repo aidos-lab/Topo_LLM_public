@@ -131,6 +131,25 @@
             ]
         },
         {
+            "name": "with POS run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
+            "console": "integratedTerminal",
+            "args": [
+                "+data.dataset_type=huggingface_dataset_named_entity",
+                "data=multiwoz21",
+                "data.number_of_samples=128",
+                "data.split=validation",
+                "language_model=roberta-base",
+                "tokenizer.add_prefix_space=True", // This is necessary to use the tokenizer with input split into words
+                "embeddings.embedding_extraction.layer_indices=[-1]",
+                "embeddings_data_prep.sampling.num_samples=3000",
+                "+embeddings_data_prep.sampling.sampling_mode=take_first",
+                "local_estimates.filtering.num_samples=300",
+            ]
+        },
+        {
             "name": "run_single_setup_load_saved_perplexity_and_local_estimates_and_analyse.py",
             "type": "debugpy",
             "request": "launch",
