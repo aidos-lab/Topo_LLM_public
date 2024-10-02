@@ -187,6 +187,7 @@ data/embeddings/perplexity/
 
 data/models/finetuned_models/
 data/models/trippy_checkpoints/
+data/models/setsumbt_checkpoints/
 
 data/saved_plots/
 

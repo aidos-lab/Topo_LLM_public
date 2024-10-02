@@ -79,7 +79,7 @@ def run_task(
 
     if dry_run:
         print(  # noqa: T201 - We want this submission script to print this output
-            "Dry run, not running the command.",
+            "@@@@ Dry run, not actually running the command. @@@@",
         )
     else:
         subprocess.run(  # noqa: S603 - We trust the command
@@ -94,8 +94,9 @@ class DataListOption(StrEnum):
     DEBUG = auto()
     FULL = auto()
     MANUAL_IN_PYTHON_SCRIPT = auto()
-    ONLY_TRAIN = auto()
-    MULTIWOZ_AND_REDDIT = auto()
+    TRAIN_ONLY = auto()
+    MULTIWOZ21_AND_REDDIT = auto()
+    MULTIWOZ21_ONLY = auto()
 
 
 class FinetuningDatasetsListOption(StrEnum):
@@ -112,6 +113,7 @@ class LanguageModelListOption(StrEnum):
     SELECTED_FINETUNED_FEW_EPOCHS_FROM_ROBERTA_BASE = auto()
     SELECTED_FINETUNED_MANY_EPOCHS_FROM_ROBERTA_BASE = auto()
     FULL_FINETUNED_FEW_EPOCHS_FROM_ROBERTA_BASE = auto()
+    SETSUMBT_SELECTED = auto()
 
 
 class CheckpointNoListOption(StrEnum):
@@ -248,10 +250,14 @@ def make_config_and_run_task(
         "model-roberta-base_task-masked_lm_wikitext-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
     ]
 
+    setsumbt_model_list = [
+        "model-roberta-base_task-setsumbt_multiwoz21",
+    ]
+
     match args.data_list:
         case DataListOption.FULL:
             data_list = full_data_list
-        case DataListOption.ONLY_TRAIN:
+        case DataListOption.TRAIN_ONLY:
             data_list = only_train_data_list
         case DataListOption.DEBUG:
             data_list = [
@@ -266,7 +272,7 @@ def make_config_and_run_task(
                 "sgd_test",
                 "wikitext_test",
             ]
-        case DataListOption.MULTIWOZ_AND_REDDIT:
+        case DataListOption.MULTIWOZ21_AND_REDDIT:
             data_list = [
                 "multiwoz21_test",
                 "multiwoz21_train",
@@ -274,6 +280,12 @@ def make_config_and_run_task(
                 "one-year-of-tsla-on-reddit_test",
                 "one-year-of-tsla-on-reddit_train",
                 "one-year-of-tsla-on-reddit_validation",
+            ]
+        case DataListOption.MULTIWOZ21_ONLY:
+            data_list = [
+                "multiwoz21_test",
+                "multiwoz21_train",
+                "multiwoz21_validation",
             ]
         case _:
             msg = f"Unknown {args.data_list = }"
@@ -316,6 +328,37 @@ def make_config_and_run_task(
                 checkpoint_no_list_option=args.checkpoint_no_list,
                 num_train_epochs=int(num_train_epochs),
             )
+        case LanguageModelListOption.SETSUMBT_SELECTED:
+            setsumbt_seed: int = 0
+            language_model_list = setsumbt_model_list
+
+            # Note: For the different seeds in the SETSUMBT training,
+            # we have saved checkpoints at different global steps.
+            if setsumbt_seed == 0:
+                checkpoint_no_list = [
+                    "2813",
+                    "5626",
+                    "8439",
+                    "11252",
+                    "14065",
+                    "16878",
+                    "19691",
+                    "25317",
+                    "33756",
+                    "36569",
+                    "39382",
+                    "42195",
+                    "50634",
+                    "56260",
+                    "70325",
+                    "90016",
+                    "109707",
+                    "115333",
+                    "126585",
+                ]
+            else:
+                msg = f"Unknown {setsumbt_seed = }"
+                raise ValueError(msg)
         case _:
             msg = f"Unknown {args.language_model_list = }"
             raise ValueError(msg)
@@ -358,6 +401,7 @@ def get_checkpoint_no_list(
     checkpoint_no_list_option: CheckpointNoListOption,
     num_train_epochs: int = 5,
 ) -> list[str]:
+    """Get the list of checkpoint numbers to use."""
     # TODO: Make this more flexible (work for other numbers of epochs)
     match checkpoint_no_list_option:
         case CheckpointNoListOption.SELECTED:

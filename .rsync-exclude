@@ -1,3 +1,5 @@
+# Note: Do NOT put comments on the same line as an exclude pattern, as they will be treated as part of the pattern.
+
 .hypothesis
 .pytest_cache
 __pycache__
@@ -12,6 +14,10 @@ __pycache__
 data/analysis/
 data/embeddings/
 data/models/finetuned_models/
+# do not add a slash at the end, since then the symlink will be deleted on the remote machine
+data/models/setsumbt_checkpoints
+# do not add a slash at the end, since then the symlink will be deleted on the remote machine
+data/models/trippy_checkpoints
 data/saved_plots
 
 # Log files

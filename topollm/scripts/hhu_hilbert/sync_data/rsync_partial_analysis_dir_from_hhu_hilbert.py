@@ -132,7 +132,6 @@ def parse_arguments() -> argparse.Namespace:
         default=[
             "data/analysis/prepared/",
             "data/analysis/twonn/",
-            "data/saved_plots/",
         ],
         help="List of directories to sync.",
     )
