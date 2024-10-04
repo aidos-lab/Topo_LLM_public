@@ -36,7 +36,7 @@ from topollm.model_inference.perplexity.saved_perplexity_processing.correlation.
     compute_and_save_correlation_results_via_mapping_on_all_input_columns,
 )
 from topollm.model_inference.perplexity.saved_perplexity_processing.correlation.find_aligned_dfs import find_aligned_dfs
-from topollm.model_inference.perplexity.saved_perplexity_processing.correlation.plot_statistics_comparison import (
+from topollm.model_inference.perplexity.saved_perplexity_processing.plot.plot_statistics_comparison import (
     plot_statistics_comparison,
 )
 from topollm.typing.enums import Verbosity
