@@ -25,6 +25,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Basic path manager for the PEFT finetuning mode."""
+
 import logging
 import pathlib
 
@@ -86,11 +88,11 @@ class PEFTPathManagerBasic:
             description = (
                 f"{NAME_PREFIXES['lora_r']}"
                 f"{KV_SEP}"
-                f"{self.peft_config.r}"
+                f"{str(self.peft_config.r)}"
                 f"{ITEM_SEP}"
                 f"{NAME_PREFIXES['lora_alpha']}"
                 f"{KV_SEP}"
-                f"{self.peft_config.lora_alpha}"
+                f"{str(self.peft_config.lora_alpha)}"
                 f"{ITEM_SEP}"
                 f"{NAME_PREFIXES['lora_target_modules']}"
                 f"{KV_SEP}"

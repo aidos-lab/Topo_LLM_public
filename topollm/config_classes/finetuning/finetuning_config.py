@@ -28,7 +28,6 @@
 """Configuration class for fine tuning."""
 
 from pydantic import Field
-from transformers.trainer_utils import SchedulerType
 
 from topollm.config_classes.config_base_model import ConfigBaseModel
 from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
@@ -41,7 +40,7 @@ from topollm.config_classes.finetuning.peft.peft_config import PEFTConfig
 from topollm.config_classes.finetuning.trainer_modifier.trainer_modifier_config import TrainerModifierConfig
 from topollm.config_classes.language_model.language_model_config import LanguageModelConfig
 from topollm.config_classes.tokenizer.tokenizer_config import TokenizerConfig
-from topollm.typing.enums import ComputeMetricsMode
+from topollm.typing.enums import ComputeMetricsMode, LrSchedulerType
 
 
 class FinetuningConfig(ConfigBaseModel):
@@ -102,8 +101,8 @@ class FinetuningConfig(ConfigBaseModel):
         description="The learning rate.",
     )
 
-    lr_scheduler_type: SchedulerType = Field(
-        default=SchedulerType.LINEAR,
+    lr_scheduler_type: LrSchedulerType = Field(
+        default=LrSchedulerType.LINEAR,
         description="The learning rate scheduler type.",
     )
 
@@ -135,6 +134,11 @@ class FinetuningConfig(ConfigBaseModel):
     save_steps: int = Field(
         default=400,
         description="The number of steps between two saves.",
+    )
+
+    seed: int = Field(
+        default=1234,
+        description="The seed used in finetuning for the Trainer.",
     )
 
     tokenizer: TokenizerConfig = Field(

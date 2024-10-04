@@ -24,11 +24,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Protocol for managing the paths for the PEFT process."""
+
 import pathlib
 from typing import Protocol
 
 
 class PEFTPathManager(Protocol):
+    """Manages the paths for the PEFT process."""
+
     @property
     def peft_description_subdir(
         self,

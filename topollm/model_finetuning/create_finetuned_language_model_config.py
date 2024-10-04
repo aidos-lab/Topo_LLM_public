@@ -29,10 +29,12 @@
 
 import logging
 import pathlib
+import re
 from typing import TYPE_CHECKING
 
 import omegaconf
 
+from topollm.config_classes.finetuning.finetuning_config import FinetuningConfig
 from topollm.config_classes.language_model.language_model_config import LanguageModelConfig
 from topollm.config_classes.main_config import MainConfig
 from topollm.model_finetuning.compute_last_save_step import compute_last_save_step
@@ -142,25 +144,59 @@ def dump_language_model_config_to_file(
         )
 
 
+def replace_seed_descriptor_in_str_path_with_generic_seed_placeholder(
+    model_path: str,
+) -> str:
+    """Replace a specific seed value in the model path with a generic placeholder for configuration interpolation.
+
+    Args:
+    ----
+        model_path (str): The original model path as a string.
+
+    Returns:
+    -------
+        str: The updated model path with the placeholder for seed.
+
+    """
+    return re.sub(
+        pattern=r"seed-\d+",
+        repl=r"seed-${language_model.seed}",
+        string=model_path,
+    )
+
+
 def update_language_model_config(
     base_language_model_config: LanguageModelConfig,
     finetuned_model_relative_dir: pathlib.Path,
     finetuned_short_model_name: str,
     checkpoint_no: int,
+    seed: int,
 ) -> LanguageModelConfig:
     """Update the language model config with the new finetuned model path and short model name."""
-    new_pretrained_model_path = (
-        r"${paths.data_dir}/" + str(finetuned_model_relative_dir) + r"/checkpoint-${language_model.checkpoint_no}"
+    # Replace the seed descriptor in the model path with a generic placeholder for configuration interpolation
+    finetuned_model_relative_dir_with_seed_interpolation = (
+        replace_seed_descriptor_in_str_path_with_generic_seed_placeholder(
+            model_path=str(finetuned_model_relative_dir),
+        )
     )
 
+    # Add the checkpoint directory to the path
+    new_pretrained_model_path: str = (
+        r"${paths.data_dir}/"
+        + str(finetuned_model_relative_dir_with_seed_interpolation)
+        + r"/checkpoint-${language_model.checkpoint_no}"
+    )
+
+    # Create the new short model name with the checkpoint number interpolation and the seed interpolation
     new_short_model_name_with_checkpoint_interpolation = (
-        str(finetuned_short_model_name) + r"_ckpt-${language_model.checkpoint_no}"
+        str(finetuned_short_model_name) + r"_seed-${language_model.seed}" + r"_ckpt-${language_model.checkpoint_no}"
     )
 
     updated_config: LanguageModelConfig = base_language_model_config.model_copy(
         update={
             "pretrained_model_name_or_path": new_pretrained_model_path,
             "short_model_name": new_short_model_name_with_checkpoint_interpolation,
+            "seed": seed,
             "checkpoint_no": checkpoint_no,
         },
         deep=True,
@@ -197,8 +233,8 @@ def create_finetuned_language_model_config(
 
     # # # #
     # Find the last checkpoint global save step
-    finetuning_config = main_config.finetuning
-    last_checkpoint_no = compute_last_save_step(
+    finetuning_config: FinetuningConfig = main_config.finetuning
+    last_checkpoint_no: int = compute_last_save_step(
         total_samples=finetuning_config.finetuning_datasets.train_dataset.number_of_samples,
         batch_size=finetuning_config.batch_sizes.train,
         gradient_accumulation_steps=finetuning_config.gradient_accumulation_steps,
@@ -212,6 +248,7 @@ def create_finetuned_language_model_config(
         finetuned_model_relative_dir=finetuned_model_relative_dir,
         finetuned_short_model_name=finetuned_short_model_name,
         checkpoint_no=last_checkpoint_no,
+        seed=finetuning_config.seed,
     )
 
     if verbosity >= Verbosity.NORMAL:

@@ -271,7 +271,6 @@ def do_finetuning_process(
 
     training_args: transformers.TrainingArguments = prepare_training_args(
         finetuning_config=finetuning_config,
-        seed=main_config.seed,
         finetuned_model_dir=finetuned_model_dir,
         logging_dir=logging_dir,
     )

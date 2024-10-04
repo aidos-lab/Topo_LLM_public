@@ -36,7 +36,6 @@ from topollm.config_classes.finetuning.finetuning_config import FinetuningConfig
 
 def prepare_training_args(
     finetuning_config: FinetuningConfig,
-    seed: int,
     finetuned_model_dir: os.PathLike,
     logging_dir: os.PathLike | None = None,
 ) -> transformers.TrainingArguments:
@@ -69,7 +68,7 @@ def prepare_training_args(
         log_level=finetuning_config.log_level,
         logging_steps=finetuning_config.logging_steps,
         use_cpu=finetuning_config.use_cpu,
-        seed=seed,
+        seed=finetuning_config.seed,
     )
 
     return training_args
