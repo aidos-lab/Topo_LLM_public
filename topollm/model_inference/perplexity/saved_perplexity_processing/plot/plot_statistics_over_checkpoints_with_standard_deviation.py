@@ -127,7 +127,13 @@ def align_dataframes(
     return merged_df_clean
 
 
-def plot_metrics(ax, model_data, color, model, base_model_data):
+def plot_metrics(
+    ax,
+    model_data: pd.DataFrame,
+    color,
+    model,
+    base_model_data,
+):
     """Plot perplexity and log perplexity metrics on the given axis.
 
     Args:
@@ -138,27 +144,65 @@ def plot_metrics(ax, model_data, color, model, base_model_data):
         base_model_data (DataFrame): Data for the base model.
     """
     print(f"Plotting metrics for model: {model}")
-    checkpoints = model_data["checkpoint"].values
-    mean_perplexity = model_data["token_perplexity_mean"].values
-    std_perplexity = model_data["token_perplexity_std"].values
-    mean_perplexity = np.where(mean_perplexity > 0, mean_perplexity, np.nan)  # Ensure positive values for log
+
+    # Ensure data is sorted by checkpoint
+    model_data = model_data.sort_values(
+        by="checkpoint",
+    )
+
+    checkpoints = model_data["checkpoint"].to_numpy()
+    mean_perplexity = model_data["token_perplexity_mean"].to_numpy()
+    std_perplexity = model_data["token_perplexity_std"].to_numpy()
+    mean_perplexity = np.where(
+        mean_perplexity > 0,
+        mean_perplexity,
+        np.nan,
+    )  # Ensure positive values for log
     log_perplexity = np.log(mean_perplexity)
 
     if len(checkpoints) > 0:
         print(f"Checkpoints available for model {model}: {len(checkpoints)}")
-        ax.plot(checkpoints, mean_perplexity, linestyle="-", label=f"Perplexity ({model})", color=color)
-        ax.fill_between(
-            checkpoints, mean_perplexity - std_perplexity, mean_perplexity + std_perplexity, alpha=0.1, color=color
+        ax.plot(
+            checkpoints,
+            mean_perplexity,
+            linestyle="-",
+            label=f"Perplexity ({model})",
+            color=color,
         )
-        ax.plot(checkpoints, log_perplexity, linestyle="--", label=f"Log Perplexity ({model})", color=color)
+        ax.fill_between(
+            checkpoints,
+            mean_perplexity - std_perplexity,
+            mean_perplexity + std_perplexity,
+            alpha=0.1,
+            color=color,
+        )
+        ax.plot(
+            checkpoints,
+            log_perplexity,
+            linestyle="--",
+            label=f"Log Perplexity ({model})",
+            color=color,
+        )
         # Plotting the base model point if exists
         if not base_model_data.empty:
             print(f"Base model data found for model: {model}")
             base_perplexity = base_model_data["token_perplexity_mean"].values[0]
-            ax.scatter(0, base_perplexity, color=color, marker="o", label=f"Base Model Perplexity ({model})")
+            ax.scatter(
+                0,
+                base_perplexity,
+                color=color,
+                marker="o",
+                label=f"Base Model Perplexity ({model})",
+            )
 
 
-def plot_local_estimates(ax, model_local_data, color, model, base_model_data):
+def plot_local_estimates(
+    ax,
+    model_local_data,
+    color,
+    model,
+    base_model_data,
+):
     """Plot local estimates on the given axis.
 
     Args:
@@ -207,7 +251,7 @@ def create_side_by_side_plots(
     print("Creating side by side plots...")
     model_colors = create_color_map(unique_models)
 
-    fig, axs = plt.subplots(1, 2, figsize=(20, 8))
+    fig, axs = plt.subplots(1, 2, figsize=(20, 10))
 
     for model in unique_models:
         print(f"Processing model: {model}")
@@ -234,17 +278,21 @@ def create_side_by_side_plots(
     axs[1].grid()
 
     # Setting a common legend below both plots
-    handles, labels = axs[0].get_legend_handles_labels()
+    handles, labels = [], []
+    for ax in axs:
+        h, l = ax.get_legend_handles_labels()
+        handles += h
+        labels += l
     fig.legend(
         handles,
         labels,
-        bbox_to_anchor=(0.5, -0.1),
         loc="upper center",
-        ncol=3,
+        bbox_to_anchor=(0.5, 1.02),
+        ncol=2,
         fontsize="small",
     )
 
-    plt.tight_layout()
+    plt.tight_layout(rect=[0, 0, 1, 0.9])
     print("Displaying and saving the plot...")
 
     if show_plot:
