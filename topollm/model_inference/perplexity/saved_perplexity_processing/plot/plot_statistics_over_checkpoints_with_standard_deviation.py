@@ -26,9 +26,6 @@
 
 """Plot with error bands for standard deviation."""
 
-# TODO: Test this script in our current setup
-# TODO: Write logic for applying this script on all the data that we have created
-
 import logging
 import os
 import pathlib
@@ -39,7 +36,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import omegaconf
 import pandas as pd
-from scipy.ndimage import uniform_filter1d
+from tqdm import tqdm
 
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH, TOPO_LLM_REPOSITORY_BASE_PATH
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
@@ -368,18 +365,42 @@ def main(
     """Align dataframes and create plots based on the aligned data."""
     logger = global_logger
 
-    # TODO: Make this flexible to automatically run for files in the directory
-    # Update the paths to point to the correct locations of the mean and std DataFrames
-    currently_selected_dataset_folder_path = pathlib.Path(
+    # This points to the parent folder containing the dataset folders
+    parent_folder_containing_dataset_folders = pathlib.Path(
         TOPO_LLM_REPOSITORY_BASE_PATH,
         "data",
-        "saved_plots/correlation_analyis/multiwoz21_split-train_ctxt-dataset_entry_samples-10000_feat-col-ner_tags/",
+        "saved_plots",
+        "correlation_analyis",
     )
 
-    load_data_and_create_plots(
-        currently_selected_dataset_folder_path=currently_selected_dataset_folder_path,
-        logger=logger,
-    )
+    # Iterate over all the dataset folders
+    for dataset_folder in tqdm(
+        parent_folder_containing_dataset_folders.iterdir(),
+        desc="Processing dataset folders",
+    ):
+        if not dataset_folder.is_dir():
+            continue
+        if dataset_folder.name == "None":
+            continue
+
+        logger.info(
+            msg=f"Processing dataset folder: {dataset_folder}",  # noqa: G004 - low overhead
+        )
+        try:
+            load_data_and_create_plots(
+                currently_selected_dataset_folder_path=dataset_folder,
+                logger=logger,
+            )
+        except FileNotFoundError as e:
+            logger.warning(
+                msg=f"File not found: {e}",  # noqa: G004 - low overhead
+            )
+            logger.warning(
+                msg=f"Skipping dataset folder: {dataset_folder}",  # noqa: G004 - low overhead
+            )
+        logger.info(
+            msg=f"Processing dataset folder: {dataset_folder} DONE",  # noqa: G004 - low overhead
+        )
 
 
 if __name__ == "__main__":
