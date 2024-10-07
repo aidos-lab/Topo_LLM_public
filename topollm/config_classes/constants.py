@@ -113,13 +113,14 @@ EXTERNAL_DRIVE_TOPO_LLM_REPOSITORY_BASE_PATH: str = os.getenv(
     default="/Volumes/ruppik_external/research_data/Topo_LLM",
 )
 TOPO_LLM_REPOSITORY_BASE_PATH: str = os.path.expandvars(
-    os.getenv(
+    path=os.getenv(
         key="TOPO_LLM_REPOSITORY_BASE_PATH",
-        default="$HOME/git-source/Topo_LLM",
+        default="${HOME}/git-source/Topo_LLM",
     ),
 )
+# Note that the 'data/' directory can be set in the hydra config
 ZIM_TOPO_LLM_REPOSITORY_BASE_PATH: str = os.path.expandvars(
-    os.getenv(
+    path=os.getenv(
         key="ZIM_TOPO_LLM_REPOSITORY_BASE_PATH",
         default="/gpfs/project/${ZIM_USERNAME}/git-source/Topo_LLM",
     ),

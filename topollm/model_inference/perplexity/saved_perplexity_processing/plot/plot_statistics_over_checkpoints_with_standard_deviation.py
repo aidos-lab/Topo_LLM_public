@@ -292,7 +292,9 @@ def create_side_by_side_plots(
         fontsize="small",
     )
 
-    plt.tight_layout(rect=[0, 0, 1, 0.9])
+    plt.tight_layout(
+        rect=(0, 0, 1, 0.9),
+    )
     print("Displaying and saving the plot...")
 
     if show_plot:
@@ -305,30 +307,16 @@ def create_side_by_side_plots(
     )
 
 
-@hydra.main(
-    config_path=f"{HYDRA_CONFIGS_BASE_PATH}",
-    config_name="main_config",
-    version_base="1.3",
-)
-def main(
-    config: omegaconf.DictConfig,
-) -> None:
-    """Align dataframes and create plots based on the aligned data."""
-    logger = global_logger
-
-    # TODO: Make this flexible to automatically run for files in the directory
-    # Update the paths to point to the correct locations of the mean and std DataFrames
-    currently_selected_data_folder_path = pathlib.Path(
-        TOPO_LLM_REPOSITORY_BASE_PATH,
-        "data/saved_plots/correlation_analyis/multiwoz21_split-train_ctxt-dataset_entry_samples-10000_feat-col-ner_tags/",
-    )
-
+def load_data_and_create_plots(
+    currently_selected_dataset_folder_path: os.PathLike,
+    logger: logging.Logger = default_logger,
+):
     mean_df_path = pathlib.Path(
-        currently_selected_data_folder_path,
+        currently_selected_dataset_folder_path,
         "statistic-mean/aggregated_statistics.csv",
     )
     std_df_path = pathlib.Path(
-        currently_selected_data_folder_path,
+        currently_selected_dataset_folder_path,
         "statistic-std/aggregated_statistics.csv",
     )
 
@@ -355,7 +343,7 @@ def main(
     unique_models = merged_df_clean["model_without_checkpoint"].unique()
 
     saved_plot_file_path = pathlib.Path(
-        currently_selected_data_folder_path,
+        currently_selected_dataset_folder_path,
         "side_by_side_plots.pdf",
     )
 
@@ -366,6 +354,31 @@ def main(
         unique_models=unique_models,
         saved_plot_file_path=saved_plot_file_path,
         show_plot=False,
+    )
+
+
+@hydra.main(
+    config_path=f"{HYDRA_CONFIGS_BASE_PATH}",
+    config_name="main_config",
+    version_base="1.3",
+)
+def main(
+    config: omegaconf.DictConfig,
+) -> None:
+    """Align dataframes and create plots based on the aligned data."""
+    logger = global_logger
+
+    # TODO: Make this flexible to automatically run for files in the directory
+    # Update the paths to point to the correct locations of the mean and std DataFrames
+    currently_selected_dataset_folder_path = pathlib.Path(
+        TOPO_LLM_REPOSITORY_BASE_PATH,
+        "data",
+        "saved_plots/correlation_analyis/multiwoz21_split-train_ctxt-dataset_entry_samples-10000_feat-col-ner_tags/",
+    )
+
+    load_data_and_create_plots(
+        currently_selected_dataset_folder_path=currently_selected_dataset_folder_path,
+        logger=logger,
     )
 
 
