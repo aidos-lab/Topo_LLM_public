@@ -71,7 +71,7 @@ def load_aligned_dfs_and_create_aggregated_statistics_and_analyse_data(
         f"Found {len(aligned_df_collection) = } aligned_df.csv files.",  # noqa: G004 - low overhead
     )
 
-    aggregated_statistics = aligned_df_collection.get_aggregated_statistics(
+    aggregated_statistics: pd.DataFrame = aligned_df_collection.get_aggregated_statistics(
         statistic=statistic,
     )
 
