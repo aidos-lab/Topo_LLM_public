@@ -83,7 +83,7 @@ def run_task(
         )
     else:
         subprocess.run(  # noqa: S603 - We trust the command
-            command,
+            args=command,
             check=True,
         )
 
@@ -104,6 +104,14 @@ class FinetuningDatasetsListOption(StrEnum):
 
     DEBUG = auto()
     MANUAL_IN_PYTHON_SCRIPT = auto()
+
+
+class FinetuningSeedListOption(StrEnum):
+    """Options for the finetuning seed list."""
+
+    DO_NOT_SET = auto()
+    TWO_SEEDS = auto()
+    FIVE_SEEDS = auto()
 
 
 class LanguageModelListOption(StrEnum):
@@ -187,6 +195,12 @@ def parse_arguments() -> argparse.Namespace:
         help="Finetuning datasets list to use.",
     )
     parser.add_argument(
+        "--finetuning_seed_list",
+        type=FinetuningSeedListOption,
+        default=FinetuningSeedListOption.DO_NOT_SET,
+        help="Finetuning seed list to use.",
+    )
+    parser.add_argument(
         "--checkpoint_no_list",
         type=CheckpointNoListOption,
         default=CheckpointNoListOption.SELECTED,
@@ -213,7 +227,7 @@ def make_config_and_run_task(
     args: argparse.Namespace,
 ) -> None:
     """Make a submission configuration and run the task."""
-    full_data_list = [
+    full_data_list: list[str] = [
         "iclr_2024_submissions_test",
         "iclr_2024_submissions_train",
         "iclr_2024_submissions_validation",
@@ -230,9 +244,9 @@ def make_config_and_run_task(
         "wikitext_train",
         "wikitext_validation",
     ]
-    only_train_data_list = [data_name for data_name in full_data_list if "_train" in data_name]
+    only_train_data_list: list[str] = [data_name for data_name in full_data_list if "_train" in data_name]
 
-    only_roberta_base_language_model_list = [
+    only_roberta_base_language_model_list: list[str] = [
         "roberta-base",
     ]
     selected_finetuned_few_epochs_from_roberta_base_language_model_list = [
@@ -377,6 +391,26 @@ def make_config_and_run_task(
             msg = f"Unknown {args.finetuning_datasets_list = }"
             raise ValueError(msg)
 
+    match args.finetuning_seed_list:
+        case FinetuningSeedListOption.DO_NOT_SET:
+            finetuning_seed_list = None
+        case FinetuningSeedListOption.TWO_SEEDS:
+            finetuning_seed_list = [
+                "1234",
+                "1235",
+            ]
+        case FinetuningSeedListOption.FIVE_SEEDS:
+            finetuning_seed_list = [
+                "1234",
+                "1235",
+                "1236",
+                "1237",
+                "1238",
+            ]
+        case _:
+            msg = f"Unknown {args.finetuning_seed_list = }"
+            raise ValueError(msg)
+
     submissions_config = SubmissionConfig(
         submission_mode=args.submission_mode,
         queue=args.queue,
@@ -386,6 +420,7 @@ def make_config_and_run_task(
         language_model_list=language_model_list,
         checkpoint_no_list=checkpoint_no_list,
         finetuning_datasets_list=finetuning_datasets_list,
+        finetuning_seed_list=finetuning_seed_list,
         num_train_epochs=num_train_epochs,
         lr_scheduler_type=lr_scheduler_type,
     )
