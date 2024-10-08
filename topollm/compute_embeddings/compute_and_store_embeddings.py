@@ -115,7 +115,6 @@ def compute_and_store_embeddings(
     partial_collate_fn = partial(
         collate_batch_and_move_to_device,
         device=device,
-        # TODO: Make this work flexibly to make it possible to include additional metadata
         model_input_names=tokenizer.model_input_names,
     )
 

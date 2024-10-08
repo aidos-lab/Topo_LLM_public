@@ -107,7 +107,10 @@ def load_and_stack_embedding_data(
             loaded_metadata,
         )
 
-    input_ids_collection: list[list] = [metadata_chunk["input_ids"].tolist() for metadata_chunk in loaded_metadata]
+    # TODO: This needs to be updated to the new way how we handle metadata
+    input_ids_collection: list[list] = [
+        metadata_chunk["model_inputs"]["input_ids"].tolist() for metadata_chunk in loaded_metadata
+    ]
 
     stacked_input_ids: np.ndarray = np.vstack(
         input_ids_collection,
