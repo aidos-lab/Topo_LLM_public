@@ -39,6 +39,7 @@ def test_EmbeddingDataLoaderPreparerHuggingface(  # noqa: N802 - This is the nam
     embedding_dataloader_preparer_huggingface: EmbeddingDataLoaderPreparerHuggingface,
     logger_fixture: logging.Logger,
 ) -> None:
+    """Test the EmbeddingDataLoaderPreparerHuggingface class."""
     dataloader = embedding_dataloader_preparer_huggingface.prepare_dataloader()
 
     assert dataloader is not None  # noqa: S101 - pytest assert

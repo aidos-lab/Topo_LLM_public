@@ -27,8 +27,29 @@
 
 """Functions for converting dataset entries to features."""
 
+from collections.abc import Callable
+
 import nltk
 from transformers import BatchEncoding, PreTrainedTokenizer, PreTrainedTokenizerFast
+
+from topollm.config_classes.data.data_config import DataConfig
+from topollm.typing.enums import DatasetType
+
+
+def get_convert_dataset_entry_to_features_function(
+    data_config: DataConfig,
+) -> Callable[..., BatchEncoding]:
+    """Get the function to convert a dataset entry to features."""
+    match data_config.dataset_type:
+        case DatasetType.HUGGINGFACE_DATASET:
+            dataset_entry_to_features_function = convert_dataset_entry_to_features
+        case DatasetType.HUGGINGFACE_DATASET_NAMED_ENTITY:
+            dataset_entry_to_features_function = convert_dataset_entry_to_features_named_entity
+        case _:
+            msg = f"Unsupported {data_config.dataset_type = }"
+            raise ValueError(msg)
+
+    return dataset_entry_to_features_function
 
 
 def convert_dataset_entry_to_features(

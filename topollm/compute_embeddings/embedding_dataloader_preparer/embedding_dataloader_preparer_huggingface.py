@@ -30,9 +30,6 @@ from functools import partial
 import datasets
 import torch.utils.data
 
-from topollm.compute_embeddings.embedding_dataloader_preparer.convert_dataset_entry_to_features import (
-    convert_dataset_entry_to_features,
-)
 from topollm.compute_embeddings.embedding_dataloader_preparer.protocol import (
     EmbeddingDataLoaderPreparer,
 )
@@ -61,7 +58,7 @@ class EmbeddingDataLoaderPreparerHuggingface(EmbeddingDataLoaderPreparer):
         """Tokenizes dataset."""
         # Make a partial function for mapping tokenizer over the dataset
         partial_map_fn = partial(
-            convert_dataset_entry_to_features,
+            self.convert_dataset_entry_to_features_function,
             tokenizer=self.preparer_context.tokenizer,
             column_name=self.preparer_context.data_config.column_name,
             max_length=self.sequence_length,
@@ -72,6 +69,7 @@ class EmbeddingDataLoaderPreparerHuggingface(EmbeddingDataLoaderPreparer):
             batched=True,
             batch_size=self.preparer_context.embeddings_config.dataset_map.batch_size,
             num_proc=self.preparer_context.embeddings_config.dataset_map.num_proc,
+            keep_in_memory=True,  # This avoids caching the dataset on disk
         )
 
         if self.verbosity >= 1:
@@ -121,7 +119,7 @@ class EmbeddingDataLoaderPreparerHuggingface(EmbeddingDataLoaderPreparer):
         # runs in the main process.
         # This appears to be necessary with the "mps" backend.
         dataloader = torch.utils.data.DataLoader(
-            dataset_tokenized,  # type: ignore - typing issue with Dataset
+            dataset=dataset_tokenized,  # type: ignore - typing issue with Dataset
             batch_size=self.preparer_context.embeddings_config.batch_size,
             shuffle=False,
             collate_fn=self.preparer_context.collate_fn,
