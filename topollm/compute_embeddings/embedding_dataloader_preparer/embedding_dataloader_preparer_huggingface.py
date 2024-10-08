@@ -30,6 +30,9 @@ from functools import partial
 import datasets
 import torch.utils.data
 
+from topollm.compute_embeddings.embedding_dataloader_preparer.convert_dataset_entry_to_features import (
+    convert_dataset_entry_to_features,
+)
 from topollm.compute_embeddings.embedding_dataloader_preparer.protocol import (
     EmbeddingDataLoaderPreparer,
 )
@@ -58,7 +61,7 @@ class EmbeddingDataLoaderPreparerHuggingface(EmbeddingDataLoaderPreparer):
         """Tokenizes dataset."""
         # Make a partial function for mapping tokenizer over the dataset
         partial_map_fn = partial(
-            self.convert_dataset_entry_to_features,
+            convert_dataset_entry_to_features,
             tokenizer=self.preparer_context.tokenizer,
             column_name=self.preparer_context.data_config.column_name,
             max_length=self.sequence_length,

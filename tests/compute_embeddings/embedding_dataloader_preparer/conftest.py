@@ -42,6 +42,7 @@ from topollm.compute_embeddings.embedding_dataloader_preparer.embedding_dataload
 from topollm.compute_embeddings.embedding_dataloader_preparer.embedding_dataloader_preparer_huggingface import (
     EmbeddingDataLoaderPreparerHuggingface,
 )
+from topollm.compute_embeddings.embedding_dataloader_preparer.factory import get_embedding_dataloader_preparer
 from topollm.compute_embeddings.embedding_dataloader_preparer.protocol import (
     EmbeddingDataLoaderPreparer,
 )
@@ -60,6 +61,7 @@ def preparer_context(
     tokenizer_config: TokenizerConfig,
     tokenizer: transformers.PreTrainedTokenizer | transformers.PreTrainedTokenizerFast,
 ) -> EmbeddingDataLoaderPreparerContext:
+    """Return a context for embedding dataloader preparers."""
     partial_collate_fn = partial(
         collate_batch_and_move_to_device,
         device=device_fixture,
@@ -83,7 +85,8 @@ def preparer_context(
 def embedding_dataloader_preparer_huggingface(
     preparer_context: EmbeddingDataLoaderPreparerContext,
 ) -> EmbeddingDataLoaderPreparer:
-    result = EmbeddingDataLoaderPreparerHuggingface(
+    """Return an instance of the EmbeddingDataLoaderPreparerHuggingface."""
+    result: EmbeddingDataLoaderPreparer = get_embedding_dataloader_preparer(
         preparer_context=preparer_context,
     )
 

@@ -35,7 +35,7 @@ from topollm.compute_embeddings.embedding_dataloader_preparer.embedding_dataload
 
 
 @pytest.mark.uses_transformers_models()
-def test_EmbeddingDataLoaderPreparerHuggingface(
+def test_EmbeddingDataLoaderPreparerHuggingface(  # noqa: N802 - This is the name of a class
     embedding_dataloader_preparer_huggingface: EmbeddingDataLoaderPreparerHuggingface,
     logger_fixture: logging.Logger,
 ) -> None:

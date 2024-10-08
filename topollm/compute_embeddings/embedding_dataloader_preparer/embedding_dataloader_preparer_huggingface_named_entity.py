@@ -30,11 +30,11 @@
 from functools import partial
 
 import datasets
-import nltk
 import torch.utils.data
-from nltk.tag import pos_tag
-from nltk.tokenize import word_tokenize
 
+from topollm.compute_embeddings.embedding_dataloader_preparer.convert_dataset_entry_to_features import (
+    convert_dataset_entry_to_features_named_entity,
+)
 from topollm.compute_embeddings.embedding_dataloader_preparer.protocol import (
     EmbeddingDataLoaderPreparer,
 )
@@ -63,7 +63,7 @@ class EmbeddingDataLoaderPreparerHuggingfaceNamedEntity(EmbeddingDataLoaderPrepa
         """Tokenizes dataset."""
         # Make a partial function for mapping tokenizer over the dataset
         partial_map_fn = partial(
-            self.convert_dataset_entry_to_features_named_entity,
+            convert_dataset_entry_to_features_named_entity,
             tokenizer=self.preparer_context.tokenizer,
             column_name=self.preparer_context.data_config.column_name,
             max_length=self.sequence_length,
