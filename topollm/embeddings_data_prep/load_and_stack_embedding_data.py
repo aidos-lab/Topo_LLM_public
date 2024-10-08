@@ -107,7 +107,8 @@ def load_and_stack_embedding_data(
             loaded_metadata,
         )
 
-    # TODO: This needs to be updated to the new way how we handle metadata
+    # Note: This assumes that the batches saved in the embedding data computation are a dict which contains
+    # different keys for the model_inputs and the metadata.
     input_ids_collection: list[list] = [
         metadata_chunk["model_inputs"]["input_ids"].tolist() for metadata_chunk in loaded_metadata
     ]
@@ -124,6 +125,8 @@ def load_and_stack_embedding_data(
     ).reshape(
         number_of_sentences * number_of_tokens_per_sentence,
     )
+
+    # TODO: The "metadata" key in the batch saved in a metadata_chunk is currently lost. We need to add it to the full_df here if we want to use it in the downstream pipeline.
 
     full_df = pd.DataFrame(
         {
