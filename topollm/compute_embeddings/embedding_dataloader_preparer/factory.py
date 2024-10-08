@@ -33,13 +33,9 @@ from topollm.compute_embeddings.embedding_dataloader_preparer.embedding_dataload
 from topollm.compute_embeddings.embedding_dataloader_preparer.embedding_dataloader_preparer_huggingface import (
     EmbeddingDataLoaderPreparerHuggingface,
 )
-from topollm.compute_embeddings.embedding_dataloader_preparer.embedding_dataloader_preparer_huggingface_named_entity import (
-    EmbeddingDataLoaderPreparerHuggingfaceNamedEntity,
-)
 from topollm.compute_embeddings.embedding_dataloader_preparer.protocol import (
     EmbeddingDataLoaderPreparer,
 )
-from topollm.typing.enums import DatasetType
 
 
 def get_embedding_dataloader_preparer(
@@ -52,16 +48,8 @@ def get_embedding_dataloader_preparer(
         An instance of a DatasetPreparer subclass.
 
     """
-    if preparer_context.data_config.dataset_type == DatasetType.HUGGINGFACE_DATASET:
-        result = EmbeddingDataLoaderPreparerHuggingface(
-            preparer_context=preparer_context,
-        )
-    elif preparer_context.data_config.dataset_type == DatasetType.HUGGINGFACE_DATASET_NAMED_ENTITY:
-        result = EmbeddingDataLoaderPreparerHuggingfaceNamedEntity(
-            preparer_context=preparer_context,
-        )
-    else:
-        msg = f"Unsupported {preparer_context.data_config.dataset_type = }"
-        raise ValueError(msg)
+    result = EmbeddingDataLoaderPreparerHuggingface(
+        preparer_context=preparer_context,
+    )
 
     return result
