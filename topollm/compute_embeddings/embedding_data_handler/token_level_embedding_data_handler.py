@@ -123,7 +123,7 @@ class TokenLevelEmbeddingDataHandler:
             batch=batch,
         )
 
-        chunk_identifier = self.get_chunk_identifier(
+        chunk_identifier: ChunkIdentifier = self.get_chunk_identifier(
             batch=batch,
             batch_idx=batch_idx,
         )
@@ -142,6 +142,8 @@ class TokenLevelEmbeddingDataHandler:
             batch=batch,
         )
 
+        # TODO: Make model input compatible with new collate function
+
         # Write metadata to storage
         metadata_data_chunk = MetadataChunk(
             batch=batch_cpu,
@@ -157,7 +159,9 @@ class TokenLevelEmbeddingDataHandler:
         batch: dict,
         batch_idx: int,
     ) -> ChunkIdentifier:
-        batch_len = len(batch["input_ids"])
+        batch_len: int = self.get_batch_len(
+            batch=batch,
+        )
 
         chunk_identifier = ChunkIdentifier(
             chunk_idx=batch_idx,
@@ -167,19 +171,46 @@ class TokenLevelEmbeddingDataHandler:
 
         return chunk_identifier
 
+    def get_batch_len(
+        self,
+        batch: dict,
+    ) -> int:
+        inputs = self.prepare_model_inputs_from_batch(
+            batch=batch,
+        )
+        batch_len = len(inputs["input_ids"])
+        return batch_len
+
     def compute_embeddings_from_batch(
         self,
         batch: dict,
     ) -> np.ndarray:
         """Compute model outputs and extract embeddings from a batch."""
+        inputs: dict[
+            str,
+            torch.Tensor,
+        ] = self.prepare_model_inputs_from_batch(
+            batch=batch,
+        )
         model_outputs = self.compute_model_outputs_from_single_inputs(
-            inputs=batch,
+            inputs=inputs,
         )
         embeddings = self.embedding_extractor.extract_embeddings_from_model_outputs(
             model_outputs=model_outputs,
         )
 
         return embeddings
+
+    def prepare_model_inputs_from_batch(
+        self,
+        batch: dict,
+    ) -> dict[
+        str,
+        torch.Tensor,
+    ]:
+        """Prepare model inputs from a batch."""
+        inputs = batch["model_inputs"]
+        return inputs
 
     def compute_model_outputs_from_single_inputs(
         self,
