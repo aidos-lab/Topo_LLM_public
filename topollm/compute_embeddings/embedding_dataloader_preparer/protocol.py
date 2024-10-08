@@ -50,7 +50,8 @@ class EmbeddingDataLoaderPreparer(ABC):
         self,
         preparer_context: EmbeddingDataLoaderPreparerContext,
     ) -> None:
-        self.preparer_context = preparer_context
+        """Initialize the embedding dataset preparer."""
+        self.preparer_context: EmbeddingDataLoaderPreparerContext = preparer_context
 
         self.dataset_preparer: DatasetPreparer = get_dataset_preparer(
             data_config=self.preparer_context.data_config,

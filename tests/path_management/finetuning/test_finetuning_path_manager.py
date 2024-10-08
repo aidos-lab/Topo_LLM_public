@@ -32,7 +32,6 @@ import pathlib
 
 from topollm.path_management.finetuning import protocol
 from topollm.path_management.validate_path_part import validate_path_part
-from topollm.typing.enums import DescriptionType
 
 
 class TestFinetuningPathManager:
@@ -101,16 +100,13 @@ class TestFinetuningPathManager:
         finetuning_path_manager_basic: protocol.FinetuningPathManager,
         logger_fixture: logging.Logger,
     ) -> None:
-        for description_type in DescriptionType:
-            result: str = finetuning_path_manager_basic.get_finetuning_parameters_description(
-                description_type=description_type,
-            )
-            logger_fixture.info(
-                "finetuning_parameters_description:\n%s",
-                result,
-            )
+        result: str = finetuning_path_manager_basic.get_finetuning_parameters_description_for_short_model_name()
+        logger_fixture.info(
+            "finetuning_parameters_description:\n%s",
+            result,
+        )
 
-            assert isinstance(  # noqa: S101 - pytest assertion
-                result,
-                str,
-            )
+        assert isinstance(  # noqa: S101 - pytest assertion
+            result,
+            str,
+        )

@@ -201,7 +201,7 @@ class AlignedDFCollection:
         aggregated_data = []
 
         for df in self.aligned_dfs:
-            stats = df.dataframe.describe().transpose()
+            stats: pd.DataFrame = df.dataframe.describe().transpose()
             if statistic not in stats.columns:
                 msg = f"{statistic = } is not available in the DataFrame."
                 raise ValueError(msg)
@@ -214,6 +214,9 @@ class AlignedDFCollection:
             selected_stats["model"] = df.metadata.model
             selected_stats["checkpoint"] = df.metadata.checkpoint
             selected_stats["model_without_checkpoint"] = df.metadata.model_without_checkpoint()
+            selected_stats["count"] = stats.iloc[0][
+                "count"
+            ]  # Since the "count" value is the same for all columns, we can access it from the first row
 
             aggregated_data.append(selected_stats)
 

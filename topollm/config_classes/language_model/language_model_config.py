@@ -72,6 +72,12 @@ class LanguageModelConfig(ConfigBaseModel):
         description="Tokenizer which will be loaded instead of the one set in 'pretrained_model_name_or_path'.",
     )
 
+    seed: int | None = Field(
+        default=None,
+        title="Random seed.",
+        description="Random seed describing the model (for example, if it results from fine-tuning).",
+    )
+
     short_model_name: str = Field(
         default="roberta-base",
         title="Short model name.",

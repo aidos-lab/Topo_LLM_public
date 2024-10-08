@@ -42,9 +42,8 @@ class FinetuningPathManager(Protocol):
         self,
     ) -> str: ...  # pragma: no cover
 
-    def get_finetuning_parameters_description(
+    def get_finetuning_parameters_description_for_short_model_name(
         self,
-        description_type: DescriptionType,
         short_description_separator: str = "-",
     ) -> str: ...  # pragma: no cover
 

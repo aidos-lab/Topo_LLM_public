@@ -11,7 +11,7 @@ max_steps: -1 # '-1' for no 'max_steps' limit
 mlm_probability: 0.15
 num_train_epochs: 5
 save_steps: 400
-# seed is contained in the main config file
+seed: 1234 # This seed it passed to the finetuning Trainer
 use_cpu: false
 warmup_steps: 500
 weight_decay: 0.01

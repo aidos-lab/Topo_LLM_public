@@ -45,6 +45,7 @@ from topollm.compute_embeddings.embedding_dataloader_preparer.embedding_dataload
 from topollm.compute_embeddings.embedding_dataloader_preparer.factory import (
     get_embedding_dataloader_preparer,
 )
+from topollm.compute_embeddings.embedding_dataloader_preparer.protocol import EmbeddingDataLoaderPreparer
 from topollm.compute_embeddings.embedding_extractor.factory import (
     get_embedding_extractor,
 )
@@ -127,7 +128,7 @@ def compute_and_store_embeddings(
         verbosity=verbosity,
         logger=logger,
     )
-    embedding_dataloader_preparer = get_embedding_dataloader_preparer(
+    embedding_dataloader_preparer: EmbeddingDataLoaderPreparer = get_embedding_dataloader_preparer(
         preparer_context=preparer_context,
     )
     dataloader: torch.utils.data.DataLoader = embedding_dataloader_preparer.prepare_dataloader()

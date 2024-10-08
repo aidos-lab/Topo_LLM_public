@@ -154,8 +154,7 @@ def plot_statistics_comparison_with_standard_deviation():
     Inspired by:
     https://stackoverflow.com/questions/61494278/plotly-how-to-make-a-figure-with-multiple-lines-and-shaded-area-for-standard-de
 
-    # TODO: Test whether this works
-    # TODO: Modify this function
+    # TODO: Replace this with the new script
     """
     # sample data in a pandas dataframe
     np.random.seed(1)

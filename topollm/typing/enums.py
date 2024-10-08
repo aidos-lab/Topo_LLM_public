@@ -74,8 +74,8 @@ class PreferredTorchBackend(StrEnum):
 class JobRunMode(StrEnum):
     """The different modes for running jobs."""
 
-    LOCAL = "local"
-    HHU_HILBERT = "hhu_hilbert"
+    LOCAL = auto()
+    HHU_HILBERT = auto()
 
 
 # ==============================
@@ -114,27 +114,27 @@ class MetadataStorageType(StrEnum):
 class AggregationType(StrEnum):
     """The different types of aggregation for the embedding vectors."""
 
-    CONCATENATE = "concatenate"
-    MEAN = "mean"
+    CONCATENATE = auto()
+    MEAN = auto()
 
 
 @unique
 class Level(StrEnum):
     """The different levels for the embedding vector extraction."""
 
-    TOKEN = "token"  # noqa: S105 - not a password token
-    WVFS = "wvfs"
-    DATASET_ENTRY = "dataset_entry"
+    TOKEN = auto()  # noqa: S105 - not a password token
+    WVFS = auto()
+    DATASET_ENTRY = auto()
 
 
 @unique
 class Split(StrEnum):
     """Splits of a dataset."""
 
-    TRAIN = "train"
-    VALIDATION = "validation"
-    TEST = "test"
-    FULL = "full"
+    TRAIN = auto()
+    VALIDATION = auto()
+    TEST = auto()
+    FULL = auto()
 
 
 @unique
@@ -151,8 +151,8 @@ class MaskingMode(StrEnum):
 class DescriptionType(StrEnum):
     """The different types of descriptions."""
 
-    SHORT = "short"
-    LONG = "long"
+    SHORT = auto()
+    LONG = auto()
 
 
 # # # #
@@ -174,8 +174,8 @@ masking_mode_short_to_long: dict[str, str] = {
 class ZeroVectorHandlingMode(StrEnum):
     """The different modes for handling zero vectors."""
 
-    KEEP = "keep"
-    REMOVE = "remove"
+    KEEP = auto()
+    REMOVE = auto()
 
 
 # ==============================
@@ -185,8 +185,8 @@ class ZeroVectorHandlingMode(StrEnum):
 class DataSplitMode(StrEnum):
     """The different modes for splitting the data."""
 
-    DO_NOTHING = "do_nothing"
-    PROPORTIONS = "proportions"
+    DO_NOTHING = auto()
+    PROPORTIONS = auto()
 
 
 @unique
@@ -211,8 +211,8 @@ class WordSeparationMethod(StrEnum):
 class LrSchedulerType(StrEnum):
     """The different types of learning rate schedulers."""
 
-    CONSTANT = "constant"
-    LINEAR_WITH_WARMUP = "linear_with_warmup"
+    CONSTANT = auto()
+    LINEAR = auto()
 
 
 # ==============================
@@ -224,8 +224,8 @@ class LrSchedulerType(StrEnum):
 class EmbeddingsDataPrepSamplingMode(StrEnum):
     """The different modes for sampling in the embeddings data prep step."""
 
-    RANDOM = "random"
-    TAKE_FIRST = "take_first"
+    RANDOM = auto()
+    TAKE_FIRST = auto()
 
 
 # ==============================
@@ -237,8 +237,8 @@ class EmbeddingsDataPrepSamplingMode(StrEnum):
 class FinetuningMode(StrEnum):
     """The different modes for finetuning."""
 
-    STANDARD = "standard"
-    LORA = "lora"
+    STANDARD = auto()
+    LORA = auto()
 
 
 class ComputeMetricsMode(StrEnum):

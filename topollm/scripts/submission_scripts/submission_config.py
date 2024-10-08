@@ -85,6 +85,7 @@ class SubmissionConfig(BaseModel):
             "train_and_eval_on_multiwoz21_train-samples-small",
         ],
     )
+    finetuning_seed_list: list[str] | None = None
     lr_scheduler_type: str | None = Field(
         default="linear",
         examples=[
@@ -158,23 +159,11 @@ class SubmissionConfig(BaseModel):
         """Get the command to run the task."""
         match task:
             case Task.PIPELINE:
-                task_specific_command = self.generate_task_specific_command_pipeline()
+                task_specific_command: list[str] = self.generate_task_specific_command_pipeline()
             case Task.PERPLEXITY:
-                task_specific_command = self.generate_task_specific_command_perplexity()
+                task_specific_command: list[str] = self.generate_task_specific_command_perplexity()
             case Task.FINETUNING:
-                task_specific_command = [
-                    f"finetuning/base_model={','.join(self.base_model_list)}",
-                    f"finetuning.num_train_epochs={self.num_train_epochs}",
-                    f"finetuning.lr_scheduler_type={self.lr_scheduler_type}",
-                    f"finetuning.save_steps={self.save_steps}",
-                    f"finetuning.eval_steps={self.eval_steps}",
-                    f"finetuning.fp16={self.fp16}",
-                    f"finetuning.batch_sizes.train={self.batch_size_train}",
-                    f"finetuning.batch_sizes.eval={self.batch_size_eval}",
-                    f"finetuning/finetuning_datasets={','.join(self.finetuning_datasets_list)}",
-                    f"finetuning/peft={self.peft_list}",
-                    f"finetuning/gradient_modifier={self.gradient_modifier_list}",
-                ]
+                task_specific_command: list[str] = self.generate_task_specific_command_finetuning()
             case _:
                 msg = f"Unknown {task = }"
                 raise ValueError(msg)
@@ -203,10 +192,34 @@ class SubmissionConfig(BaseModel):
 
         return command
 
+    def generate_task_specific_command_finetuning(
+        self,
+    ) -> list[str]:
+        task_specific_command: list[str] = [
+            f"finetuning/base_model={','.join(self.base_model_list)}",
+            f"finetuning.num_train_epochs={self.num_train_epochs}",
+            f"finetuning.lr_scheduler_type={self.lr_scheduler_type}",
+            f"finetuning.save_steps={self.save_steps}",
+            f"finetuning.eval_steps={self.eval_steps}",
+            f"finetuning.fp16={self.fp16}",
+            f"finetuning.batch_sizes.train={self.batch_size_train}",
+            f"finetuning.batch_sizes.eval={self.batch_size_eval}",
+            f"finetuning/finetuning_datasets={','.join(self.finetuning_datasets_list)}",
+            f"finetuning/peft={self.peft_list}",
+            f"finetuning/gradient_modifier={self.gradient_modifier_list}",
+        ]
+
+        if self.finetuning_seed_list:
+            task_specific_command.append(
+                f"finetuning.seed={','.join(self.finetuning_seed_list)}",
+            )
+
+        return task_specific_command
+
     def generate_task_specific_command_perplexity(
         self,
     ) -> list[str]:
-        task_specific_command = [
+        task_specific_command: list[str] = [
             f"data={','.join(self.data_list)}",
             f"language_model={','.join(self.language_model_list)}",
             f"tokenizer.add_prefix_space={self.add_prefix_space}",
@@ -221,7 +234,7 @@ class SubmissionConfig(BaseModel):
     def generate_task_specific_command_pipeline(
         self,
     ) -> list[str]:
-        task_specific_command = [
+        task_specific_command: list[str] = [
             f"data={','.join(self.data_list)}",
             f"language_model={','.join(self.language_model_list)}",
             f"tokenizer.add_prefix_space={self.add_prefix_space}",

@@ -56,14 +56,16 @@ poetry install --with gpu,dev --without cpu
 poetry install --with cpu,dev --without gpu
 ```
 
+### Project-specific setup
+
 1. Set the correct environment variables used in the project config.
-Edit the script `scripts/setup_environment.sh` with the correct paths and run it once.
+Edit the script `topollm/scripts/setup_environment.sh` with the correct paths and run it once.
 
 ```bash
 ./topollm/scripts/setup_environment.sh
 ```
 
-1. Set the correct environment variables in the `.env` file in the project root directory.
+1. If required, e.g. when running jobs on the HHU Hilbert cluster, set the correct environment variables in the `.env` file in the project root directory.
 
 1. For setting up the repository to support job submissions to the HHU Hilbert HPC, follow the instructions here: [https://gitlab.cs.uni-duesseldorf.de/dsml/HydraHPCLauncher].
 Submission scripts are located in the `topollm/scripts/submission_scripts` directory.

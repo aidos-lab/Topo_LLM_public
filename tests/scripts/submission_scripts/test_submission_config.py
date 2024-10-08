@@ -5,6 +5,7 @@
 #
 # Authors:
 # Benjamin Ruppik (ruppik@hhu.de)
+# Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
 # First versions of this code were potentially generated
@@ -24,16 +25,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Protocol for managing the paths for the PEFT process."""
+"""Test the submission config."""
 
-import pathlib
-from typing import Protocol
-
-
-class PEFTPathManager(Protocol):
-    """Manages the paths for the PEFT process."""
-
-    @property
-    def peft_description_subdir(
-        self,
-    ) -> pathlib.Path: ...  # pragma: no cover
+# TODO(Ben): Implement the tests
