@@ -27,7 +27,7 @@
 
 """Enums used in the configuration classes."""
 
-from enum import Enum, IntEnum, StrEnum, auto, unique
+from enum import Enum, IntEnum, auto, unique
 
 try:
     # Try to import StrEnum from the standard library (Python 3.11 and later)

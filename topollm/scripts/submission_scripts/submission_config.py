@@ -42,7 +42,7 @@ class SubmissionConfig(BaseModel):
     queue: str | None = "DSML"
     template: str | None = "DSML"
     memory: str | None = "64"
-    submission_mode: SubmissionMode = SubmissionMode.HPC_SUBMISSION
+    submission_mode: SubmissionMode = SubmissionMode.HPC_SUBMISSION  # type: ignore - StrEnum typing problems
 
     # Common parameters
     add_prefix_space: bool = False
@@ -52,11 +52,15 @@ class SubmissionConfig(BaseModel):
             "multiwoz21_validation",
         ],
     )
+    # The additional data options are just used for extending the data command as they are
+    additional_data_options: list[str] | None = None
+
     language_model_list: list[str] = Field(
         default_factory=lambda: [
             "roberta-base",
         ],
     )
+    language_model_seed_list: list[str] | None = None
     checkpoint_no_list: list[str] | None = None
 
     layer_indices: str | None = "[-1]"
@@ -219,31 +223,43 @@ class SubmissionConfig(BaseModel):
     def generate_task_specific_command_perplexity(
         self,
     ) -> list[str]:
-        task_specific_command: list[str] = [
-            f"data={','.join(self.data_list)}",
-            f"language_model={','.join(self.language_model_list)}",
+        task_specific_command: list[str] = []
+
+        data_command: list[str] = self.generate_data_command()
+        task_specific_command.extend(
+            data_command,
+        )
+
+        task_specific_command.append(
             f"tokenizer.add_prefix_space={self.add_prefix_space}",
-        ]
-        if self.checkpoint_no_list:
-            task_specific_command.append(
-                f"language_model.checkpoint_no={','.join(self.checkpoint_no_list)}",
-            )
+        )
+
+        language_model_command: list[str] = self.generate_language_model_command()
+        task_specific_command.extend(
+            language_model_command,
+        )
 
         return task_specific_command
 
     def generate_task_specific_command_pipeline(
         self,
     ) -> list[str]:
-        task_specific_command: list[str] = [
-            f"data={','.join(self.data_list)}",
-            f"language_model={','.join(self.language_model_list)}",
-            f"tokenizer.add_prefix_space={self.add_prefix_space}",
-        ]
+        task_specific_command: list[str] = []
 
-        if self.checkpoint_no_list:
-            task_specific_command.append(
-                f"language_model.checkpoint_no={','.join(self.checkpoint_no_list)}",
-            )
+        data_command: list[str] = self.generate_data_command()
+        task_specific_command.extend(
+            data_command,
+        )
+
+        task_specific_command.append(
+            f"tokenizer.add_prefix_space={self.add_prefix_space}",
+        )
+
+        # Add the language model command
+        language_model_command: list[str] = self.generate_language_model_command()
+        task_specific_command.extend(
+            language_model_command,
+        )
 
         if self.layer_indices:
             task_specific_command.append(
@@ -261,3 +277,39 @@ class SubmissionConfig(BaseModel):
             )
 
         return task_specific_command
+
+    def generate_data_command(
+        self,
+    ) -> list[str]:
+        data_command: list[str] = []
+
+        data_command.append(
+            f"data={','.join(self.data_list)}",
+        )
+
+        # The additional data options are just used for extending the data command as they are
+        if self.additional_data_options:
+            data_command.extend(
+                self.additional_data_options,
+            )
+
+        return data_command
+
+    def generate_language_model_command(
+        self,
+    ) -> list[str]:
+        language_model_command: list[str] = []
+
+        language_model_command.append(
+            f"language_model={','.join(self.language_model_list)}",
+        )
+        if self.checkpoint_no_list:
+            language_model_command.append(
+                f"language_model.checkpoint_no={','.join(self.checkpoint_no_list)}",
+            )
+        if self.language_model_seed_list:
+            language_model_command.append(
+                f"language_model.seed={','.join(self.language_model_seed_list)}",
+            )
+
+        return language_model_command

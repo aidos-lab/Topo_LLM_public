@@ -52,11 +52,15 @@ def do_fill_mask(
         device=device,
     )
 
-    logger.info(f"prompts:\n" f"{pprint.pformat(prompts)}")
+    logger.info(
+        msg=f"prompts:\n{pprint.pformat(prompts)}",  # noqa: G004 - low overhead
+    )
 
     result = fill_pipeline(
         prompts,
     )
-    logger.info(f"result:\n" f"{pprint.pformat(result)}")
+    logger.info(
+        f"result:\n{pprint.pformat(result)}",  # noqa: G004 - low overhead
+    )
 
-    return result  # type: ignore
+    return result  # type: ignore - problem with matching return type of pipeline

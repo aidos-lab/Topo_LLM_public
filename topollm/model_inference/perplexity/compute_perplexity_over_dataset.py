@@ -50,7 +50,7 @@ def pseudoperplexity_per_token_of_sentence(
     tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast,
     tokenizer_config: TokenizerConfig,
     model: PreTrainedModel,
-    mlm_pseudoperplexity_granularity: MLMPseudoperplexityGranularity = MLMPseudoperplexityGranularity.SENTENCE,
+    mlm_pseudoperplexity_granularity: MLMPseudoperplexityGranularity = MLMPseudoperplexityGranularity.SENTENCE,  # type: ignore - Problems with StrEnum
     device: torch.device = default_device,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
@@ -95,42 +95,42 @@ def pseudoperplexity_per_token_of_sentence(
         tensor_input.size(-1) - 2,
         1,
     )
-    # repeat_input =
-    # tensor([[    0, 32826,    16,    11,  1470,     4,     2],
-    #         [    0, 32826,    16,    11,  1470,     4,     2],
-    #         [    0, 32826,    16,    11,  1470,     4,     2],
-    #         [    0, 32826,    16,    11,  1470,     4,     2],
-    #         [    0, 32826,    16,    11,  1470,     4,     2]])
+    # > repeat_input =
+    # > tensor([[    0, 32826,    16,    11,  1470,     4,     2],
+    # >         [    0, 32826,    16,    11,  1470,     4,     2],
+    # >         [    0, 32826,    16,    11,  1470,     4,     2],
+    # >         [    0, 32826,    16,    11,  1470,     4,     2],
+    # >         [    0, 32826,    16,    11,  1470,     4,     2]])
 
     diagonal_mask = torch.ones(tensor_input.size(-1) - 1).diag(1)[:-2]
-    # diagonal_mask =
-    # tensor([[0., 1., 0., 0., 0., 0., 0.],
-    #         [0., 0., 1., 0., 0., 0., 0.],
-    #         [0., 0., 0., 1., 0., 0., 0.],
-    #         [0., 0., 0., 0., 1., 0., 0.],
-    #         [0., 0., 0., 0., 0., 1., 0.]])
+    # > diagonal_mask =
+    # > tensor([[0., 1., 0., 0., 0., 0., 0.],
+    # >         [0., 0., 1., 0., 0., 0., 0.],
+    # >         [0., 0., 0., 1., 0., 0., 0.],
+    # >         [0., 0., 0., 0., 1., 0., 0.],
+    # >         [0., 0., 0., 0., 0., 1., 0.]])
 
     masked_input = repeat_input.masked_fill(
         mask=(diagonal_mask == 1),
         value=mask_token_id,
     )
-    # masked_input =
-    # tensor([[    0, 50264,    16,    11,  1470,     4,     2],
-    #         [    0, 32826, 50264,    11,  1470,     4,     2],
-    #         [    0, 32826,    16, 50264,  1470,     4,     2],
-    #         [    0, 32826,    16,    11, 50264,     4,     2],
-    #         [    0, 32826,    16,    11,  1470, 50264,     2]])
+    # > masked_input =
+    # > tensor([[    0, 50264,    16,    11,  1470,     4,     2],
+    # >         [    0, 32826, 50264,    11,  1470,     4,     2],
+    # >         [    0, 32826,    16, 50264,  1470,     4,     2],
+    # >         [    0, 32826,    16,    11, 50264,     4,     2],
+    # >         [    0, 32826,    16,    11,  1470, 50264,     2]])
 
     labels = repeat_input.masked_fill(
         mask=(masked_input != mask_token_id),
         value=-100,
     )
-    # labels =
-    # tensor([[ -100, 32826,  -100,  -100,  -100,  -100,  -100],
-    #         [ -100,  -100,    16,  -100,  -100,  -100,  -100],
-    #         [ -100,  -100,  -100,    11,  -100,  -100,  -100],
-    #         [ -100,  -100,  -100,  -100,  1470,  -100,  -100],
-    #         [ -100,  -100,  -100,  -100,  -100,     4,  -100]])
+    # > labels =
+    # > tensor([[ -100, 32826,  -100,  -100,  -100,  -100,  -100],
+    # >         [ -100,  -100,    16,  -100,  -100,  -100,  -100],
+    # >         [ -100,  -100,  -100,    11,  -100,  -100,  -100],
+    # >         [ -100,  -100,  -100,  -100,  1470,  -100,  -100],
+    # >         [ -100,  -100,  -100,  -100,  -100,     4,  -100]])
 
     # Move inputs and labels to the correct device.
     masked_input = masked_input.to(device)
@@ -231,7 +231,7 @@ def compute_perplexity_over_dataset(
             tokenizer=loaded_model_container.tokenizer,
             tokenizer_config=loaded_model_container.tokenizer_config,
             model=loaded_model_container.model,
-            mlm_pseudoperplexity_granularity=MLMPseudoperplexityGranularity.TOKEN,
+            mlm_pseudoperplexity_granularity=MLMPseudoperplexityGranularity.TOKEN,  # type: ignore - Problems with StrEnum
             device=loaded_model_container.device,
             verbosity=verbosity,
             logger=logger,
