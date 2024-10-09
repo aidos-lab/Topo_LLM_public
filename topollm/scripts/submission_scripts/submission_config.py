@@ -42,7 +42,7 @@ class SubmissionConfig(BaseModel):
     queue: str | None = "DSML"
     template: str | None = "DSML"
     memory: str | None = "64"
-    submission_mode: SubmissionMode = SubmissionMode.HPC_SUBMISSION
+    submission_mode: SubmissionMode = SubmissionMode.HPC_SUBMISSION  # type: ignore - StrEnum typing problems
 
     # Common parameters
     add_prefix_space: bool = False
@@ -221,9 +221,11 @@ class SubmissionConfig(BaseModel):
     ) -> list[str]:
         task_specific_command: list[str] = [
             f"data={','.join(self.data_list)}",
-            f"language_model={','.join(self.language_model_list)}",
             f"tokenizer.add_prefix_space={self.add_prefix_space}",
         ]
+        task_specific_command.append(
+            f"language_model={','.join(self.language_model_list)}",
+        )
         if self.checkpoint_no_list:
             task_specific_command.append(
                 f"language_model.checkpoint_no={','.join(self.checkpoint_no_list)}",
@@ -236,10 +238,12 @@ class SubmissionConfig(BaseModel):
     ) -> list[str]:
         task_specific_command: list[str] = [
             f"data={','.join(self.data_list)}",
-            f"language_model={','.join(self.language_model_list)}",
             f"tokenizer.add_prefix_space={self.add_prefix_space}",
         ]
 
+        task_specific_command.append(
+            f"language_model={','.join(self.language_model_list)}",
+        )
         if self.checkpoint_no_list:
             task_specific_command.append(
                 f"language_model.checkpoint_no={','.join(self.checkpoint_no_list)}",

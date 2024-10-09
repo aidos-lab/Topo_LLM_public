@@ -69,8 +69,8 @@ def run_task(
             msg = f"Unknown {task = }"
             raise ValueError(msg)
 
-    command = submissions_config.get_command(
-        task=task,
+    command: list[str] = submissions_config.get_command(
+        task=task,  # type: ignore - StrEnum typing problems
     )
     print(  # noqa: T201 - We want this submission script to print the command
         "Running command:\n",
@@ -82,7 +82,7 @@ def run_task(
             "@@@@ Dry run, not actually running the command. @@@@",
         )
     else:
-        subprocess.run(  # noqa: S603 - We trust the command
+        subprocess.run(
             args=command,
             check=True,
         )
@@ -214,6 +214,11 @@ def parse_arguments() -> argparse.Namespace:
     )
 
     parser.add_argument(
+        "--create_pos_tags",
+        action="store_true",
+    )
+
+    parser.add_argument(
         "--dry_run",
         action="store_true",
         help="Dry run the command.",
@@ -223,63 +228,64 @@ def parse_arguments() -> argparse.Namespace:
     return args
 
 
+full_data_list: list[str] = [
+    "iclr_2024_submissions_test",
+    "iclr_2024_submissions_train",
+    "iclr_2024_submissions_validation",
+    "multiwoz21_test",
+    "multiwoz21_train",
+    "multiwoz21_validation",
+    "one-year-of-tsla-on-reddit_test",
+    "one-year-of-tsla-on-reddit_train",
+    "one-year-of-tsla-on-reddit_validation",
+    "sgd_test",
+    "sgd_train",
+    "sgd_validation",
+    "wikitext_test",
+    "wikitext_train",
+    "wikitext_validation",
+]
+only_train_data_list: list[str] = [data_name for data_name in full_data_list if "_train" in data_name]
+
+only_roberta_base_language_model_list: list[str] = [
+    "roberta-base",
+]
+selected_finetuned_few_epochs_from_roberta_base_language_model_list = [
+    "model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
+    "model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
+]
+selected_finetuned_many_epochs_from_roberta_base_language_model_list = [
+    "model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50",
+    "model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50",
+]
+full_finetuned_few_epochs_from_roberta_base_language_model_list = [
+    "model-roberta-base_task-masked_lm_iclr_2024_submissions-train-5000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
+    "model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
+    "model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
+    "model-roberta-base_task-masked_lm_wikitext-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
+]
+
+setsumbt_model_list = [
+    "model-roberta-base_task-setsumbt_multiwoz21",
+]
+
+
 def make_config_and_run_task(
     args: argparse.Namespace,
 ) -> None:
     """Make a submission configuration and run the task."""
-    full_data_list: list[str] = [
-        "iclr_2024_submissions_test",
-        "iclr_2024_submissions_train",
-        "iclr_2024_submissions_validation",
-        "multiwoz21_test",
-        "multiwoz21_train",
-        "multiwoz21_validation",
-        "one-year-of-tsla-on-reddit_test",
-        "one-year-of-tsla-on-reddit_train",
-        "one-year-of-tsla-on-reddit_validation",
-        "sgd_test",
-        "sgd_train",
-        "sgd_validation",
-        "wikitext_test",
-        "wikitext_train",
-        "wikitext_validation",
-    ]
-    only_train_data_list: list[str] = [data_name for data_name in full_data_list if "_train" in data_name]
-
-    only_roberta_base_language_model_list: list[str] = [
-        "roberta-base",
-    ]
-    selected_finetuned_few_epochs_from_roberta_base_language_model_list = [
-        "model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
-        "model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
-    ]
-    selected_finetuned_many_epochs_from_roberta_base_language_model_list = [
-        "model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50",
-        "model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50",
-    ]
-    full_finetuned_few_epochs_from_roberta_base_language_model_list = [
-        "model-roberta-base_task-masked_lm_iclr_2024_submissions-train-5000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
-        "model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
-        "model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
-        "model-roberta-base_task-masked_lm_wikitext-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
-    ]
-
-    setsumbt_model_list = [
-        "model-roberta-base_task-setsumbt_multiwoz21",
-    ]
-
     match args.data_list:
         case DataListOption.FULL:
             data_list = full_data_list
         case DataListOption.TRAIN_ONLY:
             data_list = only_train_data_list
         case DataListOption.DEBUG:
-            data_list = [
+            data_list: list[str] = [
                 "multiwoz21_test",
                 "sgd_test",
             ]
         case DataListOption.MANUAL_IN_PYTHON_SCRIPT:
-            data_list = [
+            data_list: list[str] = [
                 "iclr_2024_submissions_test",
                 "multiwoz21_test",
                 "one-year-of-tsla-on-reddit_test",
@@ -287,7 +293,7 @@ def make_config_and_run_task(
                 "wikitext_test",
             ]
         case DataListOption.MULTIWOZ21_AND_REDDIT:
-            data_list = [
+            data_list: list[str] = [
                 "multiwoz21_test",
                 "multiwoz21_train",
                 "multiwoz21_validation",
@@ -296,7 +302,7 @@ def make_config_and_run_task(
                 "one-year-of-tsla-on-reddit_validation",
             ]
         case DataListOption.MULTIWOZ21_ONLY:
-            data_list = [
+            data_list: list[str] = [
                 "multiwoz21_test",
                 "multiwoz21_train",
                 "multiwoz21_validation",
@@ -411,7 +417,25 @@ def make_config_and_run_task(
             msg = f"Unknown {args.finetuning_seed_list = }"
             raise ValueError(msg)
 
+    # # # #
+    # Handle the potential creation of POS tags
+    add_prefix_space = False  # Default is False
+
+    if args.create_pos_tags:
+        print(  # noqa: T201 - We want this script to print this output
+            "create_pos_tags is set to True.",
+        )
+
+        add_prefix_space = True
+        print(  # noqa: T201 - We want this script to print this output
+            f"Setting {add_prefix_space = }, which is required for our POS tagging to work, "
+            f"since the tokenizer will be presented with input pre-split into words.",
+        )
+
+        # TODO: Add here
+
     submissions_config = SubmissionConfig(
+        add_prefix_space=add_prefix_space,
         submission_mode=args.submission_mode,
         queue=args.queue,
         template=args.template,
