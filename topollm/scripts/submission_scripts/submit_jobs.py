@@ -30,9 +30,17 @@
 import argparse
 import pathlib
 import subprocess
-from enum import StrEnum, auto
 
+from topollm.scripts.submission_scripts.get_checkpoint_no_list import get_checkpoint_no_list
 from topollm.scripts.submission_scripts.submission_config import SubmissionConfig
+from topollm.scripts.submission_scripts.types import (
+    CheckpointNoListOption,
+    DataListOption,
+    FinetuningDatasetsListOption,
+    FinetuningRegimeOption,
+    LanguageModelListOption,
+    SeedListOption,
+)
 from topollm.typing.enums import SubmissionMode, Task
 
 
@@ -88,56 +96,6 @@ def run_task(
         )
 
 
-class DataListOption(StrEnum):
-    """Options for the data list."""
-
-    DEBUG = auto()
-    FULL = auto()
-    MANUAL_IN_PYTHON_SCRIPT = auto()
-    TRAIN_ONLY = auto()
-    MULTIWOZ21_AND_REDDIT = auto()
-    MULTIWOZ21_ONLY = auto()
-
-
-class FinetuningDatasetsListOption(StrEnum):
-    """Options for the finetuning dataset list."""
-
-    DEBUG = auto()
-    MANUAL_IN_PYTHON_SCRIPT = auto()
-
-
-class FinetuningSeedListOption(StrEnum):
-    """Options for the finetuning seed list."""
-
-    DO_NOT_SET = auto()
-    TWO_SEEDS = auto()
-    FIVE_SEEDS = auto()
-
-
-class LanguageModelListOption(StrEnum):
-    """Options for the language model list."""
-
-    ONLY_ROBERTA_BASE = auto()
-    SELECTED_FINETUNED_FEW_EPOCHS_FROM_ROBERTA_BASE = auto()
-    SELECTED_FINETUNED_MANY_EPOCHS_FROM_ROBERTA_BASE = auto()
-    FULL_FINETUNED_FEW_EPOCHS_FROM_ROBERTA_BASE = auto()
-    SETSUMBT_SELECTED = auto()
-
-
-class CheckpointNoListOption(StrEnum):
-    """Options for the checkpoint number list."""
-
-    SELECTED = auto()
-    FULL = auto()
-
-
-class FinetuningRegimeOption(StrEnum):
-    """Options for the finetuning regime."""
-
-    FEW_EPOCHS = auto()
-    MANY_EPOCHS_WITH_OVERFITTING_RISK = auto()
-
-
 def parse_arguments() -> argparse.Namespace:
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(
@@ -189,6 +147,12 @@ def parse_arguments() -> argparse.Namespace:
         help="Language model list to use.",
     )
     parser.add_argument(
+        "--language_model_seed_list",
+        type=SeedListOption,
+        default=SeedListOption.DO_NOT_SET,
+        help="Language model seed list to use.",
+    )
+    parser.add_argument(
         "--finetuning_datasets_list",
         type=FinetuningDatasetsListOption,
         default=FinetuningDatasetsListOption.DEBUG,
@@ -196,8 +160,8 @@ def parse_arguments() -> argparse.Namespace:
     )
     parser.add_argument(
         "--finetuning_seed_list",
-        type=FinetuningSeedListOption,
-        default=FinetuningSeedListOption.DO_NOT_SET,
+        type=SeedListOption,
+        default=SeedListOption.DO_NOT_SET,
         help="Finetuning seed list to use.",
     )
     parser.add_argument(
@@ -211,6 +175,11 @@ def parse_arguments() -> argparse.Namespace:
         type=FinetuningRegimeOption,
         default=FinetuningRegimeOption.FEW_EPOCHS,
         help="Finetuning regime to use.",
+    )
+    parser.add_argument(
+        "--add_prefix_space",
+        action="store_true",
+        help="Set the add_prefix_space option.",
     )
 
     parser.add_argument(
@@ -267,6 +236,18 @@ full_finetuned_few_epochs_from_roberta_base_language_model_list = [
 
 setsumbt_model_list = [
     "model-roberta-base_task-setsumbt_multiwoz21",
+]
+
+seed_list_option_two_seeds: list[str] = [
+    "1234",
+    "1235",
+]
+seed_list_option_five_seeds: list[str] = [
+    "1234",
+    "1235",
+    "1236",
+    "1237",
+    "1238",
 ]
 
 
@@ -383,13 +364,24 @@ def make_config_and_run_task(
             msg = f"Unknown {args.language_model_list = }"
             raise ValueError(msg)
 
+    match args.language_model_seed_list:
+        case SeedListOption.DO_NOT_SET:
+            language_model_seed_list = None
+        case SeedListOption.TWO_SEEDS:
+            language_model_seed_list = seed_list_option_two_seeds
+        case SeedListOption.FIVE_SEEDS:
+            language_model_seed_list = seed_list_option_five_seeds
+        case _:
+            msg: str = f"Unknown {args.language_model_seed_list = }"
+            raise ValueError(msg)
+
     match args.finetuning_datasets_list:
         case FinetuningDatasetsListOption.DEBUG:
-            finetuning_datasets_list = [
+            finetuning_datasets_list: list[str] = [
                 "train_and_eval_on_multiwoz21_train-samples-small",
             ]
         case FinetuningDatasetsListOption.MANUAL_IN_PYTHON_SCRIPT:
-            finetuning_datasets_list = [
+            finetuning_datasets_list: list[str] = [
                 "train_and_eval_on_multiwoz21_train-samples-small",
                 "train_and_eval_on_one-year-of-tsla-on-reddit_train-samples-small",
             ]
@@ -398,28 +390,23 @@ def make_config_and_run_task(
             raise ValueError(msg)
 
     match args.finetuning_seed_list:
-        case FinetuningSeedListOption.DO_NOT_SET:
+        case SeedListOption.DO_NOT_SET:
             finetuning_seed_list = None
-        case FinetuningSeedListOption.TWO_SEEDS:
-            finetuning_seed_list = [
-                "1234",
-                "1235",
-            ]
-        case FinetuningSeedListOption.FIVE_SEEDS:
-            finetuning_seed_list = [
-                "1234",
-                "1235",
-                "1236",
-                "1237",
-                "1238",
-            ]
+        case SeedListOption.TWO_SEEDS:
+            finetuning_seed_list = seed_list_option_two_seeds
+        case SeedListOption.FIVE_SEEDS:
+            finetuning_seed_list = seed_list_option_five_seeds
         case _:
-            msg = f"Unknown {args.finetuning_seed_list = }"
+            msg: str = f"Unknown {args.finetuning_seed_list = }"
             raise ValueError(msg)
 
     # # # #
     # Handle the potential creation of POS tags
     add_prefix_space = False  # Default is False
+
+    if args.add_prefix_space:
+        # Manually set the add_prefix_space option
+        add_prefix_space = True
 
     if args.create_pos_tags:
         print(  # noqa: T201 - We want this script to print this output
@@ -442,6 +429,7 @@ def make_config_and_run_task(
         additional_overrides=args.additional_overrides,
         data_list=data_list,
         language_model_list=language_model_list,
+        language_model_seed_list=language_model_seed_list,
         checkpoint_no_list=checkpoint_no_list,
         finetuning_datasets_list=finetuning_datasets_list,
         finetuning_seed_list=finetuning_seed_list,
@@ -454,145 +442,6 @@ def make_config_and_run_task(
         task=args.task,
         dry_run=args.dry_run,
     )
-
-
-def get_checkpoint_no_list(
-    checkpoint_no_list_option: CheckpointNoListOption,
-    num_train_epochs: int = 5,
-) -> list[str]:
-    """Get the list of checkpoint numbers to use."""
-    # TODO: Make this more flexible (work for other numbers of epochs)
-    match checkpoint_no_list_option:
-        case CheckpointNoListOption.SELECTED:
-            if num_train_epochs == 5:
-                checkpoint_no_list = [
-                    "400",
-                    "1200",
-                    "2000",
-                    "2800",
-                ]
-            elif num_train_epochs == 50:
-                checkpoint_no_list = [
-                    "400",
-                    "3200",
-                    "6000",
-                    "8800",
-                    "11600",
-                    "14400",
-                    "17200",
-                    "20000",
-                    "22800",
-                    "25600",
-                    "28400",
-                    "31200",
-                ]
-            else:
-                msg = f"Unknown {num_train_epochs = }"
-                raise ValueError(msg)
-        case CheckpointNoListOption.FULL:
-            if num_train_epochs == 5:
-                # All checkpoints from 400 to 2800
-                # (for ep-5 and batch size 8)
-                checkpoint_no_list = [
-                    "400",
-                    "800",
-                    "1200",
-                    "1600",
-                    "2000",
-                    "2400",
-                    "2800",
-                ]
-            elif num_train_epochs == 50:
-                # All checkpoints from 400 to 31200
-                # (for ep-50 and batch size 8)
-                checkpoint_no_list = [
-                    "400",
-                    "800",
-                    "1200",
-                    "1600",
-                    "2000",
-                    "2400",
-                    "2800",
-                    "3200",
-                    "3600",
-                    "4000",
-                    "4400",
-                    "4800",
-                    "5200",
-                    "5600",
-                    "6000",
-                    "6400",
-                    "6800",
-                    "7200",
-                    "7600",
-                    "8000",
-                    "8400",
-                    "8800",
-                    "9200",
-                    "9600",
-                    "10000",
-                    "10400",
-                    "10800",
-                    "11200",
-                    "11600",
-                    "12000",
-                    "12400",
-                    "12800",
-                    "13200",
-                    "13600",
-                    "14000",
-                    "14400",
-                    "14800",
-                    "15200",
-                    "15600",
-                    "16000",
-                    "16400",
-                    "16800",
-                    "17200",
-                    "17600",
-                    "18000",
-                    "18400",
-                    "18800",
-                    "19200",
-                    "19600",
-                    "20000",
-                    "20400",
-                    "20800",
-                    "21200",
-                    "21600",
-                    "22000",
-                    "22400",
-                    "22800",
-                    "23200",
-                    "23600",
-                    "24000",
-                    "24400",
-                    "24800",
-                    "25200",
-                    "25600",
-                    "26000",
-                    "26400",
-                    "26800",
-                    "27200",
-                    "27600",
-                    "28000",
-                    "28400",
-                    "28800",
-                    "29200",
-                    "29600",
-                    "30000",
-                    "30400",
-                    "30800",
-                    "31200",
-                ]
-            else:
-                msg = f"Unknown {num_train_epochs = }"
-                raise ValueError(msg)
-        case _:
-            msg = f"Unknown {checkpoint_no_list_option = }"
-            raise ValueError(msg)
-
-    return checkpoint_no_list
 
 
 def main() -> None:
