@@ -161,6 +161,22 @@ def get_checkpoint_no_list(
             else:
                 msg = f"Unknown {num_train_epochs = }"
                 raise ValueError(msg)
+        case CheckpointNoListOption.ONLY_BEGINNING_AND_MIDDLE_AND_END:
+            if num_train_epochs == 5:
+                checkpoint_no_list = [
+                    "400",
+                    "1200",
+                    "2800",
+                ]
+            elif num_train_epochs == 50:
+                checkpoint_no_list = [
+                    "400",
+                    "14400",
+                    "31200",
+                ]
+            else:
+                msg = f"Unknown {num_train_epochs = }"
+                raise ValueError(msg)
         case _:
             msg = f"Unknown {checkpoint_no_list_option = }"
             raise ValueError(msg)

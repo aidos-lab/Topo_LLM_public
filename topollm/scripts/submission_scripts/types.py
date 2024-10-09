@@ -31,8 +31,9 @@ from enum import StrEnum, auto
 class CheckpointNoListOption(StrEnum):
     """Options for the checkpoint number list."""
 
-    SELECTED = auto()
     FULL = auto()
+    ONLY_BEGINNING_AND_MIDDLE_AND_END = auto()
+    SELECTED = auto()
 
 
 class DataListOption(StrEnum):
@@ -44,6 +45,13 @@ class DataListOption(StrEnum):
     TRAIN_ONLY = auto()
     MULTIWOZ21_AND_REDDIT = auto()
     MULTIWOZ21_ONLY = auto()
+
+
+class FinetuningDatasetsListOption(StrEnum):
+    """Options for the finetuning dataset list."""
+
+    DEBUG = auto()
+    MANUAL_IN_PYTHON_SCRIPT = auto()
 
 
 class FinetuningRegimeOption(StrEnum):
@@ -69,10 +77,3 @@ class SeedListOption(StrEnum):
     DO_NOT_SET = auto()
     TWO_SEEDS = auto()
     FIVE_SEEDS = auto()
-
-
-class FinetuningDatasetsListOption(StrEnum):
-    """Options for the finetuning dataset list."""
-
-    DEBUG = auto()
-    MANUAL_IN_PYTHON_SCRIPT = auto()

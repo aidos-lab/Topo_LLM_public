@@ -403,6 +403,7 @@ def make_config_and_run_task(
     # # # #
     # Handle the potential creation of POS tags
     add_prefix_space = False  # Default is False
+    additional_data_options = None  # Default is no additional data options
 
     if args.add_prefix_space:
         # Manually set the add_prefix_space option
@@ -419,7 +420,9 @@ def make_config_and_run_task(
             f"since the tokenizer will be presented with input pre-split into words.",
         )
 
-        # TODO: Add here option for creating the POS tags
+        additional_data_options = [
+            "+data.dataset_type=huggingface_dataset_named_entity",
+        ]
 
     submissions_config = SubmissionConfig(
         add_prefix_space=add_prefix_space,
@@ -428,6 +431,7 @@ def make_config_and_run_task(
         template=args.template,
         additional_overrides=args.additional_overrides,
         data_list=data_list,
+        additional_data_options=additional_data_options,
         language_model_list=language_model_list,
         language_model_seed_list=language_model_seed_list,
         checkpoint_no_list=checkpoint_no_list,
