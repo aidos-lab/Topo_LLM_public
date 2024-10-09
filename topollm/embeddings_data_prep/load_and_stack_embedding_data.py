@@ -128,12 +128,28 @@ def load_and_stack_embedding_data(
 
     # TODO: The "metadata" key in the batch saved in a metadata_chunk is currently lost. We need to add it to the full_df here if we want to use it in the downstream pipeline.
 
+    full_data_dict = {
+        data_processing_column_names.embedding_vectors: list(array_np),
+        data_processing_column_names.token_id: list(stacked_input_ids),
+        data_processing_column_names.sentence_idx: [int(x) for x in sentence_idx],
+    }
+
+    # # # #
+    # Manually concatenate the elements in the POS metadata (if it exist)
+    if "POS" in loaded_metadata[0]["metadata"]:
+        # POS collection is a
+        # list of batches, where each batch is a list of sentences, where each sentence is a list of POS tags
+        pos_collection: list[list[list]] = [metadata_chunk["metadata"]["POS"] for metadata_chunk in loaded_metadata]
+
+        concatenated_pos_batches: list = [pos_batch for pos_batches in pos_collection for pos_batch in pos_batches]
+
+        # Concatenate the list of POS tags
+        concatenated_pos_tags: list = [pos_tag for pos_tags in concatenated_pos_batches for pos_tag in pos_tags]
+
+        full_data_dict["POS"] = concatenated_pos_tags
+
     full_df = pd.DataFrame(
-        {
-            data_processing_column_names.embedding_vectors: list(array_np),
-            data_processing_column_names.token_id: list(stacked_input_ids),
-            data_processing_column_names.sentence_idx: [int(x) for x in sentence_idx],
-        },
+        data=full_data_dict,
     )
 
     return full_df

@@ -95,7 +95,7 @@ def convert_dataset_entry_to_features_named_entity(
 
     dataset_tokenized = features.input_ids
 
-    pos_tag = [nltk.pos_tag(sent) for sent in split_words]
+    pos_tag = [nltk.pos_tag(tokens=sent) for sent in split_words]
 
     all_word_tags_one_sentence_tokens = []
 
