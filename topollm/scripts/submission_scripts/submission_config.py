@@ -223,13 +223,11 @@ class SubmissionConfig(BaseModel):
             f"data={','.join(self.data_list)}",
             f"tokenizer.add_prefix_space={self.add_prefix_space}",
         ]
-        task_specific_command.append(
-            f"language_model={','.join(self.language_model_list)}",
+
+        language_model_command: list[str] = self.generate_language_model_command()
+        task_specific_command.extend(
+            language_model_command,
         )
-        if self.checkpoint_no_list:
-            task_specific_command.append(
-                f"language_model.checkpoint_no={','.join(self.checkpoint_no_list)}",
-            )
 
         return task_specific_command
 
@@ -241,13 +239,11 @@ class SubmissionConfig(BaseModel):
             f"tokenizer.add_prefix_space={self.add_prefix_space}",
         ]
 
-        task_specific_command.append(
-            f"language_model={','.join(self.language_model_list)}",
+        # Add the language model command
+        language_model_command: list[str] = self.generate_language_model_command()
+        task_specific_command.extend(
+            language_model_command,
         )
-        if self.checkpoint_no_list:
-            task_specific_command.append(
-                f"language_model.checkpoint_no={','.join(self.checkpoint_no_list)}",
-            )
 
         if self.layer_indices:
             task_specific_command.append(
@@ -265,3 +261,18 @@ class SubmissionConfig(BaseModel):
             )
 
         return task_specific_command
+
+    def generate_language_model_command(
+        self,
+    ) -> list[str]:
+        language_model_command: list[str] = []
+
+        language_model_command.append(
+            f"language_model={','.join(self.language_model_list)}",
+        )
+        if self.checkpoint_no_list:
+            language_model_command.append(
+                f"language_model.checkpoint_no={','.join(self.checkpoint_no_list)}",
+            )
+
+        return language_model_command

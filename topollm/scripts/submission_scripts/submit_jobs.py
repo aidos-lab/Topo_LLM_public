@@ -432,7 +432,7 @@ def make_config_and_run_task(
             f"since the tokenizer will be presented with input pre-split into words.",
         )
 
-        # TODO: Add here
+        # TODO: Add here option for creating the POS tags
 
     submissions_config = SubmissionConfig(
         add_prefix_space=add_prefix_space,
