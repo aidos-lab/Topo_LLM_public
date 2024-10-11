@@ -77,3 +77,11 @@ class SeedListOption(StrEnum):
     DO_NOT_SET = auto()
     TWO_SEEDS = auto()
     FIVE_SEEDS = auto()
+
+
+class LocalEstimatesFilteringNumSamplesListOption(StrEnum):
+    """Options for the number of samples for local estimates filtering."""
+
+    DEFAULT = auto()
+    FEW_SMALL_NUM_SAMPLES = auto()
+    MANY_SMALL_NUM_SAMPLES = auto()

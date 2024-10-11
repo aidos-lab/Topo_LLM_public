@@ -322,6 +322,7 @@ class SubmissionMode(StrEnum):
 class Task(StrEnum):
     """Enumeration of tasks."""
 
+    LOCAL_ESTIMATES_COMPUTATION = auto()
     PIPELINE = auto()
     PERPLEXITY = auto()
     FINETUNING = auto()

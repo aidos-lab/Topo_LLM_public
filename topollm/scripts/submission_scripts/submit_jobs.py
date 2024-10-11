@@ -39,6 +39,7 @@ from topollm.scripts.submission_scripts.types import (
     FinetuningDatasetsListOption,
     FinetuningRegimeOption,
     LanguageModelListOption,
+    LocalEstimatesFilteringNumSamplesListOption,
     SeedListOption,
 )
 from topollm.typing.enums import SubmissionMode, Task
@@ -52,6 +53,13 @@ def run_task(
 ) -> None:
     """Run a task with the given configuration."""
     match task:
+        case Task.LOCAL_ESTIMATES_COMPUTATION:
+            submissions_config.python_script_name = "run_twonn.py"
+            submissions_config.relative_python_script_folder = pathlib.Path(
+                "topollm",
+                "analysis",
+                "twonn",
+            )
         case Task.PIPELINE:
             submissions_config.python_script_name = (
                 "run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py"
@@ -123,7 +131,7 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument(
         "--template",
         type=str,
-        default="DSML",
+        default=None,
         help="Template name for HPC submission.",
     )
     parser.add_argument(
@@ -131,6 +139,24 @@ def parse_arguments() -> argparse.Namespace:
         type=str,
         default="",
         help="Additional overrides for Hydra.",
+    )
+    parser.add_argument(
+        "--memory",
+        type=str,
+        default=None,
+        help="Memory to use.",
+    )
+    parser.add_argument(
+        "--ncpus",
+        type=str,
+        default=None,
+        help="Number of CPUs.",
+    )
+    parser.add_argument(
+        "--ngpus",
+        type=str,
+        default=None,
+        help="Number of GPUs.",
     )
 
     # Selecting groups of data and language models
@@ -185,6 +211,14 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument(
         "--create_pos_tags",
         action="store_true",
+        help="Whether to create POS tags in the dataset.",
+    )
+
+    parser.add_argument(
+        "--local_estimates_filtering_num_samples_list",
+        type=LocalEstimatesFilteringNumSamplesListOption,
+        default=LocalEstimatesFilteringNumSamplesListOption.DEFAULT,
+        help="Local estimates filtering number of samples list to use.",
     )
 
     parser.add_argument(
@@ -400,6 +434,35 @@ def make_config_and_run_task(
             msg: str = f"Unknown {args.finetuning_seed_list = }"
             raise ValueError(msg)
 
+    match args.local_estimates_filtering_num_samples_list:
+        case LocalEstimatesFilteringNumSamplesListOption.DEFAULT:
+            local_estimates_filtering_num_samples_list = None
+        case LocalEstimatesFilteringNumSamplesListOption.FEW_SMALL_NUM_SAMPLES:
+            local_estimates_filtering_num_samples_list = [
+                "2500",
+                "5000",
+                "7500",
+                "10000",
+            ]
+        case LocalEstimatesFilteringNumSamplesListOption.MANY_SMALL_NUM_SAMPLES:
+            local_estimates_filtering_num_samples_list = [
+                "2500",
+                "5000",
+                "7500",
+                "10000",
+                "12500",
+                "15000",
+                "17500",
+                "20000",
+                "22500",
+                "25000",
+                "27500",
+                "30000",
+            ]
+        case _:
+            msg: str = f"Unknown {args.local_estimates_filtering_num_samples_list = }"
+            raise ValueError(msg)
+
     # # # #
     # Handle the potential creation of POS tags
     add_prefix_space = False  # Default is False
@@ -429,12 +492,16 @@ def make_config_and_run_task(
         submission_mode=args.submission_mode,
         queue=args.queue,
         template=args.template,
+        memory=args.memory,
+        ncpus=args.ncpus,
+        ngpus=args.ngpus,
         additional_overrides=args.additional_overrides,
         data_list=data_list,
         additional_data_options=additional_data_options,
         language_model_list=language_model_list,
         language_model_seed_list=language_model_seed_list,
         checkpoint_no_list=checkpoint_no_list,
+        local_estimates_filtering_num_samples_list=local_estimates_filtering_num_samples_list,
         finetuning_datasets_list=finetuning_datasets_list,
         finetuning_seed_list=finetuning_seed_list,
         num_train_epochs=num_train_epochs,
