@@ -39,11 +39,12 @@ class SubmissionConfig(BaseModel):
     """Configuration for submitting a certain job."""
 
     # Submission parameters
-    queue: str | None = "DSML"
+    queue: str | None = ""  # Empty string means the default queue
     template: str | None = "DSML"
     memory: str | None = "64"
     ncpus: str | None = "2"
     ngpus: str | None = "1"
+    walltime: str | None = "16:00:00"
     submission_mode: SubmissionMode = SubmissionMode.HPC_SUBMISSION  # type: ignore - StrEnum typing problems
 
     # Common parameters
@@ -208,6 +209,10 @@ class SubmissionConfig(BaseModel):
             if self.ngpus:
                 command.append(
                     f"hydra.launcher.ngpus={self.ngpus}",
+                )
+            if self.walltime:
+                command.append(
+                    f"hydra.launcher.walltime={self.walltime}",
                 )
         elif self.submission_mode == SubmissionMode.LOCAL:
             command.extend(

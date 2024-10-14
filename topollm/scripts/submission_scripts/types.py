@@ -83,5 +83,6 @@ class LocalEstimatesFilteringNumSamplesListOption(StrEnum):
     """Options for the number of samples for local estimates filtering."""
 
     DEFAULT = auto()
-    FEW_SMALL_NUM_SAMPLES = auto()
-    MANY_SMALL_NUM_SAMPLES = auto()
+    FEW_SMALL_STEPS_NUM_SAMPLES = auto()
+    MANY_SMALL_STEPS_NUM_SAMPLES = auto()
+    MANY_LARGE_STEPS_NUM_SAMPLES = auto()

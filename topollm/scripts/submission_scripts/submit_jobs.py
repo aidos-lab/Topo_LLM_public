@@ -125,7 +125,7 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument(
         "--queue",
         type=str,
-        default="DSML",
+        default="",
         help="Queue name for HPC submission.",
     )
     parser.add_argument(
@@ -437,14 +437,14 @@ def make_config_and_run_task(
     match args.local_estimates_filtering_num_samples_list:
         case LocalEstimatesFilteringNumSamplesListOption.DEFAULT:
             local_estimates_filtering_num_samples_list = None
-        case LocalEstimatesFilteringNumSamplesListOption.FEW_SMALL_NUM_SAMPLES:
+        case LocalEstimatesFilteringNumSamplesListOption.FEW_SMALL_STEPS_NUM_SAMPLES:
             local_estimates_filtering_num_samples_list = [
                 "2500",
                 "5000",
                 "7500",
                 "10000",
             ]
-        case LocalEstimatesFilteringNumSamplesListOption.MANY_SMALL_NUM_SAMPLES:
+        case LocalEstimatesFilteringNumSamplesListOption.MANY_SMALL_STEPS_NUM_SAMPLES:
             local_estimates_filtering_num_samples_list = [
                 "2500",
                 "5000",
@@ -457,6 +457,15 @@ def make_config_and_run_task(
                 "22500",
                 "25000",
                 "27500",
+                "30000",
+            ]
+        case LocalEstimatesFilteringNumSamplesListOption.MANY_LARGE_STEPS_NUM_SAMPLES:
+            local_estimates_filtering_num_samples_list = [
+                "5000",
+                "10000",
+                "15000",
+                "20000",
+                "25000",
                 "30000",
             ]
         case _:
