@@ -8,16 +8,29 @@ DO_LOCAL_ESTIMATES_COMPUTATION="false"
 # DO_PERPLEXITY="false"
 # DO_LOCAL_ESTIMATES_COMPUTATION="true"
 
-EMBEDDINGS_DATA_PREP_SAMPLING_MODE="random"
-# EMBEDDINGS_DATA_PREP_SAMPLING_MODE="take_first"
+# ================================================================== #
+# Debug setup
 
 # DATA_LIST="only_train"
 # LANGUAGE_MODEL_LIST="selected_finetuned_few_epochs_from_roberta_base"
 # CHECKPOINT_NO_LIST="selected"
 
+# DATA_LIST="debug"
+# LANGUAGE_MODEL_LIST="only_roberta_base"
+
+# ================================================================== #
+
+EMBEDDINGS_DATA_PREP_SAMPLING_MODE="random"
+# EMBEDDINGS_DATA_PREP_SAMPLING_MODE="take_first"
+
+# LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="few_small_steps_num_samples"
+# LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="many_small_steps_num_samples"
+LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="many_large_steps_num_samples"
+
 ### Without POS tags for multiwoz21_and_reddit but many checkpoints
 #
 # DATA_LIST="multiwoz21_and_reddit"
+#
 # LANGUAGE_MODEL_LIST="selected_finetuned_many_epochs_from_roberta_base"
 # CHECKPOINT_NO_LIST="selected"
 # LANGUAGE_MODEL_SEED_LIST="do_not_set"
@@ -25,44 +38,38 @@ EMBEDDINGS_DATA_PREP_SAMPLING_MODE="random"
 # ADD_PREFIX_SPACE_FLAG=""
 # CREATE_POS_TAGS_FLAG=""
 
-# LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="few_small_steps_num_samples"
-# LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="many_small_steps_num_samples"
-LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="many_large_steps_num_samples"
-
 ### With POS tags for finetuned models and three checkpoints and two seeds
-#
-# DATA_LIST="full"
-DATA_LIST="multiwoz21_and_reddit"
-
-LANGUAGE_MODEL_LIST="selected_finetuned_many_epochs_from_roberta_base"
-LANGUAGE_MODEL_SEED_LIST="two_seeds"
-CHECKPOINT_NO_LIST="only_beginning_and_middle_and_end"
-FINETUNING_REGIME="many_epochs_with_overfitting_risk"
-ADD_PREFIX_SPACE_FLAG="--add_prefix_space"
-CREATE_POS_TAGS_FLAG="--create_pos_tags"
-
-### With POS tags for base model
 #
 # DATA_LIST="full"
 # DATA_LIST="multiwoz21_and_reddit"
 #
-# LANGUAGE_MODEL_LIST="only_roberta_base"
-# LANGUAGE_MODEL_SEED_LIST="do_not_set"
-# CHECKPOINT_NO_LIST="selected" # Will be ignored for the base model
-# FINETUNING_REGIME="few_epochs" # Will be ignored for the base model
+# LANGUAGE_MODEL_LIST="selected_finetuned_many_epochs_from_roberta_base"
+# LANGUAGE_MODEL_SEED_LIST="two_seeds"
+# CHECKPOINT_NO_LIST="only_beginning_and_middle_and_end"
+# FINETUNING_REGIME="many_epochs_with_overfitting_risk"
 # ADD_PREFIX_SPACE_FLAG="--add_prefix_space"
 # CREATE_POS_TAGS_FLAG="--create_pos_tags"
 
-# DATA_LIST="debug"
-# LANGUAGE_MODEL_LIST="only_roberta_base"
+### With POS tags for base model
+#
+# DATA_LIST="full"
+DATA_LIST="multiwoz21_and_reddit"
 
-# ====================
+LANGUAGE_MODEL_LIST="only_roberta_base"
+LANGUAGE_MODEL_SEED_LIST="do_not_set"
+CHECKPOINT_NO_LIST="selected" # Will be ignored for the base model
+FINETUNING_REGIME="few_epochs" # Will be ignored for the base model
+ADD_PREFIX_SPACE_FLAG="--add_prefix_space"
+CREATE_POS_TAGS_FLAG="--create_pos_tags"
+
+# ================================================================== #
 
 SUBMISSION_MODE="hpc_submission"
 # SUBMISSION_MODE="local"
 
-# DRY_RUN_FLAG=""
 # DRY_RUN_FLAG="--dry_run"
+
+# ================================================================== #
 
 if [ "$DO_PIPELINE" = "true" ]; then
     # Note: To avoid re-running the expensive steps
@@ -70,19 +77,19 @@ if [ "$DO_PIPELINE" = "true" ]; then
     # - embeddings_data_prep,
     # we do not use the 'LocalEstimatesFilteringNumSamplesOption' in the pipeline.
     poetry run submit_jobs \
-    --task="pipeline" \
-    --queue="DSML" \
-    --template="DSML" \
-    --data_list=$DATA_LIST \
-    $CREATE_POS_TAGS_FLAG \
-    --language_model_list=$LANGUAGE_MODEL_LIST \
-    --checkpoint_no_list=$CHECKPOINT_NO_LIST \
-    --language_model_seed_list=$LANGUAGE_MODEL_SEED_LIST \
-    $ADD_PREFIX_SPACE_FLAG \
-    --finetuning_regime=$FINETUNING_REGIME \
-    --embeddings_data_prep_sampling_mode=$EMBEDDINGS_DATA_PREP_SAMPLING_MODE \
-    --submission_mode=$SUBMISSION_MODE \
-    $DRY_RUN_FLAG
+        --task="pipeline" \
+        --queue="DSML" \
+        --template="DSML" \
+        --data_list=$DATA_LIST \
+        $CREATE_POS_TAGS_FLAG \
+        --language_model_list=$LANGUAGE_MODEL_LIST \
+        --checkpoint_no_list=$CHECKPOINT_NO_LIST \
+        --language_model_seed_list=$LANGUAGE_MODEL_SEED_LIST \
+        $ADD_PREFIX_SPACE_FLAG \
+        --finetuning_regime=$FINETUNING_REGIME \
+        --embeddings_data_prep_sampling_mode=$EMBEDDINGS_DATA_PREP_SAMPLING_MODE \
+        --submission_mode=$SUBMISSION_MODE \
+        $DRY_RUN_FLAG
 fi
 
 if [ "$DO_PERPLEXITY" = "true" ]; then
