@@ -49,14 +49,16 @@ class SubsetSamplerRandom:
         logger: logging.Logger = default_logger,
     ) -> None:
         """Initialize the SubsetSamplerRandom."""
-        self.embeddings_data_prep_sampling_config = embeddings_data_prep_sampling_config
+        self.embeddings_data_prep_sampling_config: EmbeddingsDataPrepSamplingConfig = (
+            embeddings_data_prep_sampling_config
+        )
 
         self.rng = np.random.default_rng(
             seed=embeddings_data_prep_sampling_config.seed,
         )
 
-        self.verbosity = verbosity
-        self.logger = logger
+        self.verbosity: Verbosity = verbosity
+        self.logger: logging.Logger = logger
 
     def sample_subsets(
         self,

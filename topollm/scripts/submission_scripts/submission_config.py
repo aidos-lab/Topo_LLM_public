@@ -32,16 +32,19 @@ import pathlib
 from pydantic import BaseModel, Field
 
 from topollm.config_classes.constants import TOPO_LLM_REPOSITORY_BASE_PATH
-from topollm.typing.enums import SubmissionMode, Task
+from topollm.typing.enums import EmbeddingsDataPrepSamplingMode, SubmissionMode, Task
 
 
 class SubmissionConfig(BaseModel):
     """Configuration for submitting a certain job."""
 
     # Submission parameters
-    queue: str | None = "DSML"
+    queue: str | None = ""  # Empty string means the default queue
     template: str | None = "DSML"
     memory: str | None = "64"
+    ncpus: str | None = "2"
+    ngpus: str | None = "1"
+    walltime: str | None = "16:00:00"
     submission_mode: SubmissionMode = SubmissionMode.HPC_SUBMISSION  # type: ignore - StrEnum typing problems
 
     # Common parameters
@@ -65,8 +68,13 @@ class SubmissionConfig(BaseModel):
 
     layer_indices: str | None = "[-1]"
     embeddings_data_prep_num_samples: str | None = "30000"
-    embeddings_data_prep_sampling_mode: str | None = "take_first"
+    embeddings_data_prep_sampling_mode: EmbeddingsDataPrepSamplingMode | None = (
+        EmbeddingsDataPrepSamplingMode.TAKE_FIRST  # type: ignore - problem with StrEnum type
+    )
     additional_overrides: str | None = ""
+
+    # Local estimates parameters
+    local_estimates_filtering_num_samples_list: list[str] | None = None
 
     # Finetuning-specific parameters
     base_model_list: list[str] = Field(
@@ -162,6 +170,11 @@ class SubmissionConfig(BaseModel):
     ) -> list[str]:
         """Get the command to run the task."""
         match task:
+            case Task.LOCAL_ESTIMATES_COMPUTATION:
+                # We can use the same command for the local estimates computation
+                # as for the pipeline, because the configuration is the same.
+                # The only difference here is that for this task, only the last script in the pipeline is run.
+                task_specific_command: list[str] = self.generate_task_specific_command_pipeline()
             case Task.PIPELINE:
                 task_specific_command: list[str] = self.generate_task_specific_command_pipeline()
             case Task.PERPLEXITY:
@@ -176,14 +189,33 @@ class SubmissionConfig(BaseModel):
         command: list[str] = self.poetry_run_command + task_specific_command
 
         if self.submission_mode == SubmissionMode.HPC_SUBMISSION:
-            command.extend(
-                [
-                    "hydra/launcher=hpc_submission",
-                    f"hydra.launcher.queue={self.queue}",
-                    f"hydra.launcher.template={self.template}",
-                    f"hydra.launcher.memory={self.memory}",
-                ],
+            command.append(
+                "hydra/launcher=hpc_submission",
             )
+            if self.queue:
+                command.append(
+                    f"hydra.launcher.queue={self.queue}",
+                )
+            if self.template:
+                command.append(
+                    f"hydra.launcher.template={self.template}",
+                )
+            if self.memory:
+                command.append(
+                    f"hydra.launcher.memory={self.memory}",
+                )
+            if self.ncpus:
+                command.append(
+                    f"hydra.launcher.ncpus={self.ncpus}",
+                )
+            if self.ngpus:
+                command.append(
+                    f"hydra.launcher.ngpus={self.ngpus}",
+                )
+            if self.walltime:
+                command.append(
+                    f"hydra.launcher.walltime={self.walltime}",
+                )
         elif self.submission_mode == SubmissionMode.LOCAL:
             command.extend(
                 [
@@ -273,8 +305,13 @@ class SubmissionConfig(BaseModel):
 
         if self.embeddings_data_prep_sampling_mode:
             task_specific_command.append(
-                f"+embeddings_data_prep.sampling.sampling_mode={self.embeddings_data_prep_sampling_mode}",
+                f"+embeddings_data_prep.sampling.sampling_mode={str(self.embeddings_data_prep_sampling_mode)}",  # noqa: RUF010 - we want to use the string representation here
             )
+
+        local_estimates_command: list[str] = self.generate_local_estimates_command()
+        task_specific_command.extend(
+            local_estimates_command,
+        )
 
         return task_specific_command
 
@@ -313,3 +350,15 @@ class SubmissionConfig(BaseModel):
             )
 
         return language_model_command
+
+    def generate_local_estimates_command(
+        self,
+    ) -> list[str]:
+        local_estimates_command: list[str] = []
+
+        if self.local_estimates_filtering_num_samples_list:
+            local_estimates_command.append(
+                f"local_estimates.filtering.num_samples={','.join(self.local_estimates_filtering_num_samples_list)}",
+            )
+
+        return local_estimates_command
