@@ -177,6 +177,7 @@ data/datasets/tokenised_datasets_dataframes/
 
 data/analysis/aligned_and_analyzed/
 data/analysis/prepared/
+data/analysis/sample_sizes/
 data/analysis/twonn/
 
 data/backup/

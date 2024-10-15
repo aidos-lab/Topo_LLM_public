@@ -29,6 +29,7 @@
 
 import logging
 import pathlib
+import re
 from typing import TYPE_CHECKING
 
 import hydra
@@ -41,9 +42,12 @@ import pandas as pd
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
+from topollm.logging.log_array_info import log_array_info
+from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
 from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
+from topollm.typing.enums import Verbosity
 
 if TYPE_CHECKING:
     from topollm.config_classes.main_config import MainConfig
@@ -86,6 +90,7 @@ def main(
         config=config,
         logger=logger,
     )
+    verbosity: Verbosity = main_config.verbosity
 
     embeddings_path_manager: EmbeddingsPathManager = get_embeddings_path_manager(
         main_config=main_config,
@@ -95,54 +100,69 @@ def main(
     analysis_base_directory: pathlib.Path = pathlib.Path(
         embeddings_path_manager.data_dir,
         "analysis/twonn/",
-        "data-multiwoz21_split-test_ctxt-dataset_entry_samples-3000_feat-col-ner_tags/lvl-token/add-prefix-space-True_max-len-512/model-roberta-base_task-masked_lm/layer--1_agg-mean/norm-None/",
+        "data-multiwoz21_split-test_ctxt-dataset_entry_samples-3000_feat-col-ner_tags/",
+        "lvl-token/add-prefix-space-True_max-len-512/model-roberta-base_task-masked_lm/layer--1_agg-mean/norm-None/",
         "sampling-take_first_seed-42_samples-30000",
     )
 
-    # TODO: Discover these directories automatically and parse the information from the directory names
-    sample_sizes_list: list[int] = [
-        2500,
-        5000,
-        7500,
-        10000,
-        12500,
-        15000,
-    ]
     arrays_truncated_list = []
     mean_list = []
     std_list = []
+    sample_sizes_list: list[int] = []
     truncation_size: int = 2500
 
-    # Go through the folders in this directory for different sample sizes
-    for sample_size in sample_sizes_list:
-        current_array_path = pathlib.Path(
-            analysis_base_directory,
-            f"desc-twonn_samples-{sample_size}_zerovec-keep",
-            "local_estimates_paddings_removed.npy",
-        )
-        current_array = np.load(
-            file=current_array_path,
-        )
-
-        # Truncate the arrays to the first common elements, so that we can compare them
-        current_array_truncated = current_array[:truncation_size,]
-
-        arrays_truncated_list.append(
-            current_array_truncated,
-        )
-        mean_list.append(
-            np.mean(current_array_truncated),
-        )
-        std_list.append(
-            np.std(current_array_truncated),
-        )
-
-    arrays_truncated_stacked = np.stack(
-        arrays=arrays_truncated_list,
-        axis=0,
+    # Discover directories matching the expected pattern (e.g., "desc-twonn_samples-<sample_size>_zerovec-keep")
+    pattern = re.compile(
+        pattern=r"desc-twonn_samples-(\d+)_zerovec-keep",
     )
 
-    # Make a dataframe of the results
+    # Iterate through the folders in the base directory
+    for subdirectory in analysis_base_directory.iterdir():
+        if subdirectory.is_dir():
+            match = pattern.match(
+                string=subdirectory.name,
+            )
+            if match:
+                if verbosity >= Verbosity.NORMAL:
+                    logger.info(
+                        msg=f"{match = }",  # noqa: G004 - low overhead
+                    )
+                    logger.info(
+                        msg=f"Processing subdirectory: {subdirectory = }",  # noqa: G004 - low overhead
+                    )
+
+                sample_size = int(match.group(1))
+                sample_sizes_list.append(
+                    sample_size,
+                )
+
+                # Load the array from the current directory
+                current_array_path: pathlib.Path = subdirectory / "local_estimates_paddings_removed.npy"
+                current_array = np.load(
+                    file=current_array_path,
+                )
+
+                if verbosity >= Verbosity.NORMAL:
+                    log_statistics_of_array(
+                        array=current_array,
+                        array_name=f"current_array {subdirectory = }",
+                        logger=logger,
+                    )
+
+                # Truncate the arrays to the first common elements, so that we can compare them
+                current_array_truncated = current_array[:truncation_size,]
+
+                arrays_truncated_list.append(
+                    current_array_truncated,
+                )
+                mean_list.append(
+                    np.mean(current_array_truncated),
+                )
+                std_list.append(
+                    np.std(current_array_truncated),
+                )
+
+    # Create a DataFrame to store results
     results_df = pd.DataFrame(
         data={
             "sample_size": sample_sizes_list,
@@ -151,9 +171,69 @@ def main(
         },
     )
 
+    if verbosity >= Verbosity.NORMAL:
+        log_dataframe_info(
+            df=results_df,
+            df_name="results_df (before sorting)",
+            logger=logger,
+        )
+
+    # Sort the DataFrame by sample_size.
+    # Do not reset the index, as we want to know the original order of the arrays.
+    sorted_df: pd.DataFrame = results_df.sort_values(
+        by="sample_size",
+    )
+
+    if verbosity >= Verbosity.NORMAL:
+        log_dataframe_info(
+            df=sorted_df,
+            df_name="sorted_df",
+            logger=logger,
+        )
+
+    # Sort the stacked arrays accordingly
+    sorted_indices = sorted_df.index.to_numpy()
+    arrays_truncated_sorted = [arrays_truncated_list[i] for i in sorted_indices]
+    arrays_truncated_stacked = np.stack(
+        arrays_truncated_sorted,
+        axis=0,
+    )
+
+    if verbosity >= Verbosity.NORMAL:
+        log_array_info(
+            array_=arrays_truncated_stacked,
+            array_name="arrays_truncated_stacked",
+            logger=logger,
+        )
+
+    # Define the new base directory for saving results
+    results_base_directory = pathlib.Path(
+        embeddings_path_manager.data_dir,
+        "analysis/sample_sizes/",
+        analysis_base_directory.relative_to(
+            embeddings_path_manager.data_dir,
+        ),
+    )
+    results_base_directory.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    # Save the results DataFrame to a CSV file for traceability
+    sorted_df_save_path = results_base_directory / "sorted_df.csv"
+    sorted_df.to_csv(
+        path_or_buf=sorted_df_save_path,
+        index=False,
+    )
+
+    # TODO: Implement saving of this plot
     make_multiple_line_plots(
         array=arrays_truncated_stacked,
+        sample_sizes=sorted_df["sample_size"].to_numpy(),
+        show_plot=True,
     )
+
+    # TODO: Compute and save Kendall rank correlation coefficient between the different sample sizes
 
     # # # #
     # Log some statistics of the debug data
@@ -163,25 +243,38 @@ def main(
 
 def make_multiple_line_plots(
     array: np.ndarray,
+    sample_sizes: np.ndarray,
+    *,
+    show_plot: bool = False,
 ) -> None:
+    """Create multiple line plots of the data points over different sample sizes.
+
+    Args:
+    ----
+        array (np.ndarray): The data array to plot, with shape (num_samples, num_points).
+        sample_sizes (np.ndarray): The sample sizes corresponding to each row in the array.
+        show_plot (bool): Whether to display the plot.
+
+    """
     # Create a plot
     plt.figure(figsize=(10, 6))
 
     # Loop over the 2500 data points and plot each as a line graph
     for i in range(array.shape[1]):
         plt.plot(
+            sample_sizes,
             array[:, i],
             alpha=0.5,
             linewidth=0.5,
         )  # Plot each line with some transparency
 
     # Label the axes
-    plt.xlabel("Time step")
+    plt.xlabel("Sample Size")
     plt.ylabel("Value")
-    plt.title("Development of 2500 data points over 6 time steps")
+    plt.title(f"Development of {array.shape = } data points over different sample sizes")
 
-    # Show the plot
-    plt.show()
+    if show_plot:
+        plt.show()
 
 
 def log_statistics_of_array(
@@ -206,7 +299,7 @@ def log_statistics_of_array(
         msg=f"Mean:\t{np.mean(array) = }",  # noqa: G004 - low overhead
     )
     logger.info(
-        msg=f"Std:\t{np.std(array) =}",  # noqa: G004 - low overhead
+        msg=f"Std:\t{np.std(array) = }",  # noqa: G004 - low overhead
     )
 
 
