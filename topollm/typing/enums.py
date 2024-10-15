@@ -27,15 +27,7 @@
 
 """Enums used in the configuration classes."""
 
-from enum import Enum, IntEnum, auto, unique
-
-try:
-    # Try to import StrEnum from the standard library (Python 3.11 and later)
-    from enum import StrEnum  # type: ignore - loading of the module is not guaranteed
-except ImportError:
-    # Fallback to the strenum package for Python 3.10 and below.
-    # Run `python3 -m pip install strenum` for python < 3.11
-    from strenum import StrEnum  # type: ignore - loading of the module is not guaranteed
+from enum import Enum, IntEnum, StrEnum, auto, unique
 
 if not issubclass(
     StrEnum,

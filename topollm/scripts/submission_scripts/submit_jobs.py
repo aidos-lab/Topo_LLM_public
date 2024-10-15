@@ -42,7 +42,7 @@ from topollm.scripts.submission_scripts.types import (
     LocalEstimatesFilteringNumSamplesListOption,
     SeedListOption,
 )
-from topollm.typing.enums import SubmissionMode, Task
+from topollm.typing.enums import EmbeddingsDataPrepSamplingMode, SubmissionMode, Task
 
 
 def run_task(
@@ -195,6 +195,12 @@ def parse_arguments() -> argparse.Namespace:
         type=CheckpointNoListOption,
         default=CheckpointNoListOption.SELECTED,
         help="Checkpoint number list to use.",
+    )
+    parser.add_argument(
+        "--embeddings_data_prep_sampling_mode",
+        type=EmbeddingsDataPrepSamplingMode,
+        default=EmbeddingsDataPrepSamplingMode.TAKE_FIRST,
+        help="Embeddings data prep sampling mode to use.",
     )
     parser.add_argument(
         "--finetuning_regime",
@@ -510,6 +516,7 @@ def make_config_and_run_task(
         language_model_list=language_model_list,
         language_model_seed_list=language_model_seed_list,
         checkpoint_no_list=checkpoint_no_list,
+        embeddings_data_prep_sampling_mode=args.embeddings_data_prep_sampling_mode,
         local_estimates_filtering_num_samples_list=local_estimates_filtering_num_samples_list,
         finetuning_datasets_list=finetuning_datasets_list,
         finetuning_seed_list=finetuning_seed_list,

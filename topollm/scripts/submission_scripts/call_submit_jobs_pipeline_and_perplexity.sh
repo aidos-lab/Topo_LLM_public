@@ -1,12 +1,15 @@
 #!/bin/bash
 
-# DO_PIPELINE="true"
-# DO_PERPLEXITY="true"
-# DO_LOCAL_ESTIMATES_COMPUTATION="false"
+DO_PIPELINE="true"
+DO_PERPLEXITY="true"
+DO_LOCAL_ESTIMATES_COMPUTATION="false"
 
-DO_PIPELINE="false"
-DO_PERPLEXITY="false"
-DO_LOCAL_ESTIMATES_COMPUTATION="true"
+# DO_PIPELINE="false"
+# DO_PERPLEXITY="false"
+# DO_LOCAL_ESTIMATES_COMPUTATION="true"
+
+EMBEDDINGS_DATA_PREP_SAMPLING_MODE="random"
+# EMBEDDINGS_DATA_PREP_SAMPLING_MODE="take_first"
 
 # DATA_LIST="only_train"
 # LANGUAGE_MODEL_LIST="selected_finetuned_few_epochs_from_roberta_base"
@@ -28,7 +31,9 @@ LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="many_large_steps_num_samples"
 
 ### With POS tags for finetuned models and three checkpoints and two seeds
 #
-DATA_LIST="full"
+# DATA_LIST="full"
+DATA_LIST="multiwoz21_and_reddit"
+
 LANGUAGE_MODEL_LIST="selected_finetuned_many_epochs_from_roberta_base"
 LANGUAGE_MODEL_SEED_LIST="two_seeds"
 CHECKPOINT_NO_LIST="only_beginning_and_middle_and_end"
@@ -39,6 +44,8 @@ CREATE_POS_TAGS_FLAG="--create_pos_tags"
 ### With POS tags for base model
 #
 # DATA_LIST="full"
+# DATA_LIST="multiwoz21_and_reddit"
+#
 # LANGUAGE_MODEL_LIST="only_roberta_base"
 # LANGUAGE_MODEL_SEED_LIST="do_not_set"
 # CHECKPOINT_NO_LIST="selected" # Will be ignored for the base model
@@ -54,7 +61,7 @@ CREATE_POS_TAGS_FLAG="--create_pos_tags"
 SUBMISSION_MODE="hpc_submission"
 # SUBMISSION_MODE="local"
 
-DRY_RUN_FLAG=""
+# DRY_RUN_FLAG=""
 # DRY_RUN_FLAG="--dry_run"
 
 if [ "$DO_PIPELINE" = "true" ]; then
@@ -73,6 +80,7 @@ if [ "$DO_PIPELINE" = "true" ]; then
     --language_model_seed_list=$LANGUAGE_MODEL_SEED_LIST \
     $ADD_PREFIX_SPACE_FLAG \
     --finetuning_regime=$FINETUNING_REGIME \
+    --embeddings_data_prep_sampling_mode=$EMBEDDINGS_DATA_PREP_SAMPLING_MODE \
     --submission_mode=$SUBMISSION_MODE \
     $DRY_RUN_FLAG
 fi
@@ -109,6 +117,7 @@ if [ "$DO_LOCAL_ESTIMATES_COMPUTATION" = "true" ]; then
         --language_model_seed_list=$LANGUAGE_MODEL_SEED_LIST \
         $ADD_PREFIX_SPACE_FLAG \
         --finetuning_regime=$FINETUNING_REGIME \
+        --embeddings_data_prep_sampling_mode=$EMBEDDINGS_DATA_PREP_SAMPLING_MODE \
         --local_estimates_filtering_num_samples_list=$LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST \
         --submission_mode=$SUBMISSION_MODE \
         $DRY_RUN_FLAG

@@ -32,7 +32,7 @@ import pathlib
 from pydantic import BaseModel, Field
 
 from topollm.config_classes.constants import TOPO_LLM_REPOSITORY_BASE_PATH
-from topollm.typing.enums import SubmissionMode, Task
+from topollm.typing.enums import EmbeddingsDataPrepSamplingMode, SubmissionMode, Task
 
 
 class SubmissionConfig(BaseModel):
@@ -68,7 +68,9 @@ class SubmissionConfig(BaseModel):
 
     layer_indices: str | None = "[-1]"
     embeddings_data_prep_num_samples: str | None = "30000"
-    embeddings_data_prep_sampling_mode: str | None = "take_first"
+    embeddings_data_prep_sampling_mode: EmbeddingsDataPrepSamplingMode | None = (
+        EmbeddingsDataPrepSamplingMode.TAKE_FIRST  # type: ignore - problem with StrEnum type
+    )
     additional_overrides: str | None = ""
 
     # Local estimates parameters
@@ -303,7 +305,7 @@ class SubmissionConfig(BaseModel):
 
         if self.embeddings_data_prep_sampling_mode:
             task_specific_command.append(
-                f"+embeddings_data_prep.sampling.sampling_mode={self.embeddings_data_prep_sampling_mode}",
+                f"+embeddings_data_prep.sampling.sampling_mode={str(self.embeddings_data_prep_sampling_mode)}",  # noqa: RUF010 - we want to use the string representation here
             )
 
         local_estimates_command: list[str] = self.generate_local_estimates_command()
