@@ -42,6 +42,8 @@ from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
+from topollm.path_management.embeddings.factory import get_embeddings_path_manager
+from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 
 if TYPE_CHECKING:
     from topollm.config_classes.main_config import MainConfig
@@ -85,10 +87,19 @@ def main(
         logger=logger,
     )
 
-    base_directory: pathlib.Path = pathlib.Path(
-        "/Users/ruppik/git-source/Topo_LLM/data/analysis/twonn/data-multiwoz21_split-test_ctxt-dataset_entry_samples-3000_feat-col-ner_tags/lvl-token/add-prefix-space-True_max-len-512/model-roberta-base_task-masked_lm/layer--1_agg-mean/norm-None/sampling-take_first_seed-42_samples-30000",
+    embeddings_path_manager: EmbeddingsPathManager = get_embeddings_path_manager(
+        main_config=main_config,
+        logger=logger,
     )
 
+    analysis_base_directory: pathlib.Path = pathlib.Path(
+        embeddings_path_manager.data_dir,
+        "analysis/twonn/",
+        "data-multiwoz21_split-test_ctxt-dataset_entry_samples-3000_feat-col-ner_tags/lvl-token/add-prefix-space-True_max-len-512/model-roberta-base_task-masked_lm/layer--1_agg-mean/norm-None/",
+        "sampling-take_first_seed-42_samples-30000",
+    )
+
+    # TODO: Discover these directories automatically and parse the information from the directory names
     sample_sizes_list: list[int] = [
         2500,
         5000,
@@ -105,7 +116,7 @@ def main(
     # Go through the folders in this directory for different sample sizes
     for sample_size in sample_sizes_list:
         current_array_path = pathlib.Path(
-            base_directory,
+            analysis_base_directory,
             f"desc-twonn_samples-{sample_size}_zerovec-keep",
             "local_estimates_paddings_removed.npy",
         )
@@ -142,45 +153,6 @@ def main(
 
     make_multiple_line_plots(
         array=arrays_truncated_stacked,
-    )
-
-    # =============================================== #
-    # Manually loaded debug data with explicit paths
-
-    small_sample_size = 2500
-    small_sample_size_meta_pkl_path = pathlib.Path(
-        base_directory,
-        f"desc-twonn_samples-{small_sample_size}_zerovec-keep",
-        "local_estimates_paddings_removed_meta.pkl",
-    )
-    small_sample_size_array_npy_path = pathlib.Path(
-        base_directory,
-        f"desc-twonn_samples-{small_sample_size}_zerovec-keep",
-        "local_estimates_paddings_removed.npy",
-    )
-    small_sample_size_meta_df = pd.read_pickle(  # noqa: S301 - we trust the data
-        filepath_or_buffer=small_sample_size_meta_pkl_path,
-    )
-    small_sample_size_array = np.load(
-        file=small_sample_size_array_npy_path,
-    )
-
-    large_sample_size = 15_000
-    large_sample_size_meta_pkl_path = pathlib.Path(
-        base_directory,
-        f"desc-twonn_samples-{large_sample_size}_zerovec-keep",
-        "local_estimates_paddings_removed_meta.pkl",
-    )
-    large_sample_size_array_npy_path = pathlib.Path(
-        base_directory,
-        f"desc-twonn_samples-{large_sample_size}_zerovec-keep",
-        "local_estimates_paddings_removed.npy",
-    )
-    large_sample_size_meta_df = pd.read_pickle(  # noqa: S301 - we trust the data
-        filepath_or_buffer=large_sample_size_meta_pkl_path,
-    )
-    large_sample_size_array = np.load(
-        file=large_sample_size_array_npy_path,
     )
 
     # # # #
