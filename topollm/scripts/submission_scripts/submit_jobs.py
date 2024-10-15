@@ -510,6 +510,7 @@ def make_config_and_run_task(
         memory=args.memory,
         ncpus=args.ncpus,
         ngpus=args.ngpus,
+        walltime="24:00:00",
         additional_overrides=args.additional_overrides,
         data_list=data_list,
         additional_data_options=additional_data_options,

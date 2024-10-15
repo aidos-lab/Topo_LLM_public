@@ -1,12 +1,12 @@
 #!/bin/bash
 
-DO_PIPELINE="true"
-DO_PERPLEXITY="true"
-DO_LOCAL_ESTIMATES_COMPUTATION="false"
+# DO_PIPELINE="true"
+# DO_PERPLEXITY="true"
+# DO_LOCAL_ESTIMATES_COMPUTATION="false"
 
-# DO_PIPELINE="false"
-# DO_PERPLEXITY="false"
-# DO_LOCAL_ESTIMATES_COMPUTATION="true"
+DO_PIPELINE="false"
+DO_PERPLEXITY="false"
+DO_LOCAL_ESTIMATES_COMPUTATION="true"
 
 # ================================================================== #
 # Debug setup
@@ -41,26 +41,26 @@ LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="many_large_steps_num_samples"
 ### With POS tags for finetuned models and three checkpoints and two seeds
 #
 # DATA_LIST="full"
-# DATA_LIST="multiwoz21_and_reddit"
-#
-# LANGUAGE_MODEL_LIST="selected_finetuned_many_epochs_from_roberta_base"
-# LANGUAGE_MODEL_SEED_LIST="two_seeds"
-# CHECKPOINT_NO_LIST="only_beginning_and_middle_and_end"
-# FINETUNING_REGIME="many_epochs_with_overfitting_risk"
-# ADD_PREFIX_SPACE_FLAG="--add_prefix_space"
-# CREATE_POS_TAGS_FLAG="--create_pos_tags"
+DATA_LIST="multiwoz21_and_reddit"
+
+LANGUAGE_MODEL_LIST="selected_finetuned_many_epochs_from_roberta_base"
+LANGUAGE_MODEL_SEED_LIST="two_seeds"
+CHECKPOINT_NO_LIST="only_beginning_and_middle_and_end"
+FINETUNING_REGIME="many_epochs_with_overfitting_risk"
+ADD_PREFIX_SPACE_FLAG="--add_prefix_space"
+CREATE_POS_TAGS_FLAG="--create_pos_tags"
 
 ### With POS tags for base model
 #
 # DATA_LIST="full"
-DATA_LIST="multiwoz21_and_reddit"
+# DATA_LIST="multiwoz21_and_reddit"
 
-LANGUAGE_MODEL_LIST="only_roberta_base"
-LANGUAGE_MODEL_SEED_LIST="do_not_set"
-CHECKPOINT_NO_LIST="selected" # Will be ignored for the base model
-FINETUNING_REGIME="few_epochs" # Will be ignored for the base model
-ADD_PREFIX_SPACE_FLAG="--add_prefix_space"
-CREATE_POS_TAGS_FLAG="--create_pos_tags"
+# LANGUAGE_MODEL_LIST="only_roberta_base"
+# LANGUAGE_MODEL_SEED_LIST="do_not_set"
+# CHECKPOINT_NO_LIST="selected" # Will be ignored for the base model
+# FINETUNING_REGIME="few_epochs" # Will be ignored for the base model
+# ADD_PREFIX_SPACE_FLAG="--add_prefix_space"
+# CREATE_POS_TAGS_FLAG="--create_pos_tags"
 
 # ================================================================== #
 
@@ -115,7 +115,7 @@ if [ "$DO_LOCAL_ESTIMATES_COMPUTATION" = "true" ]; then
         --template="CPU" \
         --queue="DEFAULT" \
         --memory="16" \
-        --ncpus="16" \
+        --ncpus="32" \
         --ngpus="0" \
         --data_list=$DATA_LIST \
         $CREATE_POS_TAGS_FLAG \
