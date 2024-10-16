@@ -105,7 +105,9 @@ def main(
         embeddings_path_manager.data_dir,
         "analysis/twonn/",
         "data-multiwoz21_split-test_ctxt-dataset_entry_samples-3000_feat-col-ner_tags/",
-        "lvl-token/add-prefix-space-True_max-len-512/model-roberta-base_task-masked_lm/layer--1_agg-mean/norm-None/",
+        "lvl-token/add-prefix-space-True_max-len-512/",
+        "model-roberta-base_task-masked_lm",
+        "layer--1_agg-mean/norm-None/",
         "sampling-take_first_seed-42_samples-30000",
     )
     if verbosity >= Verbosity.NORMAL:
@@ -113,12 +115,31 @@ def main(
             msg=f"{analysis_base_directory = }",  # noqa: G004 - low overhead
         )
 
+    run_comparison_for_analysis_base_directory(
+        analysis_base_directory=analysis_base_directory,
+        data_dir=embeddings_path_manager.data_dir,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+    logger.info(
+        msg="Running script DONE",
+    )
+
+
+def run_comparison_for_analysis_base_directory(
+    analysis_base_directory: pathlib.Path,
+    data_dir: pathlib.Path,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
     # Define the new base directory for saving results
     results_base_directory = pathlib.Path(
-        embeddings_path_manager.data_dir,
-        "analysis/sample_sizes/",
+        data_dir,
+        "analysis",
+        "sample_sizes",
         analysis_base_directory.relative_to(
-            embeddings_path_manager.data_dir,
+            data_dir,
         ),
     )
     results_base_directory.mkdir(
@@ -175,10 +196,6 @@ def main(
         additional_title=str(analysis_base_directory),
         show_plot=False,
         save_path=sorted_df_plot_save_path,
-    )
-
-    logger.info(
-        msg="Running script DONE",
     )
 
 
