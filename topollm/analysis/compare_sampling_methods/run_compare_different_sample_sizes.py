@@ -103,38 +103,55 @@ def main(
         logger=logger,
     )
 
-    data_folder_list: list[str] = [
-        "data-multiwoz21_split-train_ctxt-dataset_entry_samples-10000_feat-col-ner_tags",
-        "data-multiwoz21_split-validation_ctxt-dataset_entry_samples-3000_feat-col-ner_tags",
-        "data-multiwoz21_split-test_ctxt-dataset_entry_samples-3000_feat-col-ner_tags",
-        "data-one-year-of-tsla-on-reddit_split-train_ctxt-dataset_entry_samples-10000_feat-col-ner_tags",
-        "data-one-year-of-tsla-on-reddit_split-validation_ctxt-dataset_entry_samples-3000_feat-col-ner_tags",
-        "data-one-year-of-tsla-on-reddit_split-test_ctxt-dataset_entry_samples-3000_feat-col-ner_tags",
-    ]
+    mode = "create_all_plots"
 
-    model_folder_list: list[str] = [
-        "model-roberta-base_task-masked_lm",
-        "model-model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-14400_task-masked_lm",
-        "model-model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-31200_task-masked_lm",
-        "model-model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-400_task-masked_lm",
-        "model-model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1235_ckpt-14400_task-masked_lm",
-        "model-model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1235_ckpt-31200_task-masked_lm",
-        "model-model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1235_ckpt-400_task-masked_lm",
-        "model-model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-14400_task-masked_lm",
-        "model-model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-31200_task-masked_lm",
-        "model-model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-400_task-masked_lm",
-        "model-model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1235_ckpt-14400_task-masked_lm",
-        "model-model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1235_ckpt-31200_task-masked_lm",
-        "model-model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1235_ckpt-400_task-masked_lm",
-    ]
-
-    embeddings_data_prep_sampling_folder_list: list[str] = [
-        "sampling-random_seed-42_samples-30000",
-        "sampling-take_first_seed-42_samples-30000",
-    ]
+    if mode == "create_all_plots":
+        data_folder_list: list[str] = [
+            "data-multiwoz21_split-train_ctxt-dataset_entry_samples-10000_feat-col-ner_tags",
+            "data-multiwoz21_split-validation_ctxt-dataset_entry_samples-3000_feat-col-ner_tags",
+            "data-multiwoz21_split-test_ctxt-dataset_entry_samples-3000_feat-col-ner_tags",
+            "data-one-year-of-tsla-on-reddit_split-train_ctxt-dataset_entry_samples-10000_feat-col-ner_tags",
+            "data-one-year-of-tsla-on-reddit_split-validation_ctxt-dataset_entry_samples-3000_feat-col-ner_tags",
+            "data-one-year-of-tsla-on-reddit_split-test_ctxt-dataset_entry_samples-3000_feat-col-ner_tags",
+        ]
+        model_folder_list: list[str] = [
+            "model-roberta-base_task-masked_lm",
+            "model-model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-14400_task-masked_lm",
+            "model-model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-31200_task-masked_lm",
+            "model-model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-400_task-masked_lm",
+            "model-model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1235_ckpt-14400_task-masked_lm",
+            "model-model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1235_ckpt-31200_task-masked_lm",
+            "model-model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1235_ckpt-400_task-masked_lm",
+            "model-model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-14400_task-masked_lm",
+            "model-model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-31200_task-masked_lm",
+            "model-model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-400_task-masked_lm",
+            "model-model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1235_ckpt-14400_task-masked_lm",
+            "model-model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1235_ckpt-31200_task-masked_lm",
+            "model-model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1235_ckpt-400_task-masked_lm",
+        ]
+        embeddings_data_prep_sampling_folder_list: list[str] = [
+            "sampling-random_seed-42_samples-30000",
+            "sampling-take_first_seed-42_samples-30000",
+        ]
+    elif mode == "create_debug_plots":
+        data_folder_list: list[str] = [
+            "data-multiwoz21_split-train_ctxt-dataset_entry_samples-10000_feat-col-ner_tags",
+        ]
+        model_folder_list: list[str] = [
+            "model-roberta-base_task-masked_lm",
+        ]
+        embeddings_data_prep_sampling_folder_list: list[str] = [
+            "sampling-random_seed-42_samples-30000",
+            "sampling-take_first_seed-42_samples-30000",
+        ]
+    else:
+        msg = "Invalid mode"
+        raise ValueError(
+            msg,
+        )
 
     for data_folder, model_folder, embeddings_data_prep_sampling_folder in tqdm(
-        product(
+        iterable=product(
             data_folder_list,
             model_folder_list,
             embeddings_data_prep_sampling_folder_list,
@@ -146,9 +163,11 @@ def main(
             "analysis",
             "twonn",
             data_folder,
-            "lvl-token/add-prefix-space-True_max-len-512/",
+            "lvl-token",
+            "add-prefix-space-True_max-len-512",
             model_folder,
-            "layer--1_agg-mean/norm-None/",
+            "layer--1_agg-mean",
+            "norm-None",
             embeddings_data_prep_sampling_folder,
         )
         if verbosity >= Verbosity.NORMAL:
@@ -226,6 +245,7 @@ def run_comparison_for_analysis_base_directory(
     make_multiple_line_plots(
         array=arrays_truncated_stacked,
         sample_sizes=sorted_df["sample_size"].to_numpy(),
+        additional_title=str(analysis_base_directory),
         show_plot=False,
         save_path=arrays_truncated_stacked_plot_save_path,
     )

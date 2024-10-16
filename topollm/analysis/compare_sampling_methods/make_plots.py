@@ -35,6 +35,7 @@ import pandas as pd
 def make_multiple_line_plots(
     array: np.ndarray,
     sample_sizes: np.ndarray,
+    additional_title: str = "",
     *,
     show_plot: bool = False,
     save_path: pathlib.Path | None = None,
@@ -67,6 +68,15 @@ def make_multiple_line_plots(
             linewidth=0.5,
         )  # Plot each line with some transparency
 
+    # Add horizontal and vertical grid lines for better readability
+    plt.grid(
+        visible=True,
+        which="both",
+        linestyle="--",
+        linewidth=0.5,
+        color="gray",
+    )
+
     # Label the axes
     plt.xlabel(
         xlabel="Sample Size",
@@ -76,6 +86,10 @@ def make_multiple_line_plots(
     )
     plt.title(
         label=f"Development of data points over different sample sizes; {array.shape = }",
+    )
+
+    add_subtitle(
+        additional_title=additional_title,
     )
 
     if show_plot:
@@ -130,6 +144,7 @@ def make_mean_std_plot(
         mean_array,
         color="b",
         label="Mean",
+        marker="o",
     )
     plt.fill_between(
         x=sample_size_array,
@@ -138,6 +153,15 @@ def make_mean_std_plot(
         color="b",
         alpha=0.2,
         label="Standard Deviation",
+    )
+
+    # Add horizontal and vertical grid lines for better readability
+    plt.grid(
+        visible=True,
+        which="both",
+        linestyle="--",
+        linewidth=0.5,
+        color="gray",
     )
 
     # Label the axes and add title
@@ -151,15 +175,8 @@ def make_mean_std_plot(
         label="Mean and Standard Deviation of Estimates over Sample Sizes",
     )
 
-    formatted_subtitle = "\n".join(
-        [additional_title[i : i + 100] for i in range(0, len(additional_title), 100)],
-    )
-
-    # Add the subtitle with line breaks and smaller font
-    plt.suptitle(
-        formatted_subtitle,
-        fontsize=8,
-        wrap=True,
+    add_subtitle(
+        additional_title=additional_title,
     )
 
     # Add a legend
@@ -175,3 +192,26 @@ def make_mean_std_plot(
     # Show the plot if requested
     if show_plot:
         plt.show()
+
+
+def add_subtitle(
+    additional_title: str,
+) -> None:
+    """Add a subtitle to the current plot."""
+    formatted_subtitle: str = "\n".join(
+        [
+            additional_title[i : i + 100]
+            for i in range(
+                0,
+                len(additional_title),
+                100,
+            )
+        ],
+    )
+
+    # Add the subtitle with line breaks and smaller font
+    plt.suptitle(
+        t=formatted_subtitle,
+        fontsize=8,
+        wrap=True,
+    )
