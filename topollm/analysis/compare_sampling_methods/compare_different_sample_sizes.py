@@ -38,6 +38,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import omegaconf
 import pandas as pd
+from scipy.stats import kendalltau, pearsonr, spearmanr
 
 from topollm.analysis.compare_sampling_methods.log_statistics_of_array import log_statistics_of_array
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
@@ -108,10 +109,19 @@ def main(
         "sampling-take_first_seed-42_samples-30000",
     )
 
-    arrays_truncated_list = []
-    mean_list = []
-    std_list = []
-    sample_sizes_list: list[int] = []
+    # Define the new base directory for saving results
+    results_base_directory = pathlib.Path(
+        embeddings_path_manager.data_dir,
+        "analysis/sample_sizes/",
+        analysis_base_directory.relative_to(
+            embeddings_path_manager.data_dir,
+        ),
+    )
+    results_base_directory.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
     truncation_size: int = 2500
 
     # Discover directories matching the expected pattern (e.g., "desc-twonn_samples-<sample_size>_zerovec-keep")
@@ -120,6 +130,99 @@ def main(
     )
 
     # Iterate through the folders in the base directory
+    sorted_df, arrays_truncated_stacked = process_subdirectories(
+        analysis_base_directory=analysis_base_directory,
+        pattern=pattern,
+        truncation_size=truncation_size,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+    # Save the results DataFrame to a CSV file for archiving
+    sorted_df_save_path = results_base_directory / "sorted_df.csv"
+    sorted_df.to_csv(
+        path_or_buf=sorted_df_save_path,
+        index=False,
+    )
+
+    plot_save_path = results_base_directory / "arrays_truncated_stacked.pdf"
+
+    make_multiple_line_plots(
+        array=arrays_truncated_stacked,
+        sample_sizes=sorted_df["sample_size"].to_numpy(),
+        show_plot=False,
+        save_path=plot_save_path,
+    )
+
+    compute_and_save_correlations(
+        arrays_truncated_stacked=arrays_truncated_stacked,
+        results_base_directory=results_base_directory,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+    logger.info(
+        msg="Running script DONE",
+    )
+
+
+def compute_and_save_correlations(
+    arrays_truncated_stacked: np.ndarray,
+    results_base_directory: pathlib.Path,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+):
+    methods: list[str] = [
+        "pearson",
+        "kendall",
+        "spearman",
+    ]
+    # # # #
+    # Compute and save the correlation coefficients for each method
+    for method in methods:
+        correlation_save_path: pathlib.Path = results_base_directory / f"correlation_coefficients_{method}.csv"
+        p_value_save_path: pathlib.Path = results_base_directory / f"correlation_p_values_{method}.csv"
+        correlation_matrix, p_matrix = compute_row_correlations(
+            array=arrays_truncated_stacked,
+            method=method,
+        )
+        pd.DataFrame(
+            data=correlation_matrix,
+        ).to_csv(
+            path_or_buf=correlation_save_path,
+            index=False,
+        )
+        pd.DataFrame(
+            data=p_matrix,
+        ).to_csv(
+            path_or_buf=p_value_save_path,
+            index=False,
+        )
+
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"{method.capitalize()} correlation coefficients saved to: {correlation_save_path = }",  # noqa: G004 - low overhead
+            )
+            logger.info(
+                msg=f"{method.capitalize()} p-values saved to: {p_value_save_path = }",  # noqa: G004 - low overhead
+            )
+
+
+def process_subdirectories(
+    analysis_base_directory: pathlib.Path,
+    pattern: re.Pattern,
+    truncation_size: int,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> tuple[
+    pd.DataFrame,
+    np.ndarray,
+]:
+    arrays_truncated_list = []
+    mean_list = []
+    std_list = []
+    sample_sizes_list: list[int] = []
+
     for subdirectory in analysis_base_directory.iterdir():
         if subdirectory.is_dir():
             match = pattern.match(
@@ -209,43 +312,7 @@ def main(
             logger=logger,
         )
 
-    # Define the new base directory for saving results
-    results_base_directory = pathlib.Path(
-        embeddings_path_manager.data_dir,
-        "analysis/sample_sizes/",
-        analysis_base_directory.relative_to(
-            embeddings_path_manager.data_dir,
-        ),
-    )
-    results_base_directory.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
-
-    # Save the results DataFrame to a CSV file for traceability
-    sorted_df_save_path = results_base_directory / "sorted_df.csv"
-    sorted_df.to_csv(
-        path_or_buf=sorted_df_save_path,
-        index=False,
-    )
-
-    plot_save_path = results_base_directory / "arrays_truncated_stacked.pdf"
-
-    make_multiple_line_plots(
-        array=arrays_truncated_stacked,
-        sample_sizes=sorted_df["sample_size"].to_numpy(),
-        show_plot=False,
-        save_path=plot_save_path,
-    )
-
-    # TODO: Compute and save Kendall rank correlation coefficient between the different sample sizes
-
-    # # # #
-    # Log some statistics of the debug data
-
-    logger.info(
-        msg="Running script DONE",
-    )
+    return sorted_df, arrays_truncated_stacked
 
 
 def make_multiple_line_plots(
@@ -303,6 +370,49 @@ def make_multiple_line_plots(
             save_path,
             format="pdf",
         )
+
+
+def compute_row_correlations(
+    array: np.ndarray,
+    method: str = "pearson",
+) -> tuple[np.ndarray, np.ndarray]:
+    """Compute the correlation coefficients between the rows of a numpy array.
+
+    Args:
+    ----
+        array:
+            The input array with shape (num_samples, num_points).
+        method:
+            The correlation method to use - "pearson", "kendall", or "spearman".
+
+    Returns:
+    -------
+        Tuple[np.ndarray, np.ndarray]:
+            A tuple containing the correlation matrix of shape (num_samples, num_samples)
+            and the p-value matrix of shape (num_samples, num_samples).
+
+    """
+    num_samples: int = array.shape[0]
+    correlation_matrix = np.zeros(
+        shape=(num_samples, num_samples),
+    )
+    p_matrix = np.zeros(
+        shape=(num_samples, num_samples),
+    )
+
+    for i in range(num_samples):
+        for j in range(num_samples):
+            if method == "pearson":
+                correlation_matrix[i, j], p_matrix[i, j] = pearsonr(array[i], array[j])
+            elif method == "kendall":
+                correlation_matrix[i, j], p_matrix[i, j] = kendalltau(array[i], array[j])
+            elif method == "spearman":
+                correlation_matrix[i, j], p_matrix[i, j] = spearmanr(array[i], array[j])
+            else:
+                msg: str = f"Unsupported correlation method: {method = }"
+                raise ValueError(msg)
+
+    return correlation_matrix, p_matrix
 
 
 if __name__ == "__main__":
