@@ -150,8 +150,14 @@ def make_mean_std_plot(
     plt.title(
         label="Mean and Standard Deviation of Estimates over Sample Sizes",
     )
+
+    formatted_subtitle = "\n".join(
+        [additional_title[i : i + 100] for i in range(0, len(additional_title), 100)],
+    )
+
+    # Add the subtitle with line breaks and smaller font
     plt.suptitle(
-        str(additional_title),
+        formatted_subtitle,
         fontsize=8,
         wrap=True,
     )
