@@ -39,6 +39,7 @@ import numpy as np
 import omegaconf
 import pandas as pd
 
+from topollm.analysis.compare_sampling_methods.log_statistics_of_array import log_statistics_of_array
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
@@ -46,11 +47,11 @@ from topollm.logging.log_array_info import log_array_info
 from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
-from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 from topollm.typing.enums import Verbosity
 
 if TYPE_CHECKING:
     from topollm.config_classes.main_config import MainConfig
+    from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 
 try:
     from hydra_plugins import hpc_submission_launcher
@@ -83,8 +84,10 @@ def main(
     config: omegaconf.DictConfig,
 ) -> None:
     """Run the script."""
-    logger = global_logger
-    logger.info("Running script ...")
+    logger: logging.Logger = global_logger
+    logger.info(
+        msg="Running script ...",
+    )
 
     main_config: MainConfig = initialize_configuration(
         config=config,
@@ -226,11 +229,13 @@ def main(
         index=False,
     )
 
-    # TODO: Implement saving of this plot
+    plot_save_path = results_base_directory / "arrays_truncated_stacked.pdf"
+
     make_multiple_line_plots(
         array=arrays_truncated_stacked,
         sample_sizes=sorted_df["sample_size"].to_numpy(),
-        show_plot=True,
+        show_plot=False,
+        save_path=plot_save_path,
     )
 
     # TODO: Compute and save Kendall rank correlation coefficient between the different sample sizes
@@ -238,7 +243,9 @@ def main(
     # # # #
     # Log some statistics of the debug data
 
-    logger.info("Running script DONE")
+    logger.info(
+        msg="Running script DONE",
+    )
 
 
 def make_multiple_line_plots(
@@ -246,18 +253,26 @@ def make_multiple_line_plots(
     sample_sizes: np.ndarray,
     *,
     show_plot: bool = False,
+    save_path: pathlib.Path | None = None,
 ) -> None:
     """Create multiple line plots of the data points over different sample sizes.
 
     Args:
     ----
-        array (np.ndarray): The data array to plot, with shape (num_samples, num_points).
-        sample_sizes (np.ndarray): The sample sizes corresponding to each row in the array.
-        show_plot (bool): Whether to display the plot.
+        array:
+            The data array to plot, with shape (num_samples, num_points).
+        sample_sizes:
+            The sample sizes corresponding to each row in the array.
+        show_plot:
+            Whether to display the plot.
+        save_path:
+            The path to save the plot to.
 
     """
     # Create a plot
-    plt.figure(figsize=(10, 6))
+    plt.figure(
+        figsize=(10, 6),
+    )
 
     # Loop over the 2500 data points and plot each as a line graph
     for i in range(array.shape[1]):
@@ -269,38 +284,25 @@ def make_multiple_line_plots(
         )  # Plot each line with some transparency
 
     # Label the axes
-    plt.xlabel("Sample Size")
-    plt.ylabel("Value")
-    plt.title(f"Development of {array.shape = } data points over different sample sizes")
+    plt.xlabel(
+        xlabel="Sample Size",
+    )
+    plt.ylabel(
+        ylabel="Value",
+    )
+    plt.title(
+        label=f"Development of data points over different sample sizes; {array.shape = }",
+    )
 
     if show_plot:
         plt.show()
 
-
-def log_statistics_of_array(
-    array: np.ndarray,
-    array_name: str = "default_array_name",
-    logger: logging.Logger = default_logger,
-) -> None:
-    """Log some statistics of the array."""
-    logger.info(
-        msg=f"Statistics of array: {array_name = }",  # noqa: G004 - low overhead
-    )
-    logger.info(
-        msg=f"Shape:\t{array.shape = }",  # noqa: G004 - low overhead
-    )
-    logger.info(
-        msg=f"Min:\t{np.min(array) = }",  # noqa: G004 - low overhead
-    )
-    logger.info(
-        msg=f"Max:\t{np.max(array) = }",  # noqa: G004 - low overhead
-    )
-    logger.info(
-        msg=f"Mean:\t{np.mean(array) = }",  # noqa: G004 - low overhead
-    )
-    logger.info(
-        msg=f"Std:\t{np.std(array) = }",  # noqa: G004 - low overhead
-    )
+    # Save the plot if save_path is provided
+    if save_path:
+        plt.savefig(
+            save_path,
+            format="pdf",
+        )
 
 
 if __name__ == "__main__":
