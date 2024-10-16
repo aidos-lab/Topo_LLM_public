@@ -30,6 +30,7 @@
 import logging
 import pathlib
 import re
+from itertools import product
 from typing import TYPE_CHECKING
 
 import hydra
@@ -37,6 +38,7 @@ import hydra.core.hydra_config
 import numpy as np
 import omegaconf
 import pandas as pd
+from tqdm import tqdm
 
 from topollm.analysis.compare_sampling_methods.compute_correlations import compute_and_save_correlations
 from topollm.analysis.compare_sampling_methods.log_statistics_of_array import log_statistics_of_array
@@ -101,26 +103,71 @@ def main(
         logger=logger,
     )
 
-    analysis_base_directory: pathlib.Path = pathlib.Path(
-        embeddings_path_manager.data_dir,
-        "analysis/twonn/",
-        "data-multiwoz21_split-test_ctxt-dataset_entry_samples-3000_feat-col-ner_tags/",
-        "lvl-token/add-prefix-space-True_max-len-512/",
-        "model-roberta-base_task-masked_lm",
-        "layer--1_agg-mean/norm-None/",
-        "sampling-take_first_seed-42_samples-30000",
-    )
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            msg=f"{analysis_base_directory = }",  # noqa: G004 - low overhead
-        )
+    data_folder_list: list[str] = [
+        "data-multiwoz21_split-train_ctxt-dataset_entry_samples-10000_feat-col-ner_tags",
+        "data-multiwoz21_split-validation_ctxt-dataset_entry_samples-3000_feat-col-ner_tags",
+        "data-multiwoz21_split-test_ctxt-dataset_entry_samples-3000_feat-col-ner_tags",
+        "data-one-year-of-tsla-on-reddit_split-train_ctxt-dataset_entry_samples-10000_feat-col-ner_tags",
+        "data-one-year-of-tsla-on-reddit_split-validation_ctxt-dataset_entry_samples-3000_feat-col-ner_tags",
+        "data-one-year-of-tsla-on-reddit_split-test_ctxt-dataset_entry_samples-3000_feat-col-ner_tags",
+    ]
 
-    run_comparison_for_analysis_base_directory(
-        analysis_base_directory=analysis_base_directory,
-        data_dir=embeddings_path_manager.data_dir,
-        verbosity=verbosity,
-        logger=logger,
-    )
+    model_folder_list: list[str] = [
+        "model-roberta-base_task-masked_lm",
+        "model-model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-14400_task-masked_lm",
+        "model-model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-31200_task-masked_lm",
+        "model-model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-400_task-masked_lm",
+        "model-model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1235_ckpt-14400_task-masked_lm",
+        "model-model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1235_ckpt-31200_task-masked_lm",
+        "model-model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1235_ckpt-400_task-masked_lm",
+        "model-model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-14400_task-masked_lm",
+        "model-model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-31200_task-masked_lm",
+        "model-model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-400_task-masked_lm",
+        "model-model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1235_ckpt-14400_task-masked_lm",
+        "model-model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1235_ckpt-31200_task-masked_lm",
+        "model-model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1235_ckpt-400_task-masked_lm",
+    ]
+
+    embeddings_data_prep_sampling_folder_list: list[str] = [
+        "sampling-random_seed-42_samples-30000",
+        "sampling-take_first_seed-42_samples-30000",
+    ]
+
+    for data_folder, model_folder, embeddings_data_prep_sampling_folder in tqdm(
+        product(
+            data_folder_list,
+            model_folder_list,
+            embeddings_data_prep_sampling_folder_list,
+        ),
+        desc="Iterating over folder choices",
+    ):
+        analysis_base_directory: pathlib.Path = pathlib.Path(
+            embeddings_path_manager.data_dir,
+            "analysis",
+            "twonn",
+            data_folder,
+            "lvl-token/add-prefix-space-True_max-len-512/",
+            model_folder,
+            "layer--1_agg-mean/norm-None/",
+            embeddings_data_prep_sampling_folder,
+        )
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"{analysis_base_directory = }",  # noqa: G004 - low overhead
+            )
+
+        if not analysis_base_directory.exists():
+            logger.warning(
+                msg=f"Directory does not exist: {analysis_base_directory = }",  # noqa: G004 - low overhead
+            )
+            continue
+
+        run_comparison_for_analysis_base_directory(
+            analysis_base_directory=analysis_base_directory,
+            data_dir=embeddings_path_manager.data_dir,
+            verbosity=verbosity,
+            logger=logger,
+        )
 
     logger.info(
         msg="Running script DONE",
