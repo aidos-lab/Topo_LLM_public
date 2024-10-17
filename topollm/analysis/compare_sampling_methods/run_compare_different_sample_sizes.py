@@ -1,0 +1,378 @@
+# Copyright 2024
+# Heinrich Heine University Dusseldorf,
+# Faculty of Mathematics and Natural Sciences,
+# Computer Science Department
+#
+# Authors:
+# Benjamin Ruppik (ruppik@hhu.de)
+# Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
+#
+# Code generation tools and workflows:
+# First versions of this code were potentially generated
+# with the help of AI writing assistants including
+# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
+# Afterwards, the generated segments were manually reviewed and edited.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""Run script to create embedding vectors from dataset based on config."""
+
+import logging
+import pathlib
+import re
+from itertools import product
+from typing import TYPE_CHECKING
+
+import hydra
+import hydra.core.hydra_config
+import numpy as np
+import omegaconf
+import pandas as pd
+from tqdm import tqdm
+
+from topollm.analysis.compare_sampling_methods.compute_correlations import compute_and_save_correlations
+from topollm.analysis.compare_sampling_methods.log_statistics_of_array import log_statistics_of_array
+from topollm.analysis.compare_sampling_methods.make_plots import make_mean_std_plot, make_multiple_line_plots
+from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
+from topollm.config_classes.setup_OmegaConf import setup_omega_conf
+from topollm.logging.initialize_configuration_and_log import initialize_configuration
+from topollm.logging.log_array_info import log_array_info
+from topollm.logging.log_dataframe_info import log_dataframe_info
+from topollm.logging.setup_exception_logging import setup_exception_logging
+from topollm.path_management.embeddings.factory import get_embeddings_path_manager
+from topollm.typing.enums import Verbosity
+
+if TYPE_CHECKING:
+    from topollm.config_classes.main_config import MainConfig
+    from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
+
+try:
+    from hydra_plugins import hpc_submission_launcher
+
+    hpc_submission_launcher.register_plugin()
+except ImportError:
+    pass
+
+# logger for this file
+global_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
+
+setup_exception_logging(
+    logger=global_logger,
+)
+
+setup_omega_conf()
+
+
+@hydra.main(
+    config_path=f"{HYDRA_CONFIGS_BASE_PATH}",
+    config_name="main_config",
+    version_base="1.3",
+)
+def main(
+    config: omegaconf.DictConfig,
+) -> None:
+    """Run the script."""
+    logger: logging.Logger = global_logger
+    logger.info(
+        msg="Running script ...",
+    )
+
+    main_config: MainConfig = initialize_configuration(
+        config=config,
+        logger=logger,
+    )
+    verbosity: Verbosity = main_config.verbosity
+
+    embeddings_path_manager: EmbeddingsPathManager = get_embeddings_path_manager(
+        main_config=main_config,
+        logger=logger,
+    )
+
+    mode = "create_all_plots"
+
+    if mode == "create_all_plots":
+        data_folder_list: list[str] = [
+            "data-multiwoz21_split-train_ctxt-dataset_entry_samples-10000_feat-col-ner_tags",
+            "data-multiwoz21_split-validation_ctxt-dataset_entry_samples-3000_feat-col-ner_tags",
+            "data-multiwoz21_split-test_ctxt-dataset_entry_samples-3000_feat-col-ner_tags",
+            "data-one-year-of-tsla-on-reddit_split-train_ctxt-dataset_entry_samples-10000_feat-col-ner_tags",
+            "data-one-year-of-tsla-on-reddit_split-validation_ctxt-dataset_entry_samples-3000_feat-col-ner_tags",
+            "data-one-year-of-tsla-on-reddit_split-test_ctxt-dataset_entry_samples-3000_feat-col-ner_tags",
+        ]
+        model_folder_list: list[str] = [
+            "model-roberta-base_task-masked_lm",
+            "model-model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-14400_task-masked_lm",
+            "model-model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-31200_task-masked_lm",
+            "model-model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-400_task-masked_lm",
+            "model-model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1235_ckpt-14400_task-masked_lm",
+            "model-model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1235_ckpt-31200_task-masked_lm",
+            "model-model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1235_ckpt-400_task-masked_lm",
+            "model-model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-14400_task-masked_lm",
+            "model-model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-31200_task-masked_lm",
+            "model-model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-400_task-masked_lm",
+            "model-model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1235_ckpt-14400_task-masked_lm",
+            "model-model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1235_ckpt-31200_task-masked_lm",
+            "model-model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1235_ckpt-400_task-masked_lm",
+        ]
+        embeddings_data_prep_sampling_folder_list: list[str] = [
+            "sampling-random_seed-42_samples-30000",
+            "sampling-take_first_seed-42_samples-30000",
+        ]
+    elif mode == "create_debug_plots":
+        data_folder_list: list[str] = [
+            "data-multiwoz21_split-train_ctxt-dataset_entry_samples-10000_feat-col-ner_tags",
+        ]
+        model_folder_list: list[str] = [
+            "model-roberta-base_task-masked_lm",
+        ]
+        embeddings_data_prep_sampling_folder_list: list[str] = [
+            "sampling-random_seed-42_samples-30000",
+            "sampling-take_first_seed-42_samples-30000",
+        ]
+    else:
+        msg = "Invalid mode"
+        raise ValueError(
+            msg,
+        )
+
+    for data_folder, model_folder, embeddings_data_prep_sampling_folder in tqdm(
+        iterable=product(
+            data_folder_list,
+            model_folder_list,
+            embeddings_data_prep_sampling_folder_list,
+        ),
+        desc="Iterating over folder choices",
+    ):
+        analysis_base_directory: pathlib.Path = pathlib.Path(
+            embeddings_path_manager.data_dir,
+            "analysis",
+            "twonn",
+            data_folder,
+            "lvl-token",
+            "add-prefix-space-True_max-len-512",
+            model_folder,
+            "layer--1_agg-mean",
+            "norm-None",
+            embeddings_data_prep_sampling_folder,
+        )
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"{analysis_base_directory = }",  # noqa: G004 - low overhead
+            )
+
+        if not analysis_base_directory.exists():
+            logger.warning(
+                msg=f"Directory does not exist: {analysis_base_directory = }",  # noqa: G004 - low overhead
+            )
+            continue
+
+        run_comparison_for_analysis_base_directory(
+            analysis_base_directory=analysis_base_directory,
+            data_dir=embeddings_path_manager.data_dir,
+            verbosity=verbosity,
+            logger=logger,
+        )
+
+    logger.info(
+        msg="Running script DONE",
+    )
+
+
+def run_comparison_for_analysis_base_directory(
+    analysis_base_directory: pathlib.Path,
+    data_dir: pathlib.Path,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
+    # Define the new base directory for saving results
+    results_base_directory = pathlib.Path(
+        data_dir,
+        "analysis",
+        "sample_sizes",
+        analysis_base_directory.relative_to(
+            data_dir,
+        ),
+    )
+    results_base_directory.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"{results_base_directory = }",  # noqa: G004 - low overhead
+        )
+
+    truncation_size: int = 2500
+
+    # Discover directories matching the expected pattern
+    # (e.g., "desc-twonn_samples-<sample_size>_zerovec-keep")
+    pattern = re.compile(
+        pattern=r"desc-twonn_samples-(\d+)_zerovec-keep",
+    )
+
+    # Iterate through the folders in the base directory
+    sorted_df, arrays_truncated_stacked = process_subdirectories(
+        analysis_base_directory=analysis_base_directory,
+        pattern=pattern,
+        truncation_size=truncation_size,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+    # Save the results DataFrame to a CSV file for archiving
+    sorted_df_save_path: pathlib.Path = results_base_directory / "sorted_df.csv"
+    sorted_df.to_csv(
+        path_or_buf=sorted_df_save_path,
+        index=False,
+    )
+
+    arrays_truncated_stacked_plot_save_path: pathlib.Path = results_base_directory / "arrays_truncated_stacked.pdf"
+    make_multiple_line_plots(
+        array=arrays_truncated_stacked,
+        sample_sizes=sorted_df["sample_size"].to_numpy(),
+        additional_title=str(analysis_base_directory),
+        show_plot=False,
+        save_path=arrays_truncated_stacked_plot_save_path,
+    )
+
+    compute_and_save_correlations(
+        arrays_truncated_stacked=arrays_truncated_stacked,
+        results_base_directory=results_base_directory,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+    sorted_df_plot_save_path: pathlib.Path = results_base_directory / "sorted_df.pdf"
+    make_mean_std_plot(
+        sorted_df=sorted_df,
+        additional_title=str(analysis_base_directory),
+        show_plot=False,
+        save_path=sorted_df_plot_save_path,
+    )
+
+
+def process_subdirectories(
+    analysis_base_directory: pathlib.Path,
+    pattern: re.Pattern,
+    truncation_size: int,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> tuple[
+    pd.DataFrame,
+    np.ndarray,
+]:
+    """Process the subdirectories of the analysis base directory."""
+    arrays_truncated_list = []
+    mean_list = []
+    std_list = []
+    sample_sizes_list: list[int] = []
+
+    for subdirectory in analysis_base_directory.iterdir():
+        if subdirectory.is_dir():
+            match = pattern.match(
+                string=subdirectory.name,
+            )
+            if match:
+                if verbosity >= Verbosity.NORMAL:
+                    logger.info(
+                        msg=f"{match = }",  # noqa: G004 - low overhead
+                    )
+                    logger.info(
+                        msg=f"Processing subdirectory: {subdirectory = }",  # noqa: G004 - low overhead
+                    )
+
+                sample_size = int(match.group(1))
+                sample_sizes_list.append(
+                    sample_size,
+                )
+
+                # Load the array from the current directory
+                current_array_path: pathlib.Path = subdirectory / "local_estimates_paddings_removed.npy"
+                current_array = np.load(
+                    file=current_array_path,
+                )
+
+                if verbosity >= Verbosity.NORMAL:
+                    log_statistics_of_array(
+                        array=current_array,
+                        array_name=f"current_array {subdirectory = }",
+                        logger=logger,
+                    )
+
+                # Truncate the arrays to the first common elements, so that we can compare them
+                current_array_truncated = current_array[:truncation_size,]
+
+                arrays_truncated_list.append(
+                    current_array_truncated,
+                )
+                mean_list.append(
+                    np.mean(current_array_truncated),
+                )
+                std_list.append(
+                    np.std(current_array_truncated),
+                )
+
+    # Create a DataFrame to store results
+    results_df = pd.DataFrame(
+        data={
+            "sample_size": sample_sizes_list,
+            "mean": mean_list,
+            "std": std_list,
+        },
+    )
+
+    if verbosity >= Verbosity.NORMAL:
+        log_dataframe_info(
+            df=results_df,
+            df_name="results_df (before sorting)",
+            logger=logger,
+        )
+
+    # Sort the DataFrame by sample_size.
+    # Do not reset the index, as we want to know the original order of the arrays.
+    sorted_df: pd.DataFrame = results_df.sort_values(
+        by="sample_size",
+    )
+
+    if verbosity >= Verbosity.NORMAL:
+        log_dataframe_info(
+            df=sorted_df,
+            df_name="sorted_df",
+            logger=logger,
+        )
+
+    # Sort the stacked arrays accordingly
+    sorted_indices = sorted_df.index.to_numpy()
+    arrays_truncated_sorted = [arrays_truncated_list[i] for i in sorted_indices]
+    arrays_truncated_stacked = np.stack(
+        arrays_truncated_sorted,
+        axis=0,
+    )
+
+    if verbosity >= Verbosity.NORMAL:
+        log_array_info(
+            array_=arrays_truncated_stacked,
+            array_name="arrays_truncated_stacked",
+            logger=logger,
+        )
+
+    return sorted_df, arrays_truncated_stacked
+
+
+if __name__ == "__main__":
+    main()
