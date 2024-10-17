@@ -100,10 +100,10 @@
             ]
         },
         {
-            "name": "run_twonn.py",
+            "name": "run_local_estimates.py",
             "type": "debugpy",
             "request": "launch",
-            "program": "topollm/analysis/twonn/run_twonn.py",
+            "program": "topollm/analysis/local_estimates_computation/run_local_estimates.py",
             "console": "integratedTerminal",
             "args": [
                 "data=multiwoz21",

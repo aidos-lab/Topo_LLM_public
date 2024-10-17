@@ -31,7 +31,7 @@ import pathlib
 import numpy as np
 import pandas as pd
 
-from topollm.analysis.local_estimates.saving.local_estimates_containers import LocalEstimatesContainer
+from topollm.analysis.local_estimates_handling.saving.local_estimates_containers import LocalEstimatesContainer
 from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 from topollm.typing.enums import Verbosity
 
@@ -48,10 +48,10 @@ def save_local_estimates(
     # TODO: Implement saving the global estimate as well
 
     local_estimates_dir_absolute_path: pathlib.Path = embeddings_path_manager.get_local_estimates_dir_absolute_path()
-    local_estimates_array_save_path: pathlib.Path = (
+    local_estimates_pointwise_array_save_path: pathlib.Path = (
         embeddings_path_manager.get_local_estimates_pointwise_array_save_path()
     )
-    local_estimates_meta_save_path: pathlib.Path = (
+    local_estimates_pointwise_meta_save_path: pathlib.Path = (
         embeddings_path_manager.get_local_estimates_pointwise_meta_save_path()
     )
 
@@ -60,10 +60,10 @@ def save_local_estimates(
             msg=f"{local_estimates_dir_absolute_path = }",  # noqa: G004 - low overhead
         )
         logger.info(
-            msg=f"{local_estimates_array_save_path = }",  # noqa: G004 - low overhead
+            msg=f"{local_estimates_pointwise_array_save_path = }",  # noqa: G004 - low overhead
         )
         logger.info(
-            msg=f"{local_estimates_meta_save_path = }",  # noqa: G004 - low overhead
+            msg=f"{local_estimates_pointwise_meta_save_path = }",  # noqa: G004 - low overhead
         )
 
     # Make sure the save path exists
@@ -71,11 +71,11 @@ def save_local_estimates(
         parents=True,
         exist_ok=True,
     )
-    pathlib.Path(local_estimates_array_save_path).parent.mkdir(
+    pathlib.Path(local_estimates_pointwise_array_save_path).parent.mkdir(
         parents=True,
         exist_ok=True,
     )
-    pathlib.Path(local_estimates_meta_save_path).parent.mkdir(
+    pathlib.Path(local_estimates_pointwise_meta_save_path).parent.mkdir(
         parents=True,
         exist_ok=True,
     )
@@ -86,7 +86,7 @@ def save_local_estimates(
         )
 
     np.save(
-        file=local_estimates_array_save_path,
+        file=local_estimates_pointwise_array_save_path,
         arr=local_estimates_container.pointwise_results_array_np,
     )
 
@@ -107,7 +107,7 @@ def save_local_estimates(
         )
 
     local_estimates_container.pointwise_results_meta_frame.to_pickle(
-        path=local_estimates_meta_save_path,
+        path=local_estimates_pointwise_meta_save_path,
     )
 
     if verbosity >= Verbosity.NORMAL:
@@ -122,9 +122,13 @@ def load_local_estimates(
     logger: logging.Logger = default_logger,
 ) -> LocalEstimatesContainer:
     """Load the local estimates from disk."""
-    local_estimates_dir_absolute_path = embeddings_path_manager.get_local_estimates_dir_absolute_path()
-    local_estimates_array_save_path = embeddings_path_manager.get_local_estimates_pointwise_array_save_path()
-    local_estimates_meta_save_path = embeddings_path_manager.get_local_estimates_pointwise_meta_save_path()
+    local_estimates_dir_absolute_path: pathlib.Path = embeddings_path_manager.get_local_estimates_dir_absolute_path()
+    local_estimates_array_save_path: pathlib.Path = (
+        embeddings_path_manager.get_local_estimates_pointwise_array_save_path()
+    )
+    local_estimates_meta_save_path: pathlib.Path = (
+        embeddings_path_manager.get_local_estimates_pointwise_meta_save_path()
+    )
 
     if verbosity >= Verbosity.NORMAL:
         logger.info(

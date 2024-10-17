@@ -31,7 +31,9 @@ import logging
 
 import torch
 
-from topollm.analysis.twonn.twonn_worker import twonn_worker
+from topollm.analysis.local_estimates_computation.global_and_pointwise_local_estimates_worker import (
+    global_and_pointwise_local_estimates_worker,
+)
 from topollm.compute_embeddings.compute_and_store_embeddings import compute_and_store_embeddings
 from topollm.config_classes.main_config import MainConfig
 from topollm.embeddings_data_prep.embeddings_data_prep_worker import embeddings_data_prep_worker
@@ -100,7 +102,7 @@ def worker_for_pipeline(
         )
         logger.info("Calling local estimates worker ...")
 
-    twonn_worker(
+    global_and_pointwise_local_estimates_worker(
         main_config=main_config,
         device=device,
         verbosity=main_config.verbosity,

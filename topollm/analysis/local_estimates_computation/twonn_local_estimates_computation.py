@@ -38,27 +38,32 @@ from topollm.typing.enums import Verbosity
 default_logger = logging.getLogger(__name__)
 
 
-def twonn_local_estimates_computation(
+def global_and_pointwise_local_estimates_computation(
     array_for_estimator: np.ndarray,
-    discard_fraction: float = 0.1,
+    twonn_discard_fraction: float = 0.1,
     n_jobs: int = 1,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> np.ndarray:
     """Run the local estimates computation."""
     # Number of neighbors which are used for the computation
+
+    # TODO: Update this to use the values from the config
     n_neighbors = round(len(array_for_estimator) * 0.8)
+
     if verbosity >= Verbosity.NORMAL:
         logger.info(
-            f"{n_neighbors = }",  # noqa: G004 - low overhead
+            msg=f"{n_neighbors = }",  # noqa: G004 - low overhead
         )
 
     estimator = skdim.id.TwoNN(
-        discard_fraction=discard_fraction,
+        discard_fraction=twonn_discard_fraction,
     )
 
     if verbosity >= Verbosity.NORMAL:
-        logger.info("Calling estimator.fit_pw() ...")
+        logger.info(
+            msg="Calling estimator.fit_pw() ...",
+        )
 
     fitted_estimator = estimator.fit_pw(
         X=array_for_estimator,
@@ -69,18 +74,22 @@ def twonn_local_estimates_computation(
     )
 
     if verbosity >= Verbosity.NORMAL:
-        logger.info("Calling estimator.fit_pw() DONE")
+        logger.info(
+            msg="Calling estimator.fit_pw() DONE",
+        )
 
-    results_array = list(fitted_estimator.dimension_pw_)
+    pointwise_results_array = list(
+        fitted_estimator.dimension_pw_,
+    )
 
-    results_array_np = np.array(
-        results_array,
+    pointwise_results_array_np = np.array(
+        pointwise_results_array,
     )
 
     if verbosity >= Verbosity.NORMAL:
         log_array_info(
-            results_array_np,
-            array_name="results_array_np",
+            array_=pointwise_results_array_np,
+            array_name="pointwise_results_array_np",
             log_array_size=True,
             log_row_l2_norms=False,  # Note: This is a one-dimensional array, so the l2-norms are not meaningful
             logger=logger,
@@ -88,10 +97,10 @@ def twonn_local_estimates_computation(
 
         # Log the mean and standard deviation of the local estimates
         logger.info(
-            f"Mean of local estimates: {results_array_np.mean() = }",  # noqa: G004 - low overhead
+            msg=f"{pointwise_results_array_np.mean() = }",  # noqa: G004 - low overhead
         )
         logger.info(
-            f"Standard deviation of local estimates: {results_array_np.std() = }",  # noqa: G004 - low overhead
+            msg=f"{pointwise_results_array_np.std() = }",  # noqa: G004 - low overhead
         )
 
-    return results_array_np
+    return pointwise_results_array_np

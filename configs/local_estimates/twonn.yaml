@@ -8,5 +8,6 @@ filtering:
   zero_vector_handling_mode: "keep"
 
 pointwise:
-  n_neighbors_mode: "absolute_size"
+  n_neighbors_mode: "relative_size"
   absolute_n_neighbors: 128
+  relative_n_neighbors: 0.8

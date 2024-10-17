@@ -34,7 +34,9 @@ import hydra
 import hydra.core.hydra_config
 import omegaconf
 
-from topollm.analysis.twonn.twonn_worker import twonn_worker
+from topollm.analysis.local_estimates_computation.global_and_pointwise_local_estimates_worker import (
+    global_and_pointwise_local_estimates_worker,
+)
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
@@ -83,7 +85,7 @@ def main(
         logger=global_logger,
     )
 
-    twonn_worker(
+    global_and_pointwise_local_estimates_worker(
         main_config=main_config,
         device=device,
         verbosity=main_config.verbosity,

@@ -33,8 +33,8 @@ import pandas as pd
 import transformers
 from huggingface_hub.errors import HFValidationError
 
-from topollm.analysis.local_estimates.saving.local_estimates_containers import LocalEstimatesContainer
-from topollm.analysis.local_estimates.saving.save_local_estimates import load_local_estimates
+from topollm.analysis.local_estimates_handling.saving.local_estimates_containers import LocalEstimatesContainer
+from topollm.analysis.local_estimates_handling.saving.save_local_estimates import load_local_estimates
 from topollm.config_classes.main_config import MainConfig
 from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.model_handling.tokenizer.load_modified_tokenizer_from_main_config import (
