@@ -75,6 +75,7 @@ class SeedListOption(StrEnum):
     """Options for the seed lists."""
 
     DO_NOT_SET = auto()
+    ONE_SEED = auto()
     TWO_SEEDS = auto()
     FIVE_SEEDS = auto()
 
@@ -84,5 +85,6 @@ class LocalEstimatesFilteringNumSamplesListOption(StrEnum):
 
     DEFAULT = auto()
     FEW_SMALL_STEPS_NUM_SAMPLES = auto()
+    MEDIUM_SMALL_STEPS_NUM_SAMPLES = auto()
     MANY_SMALL_STEPS_NUM_SAMPLES = auto()
     MANY_LARGE_STEPS_NUM_SAMPLES = auto()

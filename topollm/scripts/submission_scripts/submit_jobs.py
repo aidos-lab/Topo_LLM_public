@@ -54,11 +54,11 @@ def run_task(
     """Run a task with the given configuration."""
     match task:
         case Task.LOCAL_ESTIMATES_COMPUTATION:
-            submissions_config.python_script_name = "run_twonn.py"
+            submissions_config.python_script_name = "run_local_estimates.py"
             submissions_config.relative_python_script_folder = pathlib.Path(
                 "topollm",
                 "analysis",
-                "twonn",
+                "local_estimates_computation",
             )
         case Task.PIPELINE:
             submissions_config.python_script_name = (
@@ -157,6 +157,12 @@ def parse_arguments() -> argparse.Namespace:
         type=str,
         default=None,
         help="Number of GPUs.",
+    )
+    parser.add_argument(
+        "--walltime",
+        type=str,
+        default="8:00:00",
+        help="Walltime.",
     )
 
     # Selecting groups of data and language models
@@ -276,6 +282,10 @@ full_finetuned_few_epochs_from_roberta_base_language_model_list = [
 
 setsumbt_model_list = [
     "model-roberta-base_task-setsumbt_multiwoz21",
+]
+
+seed_list_option_one_seed: list[str] = [
+    "1234",
 ]
 
 seed_list_option_two_seeds: list[str] = [
@@ -407,6 +417,8 @@ def make_config_and_run_task(
     match args.language_model_seed_list:
         case SeedListOption.DO_NOT_SET:
             language_model_seed_list = None
+        case SeedListOption.ONE_SEED:
+            language_model_seed_list = seed_list_option_one_seed
         case SeedListOption.TWO_SEEDS:
             language_model_seed_list = seed_list_option_two_seeds
         case SeedListOption.FIVE_SEEDS:
@@ -449,6 +461,15 @@ def make_config_and_run_task(
                 "5000",
                 "7500",
                 "10000",
+            ]
+        case LocalEstimatesFilteringNumSamplesListOption.MEDIUM_SMALL_STEPS_NUM_SAMPLES:
+            local_estimates_filtering_num_samples_list = [
+                "2500",
+                "5000",
+                "7500",
+                "10000",
+                "12500",
+                "15000",
             ]
         case LocalEstimatesFilteringNumSamplesListOption.MANY_SMALL_STEPS_NUM_SAMPLES:
             local_estimates_filtering_num_samples_list = [
@@ -510,7 +531,7 @@ def make_config_and_run_task(
         memory=args.memory,
         ncpus=args.ncpus,
         ngpus=args.ngpus,
-        walltime="24:00:00",
+        walltime=args.walltime,
         additional_overrides=args.additional_overrides,
         data_list=data_list,
         additional_data_options=additional_data_options,

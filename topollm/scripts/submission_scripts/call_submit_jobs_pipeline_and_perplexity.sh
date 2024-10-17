@@ -23,9 +23,10 @@ DO_LOCAL_ESTIMATES_COMPUTATION="true"
 EMBEDDINGS_DATA_PREP_SAMPLING_MODE="random"
 # EMBEDDINGS_DATA_PREP_SAMPLING_MODE="take_first"
 
-# LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="few_small_steps_num_samples"
+LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="few_small_steps_num_samples"
+# LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="medium_small_steps_num_samples"
 # LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="many_small_steps_num_samples"
-LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="many_large_steps_num_samples"
+# LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="many_large_steps_num_samples"
 
 ### Without POS tags for multiwoz21_and_reddit but many checkpoints
 #
@@ -41,26 +42,26 @@ LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="many_large_steps_num_samples"
 ### With POS tags for finetuned models and three checkpoints and two seeds
 #
 # DATA_LIST="full"
-DATA_LIST="multiwoz21_and_reddit"
+# DATA_LIST="multiwoz21_and_reddit"
 
-LANGUAGE_MODEL_LIST="selected_finetuned_many_epochs_from_roberta_base"
-LANGUAGE_MODEL_SEED_LIST="two_seeds"
-CHECKPOINT_NO_LIST="only_beginning_and_middle_and_end"
-FINETUNING_REGIME="many_epochs_with_overfitting_risk"
-ADD_PREFIX_SPACE_FLAG="--add_prefix_space"
-CREATE_POS_TAGS_FLAG="--create_pos_tags"
+# LANGUAGE_MODEL_LIST="selected_finetuned_many_epochs_from_roberta_base"
+# LANGUAGE_MODEL_SEED_LIST="one_seed"
+# CHECKPOINT_NO_LIST="only_beginning_and_middle_and_end"
+# FINETUNING_REGIME="many_epochs_with_overfitting_risk"
+# ADD_PREFIX_SPACE_FLAG="--add_prefix_space"
+# CREATE_POS_TAGS_FLAG="--create_pos_tags"
 
 ### With POS tags for base model
 #
 # DATA_LIST="full"
-# DATA_LIST="multiwoz21_and_reddit"
+DATA_LIST="multiwoz21_and_reddit"
 
-# LANGUAGE_MODEL_LIST="only_roberta_base"
-# LANGUAGE_MODEL_SEED_LIST="do_not_set"
-# CHECKPOINT_NO_LIST="selected" # Will be ignored for the base model
-# FINETUNING_REGIME="few_epochs" # Will be ignored for the base model
-# ADD_PREFIX_SPACE_FLAG="--add_prefix_space"
-# CREATE_POS_TAGS_FLAG="--create_pos_tags"
+LANGUAGE_MODEL_LIST="only_roberta_base"
+LANGUAGE_MODEL_SEED_LIST="do_not_set"
+CHECKPOINT_NO_LIST="selected" # Will be ignored for the base model
+FINETUNING_REGIME="few_epochs" # Will be ignored for the base model
+ADD_PREFIX_SPACE_FLAG="--add_prefix_space"
+CREATE_POS_TAGS_FLAG="--create_pos_tags"
 
 # ================================================================== #
 
@@ -108,15 +109,22 @@ if [ "$DO_PERPLEXITY" = "true" ]; then
         $DRY_RUN_FLAG
 fi
 
+# Note:
+# Use the following options for running on CPU machines.
+#
+# --template="CPU" \
+# --queue="DEFAULT" \
+# --ngpus="0" \        
+
 if [ "$DO_LOCAL_ESTIMATES_COMPUTATION" = "true" ]; then
     # This is a CPU task, so we do not ask for a GPU.
     poetry run submit_jobs \
         --task="local_estimates_computation" \
-        --template="CPU" \
-        --queue="DEFAULT" \
+        --queue="DSML" \
+        --template="DSML" \
         --memory="16" \
-        --ncpus="32" \
-        --ngpus="0" \
+        --ncpus="16" \
+        --walltime="8:00:00" \
         --data_list=$DATA_LIST \
         $CREATE_POS_TAGS_FLAG \
         --language_model_list=$LANGUAGE_MODEL_LIST \
