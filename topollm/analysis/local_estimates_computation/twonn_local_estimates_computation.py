@@ -51,7 +51,7 @@ def global_and_pointwise_local_estimates_computation(
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> tuple[
-    np.ndarray,
+    np.ndarray | None,
     np.ndarray,
 ]:
     """Run the local estimates computation."""
@@ -63,16 +63,23 @@ def global_and_pointwise_local_estimates_computation(
         logger=logger,
     )
 
+    # # # #
+    # Estimator setup
     estimator = skdim.id.TwoNN(
         discard_fraction=twonn_discard_fraction,
     )
 
+    # # # #
+    # Pointwise estimates computation
     if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg="Pointwise computation.",
+        )
         logger.info(
             msg="Calling estimator.fit_pw() ...",
         )
 
-    fitted_estimator = estimator.fit_pw(
+    fitted_pw_estimator = estimator.fit_pw(
         X=array_for_estimator,
         precomputed_knn=None,
         smooth=False,
@@ -86,7 +93,7 @@ def global_and_pointwise_local_estimates_computation(
         )
 
     pointwise_results_array = list(
-        fitted_estimator.dimension_pw_,
+        fitted_pw_estimator.dimension_pw_,
     )
 
     pointwise_results_array_np = np.array(
@@ -110,9 +117,33 @@ def global_and_pointwise_local_estimates_computation(
             msg=f"{pointwise_results_array_np.std() = }",  # noqa: G004 - low overhead
         )
 
-    # TODO: Implement the global estimate
+    # # # #
+    # Global estimate computation
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg="Global computation.",
+        )
+        logger.info(
+            msg="Calling estimator.fit_transform() ...",
+        )
+
+    global_dimension = estimator.fit_transform(
+        X=array_for_estimator,
+    )
+
     global_estimate_array_np = np.array(
-        [0.0],
-    )  # TODO: Placeholder value
+        [global_dimension],
+    )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg="Calling estimator.fit_transform() DONE",
+        )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            "global_estimate_array_np:\n%s",
+            global_estimate_array_np,
+        )
 
     return global_estimate_array_np, pointwise_results_array_np
