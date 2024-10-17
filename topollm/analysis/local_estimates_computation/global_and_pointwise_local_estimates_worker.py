@@ -53,11 +53,14 @@ if TYPE_CHECKING:
     import numpy as np
 
     from topollm.analysis.local_estimates_handling.filter.protocol import LocalEstimatesFilter
+    from topollm.config_classes.local_estimates.plot_config import LocalEstminatesPlotConfig
     from topollm.embeddings_data_prep.prepared_data_containers import PreparedData
     from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 
-default_device = torch.device("cpu")
-default_logger = logging.getLogger(__name__)
+default_device = torch.device(device="cpu")
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 def global_and_pointwise_local_estimates_worker(
@@ -99,7 +102,7 @@ def global_and_pointwise_local_estimates_worker(
     )
 
     # Restrict to the first `local_estimates_sample_size` samples
-    local_estimates_sample_size = main_config.local_estimates.filtering.num_samples
+    local_estimates_sample_size: int = main_config.local_estimates.filtering.num_samples
     prepared_data_filtered_truncated: PreparedData = truncate_prepared_data(
         prepared_data=prepared_data_filtered,
         local_estimates_sample_size=local_estimates_sample_size,
@@ -126,6 +129,7 @@ def global_and_pointwise_local_estimates_worker(
 
     results_array_np = global_and_pointwise_local_estimates_computation(
         array_for_estimator=array_for_estimator,
+        pointwise_config=main_config.local_estimates.pointwise,
         verbosity=verbosity,
         logger=logger,
     )
@@ -147,7 +151,7 @@ def global_and_pointwise_local_estimates_worker(
     # # # #
     # Create plots
     if main_config.feature_flags.analysis.create_plots_in_local_estimates_worker:
-        local_estimates_plot_config = main_config.local_estimates.plot
+        local_estimates_plot_config: LocalEstminatesPlotConfig = main_config.local_estimates.plot
 
         tsne_array: np.ndarray = create_projected_data(
             array=prepared_data_filtered.array,
@@ -175,14 +179,14 @@ def global_and_pointwise_local_estimates_worker(
                 logger=logger,
             )
 
-            number_of_points_in_plot = len(tsne_df)
+            number_of_points_in_plot: int = len(tsne_df)
             output_folder = pathlib.Path(
                 embeddings_path_manager.get_saved_plots_local_estimates_projection_dir_absolute_path(),
                 f"no-points-in-plot-{number_of_points_in_plot}",
             )
             if verbosity >= Verbosity.NORMAL:
                 logger.info(
-                    f"Saving projection plot to {output_folder = }",  # noqa: G004 - low overhead
+                    msg=f"Saving projection plot to {output_folder = }",  # noqa: G004 - low overhead
                 )
 
             save_projection_plot(

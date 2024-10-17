@@ -53,6 +53,12 @@ class LocalEstimatesPointwiseConfig(ConfigBaseModel):
         description="The relative number of neighbors to use for the pointwise estimate computation.",
     )
 
+    n_jobs: int = Field(
+        default=1,
+        title="Number of jobs.",
+        description="The number of jobs to use for the computation.",
+    )
+
     @property
     def config_description(
         self,

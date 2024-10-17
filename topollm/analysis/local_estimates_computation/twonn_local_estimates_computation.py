@@ -32,29 +32,33 @@ import logging
 import numpy as np
 import skdim
 
+from topollm.analysis.local_estimates_computation.get_n_neighbors_from_array_len_and_pointwise_config import (
+    get_n_neighbors_from_array_len_and_pointwise_config,
+)
+from topollm.config_classes.local_estimates.pointwise_config import LocalEstimatesPointwiseConfig
 from topollm.logging.log_array_info import log_array_info
 from topollm.typing.enums import Verbosity
 
-default_logger = logging.getLogger(__name__)
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 def global_and_pointwise_local_estimates_computation(
     array_for_estimator: np.ndarray,
+    pointwise_config: LocalEstimatesPointwiseConfig,
     twonn_discard_fraction: float = 0.1,
-    n_jobs: int = 1,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> np.ndarray:
     """Run the local estimates computation."""
-    # Number of neighbors which are used for the computation
-
-    # TODO: Update this to use the values from the config
-    n_neighbors = round(len(array_for_estimator) * 0.8)
-
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            msg=f"{n_neighbors = }",  # noqa: G004 - low overhead
-        )
+    # Number of neighbors which are used for the computation of the pointwise local estimates
+    n_neighbors: int = get_n_neighbors_from_array_len_and_pointwise_config(
+        array_len=len(array_for_estimator),
+        pointwise_config=pointwise_config,
+        verbosity=verbosity,
+        logger=logger,
+    )
 
     estimator = skdim.id.TwoNN(
         discard_fraction=twonn_discard_fraction,
@@ -70,7 +74,7 @@ def global_and_pointwise_local_estimates_computation(
         precomputed_knn=None,
         smooth=False,
         n_neighbors=n_neighbors,
-        n_jobs=n_jobs,
+        n_jobs=pointwise_config.n_jobs,
     )
 
     if verbosity >= Verbosity.NORMAL:

@@ -73,26 +73,32 @@ def main(
     config: omegaconf.DictConfig,
 ) -> None:
     """Run the script."""
-    global_logger.info("Running script ...")
+    logger: logging.Logger = global_logger
+
+    logger.info(
+        msg="Running script ...",
+    )
 
     main_config: MainConfig = initialize_configuration(
         config=config,
-        logger=global_logger,
+        logger=logger,
     )
 
     device = get_torch_device(
         preferred_torch_backend=main_config.preferred_torch_backend,
-        logger=global_logger,
+        logger=logger,
     )
 
     global_and_pointwise_local_estimates_worker(
         main_config=main_config,
         device=device,
         verbosity=main_config.verbosity,
-        logger=global_logger,
+        logger=logger,
     )
 
-    global_logger.info("Script finished.")
+    logger.info(
+        msg="Script finished.",
+    )
 
 
 if __name__ == "__main__":
