@@ -34,11 +34,13 @@ from typing import TYPE_CHECKING
 import torch
 from tqdm import tqdm
 
-from topollm.analysis.local_estimates.filter.get_local_estimates_filter import get_local_estimates_filter
-from topollm.analysis.local_estimates.saving.local_estimates_containers import LocalEstimatesContainer
-from topollm.analysis.local_estimates.saving.save_local_estimates import save_local_estimates
-from topollm.analysis.twonn.truncate_prepared_data import truncate_prepared_data
-from topollm.analysis.twonn.twonn_local_estimates_computation import twonn_local_estimates_computation
+from topollm.analysis.local_estimates_computation.truncate_prepared_data import truncate_prepared_data
+from topollm.analysis.local_estimates_computation.twonn_local_estimates_computation import (
+    global_and_pointwise_local_estimates_computation,
+)
+from topollm.analysis.local_estimates_handling.filter.get_local_estimates_filter import get_local_estimates_filter
+from topollm.analysis.local_estimates_handling.saving.local_estimates_containers import LocalEstimatesContainer
+from topollm.analysis.local_estimates_handling.saving.save_local_estimates import save_local_estimates
 from topollm.analysis.visualization.create_projected_data import create_projected_data
 from topollm.analysis.visualization.create_projection_plot import create_projection_plot, save_projection_plot
 from topollm.config_classes.main_config import MainConfig
@@ -50,15 +52,18 @@ from topollm.typing.enums import Verbosity
 if TYPE_CHECKING:
     import numpy as np
 
-    from topollm.analysis.local_estimates.filter.protocol import LocalEstimatesFilter
+    from topollm.analysis.local_estimates_handling.filter.protocol import LocalEstimatesFilter
+    from topollm.config_classes.local_estimates.plot_config import LocalEstminatesPlotConfig
     from topollm.embeddings_data_prep.prepared_data_containers import PreparedData
     from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 
-default_device = torch.device("cpu")
-default_logger = logging.getLogger(__name__)
+default_device = torch.device(device="cpu")
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
-def twonn_worker(
+def global_and_pointwise_local_estimates_worker(
     main_config: MainConfig,
     device: torch.device = default_device,  # noqa: ARG001 - placeholder for future use
     verbosity: Verbosity = Verbosity.NORMAL,
@@ -81,7 +86,9 @@ def twonn_worker(
 
     # # # #
     if verbosity >= Verbosity.NORMAL:
-        logger.info("Filtering local estimates and truncating to first vectors ...")
+        logger.info(
+            msg="Filtering prepared data and truncating to first vectors ...",
+        )
 
     local_estimates_filter: LocalEstimatesFilter = get_local_estimates_filter(
         local_estimates_filtering_config=main_config.local_estimates.filtering,
@@ -95,7 +102,7 @@ def twonn_worker(
     )
 
     # Restrict to the first `local_estimates_sample_size` samples
-    local_estimates_sample_size = main_config.local_estimates.filtering.num_samples
+    local_estimates_sample_size: int = main_config.local_estimates.filtering.num_samples
     prepared_data_filtered_truncated: PreparedData = truncate_prepared_data(
         prepared_data=prepared_data_filtered,
         local_estimates_sample_size=local_estimates_sample_size,
@@ -105,7 +112,7 @@ def twonn_worker(
 
     if verbosity >= Verbosity.NORMAL:
         log_array_info(
-            array_for_estimator,
+            array_=array_for_estimator,
             array_name="array_for_estimator",
             log_array_size=True,
             log_row_l2_norms=True,
@@ -113,14 +120,16 @@ def twonn_worker(
         )
 
     if verbosity >= Verbosity.NORMAL:
-        logger.info("Filtering local estimates and truncating to first vectors DONE")
+        logger.info(
+            msg="Filtering local estimates and truncating to first vectors DONE",
+        )
 
     # # # #
     # Local estimates computation
 
-    # provide number of jobs for the computation
-    results_array_np = twonn_local_estimates_computation(
+    global_estimate_array_np, pointwise_results_array_np = global_and_pointwise_local_estimates_computation(
         array_for_estimator=array_for_estimator,
+        local_estimates_config=main_config.local_estimates,
         verbosity=verbosity,
         logger=logger,
     )
@@ -128,8 +137,9 @@ def twonn_worker(
     # # # #
     # Save the results
     local_estimates_container = LocalEstimatesContainer(
-        results_array_np=results_array_np,
-        results_meta_frame=prepared_data_filtered_truncated.meta_df,
+        pointwise_results_array_np=pointwise_results_array_np,
+        pointwise_results_meta_frame=prepared_data_filtered_truncated.meta_df,
+        global_estimate_array_np=global_estimate_array_np,
     )
 
     save_local_estimates(
@@ -142,7 +152,7 @@ def twonn_worker(
     # # # #
     # Create plots
     if main_config.feature_flags.analysis.create_plots_in_local_estimates_worker:
-        local_estimates_plot_config = main_config.local_estimates.plot
+        local_estimates_plot_config: LocalEstminatesPlotConfig = main_config.local_estimates.plot
 
         tsne_array: np.ndarray = create_projected_data(
             array=prepared_data_filtered.array,
@@ -154,7 +164,7 @@ def twonn_worker(
         )
 
         for maximum_number_of_points in tqdm(
-            [
+            iterable=[
                 500,
                 1_000,
                 5_000,
@@ -164,20 +174,20 @@ def twonn_worker(
             figure, tsne_df = create_projection_plot(
                 tsne_result=tsne_array,
                 meta_df=prepared_data_filtered.meta_df,
-                results_array_np=results_array_np,
+                results_array_np=pointwise_results_array_np,
                 maximum_number_of_points=maximum_number_of_points,
                 verbosity=verbosity,
                 logger=logger,
             )
 
-            number_of_points_in_plot = len(tsne_df)
+            number_of_points_in_plot: int = len(tsne_df)
             output_folder = pathlib.Path(
                 embeddings_path_manager.get_saved_plots_local_estimates_projection_dir_absolute_path(),
                 f"no-points-in-plot-{number_of_points_in_plot}",
             )
             if verbosity >= Verbosity.NORMAL:
                 logger.info(
-                    f"Saving projection plot to {output_folder = }",  # noqa: G004 - low overhead
+                    msg=f"Saving projection plot to {output_folder = }",  # noqa: G004 - low overhead
                 )
 
             save_projection_plot(

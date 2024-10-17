@@ -92,6 +92,7 @@ NAME_PREFIXES: dict[
     "number_of_samples": "samples",
     "num_samples": "samples",
     "n_neighbors": "n-neighbors",
+    "n_neighbors_mode": "n-neighbors-mode",
     "query": "query",
     "sampling_mode": "sampling",
     "seed": "seed",

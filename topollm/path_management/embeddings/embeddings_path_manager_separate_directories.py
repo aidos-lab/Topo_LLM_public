@@ -46,10 +46,10 @@ class EmbeddingsPathManagerSeparateDirectories:
         logger: logging.Logger = default_logger,
     ) -> None:
         """Initialize the path manager."""
-        self.main_config = main_config
+        self.main_config: MainConfig = main_config
 
-        self.verbosity = verbosity
-        self.logger = logger
+        self.verbosity: Verbosity = verbosity
+        self.logger: logging.Logger = logger
 
     @property
     def data_dir(
@@ -266,7 +266,7 @@ class EmbeddingsPathManagerSeparateDirectories:
         # `embeddings_data_prep.config_description`
         # because the local estimates are computed on the prepared data.
         path = pathlib.Path(
-            self.main_config.local_estimates.description,
+            self.main_config.local_estimates.method_description,
             self.get_nested_subfolder_path(),
             self.main_config.embeddings_data_prep.config_description,
             self.main_config.local_estimates.config_description,
@@ -285,23 +285,45 @@ class EmbeddingsPathManagerSeparateDirectories:
 
         return path
 
-    def get_local_estimates_array_save_path(
+    def get_local_estimates_pointwise_dir_absolute_path(
         self,
-        local_estimates_file_name: str = "local_estimates_paddings_removed.npy",
     ) -> pathlib.Path:
         path = pathlib.Path(
             self.get_local_estimates_dir_absolute_path(),
+            self.main_config.local_estimates.pointwise.config_description,
+        )
+
+        return path
+
+    def get_global_estimate_save_path(
+        self,
+        file_name: str = "global_estimate.npy",
+    ) -> pathlib.Path:
+        """Path for saving the global estimate of the given sample."""
+        path = pathlib.Path(
+            self.get_local_estimates_dir_absolute_path(),
+            file_name,
+        )
+
+        return path
+
+    def get_local_estimates_pointwise_array_save_path(
+        self,
+        local_estimates_file_name: str = "local_estimates_pointwise.npy",
+    ) -> pathlib.Path:
+        path = pathlib.Path(
+            self.get_local_estimates_pointwise_dir_absolute_path(),
             local_estimates_file_name,
         )
 
         return path
 
-    def get_local_estimates_meta_save_path(
+    def get_local_estimates_pointwise_meta_save_path(
         self,
-        local_estimates_meta_file_name: str = "local_estimates_paddings_removed_meta.pkl",
+        local_estimates_meta_file_name: str = "local_estimates_pointwise.pkl",
     ) -> pathlib.Path:
         path = pathlib.Path(
-            self.get_local_estimates_dir_absolute_path(),
+            self.get_local_estimates_pointwise_dir_absolute_path(),
             local_estimates_meta_file_name,
         )
 

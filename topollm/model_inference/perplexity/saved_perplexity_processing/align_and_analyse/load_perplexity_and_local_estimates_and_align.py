@@ -33,8 +33,8 @@ import pandas as pd
 import transformers
 from huggingface_hub.errors import HFValidationError
 
-from topollm.analysis.local_estimates.saving.local_estimates_containers import LocalEstimatesContainer
-from topollm.analysis.local_estimates.saving.save_local_estimates import load_local_estimates
+from topollm.analysis.local_estimates_handling.saving.local_estimates_containers import LocalEstimatesContainer
+from topollm.analysis.local_estimates_handling.saving.save_local_estimates import load_local_estimates
 from topollm.config_classes.main_config import MainConfig
 from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.model_handling.tokenizer.load_modified_tokenizer_from_main_config import (
@@ -193,7 +193,7 @@ def create_aligned_df(
     logger: logging.Logger = default_logger,
 ) -> pd.DataFrame | None:
     """Create an aligned dataframe from the local estimates and the token perplexities."""
-    local_estimates_meta_frame = local_estimates_container.results_meta_frame
+    local_estimates_meta_frame = local_estimates_container.pointwise_results_meta_frame
 
     if local_estimates_meta_frame is None:
         logger.error(
@@ -209,7 +209,9 @@ def create_aligned_df(
         )
 
     # Add the local estimates to the local_estimates_meta_frame
-    local_estimates_meta_frame[aligned_df_local_estimate_column_name] = local_estimates_container.results_array_np
+    local_estimates_meta_frame[aligned_df_local_estimate_column_name] = (
+        local_estimates_container.pointwise_results_array_np
+    )
 
     corresponding_token_perplexities_df = token_perplexities_without_filtered_tokens_df.iloc[
         local_estimates_meta_frame["subsample_idx"]

@@ -25,6 +25,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Run the twonn analysis."""
+
 import logging
 from typing import TYPE_CHECKING
 
@@ -32,7 +34,9 @@ import hydra
 import hydra.core.hydra_config
 import omegaconf
 
-from topollm.analysis.twonn.twonn_worker import twonn_worker
+from topollm.analysis.local_estimates_computation.global_and_pointwise_local_estimates_worker import (
+    global_and_pointwise_local_estimates_worker,
+)
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
@@ -69,26 +73,32 @@ def main(
     config: omegaconf.DictConfig,
 ) -> None:
     """Run the script."""
-    global_logger.info("Running script ...")
+    logger: logging.Logger = global_logger
+
+    logger.info(
+        msg="Running script ...",
+    )
 
     main_config: MainConfig = initialize_configuration(
         config=config,
-        logger=global_logger,
+        logger=logger,
     )
 
     device = get_torch_device(
         preferred_torch_backend=main_config.preferred_torch_backend,
-        logger=global_logger,
+        logger=logger,
     )
 
-    twonn_worker(
+    global_and_pointwise_local_estimates_worker(
         main_config=main_config,
         device=device,
         verbosity=main_config.verbosity,
-        logger=global_logger,
+        logger=logger,
     )
 
-    global_logger.info("Script finished.")
+    logger.info(
+        msg="Script finished.",
+    )
 
 
 if __name__ == "__main__":

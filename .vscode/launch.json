@@ -40,7 +40,10 @@
             "request": "launch",
             "program": "topollm/model_finetuning/run_finetune_language_model_on_huggingface_dataset.py",
             "console": "integratedTerminal",
-            "args": "feature_flags.finetuning.skip_finetuning=true feature_flags.finetuning.use_wandb=false"
+            "args": [
+                "feature_flags.finetuning.skip_finetuning=true",
+                "feature_flags.finetuning.use_wandb=false",
+            ]
         },
         {
             "name": "run_finetune_language_model_on_huggingface_dataset.py; on NER task",
@@ -97,12 +100,13 @@
             ]
         },
         {
-            "name": "run_twonn.py",
+            "name": "run_local_estimates.py",
             "type": "debugpy",
             "request": "launch",
-            "program": "topollm/analysis/twonn/run_twonn.py",
+            "program": "topollm/analysis/local_estimates_computation/run_local_estimates.py",
             "console": "integratedTerminal",
             "args": [
+                "tokenizer.add_prefix_space=True", // This is necessary to use the tokenizer with input split into words
                 "data=multiwoz21",
                 "data.number_of_samples=128",
                 "data.split=validation",
@@ -113,6 +117,11 @@
                 // "+embeddings_data_prep.sampling.sampling_mode=random",
                 "+embeddings_data_prep.sampling.sampling_mode=take_first",
                 "local_estimates.filtering.num_samples=300",
+                "local_estimates.compute_global_estimates=true",
+                "local_estimates.pointwise.n_neighbors_mode=absolute_size",
+                "local_estimates.pointwise.relative_n_neighbors=0.3",
+                "local_estimates.pointwise.absolute_n_neighbors=256",
+                "feature_flags.analysis.create_plots_in_local_estimates_worker=false"
             ]
         },
         {
@@ -122,6 +131,7 @@
             "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
             "console": "integratedTerminal",
             "args": [
+                "tokenizer.add_prefix_space=True", // This is necessary to use the tokenizer with input split into words
                 "data=multiwoz21",
                 "data.number_of_samples=128",
                 "data.split=validation",
@@ -140,8 +150,8 @@
             "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
             "console": "integratedTerminal",
             "args": [
-                "+data.dataset_type=huggingface_dataset_named_entity",
                 "tokenizer.add_prefix_space=True", // This is necessary to use the tokenizer with input split into words
+                "+data.dataset_type=huggingface_dataset_named_entity",
                 "data=multiwoz21",
                 "data.number_of_samples=128",
                 "data.split=validation",

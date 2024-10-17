@@ -29,10 +29,10 @@
 
 import logging
 
-from topollm.analysis.local_estimates.filter.identity_filter import IdentityFilter
-from topollm.analysis.local_estimates.filter.protocol import LocalEstimatesFilter
-from topollm.analysis.local_estimates.filter.remove_zero_vectors_filter import RemoveZeroVectorsFilter
-from topollm.config_classes.local_estimates.local_estimates_filtering_config import LocalEstimatesFilteringConfig
+from topollm.analysis.local_estimates_handling.filter.identity_filter import IdentityFilter
+from topollm.analysis.local_estimates_handling.filter.protocol import LocalEstimatesFilter
+from topollm.analysis.local_estimates_handling.filter.remove_zero_vectors_filter import RemoveZeroVectorsFilter
+from topollm.config_classes.local_estimates.filtering_config import LocalEstimatesFilteringConfig
 from topollm.typing.enums import Verbosity, ZeroVectorHandlingMode
 
 default_logger = logging.getLogger(__name__)
