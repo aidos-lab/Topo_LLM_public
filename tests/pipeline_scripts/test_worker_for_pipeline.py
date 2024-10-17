@@ -47,8 +47,8 @@ from topollm.config_classes.finetuning.peft.peft_config import PEFTConfig
 from topollm.config_classes.inference.inference_config import InferenceConfig
 from topollm.config_classes.language_model.language_model_config import LanguageModelConfig
 from topollm.config_classes.language_model.tokenizer_modifier.tokenizer_modifier_config import TokenizerModifierConfig
+from topollm.config_classes.local_estimates.filtering_config import LocalEstimatesFilteringConfig
 from topollm.config_classes.local_estimates.local_estimates_config import LocalEstimatesConfig
-from topollm.config_classes.local_estimates.local_estimates_filtering_config import LocalEstimatesFilteringConfig
 from topollm.config_classes.main_config import MainConfig
 from topollm.config_classes.paths.paths_config import PathsConfig
 from topollm.config_classes.storage.storage_config import StorageConfig
@@ -181,7 +181,7 @@ def main_config_with_small_dataset_and_model(
         zero_vector_handling_mode=ZeroVectorHandlingMode.REMOVE,
     )
     local_estimates_config = LocalEstimatesConfig(
-        description="twonn",
+        method_description="twonn",
         filtering=local_estimates_filtering_config,
     )
 

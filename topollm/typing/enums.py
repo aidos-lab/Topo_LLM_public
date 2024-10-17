@@ -318,3 +318,10 @@ class Task(StrEnum):
     PIPELINE = auto()
     PERPLEXITY = auto()
     FINETUNING = auto()
+
+
+class NNeighborsMode(StrEnum):
+    """The different modes for specifying the number of neighbors in the pointwise estimate computation."""
+
+    ABSOLUTE_SIZE = auto()
+    RELATIVE_SIZE = auto()

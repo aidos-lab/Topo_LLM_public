@@ -40,7 +40,10 @@
             "request": "launch",
             "program": "topollm/model_finetuning/run_finetune_language_model_on_huggingface_dataset.py",
             "console": "integratedTerminal",
-            "args": "feature_flags.finetuning.skip_finetuning=true feature_flags.finetuning.use_wandb=false"
+            "args": [
+                "feature_flags.finetuning.skip_finetuning=true",
+                "feature_flags.finetuning.use_wandb=false",
+            ]
         },
         {
             "name": "run_finetune_language_model_on_huggingface_dataset.py; on NER task",
@@ -113,6 +116,7 @@
                 // "+embeddings_data_prep.sampling.sampling_mode=random",
                 "+embeddings_data_prep.sampling.sampling_mode=take_first",
                 "local_estimates.filtering.num_samples=300",
+                "feature_flags.analysis.create_plots_in_local_estimates_worker=false"
             ]
         },
         {

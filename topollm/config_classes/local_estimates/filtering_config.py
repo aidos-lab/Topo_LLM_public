@@ -53,9 +53,9 @@ class LocalEstimatesFilteringConfig(ConfigBaseModel):
     ) -> str:
         """Get the description of the config."""
         desc = (
-            f"{NAME_PREFIXES['num_samples']}{KV_SEP}{str(self.num_samples)}"
+            f"{NAME_PREFIXES['num_samples']}{KV_SEP}{str(object=self.num_samples)}"
             + ITEM_SEP
-            + f"{NAME_PREFIXES['zero_vector_handling_mode']}{KV_SEP}{str(self.zero_vector_handling_mode)}"
+            + f"{NAME_PREFIXES['zero_vector_handling_mode']}{KV_SEP}{str(object=self.zero_vector_handling_mode)}"
         )
 
         return desc

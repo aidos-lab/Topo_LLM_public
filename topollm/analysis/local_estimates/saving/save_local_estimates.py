@@ -45,19 +45,25 @@ def save_local_estimates(
     logger: logging.Logger = default_logger,
 ) -> None:
     """Save the local estimates array to disk."""
-    local_estimates_dir_absolute_path = embeddings_path_manager.get_local_estimates_dir_absolute_path()
-    local_estimates_array_save_path = embeddings_path_manager.get_local_estimates_array_save_path()
-    local_estimates_meta_save_path = embeddings_path_manager.get_local_estimates_meta_save_path()
+    # TODO: Implement saving the global estimate as well
+
+    local_estimates_dir_absolute_path: pathlib.Path = embeddings_path_manager.get_local_estimates_dir_absolute_path()
+    local_estimates_array_save_path: pathlib.Path = (
+        embeddings_path_manager.get_local_estimates_pointwise_array_save_path()
+    )
+    local_estimates_meta_save_path: pathlib.Path = (
+        embeddings_path_manager.get_local_estimates_pointwise_meta_save_path()
+    )
 
     if verbosity >= Verbosity.NORMAL:
         logger.info(
-            f"{local_estimates_dir_absolute_path = }",  # noqa: G004 - low overhead
+            msg=f"{local_estimates_dir_absolute_path = }",  # noqa: G004 - low overhead
         )
         logger.info(
-            f"{local_estimates_array_save_path = }",  # noqa: G004 - low overhead
+            msg=f"{local_estimates_array_save_path = }",  # noqa: G004 - low overhead
         )
         logger.info(
-            f"{local_estimates_meta_save_path = }",  # noqa: G004 - low overhead
+            msg=f"{local_estimates_meta_save_path = }",  # noqa: G004 - low overhead
         )
 
     # Make sure the save path exists
@@ -65,31 +71,49 @@ def save_local_estimates(
         parents=True,
         exist_ok=True,
     )
-
-    if verbosity >= Verbosity.NORMAL:
-        logger.info("Saving local estimates array ...")
-
-    np.save(
-        file=local_estimates_array_save_path,
-        arr=local_estimates_container.results_array_np,
+    pathlib.Path(local_estimates_array_save_path).parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+    pathlib.Path(local_estimates_meta_save_path).parent.mkdir(
+        parents=True,
+        exist_ok=True,
     )
 
     if verbosity >= Verbosity.NORMAL:
-        logger.info("Saving local estimates array DONE")
+        logger.info(
+            msg="Saving local estimates array ...",
+        )
 
-    if local_estimates_container.results_meta_frame is None:
-        logger.info("No meta data to save.")
+    np.save(
+        file=local_estimates_array_save_path,
+        arr=local_estimates_container.pointwise_results_array_np,
+    )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg="Saving local estimates array DONE",
+        )
+
+    if local_estimates_container.pointwise_results_meta_frame is None:
+        logger.info(
+            msg="No meta data to save.",
+        )
         return
 
     if verbosity >= Verbosity.NORMAL:
-        logger.info("Saving local estimates meta ...")
+        logger.info(
+            msg="Saving local estimates meta ...",
+        )
 
-    local_estimates_container.results_meta_frame.to_pickle(
+    local_estimates_container.pointwise_results_meta_frame.to_pickle(
         path=local_estimates_meta_save_path,
     )
 
     if verbosity >= Verbosity.NORMAL:
-        logger.info("Saving local estimates meta DONE")
+        logger.info(
+            msg="Saving local estimates meta DONE",
+        )
 
 
 def load_local_estimates(
@@ -99,49 +123,57 @@ def load_local_estimates(
 ) -> LocalEstimatesContainer:
     """Load the local estimates from disk."""
     local_estimates_dir_absolute_path = embeddings_path_manager.get_local_estimates_dir_absolute_path()
-    local_estimates_array_save_path = embeddings_path_manager.get_local_estimates_array_save_path()
-    local_estimates_meta_save_path = embeddings_path_manager.get_local_estimates_meta_save_path()
+    local_estimates_array_save_path = embeddings_path_manager.get_local_estimates_pointwise_array_save_path()
+    local_estimates_meta_save_path = embeddings_path_manager.get_local_estimates_pointwise_meta_save_path()
 
     if verbosity >= Verbosity.NORMAL:
         logger.info(
-            f"{local_estimates_dir_absolute_path = }",  # noqa: G004 - low overhead
+            msg=f"{local_estimates_dir_absolute_path = }",  # noqa: G004 - low overhead
         )
         logger.info(
-            f"{local_estimates_array_save_path = }",  # noqa: G004 - low overhead
+            msg=f"{local_estimates_array_save_path = }",  # noqa: G004 - low overhead
         )
         logger.info(
-            f"{local_estimates_meta_save_path = }",  # noqa: G004 - low overhead
+            msg=f"{local_estimates_meta_save_path = }",  # noqa: G004 - low overhead
         )
 
     if verbosity >= Verbosity.NORMAL:
-        logger.info("Loading local estimates array ...")
+        logger.info(
+            msg="Loading local estimates array ...",
+        )
 
     try:
         local_estimates_array = np.load(
             file=local_estimates_array_save_path,
         )
     except FileNotFoundError as e:
-        msg = f"FileNotFoundError: {e}"
-        logger.exception(msg)
+        msg: str = f"FileNotFoundError: {e}"
+        logger.exception(
+            msg=msg,
+        )
         raise
 
     if verbosity >= Verbosity.NORMAL:
-        logger.info("Loading local estimates array DONE")
+        logger.info(
+            msg="Loading local estimates array DONE",
+        )
 
     # Check if the meta data exists
     if not pathlib.Path(
         local_estimates_meta_save_path,
     ).exists():
         logger.warning(
-            "No meta data found.",
+            msg="No meta data found.",
         )
         return LocalEstimatesContainer(
-            results_array_np=local_estimates_array,
-            results_meta_frame=None,
+            pointwise_results_array_np=local_estimates_array,
+            pointwise_results_meta_frame=None,
         )
 
     if verbosity >= Verbosity.NORMAL:
-        logger.info("Loading local estimates meta ...")
+        logger.info(
+            msg="Loading local estimates meta ...",
+        )
 
     # Load the meta data
     local_estimates_meta_frame: pd.DataFrame = pd.read_pickle(  # noqa: S301 - we trust our own data
@@ -149,8 +181,8 @@ def load_local_estimates(
     )
 
     local_estimates_container = LocalEstimatesContainer(
-        results_array_np=local_estimates_array,
-        results_meta_frame=local_estimates_meta_frame,
+        pointwise_results_array_np=local_estimates_array,
+        pointwise_results_meta_frame=local_estimates_meta_frame,
     )
 
     return local_estimates_container

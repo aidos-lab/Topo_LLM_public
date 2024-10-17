@@ -35,5 +35,5 @@ import pandas as pd
 class LocalEstimatesContainer:
     """Container for the local estimates data."""
 
-    results_array_np: np.ndarray
-    results_meta_frame: pd.DataFrame | None = None
+    pointwise_results_array_np: np.ndarray
+    pointwise_results_meta_frame: pd.DataFrame | None = None

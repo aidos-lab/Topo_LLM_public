@@ -105,7 +105,7 @@ def twonn_worker(
 
     if verbosity >= Verbosity.NORMAL:
         log_array_info(
-            array_for_estimator,
+            array_=array_for_estimator,
             array_name="array_for_estimator",
             log_array_size=True,
             log_row_l2_norms=True,
@@ -113,12 +113,11 @@ def twonn_worker(
         )
 
     if verbosity >= Verbosity.NORMAL:
-        logger.info("Filtering local estimates and truncating to first vectors DONE")
+        logger.info(msg="Filtering local estimates and truncating to first vectors DONE")
 
     # # # #
     # Local estimates computation
 
-    # provide number of jobs for the computation
     results_array_np = twonn_local_estimates_computation(
         array_for_estimator=array_for_estimator,
         verbosity=verbosity,
@@ -128,8 +127,8 @@ def twonn_worker(
     # # # #
     # Save the results
     local_estimates_container = LocalEstimatesContainer(
-        results_array_np=results_array_np,
-        results_meta_frame=prepared_data_filtered_truncated.meta_df,
+        pointwise_results_array_np=results_array_np,
+        pointwise_results_meta_frame=prepared_data_filtered_truncated.meta_df,
     )
 
     save_local_estimates(
