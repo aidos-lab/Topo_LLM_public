@@ -20,8 +20,8 @@ DO_LOCAL_ESTIMATES_COMPUTATION="true"
 
 # ================================================================== #
 
-EMBEDDINGS_DATA_PREP_SAMPLING_MODE="random"
-# EMBEDDINGS_DATA_PREP_SAMPLING_MODE="take_first"
+# EMBEDDINGS_DATA_PREP_SAMPLING_MODE="random"
+EMBEDDINGS_DATA_PREP_SAMPLING_MODE="take_first"
 
 LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="few_small_steps_num_samples"
 # LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="medium_small_steps_num_samples"
@@ -116,6 +116,7 @@ fi
 # --queue="DEFAULT" \
 # --ngpus="0" \        
 
+# TODO: Change this back to CPU machines after the queue is free again.
 if [ "$DO_LOCAL_ESTIMATES_COMPUTATION" = "true" ]; then
     # This is a CPU task, so we do not ask for a GPU.
     poetry run submit_jobs \
