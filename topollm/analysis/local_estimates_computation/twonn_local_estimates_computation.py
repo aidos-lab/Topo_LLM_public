@@ -35,7 +35,7 @@ import skdim
 from topollm.analysis.local_estimates_computation.get_n_neighbors_from_array_len_and_pointwise_config import (
     get_n_neighbors_from_array_len_and_pointwise_config,
 )
-from topollm.config_classes.local_estimates.pointwise_config import LocalEstimatesPointwiseConfig
+from topollm.config_classes.local_estimates.local_estimates_config import LocalEstimatesConfig
 from topollm.logging.log_array_info import log_array_info
 from topollm.typing.enums import Verbosity
 
@@ -46,7 +46,7 @@ default_logger: logging.Logger = logging.getLogger(
 
 def global_and_pointwise_local_estimates_computation(
     array_for_estimator: np.ndarray,
-    pointwise_config: LocalEstimatesPointwiseConfig,
+    local_estimates_config: LocalEstimatesConfig,
     twonn_discard_fraction: float = 0.1,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
@@ -55,10 +55,11 @@ def global_and_pointwise_local_estimates_computation(
     np.ndarray,
 ]:
     """Run the local estimates computation."""
+    # # # #
     # Number of neighbors which are used for the computation of the pointwise local estimates
     n_neighbors: int = get_n_neighbors_from_array_len_and_pointwise_config(
         array_len=len(array_for_estimator),
-        pointwise_config=pointwise_config,
+        pointwise_config=local_estimates_config.pointwise,
         verbosity=verbosity,
         logger=logger,
     )
@@ -84,7 +85,7 @@ def global_and_pointwise_local_estimates_computation(
         precomputed_knn=None,
         smooth=False,
         n_neighbors=n_neighbors,
-        n_jobs=pointwise_config.n_jobs,
+        n_jobs=local_estimates_config.pointwise.n_jobs,
     )
 
     if verbosity >= Verbosity.NORMAL:
@@ -119,31 +120,38 @@ def global_and_pointwise_local_estimates_computation(
 
     # # # #
     # Global estimate computation
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            msg="Global computation.",
-        )
-        logger.info(
-            msg="Calling estimator.fit_transform() ...",
-        )
+    if local_estimates_config.compute_global_estimates:
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg="Global computation.",
+            )
+            logger.info(
+                msg="Calling estimator.fit_transform() ...",
+            )
 
-    global_dimension = estimator.fit_transform(
-        X=array_for_estimator,
-    )
-
-    global_estimate_array_np = np.array(
-        [global_dimension],
-    )
-
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            msg="Calling estimator.fit_transform() DONE",
+        global_dimension = estimator.fit_transform(
+            X=array_for_estimator,
         )
 
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            "global_estimate_array_np:\n%s",
-            global_estimate_array_np,
+        global_estimate_array_np = np.array(
+            [global_dimension],
         )
+
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg="Calling estimator.fit_transform() DONE",
+            )
+
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                "global_estimate_array_np:\n%s",
+                global_estimate_array_np,
+            )
+    else:
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg="Skipping global computation.",
+            )
+        global_estimate_array_np = None
 
     return global_estimate_array_np, pointwise_results_array_np

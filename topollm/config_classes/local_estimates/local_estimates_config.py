@@ -57,6 +57,12 @@ class LocalEstimatesConfig(ConfigBaseModel):
         description="Configurations for specifying parameters of the pointwise local estimates computation",
     )
 
+    compute_global_estimates: bool = Field(
+        default=True,
+        title="Compute global estimates.",
+        description="Whether to compute global estimates.",
+    )
+
     plot: LocalEstminatesPlotConfig = Field(
         default_factory=LocalEstminatesPlotConfig,
         title="Plot configurations.",
