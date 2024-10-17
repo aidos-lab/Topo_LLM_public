@@ -50,7 +50,10 @@ def global_and_pointwise_local_estimates_computation(
     twonn_discard_fraction: float = 0.1,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
-) -> np.ndarray:
+) -> tuple[
+    np.ndarray,
+    np.ndarray,
+]:
     """Run the local estimates computation."""
     # Number of neighbors which are used for the computation of the pointwise local estimates
     n_neighbors: int = get_n_neighbors_from_array_len_and_pointwise_config(
@@ -107,4 +110,9 @@ def global_and_pointwise_local_estimates_computation(
             msg=f"{pointwise_results_array_np.std() = }",  # noqa: G004 - low overhead
         )
 
-    return pointwise_results_array_np
+    # TODO: Implement the global estimate
+    global_estimate_array_np = np.array(
+        [0.0],
+    )  # TODO: Placeholder value
+
+    return global_estimate_array_np, pointwise_results_array_np

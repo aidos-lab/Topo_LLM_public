@@ -127,7 +127,7 @@ def global_and_pointwise_local_estimates_worker(
     # # # #
     # Local estimates computation
 
-    results_array_np = global_and_pointwise_local_estimates_computation(
+    global_estimate_array_np, pointwise_results_array_np = global_and_pointwise_local_estimates_computation(
         array_for_estimator=array_for_estimator,
         pointwise_config=main_config.local_estimates.pointwise,
         verbosity=verbosity,
@@ -137,8 +137,9 @@ def global_and_pointwise_local_estimates_worker(
     # # # #
     # Save the results
     local_estimates_container = LocalEstimatesContainer(
-        pointwise_results_array_np=results_array_np,
+        pointwise_results_array_np=pointwise_results_array_np,
         pointwise_results_meta_frame=prepared_data_filtered_truncated.meta_df,
+        global_estimate_array_np=global_estimate_array_np,
     )
 
     save_local_estimates(
@@ -163,7 +164,7 @@ def global_and_pointwise_local_estimates_worker(
         )
 
         for maximum_number_of_points in tqdm(
-            [
+            iterable=[
                 500,
                 1_000,
                 5_000,
@@ -173,7 +174,7 @@ def global_and_pointwise_local_estimates_worker(
             figure, tsne_df = create_projection_plot(
                 tsne_result=tsne_array,
                 meta_df=prepared_data_filtered.meta_df,
-                results_array_np=results_array_np,
+                results_array_np=pointwise_results_array_np,
                 maximum_number_of_points=maximum_number_of_points,
                 verbosity=verbosity,
                 logger=logger,

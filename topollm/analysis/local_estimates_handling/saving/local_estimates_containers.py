@@ -37,3 +37,4 @@ class LocalEstimatesContainer:
 
     pointwise_results_array_np: np.ndarray
     pointwise_results_meta_frame: pd.DataFrame | None = None
+    global_estimate_array_np: np.ndarray | None = None
