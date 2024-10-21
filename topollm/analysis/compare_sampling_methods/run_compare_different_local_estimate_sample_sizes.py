@@ -150,7 +150,7 @@ def main(
             "sampling-take_first_seed-42_samples-30000",
         ]
         token_space_sampling_folder_list: list[str] = [
-            "desc-twonn_samples-5000_zerovec-keep",
+            "desc-twonn_samples-10000_zerovec-keep",
         ]
     else:
         msg = "Invalid mode"
@@ -199,6 +199,57 @@ def main(
         local_estimates_80_percent_path: pathlib.Path = analysis_base_directory / "local_estimates_paddings_removed.npy"
         local_estimates_80_percent = np.load(
             local_estimates_80_percent_path,
+        )
+
+        loaded_estimates_list = []
+
+        for n_neighbors in [
+            64,
+            128,
+            256,
+            384,
+            512,
+            1024,
+        ]:
+            local_estimates_directory = pathlib.Path(
+                analysis_base_directory,
+                f"n-neighbors-mode-absolute_size_n-neighbors-{n_neighbors}",
+            )
+            if not local_estimates_directory.exists():
+                logger.warning(
+                    msg=f"Directory does not exist: {local_estimates_directory = }",  # noqa: G004 - low overhead
+                )
+                continue
+
+            local_estimates_array_path = pathlib.Path(
+                local_estimates_directory,
+                "local_estimates_pointwise.npy",
+            )
+            local_estimates_meta_path = pathlib.Path(
+                local_estimates_directory,
+                "local_estimates_pointwise.pkl",
+            )
+
+            local_estimates_array = np.load(
+                local_estimates_array_path,
+            )
+
+            current_estimate = {
+                "n_neighbors": n_neighbors,
+                "mean": np.mean(
+                    local_estimates_array,
+                ),
+                "std": np.std(
+                    local_estimates_array,
+                ),
+            }
+            loaded_estimates_list.append(
+                current_estimate,
+            )
+
+        # Make the loaded estimates into a DataFrame
+        loaded_estimates_df = pd.DataFrame(
+            loaded_estimates_list,
         )
 
         # TODO: Implement the analysis here

@@ -357,7 +357,7 @@ class SubmissionConfig(BaseModel):
             )
         if self.language_model_seed_list:
             language_model_command.append(
-                f"language_model.seed={','.join(self.language_model_seed_list)}",
+                f"++language_model.seed={','.join(self.language_model_seed_list)}",
             )
 
         return language_model_command
