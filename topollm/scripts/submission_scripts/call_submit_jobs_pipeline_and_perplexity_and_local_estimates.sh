@@ -20,8 +20,8 @@ DO_LOCAL_ESTIMATES_COMPUTATION="true"
 
 # ================================================================== #
 
-# EMBEDDINGS_DATA_PREP_SAMPLING_MODE="random"
-EMBEDDINGS_DATA_PREP_SAMPLING_MODE="take_first"
+EMBEDDINGS_DATA_PREP_SAMPLING_MODE="random"
+# EMBEDDINGS_DATA_PREP_SAMPLING_MODE="take_first"
 
 LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="few_small_steps_num_samples"
 # LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="medium_small_steps_num_samples"
@@ -109,23 +109,16 @@ if [ "$DO_PERPLEXITY" = "true" ]; then
         $DRY_RUN_FLAG
 fi
 
-# Note:
-# Use the following options for running on CPU machines.
-#
-# --template="CPU" \
-# --queue="DEFAULT" \
-# --ngpus="0" \        
+       
 
-# TODO: Change this back to CPU machines after the queue is free again.
 if [ "$DO_LOCAL_ESTIMATES_COMPUTATION" = "true" ]; then
     # This is a CPU task, so we do not ask for a GPU.
     poetry run submit_jobs \
         --task="local_estimates_computation" \
-        --queue="DSML" \
-        --template="DSML" \
-        --memory="16" \
-        --ncpus="16" \
-        --walltime="8:00:00" \
+        --template="CPU" \
+        --queue="DEFAULT" \
+        --ngpus="0" \
+        --walltime="10:00:00" \
         --data_list=$DATA_LIST \
         $CREATE_POS_TAGS_FLAG \
         --language_model_list=$LANGUAGE_MODEL_LIST \
