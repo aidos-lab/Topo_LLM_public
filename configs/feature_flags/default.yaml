@@ -4,6 +4,9 @@ defaults:
 analysis:
   create_plots_in_local_estimates_worker: false
 
+compute_and_store_embeddings:
+  skip_compute_and_store_embeddings: false
+
 embeddings_data_prep:
   add_additional_metadata: true
 

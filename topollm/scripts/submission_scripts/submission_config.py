@@ -67,10 +67,15 @@ class SubmissionConfig(BaseModel):
     checkpoint_no_list: list[str] | None = None
 
     layer_indices: str | None = "[-1]"
-    embeddings_data_prep_num_samples: str | None = "30000"
+    embeddings_data_prep_num_samples_list: list[str] | None = [
+        "30000",
+    ]
     embeddings_data_prep_sampling_mode: EmbeddingsDataPrepSamplingMode | None = (
         EmbeddingsDataPrepSamplingMode.TAKE_FIRST  # type: ignore - problem with StrEnum type
     )
+    embeddings_data_prep_sampling_seed_list: list[str] | None = [
+        "42",
+    ]
     additional_overrides: str | None = ""
 
     # # # #
@@ -309,14 +314,18 @@ class SubmissionConfig(BaseModel):
                 f"embeddings.embedding_extraction.layer_indices={self.layer_indices}",
             )
 
-        if self.embeddings_data_prep_num_samples:
+        if self.embeddings_data_prep_num_samples_list:
             task_specific_command.append(
-                f"embeddings_data_prep.sampling.num_samples={self.embeddings_data_prep_num_samples}",
+                "embeddings_data_prep.sampling.num_samples=" + ",".join(self.embeddings_data_prep_num_samples_list),
             )
 
         if self.embeddings_data_prep_sampling_mode:
             task_specific_command.append(
-                f"+embeddings_data_prep.sampling.sampling_mode={str(self.embeddings_data_prep_sampling_mode)}",  # noqa: RUF010 - we want to use the string representation here
+                f"+embeddings_data_prep.sampling.sampling_mode={str(object=self.embeddings_data_prep_sampling_mode)}",  # noqa: RUF010 - we want to use the string representation here
+            )
+        if self.embeddings_data_prep_sampling_seed_list:
+            task_specific_command.append(
+                f"embeddings_data_prep.sampling.seed={','.join(self.embeddings_data_prep_sampling_seed_list)}",
             )
 
         local_estimates_command: list[str] = self.generate_local_estimates_command()

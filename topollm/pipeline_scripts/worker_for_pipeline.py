@@ -42,7 +42,9 @@ from topollm.typing.enums import Verbosity
 logger_section_separation_line = 30 * "="
 
 default_device = torch.device("cpu")
-default_logger = logging.getLogger(__name__)
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 def worker_for_pipeline(
@@ -53,31 +55,32 @@ def worker_for_pipeline(
     """Run the worker which goes through the pipeline."""
     verbosity: Verbosity = main_config.verbosity
 
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            logger_section_separation_line,
-        )
-        logger.info("Calling compute embeddings worker ...")
-
     # # # # # # # # # # # # # # # #
     # Compute embeddings worker
-    compute_and_store_embeddings(
-        main_config=main_config,
-        device=device,
-        logger=logger,
-    )
-
-    if verbosity >= Verbosity.NORMAL:
-        logger.info("Calling compute embeddings worker DONE")
-        logger.info(
-            logger_section_separation_line,
+    if not main_config.feature_flags.compute_and_store_embeddings.skip_compute_and_store_embeddings:
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=logger_section_separation_line,
+            )
+            logger.info("Calling compute embeddings worker ...")
+        compute_and_store_embeddings(
+            main_config=main_config,
+            device=device,
+            logger=logger,
         )
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg="Calling compute embeddings worker DONE",
+            )
+            logger.info(
+                msg=logger_section_separation_line,
+            )
 
     # # # # # # # # # # # # # # # #
     # Data prep worker
     if verbosity >= Verbosity.NORMAL:
         logger.info(
-            logger_section_separation_line,
+            msg=logger_section_separation_line,
         )
         logger.info("Calling data prep worker ...")
 
