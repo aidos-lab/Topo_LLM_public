@@ -25,19 +25,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Protocol for filtering the data for local estimates computation."""
+"""Protocol for deduplicating prepared data."""
 
 from typing import Protocol
 
 from topollm.embeddings_data_prep.prepared_data_containers import PreparedData
 
 
-class LocalEstimatesFilter(Protocol):
-    """Protocol for filtering the data for local estimates computation."""
+class PreparedDataDeduplicator(Protocol):
+    """Protocol for deduplicating prepared data."""
 
     def filter_data(
         self,
         prepared_data: PreparedData,
     ) -> PreparedData:
-        """Filter the data for local estimates computation."""
+        """Apply the selected method."""
         ...  # pragma: no cover

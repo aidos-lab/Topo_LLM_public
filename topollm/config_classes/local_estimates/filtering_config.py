@@ -29,7 +29,7 @@ from pydantic import Field
 
 from topollm.config_classes.config_base_model import ConfigBaseModel
 from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
-from topollm.typing.enums import ZeroVectorHandlingMode
+from topollm.typing.enums import DeduplicationMode, ZeroVectorHandlingMode
 
 
 class LocalEstimatesFilteringConfig(ConfigBaseModel):
@@ -47,15 +47,29 @@ class LocalEstimatesFilteringConfig(ConfigBaseModel):
         description="The mode to handle zero vectors.",
     )
 
+    deduplication_mode: DeduplicationMode = Field(
+        default=DeduplicationMode.IDENTITY,
+        title="Deduplication mode.",
+        description="How to handle duplicate vectors.",
+    )
+
     @property
     def config_description(
         self,
     ) -> str:
         """Get the description of the config."""
-        desc = (
-            f"{NAME_PREFIXES['num_samples']}{KV_SEP}{str(object=self.num_samples)}"
+        description: str = (
+            f"{NAME_PREFIXES['num_samples']}"
+            + KV_SEP
+            + f"{str(object=self.num_samples)}"
             + ITEM_SEP
-            + f"{NAME_PREFIXES['zero_vector_handling_mode']}{KV_SEP}{str(object=self.zero_vector_handling_mode)}"
+            + f"{NAME_PREFIXES['zero_vector_handling_mode']}"
+            + KV_SEP
+            + f"{str(object=self.zero_vector_handling_mode)}"
+            + ITEM_SEP
+            + f"{NAME_PREFIXES['deduplication_mode']}"
+            + KV_SEP
+            + f"{str(object=self.deduplication_mode)}"
         )
 
-        return desc
+        return description

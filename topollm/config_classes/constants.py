@@ -68,6 +68,7 @@ NAME_PREFIXES: dict[
     "context": "ctxt",
     "data": "data",
     "dataloader_desc": "dataloader",
+    "deduplication_mode": "dedup",
     "description": "desc",
     "epoch": "ep",
     "feature_column_name": "feat-col",

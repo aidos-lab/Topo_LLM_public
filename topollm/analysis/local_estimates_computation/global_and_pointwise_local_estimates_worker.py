@@ -90,16 +90,18 @@ def global_and_pointwise_local_estimates_worker(
             msg="Filtering prepared data and truncating to first vectors ...",
         )
 
+    # Applay a filter; for example, for removing zero vectors in the array
     local_estimates_filter: LocalEstimatesFilter = get_local_estimates_filter(
         local_estimates_filtering_config=main_config.local_estimates.filtering,
         verbosity=verbosity,
         logger=logger,
     )
-
-    # Filter the array, for example, by potentially removing zero vectors
     prepared_data_filtered: PreparedData = local_estimates_filter.filter_data(
         prepared_data=prepared_data,
     )
+
+    # Apply a deduplicator; for example, for removing duplicate vectors in the array
+    # TODO: Implement the application of the deduplicator
 
     # Restrict to the first `local_estimates_sample_size` samples
     local_estimates_sample_size: int = main_config.local_estimates.filtering.num_samples

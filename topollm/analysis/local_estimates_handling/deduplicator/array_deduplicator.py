@@ -25,19 +25,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Protocol for filtering the data for local estimates computation."""
-
-from typing import Protocol
+import numpy as np
 
 from topollm.embeddings_data_prep.prepared_data_containers import PreparedData
 
 
-class LocalEstimatesFilter(Protocol):
-    """Protocol for filtering the data for local estimates computation."""
+class ArrayDeduplicator:
+    """Remove duplicate vectors and corresponding metadata from the prepared data."""
 
     def filter_data(
         self,
         prepared_data: PreparedData,
     ) -> PreparedData:
-        """Filter the data for local estimates computation."""
-        ...  # pragma: no cover
+        """Applay numpy.unique function to the array and align metadata."""
+        input_array = prepared_data.array
+        inpute_meta_frame = prepared_data.meta_df
+
+        # TODO: Implement this function
+
+        output_meta_frame = inpute_meta_frame.iloc[indices_to_keep]
+
+        output_data = PreparedData(
+            array=output_array,
+            meta_df=output_meta_frame,
+        )
+
+        return output_data

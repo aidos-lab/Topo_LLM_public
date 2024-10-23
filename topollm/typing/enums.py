@@ -170,6 +170,14 @@ class ZeroVectorHandlingMode(StrEnum):
     REMOVE = auto()
 
 
+@unique
+class DeduplicationMode(StrEnum):
+    """The different modes for deduplication."""
+
+    IDENTITY = auto()
+    ARRAY_DEDUPLICATOR = auto()
+
+
 # ==============================
 
 
