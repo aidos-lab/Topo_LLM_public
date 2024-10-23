@@ -20,12 +20,13 @@ DO_LOCAL_ESTIMATES_COMPUTATION="true"
 
 # ================================================================== #
 
-EMBEDDINGS_DATA_PREP_SAMPLING_MODE="random"
-# EMBEDDINGS_DATA_PREP_SAMPLING_MODE="take_first"
+# EMBEDDINGS_DATA_PREP_SAMPLING_MODE="random"
+EMBEDDINGS_DATA_PREP_SAMPLING_MODE="take_first"
 
 # LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="few_small_steps_num_samples"
+LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="medium_small_steps_num_samples"
 # LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="many_small_steps_num_samples"
-LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="many_large_steps_num_samples"
+# LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="many_large_steps_num_samples"
 
 ### Without POS tags for multiwoz21_and_reddit but many checkpoints
 #
@@ -44,7 +45,7 @@ LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="many_large_steps_num_samples"
 DATA_LIST="multiwoz21_and_reddit"
 
 LANGUAGE_MODEL_LIST="selected_finetuned_many_epochs_from_roberta_base"
-LANGUAGE_MODEL_SEED_LIST="two_seeds"
+LANGUAGE_MODEL_SEED_LIST="one_seed"
 CHECKPOINT_NO_LIST="only_beginning_and_middle_and_end"
 FINETUNING_REGIME="many_epochs_with_overfitting_risk"
 ADD_PREFIX_SPACE_FLAG="--add_prefix_space"
@@ -108,15 +109,16 @@ if [ "$DO_PERPLEXITY" = "true" ]; then
         $DRY_RUN_FLAG
 fi
 
+       
+
 if [ "$DO_LOCAL_ESTIMATES_COMPUTATION" = "true" ]; then
     # This is a CPU task, so we do not ask for a GPU.
     poetry run submit_jobs \
         --task="local_estimates_computation" \
         --template="CPU" \
         --queue="DEFAULT" \
-        --memory="16" \
-        --ncpus="32" \
         --ngpus="0" \
+        --walltime="10:00:00" \
         --data_list=$DATA_LIST \
         $CREATE_POS_TAGS_FLAG \
         --language_model_list=$LANGUAGE_MODEL_LIST \

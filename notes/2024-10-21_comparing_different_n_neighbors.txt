@@ -1,0 +1,107 @@
+analysis_base_directory
+Topo_LLM/
+data/
+analysis/
+twonn/
+data-multiwoz21_split-train_ctxt-dataset_entry_samples-10000_feat-col-ner_tags/
+lvl-token/
+add-prefix-space-True_max-len-512/
+model-roberta-base_task-masked_lm/
+layer--1_agg-mean/
+norm-None/
+sampling-take_first_seed-42_samples-30000/
+
+=======================================
+"desc-twonn_samples-2500_zerovec-keep":
+=======================================
+
+global_estimate
+array([6.65604731])
+
+loaded_estimates_df
+   n_neighbors      mean       std
+0           64  7.214900  2.642989
+1          128  7.263618  2.348495
+2          256  7.260180  1.638630
+3          384  7.294416  1.323300
+4          512  7.227502  0.960104
+5         1024  7.188645  0.593736
+
+local_estimates_80_percent
+array([7.38762559, 7.33941482, 6.98339878, ..., 7.21782892, 6.66349227,
+       6.77318294])
+
+local_estimates_80_percent.mean()
+7.080931991809321
+
+
+=======================================
+"desc-twonn_samples-5000_zerovec-keep":
+=======================================
+
+global_estimate
+array([7.13437579])
+
+loaded_estimates_df
+   n_neighbors      mean       std
+0           64  7.731440  2.919481
+1          128  7.839229  2.584955
+2          256  7.866665  2.333531
+3          384  7.791047  1.926232
+4          512  7.761931  1.551098
+5         1024  7.549330  0.782742
+
+local_estimates_80_percent
+array([7.48223912, 7.59900317, 7.2395233 , ..., 7.57930492, 7.64817584,
+       7.16266375])
+
+local_estimates_80_percent.mean()
+7.327308064629481
+
+=======================================
+"desc-twonn_samples-7500_zerovec-keep":
+=======================================
+
+global_estimate
+array([7.93263405])
+
+loaded_estimates_df
+   n_neighbors      mean       std
+0           64  8.020007  2.846116
+1          128  8.222697  2.639123
+2          256  8.387321  2.483554
+3          384  8.473312  2.417920
+4          512  8.407082  2.040849
+5         1024  8.337238  1.300928
+
+local_estimates_80_percent
+array([8.16710945, 8.26956921, 7.96327654, ..., 8.01930084, 7.93136239,
+       8.01782082])
+
+local_estimates_80_percent.mean()
+8.090050737692849
+
+=======================================
+"desc-twonn_samples-10000_zerovec-keep":
+=======================================
+
+global_estimate
+array([7.97869764])
+
+loaded_estimates_df
+   n_neighbors      mean       std
+0           64  8.124721  2.860677
+1          128  8.294304  2.626136
+2          256  8.408496  2.338630
+3          384  8.431364  2.098337
+4          512  8.501637  2.021936
+5         1024  8.505742  1.521806
+
+local_estimates_80_percent
+array([8.10250425, 8.1998472 , 7.94564108, ..., 7.88841851, 8.02939438,
+       8.30503416])
+
+local_estimates_80_percent.mean()
+8.049678640543144
+local_estimates_80_percent.std()
+0.14850751679381494

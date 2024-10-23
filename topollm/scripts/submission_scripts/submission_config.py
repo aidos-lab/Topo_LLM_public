@@ -73,8 +73,19 @@ class SubmissionConfig(BaseModel):
     )
     additional_overrides: str | None = ""
 
+    # # # #
     # Local estimates parameters
     local_estimates_filtering_num_samples_list: list[str] | None = None
+
+    local_estimates_pointwise_n_neighbors_mode: str = "absolute_size"
+    local_estimates_pointwise_absolute_n_neighbors_list: list[str] | None = [
+        "64",
+        "128",
+        "256",
+        "384",
+        "512",
+        "1024",
+    ]
 
     # Finetuning-specific parameters
     base_model_list: list[str] = Field(
@@ -346,7 +357,7 @@ class SubmissionConfig(BaseModel):
             )
         if self.language_model_seed_list:
             language_model_command.append(
-                f"language_model.seed={','.join(self.language_model_seed_list)}",
+                f"++language_model.seed={','.join(self.language_model_seed_list)}",
             )
 
         return language_model_command
@@ -356,9 +367,17 @@ class SubmissionConfig(BaseModel):
     ) -> list[str]:
         local_estimates_command: list[str] = []
 
+        local_estimates_command.append(
+            f"local_estimates.pointwise.n_neighbors_mode={self.local_estimates_pointwise_n_neighbors_mode}",
+        )
+
         if self.local_estimates_filtering_num_samples_list:
             local_estimates_command.append(
                 f"local_estimates.filtering.num_samples={','.join(self.local_estimates_filtering_num_samples_list)}",
+            )
+        if self.local_estimates_pointwise_absolute_n_neighbors_list:
+            local_estimates_command.append(
+                f"local_estimates.pointwise.absolute_n_neighbors={','.join(self.local_estimates_pointwise_absolute_n_neighbors_list)}",
             )
 
         return local_estimates_command

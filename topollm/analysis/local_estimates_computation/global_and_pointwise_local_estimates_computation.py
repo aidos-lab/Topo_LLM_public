@@ -25,7 +25,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Compute twoNN estimates from prepared embeddings."""
+"""Compute global and local estimates from prepared embeddings."""
 
 import logging
 
