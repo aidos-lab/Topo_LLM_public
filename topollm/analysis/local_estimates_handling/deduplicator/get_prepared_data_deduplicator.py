@@ -31,7 +31,7 @@ import logging
 
 from topollm.analysis.local_estimates_handling.deduplicator.array_deduplicator import ArrayDeduplicator
 from topollm.analysis.local_estimates_handling.deduplicator.identity_deduplicator import IdentityDeduplicator
-from topollm.analysis.local_estimates_handling.filter.protocol import LocalEstimatesFilter
+from topollm.analysis.local_estimates_handling.deduplicator.protocol import PreparedDataDeduplicator
 from topollm.config_classes.local_estimates.filtering_config import LocalEstimatesFilteringConfig
 from topollm.typing.enums import DeduplicationMode, Verbosity
 
@@ -44,7 +44,7 @@ def get_prepared_data_deduplicator(
     local_estimates_filtering_config: LocalEstimatesFilteringConfig,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
-) -> LocalEstimatesFilter:
+) -> PreparedDataDeduplicator:
     """Get the filter for the local estimates computation."""
     if verbosity >= Verbosity.NORMAL:
         logger.info(
@@ -63,9 +63,12 @@ def get_prepared_data_deduplicator(
                 logger.info(
                     msg="Returning ArrayDeduplicator ...",
                 )
-            deduplicator = ArrayDeduplicator()
+            deduplicator = ArrayDeduplicator(
+                verbosity=verbosity,
+                logger=logger,
+            )
         case _:
-            msg = f"Unknown {local_estimates_filtering_config.deduplication_mode = }"
+            msg: str = f"Unknown {local_estimates_filtering_config.deduplication_mode = }"
             raise ValueError(
                 msg,
             )

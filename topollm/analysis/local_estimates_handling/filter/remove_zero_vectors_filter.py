@@ -49,9 +49,9 @@ class RemoveZeroVectorsFilter:
         output_array = input_array[indices_to_keep]
 
         # Take the same rows from the meta frame
-        inpute_meta_frame = prepared_data.meta_df
+        input_meta_frame = prepared_data.meta_df
 
-        output_meta_frame = inpute_meta_frame.iloc[indices_to_keep]
+        output_meta_frame = input_meta_frame.iloc[indices_to_keep]
 
         output_data = PreparedData(
             array=output_array,

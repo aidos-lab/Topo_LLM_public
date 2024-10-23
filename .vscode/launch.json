@@ -140,11 +140,15 @@
                 "embeddings.embedding_extraction.layer_indices=[-1]",
                 "embeddings_data_prep.sampling.num_samples=30000",
                 "+embeddings_data_prep.sampling.sampling_mode=random",
-                "local_estimates.filtering.num_samples=2500",
+                // "local_estimates.filtering.num_samples=2500",
+                "local_estimates.filtering.num_samples=5000",
+                // "local_estimates.filtering.deduplication_mode=identity",
+                "local_estimates.filtering.deduplication_mode=array_deduplicator",
                 "local_estimates.compute_global_estimates=true",
                 "local_estimates.pointwise.n_neighbors_mode=absolute_size",
                 "local_estimates.pointwise.relative_n_neighbors=0.3",
-                "local_estimates.pointwise.absolute_n_neighbors=64",
+                // "local_estimates.pointwise.absolute_n_neighbors=64",
+                "local_estimates.pointwise.absolute_n_neighbors=128",
                 "feature_flags.analysis.create_plots_in_local_estimates_worker=false"
             ]
         },
