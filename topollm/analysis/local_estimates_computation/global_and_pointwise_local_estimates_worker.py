@@ -34,10 +34,10 @@ from typing import TYPE_CHECKING
 import torch
 from tqdm import tqdm
 
-from topollm.analysis.local_estimates_computation.truncate_prepared_data import truncate_prepared_data
-from topollm.analysis.local_estimates_computation.twonn_local_estimates_computation import (
+from topollm.analysis.local_estimates_computation.global_and_pointwise_local_estimates_computation import (
     global_and_pointwise_local_estimates_computation,
 )
+from topollm.analysis.local_estimates_computation.truncate_prepared_data import truncate_prepared_data
 from topollm.analysis.local_estimates_handling.filter.get_local_estimates_filter import get_local_estimates_filter
 from topollm.analysis.local_estimates_handling.saving.local_estimates_containers import LocalEstimatesContainer
 from topollm.analysis.local_estimates_handling.saving.save_local_estimates import save_local_estimates
