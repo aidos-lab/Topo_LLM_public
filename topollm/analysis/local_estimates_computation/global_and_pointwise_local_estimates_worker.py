@@ -38,6 +38,10 @@ from topollm.analysis.local_estimates_computation.global_and_pointwise_local_est
     global_and_pointwise_local_estimates_computation,
 )
 from topollm.analysis.local_estimates_computation.truncate_prepared_data import truncate_prepared_data
+from topollm.analysis.local_estimates_handling.deduplicator.get_prepared_data_deduplicator import (
+    get_prepared_data_deduplicator,
+)
+from topollm.analysis.local_estimates_handling.deduplicator.protocol import PreparedDataDeduplicator
 from topollm.analysis.local_estimates_handling.filter.get_local_estimates_filter import get_local_estimates_filter
 from topollm.analysis.local_estimates_handling.saving.local_estimates_containers import LocalEstimatesContainer
 from topollm.analysis.local_estimates_handling.saving.save_local_estimates import save_local_estimates
@@ -90,25 +94,34 @@ def global_and_pointwise_local_estimates_worker(
             msg="Filtering prepared data and truncating to first vectors ...",
         )
 
+    # Applay a filter; for example, for removing zero vectors in the array
     local_estimates_filter: LocalEstimatesFilter = get_local_estimates_filter(
         local_estimates_filtering_config=main_config.local_estimates.filtering,
         verbosity=verbosity,
         logger=logger,
     )
-
-    # Filter the array, for example, by potentially removing zero vectors
     prepared_data_filtered: PreparedData = local_estimates_filter.filter_data(
         prepared_data=prepared_data,
     )
 
+    # Apply a deduplicator; for example, for removing duplicate vectors in the array
+    prepared_data_deduplicator: PreparedDataDeduplicator = get_prepared_data_deduplicator(
+        local_estimates_filtering_config=main_config.local_estimates.filtering,
+        verbosity=verbosity,
+        logger=logger,
+    )
+    prepared_data_filtered_deduplicated: PreparedData = prepared_data_deduplicator.filter_data(
+        prepared_data=prepared_data_filtered,
+    )
+
     # Restrict to the first `local_estimates_sample_size` samples
     local_estimates_sample_size: int = main_config.local_estimates.filtering.num_samples
-    prepared_data_filtered_truncated: PreparedData = truncate_prepared_data(
-        prepared_data=prepared_data_filtered,
+    prepared_data_filtered_deduplicated_truncated: PreparedData = truncate_prepared_data(
+        prepared_data=prepared_data_filtered_deduplicated,
         local_estimates_sample_size=local_estimates_sample_size,
     )
 
-    array_for_estimator = prepared_data_filtered_truncated.array
+    array_for_estimator = prepared_data_filtered_deduplicated_truncated.array
 
     if verbosity >= Verbosity.NORMAL:
         log_array_info(
@@ -116,6 +129,10 @@ def global_and_pointwise_local_estimates_worker(
             array_name="array_for_estimator",
             log_array_size=True,
             log_row_l2_norms=True,
+            logger=logger,
+        )
+    if verbosity >= Verbosity.DEBUG:
+        prepared_data_filtered_deduplicated_truncated.log_info(
             logger=logger,
         )
 
@@ -138,7 +155,7 @@ def global_and_pointwise_local_estimates_worker(
     # Save the results
     local_estimates_container = LocalEstimatesContainer(
         pointwise_results_array_np=pointwise_results_array_np,
-        pointwise_results_meta_frame=prepared_data_filtered_truncated.meta_df,
+        pointwise_results_meta_frame=prepared_data_filtered_deduplicated_truncated.meta_df,
         global_estimate_array_np=global_estimate_array_np,
     )
 

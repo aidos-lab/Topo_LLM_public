@@ -106,21 +106,49 @@
             "program": "topollm/analysis/local_estimates_computation/run_local_estimates.py",
             "console": "integratedTerminal",
             "args": [
-                "tokenizer.add_prefix_space=True", // This is necessary to use the tokenizer with input split into words
+                "tokenizer.add_prefix_space=True", // `add_prefix_space=True` is necessary to use the tokenizer with input split into words
                 "data=multiwoz21",
-                "data.number_of_samples=128",
+                "data.number_of_samples=3000",
                 "data.split=validation",
                 "language_model=roberta-base",
                 "embeddings.embedding_extraction.layer_indices=[-1]",
-                "embeddings_data_prep.sampling.num_samples=3000",
-                // "embeddings_data_prep.sampling.num_samples=30000",
-                // "+embeddings_data_prep.sampling.sampling_mode=random",
-                "+embeddings_data_prep.sampling.sampling_mode=take_first",
-                "local_estimates.filtering.num_samples=300",
+                // "embeddings_data_prep.sampling.num_samples=3000",
+                "embeddings_data_prep.sampling.num_samples=30000",
+                "+embeddings_data_prep.sampling.sampling_mode=random",
+                // "+embeddings_data_prep.sampling.sampling_mode=take_first",
+                "local_estimates.filtering.num_samples=2500",
                 "local_estimates.compute_global_estimates=true",
                 "local_estimates.pointwise.n_neighbors_mode=absolute_size",
                 "local_estimates.pointwise.relative_n_neighbors=0.3",
-                "local_estimates.pointwise.absolute_n_neighbors=256",
+                "local_estimates.pointwise.absolute_n_neighbors=64",
+                "feature_flags.analysis.create_plots_in_local_estimates_worker=false"
+            ]
+        },
+        {
+            "name": "Duplicate vectors test case - run_local_estimates.py",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/analysis/local_estimates_computation/run_local_estimates.py",
+            "console": "integratedTerminal",
+            // This prepared data leads to the `ValueError: Input X contains NaN.` error in `LinearRegression`.
+            "args": [
+                "tokenizer.add_prefix_space=True", // `add_prefix_space=True` is necessary to use the tokenizer with input split into words
+                "data=multiwoz21",
+                "data.number_of_samples=3000",
+                "data.split=validation",
+                "language_model=roberta-base",
+                "embeddings.embedding_extraction.layer_indices=[-1]",
+                "embeddings_data_prep.sampling.num_samples=30000",
+                "+embeddings_data_prep.sampling.sampling_mode=random",
+                // "local_estimates.filtering.num_samples=2500",
+                "local_estimates.filtering.num_samples=5000",
+                // "local_estimates.filtering.deduplication_mode=identity",
+                "local_estimates.filtering.deduplication_mode=array_deduplicator",
+                "local_estimates.compute_global_estimates=true",
+                "local_estimates.pointwise.n_neighbors_mode=absolute_size",
+                "local_estimates.pointwise.relative_n_neighbors=0.3",
+                // "local_estimates.pointwise.absolute_n_neighbors=64",
+                "local_estimates.pointwise.absolute_n_neighbors=128",
                 "feature_flags.analysis.create_plots_in_local_estimates_worker=false"
             ]
         },
@@ -133,14 +161,14 @@
             "args": [
                 "tokenizer.add_prefix_space=True", // This is necessary to use the tokenizer with input split into words
                 "data=multiwoz21",
-                "data.number_of_samples=128",
+                "data.number_of_samples=512",
                 "data.split=validation",
                 "language_model=roberta-base",
                 "embeddings.embedding_extraction.layer_indices=[-1]",
                 "embeddings_data_prep.sampling.num_samples=3000",
-                // "+embeddings_data_prep.sampling.sampling_mode=random",
-                "+embeddings_data_prep.sampling.sampling_mode=take_first",
-                "local_estimates.filtering.num_samples=300",
+                "+embeddings_data_prep.sampling.sampling_mode=random",
+                // "+embeddings_data_prep.sampling.sampling_mode=take_first",
+                "local_estimates.filtering.num_samples=500",
                 "local_estimates.compute_global_estimates=true",
                 "local_estimates.pointwise.n_neighbors_mode=absolute_size",
                 "local_estimates.pointwise.absolute_n_neighbors=256",

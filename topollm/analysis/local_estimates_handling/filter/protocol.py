@@ -25,6 +25,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Protocol for filtering the data for local estimates computation."""
+
 from typing import Protocol
 
 from topollm.embeddings_data_prep.prepared_data_containers import PreparedData
