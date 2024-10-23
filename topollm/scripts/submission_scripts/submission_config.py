@@ -81,7 +81,7 @@ class SubmissionConfig(BaseModel):
     # # # #
     # Local estimates parameters
     local_estimates_filtering_num_samples_list: list[str] | None = None
-
+    local_estimates_filtering_deduplication_mode: str = "array_deduplicator"
     local_estimates_pointwise_n_neighbors_mode: str = "absolute_size"
     local_estimates_pointwise_absolute_n_neighbors_list: list[str] | None = [
         "64",
@@ -379,14 +379,18 @@ class SubmissionConfig(BaseModel):
         local_estimates_command.append(
             f"local_estimates.pointwise.n_neighbors_mode={self.local_estimates_pointwise_n_neighbors_mode}",
         )
+        local_estimates_command.append(
+            "local_estimates.filtering.deduplication_mode=" + self.local_estimates_filtering_deduplication_mode,
+        )
 
         if self.local_estimates_filtering_num_samples_list:
             local_estimates_command.append(
-                f"local_estimates.filtering.num_samples={','.join(self.local_estimates_filtering_num_samples_list)}",
+                "local_estimates.filtering.num_samples=" + ",".join(self.local_estimates_filtering_num_samples_list),
             )
         if self.local_estimates_pointwise_absolute_n_neighbors_list:
             local_estimates_command.append(
-                f"local_estimates.pointwise.absolute_n_neighbors={','.join(self.local_estimates_pointwise_absolute_n_neighbors_list)}",
+                "local_estimates.pointwise.absolute_n_neighbors="
+                + ",".join(self.local_estimates_pointwise_absolute_n_neighbors_list),
             )
 
         return local_estimates_command
