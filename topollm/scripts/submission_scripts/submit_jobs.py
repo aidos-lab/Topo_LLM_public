@@ -36,6 +36,7 @@ from topollm.scripts.submission_scripts.submission_config import SubmissionConfi
 from topollm.scripts.submission_scripts.types import (
     CheckpointNoListOption,
     DataListOption,
+    EmbeddingsDataPrepSamplingSeedListOption,
     FinetuningDatasetsListOption,
     FinetuningRegimeOption,
     LanguageModelListOption,
@@ -209,6 +210,13 @@ def parse_arguments() -> argparse.Namespace:
         default=EmbeddingsDataPrepSamplingMode.TAKE_FIRST,
         help="Embeddings data prep sampling mode to use.",
     )
+    parser.add_argument(
+        "--embeddings_data_prep_sampling_seed_list_option",
+        type=EmbeddingsDataPrepSamplingSeedListOption,
+        default=EmbeddingsDataPrepSamplingSeedListOption.DEFAULT,
+        help="Embeddings data prep sampling seed list option to use.",
+    )
+
     parser.add_argument(
         "--finetuning_regime",
         type=FinetuningRegimeOption,
@@ -464,6 +472,66 @@ def make_config_and_run_task(
             msg: str = f"Unknown {args.finetuning_seed_list = }"
             raise ValueError(msg)
 
+    match args.embeddings_data_prep_sampling_seed_list_option:
+        case EmbeddingsDataPrepSamplingSeedListOption.DEFAULT:
+            embeddings_data_prep_sampling_seed_list = [
+                "42",
+            ]
+        case EmbeddingsDataPrepSamplingSeedListOption.TWO_SEEDS:
+            embeddings_data_prep_sampling_seed_list = [
+                "42",
+                "43",
+            ]
+        case EmbeddingsDataPrepSamplingSeedListOption.FIVE_SEEDS:
+            embeddings_data_prep_sampling_seed_list = [
+                "42",
+                "43",
+                "44",
+                "45",
+                "46",
+            ]
+        case EmbeddingsDataPrepSamplingSeedListOption.TEN_SEEDS:
+            embeddings_data_prep_sampling_seed_list = [
+                "42",
+                "43",
+                "44",
+                "45",
+                "46",
+                "47",
+                "48",
+                "49",
+                "50",
+                "51",
+            ]
+        case EmbeddingsDataPrepSamplingSeedListOption.TWENTY_SEEDS:
+            embeddings_data_prep_sampling_seed_list = [
+                "42",
+                "43",
+                "44",
+                "45",
+                "46",
+                "47",
+                "48",
+                "49",
+                "50",
+                "51",
+                "52",
+                "53",
+                "54",
+                "55",
+                "56",
+                "57",
+                "58",
+                "59",
+                "60",
+                "61",
+            ]
+        case _:
+            msg: str = f"Unknown {args.embeddings_data_prep_sampling_seed_list_option = }"
+            raise ValueError(
+                msg,
+            )
+
     match args.local_estimates_filtering_num_samples_list:
         case LocalEstimatesFilteringNumSamplesListOption.DEFAULT:
             local_estimates_filtering_num_samples_list = None
@@ -572,6 +640,7 @@ def make_config_and_run_task(
         language_model_seed_list=language_model_seed_list,
         checkpoint_no_list=checkpoint_no_list,
         embeddings_data_prep_sampling_mode=args.embeddings_data_prep_sampling_mode,
+        embeddings_data_prep_sampling_seed_list=embeddings_data_prep_sampling_seed_list,
         local_estimates_filtering_num_samples_list=local_estimates_filtering_num_samples_list,
         local_estimates_pointwise_absolute_n_neighbors_list=local_estimates_pointwise_absolute_n_neighbors_list,
         finetuning_datasets_list=finetuning_datasets_list,

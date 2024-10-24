@@ -70,6 +70,12 @@ SKIP_COMPUTE_AND_STORE_EMBEDDINGS="--skip_compute_and_store_embeddings"
 EMBEDDINGS_DATA_PREP_SAMPLING_MODE="random"
 # EMBEDDINGS_DATA_PREP_SAMPLING_MODE="take_first"
 
+# EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="default"
+# EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="two_seeds"
+# EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="five_seeds"
+# EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="ten_seeds"
+EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="twenty_seeds"
+
 # LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="few_small_steps_num_samples"
 LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="medium_small_steps_num_samples"
 # LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="many_small_steps_num_samples"
@@ -77,16 +83,6 @@ LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="medium_small_steps_num_samples"
 
 LOCAL_ESTIMATES_POINTWISE_ABSOLUTE_N_NEIGHBORS_LIST="powers_of_two_up_to_1024"
 
-### Without POS tags for multiwoz21_and_reddit but many checkpoints
-#
-# DATA_LIST="multiwoz21_and_reddit"
-#
-# LANGUAGE_MODEL_LIST="selected_finetuned_many_epochs_from_roberta_base"
-# CHECKPOINT_NO_LIST="selected"
-# LANGUAGE_MODEL_SEED_LIST="do_not_set"
-# FINETUNING_REGIME="many_epochs_with_overfitting_risk"
-# ADD_PREFIX_SPACE_FLAG=""
-# CREATE_POS_TAGS_FLAG=""
 
 ####################################
 ### With POS tags for base model ###
@@ -135,6 +131,7 @@ if [ "$DO_PIPELINE" = "true" ]; then
       $ADD_PREFIX_SPACE_FLAG \
       --finetuning_regime=$FINETUNING_REGIME \
       --embeddings_data_prep_sampling_mode=$EMBEDDINGS_DATA_PREP_SAMPLING_MODE \
+      --embeddings_data_prep_sampling_seed_list_option=$EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION \
       $SKIP_COMPUTE_AND_STORE_EMBEDDINGS \
       --submission_mode=$SUBMISSION_MODE \
       $DRY_RUN_FLAG
@@ -180,6 +177,7 @@ if [ "$DO_LOCAL_ESTIMATES_COMPUTATION" = "true" ]; then
       $ADD_PREFIX_SPACE_FLAG \
       --finetuning_regime=$FINETUNING_REGIME \
       --embeddings_data_prep_sampling_mode=$EMBEDDINGS_DATA_PREP_SAMPLING_MODE \
+      --embeddings_data_prep_sampling_seed_list_option=$EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION \
       --local_estimates_filtering_num_samples_list=$LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST \
       --local_estimates_pointwise_absolute_n_neighbors_list=$LOCAL_ESTIMATES_POINTWISE_ABSOLUTE_N_NEIGHBORS_LIST \
       --submission_mode=$SUBMISSION_MODE \

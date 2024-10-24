@@ -80,6 +80,16 @@ class SeedListOption(StrEnum):
     FIVE_SEEDS = auto()
 
 
+class EmbeddingsDataPrepSamplingSeedListOption(StrEnum):
+    """Options for the seed lists for the embeddings data preparation sampling."""
+
+    DEFAULT = auto()
+    TWO_SEEDS = auto()
+    FIVE_SEEDS = auto()
+    TEN_SEEDS = auto()
+    TWENTY_SEEDS = auto()
+
+
 class LocalEstimatesFilteringNumSamplesListOption(StrEnum):
     """Options for the number of samples for local estimates filtering."""
 
