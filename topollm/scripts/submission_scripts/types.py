@@ -88,3 +88,10 @@ class LocalEstimatesFilteringNumSamplesListOption(StrEnum):
     MEDIUM_SMALL_STEPS_NUM_SAMPLES = auto()
     MANY_SMALL_STEPS_NUM_SAMPLES = auto()
     MANY_LARGE_STEPS_NUM_SAMPLES = auto()
+
+
+class LocalEstimatesPointwiseAbsoluteNNeighborsListOption(StrEnum):
+    """Options for the number of neighbors for pointwise absolute local estimates."""
+
+    DEFAULT = auto()
+    POWERS_OF_TWO_UP_TO_1024 = auto()

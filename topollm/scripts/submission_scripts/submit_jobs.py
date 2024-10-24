@@ -40,6 +40,7 @@ from topollm.scripts.submission_scripts.types import (
     FinetuningRegimeOption,
     LanguageModelListOption,
     LocalEstimatesFilteringNumSamplesListOption,
+    LocalEstimatesPointwiseAbsoluteNNeighborsListOption,
     SeedListOption,
 )
 from topollm.typing.enums import EmbeddingsDataPrepSamplingMode, SubmissionMode, Task
@@ -231,6 +232,17 @@ def parse_arguments() -> argparse.Namespace:
         type=LocalEstimatesFilteringNumSamplesListOption,
         default=LocalEstimatesFilteringNumSamplesListOption.DEFAULT,
         help="Local estimates filtering number of samples list to use.",
+    )
+    parser.add_argument(
+        "--local_estimates_pointwise_absolute_n_neighbors_list",
+        type=LocalEstimatesPointwiseAbsoluteNNeighborsListOption,
+        default=LocalEstimatesPointwiseAbsoluteNNeighborsListOption.DEFAULT,
+        help="Local estimates pointwise absolute n neighbors list to use.",
+    )
+    parser.add_argument(
+        "--skip_compute_and_store_embeddings",
+        action="store_true",
+        help="Skip the compute and store embeddings step.",
     )
 
     parser.add_argument(
@@ -499,6 +511,27 @@ def make_config_and_run_task(
             msg: str = f"Unknown {args.local_estimates_filtering_num_samples_list = }"
             raise ValueError(msg)
 
+    match args.local_estimates_pointwise_absolute_n_neighbors_list:
+        case LocalEstimatesPointwiseAbsoluteNNeighborsListOption.DEFAULT:
+            local_estimates_pointwise_absolute_n_neighbors_list = [
+                "256",
+            ]
+        case LocalEstimatesPointwiseAbsoluteNNeighborsListOption.POWERS_OF_TWO_UP_TO_1024:
+            local_estimates_pointwise_absolute_n_neighbors_list = [
+                "16",
+                "32",
+                "64",
+                "128",
+                "256",
+                "512",
+                "1024",
+            ]
+        case _:
+            msg: str = f"Unknown {args.local_estimates_pointwise_absolute_n_neighbors_list = }"
+            raise ValueError(
+                msg,
+            )
+
     # # # #
     # Handle the potential creation of POS tags
     add_prefix_space = False  # Default is False
@@ -540,10 +573,12 @@ def make_config_and_run_task(
         checkpoint_no_list=checkpoint_no_list,
         embeddings_data_prep_sampling_mode=args.embeddings_data_prep_sampling_mode,
         local_estimates_filtering_num_samples_list=local_estimates_filtering_num_samples_list,
+        local_estimates_pointwise_absolute_n_neighbors_list=local_estimates_pointwise_absolute_n_neighbors_list,
         finetuning_datasets_list=finetuning_datasets_list,
         finetuning_seed_list=finetuning_seed_list,
         num_train_epochs=num_train_epochs,
         lr_scheduler_type=lr_scheduler_type,
+        skip_compute_and_store_embeddings=args.skip_compute_and_store_embeddings,
     )
 
     run_task(

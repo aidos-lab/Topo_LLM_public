@@ -83,14 +83,7 @@ class SubmissionConfig(BaseModel):
     local_estimates_filtering_num_samples_list: list[str] | None = None
     local_estimates_filtering_deduplication_mode: str = "array_deduplicator"
     local_estimates_pointwise_n_neighbors_mode: str = "absolute_size"
-    local_estimates_pointwise_absolute_n_neighbors_list: list[str] | None = [
-        "64",
-        "128",
-        "256",
-        "384",
-        "512",
-        "1024",
-    ]
+    local_estimates_pointwise_absolute_n_neighbors_list: list[str] | None = None
 
     # Finetuning-specific parameters
     base_model_list: list[str] = Field(
@@ -140,7 +133,6 @@ class SubmissionConfig(BaseModel):
 
     # # # #
     # Feature flags
-    # TODO: Add these to the command
     skip_compute_and_store_embeddings: bool = False
 
     python_script_name: str = Field(
@@ -195,6 +187,7 @@ class SubmissionConfig(BaseModel):
             + self.generate_task_specific_command(
                 task=task,
             )
+            + self.generate_feature_flags_command()
             + self.generate_hydra_launcher_command()
         )
 
@@ -202,6 +195,18 @@ class SubmissionConfig(BaseModel):
             command.append(self.additional_overrides)
 
         return command
+
+    def generate_feature_flags_command(
+        self,
+    ) -> list[str]:
+        feature_flags_command: list[str] = []
+
+        if self.skip_compute_and_store_embeddings:
+            feature_flags_command.append(
+                "feature_flags.compute_and_store_embeddings.skip_compute_and_store_embeddings=true",
+            )
+
+        return feature_flags_command
 
     def generate_task_specific_command(
         self,

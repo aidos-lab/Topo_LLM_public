@@ -57,7 +57,9 @@ if TYPE_CHECKING:
     from topollm.config_classes.main_config import MainConfig
 
 # logger for this file
-global_logger = logging.getLogger(__name__)
+global_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 setup_exception_logging(
     logger=global_logger,
