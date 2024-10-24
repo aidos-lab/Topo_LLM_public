@@ -138,6 +138,11 @@ class SubmissionConfig(BaseModel):
     batch_size_train: str | None = "8"
     batch_size_eval: str | None = "8"
 
+    # # # #
+    # Feature flags
+    # TODO: Add these to the command
+    skip_compute_and_store_embeddings: bool = False
+
     python_script_name: str = Field(
         default="run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
     )
@@ -175,7 +180,7 @@ class SubmissionConfig(BaseModel):
             "poetry",
             "run",
             "python3",
-            str(self.relative_python_script_path),
+            str(object=self.relative_python_script_path),
             "--multirun",
             "hydra/sweeper=basic",
         ]
@@ -184,7 +189,25 @@ class SubmissionConfig(BaseModel):
         self,
         task: Task,
     ) -> list[str]:
-        """Get the command to run the task."""
+        """Get the command which runs the task."""
+        command: list[str] = (
+            self.poetry_run_command
+            + self.generate_task_specific_command(
+                task=task,
+            )
+            + self.generate_hydra_launcher_command()
+        )
+
+        if self.additional_overrides:
+            command.append(self.additional_overrides)
+
+        return command
+
+    def generate_task_specific_command(
+        self,
+        task: Task,
+    ) -> list[str]:
+        """Generate the task-specific command."""
         match task:
             case Task.LOCAL_ESTIMATES_COMPUTATION:
                 # We can use the same command for the local estimates computation
@@ -198,51 +221,61 @@ class SubmissionConfig(BaseModel):
             case Task.FINETUNING:
                 task_specific_command: list[str] = self.generate_task_specific_command_finetuning()
             case _:
-                msg = f"Unknown {task = }"
-                raise ValueError(msg)
+                msg: str = f"Unknown {task = }"
+                raise ValueError(
+                    msg,
+                )
 
-        # Assemble the command
-        command: list[str] = self.poetry_run_command + task_specific_command
+        return task_specific_command
 
-        if self.submission_mode == SubmissionMode.HPC_SUBMISSION:
-            command.append(
-                "hydra/launcher=hpc_submission",
-            )
-            if self.queue:
-                command.append(
-                    f"hydra.launcher.queue={self.queue}",
-                )
-            if self.template:
-                command.append(
-                    f"hydra.launcher.template={self.template}",
-                )
-            if self.memory:
-                command.append(
-                    f"hydra.launcher.memory={self.memory}",
-                )
-            if self.ncpus:
-                command.append(
-                    f"hydra.launcher.ncpus={self.ncpus}",
-                )
-            if self.ngpus:
-                command.append(
-                    f"hydra.launcher.ngpus={self.ngpus}",
-                )
-            if self.walltime:
-                command.append(
-                    f"hydra.launcher.walltime={self.walltime}",
-                )
-        elif self.submission_mode == SubmissionMode.LOCAL:
-            command.extend(
-                [
-                    "hydra/launcher=basic",
-                ],
-            )
+    def generate_hydra_launcher_command(
+        self,
+    ) -> list[str]:
+        """Generate the hydra launcher command."""
+        hydra_launcher_command: list[str] = []
 
-        if self.additional_overrides:
-            command.append(self.additional_overrides)
+        match self.submission_mode:
+            case SubmissionMode.HPC_SUBMISSION:
+                hydra_launcher_command.append(
+                    "hydra/launcher=hpc_submission",
+                )
+                if self.queue:
+                    hydra_launcher_command.append(
+                        f"hydra.launcher.queue={self.queue}",
+                    )
+                if self.template:
+                    hydra_launcher_command.append(
+                        f"hydra.launcher.template={self.template}",
+                    )
+                if self.memory:
+                    hydra_launcher_command.append(
+                        f"hydra.launcher.memory={self.memory}",
+                    )
+                if self.ncpus:
+                    hydra_launcher_command.append(
+                        f"hydra.launcher.ncpus={self.ncpus}",
+                    )
+                if self.ngpus:
+                    hydra_launcher_command.append(
+                        f"hydra.launcher.ngpus={self.ngpus}",
+                    )
+                if self.walltime:
+                    hydra_launcher_command.append(
+                        f"hydra.launcher.walltime={self.walltime}",
+                    )
+            case SubmissionMode.LOCAL:
+                hydra_launcher_command.extend(
+                    [
+                        "hydra/launcher=basic",
+                    ],
+                )
+            case _:
+                msg = f"Unknown {self.submission_mode = }"
+                raise ValueError(
+                    msg,
+                )
 
-        return command
+        return hydra_launcher_command
 
     def generate_task_specific_command_finetuning(
         self,
