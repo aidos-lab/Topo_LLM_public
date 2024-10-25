@@ -42,8 +42,12 @@ import pandas as pd
 from tqdm import tqdm
 
 from topollm.analysis.compare_sampling_methods.compute_correlations import compute_and_save_correlations
+from topollm.analysis.compare_sampling_methods.data_selection_folder_lists import get_data_folder_list
 from topollm.analysis.compare_sampling_methods.log_statistics_of_array import log_statistics_of_array
 from topollm.analysis.compare_sampling_methods.make_plots import make_mean_std_plot, make_multiple_line_plots
+from topollm.analysis.compare_sampling_methods.organize_results_directory_structure import (
+    build_results_directory_structure,
+)
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
@@ -103,32 +107,83 @@ def main(
         main_config=main_config,
         logger=logger,
     )
+    data_dir: pathlib.Path = embeddings_path_manager.data_dir
 
-    data_folder = "data-multiwoz21_split-validation_ctxt-dataset_entry_samples-3000_feat-col-ner_tags"
-    model_folder = "model-roberta-base_task-masked_lm"
+    data_folder_list: list[str] = get_data_folder_list()
 
-    search_base_directory: pathlib.Path = pathlib.Path(
-        embeddings_path_manager.data_dir,
-        "analysis",
-        "twonn",
-        data_folder,
-        "lvl-token",
-        "add-prefix-space-True_max-len-512",
-        model_folder,
-        "layer--1_agg-mean",
-        "norm-None",
-    )
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            msg=f"{search_base_directory = }",  # noqa: G004 - low overhead
+    model_folder_list: list[str] = [
+        "model-roberta-base_task-masked_lm",
+        "model-model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-14400_task-masked_lm",
+        "model-model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-31200_task-masked_lm",
+        "model-model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-400_task-masked_lm",
+        "model-model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-14400_task-masked_lm",
+        "model-model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-31200_task-masked_lm",
+        "model-model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-400_task-masked_lm",
+    ]
+
+    for data_folder, model_folder in tqdm(
+        iterable=product(
+            data_folder_list,
+            model_folder_list,
+        ),
+        desc="Iterating over folder choices",
+    ):
+        search_base_directory: pathlib.Path = pathlib.Path(
+            data_dir,
+            "analysis",
+            "twonn",
+            data_folder,
+            "lvl-token",
+            "add-prefix-space-True_max-len-512",
+            model_folder,
+            "layer--1_agg-mean",
+            "norm-None",
         )
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"{search_base_directory = }",  # noqa: G004 - low overhead
+            )
+
+        run_search_on_single_base_directory(
+            search_base_directory=search_base_directory,
+            data_dir=data_dir,
+            verbosity=verbosity,
+            logger=logger,
+        )
+
+        # TODO: Continue analysis here
+        # TODO: Parse the information from the file names
+        # TODO: Make plots for the different comparisons
+
+    logger.info(
+        msg="Running script DONE",
+    )
+
+
+def run_search_on_single_base_directory(
+    search_base_directory: pathlib.Path,
+    data_dir: pathlib.Path,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
+    """Run the search and analysis on a single base directory."""
+    results_directory: pathlib.Path = build_results_directory_structure(
+        analysis_base_directory=search_base_directory,
+        data_dir=data_dir,
+        analysis_subdirectory_partial_path=pathlib.Path(
+            "sample_sizes",
+            "run_general_comparisons",
+        ),
+        verbosity=verbosity,
+        logger=logger,
+    )
 
     filenames_to_match = [
         "global_estimate.npy",
         "local_estimates_pointwise.npy",
     ]
 
-    loaded_data_df = walk_through_subdirectories_and_load_arrays(
+    full_loaded_data_df: pd.DataFrame = walk_through_subdirectories_and_load_arrays(
         root_directory=search_base_directory,
         verbosity=verbosity,
         filenames_to_match=filenames_to_match,
@@ -136,18 +191,64 @@ def main(
     )
     if verbosity >= Verbosity.NORMAL:
         log_dataframe_info(
-            df=loaded_data_df,
-            df_name="loaded_data_df",
+            df=full_loaded_data_df,
+            df_name="full_loaded_data_df",
             logger=logger,
         )
 
-    # TODO: Continue analysis here
-    # TODO: Parse the information from the file names
-    # TODO: Make plots for the different comparisons
-
-    logger.info(
-        msg="Running script DONE",
+    full_local_estimates_df: pd.DataFrame = extract_and_prepare_local_estimates_data(
+        loaded_data_df=full_loaded_data_df,
     )
+    if verbosity >= Verbosity.NORMAL:
+        log_dataframe_info(
+            df=full_local_estimates_df,
+            df_name="full_local_estimates_df",
+            logger=logger,
+        )
+
+    full_local_estimates_df_save_path: pathlib.Path = pathlib.Path(
+        results_directory,
+        "full_local_estimates_df.csv",
+    )
+    full_local_estimates_df.to_csv(
+        path_or_buf=full_local_estimates_df_save_path,
+    )
+
+
+def extract_and_prepare_local_estimates_data(
+    loaded_data_df: pd.DataFrame,
+    array_truncation_size: int = 2_500,
+):
+    array_name_to_match: str = "local_estimates_pointwise.npy"
+
+    # Filter the DataFrame to only contain the local estimates
+    local_estimates_df: pd.DataFrame = loaded_data_df[loaded_data_df["array_name"] == array_name_to_match]
+
+    # Add a column with the number of elements in the array
+    local_estimates_df["num_elements"] = local_estimates_df["array_data"].apply(
+        func=lambda array: array.size,
+    )
+
+    # Add a column with truncated arrays
+    local_estimates_df["array_data_truncated"] = local_estimates_df["array_data"].apply(
+        func=lambda array: array[:array_truncation_size],
+    )
+
+    # Add a column with the mean and standard deviation of the arrays
+    local_estimates_df["array_data_mean"] = local_estimates_df["array_data"].apply(
+        func=lambda array: array.mean(),
+    )
+    local_estimates_df["array_data_std"] = local_estimates_df["array_data"].apply(
+        func=lambda array: array.std(),
+    )
+    local_estimates_df["array_data_truncated_mean"] = local_estimates_df["array_data_truncated"].apply(
+        func=lambda array: array.mean(),
+    )
+    local_estimates_df["array_data_truncated_std"] = local_estimates_df["array_data_truncated"].apply(
+        func=lambda array: array.std(),
+    )
+
+    return local_estimates_df
 
 
 def walk_through_subdirectories_and_load_arrays(
@@ -203,11 +304,11 @@ def walk_through_subdirectories_and_load_arrays(
                 )
 
     # Create a DataFrame from the collected data
-    df = pd.DataFrame(
+    loaded_data_df = pd.DataFrame(
         data=data,
     )
 
-    return df
+    return loaded_data_df
 
 
 if __name__ == "__main__":
