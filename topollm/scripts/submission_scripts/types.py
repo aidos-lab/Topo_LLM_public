@@ -90,6 +90,13 @@ class EmbeddingsDataPrepSamplingSeedListOption(StrEnum):
     TWENTY_SEEDS = auto()
 
 
+class EmbeddingsDataPrepNumSamplesListOption(StrEnum):
+    """Options for the number of samples in the embeddings data preparation sampling."""
+
+    DEFAULT = auto()
+    FIVE_CHOICES_10000_STEPS = auto()
+
+
 class LocalEstimatesFilteringNumSamplesListOption(StrEnum):
     """Options for the number of samples for local estimates filtering."""
 

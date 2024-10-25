@@ -76,6 +76,9 @@ EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="five_seeds"
 # EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="ten_seeds"
 # EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="twenty_seeds"
 
+# EMBEDDINGS_DATA_PREP_NUM_SAMPLES_LIST="default"
+EMBEDDINGS_DATA_PREP_NUM_SAMPLES_LIST="five_choices_10000_steps"
+
 # LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="few_small_steps_num_samples"
 LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="medium_small_steps_num_samples"
 # LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="many_small_steps_num_samples"
@@ -132,6 +135,7 @@ if [ "$DO_PIPELINE" = "true" ]; then
       --finetuning_regime=$FINETUNING_REGIME \
       --embeddings_data_prep_sampling_mode=$EMBEDDINGS_DATA_PREP_SAMPLING_MODE \
       --embeddings_data_prep_sampling_seed_list_option=$EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION \
+      --embeddings_data_prep_num_samples_list=$EMBEDDINGS_DATA_PREP_NUM_SAMPLES_LIST \
       $SKIP_COMPUTE_AND_STORE_EMBEDDINGS \
       --submission_mode=$SUBMISSION_MODE \
       $DRY_RUN_FLAG
@@ -178,6 +182,7 @@ if [ "$DO_LOCAL_ESTIMATES_COMPUTATION" = "true" ]; then
       --finetuning_regime=$FINETUNING_REGIME \
       --embeddings_data_prep_sampling_mode=$EMBEDDINGS_DATA_PREP_SAMPLING_MODE \
       --embeddings_data_prep_sampling_seed_list_option=$EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION \
+      --embeddings_data_prep_num_samples_list=$EMBEDDINGS_DATA_PREP_NUM_SAMPLES_LIST \
       --local_estimates_filtering_num_samples_list=$LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST \
       --local_estimates_pointwise_absolute_n_neighbors_list=$LOCAL_ESTIMATES_POINTWISE_ABSOLUTE_N_NEIGHBORS_LIST \
       --submission_mode=$SUBMISSION_MODE \
