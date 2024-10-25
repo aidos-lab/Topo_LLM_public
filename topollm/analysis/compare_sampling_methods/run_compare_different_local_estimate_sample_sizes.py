@@ -105,7 +105,6 @@ def main(
 
     mode = "create_debug_plots"
 
-    # TODO: Move these selection lists into a separate module
     if mode == "create_all_plots":
         data_folder_list: list[str] = [
             "data-multiwoz21_split-train_ctxt-dataset_entry_samples-10000_feat-col-ner_tags",
@@ -134,7 +133,6 @@ def main(
             "sampling-random_seed-42_samples-30000",
             "sampling-take_first_seed-42_samples-30000",
         ]
-        # TODO: Discover this list automatically
         token_space_sampling_folder_list: list[str] = [
             "desc-twonn_samples-5000_zerovec-keep",
         ]
@@ -251,8 +249,6 @@ def main(
         loaded_estimates_df = pd.DataFrame(
             loaded_estimates_list,
         )
-
-        # TODO: Implement the analysis here
 
         pass  # Note: This is a placeholder for adding break points
 

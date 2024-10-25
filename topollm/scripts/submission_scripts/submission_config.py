@@ -67,25 +67,23 @@ class SubmissionConfig(BaseModel):
     checkpoint_no_list: list[str] | None = None
 
     layer_indices: str | None = "[-1]"
-    embeddings_data_prep_num_samples: str | None = "30000"
+    embeddings_data_prep_num_samples_list: list[str] | None = [
+        "30000",
+    ]
     embeddings_data_prep_sampling_mode: EmbeddingsDataPrepSamplingMode | None = (
         EmbeddingsDataPrepSamplingMode.TAKE_FIRST  # type: ignore - problem with StrEnum type
     )
+    embeddings_data_prep_sampling_seed_list: list[str] | None = [
+        "42",
+    ]
     additional_overrides: str | None = ""
 
     # # # #
     # Local estimates parameters
     local_estimates_filtering_num_samples_list: list[str] | None = None
-
+    local_estimates_filtering_deduplication_mode: str = "array_deduplicator"
     local_estimates_pointwise_n_neighbors_mode: str = "absolute_size"
-    local_estimates_pointwise_absolute_n_neighbors_list: list[str] | None = [
-        "64",
-        "128",
-        "256",
-        "384",
-        "512",
-        "1024",
-    ]
+    local_estimates_pointwise_absolute_n_neighbors_list: list[str] | None = None
 
     # Finetuning-specific parameters
     base_model_list: list[str] = Field(
@@ -133,6 +131,10 @@ class SubmissionConfig(BaseModel):
     batch_size_train: str | None = "8"
     batch_size_eval: str | None = "8"
 
+    # # # #
+    # Feature flags
+    skip_compute_and_store_embeddings: bool = False
+
     python_script_name: str = Field(
         default="run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
     )
@@ -170,7 +172,7 @@ class SubmissionConfig(BaseModel):
             "poetry",
             "run",
             "python3",
-            str(self.relative_python_script_path),
+            str(object=self.relative_python_script_path),
             "--multirun",
             "hydra/sweeper=basic",
         ]
@@ -179,7 +181,38 @@ class SubmissionConfig(BaseModel):
         self,
         task: Task,
     ) -> list[str]:
-        """Get the command to run the task."""
+        """Get the command which runs the task."""
+        command: list[str] = (
+            self.poetry_run_command
+            + self.generate_task_specific_command(
+                task=task,
+            )
+            + self.generate_feature_flags_command()
+            + self.generate_hydra_launcher_command()
+        )
+
+        if self.additional_overrides:
+            command.append(self.additional_overrides)
+
+        return command
+
+    def generate_feature_flags_command(
+        self,
+    ) -> list[str]:
+        feature_flags_command: list[str] = []
+
+        if self.skip_compute_and_store_embeddings:
+            feature_flags_command.append(
+                "feature_flags.compute_and_store_embeddings.skip_compute_and_store_embeddings=true",
+            )
+
+        return feature_flags_command
+
+    def generate_task_specific_command(
+        self,
+        task: Task,
+    ) -> list[str]:
+        """Generate the task-specific command."""
         match task:
             case Task.LOCAL_ESTIMATES_COMPUTATION:
                 # We can use the same command for the local estimates computation
@@ -193,51 +226,61 @@ class SubmissionConfig(BaseModel):
             case Task.FINETUNING:
                 task_specific_command: list[str] = self.generate_task_specific_command_finetuning()
             case _:
-                msg = f"Unknown {task = }"
-                raise ValueError(msg)
+                msg: str = f"Unknown {task = }"
+                raise ValueError(
+                    msg,
+                )
 
-        # Assemble the command
-        command: list[str] = self.poetry_run_command + task_specific_command
+        return task_specific_command
 
-        if self.submission_mode == SubmissionMode.HPC_SUBMISSION:
-            command.append(
-                "hydra/launcher=hpc_submission",
-            )
-            if self.queue:
-                command.append(
-                    f"hydra.launcher.queue={self.queue}",
-                )
-            if self.template:
-                command.append(
-                    f"hydra.launcher.template={self.template}",
-                )
-            if self.memory:
-                command.append(
-                    f"hydra.launcher.memory={self.memory}",
-                )
-            if self.ncpus:
-                command.append(
-                    f"hydra.launcher.ncpus={self.ncpus}",
-                )
-            if self.ngpus:
-                command.append(
-                    f"hydra.launcher.ngpus={self.ngpus}",
-                )
-            if self.walltime:
-                command.append(
-                    f"hydra.launcher.walltime={self.walltime}",
-                )
-        elif self.submission_mode == SubmissionMode.LOCAL:
-            command.extend(
-                [
-                    "hydra/launcher=basic",
-                ],
-            )
+    def generate_hydra_launcher_command(
+        self,
+    ) -> list[str]:
+        """Generate the hydra launcher command."""
+        hydra_launcher_command: list[str] = []
 
-        if self.additional_overrides:
-            command.append(self.additional_overrides)
+        match self.submission_mode:
+            case SubmissionMode.HPC_SUBMISSION:
+                hydra_launcher_command.append(
+                    "hydra/launcher=hpc_submission",
+                )
+                if self.queue:
+                    hydra_launcher_command.append(
+                        f"hydra.launcher.queue={self.queue}",
+                    )
+                if self.template:
+                    hydra_launcher_command.append(
+                        f"hydra.launcher.template={self.template}",
+                    )
+                if self.memory:
+                    hydra_launcher_command.append(
+                        f"hydra.launcher.memory={self.memory}",
+                    )
+                if self.ncpus:
+                    hydra_launcher_command.append(
+                        f"hydra.launcher.ncpus={self.ncpus}",
+                    )
+                if self.ngpus:
+                    hydra_launcher_command.append(
+                        f"hydra.launcher.ngpus={self.ngpus}",
+                    )
+                if self.walltime:
+                    hydra_launcher_command.append(
+                        f"hydra.launcher.walltime={self.walltime}",
+                    )
+            case SubmissionMode.LOCAL:
+                hydra_launcher_command.extend(
+                    [
+                        "hydra/launcher=basic",
+                    ],
+                )
+            case _:
+                msg = f"Unknown {self.submission_mode = }"
+                raise ValueError(
+                    msg,
+                )
 
-        return command
+        return hydra_launcher_command
 
     def generate_task_specific_command_finetuning(
         self,
@@ -309,14 +352,18 @@ class SubmissionConfig(BaseModel):
                 f"embeddings.embedding_extraction.layer_indices={self.layer_indices}",
             )
 
-        if self.embeddings_data_prep_num_samples:
+        if self.embeddings_data_prep_num_samples_list:
             task_specific_command.append(
-                f"embeddings_data_prep.sampling.num_samples={self.embeddings_data_prep_num_samples}",
+                "embeddings_data_prep.sampling.num_samples=" + ",".join(self.embeddings_data_prep_num_samples_list),
             )
 
         if self.embeddings_data_prep_sampling_mode:
             task_specific_command.append(
-                f"+embeddings_data_prep.sampling.sampling_mode={str(self.embeddings_data_prep_sampling_mode)}",  # noqa: RUF010 - we want to use the string representation here
+                f"+embeddings_data_prep.sampling.sampling_mode={str(object=self.embeddings_data_prep_sampling_mode)}",  # noqa: RUF010 - we want to use the string representation here
+            )
+        if self.embeddings_data_prep_sampling_seed_list:
+            task_specific_command.append(
+                f"embeddings_data_prep.sampling.seed={','.join(self.embeddings_data_prep_sampling_seed_list)}",
             )
 
         local_estimates_command: list[str] = self.generate_local_estimates_command()
@@ -370,14 +417,18 @@ class SubmissionConfig(BaseModel):
         local_estimates_command.append(
             f"local_estimates.pointwise.n_neighbors_mode={self.local_estimates_pointwise_n_neighbors_mode}",
         )
+        local_estimates_command.append(
+            "local_estimates.filtering.deduplication_mode=" + self.local_estimates_filtering_deduplication_mode,
+        )
 
         if self.local_estimates_filtering_num_samples_list:
             local_estimates_command.append(
-                f"local_estimates.filtering.num_samples={','.join(self.local_estimates_filtering_num_samples_list)}",
+                "local_estimates.filtering.num_samples=" + ",".join(self.local_estimates_filtering_num_samples_list),
             )
         if self.local_estimates_pointwise_absolute_n_neighbors_list:
             local_estimates_command.append(
-                f"local_estimates.pointwise.absolute_n_neighbors={','.join(self.local_estimates_pointwise_absolute_n_neighbors_list)}",
+                "local_estimates.pointwise.absolute_n_neighbors="
+                + ",".join(self.local_estimates_pointwise_absolute_n_neighbors_list),
             )
 
         return local_estimates_command

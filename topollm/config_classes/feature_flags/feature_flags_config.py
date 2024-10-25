@@ -32,6 +32,16 @@ from pydantic import Field
 from topollm.config_classes.config_base_model import ConfigBaseModel
 
 
+class ComputeAndStoreEmbeddingsFeatureFlagsConfig(ConfigBaseModel):
+    """Feature flags for the compute and store embeddings process."""
+
+    skip_compute_and_store_embeddings: bool = Field(
+        default=False,
+        title="Skip compute and store embeddings in the pipeline.",
+        description="Whether to skip the compute and store embeddings process in the pipeline.",
+    )
+
+
 class EmbeddingsDataPrepFeatureFlagsConfig(ConfigBaseModel):
     """Feature flags for the embeddings data preparation process."""
 
@@ -97,6 +107,12 @@ class FeatureFlagsConfig(ConfigBaseModel):
         default_factory=AnalysisFeatureFlagsConfig,
         title="Analysis feature flags.",
         description="Feature flags for the analysis process.",
+    )
+
+    compute_and_store_embeddings: ComputeAndStoreEmbeddingsFeatureFlagsConfig = Field(
+        default_factory=ComputeAndStoreEmbeddingsFeatureFlagsConfig,
+        title="Compute and store embeddings feature flags.",
+        description="Feature flags for the compute and store embeddings process.",
     )
 
     embeddings_data_prep: EmbeddingsDataPrepFeatureFlagsConfig = Field(
