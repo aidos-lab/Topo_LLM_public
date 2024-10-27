@@ -30,7 +30,6 @@
 import logging
 import os
 import pathlib
-import re
 from itertools import product
 from typing import TYPE_CHECKING
 
@@ -48,6 +47,7 @@ from topollm.analysis.compare_sampling_methods.make_plots import make_mean_std_p
 from topollm.analysis.compare_sampling_methods.organize_results_directory_structure import (
     build_results_directory_structure,
 )
+from topollm.analysis.compare_sampling_methods.parse_path_info_full import parse_path_info_full
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
@@ -151,9 +151,6 @@ def main(
             logger=logger,
         )
 
-        # TODO: Continue analysis here
-        # TODO: Make plots for the different comparisons
-
     logger.info(
         msg="Running script DONE",
     )
@@ -208,7 +205,10 @@ def run_search_on_single_base_directory_and_process_and_save(
 
     # Concatenate the original DataFrame with the newly parsed columns
     full_loaded_data_df: pd.DataFrame = pd.concat(
-        [full_loaded_data_df, parsed_columns_full],
+        objs=[
+            full_loaded_data_df,
+            parsed_columns_full,
+        ],
         axis=1,
     )
 
@@ -222,6 +222,7 @@ def run_search_on_single_base_directory_and_process_and_save(
             logger=logger,
         )
 
+    # Save the collected dataframe to disk
     full_local_estimates_df_save_path: pathlib.Path = pathlib.Path(
         results_directory,
         "full_local_estimates_df.csv",
@@ -230,95 +231,15 @@ def run_search_on_single_base_directory_and_process_and_save(
         path_or_buf=full_local_estimates_df_save_path,
     )
 
+    # ===== This is the start of the analysis code =====
 
-def parse_path_info_full(
-    path: str | pathlib.Path,
-):
-    """Parse the information from the path.
-
-    Example path:
-    /Users/USER_NAME/git-source/Topo_LLM/
-    data/
-    analysis/
-    twonn/
-    data-multiwoz21_split-train_ctxt-dataset_entry_samples-10000_feat-col-ner_tags/
-    lvl-token/
-    add-prefix-space-True_max-len-512/
-    model-model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-31200_task-masked_lm/
-    layer--1_agg-mean/
-    norm-None/
-    sampling-take_first_seed-42_samples-30000/
-    desc-twonn_samples-12500_zerovec-keep/
-    n-neighbors-mode-absolute_size_n-neighbors-128/
-    local_estimates_pointwise.npy
-    """
-    # Convert the path to a string
-    path_str = str(path)
-
-    # Initialize an empty dictionary to hold parsed values
-    parsed_info: dict = {}
-
-    # Extract sampling information
-    sampling_match = re.search(
-        pattern=r"sampling-(\w+)_seed-(\d+)_samples-(\d+)",
-        string=path_str,
-    )
-    if sampling_match:
-        parsed_info["data_prep_sampling_method"] = sampling_match.group(1)
-        parsed_info["data_prep_sampling_seed"] = sampling_match.group(2)
-        parsed_info["data_prep_sampling_samples"] = sampling_match.group(3)
-
-    # Extract local estimates information
-    desc_match = re.search(
-        pattern=r"desc-(\w+)_samples-(\d+)_zerovec-(\w+)(?:_dedup-(\w+))?",
-        string=path_str,
-    )
-    if desc_match:
-        parsed_info["local_estimates_description"] = desc_match.group(1)
-        parsed_info["local_estimates_samples"] = desc_match.group(2)
-        parsed_info["zerovec"] = desc_match.group(3)
-        # TODO: The deduplication parsing does not appear to work correctly currently
-        if desc_match.group(4):
-            parsed_info["deduplication"] = desc_match.group(4)
-        else:
-            parsed_info["deduplication"] = None
-
-    # Extract neighbors information
-    neighbors_match = re.search(
-        pattern=r"n-neighbors-mode-(\w+)_size_n-neighbors-(\d+)",
-        string=path_str,
-    )
-    if neighbors_match:
-        parsed_info["neighbors_mode"] = neighbors_match.group(1)
-        parsed_info["n_neighbors"] = neighbors_match.group(2)
-
-    # Extract model information
-    model_match = re.search(
-        pattern=r"model-(\w+-[\w-]+)_seed-(\d+)_ckpt-(\d+)",
-        string=path_str,
-    )
-    if model_match:
-        parsed_info["model_name"] = model_match.group(1)
-        parsed_info["model_seed"] = model_match.group(3)
-        parsed_info["checkpoint"] = model_match.group(4)
-
-    # Extract layer and aggregation information
-    layer_match = re.search(
-        pattern=r"layer--(\d+)_agg-(\w+)_norm-(\w+)",
-        string=path_str,
-    )
-    if layer_match:
-        parsed_info["model_layer"] = layer_match.group(1)
-        parsed_info["aggregation"] = layer_match.group(2)
-        parsed_info["normalization"] = layer_match.group(3)
-
-    return parsed_info
+    # TODO: Continue analysis here
 
 
 def extract_and_prepare_local_estimates_data(
     loaded_data_df: pd.DataFrame,
     array_truncation_size: int = 2_500,
-):
+) -> pd.DataFrame:
     array_name_to_match: str = "local_estimates_pointwise.npy"
 
     # Filter the DataFrame to only contain the local estimates
