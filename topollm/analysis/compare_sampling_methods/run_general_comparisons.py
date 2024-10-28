@@ -262,10 +262,12 @@ def run_search_on_single_base_directory_and_process_and_save(
     for n_neighbors in unique_n_neighbors:
         plot_save_path: pathlib.Path = pathlib.Path(
             results_directory,
+            "influence_of_local_estimates_samples",
             f"influence_of_local_estimates_samples_{n_neighbors=}.pdf",
         )
         raw_data_save_path: pathlib.Path = pathlib.Path(
             results_directory,
+            "influence_of_local_estimates_samples",
             f"influence_of_local_estimates_samples_{n_neighbors=}.csv",
         )
 
@@ -410,12 +412,20 @@ def analyze_and_plot_influence_of_local_estimates_samples(
 
     # Save the plot if save_path is provided
     if plot_save_path:
+        plot_save_path.parent.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
         plt.savefig(
             plot_save_path,
             format="pdf",
         )
     # Save the raw data if save_path is provided
     if raw_data_save_path:
+        raw_data_save_path.parent.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
         sorted_df.to_csv(
             path_or_buf=raw_data_save_path,
         )
