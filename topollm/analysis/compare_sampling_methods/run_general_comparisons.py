@@ -310,7 +310,11 @@ def analyze_and_plot_influence_of_local_estimates_samples(
     # handling cases where deduplication is None
     filtered_df = df[
         (df["data_prep_sampling_method"] == updated_values["data_prep_sampling_method"])
-        & ((df["deduplication"] == updated_values["deduplication"]) | df["deduplication"].isna())
+        & (
+            df["deduplication"].isna()
+            if updated_values["deduplication"] is None
+            else df["deduplication"] == updated_values["deduplication"]
+        )
         & (df["n_neighbors"] == updated_values["n_neighbors"])
         & (df["data_prep_sampling_seed"] == updated_values["data_prep_sampling_seed"])
         & (df["data_prep_sampling_samples"] == updated_values["data_prep_sampling_samples"])
