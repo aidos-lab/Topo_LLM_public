@@ -10,10 +10,14 @@ DRY_RUN_FLAG=""
 # on the multiwoz21_train and reddit_train datasets.
 MEMORY="32"
 
+# Flags to select tasks
 DO_PIPELINE="false"
 DO_PERPLEXITY="false"
 DO_LOCAL_ESTIMATES_COMPUTATION="false"
 
+# Flags to select base or fine-tuned model
+USE_BASE_MODEL="false"
+USE_FINETUNED_MODEL="false"
 
 # Parse command line arguments
 while [[ "$#" -gt 0 ]]; do
@@ -38,6 +42,14 @@ while [[ "$#" -gt 0 ]]; do
       DO_LOCAL_ESTIMATES_COMPUTATION="true"
       shift # Remove --do_local_estimates_computation from processing
       ;;
+    --use_base_model)
+      USE_BASE_MODEL="true"
+      shift # Remove --use_base_model from processing
+      ;;
+    --use_finetuned_model)
+      USE_FINETUNED_MODEL="true"
+      shift # Remove --use_finetuned_model from processing
+      ;;
     *)
       echo "Unknown option: $1"
       exit 1
@@ -54,11 +66,25 @@ if [ "$DO_PIPELINE" = "false" ] && [ "$DO_PERPLEXITY" = "false" ] && [ "$DO_LOCA
   echo ">>> NOTE:   --do_local_estimates_computation"
 fi
 
+# Warn if neither model options are set
+if [ "$USE_BASE_MODEL" = "false" ] && [ "$USE_FINETUNED_MODEL" = "false" ]; then
+  echo ">>> WARNING: No model selected. Please specify --use_base_model or --use_finetuned_model."
+  exit 1
+fi
+# Warn if both model options are set
+if [ "$USE_BASE_MODEL" = "true" ] && [ "$USE_FINETUNED_MODEL" = "true" ]; then
+  echo ">>> WARNING: Both base model and fine-tuned model selected. Please select only one."
+  exit 1
+fi
+
 # ================================================================== #
 
 
 # ================================================================== #
-# Debug setup
+
+# DATA_LIST="full"
+# DATA_LIST="multiwoz21_train_and_reddit_train"
+DATA_LIST="multiwoz21_and_reddit"
 
 # DATA_LIST="only_train"
 # LANGUAGE_MODEL_LIST="selected_finetuned_few_epochs_from_roberta_base"
@@ -93,34 +119,27 @@ LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="up_to_50000_large_steps_num_samples"
 # LOCAL_ESTIMATES_POINTWISE_ABSOLUTE_N_NEIGHBORS_LIST="powers_of_two_up_to_1024"
 LOCAL_ESTIMATES_POINTWISE_ABSOLUTE_N_NEIGHBORS_LIST="single_choice_128"
 
-# TODO: Make the following configurable
+# Configure model settings based on selected model options
+if [ "$USE_BASE_MODEL" = "true" ]; then
+  ####################################
+  ### With POS tags for base model ###
+  LANGUAGE_MODEL_LIST="only_roberta_base"
+  LANGUAGE_MODEL_SEED_LIST="do_not_set"
+  CHECKPOINT_NO_LIST="selected" # Ignored for the base model
+  FINETUNING_REGIME="few_epochs" # Ignored for the base model
+fi
 
-####################################
-### With POS tags for base model ###
-#
-# DATA_LIST="full"
-# DATA_LIST="multiwoz21_and_reddit"
-DATA_LIST="multiwoz21_train_and_reddit_train"
+if [ "$USE_FINETUNED_MODEL" = "true" ]; then
+  ################################################################
+  ### With POS tags for finetuned models and three checkpoints ###
+  LANGUAGE_MODEL_LIST="selected_finetuned_many_epochs_from_roberta_base"
+  LANGUAGE_MODEL_SEED_LIST="one_seed"
+  CHECKPOINT_NO_LIST="only_beginning_and_middle_and_end"
+  FINETUNING_REGIME="many_epochs_with_overfitting_risk"
+fi
 
-LANGUAGE_MODEL_LIST="only_roberta_base"
-LANGUAGE_MODEL_SEED_LIST="do_not_set"
-CHECKPOINT_NO_LIST="selected" # Will be ignored for the base model
-FINETUNING_REGIME="few_epochs" # Will be ignored for the base model
 ADD_PREFIX_SPACE_FLAG="--add_prefix_space"
 CREATE_POS_TAGS_FLAG="--create_pos_tags"
-
-##############################################################################
-### With POS tags for finetuned models and three checkpoints and two seeds ###
-#
-# DATA_LIST="full"
-# DATA_LIST="multiwoz21_and_reddit"
-
-# LANGUAGE_MODEL_LIST="selected_finetuned_many_epochs_from_roberta_base"
-# LANGUAGE_MODEL_SEED_LIST="one_seed"
-# CHECKPOINT_NO_LIST="only_beginning_and_middle_and_end"
-# FINETUNING_REGIME="many_epochs_with_overfitting_risk"
-# ADD_PREFIX_SPACE_FLAG="--add_prefix_space"
-# CREATE_POS_TAGS_FLAG="--create_pos_tags"
 
 # ================================================================== #
 
