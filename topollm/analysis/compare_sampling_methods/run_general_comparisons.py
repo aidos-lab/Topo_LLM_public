@@ -393,9 +393,9 @@ def analyze_and_plot_influence_of_local_estimates_samples(
     # Adding additional information about the fixed parameters in the plot
     fixed_params_text = "\n".join([f"{key}: {value}" for key, value in updated_values.items()])
     plt.text(
-        0.02,
-        0.95,
-        f"Fixed Parameters:\n{fixed_params_text}",
+        x=0.02,
+        y=0.95,
+        s=f"Fixed Parameters:\n{fixed_params_text}",
         transform=plt.gca().transAxes,
         fontsize=10,
         verticalalignment="top",
