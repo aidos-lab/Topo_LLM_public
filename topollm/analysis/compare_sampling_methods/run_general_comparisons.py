@@ -35,6 +35,7 @@ from typing import TYPE_CHECKING
 
 import hydra
 import hydra.core.hydra_config
+import matplotlib.pyplot as plt
 import numpy as np
 import omegaconf
 import pandas as pd
@@ -43,7 +44,11 @@ from tqdm import tqdm
 from topollm.analysis.compare_sampling_methods.compute_correlations import compute_and_save_correlations
 from topollm.analysis.compare_sampling_methods.data_selection_folder_lists import get_data_folder_list
 from topollm.analysis.compare_sampling_methods.log_statistics_of_array import log_statistics_of_array
-from topollm.analysis.compare_sampling_methods.make_plots import make_mean_std_plot, make_multiple_line_plots
+from topollm.analysis.compare_sampling_methods.make_plots import (
+    add_subtitle,
+    make_mean_std_plot,
+    make_multiple_line_plots,
+)
 from topollm.analysis.compare_sampling_methods.organize_results_directory_structure import (
     build_results_directory_structure,
 )
@@ -233,7 +238,187 @@ def run_search_on_single_base_directory_and_process_and_save(
 
     # ===== This is the start of the analysis code =====
 
+    # Determine the most frequent values for fixed parameters, handling cases where mode might be unavailable
+    most_frequent_values = {}
+    for column in [
+        "data_prep_sampling_method",
+        "deduplication",
+        "data_prep_sampling_seed",
+        "data_prep_sampling_samples",
+    ]:
+        if full_local_estimates_df[column].notna().any():
+            most_frequent_values[column] = (
+                full_local_estimates_df[column].mode()[0] if not full_local_estimates_df[column].mode().empty else None
+            )
+        else:
+            most_frequent_values[column] = None
+    logger.info(
+        msg=f"full_local_estimates_df:\n{most_frequent_values}",  # noqa: G004 - low overhead
+    )
+
+    # Run analysis for different values of 'n_neighbors'
+    unique_n_neighbors = full_local_estimates_df["n_neighbors"].unique()
+
+    for n_neighbors in unique_n_neighbors:
+        plot_save_path: pathlib.Path = pathlib.Path(
+            results_directory,
+            f"influence_of_local_estimates_samples_{n_neighbors=}.pdf",
+        )
+        raw_data_save_path: pathlib.Path = pathlib.Path(
+            results_directory,
+            f"influence_of_local_estimates_samples_{n_neighbors=}.csv",
+        )
+
+        analyze_and_plot_influence_of_local_estimates_samples(
+            df=full_local_estimates_df,
+            n_neighbors=n_neighbors,
+            most_frequent_values=most_frequent_values,
+            show_plot=False,
+            plot_save_path=plot_save_path,
+            raw_data_save_path=raw_data_save_path,
+            verbosity=verbosity,
+            logger=logger,
+        )
+
     # TODO: Continue analysis here
+
+    pass  # Note: This is here for setting break points
+
+
+def analyze_and_plot_influence_of_local_estimates_samples(
+    df: pd.DataFrame,
+    n_neighbors: int,
+    most_frequent_values: dict,
+    additional_title: str | None = None,
+    *,
+    show_plot: bool = False,
+    plot_save_path: pathlib.Path | None = None,
+    raw_data_save_path: pathlib.Path | None = None,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
+    """Analyze and visualize the influence of 'local_estimates_samples'.
+
+    We plot array_data_truncated_mean and array_data_truncated_std
+    for a given value of 'n_neighbors', while keeping other parameters fixed.
+    """
+    # Update the fixed parameter values to the chosen 'n_neighbors'
+    updated_values = most_frequent_values.copy()
+    updated_values["n_neighbors"] = n_neighbors
+
+    # Filter the DataFrame with the updated fixed values,
+    # handling cases where deduplication is None
+    filtered_df = df[
+        (df["data_prep_sampling_method"] == updated_values["data_prep_sampling_method"])
+        & ((df["deduplication"] == updated_values["deduplication"]) | df["deduplication"].isna())
+        & (df["n_neighbors"] == updated_values["n_neighbors"])
+        & (df["data_prep_sampling_seed"] == updated_values["data_prep_sampling_seed"])
+        & (df["data_prep_sampling_samples"] == updated_values["data_prep_sampling_samples"])
+    ]
+
+    if verbosity >= Verbosity.NORMAL:
+        log_dataframe_info(
+            df=filtered_df,
+            df_name="filtered_df",
+            logger=logger,
+        )
+
+    # Ensure there are enough valid data points to proceed
+    if filtered_df.empty:
+        logger.warning(
+            msg=f"No valid data to plot for {n_neighbors = }",  # noqa: G004 - low overhead
+        )
+        return
+
+    # Sort by 'local_estimates_samples' for consistent plotting
+    sorted_df = filtered_df.sort_values(
+        by="local_estimates_samples",
+    )
+
+    # Convert columns to NumPy arrays for plotting
+    sample_size_array = sorted_df["local_estimates_samples"].to_numpy(dtype=float)
+    mean_array = sorted_df["array_data_truncated_mean"].to_numpy(dtype=float)
+    std_array = sorted_df["array_data_truncated_std"].to_numpy(dtype=float)
+
+    # Plotting the analysis
+    plt.figure(figsize=(10, 6))
+    plt.plot(
+        sample_size_array,
+        mean_array,
+        color="b",
+        label="Truncated Mean",
+        marker="o",
+    )
+    plt.fill_between(
+        x=sample_size_array,
+        y1=mean_array - std_array,
+        y2=mean_array + std_array,
+        color="b",
+        alpha=0.2,
+        label="Standard Deviation",
+    )
+
+    # Add horizontal and vertical grid lines for better readability
+    plt.grid(
+        visible=True,
+        which="both",
+        linestyle="--",
+        linewidth=0.5,
+        color="gray",
+    )
+
+    # Label the axes and add title
+    plt.xlabel("local_estimates_samples")
+    plt.ylabel("Truncated Mean")
+    plt.title(
+        label=f"Influence of 'local_estimates_samples' on Truncated Mean and Std (n_neighbors={n_neighbors})",
+    )
+
+    if additional_title:
+        add_subtitle(
+            additional_title=additional_title,
+        )
+    else:
+        # If no additional title is provided, use the first file path as a subtitle
+        add_subtitle(
+            additional_title=str(object=sorted_df["path"].iloc[0]),
+        )
+
+    # Adding additional information about the fixed parameters in the plot
+    fixed_params_text = "\n".join([f"{key}: {value}" for key, value in updated_values.items()])
+    plt.text(
+        0.02,
+        0.95,
+        f"Fixed Parameters:\n{fixed_params_text}",
+        transform=plt.gca().transAxes,
+        fontsize=10,
+        verticalalignment="top",
+        bbox={
+            "boxstyle": "round",
+            "facecolor": "wheat",
+            "alpha": 0.5,
+        },
+    )
+
+    # Add a legend
+    plt.legend()
+    plt.tight_layout()
+
+    # Save the plot if save_path is provided
+    if plot_save_path:
+        plt.savefig(
+            plot_save_path,
+            format="pdf",
+        )
+    # Save the raw data if save_path is provided
+    if raw_data_save_path:
+        sorted_df.to_csv(
+            path_or_buf=raw_data_save_path,
+        )
+
+    # Show the plot if requested
+    if show_plot:
+        plt.show()
 
 
 def extract_and_prepare_local_estimates_data(
