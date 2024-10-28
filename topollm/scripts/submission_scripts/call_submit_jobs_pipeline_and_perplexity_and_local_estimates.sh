@@ -6,6 +6,10 @@
 SUBMISSION_MODE="hpc_submission"
 DRY_RUN_FLAG=""
 
+# Note that 16GB of memory is not enough for the embeddings data prep step
+# on the multiwoz21_train and reddit_train datasets.
+MEMORY="32"
+
 DO_PIPELINE="false"
 DO_PERPLEXITY="false"
 DO_LOCAL_ESTIMATES_COMPUTATION="false"
@@ -72,26 +76,31 @@ EMBEDDINGS_DATA_PREP_SAMPLING_MODE="random"
 
 # EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="default"
 # EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="two_seeds"
-EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="five_seeds"
+# EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="five_seeds"
 # EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="ten_seeds"
-# EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="twenty_seeds"
+EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="twenty_seeds"
 
 # EMBEDDINGS_DATA_PREP_NUM_SAMPLES_LIST="default"
-EMBEDDINGS_DATA_PREP_NUM_SAMPLES_LIST="five_choices_10000_steps"
+EMBEDDINGS_DATA_PREP_NUM_SAMPLES_LIST="single_choice_50000"
+# EMBEDDINGS_DATA_PREP_NUM_SAMPLES_LIST="five_choices_10000_steps"
 
 # LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="few_small_steps_num_samples"
-LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="medium_small_steps_num_samples"
+# LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="medium_small_steps_num_samples"
 # LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="many_small_steps_num_samples"
 # LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="many_large_steps_num_samples"
+LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="up_to_50000_large_steps_num_samples"
 
-LOCAL_ESTIMATES_POINTWISE_ABSOLUTE_N_NEIGHBORS_LIST="powers_of_two_up_to_1024"
+# LOCAL_ESTIMATES_POINTWISE_ABSOLUTE_N_NEIGHBORS_LIST="powers_of_two_up_to_1024"
+LOCAL_ESTIMATES_POINTWISE_ABSOLUTE_N_NEIGHBORS_LIST="single_choice_128"
 
+# TODO: Make the following configurable
 
 ####################################
 ### With POS tags for base model ###
 #
 # DATA_LIST="full"
-DATA_LIST="multiwoz21_and_reddit"
+# DATA_LIST="multiwoz21_and_reddit"
+DATA_LIST="multiwoz21_train_and_reddit_train"
 
 LANGUAGE_MODEL_LIST="only_roberta_base"
 LANGUAGE_MODEL_SEED_LIST="do_not_set"
@@ -126,6 +135,7 @@ if [ "$DO_PIPELINE" = "true" ]; then
       --task="pipeline" \
       --queue="DSML" \
       --template="DSML" \
+      --memory=$MEMORY \
       --data_list=$DATA_LIST \
       $CREATE_POS_TAGS_FLAG \
       --language_model_list=$LANGUAGE_MODEL_LIST \

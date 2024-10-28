@@ -32,8 +32,8 @@ def sync_directories(
         print("===========================================================")  # noqa: T201 - this script should print to stdout
         print(f"{directory = }")  # noqa: T201 - this script should print to stdout
 
-        src = f"Hilbert-Storage:{zim_topo_llm_repository_base_path}/{directory}"
-        dest = f"{target_base_path}/{directory}"
+        src: str = f"Hilbert-Storage:{zim_topo_llm_repository_base_path}/{directory}"
+        dest: str = f"{target_base_path}/{directory}"
 
         rsync_command = [
             "rsync",
