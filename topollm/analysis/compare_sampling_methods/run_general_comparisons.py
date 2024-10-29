@@ -144,6 +144,8 @@ def main(
             "layer--1_agg-mean",
             "norm-None",
         )
+        array_truncation_size: int = 5_000
+
         if verbosity >= Verbosity.NORMAL:
             logger.info(
                 msg=f"{search_base_directory = }",  # noqa: G004 - low overhead
@@ -152,6 +154,7 @@ def main(
         run_search_on_single_base_directory_and_process_and_save(
             search_base_directory=search_base_directory,
             data_dir=data_dir,
+            array_truncation_size=array_truncation_size,
             verbosity=verbosity,
             logger=logger,
         )
@@ -164,6 +167,7 @@ def main(
 def run_search_on_single_base_directory_and_process_and_save(
     search_base_directory: pathlib.Path,
     data_dir: pathlib.Path,
+    array_truncation_size: int = 2_500,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> None:
@@ -219,6 +223,9 @@ def run_search_on_single_base_directory_and_process_and_save(
 
     full_local_estimates_df: pd.DataFrame = extract_and_prepare_local_estimates_data(
         loaded_data_df=full_loaded_data_df,
+        array_truncation_size=array_truncation_size,
+        verbosity=verbosity,
+        logger=logger,
     )
     if verbosity >= Verbosity.NORMAL:
         log_dataframe_info(
@@ -438,6 +445,8 @@ def analyze_and_plot_influence_of_local_estimates_samples(
 def extract_and_prepare_local_estimates_data(
     loaded_data_df: pd.DataFrame,
     array_truncation_size: int = 2_500,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
 ) -> pd.DataFrame:
     array_name_to_match: str = "local_estimates_pointwise.npy"
 
@@ -450,6 +459,10 @@ def extract_and_prepare_local_estimates_data(
     )
 
     # Add a column with truncated arrays
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Truncating arrays to {array_truncation_size = }",  # noqa: G004 - low overhead
+        )
     local_estimates_df["array_data_truncated"] = local_estimates_df["array_data"].apply(
         func=lambda array: array[:array_truncation_size],
     )
