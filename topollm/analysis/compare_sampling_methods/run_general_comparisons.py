@@ -35,7 +35,6 @@ from typing import TYPE_CHECKING, Any
 
 import hydra
 import hydra.core.hydra_config
-import matplotlib.pyplot as plt
 import numpy as np
 import omegaconf
 import pandas as pd
@@ -45,7 +44,9 @@ from topollm.analysis.compare_sampling_methods.compute_correlations import compu
 from topollm.analysis.compare_sampling_methods.data_selection_folder_lists import get_data_folder_list
 from topollm.analysis.compare_sampling_methods.log_statistics_of_array import log_statistics_of_array
 from topollm.analysis.compare_sampling_methods.make_plots import (
-    add_subtitle,
+    analyze_and_plot_influence_of_local_estimates_samples,
+    create_boxplot_of_mean_over_different_sampling_seeds,
+    generate_fixed_params_text,
     make_mean_std_plot,
     make_multiple_line_plots,
 )
@@ -87,6 +88,12 @@ setup_exception_logging(
 
 setup_omega_conf()
 
+Y_AXIS_LIMITS: dict[str, tuple[float, float]] = {
+    "full": (6.5, 15.5),  # full range
+    "lower": (6.5, 10.0),  # lower range
+    "upper": (12.0, 16.0),  # upper range
+}
+
 
 @hydra.main(
     config_path=f"{HYDRA_CONFIGS_BASE_PATH}",
@@ -118,12 +125,12 @@ def main(
 
     model_folder_list: list[str] = [
         "model-roberta-base_task-masked_lm",
-        # "model-model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-14400_task-masked_lm",
-        # "model-model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-31200_task-masked_lm",
-        # "model-model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-400_task-masked_lm",
-        # "model-model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-14400_task-masked_lm",
-        # "model-model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-31200_task-masked_lm",
-        # "model-model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-400_task-masked_lm",
+        "model-model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-14400_task-masked_lm",
+        "model-model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-31200_task-masked_lm",
+        "model-model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-400_task-masked_lm",
+        "model-model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-14400_task-masked_lm",
+        "model-model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-31200_task-masked_lm",
+        "model-model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-400_task-masked_lm",
     ]
 
     for data_folder, model_folder in tqdm(
@@ -132,6 +139,7 @@ def main(
             model_folder_list,
         ),
         desc="Iterating over folder choices",
+        total=len(data_folder_list) * len(model_folder_list),
     ):
         search_base_directory: pathlib.Path = pathlib.Path(
             data_dir,
@@ -178,6 +186,7 @@ def run_search_on_single_base_directory_and_process_and_save(
         analysis_subdirectory_partial_path=pathlib.Path(
             "sample_sizes",
             "run_general_comparisons",
+            f"{array_truncation_size=}",
         ),
         verbosity=verbosity,
         logger=logger,
@@ -195,6 +204,7 @@ def run_search_on_single_base_directory_and_process_and_save(
         logger=logger,
     )
 
+    # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # ===== This is the start of the analysis code =====
 
     run_analysis_influence_of_local_estimates_n_neighbors(
@@ -222,6 +232,45 @@ def run_search_on_single_base_directory_and_process_and_save(
         filters_dict=filters_dict,
     )
 
+    fixed_params_text: str = generate_fixed_params_text(
+        filters_dict=filters_dict,
+    )
+
+    for connect_points in [
+        True,
+        False,
+    ]:
+        for y_min, y_max in Y_AXIS_LIMITS.values():
+            common_prefix_path = pathlib.Path(
+                results_directory,
+                "different_data_prep_sampling_seeds",
+                f"{filters_dict['data_prep_sampling_samples']=}",
+                f"{filters_dict['n_neighbors']=}",
+                "array_data_truncated_mean_boxplot",
+            )
+
+            plot_save_path = pathlib.Path(
+                common_prefix_path,
+                "plots",
+                f"y_{y_min}_{y_max}_{connect_points=}.pdf",
+            )
+            raw_data_save_path = pathlib.Path(
+                common_prefix_path,
+                "raw_data",
+                "raw_data.csv",
+            )
+
+            create_boxplot_of_mean_over_different_sampling_seeds(
+                subset_local_estimates_df=subset_local_estimates_df,
+                plot_save_path=plot_save_path,
+                raw_data_save_path=raw_data_save_path,
+                fixed_params_text=fixed_params_text,
+                y_min=y_min,
+                y_max=y_max,
+                show_plot=False,
+                connect_points=connect_points,
+            )
+
     # TODO: Continue analysis here
 
     pass  # noqa: PIE790 - This is here for setting a breakpoint
@@ -247,28 +296,36 @@ def run_analysis_influence_of_local_estimates_n_neighbors(
     unique_n_neighbors = full_local_estimates_df["n_neighbors"].unique()
 
     for n_neighbors in unique_n_neighbors:
-        plot_save_path: pathlib.Path = pathlib.Path(
-            results_directory,
-            "influence_of_local_estimates_samples",
-            f"influence_of_local_estimates_samples_{n_neighbors=}.pdf",
-        )
-        raw_data_save_path: pathlib.Path = pathlib.Path(
-            results_directory,
-            "influence_of_local_estimates_samples",
-            f"influence_of_local_estimates_samples_{n_neighbors=}.csv",
-        )
+        for y_min, y_max in Y_AXIS_LIMITS.values():
+            common_prefix_path = pathlib.Path(
+                results_directory,
+                "influence_of_local_estimates_samples",
+            )
 
-        analyze_and_plot_influence_of_local_estimates_samples(
-            df=full_local_estimates_df,
-            n_neighbors=n_neighbors,
-            selected_subsample_dict=selected_subsample_dict,
-            array_data_column_name=array_data_column_name,
-            show_plot=False,
-            plot_save_path=plot_save_path,
-            raw_data_save_path=raw_data_save_path,
-            verbosity=verbosity,
-            logger=logger,
-        )
+            plot_save_path: pathlib.Path = pathlib.Path(
+                common_prefix_path,
+                "plots",
+                f"{n_neighbors=}_y_{y_min}_{y_max}.pdf",
+            )
+            raw_data_save_path: pathlib.Path = pathlib.Path(
+                common_prefix_path,
+                "raw_data",
+                f"{n_neighbors=}.csv",
+            )
+
+            analyze_and_plot_influence_of_local_estimates_samples(
+                df=full_local_estimates_df,
+                n_neighbors=n_neighbors,
+                selected_subsample_dict=selected_subsample_dict,
+                array_data_column_name=array_data_column_name,
+                y_min=y_min,
+                y_max=y_max,
+                show_plot=False,
+                plot_save_path=plot_save_path,
+                raw_data_save_path=raw_data_save_path,
+                verbosity=verbosity,
+                logger=logger,
+            )
 
 
 def retrieve_most_frequent_values(
@@ -391,155 +448,6 @@ def filter_dataframe_based_on_filters_dict(
     for column, value in filters_dict.items():
         subset_df = subset_df[subset_df[column] == value]
     return subset_df
-
-
-def analyze_and_plot_influence_of_local_estimates_samples(
-    df: pd.DataFrame,
-    n_neighbors: int,
-    selected_subsample_dict: dict,
-    array_data_column_name: str,
-    additional_title: str | None = None,
-    *,
-    show_plot: bool = False,
-    plot_save_path: pathlib.Path | None = None,
-    raw_data_save_path: pathlib.Path | None = None,
-    verbosity: Verbosity = Verbosity.NORMAL,
-    logger: logging.Logger = default_logger,
-) -> None:
-    """Analyze and visualize the influence of 'local_estimates_samples'.
-
-    We plot array_data_truncated_mean and array_data_truncated_std
-    for a given value of 'n_neighbors', while keeping other parameters fixed.
-    """
-    # Update the fixed parameter values to the chosen 'n_neighbors'
-    updated_selected_subsample_dict = selected_subsample_dict.copy()
-    updated_selected_subsample_dict["n_neighbors"] = n_neighbors
-
-    # Filter the DataFrame with the updated fixed values,
-    # handling cases where deduplication is None
-    filtered_df = df[
-        (df["data_prep_sampling_method"] == updated_selected_subsample_dict["data_prep_sampling_method"])
-        & (
-            df["deduplication"].isna()
-            if updated_selected_subsample_dict["deduplication"] is None
-            else df["deduplication"] == updated_selected_subsample_dict["deduplication"]
-        )
-        & (df["n_neighbors"] == updated_selected_subsample_dict["n_neighbors"])
-        & (df["data_prep_sampling_seed"] == updated_selected_subsample_dict["data_prep_sampling_seed"])
-        & (df["data_prep_sampling_samples"] == updated_selected_subsample_dict["data_prep_sampling_samples"])
-    ]
-
-    if verbosity >= Verbosity.NORMAL:
-        log_dataframe_info(
-            df=filtered_df,
-            df_name="filtered_df",
-            logger=logger,
-        )
-
-    # Ensure there are enough valid data points to proceed
-    if filtered_df.empty:
-        logger.warning(
-            msg=f"No valid data to plot for {n_neighbors = }",  # noqa: G004 - low overhead
-        )
-        return
-
-    # Sort by 'local_estimates_samples' for consistent plotting
-    sorted_df = filtered_df.sort_values(
-        by="local_estimates_samples",
-    )
-
-    # Convert columns to NumPy arrays for plotting
-    sample_size_array = sorted_df["local_estimates_samples"].to_numpy(dtype=float)
-    mean_array = sorted_df[f"{array_data_column_name}_truncated_mean"].to_numpy(dtype=float)
-    std_array = sorted_df[f"{array_data_column_name}_truncated_std"].to_numpy(dtype=float)
-
-    # Plotting the analysis
-    plt.figure(figsize=(10, 6))
-    plt.plot(
-        sample_size_array,
-        mean_array,
-        color="b",
-        label="Truncated Mean",
-        marker="o",
-    )
-    plt.fill_between(
-        x=sample_size_array,
-        y1=mean_array - std_array,
-        y2=mean_array + std_array,
-        color="b",
-        alpha=0.2,
-        label="Standard Deviation",
-    )
-
-    # Add horizontal and vertical grid lines for better readability
-    plt.grid(
-        visible=True,
-        which="both",
-        linestyle="--",
-        linewidth=0.5,
-        color="gray",
-    )
-
-    # Label the axes and add title
-    plt.xlabel("local_estimates_samples")
-    plt.ylabel("Truncated Mean")
-    plt.title(
-        label=f"Influence of 'local_estimates_samples' on Truncated Mean and Std (n_neighbors={n_neighbors})",
-    )
-
-    if additional_title:
-        add_subtitle(
-            additional_title=additional_title,
-        )
-    else:
-        # If no additional title is provided, use the first file path as a subtitle
-        add_subtitle(
-            additional_title=str(object=sorted_df["path"].iloc[0]),
-        )
-
-    # Adding additional information about the fixed parameters in the plot
-    fixed_params_text = "\n".join([f"{key}: {value}" for key, value in updated_selected_subsample_dict.items()])
-    plt.text(
-        x=0.02,
-        y=0.95,
-        s=f"Fixed Parameters:\n{fixed_params_text}",
-        transform=plt.gca().transAxes,
-        fontsize=10,
-        verticalalignment="top",
-        bbox={
-            "boxstyle": "round",
-            "facecolor": "wheat",
-            "alpha": 0.5,
-        },
-    )
-
-    # Add a legend
-    plt.legend()
-    plt.tight_layout()
-
-    # Save the plot if save_path is provided
-    if plot_save_path:
-        plot_save_path.parent.mkdir(
-            parents=True,
-            exist_ok=True,
-        )
-        plt.savefig(
-            plot_save_path,
-            format="pdf",
-        )
-    # Save the raw data if save_path is provided
-    if raw_data_save_path:
-        raw_data_save_path.parent.mkdir(
-            parents=True,
-            exist_ok=True,
-        )
-        sorted_df.to_csv(
-            path_or_buf=raw_data_save_path,
-        )
-
-    # Show the plot if requested
-    if show_plot:
-        plt.show()
 
 
 def extract_and_prepare_local_estimates_data(

@@ -25,6 +25,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Functions to create plots for the sampling method comparison analysis."""
+
+import logging
 import pathlib
 from typing import Any
 
@@ -33,6 +36,13 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from matplotlib.ticker import AutoLocator, MultipleLocator
+
+from topollm.logging.log_dataframe_info import log_dataframe_info
+from topollm.typing.enums import Verbosity
+
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 def make_multiple_line_plots(
@@ -204,6 +214,7 @@ def make_mean_std_plot(
 def create_boxplot_of_mean_over_different_sampling_seeds(
     subset_local_estimates_df: pd.DataFrame,
     plot_save_path: pathlib.Path | None = None,
+    raw_data_save_path: pathlib.Path | None = None,
     x_column_name: str = "local_estimates_samples",
     y_column_name: str = "array_data_truncated_mean",
     seed_column_name: str = "data_prep_sampling_seed",
@@ -218,15 +229,36 @@ def create_boxplot_of_mean_over_different_sampling_seeds(
     plt.figure(figsize=(10, 6))
 
     # Set the fixed y-axis limits
-    plt.ylim(y_min, y_max)
+    plt.ylim(
+        y_min,
+        y_max,
+    )
 
     # Automatically set major and minor tick locators
-    plt.gca().yaxis.set_major_locator(locator=AutoLocator())  # Auto-adjust major ticks
-    plt.gca().yaxis.set_minor_locator(locator=MultipleLocator(0.1))  # Set minor ticks for finer grid
+    plt.gca().yaxis.set_major_locator(
+        locator=AutoLocator(),
+    )  # Auto-adjust major ticks
+    plt.gca().yaxis.set_minor_locator(
+        locator=MultipleLocator(0.1),
+    )  # Set minor ticks for finer grid
 
     # Enable the grid with different styling for major and minor lines
-    plt.grid(which="major", axis="y", color="gray", linestyle="-", linewidth=0.6, alpha=0.5)  # Major grid lines
-    plt.grid(which="minor", axis="y", color="gray", linestyle="--", linewidth=0.3, alpha=0.3)  # Minor grid lines
+    plt.grid(
+        which="major",
+        axis="y",
+        color="gray",
+        linestyle="-",
+        linewidth=0.6,
+        alpha=0.5,
+    )  # Major grid lines
+    plt.grid(
+        which="minor",
+        axis="y",
+        color="gray",
+        linestyle="--",
+        linewidth=0.3,
+        alpha=0.3,
+    )  # Minor grid lines
 
     # Create boxplot and stripplot
     sns.boxplot(
@@ -299,13 +331,23 @@ def create_boxplot_of_mean_over_different_sampling_seeds(
             plot_save_path,
             bbox_inches="tight",
         )
+    if raw_data_save_path is not None:
+        raw_data_save_path.parent.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+        subset_local_estimates_df.to_csv(
+            path_or_buf=raw_data_save_path,
+        )
 
     # Show plot if needed
     if show_plot:
         plt.show()
 
 
-def generate_fixed_params_text(filters_dict: dict[str, Any]) -> str:
+def generate_fixed_params_text(
+    filters_dict: dict[str, Any],
+) -> str:
     """Generate a string representation of the fixed parameters used for filtering.
 
     Args:
@@ -341,3 +383,167 @@ def add_subtitle(
         fontsize=8,
         wrap=True,
     )
+
+
+def analyze_and_plot_influence_of_local_estimates_samples(
+    df: pd.DataFrame,
+    n_neighbors: int,
+    selected_subsample_dict: dict,
+    array_data_column_name: str,
+    additional_title: str | None = None,
+    *,
+    y_min: float = 6.5,
+    y_max: float = 15.5,
+    show_plot: bool = False,
+    plot_save_path: pathlib.Path | None = None,
+    raw_data_save_path: pathlib.Path | None = None,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
+    """Analyze and visualize the influence of 'local_estimates_samples'.
+
+    We plot array_data_truncated_mean and array_data_truncated_std
+    for a given value of 'n_neighbors', while keeping other parameters fixed.
+    """
+    # Update the fixed parameter values to the chosen 'n_neighbors'
+    updated_selected_subsample_dict = selected_subsample_dict.copy()
+    updated_selected_subsample_dict["n_neighbors"] = n_neighbors
+
+    # Filter the DataFrame with the updated fixed values,
+    # handling cases where deduplication is None
+    filtered_df = df[
+        (df["data_prep_sampling_method"] == updated_selected_subsample_dict["data_prep_sampling_method"])
+        & (
+            df["deduplication"].isna()
+            if updated_selected_subsample_dict["deduplication"] is None
+            else df["deduplication"] == updated_selected_subsample_dict["deduplication"]
+        )
+        & (df["n_neighbors"] == updated_selected_subsample_dict["n_neighbors"])
+        & (df["data_prep_sampling_seed"] == updated_selected_subsample_dict["data_prep_sampling_seed"])
+        & (df["data_prep_sampling_samples"] == updated_selected_subsample_dict["data_prep_sampling_samples"])
+    ]
+
+    if verbosity >= Verbosity.NORMAL:
+        log_dataframe_info(
+            df=filtered_df,
+            df_name="filtered_df",
+            logger=logger,
+        )
+
+    # Ensure there are enough valid data points to proceed
+    if filtered_df.empty:
+        logger.warning(
+            msg=f"No valid data to plot for {n_neighbors = }",  # noqa: G004 - low overhead
+        )
+        return
+
+    # Sort by 'local_estimates_samples' for consistent plotting
+    sorted_df = filtered_df.sort_values(
+        by="local_estimates_samples",
+    )
+
+    # Convert columns to NumPy arrays for plotting
+    sample_size_array = sorted_df["local_estimates_samples"].to_numpy(dtype=float)
+    mean_array = sorted_df[f"{array_data_column_name}_truncated_mean"].to_numpy(dtype=float)
+    std_array = sorted_df[f"{array_data_column_name}_truncated_std"].to_numpy(dtype=float)
+
+    # Plotting the analysis
+    plt.figure(
+        figsize=(10, 6),
+    )
+
+    # Set the fixed y-axis limits
+    plt.ylim(
+        y_min,
+        y_max,
+    )
+
+    plt.plot(
+        sample_size_array,
+        mean_array,
+        color="b",
+        label="Truncated Mean",
+        marker="o",
+    )
+    plt.fill_between(
+        x=sample_size_array,
+        y1=mean_array - std_array,
+        y2=mean_array + std_array,
+        color="b",
+        alpha=0.2,
+        label="Standard Deviation",
+    )
+
+    # Add horizontal and vertical grid lines for better readability
+    plt.grid(
+        visible=True,
+        which="both",
+        linestyle="--",
+        linewidth=0.5,
+        color="gray",
+    )
+
+    # Label the axes and add title
+    plt.xlabel(
+        xlabel="local_estimates_samples",
+    )
+    plt.ylabel(
+        ylabel="Truncated Mean",
+    )
+    plt.title(
+        label=f"Influence of 'local_estimates_samples' on Truncated Mean and Std (n_neighbors={n_neighbors})",
+    )
+
+    if additional_title:
+        add_subtitle(
+            additional_title=additional_title,
+        )
+    else:
+        # If no additional title is provided, use the first file path as a subtitle
+        add_subtitle(
+            additional_title=str(object=sorted_df["path"].iloc[0]),
+        )
+
+    # Adding additional information about the fixed parameters in the plot
+    fixed_params_text = "\n".join([f"{key}: {value}" for key, value in updated_selected_subsample_dict.items()])
+    plt.text(
+        x=0.02,
+        y=0.95,
+        s=f"Fixed Parameters:\n{fixed_params_text}",
+        transform=plt.gca().transAxes,
+        fontsize=10,
+        verticalalignment="top",
+        bbox={
+            "boxstyle": "round",
+            "facecolor": "wheat",
+            "alpha": 0.5,
+        },
+    )
+
+    # Add a legend
+    plt.legend()
+    plt.tight_layout()
+
+    # Save the plot if save_path is provided
+    if plot_save_path:
+        plot_save_path.parent.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+        plt.savefig(
+            plot_save_path,
+            format="pdf",
+        )
+    # Save the raw data if save_path is provided
+    if raw_data_save_path:
+        raw_data_save_path.parent.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+        sorted_df.to_csv(
+            path_or_buf=raw_data_save_path,
+        )
+
+    # Show the plot if requested
+    if show_plot:
+        plt.show()
