@@ -44,6 +44,7 @@ class DataListOption(StrEnum):
     MANUAL_IN_PYTHON_SCRIPT = auto()
     TRAIN_ONLY = auto()
     MULTIWOZ21_AND_REDDIT = auto()
+    MULTIWOZ21_TRAIN_AND_REDDIT_TRAIN = auto()
     MULTIWOZ21_ONLY = auto()
 
 
@@ -90,6 +91,14 @@ class EmbeddingsDataPrepSamplingSeedListOption(StrEnum):
     TWENTY_SEEDS = auto()
 
 
+class EmbeddingsDataPrepNumSamplesListOption(StrEnum):
+    """Options for the number of samples in the embeddings data preparation sampling."""
+
+    DEFAULT = auto()
+    SINGLE_CHOICE_50000 = auto()
+    FIVE_CHOICES_10000_STEPS = auto()
+
+
 class LocalEstimatesFilteringNumSamplesListOption(StrEnum):
     """Options for the number of samples for local estimates filtering."""
 
@@ -98,10 +107,12 @@ class LocalEstimatesFilteringNumSamplesListOption(StrEnum):
     MEDIUM_SMALL_STEPS_NUM_SAMPLES = auto()
     MANY_SMALL_STEPS_NUM_SAMPLES = auto()
     MANY_LARGE_STEPS_NUM_SAMPLES = auto()
+    UP_TO_50000_LARGE_STEPS_NUM_SAMPLES = auto()
 
 
 class LocalEstimatesPointwiseAbsoluteNNeighborsListOption(StrEnum):
     """Options for the number of neighbors for pointwise absolute local estimates."""
 
     DEFAULT = auto()
+    SINGLE_CHOICE_128 = auto()
     POWERS_OF_TWO_UP_TO_1024 = auto()

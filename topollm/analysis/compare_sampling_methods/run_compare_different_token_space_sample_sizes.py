@@ -41,8 +41,12 @@ import pandas as pd
 from tqdm import tqdm
 
 from topollm.analysis.compare_sampling_methods.compute_correlations import compute_and_save_correlations
+from topollm.analysis.compare_sampling_methods.data_selection_folder_lists import get_data_folder_list
 from topollm.analysis.compare_sampling_methods.log_statistics_of_array import log_statistics_of_array
 from topollm.analysis.compare_sampling_methods.make_plots import make_mean_std_plot, make_multiple_line_plots
+from topollm.analysis.compare_sampling_methods.organize_results_directory_structure import (
+    build_results_directory_structure,
+)
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
@@ -106,14 +110,7 @@ def main(
     mode = "create_all_plots"
 
     if mode == "create_all_plots":
-        data_folder_list: list[str] = [
-            "data-multiwoz21_split-train_ctxt-dataset_entry_samples-10000_feat-col-ner_tags",
-            "data-multiwoz21_split-validation_ctxt-dataset_entry_samples-3000_feat-col-ner_tags",
-            "data-multiwoz21_split-test_ctxt-dataset_entry_samples-3000_feat-col-ner_tags",
-            "data-one-year-of-tsla-on-reddit_split-train_ctxt-dataset_entry_samples-10000_feat-col-ner_tags",
-            "data-one-year-of-tsla-on-reddit_split-validation_ctxt-dataset_entry_samples-3000_feat-col-ner_tags",
-            "data-one-year-of-tsla-on-reddit_split-test_ctxt-dataset_entry_samples-3000_feat-col-ner_tags",
-        ]
+        data_folder_list: list[str] = get_data_folder_list()
         model_folder_list: list[str] = [
             "model-roberta-base_task-masked_lm",
             "model-model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-14400_task-masked_lm",
@@ -200,24 +197,17 @@ def run_comparison_for_analysis_base_directory(
     logger: logging.Logger = default_logger,
 ) -> None:
     # Define the new base directory for saving results
-    results_base_directory = pathlib.Path(
-        data_dir,
-        "analysis",
-        "sample_sizes",
-        analysis_base_directory.relative_to(
-            data_dir,
+    results_base_directory: pathlib.Path = build_results_directory_structure(
+        analysis_base_directory=analysis_base_directory,
+        data_dir=data_dir,
+        analysis_subdirectory_partial_path=pathlib.Path(
+            "sample_sizes",
         ),
+        verbosity=verbosity,
+        logger=logger,
     )
-    results_base_directory.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            msg=f"{results_base_directory = }",  # noqa: G004 - low overhead
-        )
 
-    truncation_size: int = 2500
+    array_truncation_size: int = 2500
 
     # Discover directories matching the expected pattern
     # (e.g., "desc-twonn_samples-<sample_size>_zerovec-keep")
@@ -229,7 +219,7 @@ def run_comparison_for_analysis_base_directory(
     sorted_df, arrays_truncated_stacked = process_subdirectories(
         analysis_base_directory=analysis_base_directory,
         pattern=pattern,
-        truncation_size=truncation_size,
+        truncation_size=array_truncation_size,
         verbosity=verbosity,
         logger=logger,
     )

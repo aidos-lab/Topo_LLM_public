@@ -36,6 +36,7 @@ from topollm.scripts.submission_scripts.submission_config import SubmissionConfi
 from topollm.scripts.submission_scripts.types import (
     CheckpointNoListOption,
     DataListOption,
+    EmbeddingsDataPrepNumSamplesListOption,
     EmbeddingsDataPrepSamplingSeedListOption,
     FinetuningDatasetsListOption,
     FinetuningRegimeOption,
@@ -205,9 +206,15 @@ def parse_arguments() -> argparse.Namespace:
         help="Checkpoint number list to use.",
     )
     parser.add_argument(
+        "--embeddings_data_prep_num_samples_list",
+        type=EmbeddingsDataPrepNumSamplesListOption,
+        default=EmbeddingsDataPrepNumSamplesListOption.DEFAULT,
+        help="Embeddings data prep number of samples list to use.",
+    )
+    parser.add_argument(
         "--embeddings_data_prep_sampling_mode",
         type=EmbeddingsDataPrepSamplingMode,
-        default=EmbeddingsDataPrepSamplingMode.TAKE_FIRST,
+        default=EmbeddingsDataPrepSamplingMode.RANDOM,
         help="Embeddings data prep sampling mode to use.",
     )
     parser.add_argument(
@@ -351,6 +358,11 @@ def make_config_and_run_task(
                 "one-year-of-tsla-on-reddit_test",
                 "one-year-of-tsla-on-reddit_train",
                 "one-year-of-tsla-on-reddit_validation",
+            ]
+        case DataListOption.MULTIWOZ21_TRAIN_AND_REDDIT_TRAIN:
+            data_list: list[str] = [
+                "multiwoz21_train",
+                "one-year-of-tsla-on-reddit_train",
             ]
         case DataListOption.MULTIWOZ21_ONLY:
             data_list: list[str] = [
@@ -532,6 +544,29 @@ def make_config_and_run_task(
                 msg,
             )
 
+    match args.embeddings_data_prep_num_samples_list:
+        case EmbeddingsDataPrepNumSamplesListOption.DEFAULT:
+            embeddings_data_prep_num_samples_list = [
+                "30000",
+            ]
+        case EmbeddingsDataPrepNumSamplesListOption.SINGLE_CHOICE_50000:
+            embeddings_data_prep_num_samples_list = [
+                "50000",
+            ]
+        case EmbeddingsDataPrepNumSamplesListOption.FIVE_CHOICES_10000_STEPS:
+            embeddings_data_prep_num_samples_list = [
+                "20000",
+                "30000",
+                "40000",
+                "50000",
+                "60000",
+            ]
+        case _:
+            msg: str = f"Unknown {args.embeddings_data_prep_num_samples_list = }"
+            raise ValueError(
+                msg,
+            )
+
     match args.local_estimates_filtering_num_samples_list:
         case LocalEstimatesFilteringNumSamplesListOption.DEFAULT:
             local_estimates_filtering_num_samples_list = None
@@ -575,6 +610,19 @@ def make_config_and_run_task(
                 "25000",
                 "30000",
             ]
+        case LocalEstimatesFilteringNumSamplesListOption.UP_TO_50000_LARGE_STEPS_NUM_SAMPLES:
+            local_estimates_filtering_num_samples_list = [
+                "5000",
+                "10000",
+                "15000",
+                "20000",
+                "25000",
+                "30000",
+                "35000",
+                "40000",
+                "45000",
+                "50000",
+            ]
         case _:
             msg: str = f"Unknown {args.local_estimates_filtering_num_samples_list = }"
             raise ValueError(msg)
@@ -583,6 +631,10 @@ def make_config_and_run_task(
         case LocalEstimatesPointwiseAbsoluteNNeighborsListOption.DEFAULT:
             local_estimates_pointwise_absolute_n_neighbors_list = [
                 "256",
+            ]
+        case LocalEstimatesPointwiseAbsoluteNNeighborsListOption.SINGLE_CHOICE_128:
+            local_estimates_pointwise_absolute_n_neighbors_list = [
+                "128",
             ]
         case LocalEstimatesPointwiseAbsoluteNNeighborsListOption.POWERS_OF_TWO_UP_TO_1024:
             local_estimates_pointwise_absolute_n_neighbors_list = [
@@ -641,6 +693,7 @@ def make_config_and_run_task(
         checkpoint_no_list=checkpoint_no_list,
         embeddings_data_prep_sampling_mode=args.embeddings_data_prep_sampling_mode,
         embeddings_data_prep_sampling_seed_list=embeddings_data_prep_sampling_seed_list,
+        embeddings_data_prep_num_samples_list=embeddings_data_prep_num_samples_list,
         local_estimates_filtering_num_samples_list=local_estimates_filtering_num_samples_list,
         local_estimates_pointwise_absolute_n_neighbors_list=local_estimates_pointwise_absolute_n_neighbors_list,
         finetuning_datasets_list=finetuning_datasets_list,

@@ -6,10 +6,18 @@
 SUBMISSION_MODE="hpc_submission"
 DRY_RUN_FLAG=""
 
+# Note that 16GB of memory is not enough for the embeddings data prep step
+# on the multiwoz21_train and reddit_train datasets.
+MEMORY="32"
+
+# Flags to select tasks
 DO_PIPELINE="false"
 DO_PERPLEXITY="false"
 DO_LOCAL_ESTIMATES_COMPUTATION="false"
 
+# Flags to select base or fine-tuned model
+USE_BASE_MODEL="false"
+USE_FINETUNED_MODEL="false"
 
 # Parse command line arguments
 while [[ "$#" -gt 0 ]]; do
@@ -34,6 +42,14 @@ while [[ "$#" -gt 0 ]]; do
       DO_LOCAL_ESTIMATES_COMPUTATION="true"
       shift # Remove --do_local_estimates_computation from processing
       ;;
+    --use_base_model)
+      USE_BASE_MODEL="true"
+      shift # Remove --use_base_model from processing
+      ;;
+    --use_finetuned_model)
+      USE_FINETUNED_MODEL="true"
+      shift # Remove --use_finetuned_model from processing
+      ;;
     *)
       echo "Unknown option: $1"
       exit 1
@@ -50,11 +66,25 @@ if [ "$DO_PIPELINE" = "false" ] && [ "$DO_PERPLEXITY" = "false" ] && [ "$DO_LOCA
   echo ">>> NOTE:   --do_local_estimates_computation"
 fi
 
+# Warn if neither model options are set
+if [ "$USE_BASE_MODEL" = "false" ] && [ "$USE_FINETUNED_MODEL" = "false" ]; then
+  echo ">>> WARNING: No model selected. Please specify --use_base_model or --use_finetuned_model."
+  exit 1
+fi
+# Warn if both model options are set
+if [ "$USE_BASE_MODEL" = "true" ] && [ "$USE_FINETUNED_MODEL" = "true" ]; then
+  echo ">>> WARNING: Both base model and fine-tuned model selected. Please select only one."
+  exit 1
+fi
+
 # ================================================================== #
 
 
 # ================================================================== #
-# Debug setup
+
+# DATA_LIST="full"
+# DATA_LIST="multiwoz21_train_and_reddit_train"
+DATA_LIST="multiwoz21_and_reddit"
 
 # DATA_LIST="only_train"
 # LANGUAGE_MODEL_LIST="selected_finetuned_few_epochs_from_roberta_base"
@@ -72,43 +102,44 @@ EMBEDDINGS_DATA_PREP_SAMPLING_MODE="random"
 
 # EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="default"
 # EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="two_seeds"
-EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="five_seeds"
+# EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="five_seeds"
 # EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="ten_seeds"
-# EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="twenty_seeds"
+EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="twenty_seeds"
+
+# EMBEDDINGS_DATA_PREP_NUM_SAMPLES_LIST="default"
+EMBEDDINGS_DATA_PREP_NUM_SAMPLES_LIST="single_choice_50000"
+# EMBEDDINGS_DATA_PREP_NUM_SAMPLES_LIST="five_choices_10000_steps"
 
 # LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="few_small_steps_num_samples"
-LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="medium_small_steps_num_samples"
+# LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="medium_small_steps_num_samples"
 # LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="many_small_steps_num_samples"
 # LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="many_large_steps_num_samples"
+LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="up_to_50000_large_steps_num_samples"
 
-LOCAL_ESTIMATES_POINTWISE_ABSOLUTE_N_NEIGHBORS_LIST="powers_of_two_up_to_1024"
+# LOCAL_ESTIMATES_POINTWISE_ABSOLUTE_N_NEIGHBORS_LIST="powers_of_two_up_to_1024"
+LOCAL_ESTIMATES_POINTWISE_ABSOLUTE_N_NEIGHBORS_LIST="single_choice_128"
 
+# Configure model settings based on selected model options
+if [ "$USE_BASE_MODEL" = "true" ]; then
+  ####################################
+  ### With POS tags for base model ###
+  LANGUAGE_MODEL_LIST="only_roberta_base"
+  LANGUAGE_MODEL_SEED_LIST="do_not_set"
+  CHECKPOINT_NO_LIST="selected" # Ignored for the base model
+  FINETUNING_REGIME="few_epochs" # Ignored for the base model
+fi
 
-####################################
-### With POS tags for base model ###
-#
-# DATA_LIST="full"
-DATA_LIST="multiwoz21_and_reddit"
+if [ "$USE_FINETUNED_MODEL" = "true" ]; then
+  ################################################################
+  ### With POS tags for finetuned models and three checkpoints ###
+  LANGUAGE_MODEL_LIST="selected_finetuned_many_epochs_from_roberta_base"
+  LANGUAGE_MODEL_SEED_LIST="one_seed"
+  CHECKPOINT_NO_LIST="only_beginning_and_middle_and_end"
+  FINETUNING_REGIME="many_epochs_with_overfitting_risk"
+fi
 
-LANGUAGE_MODEL_LIST="only_roberta_base"
-LANGUAGE_MODEL_SEED_LIST="do_not_set"
-CHECKPOINT_NO_LIST="selected" # Will be ignored for the base model
-FINETUNING_REGIME="few_epochs" # Will be ignored for the base model
 ADD_PREFIX_SPACE_FLAG="--add_prefix_space"
 CREATE_POS_TAGS_FLAG="--create_pos_tags"
-
-##############################################################################
-### With POS tags for finetuned models and three checkpoints and two seeds ###
-#
-# DATA_LIST="full"
-# DATA_LIST="multiwoz21_and_reddit"
-
-# LANGUAGE_MODEL_LIST="selected_finetuned_many_epochs_from_roberta_base"
-# LANGUAGE_MODEL_SEED_LIST="one_seed"
-# CHECKPOINT_NO_LIST="only_beginning_and_middle_and_end"
-# FINETUNING_REGIME="many_epochs_with_overfitting_risk"
-# ADD_PREFIX_SPACE_FLAG="--add_prefix_space"
-# CREATE_POS_TAGS_FLAG="--create_pos_tags"
 
 # ================================================================== #
 
@@ -123,6 +154,7 @@ if [ "$DO_PIPELINE" = "true" ]; then
       --task="pipeline" \
       --queue="DSML" \
       --template="DSML" \
+      --memory=$MEMORY \
       --data_list=$DATA_LIST \
       $CREATE_POS_TAGS_FLAG \
       --language_model_list=$LANGUAGE_MODEL_LIST \
@@ -132,6 +164,7 @@ if [ "$DO_PIPELINE" = "true" ]; then
       --finetuning_regime=$FINETUNING_REGIME \
       --embeddings_data_prep_sampling_mode=$EMBEDDINGS_DATA_PREP_SAMPLING_MODE \
       --embeddings_data_prep_sampling_seed_list_option=$EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION \
+      --embeddings_data_prep_num_samples_list=$EMBEDDINGS_DATA_PREP_NUM_SAMPLES_LIST \
       $SKIP_COMPUTE_AND_STORE_EMBEDDINGS \
       --submission_mode=$SUBMISSION_MODE \
       $DRY_RUN_FLAG
@@ -178,6 +211,7 @@ if [ "$DO_LOCAL_ESTIMATES_COMPUTATION" = "true" ]; then
       --finetuning_regime=$FINETUNING_REGIME \
       --embeddings_data_prep_sampling_mode=$EMBEDDINGS_DATA_PREP_SAMPLING_MODE \
       --embeddings_data_prep_sampling_seed_list_option=$EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION \
+      --embeddings_data_prep_num_samples_list=$EMBEDDINGS_DATA_PREP_NUM_SAMPLES_LIST \
       --local_estimates_filtering_num_samples_list=$LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST \
       --local_estimates_pointwise_absolute_n_neighbors_list=$LOCAL_ESTIMATES_POINTWISE_ABSOLUTE_N_NEIGHBORS_LIST \
       --submission_mode=$SUBMISSION_MODE \
