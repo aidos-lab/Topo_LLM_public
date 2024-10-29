@@ -96,6 +96,7 @@ class EmbeddingsDataPrepNumSamplesListOption(StrEnum):
 
     DEFAULT = auto()
     SINGLE_CHOICE_50000 = auto()
+    SINGLE_CHOICE_100000 = auto()
     FIVE_CHOICES_10000_STEPS = auto()
 
 
@@ -106,8 +107,9 @@ class LocalEstimatesFilteringNumSamplesListOption(StrEnum):
     FEW_SMALL_STEPS_NUM_SAMPLES = auto()
     MEDIUM_SMALL_STEPS_NUM_SAMPLES = auto()
     MANY_SMALL_STEPS_NUM_SAMPLES = auto()
-    MANY_LARGE_STEPS_NUM_SAMPLES = auto()
+    UP_TO_30000_LARGE_STEPS_NUM_SAMPLES = auto()
     UP_TO_50000_LARGE_STEPS_NUM_SAMPLES = auto()
+    UP_TO_90000_LARGE_STEPS_NUM_SAMPLES = auto()
 
 
 class LocalEstimatesPointwiseAbsoluteNNeighborsListOption(StrEnum):

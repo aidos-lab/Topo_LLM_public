@@ -495,49 +495,11 @@ def make_config_and_run_task(
                 "43",
             ]
         case EmbeddingsDataPrepSamplingSeedListOption.FIVE_SEEDS:
-            embeddings_data_prep_sampling_seed_list = [
-                "42",
-                "43",
-                "44",
-                "45",
-                "46",
-            ]
+            embeddings_data_prep_sampling_seed_list = [str(i) for i in range(42, 47)]
         case EmbeddingsDataPrepSamplingSeedListOption.TEN_SEEDS:
-            embeddings_data_prep_sampling_seed_list = [
-                "42",
-                "43",
-                "44",
-                "45",
-                "46",
-                "47",
-                "48",
-                "49",
-                "50",
-                "51",
-            ]
+            embeddings_data_prep_sampling_seed_list = [str(i) for i in range(42, 52)]
         case EmbeddingsDataPrepSamplingSeedListOption.TWENTY_SEEDS:
-            embeddings_data_prep_sampling_seed_list = [
-                "42",
-                "43",
-                "44",
-                "45",
-                "46",
-                "47",
-                "48",
-                "49",
-                "50",
-                "51",
-                "52",
-                "53",
-                "54",
-                "55",
-                "56",
-                "57",
-                "58",
-                "59",
-                "60",
-                "61",
-            ]
+            embeddings_data_prep_sampling_seed_list = [str(i) for i in range(42, 62)]
         case _:
             msg: str = f"Unknown {args.embeddings_data_prep_sampling_seed_list_option = }"
             raise ValueError(
@@ -552,6 +514,10 @@ def make_config_and_run_task(
         case EmbeddingsDataPrepNumSamplesListOption.SINGLE_CHOICE_50000:
             embeddings_data_prep_num_samples_list = [
                 "50000",
+            ]
+        case EmbeddingsDataPrepNumSamplesListOption.SINGLE_CHOICE_100000:
+            embeddings_data_prep_num_samples_list = [
+                "100000",
             ]
         case EmbeddingsDataPrepNumSamplesListOption.FIVE_CHOICES_10000_STEPS:
             embeddings_data_prep_num_samples_list = [
@@ -587,42 +553,13 @@ def make_config_and_run_task(
                 "15000",
             ]
         case LocalEstimatesFilteringNumSamplesListOption.MANY_SMALL_STEPS_NUM_SAMPLES:
-            local_estimates_filtering_num_samples_list = [
-                "2500",
-                "5000",
-                "7500",
-                "10000",
-                "12500",
-                "15000",
-                "17500",
-                "20000",
-                "22500",
-                "25000",
-                "27500",
-                "30000",
-            ]
-        case LocalEstimatesFilteringNumSamplesListOption.MANY_LARGE_STEPS_NUM_SAMPLES:
-            local_estimates_filtering_num_samples_list = [
-                "5000",
-                "10000",
-                "15000",
-                "20000",
-                "25000",
-                "30000",
-            ]
+            local_estimates_filtering_num_samples_list = [str(i * 2500) for i in range(1, 13)]
+        case LocalEstimatesFilteringNumSamplesListOption.UP_TO_30000_LARGE_STEPS_NUM_SAMPLES:
+            local_estimates_filtering_num_samples_list = [str(i * 5000) for i in range(1, 7)]
         case LocalEstimatesFilteringNumSamplesListOption.UP_TO_50000_LARGE_STEPS_NUM_SAMPLES:
-            local_estimates_filtering_num_samples_list = [
-                "5000",
-                "10000",
-                "15000",
-                "20000",
-                "25000",
-                "30000",
-                "35000",
-                "40000",
-                "45000",
-                "50000",
-            ]
+            local_estimates_filtering_num_samples_list = [str(i * 5000) for i in range(1, 11)]
+        case LocalEstimatesFilteringNumSamplesListOption.UP_TO_90000_LARGE_STEPS_NUM_SAMPLES:
+            local_estimates_filtering_num_samples_list = [str(i * 5000) for i in range(1, 19)]
         case _:
             msg: str = f"Unknown {args.local_estimates_filtering_num_samples_list = }"
             raise ValueError(msg)

@@ -221,56 +221,71 @@ def run_search_on_single_base_directory_and_process_and_save(
     #
     # We do not fix the local_estimates_samples,
     # since we want to compare the results for different sample sizes.
-    filters_dict = {
-        "data_prep_sampling_method": "random",
-        "deduplication": "array_deduplicator",
-        "n_neighbors": 128,
-        "data_prep_sampling_samples": 50000,
-    }
+    filters_dict_list = [
+        {
+            "data_prep_sampling_method": "random",
+            "deduplication": "array_deduplicator",
+            "n_neighbors": 128,
+            "data_prep_sampling_samples": 50000,
+        },
+        {
+            "data_prep_sampling_method": "random",
+            "deduplication": "array_deduplicator",
+            "n_neighbors": 128,
+            "data_prep_sampling_samples": 100000,
+        },
+        {
+            "data_prep_sampling_method": "random",
+            "deduplication": "array_deduplicator",
+            "n_neighbors": 256,
+            "data_prep_sampling_samples": 100000,
+        },
+    ]
 
-    subset_local_estimates_df: pd.DataFrame = filter_dataframe_based_on_filters_dict(
-        df=full_local_estimates_df,
-        filters_dict=filters_dict,
-    )
+    for filters_dict in filters_dict_list:
+        subset_local_estimates_df: pd.DataFrame = filter_dataframe_based_on_filters_dict(
+            df=full_local_estimates_df,
+            filters_dict=filters_dict,
+        )
 
-    fixed_params_text: str = generate_fixed_params_text(
-        filters_dict=filters_dict,
-    )
+        fixed_params_text: str = generate_fixed_params_text(
+            filters_dict=filters_dict,
+        )
 
-    for connect_points in [
-        True,
-        False,
-    ]:
-        for y_min, y_max in Y_AXIS_LIMITS.values():
-            common_prefix_path = pathlib.Path(
-                results_directory,
-                "different_data_prep_sampling_seeds",
-                f"{filters_dict['data_prep_sampling_samples']=}",
-                f"{filters_dict['n_neighbors']=}",
-                "array_data_truncated_mean_boxplot",
-            )
+        for connect_points in [
+            True,
+            False,
+        ]:
+            for y_min, y_max in Y_AXIS_LIMITS.values():
+                common_prefix_path = pathlib.Path(
+                    results_directory,
+                    "different_data_prep_sampling_seeds",
+                    f"{filters_dict['data_prep_sampling_samples']=}",
+                    f"{filters_dict['n_neighbors']=}",
+                    "array_data_truncated_mean_boxplot",
+                )
 
-            plot_save_path = pathlib.Path(
-                common_prefix_path,
-                "plots",
-                f"y_{y_min}_{y_max}_{connect_points=}.pdf",
-            )
-            raw_data_save_path = pathlib.Path(
-                common_prefix_path,
-                "raw_data",
-                "raw_data.csv",
-            )
+                plot_save_path = pathlib.Path(
+                    common_prefix_path,
+                    "plots",
+                    f"y_{y_min}_{y_max}_{connect_points=}.pdf",
+                )
+                raw_data_save_path = pathlib.Path(
+                    common_prefix_path,
+                    "raw_data",
+                    "raw_data.csv",
+                )
 
-            create_boxplot_of_mean_over_different_sampling_seeds(
-                subset_local_estimates_df=subset_local_estimates_df,
-                plot_save_path=plot_save_path,
-                raw_data_save_path=raw_data_save_path,
-                fixed_params_text=fixed_params_text,
-                y_min=y_min,
-                y_max=y_max,
-                show_plot=False,
-                connect_points=connect_points,
-            )
+                create_boxplot_of_mean_over_different_sampling_seeds(
+                    subset_local_estimates_df=subset_local_estimates_df,
+                    plot_save_path=plot_save_path,
+                    raw_data_save_path=raw_data_save_path,
+                    fixed_params_text=fixed_params_text,
+                    y_min=y_min,
+                    y_max=y_max,
+                    show_plot=False,
+                    connect_points=connect_points,
+                )
 
     # TODO: Continue analysis here
 
