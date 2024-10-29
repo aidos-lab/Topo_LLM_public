@@ -88,7 +88,8 @@ setup_exception_logging(
 
 setup_omega_conf()
 
-Y_AXIS_LIMITS: dict[str, tuple[float, float]] = {
+Y_AXIS_LIMITS: dict[str, tuple[float | None, float | None]] = {
+    "None": (None, None),
     "full": (6.5, 15.5),  # full range
     "lower": (6.5, 10.0),  # lower range
     "upper": (12.0, 16.0),  # upper range

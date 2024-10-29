@@ -220,8 +220,8 @@ def create_boxplot_of_mean_over_different_sampling_seeds(
     seed_column_name: str = "data_prep_sampling_seed",
     fixed_params_text: str | None = None,
     *,
-    y_min: float = 6.5,
-    y_max: float = 15.5,
+    y_min: float | None = 6.5,
+    y_max: float | None = 15.5,
     show_plot: bool = True,
     connect_points: bool = True,
 ) -> None:
@@ -229,10 +229,16 @@ def create_boxplot_of_mean_over_different_sampling_seeds(
     plt.figure(figsize=(10, 6))
 
     # Set the fixed y-axis limits
-    plt.ylim(
-        y_min,
-        y_max,
-    )
+    if y_min is not None and y_max is not None:
+        plt.ylim(
+            y_min,
+            y_max,
+        )
+    else:
+        # Automatically adjust the y-axis limits
+        plt.autoscale(
+            axis="y",
+        )
 
     # Automatically set major and minor tick locators
     plt.gca().yaxis.set_major_locator(
@@ -392,8 +398,8 @@ def analyze_and_plot_influence_of_local_estimates_samples(
     array_data_column_name: str,
     additional_title: str | None = None,
     *,
-    y_min: float = 6.5,
-    y_max: float = 15.5,
+    y_min: float | None = 6.5,
+    y_max: float | None = 15.5,
     show_plot: bool = False,
     plot_save_path: pathlib.Path | None = None,
     raw_data_save_path: pathlib.Path | None = None,
@@ -453,10 +459,24 @@ def analyze_and_plot_influence_of_local_estimates_samples(
     )
 
     # Set the fixed y-axis limits
-    plt.ylim(
-        y_min,
-        y_max,
-    )
+    if y_min is not None and y_max is not None:
+        if verbosity >= Verbosity.VERBOSE:
+            logger.debug(
+                msg="Setting fixed y-axis limits",
+            )
+        plt.ylim(
+            y_min,
+            y_max,
+        )
+    else:
+        # Automatically adjust the y-axis limits
+        if verbosity >= Verbosity.VERBOSE:
+            logger.debug(
+                msg="Automatically adjusting y-axis limits",
+            )
+        plt.autoscale(
+            axis="y",
+        )
 
     plt.plot(
         sample_size_array,
