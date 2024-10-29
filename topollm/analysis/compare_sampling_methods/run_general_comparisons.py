@@ -31,7 +31,7 @@ import logging
 import os
 import pathlib
 from itertools import product
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import hydra
 import hydra.core.hydra_config
@@ -183,7 +183,7 @@ def run_search_on_single_base_directory_and_process_and_save(
         logger=logger,
     )
 
-    filenames_to_match = [
+    filenames_to_match: list[str] = [
         "global_estimate.npy",
         "local_estimates_pointwise.npy",
     ]
@@ -289,9 +289,48 @@ def run_search_on_single_base_directory_and_process_and_save(
             logger=logger,
         )
 
+    # Select a subset of the data with the same parameters.
+    # This allows comparing over different seeds.
+    #
+    # We do not fix the local_estimates_samples,
+    # since we want to compare the results for different sample sizes.
+    filters_dict = {
+        "data_prep_sampling_method": "random",
+        "deduplication": "array_deduplicator",
+        "n_neighbors": 128,
+        "data_prep_sampling_samples": 50000,
+    }
+
+    subset_local_estimates_df: pd.DataFrame = filter_dataframe_based_on_filters_dict(
+        df=full_local_estimates_df,
+        filters_dict=filters_dict,
+    )
+
     # TODO: Continue analysis here
 
     pass  # Note: This is here for setting break points
+
+
+def filter_dataframe_based_on_filters_dict(
+    df: pd.DataFrame,
+    filters_dict: dict[str, Any],
+) -> pd.DataFrame:
+    """Filter a DataFrame based on key-value pairs specified in a dictionary.
+
+    Args:
+        df:
+            The DataFrame to be filtered.
+        filters_dict:
+            A dictionary of column names and corresponding values to filter by.
+
+    Returns:
+        A filtered DataFrame with rows matching all key-value pairs.
+
+    """
+    subset_df = df.copy()
+    for column, value in filters_dict.items():
+        subset_df = subset_df[subset_df[column] == value]
+    return subset_df
 
 
 def analyze_and_plot_influence_of_local_estimates_samples(

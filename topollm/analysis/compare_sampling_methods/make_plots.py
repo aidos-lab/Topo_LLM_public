@@ -26,16 +26,19 @@
 # limitations under the License.
 
 import pathlib
+from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import seaborn as sns
+from matplotlib.ticker import AutoLocator, MultipleLocator
 
 
 def make_multiple_line_plots(
     array: np.ndarray,
     sample_sizes: np.ndarray,
-    additional_title: str = "",
+    additional_title: str | None = None,
     *,
     show_plot: bool = False,
     save_path: pathlib.Path | None = None,
@@ -48,6 +51,8 @@ def make_multiple_line_plots(
             The data array to plot, with shape (num_samples, num_points).
         sample_sizes:
             The sample sizes corresponding to each row in the array.
+        additional_title:
+            Additional title to add to the plot.
         show_plot:
             Whether to display the plot.
         save_path:
@@ -88,9 +93,10 @@ def make_multiple_line_plots(
         label=f"Development of data points over different sample sizes; {array.shape = }",
     )
 
-    add_subtitle(
-        additional_title=additional_title,
-    )
+    if additional_title:
+        add_subtitle(
+            additional_title=additional_title,
+        )
 
     if show_plot:
         plt.show()
@@ -105,7 +111,7 @@ def make_multiple_line_plots(
 
 def make_mean_std_plot(
     sorted_df: pd.DataFrame,
-    additional_title: str = "",
+    additional_title: str | None = None,
     *,
     show_plot: bool = False,
     save_path: pathlib.Path | None = None,
@@ -175,9 +181,10 @@ def make_mean_std_plot(
         label="Mean and Standard Deviation of Estimates over Sample Sizes",
     )
 
-    add_subtitle(
-        additional_title=additional_title,
-    )
+    if additional_title:
+        add_subtitle(
+            additional_title=additional_title,
+        )
 
     # Add a legend
     plt.legend()
@@ -192,6 +199,125 @@ def make_mean_std_plot(
     # Show the plot if requested
     if show_plot:
         plt.show()
+
+
+def create_boxplot_of_mean_over_different_sampling_seeds(
+    subset_local_estimates_df: pd.DataFrame,
+    plot_save_path: pathlib.Path | None = None,
+    x_column_name: str = "local_estimates_samples",
+    y_column_name: str = "array_data_truncated_mean",
+    seed_column_name: str = "data_prep_sampling_seed",
+    fixed_params_text: str | None = None,
+    *,
+    y_min: float = 6.5,
+    y_max: float = 15.5,
+    show_plot: bool = True,
+    connect_points: bool = True,
+) -> None:
+    """Create a boxplot of the the measurement over different sampling seeds."""
+    plt.figure(figsize=(10, 6))
+
+    # Set the fixed y-axis limits
+    plt.ylim(y_min, y_max)
+
+    # Automatically set major and minor tick locators
+    plt.gca().yaxis.set_major_locator(locator=AutoLocator())  # Auto-adjust major ticks
+    plt.gca().yaxis.set_minor_locator(locator=MultipleLocator(0.1))  # Set minor ticks for finer grid
+
+    # Enable the grid with different styling for major and minor lines
+    plt.grid(which="major", axis="y", color="gray", linestyle="-", linewidth=0.6, alpha=0.5)  # Major grid lines
+    plt.grid(which="minor", axis="y", color="gray", linestyle="--", linewidth=0.3, alpha=0.3)  # Minor grid lines
+
+    # Create boxplot and stripplot
+    sns.boxplot(
+        x=x_column_name,
+        y=y_column_name,
+        data=subset_local_estimates_df,
+    )
+    sns.stripplot(
+        x=x_column_name,
+        y=y_column_name,
+        data=subset_local_estimates_df,
+        color="red",
+        jitter=False,
+        dodge=True,
+        marker="o",
+        alpha=0.5,
+    )
+
+    # Convert the x-axis column to categorical for proper ordering
+    subset_local_estimates_df[x_column_name] = pd.Categorical(
+        subset_local_estimates_df[x_column_name],
+        ordered=True,
+    )
+
+    # Connect the points from the same seed across different samples if requested
+    if connect_points:
+        unique_seeds = subset_local_estimates_df[seed_column_name].unique()
+        # Use modern colormap access without resampling argument
+        colormap = plt.colormaps.get_cmap("tab20")
+
+        for idx, seed in enumerate(unique_seeds):
+            seed_data = subset_local_estimates_df[subset_local_estimates_df[seed_column_name] == seed]
+            # Sort seed_data by 'local_estimates_samples' for consistent plotting
+            seed_data = seed_data.sort_values(by=x_column_name)
+
+            # Plot lines connecting the same seed points
+            plt.plot(
+                seed_data[x_column_name].cat.codes,  # Using categorical codes for proper x ordering
+                seed_data[y_column_name],
+                linestyle="-",
+                linewidth=1,
+                alpha=0.7,
+                color=colormap(idx / len(unique_seeds)),  # Use a different color for each seed
+                label=f"Seed {seed}" if idx < 2 else "",  # Labeling only the first few for readability
+            )
+
+    # Adding additional information about the fixed parameters in the plot
+    if fixed_params_text is not None:
+        plt.text(
+            x=0.55,
+            y=0.25,
+            s=f"Fixed Parameters:\n{fixed_params_text}",
+            transform=plt.gca().transAxes,
+            fontsize=10,
+            verticalalignment="top",
+            bbox={
+                "boxstyle": "round",
+                "facecolor": "wheat",
+                "alpha": 0.3,
+            },
+        )
+
+    # Save plot to the specified path if provided
+    if plot_save_path is not None:
+        plot_save_path.parent.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+        plt.savefig(
+            plot_save_path,
+            bbox_inches="tight",
+        )
+
+    # Show plot if needed
+    if show_plot:
+        plt.show()
+
+
+def generate_fixed_params_text(filters_dict: dict[str, Any]) -> str:
+    """Generate a string representation of the fixed parameters used for filtering.
+
+    Args:
+        filters_dict:
+            A dictionary of column names and corresponding values used for filtering.
+
+    Returns:
+        str:
+            A formatted string suitable for display in the plot.
+
+    """
+    return "\n".join([f"{key}: {value}" for key, value in filters_dict.items()])
 
 
 def add_subtitle(
