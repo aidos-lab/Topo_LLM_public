@@ -63,8 +63,8 @@ def parse_path_info_full(
     )
     if sampling_match:
         parsed_info["data_prep_sampling_method"] = sampling_match.group(1)
-        parsed_info["data_prep_sampling_seed"] = sampling_match.group(2)
-        parsed_info["data_prep_sampling_samples"] = sampling_match.group(3)
+        parsed_info["data_prep_sampling_seed"] = int(sampling_match.group(2))
+        parsed_info["data_prep_sampling_samples"] = int(sampling_match.group(3))
 
     # Extract local estimates information
     # Comments on Regex:
@@ -86,7 +86,7 @@ def parse_path_info_full(
     )
     if neighbors_match:
         parsed_info["neighbors_mode"] = neighbors_match.group(1)
-        parsed_info["n_neighbors"] = neighbors_match.group(2)
+        parsed_info["n_neighbors"] = int(neighbors_match.group(2))
 
     # Extract model information
     model_match = re.search(

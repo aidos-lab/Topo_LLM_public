@@ -118,12 +118,12 @@ def main(
 
     model_folder_list: list[str] = [
         "model-roberta-base_task-masked_lm",
-        "model-model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-14400_task-masked_lm",
-        "model-model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-31200_task-masked_lm",
-        "model-model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-400_task-masked_lm",
-        "model-model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-14400_task-masked_lm",
-        "model-model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-31200_task-masked_lm",
-        "model-model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-400_task-masked_lm",
+        # "model-model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-14400_task-masked_lm",
+        # "model-model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-31200_task-masked_lm",
+        # "model-model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-400_task-masked_lm",
+        # "model-model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-14400_task-masked_lm",
+        # "model-model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-31200_task-masked_lm",
+        # "model-model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-400_task-masked_lm",
     ]
 
     for data_folder, model_folder in tqdm(
@@ -183,15 +183,140 @@ def run_search_on_single_base_directory_and_process_and_save(
         logger=logger,
     )
 
-    filenames_to_match: list[str] = [
-        "global_estimate.npy",
-        "local_estimates_pointwise.npy",
-    ]
+    array_data_column_name: str = "array_data"
 
+    _, full_local_estimates_df = extract_and_preprocess_dataframes(
+        search_base_directory=search_base_directory,
+        results_directory=results_directory,
+        filenames_to_match=None,
+        array_truncation_size=array_truncation_size,
+        array_data_column_name=array_data_column_name,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+    # ===== This is the start of the analysis code =====
+
+    run_analysis_influence_of_local_estimates_n_neighbors(
+        full_local_estimates_df=full_local_estimates_df,
+        array_data_column_name=array_data_column_name,
+        results_directory=results_directory,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+    # Select a subset of the data with the same parameters.
+    # This allows comparing over different seeds.
+    #
+    # We do not fix the local_estimates_samples,
+    # since we want to compare the results for different sample sizes.
+    filters_dict = {
+        "data_prep_sampling_method": "random",
+        "deduplication": "array_deduplicator",
+        "n_neighbors": 128,
+        "data_prep_sampling_samples": 50000,
+    }
+
+    subset_local_estimates_df: pd.DataFrame = filter_dataframe_based_on_filters_dict(
+        df=full_local_estimates_df,
+        filters_dict=filters_dict,
+    )
+
+    # TODO: Continue analysis here
+
+    pass  # noqa: PIE790 - This is here for setting a breakpoint
+
+
+def run_analysis_influence_of_local_estimates_n_neighbors(
+    full_local_estimates_df: pd.DataFrame,
+    array_data_column_name: str,
+    results_directory: pathlib.Path,
+    selected_subsample_dict: dict | None = None,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
+    """Run the analysis of local estimates for different values of 'n_neighbors'."""
+    if selected_subsample_dict is None:
+        selected_subsample_dict = retrieve_most_frequent_values(
+            full_local_estimates_df=full_local_estimates_df,
+            verbosity=verbosity,
+            logger=logger,
+        )
+
+    # Run analysis for different values of 'n_neighbors'
+    unique_n_neighbors = full_local_estimates_df["n_neighbors"].unique()
+
+    for n_neighbors in unique_n_neighbors:
+        plot_save_path: pathlib.Path = pathlib.Path(
+            results_directory,
+            "influence_of_local_estimates_samples",
+            f"influence_of_local_estimates_samples_{n_neighbors=}.pdf",
+        )
+        raw_data_save_path: pathlib.Path = pathlib.Path(
+            results_directory,
+            "influence_of_local_estimates_samples",
+            f"influence_of_local_estimates_samples_{n_neighbors=}.csv",
+        )
+
+        analyze_and_plot_influence_of_local_estimates_samples(
+            df=full_local_estimates_df,
+            n_neighbors=n_neighbors,
+            selected_subsample_dict=selected_subsample_dict,
+            array_data_column_name=array_data_column_name,
+            show_plot=False,
+            plot_save_path=plot_save_path,
+            raw_data_save_path=raw_data_save_path,
+            verbosity=verbosity,
+            logger=logger,
+        )
+
+
+def retrieve_most_frequent_values(
+    full_local_estimates_df: pd.DataFrame,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> dict[str, Any]:
+    """Retrieve the most frequent values for fixed parameters.
+
+    This handles cases where mode might be unavailable.
+    """
+    most_frequent_values = {}
+    for column in [
+        "data_prep_sampling_method",
+        "deduplication",
+        "data_prep_sampling_seed",
+        "data_prep_sampling_samples",
+    ]:
+        if full_local_estimates_df[column].notna().any():
+            most_frequent_values[column] = (
+                full_local_estimates_df[column].mode()[0] if not full_local_estimates_df[column].mode().empty else None
+            )
+        else:
+            most_frequent_values[column] = None
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"most_frequent_values:\n{most_frequent_values}",  # noqa: G004 - low overhead
+        )
+
+    return most_frequent_values
+
+
+def extract_and_preprocess_dataframes(
+    search_base_directory: pathlib.Path,
+    results_directory: pathlib.Path,
+    filenames_to_match: list[str] | None = None,
+    array_truncation_size: int = 2_500,
+    array_data_column_name: str = "array_data",
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Extract and preprocess the dataframes from the search base directory."""
     full_loaded_data_df: pd.DataFrame = walk_through_subdirectories_and_load_arrays(
         root_directory=search_base_directory,
-        verbosity=verbosity,
         filenames_to_match=filenames_to_match,
+        array_data_column_name=array_data_column_name,
+        verbosity=verbosity,
         logger=logger,
     )
     if verbosity >= Verbosity.NORMAL:
@@ -243,72 +368,7 @@ def run_search_on_single_base_directory_and_process_and_save(
         path_or_buf=full_local_estimates_df_save_path,
     )
 
-    # ===== This is the start of the analysis code =====
-
-    # Determine the most frequent values for fixed parameters, handling cases where mode might be unavailable
-    most_frequent_values = {}
-    for column in [
-        "data_prep_sampling_method",
-        "deduplication",
-        "data_prep_sampling_seed",
-        "data_prep_sampling_samples",
-    ]:
-        if full_local_estimates_df[column].notna().any():
-            most_frequent_values[column] = (
-                full_local_estimates_df[column].mode()[0] if not full_local_estimates_df[column].mode().empty else None
-            )
-        else:
-            most_frequent_values[column] = None
-    logger.info(
-        msg=f"full_local_estimates_df:\n{most_frequent_values}",  # noqa: G004 - low overhead
-    )
-
-    # Run analysis for different values of 'n_neighbors'
-    unique_n_neighbors = full_local_estimates_df["n_neighbors"].unique()
-
-    for n_neighbors in unique_n_neighbors:
-        plot_save_path: pathlib.Path = pathlib.Path(
-            results_directory,
-            "influence_of_local_estimates_samples",
-            f"influence_of_local_estimates_samples_{n_neighbors=}.pdf",
-        )
-        raw_data_save_path: pathlib.Path = pathlib.Path(
-            results_directory,
-            "influence_of_local_estimates_samples",
-            f"influence_of_local_estimates_samples_{n_neighbors=}.csv",
-        )
-
-        analyze_and_plot_influence_of_local_estimates_samples(
-            df=full_local_estimates_df,
-            n_neighbors=n_neighbors,
-            most_frequent_values=most_frequent_values,
-            show_plot=False,
-            plot_save_path=plot_save_path,
-            raw_data_save_path=raw_data_save_path,
-            verbosity=verbosity,
-            logger=logger,
-        )
-
-    # Select a subset of the data with the same parameters.
-    # This allows comparing over different seeds.
-    #
-    # We do not fix the local_estimates_samples,
-    # since we want to compare the results for different sample sizes.
-    filters_dict = {
-        "data_prep_sampling_method": "random",
-        "deduplication": "array_deduplicator",
-        "n_neighbors": 128,
-        "data_prep_sampling_samples": 50000,
-    }
-
-    subset_local_estimates_df: pd.DataFrame = filter_dataframe_based_on_filters_dict(
-        df=full_local_estimates_df,
-        filters_dict=filters_dict,
-    )
-
-    # TODO: Continue analysis here
-
-    pass  # Note: This is here for setting break points
+    return full_loaded_data_df, full_local_estimates_df
 
 
 def filter_dataframe_based_on_filters_dict(
@@ -327,7 +387,7 @@ def filter_dataframe_based_on_filters_dict(
         A filtered DataFrame with rows matching all key-value pairs.
 
     """
-    subset_df = df.copy()
+    subset_df: pd.DataFrame = df.copy()
     for column, value in filters_dict.items():
         subset_df = subset_df[subset_df[column] == value]
     return subset_df
@@ -336,7 +396,8 @@ def filter_dataframe_based_on_filters_dict(
 def analyze_and_plot_influence_of_local_estimates_samples(
     df: pd.DataFrame,
     n_neighbors: int,
-    most_frequent_values: dict,
+    selected_subsample_dict: dict,
+    array_data_column_name: str,
     additional_title: str | None = None,
     *,
     show_plot: bool = False,
@@ -351,21 +412,21 @@ def analyze_and_plot_influence_of_local_estimates_samples(
     for a given value of 'n_neighbors', while keeping other parameters fixed.
     """
     # Update the fixed parameter values to the chosen 'n_neighbors'
-    updated_values = most_frequent_values.copy()
-    updated_values["n_neighbors"] = n_neighbors
+    updated_selected_subsample_dict = selected_subsample_dict.copy()
+    updated_selected_subsample_dict["n_neighbors"] = n_neighbors
 
     # Filter the DataFrame with the updated fixed values,
     # handling cases where deduplication is None
     filtered_df = df[
-        (df["data_prep_sampling_method"] == updated_values["data_prep_sampling_method"])
+        (df["data_prep_sampling_method"] == updated_selected_subsample_dict["data_prep_sampling_method"])
         & (
             df["deduplication"].isna()
-            if updated_values["deduplication"] is None
-            else df["deduplication"] == updated_values["deduplication"]
+            if updated_selected_subsample_dict["deduplication"] is None
+            else df["deduplication"] == updated_selected_subsample_dict["deduplication"]
         )
-        & (df["n_neighbors"] == updated_values["n_neighbors"])
-        & (df["data_prep_sampling_seed"] == updated_values["data_prep_sampling_seed"])
-        & (df["data_prep_sampling_samples"] == updated_values["data_prep_sampling_samples"])
+        & (df["n_neighbors"] == updated_selected_subsample_dict["n_neighbors"])
+        & (df["data_prep_sampling_seed"] == updated_selected_subsample_dict["data_prep_sampling_seed"])
+        & (df["data_prep_sampling_samples"] == updated_selected_subsample_dict["data_prep_sampling_samples"])
     ]
 
     if verbosity >= Verbosity.NORMAL:
@@ -389,8 +450,8 @@ def analyze_and_plot_influence_of_local_estimates_samples(
 
     # Convert columns to NumPy arrays for plotting
     sample_size_array = sorted_df["local_estimates_samples"].to_numpy(dtype=float)
-    mean_array = sorted_df["array_data_truncated_mean"].to_numpy(dtype=float)
-    std_array = sorted_df["array_data_truncated_std"].to_numpy(dtype=float)
+    mean_array = sorted_df[f"{array_data_column_name}_truncated_mean"].to_numpy(dtype=float)
+    std_array = sorted_df[f"{array_data_column_name}_truncated_std"].to_numpy(dtype=float)
 
     # Plotting the analysis
     plt.figure(figsize=(10, 6))
@@ -437,7 +498,7 @@ def analyze_and_plot_influence_of_local_estimates_samples(
         )
 
     # Adding additional information about the fixed parameters in the plot
-    fixed_params_text = "\n".join([f"{key}: {value}" for key, value in updated_values.items()])
+    fixed_params_text = "\n".join([f"{key}: {value}" for key, value in updated_selected_subsample_dict.items()])
     plt.text(
         x=0.02,
         y=0.95,
@@ -484,16 +545,18 @@ def analyze_and_plot_influence_of_local_estimates_samples(
 def extract_and_prepare_local_estimates_data(
     loaded_data_df: pd.DataFrame,
     array_truncation_size: int = 2_500,
+    array_data_column_name: str = "array_data",
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> pd.DataFrame:
+    """Extract and prepare the local estimates data from the loaded DataFrame."""
     array_name_to_match: str = "local_estimates_pointwise.npy"
 
     # Filter the DataFrame to only contain the local estimates
     local_estimates_df: pd.DataFrame = loaded_data_df[loaded_data_df["array_name"] == array_name_to_match]
 
     # Add a column with the number of elements in the array
-    local_estimates_df["num_elements"] = local_estimates_df["array_data"].apply(
+    local_estimates_df["num_elements"] = local_estimates_df[array_data_column_name].apply(
         func=lambda array: array.size,
     )
 
@@ -502,21 +565,25 @@ def extract_and_prepare_local_estimates_data(
         logger.info(
             msg=f"Truncating arrays to {array_truncation_size = }",  # noqa: G004 - low overhead
         )
-    local_estimates_df["array_data_truncated"] = local_estimates_df["array_data"].apply(
+    local_estimates_df[f"{array_data_column_name}_truncated"] = local_estimates_df[array_data_column_name].apply(
         func=lambda array: array[:array_truncation_size],
     )
 
     # Add a column with the mean and standard deviation of the arrays
-    local_estimates_df["array_data_mean"] = local_estimates_df["array_data"].apply(
+    local_estimates_df[f"{array_data_column_name}_mean"] = local_estimates_df[array_data_column_name].apply(
         func=lambda array: array.mean(),
     )
-    local_estimates_df["array_data_std"] = local_estimates_df["array_data"].apply(
+    local_estimates_df[f"{array_data_column_name}_std"] = local_estimates_df[array_data_column_name].apply(
         func=lambda array: array.std(),
     )
-    local_estimates_df["array_data_truncated_mean"] = local_estimates_df["array_data_truncated"].apply(
+    local_estimates_df[f"{array_data_column_name}_truncated_mean"] = local_estimates_df[
+        f"{array_data_column_name}_truncated"
+    ].apply(
         func=lambda array: array.mean(),
     )
-    local_estimates_df["array_data_truncated_std"] = local_estimates_df["array_data_truncated"].apply(
+    local_estimates_df[f"{array_data_column_name}_truncated_std"] = local_estimates_df[
+        f"{array_data_column_name}_truncated"
+    ].apply(
         func=lambda array: array.std(),
     )
 
@@ -526,6 +593,7 @@ def extract_and_prepare_local_estimates_data(
 def walk_through_subdirectories_and_load_arrays(
     root_directory: pathlib.Path,
     filenames_to_match: list[str] | None = None,
+    array_data_column_name: str = "array_data",
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> pd.DataFrame:
@@ -571,7 +639,7 @@ def walk_through_subdirectories_and_load_arrays(
                     {
                         "path": file_path,
                         "array_name": filename,
-                        "array_data": array,
+                        array_data_column_name: array,
                     },
                 )
 
