@@ -46,6 +46,7 @@ class DataListOption(StrEnum):
     MULTIWOZ21_AND_REDDIT = auto()
     MULTIWOZ21_TRAIN_AND_REDDIT_TRAIN = auto()
     MULTIWOZ21_ONLY = auto()
+    REDDIT_ONLY = auto()
 
 
 class FinetuningDatasetsListOption(StrEnum):
@@ -106,10 +107,11 @@ class LocalEstimatesFilteringNumSamplesListOption(StrEnum):
     DEFAULT = auto()
     FEW_SMALL_STEPS_NUM_SAMPLES = auto()
     MEDIUM_SMALL_STEPS_NUM_SAMPLES = auto()
-    MANY_SMALL_STEPS_NUM_SAMPLES = auto()
-    UP_TO_30000_LARGE_STEPS_NUM_SAMPLES = auto()
-    UP_TO_50000_LARGE_STEPS_NUM_SAMPLES = auto()
-    UP_TO_90000_LARGE_STEPS_NUM_SAMPLES = auto()
+    UP_TO_30000_WITH_STEP_SIZE_2500_NUM_SAMPLES = auto()
+    UP_TO_30000_WITH_STEP_SIZE_5000_NUM_SAMPLES = auto()
+    UP_TO_50000_WITH_STEP_SIZE_5000_NUM_SAMPLES = auto()
+    UP_TO_90000_WITH_STEP_SIZE_5000_NUM_SAMPLES = auto()
+    UP_TO_90000_WITH_STEP_SIZE_10000_NUM_SAMPLES = auto()
 
 
 class LocalEstimatesPointwiseAbsoluteNNeighborsListOption(StrEnum):

@@ -83,8 +83,9 @@ fi
 # ================================================================== #
 
 # DATA_LIST="full"
-# DATA_LIST="multiwoz21_train_and_reddit_train"
 DATA_LIST="multiwoz21_and_reddit"
+# DATA_LIST="multiwoz21_train_and_reddit_train"
+# DATA_LIST="reddit_only"
 
 # DATA_LIST="only_train"
 # LANGUAGE_MODEL_LIST="selected_finetuned_few_epochs_from_roberta_base"
@@ -102,8 +103,8 @@ EMBEDDINGS_DATA_PREP_SAMPLING_MODE="random"
 
 # EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="default"
 # EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="two_seeds"
-# EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="five_seeds"
-EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="ten_seeds"
+EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="five_seeds"
+# EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="ten_seeds"
 # EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="twenty_seeds"
 
 # EMBEDDINGS_DATA_PREP_NUM_SAMPLES_LIST="default"
@@ -112,10 +113,8 @@ EMBEDDINGS_DATA_PREP_NUM_SAMPLES_LIST="single_choice_100000"
 # EMBEDDINGS_DATA_PREP_NUM_SAMPLES_LIST="five_choices_10000_steps"
 
 # LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="few_small_steps_num_samples"
-# LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="medium_small_steps_num_samples"
-# LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="many_small_steps_num_samples"
-# LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="up_to_50000_large_steps_num_samples"
-LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="up_to_90000_large_steps_num_samples"
+# LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="up_to_90000_with_step_size_5000_num_samples"
+LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="up_to_90000_with_step_size_10000_num_samples"
 
 # LOCAL_ESTIMATES_POINTWISE_ABSOLUTE_N_NEIGHBORS_LIST="powers_of_two_up_to_1024"
 LOCAL_ESTIMATES_POINTWISE_ABSOLUTE_N_NEIGHBORS_LIST="single_choice_128"

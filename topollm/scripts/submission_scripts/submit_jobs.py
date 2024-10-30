@@ -370,6 +370,12 @@ def make_config_and_run_task(
                 "multiwoz21_train",
                 "multiwoz21_validation",
             ]
+        case DataListOption.REDDIT_ONLY:
+            data_list: list[str] = [
+                "one-year-of-tsla-on-reddit_test",
+                "one-year-of-tsla-on-reddit_train",
+                "one-year-of-tsla-on-reddit_validation",
+            ]
         case _:
             msg = f"Unknown {args.data_list = }"
             raise ValueError(msg)
@@ -552,14 +558,16 @@ def make_config_and_run_task(
                 "12500",
                 "15000",
             ]
-        case LocalEstimatesFilteringNumSamplesListOption.MANY_SMALL_STEPS_NUM_SAMPLES:
+        case LocalEstimatesFilteringNumSamplesListOption.UP_TO_30000_WITH_STEP_SIZE_2500_NUM_SAMPLES:
             local_estimates_filtering_num_samples_list = [str(i * 2500) for i in range(1, 13)]
-        case LocalEstimatesFilteringNumSamplesListOption.UP_TO_30000_LARGE_STEPS_NUM_SAMPLES:
+        case LocalEstimatesFilteringNumSamplesListOption.UP_TO_30000_WITH_STEP_SIZE_5000_NUM_SAMPLES:
             local_estimates_filtering_num_samples_list = [str(i * 5000) for i in range(1, 7)]
-        case LocalEstimatesFilteringNumSamplesListOption.UP_TO_50000_LARGE_STEPS_NUM_SAMPLES:
+        case LocalEstimatesFilteringNumSamplesListOption.UP_TO_50000_WITH_STEP_SIZE_5000_NUM_SAMPLES:
             local_estimates_filtering_num_samples_list = [str(i * 5000) for i in range(1, 11)]
-        case LocalEstimatesFilteringNumSamplesListOption.UP_TO_90000_LARGE_STEPS_NUM_SAMPLES:
+        case LocalEstimatesFilteringNumSamplesListOption.UP_TO_90000_WITH_STEP_SIZE_5000_NUM_SAMPLES:
             local_estimates_filtering_num_samples_list = [str(i * 5000) for i in range(1, 19)]
+        case LocalEstimatesFilteringNumSamplesListOption.UP_TO_90000_WITH_STEP_SIZE_10000_NUM_SAMPLES:
+            local_estimates_filtering_num_samples_list = [str(i * 10000) for i in range(1, 10)]
         case _:
             msg: str = f"Unknown {args.local_estimates_filtering_num_samples_list = }"
             raise ValueError(msg)
