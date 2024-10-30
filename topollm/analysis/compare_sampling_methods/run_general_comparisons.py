@@ -285,6 +285,7 @@ def run_search_on_single_base_directory_and_process_and_save(
                     y_max=y_max,
                     show_plot=False,
                     connect_points=connect_points,
+                    logger=logger,
                 )
 
     # TODO: Continue analysis here

@@ -219,13 +219,22 @@ def create_boxplot_of_mean_over_different_sampling_seeds(
     y_column_name: str = "array_data_truncated_mean",
     seed_column_name: str = "data_prep_sampling_seed",
     fixed_params_text: str | None = None,
+    additional_title: str | None = None,
     *,
     y_min: float | None = 6.5,
     y_max: float | None = 15.5,
     show_plot: bool = True,
     connect_points: bool = True,
+    logger: logging.Logger = default_logger,
 ) -> None:
     """Create a boxplot of the the measurement over different sampling seeds."""
+    # If the DataFrame is empty, return early
+    if subset_local_estimates_df.empty:
+        logger.warning(
+            msg="Empty DataFrame provided. Cannot create boxplot.",
+        )
+        return
+
     plt.figure(figsize=(10, 6))
 
     # Set the fixed y-axis limits
@@ -325,6 +334,20 @@ def create_boxplot_of_mean_over_different_sampling_seeds(
                 "facecolor": "wheat",
                 "alpha": 0.3,
             },
+        )
+
+    if additional_title:
+        add_subtitle(
+            additional_title=additional_title,
+        )
+    elif "path" in subset_local_estimates_df.columns:
+        # If no additional title is provided, use the first file path as a subtitle
+        add_subtitle(
+            additional_title=str(object=subset_local_estimates_df["path"].iloc[0]),
+        )
+    else:
+        logger.warning(
+            msg="No 'path' column found in the DataFrame. Could not add additional_title.",
         )
 
     # Save plot to the specified path if provided
