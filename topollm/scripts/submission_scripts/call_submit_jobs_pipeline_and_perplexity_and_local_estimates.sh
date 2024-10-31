@@ -6,7 +6,8 @@
 SUBMISSION_MODE="hpc_submission"
 DRY_RUN_FLAG=""
 
-# Note that 16GB of memory is not enough for the embeddings data prep step
+# Note: 
+# 16GB of memory is not enough for the embeddings data prep step
 # on the multiwoz21_train and reddit_train datasets.
 MEMORY="32"
 
@@ -16,7 +17,7 @@ DO_PERPLEXITY="false"
 DO_LOCAL_ESTIMATES_COMPUTATION="false"
 
 # Flags to select base or fine-tuned model
-USE_BASE_MODEL="false"
+USE_ROBERTA_BASE_MODEL="false"
 USE_FINETUNED_MODEL="false"
 
 # Parse command line arguments
@@ -42,9 +43,9 @@ while [[ "$#" -gt 0 ]]; do
       DO_LOCAL_ESTIMATES_COMPUTATION="true"
       shift # Remove --do_local_estimates_computation from processing
       ;;
-    --use_base_model)
-      USE_BASE_MODEL="true"
-      shift # Remove --use_base_model from processing
+    --use_roberta_base_model)
+      USE_ROBERTA_BASE_MODEL="true"
+      shift # Remove --use_roberta_base_model from processing
       ;;
     --use_finetuned_model)
       USE_FINETUNED_MODEL="true"
@@ -67,12 +68,12 @@ if [ "$DO_PIPELINE" = "false" ] && [ "$DO_PERPLEXITY" = "false" ] && [ "$DO_LOCA
 fi
 
 # Warn if neither model options are set
-if [ "$USE_BASE_MODEL" = "false" ] && [ "$USE_FINETUNED_MODEL" = "false" ]; then
-  echo ">>> WARNING: No model selected. Please specify --use_base_model or --use_finetuned_model."
+if [ "$USE_ROBERTA_BASE_MODEL" = "false" ] && [ "$USE_FINETUNED_MODEL" = "false" ]; then
+  echo ">>> WARNING: No model selected. Please specify --use_roberta_base_model or --use_finetuned_model."
   exit 1
 fi
 # Warn if both model options are set
-if [ "$USE_BASE_MODEL" = "true" ] && [ "$USE_FINETUNED_MODEL" = "true" ]; then
+if [ "$USE_ROBERTA_BASE_MODEL" = "true" ] && [ "$USE_FINETUNED_MODEL" = "true" ]; then
   echo ">>> WARNING: Both base model and fine-tuned model selected. Please select only one."
   exit 1
 fi
@@ -83,8 +84,9 @@ fi
 # ================================================================== #
 
 # DATA_LIST="full"
-# DATA_LIST="multiwoz21_train_and_reddit_train"
 DATA_LIST="multiwoz21_and_reddit"
+# DATA_LIST="multiwoz21_train_and_reddit_train"
+# DATA_LIST="reddit_only"
 
 # DATA_LIST="only_train"
 # LANGUAGE_MODEL_LIST="selected_finetuned_few_epochs_from_roberta_base"
@@ -102,25 +104,24 @@ EMBEDDINGS_DATA_PREP_SAMPLING_MODE="random"
 
 # EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="default"
 # EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="two_seeds"
-# EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="five_seeds"
+EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="five_seeds"
 # EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="ten_seeds"
-EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="twenty_seeds"
+# EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="twenty_seeds"
 
 # EMBEDDINGS_DATA_PREP_NUM_SAMPLES_LIST="default"
-EMBEDDINGS_DATA_PREP_NUM_SAMPLES_LIST="single_choice_50000"
+# EMBEDDINGS_DATA_PREP_NUM_SAMPLES_LIST="single_choice_50000"
+EMBEDDINGS_DATA_PREP_NUM_SAMPLES_LIST="single_choice_100000"
 # EMBEDDINGS_DATA_PREP_NUM_SAMPLES_LIST="five_choices_10000_steps"
 
 # LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="few_small_steps_num_samples"
-# LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="medium_small_steps_num_samples"
-# LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="many_small_steps_num_samples"
-# LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="many_large_steps_num_samples"
-LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="up_to_50000_large_steps_num_samples"
+# LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="up_to_90000_with_step_size_5000_num_samples"
+LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="up_to_90000_with_step_size_10000_num_samples"
 
 # LOCAL_ESTIMATES_POINTWISE_ABSOLUTE_N_NEIGHBORS_LIST="powers_of_two_up_to_1024"
 LOCAL_ESTIMATES_POINTWISE_ABSOLUTE_N_NEIGHBORS_LIST="single_choice_128"
 
 # Configure model settings based on selected model options
-if [ "$USE_BASE_MODEL" = "true" ]; then
+if [ "$USE_ROBERTA_BASE_MODEL" = "true" ]; then
   ####################################
   ### With POS tags for base model ###
   LANGUAGE_MODEL_LIST="only_roberta_base"
