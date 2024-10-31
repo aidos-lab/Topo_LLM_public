@@ -6,7 +6,8 @@
 SUBMISSION_MODE="hpc_submission"
 DRY_RUN_FLAG=""
 
-# Note that 16GB of memory is not enough for the embeddings data prep step
+# Note: 
+# 16GB of memory is not enough for the embeddings data prep step
 # on the multiwoz21_train and reddit_train datasets.
 MEMORY="32"
 
