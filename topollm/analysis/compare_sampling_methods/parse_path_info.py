@@ -88,6 +88,7 @@ def parse_path_info_full(
         string=path_str,
     )
     if desc_match:
+        parsed_info["local_estimates_desc_full"] = desc_match.group(0)  # The full matched description string
         parsed_info["local_estimates_description"] = desc_match.group(1)
         parsed_info["local_estimates_samples"] = int(desc_match.group(2))
         parsed_info["zerovec"] = desc_match.group(3)
@@ -130,5 +131,25 @@ def parse_path_info_full(
         parsed_info["model_layer"] = int(layer_match.group(1))
         parsed_info["aggregation"] = layer_match.group(2)
         parsed_info["normalization"] = layer_match.group(3)
+
+    # Extract data information
+    # Matches and parses data information including dataset name, split, context, number of samples, and feature column,
+    # e.g., "data-multiwoz21_split-validation_ctxt-dataset_entry_samples-3000_feat-col-ner_tags"
+    # - (\w+): Match the dataset name.
+    # - split-(\w+): Match the split type (e.g., "validation").
+    # - ctxt-([\w-]+): Match the context type (e.g., "dataset_entry").
+    # - samples-(\d+): Match the number of samples.
+    # - feat-col-([\w-]+): Match the feature column.
+    data_match = re.search(
+        pattern=r"data-([\w-]+)_split-(\w+)_ctxt-([\w-]+)_samples-(\d+)_feat-col-([\w-]+)",
+        string=path_str,
+    )
+    if data_match:
+        parsed_info["data_full"] = data_match.group(0)  # The full matched data string
+        parsed_info["dataset_name"] = data_match.group(1)
+        parsed_info["split"] = data_match.group(2)
+        parsed_info["context"] = data_match.group(3)
+        parsed_info["samples"] = int(data_match.group(4))
+        parsed_info["feature_column"] = data_match.group(5)
 
     return parsed_info
