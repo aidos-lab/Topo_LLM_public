@@ -53,7 +53,7 @@ from topollm.analysis.compare_sampling_methods.make_plots import (
 from topollm.analysis.compare_sampling_methods.organize_results_directory_structure import (
     build_results_directory_structure,
 )
-from topollm.analysis.compare_sampling_methods.parse_path_info_full import parse_path_info_full
+from topollm.analysis.compare_sampling_methods.parse_path_info import parse_path_info_full
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
