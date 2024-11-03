@@ -26,12 +26,28 @@
 # limitations under the License.
 
 import logging
+import pprint
+
+from topollm.analysis.compare_sampling_methods.parse_path_info import parse_path_info_full
 
 
 def test_parse_path_info_full(
     logger_fixture: logging.Logger,
 ) -> None:
     """Example usage of parse_path_info_full function."""
+    example_path_base_model_str: str = (
+        "/Users/USER_NAME/git-source/Topo_LLM/"
+        "data/analysis/twonn/"
+        "data-multiwoz21_split-validation_ctxt-dataset_entry_samples-3000_feat-col-ner_tags/"
+        "lvl-token/add-prefix-space-True_max-len-512/"
+        "model-roberta-base_task-masked_lm/"
+        "layer--1_agg-mean/norm-None/"
+        "sampling-random_seed-44_samples-20000/"
+        "desc-twonn_samples-2500_zerovec-keep_dedup-array_deduplicator/"
+        "n-neighbors-mode-absolute_size_n-neighbors-256/"
+        "local_estimates_pointwise.npy"
+    )
+
     example_path_finetuned_model_str: str = (
         "/Users/USER_NAME/git-source/Topo_LLM/"
         "data/analysis/twonn/"
@@ -46,7 +62,25 @@ def test_parse_path_info_full(
     )
 
     example_path_str_list: list[str] = [
+        example_path_base_model_str,
         example_path_finetuned_model_str,
     ]
 
-    # TODO: Implement the test
+    for example_path in example_path_str_list:
+        logger_fixture.info(
+            msg=f"{example_path = }",  # noqa: G004 - low overhead
+        )
+
+        result = parse_path_info_full(
+            path=example_path,
+        )
+
+        logger_fixture.info(
+            msg=f"result:\n{pprint.pformat(object=result)}",  # noqa: G004 - low overhead
+        )
+
+        # Check that result is a valid dictionary
+        assert isinstance(  # noqa: S101 - pytest assertion
+            result,
+            dict,
+        )
