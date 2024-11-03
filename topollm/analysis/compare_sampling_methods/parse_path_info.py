@@ -53,12 +53,19 @@ def parse_path_info_full(
     local_estimates_pointwise.npy
     """
     # Convert the path to a string
-    path_str = str(path)
+    path_str = str(
+        object=path,
+    )
 
     # Initialize an empty dictionary to hold parsed values
     parsed_info: dict = {}
 
     # Extract sampling information
+    # Matches sampling method, seed, and number of samples, e.g.,
+    # "sampling-random_seed-44_samples-20000"
+    # - (\w+): Match one or more word characters for the sampling method.
+    # - (\d+): Match one or more digits for the seed.
+    # - (\d+): Match one or more digits for the number of samples.
     sampling_match = re.search(
         pattern=r"sampling-(\w+)_seed-(\d+)_samples-(\d+)",
         string=path_str,
@@ -69,8 +76,13 @@ def parse_path_info_full(
         parsed_info["data_prep_sampling_samples"] = int(sampling_match.group(3))
 
     # Extract local estimates information
-    # Comments on Regex:
-    # Capture `zerovec` completely and correctly handle `dedup` as an optional field
+    # Matches description, samples, zerovec, and optional deduplication, e.g.,
+    # "desc-twonn_samples-2500_zerovec-keep_dedup-array_deduplicator"
+    # - (\w+): Match one or more word characters for the description.
+    # - (\d+): Match one or more digits for the number of samples.
+    # - ([a-zA-Z0-9]+): Match one or more alphanumeric characters for the zerovec.
+    # - (?:_dedup-([a-zA-Z0-9_]+))?: Optionally match "_dedup-"
+    #   followed by one or more alphanumeric or underscore characters for deduplication.
     desc_match = re.search(
         pattern=r"desc-(\w+)_samples-(\d+)_zerovec-([a-zA-Z0-9]+)(?:_dedup-([a-zA-Z0-9_]+))?",
         string=path_str,
@@ -82,6 +94,10 @@ def parse_path_info_full(
         parsed_info["deduplication"] = desc_match.group(4) if desc_match.group(4) else None
 
     # Extract neighbors information
+    # Matches neighbors mode and number of neighbors, e.g.,
+    # "n-neighbors-mode-absolute_size_n-neighbors-256"
+    # - (\w+): Match one or more word characters for the neighbors mode.
+    # - (\d+): Match one or more digits for the number of neighbors.
     neighbors_match = re.search(
         pattern=r"n-neighbors-mode-(\w+)_size_n-neighbors-(\d+)",
         string=path_str,
@@ -101,8 +117,13 @@ def parse_path_info_full(
         parsed_info["checkpoint"] = int(model_match.group(3))
 
     # Extract layer and aggregation information
+    # Matches layer index, aggregation type, and normalization, e.g.,
+    # "layer--1_agg-mean/norm-None"
+    # - (-?\d+): Match an optional negative sign followed by one or more digits for the layer index.
+    # - ([\w-]+): Match one or more word characters or hyphens for the aggregation type.
+    # - ([\w-]+): Match one or more word characters or hyphens for the normalization type.
     layer_match = re.search(
-        pattern=r"layer-(\w+)_agg-(\w+)/norm-(\w+)",
+        pattern=r"layer-(-?\d+)_agg-([\w-]+)/norm-([\w-]+)",
         string=path_str,
     )
     if layer_match:
