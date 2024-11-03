@@ -47,8 +47,6 @@ from topollm.analysis.compare_sampling_methods.make_plots import (
     analyze_and_plot_influence_of_local_estimates_samples,
     create_boxplot_of_mean_over_different_sampling_seeds,
     generate_fixed_params_text,
-    make_mean_std_plot,
-    make_multiple_line_plots,
 )
 from topollm.analysis.compare_sampling_methods.organize_results_directory_structure import (
     build_results_directory_structure,
