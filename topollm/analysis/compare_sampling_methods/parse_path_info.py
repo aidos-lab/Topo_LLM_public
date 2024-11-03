@@ -102,7 +102,7 @@ def parse_path_info_full(
 
     # Extract layer and aggregation information
     layer_match = re.search(
-        pattern=r"layer--(\d+)_agg-(\w+)_norm-(\w+)",
+        pattern=r"layer-(\w+)_agg-(\w+)/norm-(\w+)",
         string=path_str,
     )
     if layer_match:

@@ -66,7 +66,48 @@ def test_parse_path_info_full(
         example_path_finetuned_model_str,
     ]
 
-    for example_path in example_path_str_list:
+    expected_results = [
+        {
+            "data_prep_sampling_method": "random",
+            "data_prep_sampling_seed": 44,
+            "data_prep_sampling_samples": 20000,
+            "local_estimates_description": "twonn",
+            "local_estimates_samples": 2500,
+            "zerovec": "keep",
+            "deduplication": "array_deduplicator",
+            "neighbors_mode": "absolute",
+            "n_neighbors": 256,
+            # "model_name": "roberta-base",
+            # "model_seed": None,
+            # "checkpoint": None,
+            "model_layer": -1,
+            "aggregation": "mean",
+            "normalization": "None",
+        },
+        {
+            "data_prep_sampling_method": "random",
+            "data_prep_sampling_seed": 47,
+            "data_prep_sampling_samples": 100000,
+            "local_estimates_description": "twonn",
+            "local_estimates_samples": 2500,
+            "zerovec": "keep",
+            "deduplication": "array_deduplicator",
+            "neighbors_mode": "absolute",
+            "n_neighbors": 256,
+            # "model_name": "model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit",
+            # "model_seed": 1234,
+            # "checkpoint": 400,
+            "model_layer": -1,
+            "aggregation": "mean",
+            "normalization": "None",
+        },
+    ]
+
+    for example_path, expected_result in zip(
+        example_path_str_list,
+        expected_results,
+        strict=True,
+    ):
         logger_fixture.info(
             msg=f"{example_path = }",  # noqa: G004 - low overhead
         )
@@ -83,4 +124,11 @@ def test_parse_path_info_full(
         assert isinstance(  # noqa: S101 - pytest assertion
             result,
             dict,
+        )
+
+        # Assert that the result matches the expected result
+        assert result == expected_result, (  # noqa: S101 - pytest assertion
+            f"Parsing failed for {example_path = }\n"
+            f"Expected:\n{pprint.pformat(object=expected_result)}\n"
+            f"Got:\n{pprint.pformat(object=result)}"
         )
