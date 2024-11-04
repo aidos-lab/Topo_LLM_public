@@ -223,8 +223,8 @@ def create_boxplot_of_mean_over_different_sampling_seeds(
     *,
     y_min: float | None = 6.5,
     y_max: float | None = 15.5,
-    show_plot: bool = True,
-    connect_points: bool = True,
+    show_plot: bool = False,
+    connect_points: bool = False,
     logger: logging.Logger = default_logger,
 ) -> None:
     """Create a boxplot of the the measurement over different sampling seeds."""
@@ -323,11 +323,11 @@ def create_boxplot_of_mean_over_different_sampling_seeds(
     # Adding additional information about the fixed parameters in the plot
     if fixed_params_text is not None:
         plt.text(
-            x=0.55,
+            x=1.05,
             y=0.25,
             s=f"Fixed Parameters:\n{fixed_params_text}",
             transform=plt.gca().transAxes,
-            fontsize=10,
+            fontsize=6,
             verticalalignment="top",
             bbox={
                 "boxstyle": "round",
