@@ -93,7 +93,7 @@ class DataConfig(ConfigBaseModel):
     )
 
     number_of_samples: int = Field(
-        default=5000,
+        default=5_000,
         title="Number of samples to use for computing embeddings.",
         description="The number of samples to use for computing embeddings.",
     )

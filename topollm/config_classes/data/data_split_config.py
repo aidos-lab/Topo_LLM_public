@@ -64,6 +64,18 @@ class DataSplitConfig(ConfigBaseModel):
         description="The mode to use for splitting the data.",
     )
 
+    split_shuffle: bool = Field(
+        default=False,
+        title="Split shuffle.",
+        description="Whether to shuffle the data before splitting it.",
+    )
+
+    split_seed: int | None = Field(
+        default=None,
+        title="Split seed.",
+        description="The seed to use for splitting the data.",
+    )
+
     proportions: Proportions = Field(
         default_factory=Proportions,
         title="Proportions.",
