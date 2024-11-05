@@ -26,10 +26,10 @@ CALL_SUBMIT_JOBS_SHELL_SCRIPT_PATH=$TOPO_LLM_REPOSITORY_BASE_PATH/topollm/script
 echo ">>> CALL_SUBMIT_JOBS_SHELL_SCRIPT_PATH: $CALL_SUBMIT_JOBS_SHELL_SCRIPT_PATH"
 echo ">>> DRY_RUN_FLAG: $DRY_RUN_FLAG"
 
-$CALL_SUBMIT_JOBS_SHELL_SCRIPT_PATH \
-    --do_pipeline \
-    --use_roberta_base_model \
-    $DRY_RUN_FLAG
+# $CALL_SUBMIT_JOBS_SHELL_SCRIPT_PATH \
+#     --do_pipeline \
+#     --use_roberta_base_model \
+#     $DRY_RUN_FLAG
 
 $CALL_SUBMIT_JOBS_SHELL_SCRIPT_PATH \
     --do_pipeline \

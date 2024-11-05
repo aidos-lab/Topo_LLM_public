@@ -39,7 +39,7 @@ python = "^3.12"
 scikit-learn = "*"
 scikit-dimension = "*"
 StrEnum = { version = "^0.4", markers = "python_version < '3.11'" }
-torch = "2.*"
+torch = "2.3.*"
 tqdm = "*"
 transformers = "*"
 zarr = "*"

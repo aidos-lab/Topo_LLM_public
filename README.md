@@ -108,3 +108,12 @@ poetry run pipeline_local_estimates # This runs the full pipeline embedding -> e
 poetry run compute_perplexity
 poetry run finetune_language_model
 ```
+
+### Specific instructions for HHU Hilbert Cluster
+
+On HHH Hilbert, you might need to pin a torch version in the `pyproject.toml` file, to make the installation of torch and a compatible CUDA version work.
+For example, it currently appears to work when you set the torch version to `2.3.*`:
+
+```toml
+torch = "2.3.*"
+```
