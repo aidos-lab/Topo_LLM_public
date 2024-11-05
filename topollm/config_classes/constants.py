@@ -100,9 +100,12 @@ NAME_PREFIXES: dict[
     "split": "split",
     "target_modules_to_freeze": "target-freeze",
     "task_type": "task",
+    "test_short": "te",
     "transformation": "trans",
+    "train_short": "tr",
     "use_canonical_values_from_dataset": "use-canonical-val",
     "use_rslora": "rslora",
+    "validation_short": "va",
     "weight_decay": "wd",
     "zero_vector_handling_mode": "zerovec",
 }

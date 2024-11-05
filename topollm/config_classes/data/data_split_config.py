@@ -30,6 +30,7 @@
 from pydantic import Field
 
 from topollm.config_classes.config_base_model import ConfigBaseModel
+from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
 from topollm.typing.enums import DataSplitMode
 
 
@@ -53,6 +54,18 @@ class Proportions(ConfigBaseModel):
         title="Test proportion.",
         description="The proportion of the data to use for testing.",
     )
+
+    @property
+    def config_description(
+        self,
+    ) -> str:
+        """Return a description of the configuration."""
+        description: str = (
+            f"{NAME_PREFIXES['train_short']}{KV_SEP}{self.train}"
+            f"{ITEM_SEP}{NAME_PREFIXES['validation_short']}{KV_SEP}{self.validation}"
+            f"{ITEM_SEP}{NAME_PREFIXES['test_short']}{KV_SEP}{self.test}"
+        )
+        return description
 
 
 class DataSplitConfig(ConfigBaseModel):
