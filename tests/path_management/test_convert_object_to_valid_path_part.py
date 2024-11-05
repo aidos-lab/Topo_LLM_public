@@ -5,6 +5,7 @@
 #
 # Authors:
 # Benjamin Ruppik (ruppik@hhu.de)
+# Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
 # First versions of this code were potentially generated
@@ -23,6 +24,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+"""Tests for the functions which convert objects into valid path parts."""
 
 import logging
 

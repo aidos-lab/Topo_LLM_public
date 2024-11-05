@@ -47,13 +47,11 @@ from topollm.analysis.compare_sampling_methods.make_plots import (
     analyze_and_plot_influence_of_local_estimates_samples,
     create_boxplot_of_mean_over_different_sampling_seeds,
     generate_fixed_params_text,
-    make_mean_std_plot,
-    make_multiple_line_plots,
 )
 from topollm.analysis.compare_sampling_methods.organize_results_directory_structure import (
     build_results_directory_structure,
 )
-from topollm.analysis.compare_sampling_methods.parse_path_info_full import parse_path_info_full
+from topollm.analysis.compare_sampling_methods.parse_path_info import parse_path_info_full
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
@@ -88,11 +86,21 @@ setup_exception_logging(
 
 setup_omega_conf()
 
-Y_AXIS_LIMITS: dict[str, tuple[float | None, float | None]] = {
+Y_AXIS_LIMITS: dict[
+    str,
+    tuple[float | None, float | None],
+] = {
     "None": (None, None),
-    "full": (6.5, 15.5),  # full range
+    "full": (6.5, 18.0),  # full range
     "lower": (6.5, 10.0),  # lower range
-    "upper": (12.0, 16.0),  # upper range
+    "upper": (12.0, 18.0),  # upper range
+}
+
+Y_AXIS_LIMITS_ONLY_FULL: dict[
+    str,
+    tuple[float | None, float | None],
+] = {
+    "full": (6.5, 18.0),  # full range
 }
 
 
