@@ -104,7 +104,7 @@ DATA_NUMBER_OF_SAMPLES_LIST_OPTION="fixed_10000"
 
 # Uncomment the following to skip the compute_and_store_embeddings step:
 #
-SKIP_COMPUTE_AND_STORE_EMBEDDINGS="--skip_compute_and_store_embeddings"
+# SKIP_COMPUTE_AND_STORE_EMBEDDINGS="--skip_compute_and_store_embeddings"
 
 EMBEDDINGS_DATA_PREP_SAMPLING_MODE="random"
 # EMBEDDINGS_DATA_PREP_SAMPLING_MODE="take_first"
