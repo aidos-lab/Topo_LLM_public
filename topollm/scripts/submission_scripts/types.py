@@ -26,6 +26,7 @@
 # limitations under the License.
 
 from enum import StrEnum, auto
+from pickle import NONE
 
 
 class CheckpointNoListOption(StrEnum):
@@ -47,6 +48,13 @@ class DataListOption(StrEnum):
     MULTIWOZ21_TRAIN_AND_REDDIT_TRAIN = auto()
     MULTIWOZ21_ONLY = auto()
     REDDIT_ONLY = auto()
+
+
+class DataNumberOfSamplesListOption(StrEnum):
+    """Options for the data number of samples list."""
+
+    NONE = auto()
+    FIXED_3000 = auto()
 
 
 class FinetuningDatasetsListOption(StrEnum):

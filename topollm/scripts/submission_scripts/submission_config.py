@@ -55,6 +55,7 @@ class SubmissionConfig(BaseModel):
             "multiwoz21_validation",
         ],
     )
+    data_number_of_samples_list: list[str] | None = None
     # The additional data options are just used for extending the data command as they are
     additional_data_options: list[str] | None = None
 
@@ -301,7 +302,7 @@ class SubmissionConfig(BaseModel):
 
         if self.finetuning_seed_list:
             task_specific_command.append(
-                f"finetuning.seed={','.join(self.finetuning_seed_list)}",
+                "finetuning.seed=" + ",".join(self.finetuning_seed_list),
             )
 
         return task_specific_command
@@ -359,11 +360,11 @@ class SubmissionConfig(BaseModel):
 
         if self.embeddings_data_prep_sampling_mode:
             task_specific_command.append(
-                f"+embeddings_data_prep.sampling.sampling_mode={str(object=self.embeddings_data_prep_sampling_mode)}",  # noqa: RUF010 - we want to use the string representation here
+                f"+embeddings_data_prep.sampling.sampling_mode={str(object=self.embeddings_data_prep_sampling_mode)}",
             )
         if self.embeddings_data_prep_sampling_seed_list:
             task_specific_command.append(
-                f"embeddings_data_prep.sampling.seed={','.join(self.embeddings_data_prep_sampling_seed_list)}",
+                "embeddings_data_prep.sampling.seed=" + ",".join(self.embeddings_data_prep_sampling_seed_list),
             )
 
         local_estimates_command: list[str] = self.generate_local_estimates_command()
@@ -379,8 +380,13 @@ class SubmissionConfig(BaseModel):
         data_command: list[str] = []
 
         data_command.append(
-            f"data={','.join(self.data_list)}",
+            "data=" + ",".join(self.data_list),
         )
+
+        if self.data_number_of_samples_list:
+            data_command.append(
+                "data.number_of_samples=" + ",".join(self.data_number_of_samples_list),
+            )
 
         # The additional data options are just used for extending the data command as they are
         if self.additional_data_options:
@@ -396,15 +402,15 @@ class SubmissionConfig(BaseModel):
         language_model_command: list[str] = []
 
         language_model_command.append(
-            f"language_model={','.join(self.language_model_list)}",
+            "language_model=" + ",".join(self.language_model_list),
         )
         if self.checkpoint_no_list:
             language_model_command.append(
-                f"language_model.checkpoint_no={','.join(self.checkpoint_no_list)}",
+                "language_model.checkpoint_no=" + ",".join(self.checkpoint_no_list),
             )
         if self.language_model_seed_list:
             language_model_command.append(
-                f"++language_model.seed={','.join(self.language_model_seed_list)}",
+                "++language_model.seed=" + ",".join(self.language_model_seed_list),
             )
 
         return language_model_command

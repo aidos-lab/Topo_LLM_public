@@ -84,8 +84,9 @@ fi
 # ================================================================== #
 
 # DATA_LIST="full"
-DATA_LIST="multiwoz21_and_reddit"
+# DATA_LIST="multiwoz21_and_reddit"
 # DATA_LIST="multiwoz21_train_and_reddit_train"
+DATA_LIST="multiwoz21_only"
 # DATA_LIST="reddit_only"
 
 # DATA_LIST="only_train"
@@ -95,9 +96,14 @@ DATA_LIST="multiwoz21_and_reddit"
 # DATA_LIST="debug"
 # LANGUAGE_MODEL_LIST="only_roberta_base"
 
+# DATA_NUMBER_OF_SAMPLES_LIST_OPTION="none"
+DATA_NUMBER_OF_SAMPLES_LIST_OPTION="fixed_3000"
+
 # ================================================================== #
 
-SKIP_COMPUTE_AND_STORE_EMBEDDINGS="--skip_compute_and_store_embeddings"
+# Uncomment the following to skip the compute_and_store_embeddings step:
+#
+# SKIP_COMPUTE_AND_STORE_EMBEDDINGS="--skip_compute_and_store_embeddings"
 
 EMBEDDINGS_DATA_PREP_SAMPLING_MODE="random"
 # EMBEDDINGS_DATA_PREP_SAMPLING_MODE="take_first"
@@ -157,6 +163,7 @@ if [ "$DO_PIPELINE" = "true" ]; then
       --template="DSML" \
       --memory=$MEMORY \
       --data_list=$DATA_LIST \
+      --data_number_of_samples_list_option=$DATA_NUMBER_OF_SAMPLES_LIST_OPTION \
       $CREATE_POS_TAGS_FLAG \
       --language_model_list=$LANGUAGE_MODEL_LIST \
       --checkpoint_no_list=$CHECKPOINT_NO_LIST \
@@ -182,6 +189,7 @@ if [ "$DO_PERPLEXITY" = "true" ]; then
       --queue="CUDA" \
       --template="RTX6000" \
       --data_list=$DATA_LIST \
+      --data_number_of_samples_list_option=$DATA_NUMBER_OF_SAMPLES_LIST_OPTION \
       --language_model_list=$LANGUAGE_MODEL_LIST \
       --checkpoint_no_list=$CHECKPOINT_NO_LIST \
       --language_model_seed_list=$LANGUAGE_MODEL_SEED_LIST \
@@ -204,6 +212,7 @@ if [ "$DO_LOCAL_ESTIMATES_COMPUTATION" = "true" ]; then
       --ngpus="0" \
       --walltime="08:00:00" \
       --data_list=$DATA_LIST \
+      --data_number_of_samples_list_option=$DATA_NUMBER_OF_SAMPLES_LIST_OPTION \
       $CREATE_POS_TAGS_FLAG \
       --language_model_list=$LANGUAGE_MODEL_LIST \
       --checkpoint_no_list=$CHECKPOINT_NO_LIST \
