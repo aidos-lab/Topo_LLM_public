@@ -26,7 +26,6 @@
 # limitations under the License.
 
 from enum import StrEnum, auto
-from pickle import NONE
 
 
 class CheckpointNoListOption(StrEnum):
@@ -55,6 +54,7 @@ class DataNumberOfSamplesListOption(StrEnum):
 
     NONE = auto()
     FIXED_3000 = auto()
+    FIXED_10000 = auto()
 
 
 class FinetuningDatasetsListOption(StrEnum):
@@ -107,6 +107,7 @@ class EmbeddingsDataPrepNumSamplesListOption(StrEnum):
     SINGLE_CHOICE_50000 = auto()
     SINGLE_CHOICE_100000 = auto()
     FIVE_CHOICES_10000_STEPS = auto()
+    SINGLE_CHOICE_250000 = auto()
 
 
 class LocalEstimatesFilteringNumSamplesListOption(StrEnum):

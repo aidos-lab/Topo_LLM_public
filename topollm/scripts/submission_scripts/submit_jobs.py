@@ -213,7 +213,7 @@ def parse_arguments() -> argparse.Namespace:
         help="Checkpoint number list to use.",
     )
     parser.add_argument(
-        "--embeddings_data_prep_num_samples_list",
+        "--embeddings_data_prep_num_samples_list_option",
         type=EmbeddingsDataPrepNumSamplesListOption,
         default=EmbeddingsDataPrepNumSamplesListOption.DEFAULT,
         help="Embeddings data prep number of samples list to use.",
@@ -396,6 +396,10 @@ def make_config_and_run_task(
             data_number_of_samples_list = [
                 "3000",
             ]
+        case DataNumberOfSamplesListOption.FIXED_10000:
+            data_number_of_samples_list = [
+                "10000",
+            ]
         case _:
             msg = f"Unknown {args.data_number_of_samples_list_option = }"
             raise ValueError(
@@ -542,7 +546,7 @@ def make_config_and_run_task(
                 msg,
             )
 
-    match args.embeddings_data_prep_num_samples_list:
+    match args.embeddings_data_prep_num_samples_list_option:
         case EmbeddingsDataPrepNumSamplesListOption.DEFAULT:
             embeddings_data_prep_num_samples_list = [
                 "30000",
@@ -563,8 +567,12 @@ def make_config_and_run_task(
                 "50000",
                 "60000",
             ]
+        case EmbeddingsDataPrepNumSamplesListOption.SINGLE_CHOICE_250000:
+            embeddings_data_prep_num_samples_list = [
+                "250000",
+            ]
         case _:
-            msg: str = f"Unknown {args.embeddings_data_prep_num_samples_list = }"
+            msg: str = f"Unknown {args.embeddings_data_prep_num_samples_list_option = }"
             raise ValueError(
                 msg,
             )
