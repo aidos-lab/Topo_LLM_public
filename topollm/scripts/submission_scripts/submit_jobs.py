@@ -36,6 +36,7 @@ from topollm.scripts.submission_scripts.submission_config import SubmissionConfi
 from topollm.scripts.submission_scripts.types import (
     CheckpointNoListOption,
     DataListOption,
+    DataNumberOfSamplesListOption,
     EmbeddingsDataPrepNumSamplesListOption,
     EmbeddingsDataPrepSamplingSeedListOption,
     FinetuningDatasetsListOption,
@@ -176,6 +177,12 @@ def parse_arguments() -> argparse.Namespace:
         help="Data list to use.",
     )
     parser.add_argument(
+        "--data_number_of_samples_list_option",
+        type=DataNumberOfSamplesListOption,
+        default=DataNumberOfSamplesListOption.NONE,
+        help="data_number_of_samples_list option to use.",
+    )
+    parser.add_argument(
         "--language_model_list",
         type=LanguageModelListOption,
         default=LanguageModelListOption.SELECTED_FINETUNED_FEW_EPOCHS_FROM_ROBERTA_BASE,
@@ -206,7 +213,7 @@ def parse_arguments() -> argparse.Namespace:
         help="Checkpoint number list to use.",
     )
     parser.add_argument(
-        "--embeddings_data_prep_num_samples_list",
+        "--embeddings_data_prep_num_samples_list_option",
         type=EmbeddingsDataPrepNumSamplesListOption,
         default=EmbeddingsDataPrepNumSamplesListOption.DEFAULT,
         help="Embeddings data prep number of samples list to use.",
@@ -378,7 +385,26 @@ def make_config_and_run_task(
             ]
         case _:
             msg = f"Unknown {args.data_list = }"
-            raise ValueError(msg)
+            raise ValueError(
+                msg,
+            )
+
+    match args.data_number_of_samples_list_option:
+        case DataNumberOfSamplesListOption.NONE:
+            data_number_of_samples_list = None
+        case DataNumberOfSamplesListOption.FIXED_3000:
+            data_number_of_samples_list = [
+                "3000",
+            ]
+        case DataNumberOfSamplesListOption.FIXED_10000:
+            data_number_of_samples_list = [
+                "10000",
+            ]
+        case _:
+            msg = f"Unknown {args.data_number_of_samples_list_option = }"
+            raise ValueError(
+                msg,
+            )
 
     match args.finetuning_regime:
         case FinetuningRegimeOption.FEW_EPOCHS:
@@ -450,7 +476,9 @@ def make_config_and_run_task(
                 raise ValueError(msg)
         case _:
             msg = f"Unknown {args.language_model_list = }"
-            raise ValueError(msg)
+            raise ValueError(
+                msg,
+            )
 
     match args.language_model_seed_list:
         case SeedListOption.DO_NOT_SET:
@@ -463,7 +491,9 @@ def make_config_and_run_task(
             language_model_seed_list = seed_list_option_five_seeds
         case _:
             msg: str = f"Unknown {args.language_model_seed_list = }"
-            raise ValueError(msg)
+            raise ValueError(
+                msg,
+            )
 
     match args.finetuning_datasets_list:
         case FinetuningDatasetsListOption.DEBUG:
@@ -477,7 +507,9 @@ def make_config_and_run_task(
             ]
         case _:
             msg = f"Unknown {args.finetuning_datasets_list = }"
-            raise ValueError(msg)
+            raise ValueError(
+                msg,
+            )
 
     match args.finetuning_seed_list:
         case SeedListOption.DO_NOT_SET:
@@ -488,7 +520,9 @@ def make_config_and_run_task(
             finetuning_seed_list = seed_list_option_five_seeds
         case _:
             msg: str = f"Unknown {args.finetuning_seed_list = }"
-            raise ValueError(msg)
+            raise ValueError(
+                msg,
+            )
 
     match args.embeddings_data_prep_sampling_seed_list_option:
         case EmbeddingsDataPrepSamplingSeedListOption.DEFAULT:
@@ -512,7 +546,7 @@ def make_config_and_run_task(
                 msg,
             )
 
-    match args.embeddings_data_prep_num_samples_list:
+    match args.embeddings_data_prep_num_samples_list_option:
         case EmbeddingsDataPrepNumSamplesListOption.DEFAULT:
             embeddings_data_prep_num_samples_list = [
                 "30000",
@@ -533,8 +567,12 @@ def make_config_and_run_task(
                 "50000",
                 "60000",
             ]
+        case EmbeddingsDataPrepNumSamplesListOption.SINGLE_CHOICE_250000:
+            embeddings_data_prep_num_samples_list = [
+                "250000",
+            ]
         case _:
-            msg: str = f"Unknown {args.embeddings_data_prep_num_samples_list = }"
+            msg: str = f"Unknown {args.embeddings_data_prep_num_samples_list_option = }"
             raise ValueError(
                 msg,
             )
@@ -632,6 +670,7 @@ def make_config_and_run_task(
         walltime=args.walltime,
         additional_overrides=args.additional_overrides,
         data_list=data_list,
+        data_number_of_samples_list=data_number_of_samples_list,
         additional_data_options=additional_data_options,
         language_model_list=language_model_list,
         language_model_seed_list=language_model_seed_list,

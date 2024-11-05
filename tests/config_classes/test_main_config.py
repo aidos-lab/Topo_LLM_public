@@ -45,7 +45,8 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-def test_hydra_with_MainConfig() -> None:
+def test_hydra_with_main_config() -> None:
+    """Test the MainConfig class with Hydra."""
     with initialize(
         config_path="../../configs",
         version_base=None,
@@ -58,12 +59,18 @@ def test_hydra_with_MainConfig() -> None:
             ],
         )
 
-        logger.info(f"cfg:\n" f"{pprint.pformat(cfg)}")
+        logger.info(
+            msg=f"cfg:\n{pprint.pformat(object=cfg)}",  # noqa: G004 - low overhead
+        )
 
         # This tests whether the configuration is valid
-        config = MainConfig.model_validate(
+        config: MainConfig = MainConfig.model_validate(
             obj=cfg,
         )
 
-        logger.info(f"{type(config) = }")
-        logger.info(f"config:\n" f"{pprint.pformat(config)}")
+        logger.info(
+            msg=f"{type(config) = }",  # noqa: G004 - low overhead
+        )
+        logger.info(
+            msg=f"config:\n{pprint.pformat(object=config)}",  # noqa: G004 - low overhead
+        )

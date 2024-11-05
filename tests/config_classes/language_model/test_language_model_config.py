@@ -39,7 +39,9 @@ from topollm.config_classes.language_model.language_model_config import (
 if TYPE_CHECKING:
     import omegaconf
 
-logger = logging.getLogger(__name__)
+logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 @pytest.mark.parametrize(
@@ -50,9 +52,10 @@ logger = logging.getLogger(__name__)
         "roberta-base_finetuned-on-multiwoz21_ftm-standard",
     ],
 )
-def test_hydra_with_LanguageModelConfig(
+def test_hydra_with_language_model_config(
     config_name: str,
 ) -> None:
+    """Test the LanguageModelConfig class with Hydra."""
     with initialize_config_module(
         version_base=None,
         config_module="configs.language_model",
@@ -66,12 +69,18 @@ def test_hydra_with_LanguageModelConfig(
             ],
         )
 
-        logger.info(f"cfg:\n" f"{pprint.pformat(cfg)}")
+        logger.info(
+            msg=f"cfg:\n{pprint.pformat(object=cfg)}",  # noqa: G004 - low overhead
+        )
 
         # This tests whether the configuration is valid
-        config = LanguageModelConfig.model_validate(
+        config: LanguageModelConfig = LanguageModelConfig.model_validate(
             obj=cfg,
         )
 
-        logger.info(f"{type(config) = }")
-        logger.info(f"config:\n" f"{pprint.pformat(config)}")
+        logger.info(
+            msg=f"{type(config) = }",  # noqa: G004 - low overhead
+        )
+        logger.info(
+            msg=f"config:\n{pprint.pformat(object=config)}",  # noqa: G004 - low overhead
+        )

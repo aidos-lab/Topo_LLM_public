@@ -49,6 +49,14 @@ class DataListOption(StrEnum):
     REDDIT_ONLY = auto()
 
 
+class DataNumberOfSamplesListOption(StrEnum):
+    """Options for the data number of samples list."""
+
+    NONE = auto()
+    FIXED_3000 = auto()
+    FIXED_10000 = auto()
+
+
 class FinetuningDatasetsListOption(StrEnum):
     """Options for the finetuning dataset list."""
 
@@ -99,6 +107,7 @@ class EmbeddingsDataPrepNumSamplesListOption(StrEnum):
     SINGLE_CHOICE_50000 = auto()
     SINGLE_CHOICE_100000 = auto()
     FIVE_CHOICES_10000_STEPS = auto()
+    SINGLE_CHOICE_250000 = auto()
 
 
 class LocalEstimatesFilteringNumSamplesListOption(StrEnum):
