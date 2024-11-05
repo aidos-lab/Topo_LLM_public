@@ -126,6 +126,8 @@ class DatasetPreparerHuggingface:
         # Select the dataset split to use
         dataset: datasets.Dataset = new_dataset_dict[self.data_config.split]
 
+        # TODO: Implement a dataset sampler step here.
+
         # Truncate the dataset to the specified number of samples
         if self.data_config.number_of_samples == -1:
             # Use all samples
@@ -136,14 +138,14 @@ class DatasetPreparerHuggingface:
                 indices=range(self.data_config.number_of_samples),
             )
         else:
-            msg = f"Expected {self.data_config.number_of_samples = } to be -1 or a positive integer"
+            msg: str = f"Expected {self.data_config.number_of_samples = } to be -1 or a positive integer"
             raise ValueError(msg)
 
         self.dataset_length = len(dataset)
 
         if self.verbosity >= Verbosity.NORMAL:
             self.logger.info(
-                f"{self.dataset_length = }",  # noqa: G004 - no overhead
+                msg=f"{self.dataset_length = }",  # noqa: G004 - no overhead
             )
             log_huggingface_dataset_info(
                 dataset=dataset,
@@ -157,9 +159,9 @@ class DatasetPreparerHuggingface:
         self,
     ) -> datasets.Dataset:
         """Load and prepare a dataset."""
-        dataset_dict = self.load_dataset_dict()
+        dataset_dict: datasets.DatasetDict = self.load_dataset_dict()
 
-        dataset = self.select_dataset(
+        dataset: datasets.Dataset = self.select_dataset(
             dataset_dict=dataset_dict,
         )
 

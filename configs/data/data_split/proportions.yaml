@@ -3,3 +3,5 @@ proportions:
   train: 0.8
   validation: 0.1
   test: 0.1
+split_shuffle: true
+split_seed: 0
