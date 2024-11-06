@@ -239,5 +239,13 @@
                 "+embeddings_data_prep.sampling.sampling_mode=take_first",
             ]
         },
+        {
+            "name": "run_general_comparisons.py",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/analysis/compare_sampling_methods/run_general_comparisons.py",
+            "console": "integratedTerminal",
+            "args": []
+        },
     ]
 }

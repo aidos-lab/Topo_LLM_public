@@ -35,7 +35,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
-from matplotlib.ticker import AutoLocator, MultipleLocator
+from matplotlib.ticker import AutoLocator, FuncFormatter, MultipleLocator
 
 from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.typing.enums import Verbosity
@@ -215,9 +215,11 @@ def create_boxplot_of_mean_over_different_sampling_seeds(
     subset_local_estimates_df: pd.DataFrame,
     plot_save_path: pathlib.Path | None = None,
     raw_data_save_path: pathlib.Path | None = None,
+    aggregated_results_save_path: pathlib.Path | None = None,
     x_column_name: str = "local_estimates_samples",
     y_column_name: str = "array_data_truncated_mean",
     seed_column_name: str = "data_prep_sampling_seed",
+    array_data_size_column_name: str = "array_data.size",
     fixed_params_text: str | None = None,
     additional_title: str | None = None,
     *,
@@ -225,6 +227,7 @@ def create_boxplot_of_mean_over_different_sampling_seeds(
     y_max: float | None = 15.5,
     show_plot: bool = False,
     connect_points: bool = False,
+    verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> None:
     """Create a boxplot of the the measurement over different sampling seeds."""
@@ -235,7 +238,48 @@ def create_boxplot_of_mean_over_different_sampling_seeds(
         )
         return
 
-    plt.figure(figsize=(10, 6))
+    # # # #
+    # Aggregating the results
+
+    # Calculate mean and standard deviation for each unique value in the x-axis column
+    grouped_stats: pd.DataFrame = (
+        subset_local_estimates_df.groupby(
+            by=x_column_name,
+        )
+        .agg(
+            mean_value=(y_column_name, "mean"),
+            std_value=(y_column_name, "std"),
+            array_data_size=(array_data_size_column_name, lambda x: x.min()),
+            number_of_seeds=(seed_column_name, "nunique"),
+            number_of_elements=("path", "count"),
+        )
+        .reset_index()
+    )
+
+    # Log the calculated values
+    if verbosity >= Verbosity.NORMAL:
+        log_dataframe_info(
+            df=grouped_stats,
+            df_name="grouped_stats",
+            logger=logger,
+        )
+
+    # Save the aggregated results to a CSV if a path is provided
+    if aggregated_results_save_path is not None:
+        aggregated_results_save_path.parent.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+        grouped_stats.to_csv(
+            path_or_buf=aggregated_results_save_path,
+            index=False,
+        )
+
+    # # # #
+    # Plotting
+    plt.figure(
+        figsize=(12, 8),
+    )
 
     # Set the fixed y-axis limits
     if y_min is not None and y_max is not None:
@@ -254,7 +298,7 @@ def create_boxplot_of_mean_over_different_sampling_seeds(
         locator=AutoLocator(),
     )  # Auto-adjust major ticks
     plt.gca().yaxis.set_minor_locator(
-        locator=MultipleLocator(0.1),
+        locator=MultipleLocator(base=0.1),
     )  # Set minor ticks for finer grid
 
     # Enable the grid with different styling for major and minor lines
@@ -292,9 +336,15 @@ def create_boxplot_of_mean_over_different_sampling_seeds(
         alpha=0.5,
     )
 
+    # Improve x-axis labeling by rotating labels and using a shorthand format for large numbers
+    plt.xticks(
+        rotation=45,
+        ha="right",
+    )  # Rotate x-axis labels 45 degrees for better readability
+
     # Convert the x-axis column to categorical for proper ordering
     subset_local_estimates_df[x_column_name] = pd.Categorical(
-        subset_local_estimates_df[x_column_name],
+        values=subset_local_estimates_df[x_column_name],
         ordered=True,
     )
 
