@@ -46,16 +46,16 @@ class DatasetPreparerHuggingface:
         self,
         data_config: DataConfig,
         dataset_splitter: DatasetSplitter,
-        verbosity: int = Verbosity.NORMAL,
+        verbosity: Verbosity = Verbosity.NORMAL,
         logger: logging.Logger = default_logger,
     ) -> None:
         """Initialize the dataset preparer."""
-        self.data_config = data_config
+        self.data_config: DataConfig = data_config
 
-        self.dataset_splitter = dataset_splitter
+        self.dataset_splitter: DatasetSplitter = dataset_splitter
 
-        self.verbosity = verbosity
-        self.logger = logger
+        self.verbosity: Verbosity = verbosity
+        self.logger: logging.Logger = logger
 
         self.dataset_length: int = -1
 
@@ -114,17 +114,18 @@ class DatasetPreparerHuggingface:
             default_logger.info("Applying dataset splitter ...")
 
         # Apply the dataset splitter to the dataset
-        new_dataset_dict = self.dataset_splitter.split_dataset(
+        new_dataset_dict: datasets.DatasetDict = self.dataset_splitter.split_dataset(
             dataset_dict=dataset_dict,
         )
         if self.verbosity >= Verbosity.NORMAL:
+            default_logger.info("Applying dataset splitter DONE.")
             default_logger.info(
                 "new_dataset_dict:\n%s",
                 new_dataset_dict,
             )
 
         # Select the dataset split to use
-        dataset: datasets.Dataset = new_dataset_dict[self.data_config.split]
+        dataset: datasets.Dataset = new_dataset_dict[self.data_config.split.value]
 
         # TODO: Implement a dataset sampler step here.
 

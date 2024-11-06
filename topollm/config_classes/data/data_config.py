@@ -33,7 +33,7 @@ from pydantic import Field
 
 from topollm.config_classes.config_base_model import ConfigBaseModel
 from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
-from topollm.config_classes.data.data_split_config import DataSplitConfig
+from topollm.config_classes.data.data_splitting_config import DataSplittingConfig
 from topollm.typing.enums import DatasetType, DescriptionType, Split
 
 
@@ -59,7 +59,7 @@ class DataConfig(ConfigBaseModel):
     )
 
     data_dir: pathlib.Path | None = Field(
-        None,
+        default=None,
         title="data_dir argument will be passed to huggingface datasets.",
     )
 
@@ -81,15 +81,22 @@ class DataConfig(ConfigBaseModel):
         description="The dataset type.",
     )
 
-    data_split: DataSplitConfig = Field(
-        default=DataSplitConfig(),
-        title="Data split configuration.",
-        description="The data split configuration. This is useful if the dataset is not already split.",
+    data_splitting: DataSplittingConfig = Field(
+        default=DataSplittingConfig(),
+        title="Data splitting configuration.",
+        description="The data splitting configuration. This is useful if the dataset is not already split.",
     )
 
     feature_column_name: str = Field(
         default="ner_tags",
         title="Feature column name, will be used when finetuning a model on a specific tagging or classification task.",
+    )
+
+    # Config options for the data subset
+    split: Split = Field(
+        default=Split.TRAIN,
+        title="Split to use for computing embeddings.",
+        description="The split to use for computing embeddings.",
     )
 
     number_of_samples: int = Field(
@@ -98,14 +105,21 @@ class DataConfig(ConfigBaseModel):
         description="The number of samples to use for computing embeddings.",
     )
 
-    split: Split = Field(
-        default=Split.TRAIN,
-        title="Split to use for computing embeddings.",
-        description="The split to use for computing embeddings.",
-    )
+    def get_partial_path(
+        self,
+    ) -> pathlib.Path:
+        """Return the partial path which can be used in the path manager.
+
+        This partial path can be used to determine the save location of objects derived from the data configuration."""
+        partial_path: pathlib.Path = pathlib.Path(
+            self.long_config_description_with_data_splitting_without_data_subset,
+            # TODO: Include the subset information in the path once it is implemented as a config group
+        )
+
+        return partial_path
 
     @property
-    def config_description(
+    def long_config_description_with_data_splitting_without_data_subset(
         self,
     ) -> str:
         description = (
@@ -113,22 +127,28 @@ class DataConfig(ConfigBaseModel):
             f"{KV_SEP}"
             f"{self.dataset_description_string}"
             f"{ITEM_SEP}"
-            f"{NAME_PREFIXES['split']}"
-            f"{KV_SEP}"
-            f"{self.split}"
+            f"{self.data_splitting.config_description}"  # Description of the data splitting configuration
             f"{ITEM_SEP}"
             f"{NAME_PREFIXES['context']}"
             f"{KV_SEP}"
             f"{self.context}"
             f"{ITEM_SEP}"
-            f"{NAME_PREFIXES['number_of_samples']}"
-            f"{KV_SEP}"
-            f"{self.number_of_samples}"
-            f"{ITEM_SEP}"
             f"{NAME_PREFIXES['feature_column_name']}"
             f"{KV_SEP}"
             f"{self.feature_column_name}"
         )
+
+        # TODO: Move this into a separate part of the path
+        #
+        # f"{ITEM_SEP}"
+        # f"{NAME_PREFIXES['split']}"
+        # f"{KV_SEP}"
+        # f"{self.split}"
+        # f"{ITEM_SEP}"
+        # f"{NAME_PREFIXES['number_of_samples']}"
+        # f"{KV_SEP}"
+        # f"{self.number_of_samples}"
+        # f"{ITEM_SEP}"
 
         return description
 
@@ -140,18 +160,21 @@ class DataConfig(ConfigBaseModel):
         """Return the config description."""
         match description_type:
             case DescriptionType.LONG:
-                return self.config_description
+                return self.long_config_description_with_data_splitting_without_data_subset
             case DescriptionType.SHORT:
-                short_description = (
+                # This should be a combined description which is short enough to be used in the model name
+                short_description: str = (
                     self.dataset_description_string
                     + short_description_separator
                     + self.split
-                    + short_description_separator
-                    + str(object=self.number_of_samples)
+                    + self.data_splitting.config_description
                     + short_description_separator
                     + self.feature_column_name
+                    # TODO: Move this into a separate part of the path
+                    # + short_description_separator
+                    # + str(object=self.number_of_samples)
                 )
                 return short_description
             case _:
-                msg = f"Unknown: {description_type = }"
+                msg: str = f"Unknown {description_type = }"
                 raise ValueError(msg)

@@ -31,7 +31,7 @@ import logging
 
 import datasets
 
-from topollm.config_classes.data.data_split_config import Proportions
+from topollm.config_classes.data.data_splitting_config import Proportions
 from topollm.typing.enums import Verbosity
 
 default_logger: logging.Logger = logging.getLogger(

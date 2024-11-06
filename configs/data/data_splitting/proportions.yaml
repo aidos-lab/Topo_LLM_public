@@ -1,4 +1,4 @@
-data_split_mode: proportions
+data_splitting_mode: proportions
 proportions:
   train: 0.8
   validation: 0.1

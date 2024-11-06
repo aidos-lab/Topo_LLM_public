@@ -49,17 +49,21 @@ from topollm.compute_embeddings.embedding_dataloader_preparer.protocol import Em
 from topollm.compute_embeddings.embedding_extractor.factory import (
     get_embedding_extractor,
 )
+from topollm.compute_embeddings.embedding_extractor.protocol import EmbeddingExtractor
 from topollm.config_classes.main_config import MainConfig
 from topollm.model_handling.model.load_model import load_model
 from topollm.model_handling.tokenizer.load_tokenizer import load_modified_tokenizer
 from topollm.path_management.embeddings.factory import (
     get_embeddings_path_manager,
 )
+from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
+from topollm.storage.array_storage.protocol import ChunkedArrayStorageProtocol
 from topollm.storage.factory import (
     StorageFactory,
     StoragePaths,
     StorageSpecification,
 )
+from topollm.storage.metadata_storage.protocol import ChunkedMetadataStorageProtocol
 from topollm.storage.StorageDataclasses import ArrayProperties
 from topollm.typing.enums import Verbosity
 
@@ -157,7 +161,7 @@ def compute_and_store_embeddings(
         chunks=(main_config.storage.chunk_size,),
     )
 
-    embeddings_path_manager = get_embeddings_path_manager(
+    embeddings_path_manager: EmbeddingsPathManager = get_embeddings_path_manager(
         main_config=main_config,
         logger=logger,
     )
@@ -178,10 +182,10 @@ def compute_and_store_embeddings(
         logger=logger,
     )
 
-    array_storage_backend = storage_factory.get_array_storage()
-    metadata_storage_backend = storage_factory.get_metadata_storage()
+    array_storage_backend: ChunkedArrayStorageProtocol = storage_factory.get_array_storage()
+    metadata_storage_backend: ChunkedMetadataStorageProtocol = storage_factory.get_metadata_storage()
 
-    embedding_extractor = get_embedding_extractor(
+    embedding_extractor: EmbeddingExtractor = get_embedding_extractor(
         embedding_extraction_config=main_config.embeddings.embedding_extraction,
         model_hidden_size=embedding_dimension,
     )

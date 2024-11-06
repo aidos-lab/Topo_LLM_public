@@ -68,7 +68,7 @@ class EmbeddingsPathManagerSeparateDirectories:
 
         """
         path = pathlib.Path(
-            self.main_config.data.config_description,
+            self.main_config.data.get_partial_path(),
             self.main_config.embeddings.config_description,
             self.main_config.tokenizer.config_description,
             self.main_config.language_model.config_description,
