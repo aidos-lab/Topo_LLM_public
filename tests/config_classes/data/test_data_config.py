@@ -62,7 +62,8 @@ def test_hydra_with_data_config(
 ) -> None:
     """Test the DataConfig class with Hydra."""
     with initialize(
-        config_path=f"{HYDRA_CONFIGS_BASE_PATH}/data/",
+        # Note: `config_path` must be relative to the current file
+        config_path="../../../configs/data/",  # Note: DO NOT change `config_path` to an absolute path
         version_base=None,
     ):
         # config is relative to a module

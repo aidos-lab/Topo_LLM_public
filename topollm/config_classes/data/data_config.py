@@ -147,7 +147,7 @@ class DataConfig(ConfigBaseModel):
                     + short_description_separator
                     + self.split
                     + short_description_separator
-                    + str(self.number_of_samples)
+                    + str(object=self.number_of_samples)
                     + short_description_separator
                     + self.feature_column_name
                 )
