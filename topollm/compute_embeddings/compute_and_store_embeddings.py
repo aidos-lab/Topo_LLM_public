@@ -141,9 +141,9 @@ def compute_and_store_embeddings(
     # `dataset = embedding_dataloader_preparer.dataset_preparer.prepare_dataset()`
 
     # Number of the sequence of dataset entries
-    number_of_sequences = len(embedding_dataloader_preparer)
+    number_of_sequences: int = len(embedding_dataloader_preparer)
     # Length of each sequence
-    length_of_sequence = embedding_dataloader_preparer.sequence_length
+    length_of_sequence: int = embedding_dataloader_preparer.sequence_length
     # Dimension of the embeddings
     embedding_dimension: int = model.config.hidden_size
 
