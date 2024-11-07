@@ -2,5 +2,6 @@ defaults:
   - .@_here_: multiwoz21
   - _self_
 
-number_of_samples: 10000
-split: test
+data_subsampling:
+  number_of_samples: 10000
+  split: test

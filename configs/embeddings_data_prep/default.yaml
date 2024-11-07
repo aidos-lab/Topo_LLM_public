@@ -1,3 +1,4 @@
 sampling:
   num_samples: 30000
+  sampling_mode: random
   seed: 42

@@ -2,5 +2,6 @@ defaults:
   - .@_here_: sgd
   - _self_
 
-number_of_samples: 10000
-split: train
+data_subsampling:
+  number_of_samples: 10000
+  split: train

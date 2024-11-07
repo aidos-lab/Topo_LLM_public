@@ -183,6 +183,7 @@ data/analysis/twonn/
 
 data/backup/
 
+data/embeddings/
 data/embeddings/arrays/
 data/embeddings/metadata/
 data/embeddings/perplexity/
