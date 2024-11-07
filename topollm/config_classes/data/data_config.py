@@ -135,6 +135,20 @@ class DataConfig(ConfigBaseModel):
 
         return description
 
+    def get_short_config_description_with_data_splitting_without_data_subsampling(
+        self,
+        short_description_separator: str = "-",
+    ) -> str:
+        """Return a short description of the configuration without the data subsampling information."""
+        description: str = (
+            self.dataset_description_string
+            + short_description_separator
+            + self.data_splitting.config_description
+            + short_description_separator
+            + self.feature_column_name
+        )
+        return description
+
     def get_config_description(
         self,
         description_type: DescriptionType = DescriptionType.LONG,
@@ -151,15 +165,13 @@ class DataConfig(ConfigBaseModel):
             case DescriptionType.SHORT:
                 # This should be a combined description which is short enough to be used in the model name
                 short_description: str = (
-                    self.dataset_description_string
-                    + short_description_separator
-                    + self.data_splitting.config_description
-                    + short_description_separator
-                    + self.feature_column_name
-                    # TODO: Add short information about the subsampling
-                    # + self.split
-                    # + short_description_separator
-                    # + str(object=self.number_of_samples)
+                    self.get_short_config_description_with_data_splitting_without_data_subsampling(
+                        short_description_separator=short_description_separator,
+                    )
+                    + ITEM_SEP
+                    + self.data_subsampling.get_short_config_description(
+                        short_description_separator=short_description_separator,
+                    )
                 )
                 return short_description
             case _:

@@ -61,6 +61,22 @@ class DataSubsamplingConfig(ConfigBaseModel):
         description="The data split.",
     )
 
+    def get_short_config_description(
+        self,
+        short_description_separator: str = "-",
+    ) -> str:
+        """Return a short description of the configuration."""
+        description: str = (
+            f"{self.split}"
+            f"{short_description_separator}"
+            f"{self.number_of_samples}"
+            f"{short_description_separator}"
+            f"{self.sampling_mode}"
+            f"{short_description_separator}"
+            f"{self.sampling_seed}"
+        )
+        return description
+
     @property
     def config_description(
         self,
