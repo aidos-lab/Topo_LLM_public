@@ -25,7 +25,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Do nothing with the dataset dict."""
+"""Split a dataset into training, validation, and test set with given proportions."""
 
 import logging
 
@@ -33,28 +33,33 @@ import datasets
 
 from topollm.typing.enums import Verbosity
 
-logger: logging.Logger = logging.getLogger(
+default_logger: logging.Logger = logging.getLogger(
     name=__name__,
 )
 
 
-class DatasetSplitterDoNothing:
-    """Do nothing with the dataset dict."""
+class DatasetSubsamplerRandom:
+    """Sample random sequences from the dataset."""
 
     def __init__(
         self,
+        number_of_samples: int,
+        sampling_seed: int,
         verbosity: Verbosity = Verbosity.NORMAL,
-        logger: logging.Logger = logger,
+        logger: logging.Logger = default_logger,
     ) -> None:
         """Initialize the dataset splitter."""
+        self.number_of_samples: int = number_of_samples
+        self.sampling_seed: int = sampling_seed
+
         self.verbosity: Verbosity = verbosity
         self.logger: logging.Logger = logger
 
-    def split_dataset(
+    def subsample_dataset(
         self,
-        dataset_dict: datasets.DatasetDict,
-    ) -> datasets.DatasetDict:
-        """Return the dataset_dict unchanged."""
-        if self.verbosity >= 1:
-            self.logger.info("Returning unchanged dataset_dict.")
-        return dataset_dict
+        dataset: datasets.Dataset,
+    ) -> datasets.Dataset:
+        """Take random sequences from the dataset."""
+
+        # TODO Use seed for sampling
+        raise NotImplementedError()

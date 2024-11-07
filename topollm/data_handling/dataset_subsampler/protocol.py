@@ -25,36 +25,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Do nothing with the dataset dict."""
+"""Protocol for splitting a dataset."""
 
-import logging
+from typing import Protocol
 
 import datasets
 
-from topollm.typing.enums import Verbosity
 
-logger: logging.Logger = logging.getLogger(
-    name=__name__,
-)
+class DatasetSubsampler(Protocol):
+    """Protocol for subsampling from a dataset."""
 
-
-class DatasetSplitterDoNothing:
-    """Do nothing with the dataset dict."""
-
-    def __init__(
+    def subsample_dataset(
         self,
-        verbosity: Verbosity = Verbosity.NORMAL,
-        logger: logging.Logger = logger,
-    ) -> None:
-        """Initialize the dataset splitter."""
-        self.verbosity: Verbosity = verbosity
-        self.logger: logging.Logger = logger
-
-    def split_dataset(
-        self,
-        dataset_dict: datasets.DatasetDict,
-    ) -> datasets.DatasetDict:
-        """Return the dataset_dict unchanged."""
-        if self.verbosity >= 1:
-            self.logger.info("Returning unchanged dataset_dict.")
-        return dataset_dict
+        dataset: datasets.Dataset,
+    ) -> datasets.Dataset:
+        """Subsample the dataset."""
+        ...  # pragma: no cover

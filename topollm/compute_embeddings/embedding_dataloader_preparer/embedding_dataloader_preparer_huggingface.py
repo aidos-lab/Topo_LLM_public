@@ -34,6 +34,7 @@ from topollm.compute_embeddings.embedding_dataloader_preparer.protocol import (
     EmbeddingDataLoaderPreparer,
 )
 from topollm.logging.log_dataset_info import log_huggingface_dataset_info
+from topollm.typing.enums import Verbosity
 
 
 class EmbeddingDataLoaderPreparerHuggingface(EmbeddingDataLoaderPreparer):
@@ -72,7 +73,7 @@ class EmbeddingDataLoaderPreparerHuggingface(EmbeddingDataLoaderPreparer):
             keep_in_memory=True,  # This avoids caching the dataset on disk
         )
 
-        if self.verbosity >= 1:
+        if self.verbosity >= Verbosity.NORMAL:
             self.logger.info(
                 "dataset_tokenized:\n%s",
                 dataset_tokenized,
@@ -126,7 +127,7 @@ class EmbeddingDataLoaderPreparerHuggingface(EmbeddingDataLoaderPreparer):
             num_workers=self.preparer_context.embeddings_config.num_workers,
         )
 
-        if self.verbosity >= 1:
+        if self.verbosity >= Verbosity.NORMAL:
             self.logger.info(
                 "dataloader:\n%s",
                 dataloader,

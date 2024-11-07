@@ -33,28 +33,42 @@ import datasets
 
 from topollm.typing.enums import Verbosity
 
-logger: logging.Logger = logging.getLogger(
+default_logger: logging.Logger = logging.getLogger(
     name=__name__,
 )
 
 
-class DatasetSplitterDoNothing:
-    """Do nothing with the dataset dict."""
+class DatasetSubsamplerTakeFirst:
+    """Take the first entries from the dataset."""
 
     def __init__(
         self,
+        number_of_samples: int,
         verbosity: Verbosity = Verbosity.NORMAL,
-        logger: logging.Logger = logger,
+        logger: logging.Logger = default_logger,
     ) -> None:
-        """Initialize the dataset splitter."""
+        """Initialize the subsampler."""
+        self.number_of_samples: int = number_of_samples
+
         self.verbosity: Verbosity = verbosity
         self.logger: logging.Logger = logger
 
-    def split_dataset(
+    def subsample_dataset(
         self,
-        dataset_dict: datasets.DatasetDict,
-    ) -> datasets.DatasetDict:
-        """Return the dataset_dict unchanged."""
-        if self.verbosity >= 1:
-            self.logger.info("Returning unchanged dataset_dict.")
-        return dataset_dict
+        dataset: datasets.Dataset,
+    ) -> datasets.Dataset:
+        """Take first sequences from the dataset."""
+        # Truncate the dataset to the specified number of samples
+        if self.number_of_samples == -1:
+            # Use all samples
+            pass
+        elif self.number_of_samples > 0:
+            # Use only the specified number of samples
+            dataset = dataset.select(
+                indices=range(self.number_of_samples),
+            )
+        else:
+            msg: str = f"Expected {self.number_of_samples = } to be -1 or a positive integer"
+            raise ValueError(msg)
+
+        return dataset
