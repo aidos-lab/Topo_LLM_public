@@ -175,7 +175,7 @@
             ]
         },
         {
-            "name": "with POS run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
+            "name": "with POS on multiwoz21 run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
@@ -189,8 +189,38 @@
                 "language_model=roberta-base",
                 "embeddings.embedding_extraction.layer_indices=[-1]",
                 "embeddings_data_prep.sampling.num_samples=3000",
-                "+embeddings_data_prep.sampling.sampling_mode=take_first",
+                "+embeddings_data_prep.sampling.sampling_mode=random",
                 "local_estimates.filtering.num_samples=300",
+                "local_estimates.compute_global_estimates=true",
+                "local_estimates.pointwise.n_neighbors_mode=absolute_size",
+                "local_estimates.pointwise.absolute_n_neighbors=256",
+            ]
+        },
+        {
+            "name": "with POS on reddit run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
+            "console": "integratedTerminal",
+            "args": [
+                "tokenizer.add_prefix_space=True", // This is necessary to use the tokenizer with input split into words
+                "+data.dataset_type=huggingface_dataset_named_entity",
+                "data=one-year-of-tsla-on-reddit",
+                "data.number_of_samples=128",
+                // "data.split=train",
+                "data.split=validation",
+                "data.data_splitting.data_splitting_mode=proportions",
+                "data.data_splitting.split_shuffle=true",
+                "data.data_splitting.split_seed=123",
+                // "data.data_split.split_seed=null", // 'null' in the Hydra config is mapped to `None` in the Python code, and thus no seed is set for the split
+                "language_model=roberta-base",
+                "embeddings.embedding_extraction.layer_indices=[-1]",
+                "embeddings_data_prep.sampling.num_samples=3000",
+                "+embeddings_data_prep.sampling.sampling_mode=random",
+                "local_estimates.filtering.num_samples=300",
+                "local_estimates.compute_global_estimates=true",
+                "local_estimates.pointwise.n_neighbors_mode=absolute_size",
+                "local_estimates.pointwise.absolute_n_neighbors=256",
             ]
         },
         {
@@ -208,6 +238,14 @@
                 "embeddings_data_prep.sampling.num_samples=30000",
                 "+embeddings_data_prep.sampling.sampling_mode=take_first",
             ]
+        },
+        {
+            "name": "run_general_comparisons.py",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/analysis/compare_sampling_methods/run_general_comparisons.py",
+            "console": "integratedTerminal",
+            "args": []
         },
     ]
 }

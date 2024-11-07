@@ -283,11 +283,17 @@ def run_search_on_single_base_directory_and_process_and_save(
                     "raw_data",
                     "raw_data.csv",
                 )
+                aggregated_results_save_path = pathlib.Path(
+                    common_prefix_path,
+                    "raw_data",
+                    "aggregated_results.csv",
+                )
 
                 create_boxplot_of_mean_over_different_sampling_seeds(
                     subset_local_estimates_df=subset_local_estimates_df,
                     plot_save_path=plot_save_path,
                     raw_data_save_path=raw_data_save_path,
+                    aggregated_results_save_path=aggregated_results_save_path,
                     fixed_params_text=fixed_params_text,
                     y_min=y_min,
                     y_max=y_max,
@@ -295,8 +301,6 @@ def run_search_on_single_base_directory_and_process_and_save(
                     connect_points=connect_points,
                     logger=logger,
                 )
-
-    # TODO: Continue analysis here
 
     pass  # noqa: PIE790 - This is here for setting a breakpoint
 
@@ -489,7 +493,7 @@ def extract_and_prepare_local_estimates_data(
     local_estimates_df: pd.DataFrame = loaded_data_df[loaded_data_df["array_name"] == array_name_to_match]
 
     # Add a column with the number of elements in the array
-    local_estimates_df["num_elements"] = local_estimates_df[array_data_column_name].apply(
+    local_estimates_df[f"{array_data_column_name}.size"] = local_estimates_df[array_data_column_name].apply(
         func=lambda array: array.size,
     )
 

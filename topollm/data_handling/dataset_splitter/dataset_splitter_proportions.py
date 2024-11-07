@@ -31,9 +31,12 @@ import logging
 
 import datasets
 
-from topollm.config_classes.data.data_split_config import Proportions
+from topollm.config_classes.data.data_splitting_config import Proportions
+from topollm.typing.enums import Verbosity
 
-logger = logging.getLogger(__name__)
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 class DatasetSplitterProportions:
@@ -42,48 +45,63 @@ class DatasetSplitterProportions:
     def __init__(
         self,
         proportions: Proportions,
-        verbosity: int = 1,
-        logger: logging.Logger = logger,
+        *,
+        split_shuffle: bool = False,
+        split_seed: int | None = None,
+        verbosity: Verbosity = Verbosity.NORMAL,
+        logger: logging.Logger = default_logger,
     ) -> None:
         """Initialize the dataset splitter."""
-        self.proportions = proportions
+        self.proportions: Proportions = proportions
+        self.split_shuffle: bool = split_shuffle
+        self.split_seed: int | None = split_seed
 
-        self.verbosity = verbosity
-        self.logger = logger
+        self.verbosity: Verbosity = verbosity
+        self.logger: logging.Logger = logger
 
     def split_dataset(
         self,
         dataset_dict: datasets.DatasetDict,
     ) -> datasets.DatasetDict:
         """Split the dataset into training, validation, and test set with given proportions."""
-        dataset = dataset_dict["train"]
-        if self.verbosity >= 1:
-            self.logger.info(f"Length of train for the original dict: {len(dataset) = }")
+        dataset: datasets.Dataset = dataset_dict["train"]
+        if self.verbosity >= Verbosity.NORMAL:
+            self.logger.info(
+                msg=f"Length of train for the original dict:\n{len(dataset) = }",  # noqa: G004 - low overhead
+            )
 
-        # Split the dataset into train and the rest
-        train_and_rest = dataset.train_test_split(
+        # Split the dataset into train and the remainder/leftover
+        train_and_leftover: datasets.DatasetDict = dataset.train_test_split(
             test_size=self.proportions.validation + self.proportions.test,
-            shuffle=False,
+            shuffle=self.split_shuffle,
+            seed=self.split_seed,
         )
-        # Split the rest into validation and test
+        # Split the leftover into validation and test
         normalized_test_proportion = self.proportions.test / (self.proportions.validation + self.proportions.test)
-        validation_and_test = train_and_rest["test"].train_test_split(
+        validation_and_test: datasets.DatasetDict = train_and_leftover["test"].train_test_split(
             test_size=normalized_test_proportion,
-            shuffle=False,
+            shuffle=self.split_shuffle,
+            seed=self.split_seed,
         )
 
         # Gather everything into a single DatasetDict
         train_validation_test_dataset = datasets.DatasetDict(
             {
-                "train": train_and_rest["train"],
+                "train": train_and_leftover["train"],
                 "validation": validation_and_test["train"],
                 "test": validation_and_test["test"],
             },
         )
 
-        if self.verbosity >= 1:
-            self.logger.info(f"Length of new dict entry: {len(train_validation_test_dataset['train']) = }")
-            self.logger.info(f"Length of new dict entry: {len(train_validation_test_dataset['validation']) = }")
-            self.logger.info(f"Length of new dict entry: {len(train_validation_test_dataset['test']) = }")
+        if self.verbosity >= Verbosity.NORMAL:
+            self.logger.info(
+                msg=f"Length of new dict entry:\n{len(train_validation_test_dataset['train']) = }",  # noqa: G004 - low overhead
+            )
+            self.logger.info(
+                msg=f"Length of new dict entry:\n{len(train_validation_test_dataset['validation']) = }",  # noqa: G004 - low overhead
+            )
+            self.logger.info(
+                msg=f"Length of new dict entry:\n{len(train_validation_test_dataset['test']) = }",  # noqa: G004 - low overhead
+            )
 
         return train_validation_test_dataset

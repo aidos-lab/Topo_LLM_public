@@ -33,7 +33,7 @@ import pytest
 import torch
 
 from topollm.config_classes.data.data_config import DataConfig
-from topollm.config_classes.data.data_split_config import DataSplitConfig, Proportions
+from topollm.config_classes.data.data_splitting_config import DataSplittingConfig, Proportions
 from topollm.config_classes.data.dataset_map_config import DatasetMapConfig
 from topollm.config_classes.embeddings.embedding_extraction_config import EmbeddingExtractionConfig
 from topollm.config_classes.embeddings.embeddings_config import EmbeddingsConfig
@@ -84,8 +84,8 @@ def small_data_config() -> DataConfig:
         dataset_name="comments",
         number_of_samples=128,
         split=Split.TRAIN,
-        data_split=DataSplitConfig(
-            data_split_mode=DataSplitMode.PROPORTIONS,
+        data_splitting=DataSplittingConfig(
+            data_splitting_mode=DataSplitMode.PROPORTIONS,
             proportions=Proportions(),
         ),
     )

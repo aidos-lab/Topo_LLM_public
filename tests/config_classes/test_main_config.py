@@ -42,7 +42,9 @@ from topollm.config_classes.main_config import MainConfig
 if TYPE_CHECKING:
     import omegaconf
 
-logger = logging.getLogger(__name__)
+logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 def test_hydra_with_main_config() -> None:

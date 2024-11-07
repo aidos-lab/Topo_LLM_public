@@ -1,5 +1,0 @@
-data_split_mode: proportions
-proportions:
-  train: 0.8
-  validation: 0.1
-  test: 0.1

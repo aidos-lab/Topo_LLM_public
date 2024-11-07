@@ -117,3 +117,11 @@ For example, it currently appears to work when you set the torch version to `2.3
 ```toml
 torch = "2.3.*"
 ```
+
+### Run tests
+
+We provide a python script that can be called via a poetry run command to run the tests.
+
+```bash
+poetry run tests
+```

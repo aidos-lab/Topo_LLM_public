@@ -42,7 +42,7 @@ load_dotenv()
 # https://hydra.cc/docs/configure_hydra/workdir/
 #
 # key-value separator for paths
-KV_SEP: str = "-"
+KV_SEP: str = "="
 # item separator for paths
 ITEM_SEP: str = "_"
 
@@ -68,6 +68,7 @@ NAME_PREFIXES: dict[
     "context": "ctxt",
     "data": "data",
     "dataloader_desc": "dataloader",
+    "data_splitting_mode": "spl-mode",
     "deduplication_mode": "dedup",
     "description": "desc",
     "epoch": "ep",
@@ -78,7 +79,7 @@ NAME_PREFIXES: dict[
     "label_map_description": "labelmap",
     "layer": "layer",
     "learning_rate": "lr",
-    "lr_scheduler_type": "lr_scheduler_type",
+    "lr_scheduler_type": "lr-scheduler-type",
     "level": "lvl",
     "lora_alpha": "alpha",
     "lora_dropout": "lora-dropout",
@@ -98,11 +99,16 @@ NAME_PREFIXES: dict[
     "sampling_mode": "sampling",
     "seed": "seed",
     "split": "split",
+    "split_shuffle": "spl-shuf",
+    "split_seed": "spl-seed",
     "target_modules_to_freeze": "target-freeze",
     "task_type": "task",
+    "test_short": "te",
     "transformation": "trans",
+    "train_short": "tr",
     "use_canonical_values_from_dataset": "use-canonical-val",
     "use_rslora": "rslora",
+    "validation_short": "va",
     "weight_decay": "wd",
     "zero_vector_handling_mode": "zerovec",
 }

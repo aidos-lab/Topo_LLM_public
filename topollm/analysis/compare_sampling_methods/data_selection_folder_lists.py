@@ -31,6 +31,8 @@
 def get_data_folder_list() -> list[str]:
     data_folder_list: list[str] = [
         "data-multiwoz21_split-train_ctxt-dataset_entry_samples-10000_feat-col-ner_tags",
+        "data-multiwoz21_split-validation_ctxt-dataset_entry_samples-10000_feat-col-ner_tags",
+        "data-multiwoz21_split-test_ctxt-dataset_entry_samples-10000_feat-col-ner_tags",
         "data-multiwoz21_split-validation_ctxt-dataset_entry_samples-3000_feat-col-ner_tags",
         "data-multiwoz21_split-test_ctxt-dataset_entry_samples-3000_feat-col-ner_tags",
         "data-one-year-of-tsla-on-reddit_split-train_ctxt-dataset_entry_samples-10000_feat-col-ner_tags",

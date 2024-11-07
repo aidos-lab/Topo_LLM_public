@@ -34,12 +34,15 @@ from typing import TYPE_CHECKING
 import pytest
 from hydra import compose, initialize
 
+from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
 from topollm.config_classes.main_config import DataConfig
 
 if TYPE_CHECKING:
     import omegaconf
 
-logger = logging.getLogger(__name__)
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 @pytest.mark.parametrize(
@@ -54,27 +57,32 @@ logger = logging.getLogger(__name__)
         "wikitext",
     ],
 )
-def test_hydra_with_DataConfig(
+def test_hydra_with_data_config(
     config_name: str,
 ) -> None:
+    """Test the DataConfig class with Hydra."""
     with initialize(
-        config_path="../../../configs/data/",
+        # Note: `config_path` must be relative to the current file
+        config_path="../../../configs/data/",  # Note: DO NOT change `config_path` to an absolute path
         version_base=None,
     ):
         # config is relative to a module
         cfg: omegaconf.DictConfig = compose(
             config_name=config_name,
-            # overrides=[
-            #     "dataset_description_string=overwritten_dataset_desc",
-            # ],
         )
 
-        logger.info(f"cfg:\n" f"{pprint.pformat(cfg)}")
+        default_logger.info(
+            msg=f"cfg:\n{pprint.pformat(object=cfg)}",  # noqa: G004 - low overhead
+        )
 
         # This tests whether the configuration is valid
-        config = DataConfig.model_validate(
+        config: DataConfig = DataConfig.model_validate(
             obj=cfg,
         )
 
-        logger.info(f"{type(config) = }")
-        logger.info(f"config:\n" f"{pprint.pformat(config)}")
+        default_logger.info(
+            msg=f"{type(config) = }",  # noqa: G004 - low overhead
+        )
+        default_logger.info(
+            msg=f"config:\n{pprint.pformat(config)}",  # noqa: G004 - low overhead
+        )

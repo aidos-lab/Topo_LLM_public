@@ -82,7 +82,7 @@ class FinetuningPathManagerBasic:
         path = pathlib.Path(
             "models",
             "finetuned_models",
-            self.finetuning_config.finetuning_datasets.train_dataset.config_description,
+            self.finetuning_config.finetuning_datasets.train_dataset.long_config_description_with_data_splitting_without_data_subset,
             self.finetuning_config.base_model_config_description,
             self.peft_path_manager.peft_description_subdir,
             self.finetuning_config.gradient_modifier.gradient_modifier_description,

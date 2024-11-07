@@ -49,7 +49,7 @@ def get_dataset_preparer(
 ) -> DatasetPreparer:
     """Return a dataset preparer for the given dataset type."""
     dataset_splitter: DatasetSplitter = get_dataset_splitter(
-        data_split_config=data_config.data_split,
+        data_splitting_config=data_config.data_splitting,
         verbosity=verbosity,
         logger=logger,
     )
