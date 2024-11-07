@@ -130,6 +130,14 @@ class Split(StrEnum):
 
 
 @unique
+class DataSamplingMode(StrEnum):
+    """The different modes for sampling data."""
+
+    RANDOM = auto()
+    TAKE_FIRST = auto()
+
+
+@unique
 class MaskingMode(StrEnum):
     """The different masking modes."""
 

@@ -125,21 +125,23 @@ class DatasetPreparerHuggingface:
             )
 
         # Select the dataset split to use
-        dataset: datasets.Dataset = new_dataset_dict[self.data_config.split.value]
+        dataset: datasets.Dataset = new_dataset_dict[self.data_config.data_subsampling.split.value]
 
         # TODO: Implement a dataset sampler step here.
 
         # Truncate the dataset to the specified number of samples
-        if self.data_config.number_of_samples == -1:
+        if self.data_config.data_subsampling.number_of_samples == -1:
             # Use all samples
             pass
-        elif self.data_config.number_of_samples > 0:
+        elif self.data_config.data_subsampling.number_of_samples > 0:
             # Use only the specified number of samples
             dataset = dataset.select(
-                indices=range(self.data_config.number_of_samples),
+                indices=range(self.data_config.data_subsampling.number_of_samples),
             )
         else:
-            msg: str = f"Expected {self.data_config.number_of_samples = } to be -1 or a positive integer"
+            msg: str = (
+                f"Expected {self.data_config.data_subsampling.number_of_samples = } to be -1 or a positive integer"
+            )
             raise ValueError(msg)
 
         self.dataset_length = len(dataset)

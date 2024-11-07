@@ -1,0 +1,4 @@
+number_of_samples: 10000
+sampling_mode: take_first
+sampling_seed: 111
+split: train

@@ -1,10 +1,10 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -34,7 +34,8 @@ from pydantic import Field
 from topollm.config_classes.config_base_model import ConfigBaseModel
 from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
 from topollm.config_classes.data.data_splitting_config import DataSplittingConfig
-from topollm.typing.enums import DatasetType, DescriptionType, Split
+from topollm.config_classes.data.data_subsampling_config import DataSubsamplingConfig
+from topollm.typing.enums import DatasetType, DescriptionType
 
 
 class DataConfig(ConfigBaseModel):
@@ -87,22 +88,15 @@ class DataConfig(ConfigBaseModel):
         description="The data splitting configuration. This is useful if the dataset is not already split.",
     )
 
+    data_subsampling: DataSubsamplingConfig = Field(
+        default=DataSubsamplingConfig(),
+        title="Data subsampling configuration.",
+        description="The data subsampling configuration.",
+    )
+
     feature_column_name: str = Field(
         default="ner_tags",
         title="Feature column name, will be used when finetuning a model on a specific tagging or classification task.",
-    )
-
-    # Config options for the data subset
-    split: Split = Field(
-        default=Split.TRAIN,
-        title="Split to use for computing embeddings.",
-        description="The split to use for computing embeddings.",
-    )
-
-    number_of_samples: int = Field(
-        default=5_000,
-        title="Number of samples to use for computing embeddings.",
-        description="The number of samples to use for computing embeddings.",
     )
 
     def get_partial_path(
@@ -110,19 +104,20 @@ class DataConfig(ConfigBaseModel):
     ) -> pathlib.Path:
         """Return the partial path which can be used in the path manager.
 
-        This partial path can be used to determine the save location of objects derived from the data configuration."""
+        This partial path can be used to determine the save location of objects derived from the data configuration.
+        """
         partial_path: pathlib.Path = pathlib.Path(
-            self.long_config_description_with_data_splitting_without_data_subset,
-            # TODO: Include the subset information in the path once it is implemented as a config group
+            self.long_config_description_with_data_splitting_without_data_subsampling,
+            self.data_subsampling.config_description,
         )
 
         return partial_path
 
     @property
-    def long_config_description_with_data_splitting_without_data_subset(
+    def long_config_description_with_data_splitting_without_data_subsampling(
         self,
     ) -> str:
-        description = (
+        description: str = (
             f"{NAME_PREFIXES['data']}"
             f"{KV_SEP}"
             f"{self.dataset_description_string}"
@@ -138,18 +133,6 @@ class DataConfig(ConfigBaseModel):
             f"{self.feature_column_name}"
         )
 
-        # TODO: Move this into a separate part of the path
-        #
-        # f"{ITEM_SEP}"
-        # f"{NAME_PREFIXES['split']}"
-        # f"{KV_SEP}"
-        # f"{self.split}"
-        # f"{ITEM_SEP}"
-        # f"{NAME_PREFIXES['number_of_samples']}"
-        # f"{KV_SEP}"
-        # f"{self.number_of_samples}"
-        # f"{ITEM_SEP}"
-
         return description
 
     def get_config_description(
@@ -160,17 +143,21 @@ class DataConfig(ConfigBaseModel):
         """Return the config description."""
         match description_type:
             case DescriptionType.LONG:
-                return self.long_config_description_with_data_splitting_without_data_subset
+                return (
+                    self.long_config_description_with_data_splitting_without_data_subsampling
+                    + ITEM_SEP
+                    + self.data_subsampling.config_description
+                )
             case DescriptionType.SHORT:
                 # This should be a combined description which is short enough to be used in the model name
                 short_description: str = (
                     self.dataset_description_string
                     + short_description_separator
-                    + self.split
                     + self.data_splitting.config_description
                     + short_description_separator
                     + self.feature_column_name
-                    # TODO: Move this into a separate part of the path
+                    # TODO: Add short information about the subsampling
+                    # + self.split
                     # + short_description_separator
                     # + str(object=self.number_of_samples)
                 )

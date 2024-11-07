@@ -29,6 +29,7 @@
 
 import logging
 from functools import partial
+from typing import TYPE_CHECKING
 
 import torch
 import torch.utils.data
@@ -45,27 +46,31 @@ from topollm.compute_embeddings.embedding_dataloader_preparer.embedding_dataload
 from topollm.compute_embeddings.embedding_dataloader_preparer.factory import (
     get_embedding_dataloader_preparer,
 )
-from topollm.compute_embeddings.embedding_dataloader_preparer.protocol import EmbeddingDataLoaderPreparer
 from topollm.compute_embeddings.embedding_extractor.factory import (
     get_embedding_extractor,
 )
-from topollm.compute_embeddings.embedding_extractor.protocol import EmbeddingExtractor
 from topollm.config_classes.main_config import MainConfig
 from topollm.model_handling.model.load_model import load_model
 from topollm.model_handling.tokenizer.load_tokenizer import load_modified_tokenizer
 from topollm.path_management.embeddings.factory import (
     get_embeddings_path_manager,
 )
-from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
-from topollm.storage.array_storage.protocol import ChunkedArrayStorageProtocol
 from topollm.storage.factory import (
     StorageFactory,
     StoragePaths,
     StorageSpecification,
 )
-from topollm.storage.metadata_storage.protocol import ChunkedMetadataStorageProtocol
 from topollm.storage.StorageDataclasses import ArrayProperties
 from topollm.typing.enums import Verbosity
+
+if TYPE_CHECKING:
+    from transformers.modeling_utils import PreTrainedModel
+
+    from topollm.compute_embeddings.embedding_dataloader_preparer.protocol import EmbeddingDataLoaderPreparer
+    from topollm.compute_embeddings.embedding_extractor.protocol import EmbeddingExtractor
+    from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
+    from topollm.storage.array_storage.protocol import ChunkedArrayStorageProtocol
+    from topollm.storage.metadata_storage.protocol import ChunkedMetadataStorageProtocol
 
 default_device = torch.device(
     device="cpu",
@@ -82,6 +87,15 @@ def compute_and_store_embeddings(
     logger: logging.Logger = default_logger,
 ) -> None:
     """Compute and store embedding vectors."""
+    embeddings_path_manager: EmbeddingsPathManager = get_embeddings_path_manager(
+        main_config=main_config,
+        logger=logger,
+    )
+    storage_paths = StoragePaths(
+        array_dir=embeddings_path_manager.array_dir_absolute_path,
+        metadata_dir=embeddings_path_manager.metadata_dir_absolute_path,
+    )
+
     tokenizer, tokenizer_modifier = load_modified_tokenizer(
         language_model_config=main_config.language_model,
         tokenizer_config=main_config.tokenizer,
@@ -103,7 +117,7 @@ def compute_and_store_embeddings(
 
     # Potential modification of the tokenizer and the model if this is necessary for compatibility.
     # For instance, for some autoregressive models, the tokenizer needs to be modified to add a padding token.
-    model = tokenizer_modifier.update_model(
+    model: PreTrainedModel = tokenizer_modifier.update_model(
         model=model,
     )
 
@@ -160,16 +174,6 @@ def compute_and_store_embeddings(
         dtype="float32",
         chunks=(main_config.storage.chunk_size,),
     )
-
-    embeddings_path_manager: EmbeddingsPathManager = get_embeddings_path_manager(
-        main_config=main_config,
-        logger=logger,
-    )
-    storage_paths = StoragePaths(
-        array_dir=embeddings_path_manager.array_dir_absolute_path,
-        metadata_dir=embeddings_path_manager.metadata_dir_absolute_path,
-    )
-
     storage_specification = StorageSpecification(
         array_storage_type=main_config.storage.array_storage_type,
         metadata_storage_type=main_config.storage.metadata_storage_type,
