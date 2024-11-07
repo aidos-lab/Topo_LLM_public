@@ -49,7 +49,7 @@ class DataListOption(StrEnum):
     REDDIT_ONLY = auto()
 
 
-class DataNumberOfSamplesListOption(StrEnum):
+class DataSubsamplingNumberOfSamplesListOption(StrEnum):
     """Options for the data number of samples list."""
 
     NONE = auto()
@@ -121,6 +121,7 @@ class LocalEstimatesFilteringNumSamplesListOption(StrEnum):
     UP_TO_50000_WITH_STEP_SIZE_5000_NUM_SAMPLES = auto()
     UP_TO_90000_WITH_STEP_SIZE_5000_NUM_SAMPLES = auto()
     UP_TO_90000_WITH_STEP_SIZE_10000_NUM_SAMPLES = auto()
+    UP_TO_100000_WITH_STEP_SIZE_20000_NUM_SAMPLES = auto()
 
 
 class LocalEstimatesPointwiseAbsoluteNNeighborsListOption(StrEnum):

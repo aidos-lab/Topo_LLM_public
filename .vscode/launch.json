@@ -214,8 +214,8 @@
                 // "data.data_splitting.split_seed=123",
                 // "data.data_split.split_seed=null", // 'null' in the Hydra config is mapped to `None` in the Python code, and then no seed is set for the split
                 "data.data_subsampling.number_of_samples=128",
-                "data.data_subsampling.sampling_mode=take_first",
-                // "data.data_subsampling.sampling_mode=random",
+                // "data.data_subsampling.sampling_mode=take_first",
+                "data.data_subsampling.sampling_mode=random",
                 "data.data_subsampling.sampling_seed=777",
                 // "data.data_subsampling.split=train",
                 // "data.data_subsampling.split=validation",

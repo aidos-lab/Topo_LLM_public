@@ -84,9 +84,9 @@ fi
 # ================================================================== #
 
 # DATA_LIST="full"
-# DATA_LIST="multiwoz21_and_reddit"
+DATA_LIST="multiwoz21_and_reddit"
 # DATA_LIST="multiwoz21_train_and_reddit_train"
-DATA_LIST="multiwoz21_only"
+# DATA_LIST="multiwoz21_only"
 # DATA_LIST="reddit_only"
 
 # DATA_LIST="only_train"

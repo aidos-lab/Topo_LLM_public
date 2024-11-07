@@ -55,7 +55,11 @@ class SubmissionConfig(BaseModel):
             "multiwoz21_validation",
         ],
     )
-    data_number_of_samples_list: list[str] | None = None
+    # data_subsampling_sampling_mode: str | None = "random" # TODO: Make random sampling the default
+    data_subsampling_sampling_mode: str | None = "take_first"
+    data_subsampling_number_of_samples_list: list[str] | None = None
+    data_subsampling_sampling_seed_list: list[str] | None = None
+
     # The additional data options are just used for extending the data command as they are
     additional_data_options: list[str] | None = None
 
@@ -69,7 +73,7 @@ class SubmissionConfig(BaseModel):
 
     layer_indices: str | None = "[-1]"
     embeddings_data_prep_num_samples_list: list[str] | None = [
-        "30000",
+        "60000",
     ]
     embeddings_data_prep_sampling_mode: EmbeddingsDataPrepSamplingMode | None = (
         EmbeddingsDataPrepSamplingMode.TAKE_FIRST  # type: ignore - problem with StrEnum type
@@ -276,7 +280,7 @@ class SubmissionConfig(BaseModel):
                     ],
                 )
             case _:
-                msg = f"Unknown {self.submission_mode = }"
+                msg: str = f"Unknown {self.submission_mode = }"
                 raise ValueError(
                     msg,
                 )
@@ -383,9 +387,19 @@ class SubmissionConfig(BaseModel):
             "data=" + ",".join(self.data_list),
         )
 
-        if self.data_number_of_samples_list:
+        if self.data_subsampling_sampling_mode:
             data_command.append(
-                "data.number_of_samples=" + ",".join(self.data_number_of_samples_list),
+                f"data.data_subsampling.sampling_mode={self.data_subsampling_sampling_mode}",
+            )
+
+        if self.data_subsampling_number_of_samples_list:
+            data_command.append(
+                "data.data_subsampling.number_of_samples=" + ",".join(self.data_subsampling_number_of_samples_list),
+            )
+
+        if self.data_subsampling_sampling_seed_list:
+            data_command.append(
+                "data.data_subsampling.sampling_seed=" + ",".join(self.data_subsampling_sampling_seed_list),
             )
 
         # The additional data options are just used for extending the data command as they are
