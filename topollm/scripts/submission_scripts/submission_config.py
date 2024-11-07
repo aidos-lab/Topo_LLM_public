@@ -85,7 +85,9 @@ class SubmissionConfig(BaseModel):
 
     # # # #
     # Local estimates parameters
-    local_estimates_filtering_num_samples_list: list[str] | None = None
+    local_estimates_filtering_num_samples_list: list[str] | None = [
+        "5000",
+    ]
     local_estimates_filtering_deduplication_mode: str = "array_deduplicator"
     local_estimates_pointwise_n_neighbors_mode: str = "absolute_size"
     local_estimates_pointwise_absolute_n_neighbors_list: list[str] | None = None
@@ -364,7 +366,7 @@ class SubmissionConfig(BaseModel):
 
         if self.embeddings_data_prep_sampling_mode:
             task_specific_command.append(
-                f"+embeddings_data_prep.sampling.sampling_mode={str(object=self.embeddings_data_prep_sampling_mode)}",
+                f"embeddings_data_prep.sampling.sampling_mode={str(object=self.embeddings_data_prep_sampling_mode)}",
             )
         if self.embeddings_data_prep_sampling_seed_list:
             task_specific_command.append(

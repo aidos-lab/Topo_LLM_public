@@ -6,9 +6,9 @@ method_description: "twonn"
 compute_global_estimates: true
 
 filtering:
-  num_samples: 2500
+  num_samples: 5000
   zero_vector_handling_mode: "keep"
-  deduplication_mode: "identity"
+  deduplication_mode: "array_deduplicator"
 
 pointwise:
   n_neighbors_mode: "relative_size"

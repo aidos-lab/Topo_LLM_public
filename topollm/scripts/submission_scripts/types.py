@@ -55,6 +55,7 @@ class DataSubsamplingNumberOfSamplesListOption(StrEnum):
     NONE = auto()
     FIXED_3000 = auto()
     FIXED_10000 = auto()
+    UP_TO_10000_WITH_STEP_SIZE_2000 = auto()
 
 
 class FinetuningDatasetsListOption(StrEnum):

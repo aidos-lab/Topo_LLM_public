@@ -400,6 +400,8 @@ def make_config_and_run_task(
             data_subsampling_number_of_samples_list = [
                 "10000",
             ]
+        case DataSubsamplingNumberOfSamplesListOption.UP_TO_10000_WITH_STEP_SIZE_2000:
+            data_subsampling_number_of_samples_list = [str(i * 2000) for i in range(1, 6)]
         case _:
             msg = f"Unknown {args.data_subsampling_number_of_samples_list_option = }"
             raise ValueError(
@@ -698,7 +700,7 @@ def make_config_and_run_task(
 
 def main() -> None:
     """Run the submission."""
-    args = parse_arguments()
+    args: argparse.Namespace = parse_arguments()
 
     make_config_and_run_task(
         args=args,
