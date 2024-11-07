@@ -36,7 +36,9 @@ from topollm.data_handling.dataset_splitter.protocol import DatasetSplitter
 from topollm.logging.log_dataset_info import log_huggingface_dataset_info
 from topollm.typing.enums import Verbosity
 
-default_logger = logging.getLogger(__name__)
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 class DatasetPreparerHuggingface:

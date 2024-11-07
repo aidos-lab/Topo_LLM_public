@@ -29,25 +29,22 @@
 
 import logging
 from abc import ABC, abstractmethod
-from collections.abc import Callable
 from typing import TYPE_CHECKING
 
 import torch
 import torch.utils.data
 
 from topollm.compute_embeddings.embedding_dataloader_preparer.convert_dataset_entry_to_features_functions import (
-    convert_dataset_entry_to_features,
-    convert_dataset_entry_to_features_named_entity,
     get_convert_dataset_entry_to_features_function,
 )
 from topollm.compute_embeddings.embedding_dataloader_preparer.embedding_dataloader_preparer_context import (
     EmbeddingDataLoaderPreparerContext,
 )
-from topollm.config_classes.data.data_config import DataConfig
 from topollm.data_handling.dataset_preparer.factory import get_dataset_preparer
-from topollm.typing.enums import DatasetType
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from topollm.data_handling.dataset_preparer.protocol import DatasetPreparer
 
 
@@ -67,7 +64,7 @@ class EmbeddingDataLoaderPreparer(ABC):
             logger=self.preparer_context.logger,
         )
 
-        self.convert_dataset_entry_to_features_function = get_convert_dataset_entry_to_features_function(
+        self.convert_dataset_entry_to_features_function: Callable = get_convert_dataset_entry_to_features_function(
             data_config=self.preparer_context.data_config,
         )
 

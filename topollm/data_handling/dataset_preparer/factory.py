@@ -34,17 +34,19 @@ from topollm.config_classes.data.data_config import DataConfig
 from topollm.data_handling.dataset_preparer import dataset_preparer_huggingface
 from topollm.data_handling.dataset_preparer.protocol import DatasetPreparer
 from topollm.data_handling.dataset_splitter.factory import get_dataset_splitter
-from topollm.typing.enums import DatasetType
+from topollm.typing.enums import DatasetType, Verbosity
 
 if TYPE_CHECKING:
     from topollm.data_handling.dataset_splitter.protocol import DatasetSplitter
 
-default_logger = logging.getLogger(__name__)
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 def get_dataset_preparer(
     data_config: DataConfig,
-    verbosity: int = 1,
+    verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> DatasetPreparer:
     """Return a dataset preparer for the given dataset type."""
@@ -53,19 +55,12 @@ def get_dataset_preparer(
         verbosity=verbosity,
         logger=logger,
     )
-    if verbosity >= 1:
+    if verbosity >= Verbosity.NORMAL:
         logger.info(
-            f"Using {dataset_splitter.__class__.__name__} as dataset splitter.",
+            msg=f"Using {dataset_splitter.__class__.__name__ = } as dataset splitter.",  # noqa: G004 - low overhead
         )
 
-    if data_config.dataset_type == DatasetType.HUGGINGFACE_DATASET:
-        result = dataset_preparer_huggingface.DatasetPreparerHuggingface(
-            data_config=data_config,
-            dataset_splitter=dataset_splitter,
-            verbosity=verbosity,
-            logger=logger,
-        )
-    elif data_config.dataset_type == DatasetType.HUGGINGFACE_DATASET_NAMED_ENTITY:
+    if data_config.dataset_type in (DatasetType.HUGGINGFACE_DATASET, DatasetType.HUGGINGFACE_DATASET_NAMED_ENTITY):
         result = dataset_preparer_huggingface.DatasetPreparerHuggingface(
             data_config=data_config,
             dataset_splitter=dataset_splitter,
@@ -73,7 +68,7 @@ def get_dataset_preparer(
             logger=logger,
         )
     else:
-        msg = f"Unsupported {data_config.dataset_type = }"
+        msg: str = f"Unsupported {data_config.dataset_type = }"
         raise ValueError(msg)
 
     return result
