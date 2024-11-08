@@ -197,7 +197,7 @@
             ]
         },
         {
-            "name": "with POS on reddit run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
+            "name": "with POS and data_subsampler run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",

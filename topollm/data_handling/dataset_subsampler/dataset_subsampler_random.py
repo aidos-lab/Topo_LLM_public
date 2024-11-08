@@ -60,6 +60,23 @@ class DatasetSubsamplerRandom:
         dataset: datasets.Dataset,
     ) -> datasets.Dataset:
         """Take random sequences from the dataset."""
+        # Tutorial for taking a random dataset subsample:
+        # https://huggingface.co/learn/nlp-course/en/chapter5/3
+        dataset_shuffled: datasets.Dataset = dataset.shuffle(
+            seed=self.sampling_seed,
+        )
 
-        # TODO Use seed for sampling
-        raise NotImplementedError()
+        if self.number_of_samples == -1:
+            # Use all samples
+            dataset_shuffled_subsampled: datasets.Dataset = dataset_shuffled
+        elif self.number_of_samples > 0:
+            dataset_shuffled_subsampled = dataset_shuffled.select(
+                indices=range(self.number_of_samples),
+            )
+        else:
+            msg: str = f"Expected {self.number_of_samples = } to be -1 or a positive integer"
+            raise ValueError(
+                msg,
+            )
+
+        return dataset_shuffled_subsampled

@@ -58,6 +58,16 @@ class DataSubsamplingNumberOfSamplesListOption(StrEnum):
     UP_TO_10000_WITH_STEP_SIZE_2000 = auto()
 
 
+class DataSubsamplingSamplingSeedListOption(StrEnum):
+    """Options for the seed lists for the data subsampling."""
+
+    DEFAULT = auto()
+    TWO_SEEDS = auto()
+    FIVE_SEEDS = auto()
+    TEN_SEEDS = auto()
+    TWENTY_SEEDS = auto()
+
+
 class FinetuningDatasetsListOption(StrEnum):
     """Options for the finetuning dataset list."""
 

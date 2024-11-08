@@ -37,6 +37,7 @@ from topollm.scripts.submission_scripts.types import (
     CheckpointNoListOption,
     DataListOption,
     DataSubsamplingNumberOfSamplesListOption,
+    DataSubsamplingSamplingSeedListOption,
     EmbeddingsDataPrepNumSamplesListOption,
     EmbeddingsDataPrepSamplingSeedListOption,
     FinetuningDatasetsListOption,
@@ -182,6 +183,13 @@ def parse_arguments() -> argparse.Namespace:
         default=DataSubsamplingNumberOfSamplesListOption.NONE,
         help="data_subsampling_number_of_samples_list option to use.",
     )
+    parser.add_argument(
+        "--data_subsampling_sampling_seed_list_option",
+        type=DataSubsamplingSamplingSeedListOption,
+        default=DataSubsamplingSamplingSeedListOption.DEFAULT,
+        help="data_subsampling_sampling_seed_list option to use.",
+    )
+
     parser.add_argument(
         "--language_model_list",
         type=LanguageModelListOption,
@@ -408,6 +416,28 @@ def make_config_and_run_task(
                 msg,
             )
 
+    match args.data_subsampling_sampling_seed_list_option:
+        case DataSubsamplingSamplingSeedListOption.DEFAULT:
+            data_subsampling_sampling_seed_list = [
+                "778",
+            ]
+        case DataSubsamplingSamplingSeedListOption.TWO_SEEDS:
+            data_subsampling_sampling_seed_list = [
+                "778",
+                "779",
+            ]
+        case DataSubsamplingSamplingSeedListOption.FIVE_SEEDS:
+            data_subsampling_sampling_seed_list = [str(i) for i in range(778, 783)]
+        case DataSubsamplingSamplingSeedListOption.TEN_SEEDS:
+            data_subsampling_sampling_seed_list = [str(i) for i in range(778, 788)]
+        case DataSubsamplingSamplingSeedListOption.TWENTY_SEEDS:
+            data_subsampling_sampling_seed_list = [str(i) for i in range(778, 798)]
+        case _:
+            msg = f"Unknown {args.data_subsampling_sampling_seed_list_option = }"
+            raise ValueError(
+                msg,
+            )
+
     match args.finetuning_regime:
         case FinetuningRegimeOption.FEW_EPOCHS:
             num_train_epochs = "5"
@@ -417,7 +447,9 @@ def make_config_and_run_task(
             lr_scheduler_type = "constant"
         case _:
             msg = f"Unknown {args.finetuning_regime = }"
-            raise ValueError(msg)
+            raise ValueError(
+                msg,
+            )
 
     match args.language_model_list:
         case LanguageModelListOption.ONLY_ROBERTA_BASE:
@@ -581,7 +613,9 @@ def make_config_and_run_task(
 
     match args.local_estimates_filtering_num_samples_list:
         case LocalEstimatesFilteringNumSamplesListOption.DEFAULT:
-            local_estimates_filtering_num_samples_list = None
+            local_estimates_filtering_num_samples_list = [
+                "60000",
+            ]
         case LocalEstimatesFilteringNumSamplesListOption.FEW_SMALL_STEPS_NUM_SAMPLES:
             local_estimates_filtering_num_samples_list = [
                 "2500",
@@ -675,6 +709,7 @@ def make_config_and_run_task(
         additional_overrides=args.additional_overrides,
         data_list=data_list,
         data_subsampling_number_of_samples_list=data_subsampling_number_of_samples_list,
+        data_subsampling_sampling_seed_list=data_subsampling_sampling_seed_list,
         additional_data_options=additional_data_options,
         language_model_list=language_model_list,
         language_model_seed_list=language_model_seed_list,

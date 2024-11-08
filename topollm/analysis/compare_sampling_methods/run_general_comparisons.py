@@ -102,11 +102,11 @@ def main(
     )
 
     # # # # # # # # # # # # # # # # # # # # #
-    # START Global analysis settings
+    # START Global settings for analysis
 
     array_truncation_size: int = 5_000
 
-    # END Global analysis settings
+    # END Global settingsn for analysis
     # # # # # # # # # # # # # # # # # # # # #
 
     main_config: MainConfig = initialize_configuration(

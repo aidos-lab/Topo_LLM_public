@@ -55,10 +55,11 @@ class SubmissionConfig(BaseModel):
             "multiwoz21_validation",
         ],
     )
-    # data_subsampling_sampling_mode: str | None = "random" # TODO: Make random sampling the default
-    data_subsampling_sampling_mode: str | None = "take_first"
+    data_subsampling_sampling_mode: str | None = "random"
     data_subsampling_number_of_samples_list: list[str] | None = None
-    data_subsampling_sampling_seed_list: list[str] | None = None
+    data_subsampling_sampling_seed_list: list[str] | None = [
+        "777",
+    ]
 
     # The additional data options are just used for extending the data command as they are
     additional_data_options: list[str] | None = None
@@ -86,7 +87,7 @@ class SubmissionConfig(BaseModel):
     # # # #
     # Local estimates parameters
     local_estimates_filtering_num_samples_list: list[str] | None = [
-        "5000",
+        "60000",
     ]
     local_estimates_filtering_deduplication_mode: str = "array_deduplicator"
     local_estimates_pointwise_n_neighbors_mode: str = "absolute_size"

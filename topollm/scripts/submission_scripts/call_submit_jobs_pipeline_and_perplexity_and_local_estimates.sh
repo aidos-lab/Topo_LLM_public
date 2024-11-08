@@ -101,6 +101,8 @@ DATA_LIST="multiwoz21_and_reddit"
 # DATA_NUMBER_OF_SAMPLES_LIST_OPTION="fixed_10000"
 DATA_NUMBER_OF_SAMPLES_LIST_OPTION="up_to_10000_with_step_size_2000"
 
+DATA_SUBSAMPLING_SAMPLING_SEED_LIST_OPTION="default"
+
 # ================================================================== #
 
 # Uncomment the following to skip the compute_and_store_embeddings step:
@@ -168,6 +170,7 @@ if [ "$DO_PIPELINE" = "true" ]; then
       --memory=$MEMORY \
       --data_list=$DATA_LIST \
       --data_subsampling_number_of_samples_list_option=$DATA_NUMBER_OF_SAMPLES_LIST_OPTION \
+      --data_subsampling_sampling_seed_list_option=$DATA_SUBSAMPLING_SAMPLING_SEED_LIST_OPTION \
       $CREATE_POS_TAGS_FLAG \
       --language_model_list=$LANGUAGE_MODEL_LIST \
       --checkpoint_no_list=$CHECKPOINT_NO_LIST \
@@ -183,27 +186,6 @@ if [ "$DO_PIPELINE" = "true" ]; then
   echo ">>> Submitting pipeline jobs DONE"
 fi
 # ================================================================== #
-
-# ================================================================== #
-if [ "$DO_PERPLEXITY" = "true" ]; then
-  echo ">>> Submitting perplexity jobs ..."
-  # Note: Do not use the CREATE_POS_TAGS_FLAG for the perplexity task.
-  poetry run submit_jobs \
-      --task="perplexity" \
-      --queue="CUDA" \
-      --template="RTX6000" \
-      --data_list=$DATA_LIST \
-      --data_subsampling_number_of_samples_list_option=$DATA_NUMBER_OF_SAMPLES_LIST_OPTION \
-      --language_model_list=$LANGUAGE_MODEL_LIST \
-      --checkpoint_no_list=$CHECKPOINT_NO_LIST \
-      --language_model_seed_list=$LANGUAGE_MODEL_SEED_LIST \
-      $ADD_PREFIX_SPACE_FLAG \
-      --finetuning_regime=$FINETUNING_REGIME \
-      --submission_mode=$SUBMISSION_MODE \
-      $DRY_RUN_FLAG
-  echo ">>> Submitting perplexity jobs DONE"
-fi
-# ================================================================== #
        
 # ================================================================== #
 if [ "$DO_LOCAL_ESTIMATES_COMPUTATION" = "true" ]; then
@@ -217,6 +199,7 @@ if [ "$DO_LOCAL_ESTIMATES_COMPUTATION" = "true" ]; then
       --walltime="08:00:00" \
       --data_list=$DATA_LIST \
       --data_subsampling_number_of_samples_list_option=$DATA_NUMBER_OF_SAMPLES_LIST_OPTION \
+      --data_subsampling_sampling_seed_list_option=$DATA_SUBSAMPLING_SAMPLING_SEED_LIST_OPTION \
       $CREATE_POS_TAGS_FLAG \
       --language_model_list=$LANGUAGE_MODEL_LIST \
       --checkpoint_no_list=$CHECKPOINT_NO_LIST \
@@ -231,6 +214,28 @@ if [ "$DO_LOCAL_ESTIMATES_COMPUTATION" = "true" ]; then
       --submission_mode=$SUBMISSION_MODE \
       $DRY_RUN_FLAG
   echo ">>> Submitting local estimates computation jobs DONE"
+fi
+# ================================================================== #
+
+# ================================================================== #
+if [ "$DO_PERPLEXITY" = "true" ]; then
+  echo ">>> Submitting perplexity jobs ..."
+  # Note: Do not use the CREATE_POS_TAGS_FLAG for the perplexity task.
+  poetry run submit_jobs \
+      --task="perplexity" \
+      --queue="CUDA" \
+      --template="RTX6000" \
+      --data_list=$DATA_LIST \
+      --data_subsampling_number_of_samples_list_option=$DATA_NUMBER_OF_SAMPLES_LIST_OPTION \
+      --data_subsampling_sampling_seed_list_option=$DATA_SUBSAMPLING_SAMPLING_SEED_LIST_OPTION \
+      --language_model_list=$LANGUAGE_MODEL_LIST \
+      --checkpoint_no_list=$CHECKPOINT_NO_LIST \
+      --language_model_seed_list=$LANGUAGE_MODEL_SEED_LIST \
+      $ADD_PREFIX_SPACE_FLAG \
+      --finetuning_regime=$FINETUNING_REGIME \
+      --submission_mode=$SUBMISSION_MODE \
+      $DRY_RUN_FLAG
+  echo ">>> Submitting perplexity jobs DONE"
 fi
 # ================================================================== #
 
