@@ -200,7 +200,7 @@ def run_comparison_for_analysis_base_directory(
     results_base_directory: pathlib.Path = build_results_directory_structure(
         analysis_base_directory=analysis_base_directory,
         data_dir=data_dir,
-        analysis_subdirectory_partial_path=pathlib.Path(
+        analysis_output_subdirectory_partial_relative_path=pathlib.Path(
             "sample_sizes",
         ),
         verbosity=verbosity,

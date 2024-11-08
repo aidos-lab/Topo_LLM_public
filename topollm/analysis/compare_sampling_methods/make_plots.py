@@ -35,7 +35,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
-from matplotlib.ticker import AutoLocator, FuncFormatter, MultipleLocator
+from matplotlib.ticker import AutoLocator, MultipleLocator
 
 from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.typing.enums import Verbosity
@@ -43,6 +43,23 @@ from topollm.typing.enums import Verbosity
 default_logger: logging.Logger = logging.getLogger(
     name=__name__,
 )
+
+Y_AXIS_LIMITS: dict[
+    str,
+    tuple[float | None, float | None],
+] = {
+    "None": (None, None),
+    "full": (6.5, 18.0),  # full range
+    "lower": (6.5, 10.0),  # lower range
+    "upper": (12.0, 18.0),  # upper range
+}
+
+Y_AXIS_LIMITS_ONLY_FULL: dict[
+    str,
+    tuple[float | None, float | None],
+] = {
+    "full": (6.5, 18.0),  # full range
+}
 
 
 def make_multiple_line_plots(

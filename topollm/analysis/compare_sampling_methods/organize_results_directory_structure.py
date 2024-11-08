@@ -40,7 +40,7 @@ default_logger: logging.Logger = logging.getLogger(
 def build_results_directory_structure(
     analysis_base_directory: pathlib.Path,
     data_dir: pathlib.Path,
-    analysis_subdirectory_partial_path: pathlib.Path = pathlib.Path(
+    analysis_output_subdirectory_partial_relative_path: pathlib.Path = pathlib.Path(
         "sample_sizes",
     ),
     verbosity: Verbosity = Verbosity.NORMAL,
@@ -50,7 +50,7 @@ def build_results_directory_structure(
     results_base_directory = pathlib.Path(
         data_dir,
         "analysis",
-        analysis_subdirectory_partial_path,
+        analysis_output_subdirectory_partial_relative_path,
         analysis_base_directory.relative_to(
             data_dir,
         ),

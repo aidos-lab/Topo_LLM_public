@@ -31,7 +31,6 @@ import logging
 import os
 import pathlib
 from collections.abc import Generator
-from itertools import product
 from typing import TYPE_CHECKING, Any
 
 import hydra
@@ -41,8 +40,11 @@ import omegaconf
 import pandas as pd
 from tqdm import tqdm
 
+from topollm.analysis.compare_sampling_methods.analysis_influence_of_local_estimates_n_neighbors import (
+    analysis_influence_of_local_estimates_n_neighbors,
+)
 from topollm.analysis.compare_sampling_methods.make_plots import (
-    analyze_and_plot_influence_of_local_estimates_samples,
+    Y_AXIS_LIMITS,
     create_boxplot_of_mean_over_different_sampling_seeds,
     generate_fixed_params_text,
 )
@@ -53,7 +55,6 @@ from topollm.analysis.compare_sampling_methods.parse_path_info import parse_path
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
-from topollm.logging.log_array_info import log_array_info
 from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.logging.log_list_info import log_list_info
 from topollm.logging.setup_exception_logging import setup_exception_logging
@@ -85,51 +86,6 @@ setup_exception_logging(
 
 setup_omega_conf()
 
-Y_AXIS_LIMITS: dict[
-    str,
-    tuple[float | None, float | None],
-] = {
-    "None": (None, None),
-    "full": (6.5, 18.0),  # full range
-    "lower": (6.5, 10.0),  # lower range
-    "upper": (12.0, 18.0),  # upper range
-}
-
-Y_AXIS_LIMITS_ONLY_FULL: dict[
-    str,
-    tuple[float | None, float | None],
-] = {
-    "full": (6.5, 18.0),  # full range
-}
-
-
-def collect_all_data_and_model_combination_paths(
-    base_path: pathlib.Path,
-    pattern: str = "data=*/split=*/lvl=*/add-prefix-space=True_max-len=512/model=*",
-) -> Generator[
-    pathlib.Path,
-    None,
-    None,
-]:
-    """Collect all full paths that match a specific nested folder structure.
-
-    Args:
-        base_path: The root directory to start the search.
-        pattern: The pattern to match the required directory layout.
-
-    Yields:
-        Path: Full paths matching the required structure as Path objects.
-
-    """
-    # Define the structured path pattern to match the required directory layout
-
-    # Yield each matching directory path
-    for path in base_path.glob(
-        pattern=pattern,
-    ):
-        if path.is_dir():
-            yield path
-
 
 @hydra.main(
     config_path=f"{HYDRA_CONFIGS_BASE_PATH}",
@@ -148,7 +104,7 @@ def main(
     # # # # # # # # # # # # # # # # # # # # #
     # START Global analysis settings
 
-    array_truncation_size: int = 10_000
+    array_truncation_size: int = 5_000
 
     # END Global analysis settings
     # # # # # # # # # # # # # # # # # # # # #
@@ -182,6 +138,20 @@ def main(
             list_name="all_partial_search_base_directories_paths",
             logger=logger,
         )
+        logger.info(
+            msg=f"Iterating over {len(all_partial_search_base_directories_paths) = } paths ...",  # noqa: G004 - low overhead
+        )
+
+    analysis_output_subdirectory_partial_relative_path = pathlib.Path(
+        "sample_sizes",
+        "run_general_comparisons",
+        f"{array_truncation_size=}",
+    )
+    analysis_output_subdirectory_absolute_path = pathlib.Path(
+        data_dir,
+        "analysis",
+        analysis_output_subdirectory_partial_relative_path,
+    )
 
     for partial_search_base_directory_path in tqdm(
         iterable=all_partial_search_base_directories_paths,
@@ -197,46 +167,166 @@ def main(
             "layer=-1_agg=mean",
             "norm=None",
         )
+        results_directory: pathlib.Path = build_results_directory_structure(
+            analysis_base_directory=search_base_directory,
+            data_dir=data_dir,
+            analysis_output_subdirectory_partial_relative_path=analysis_output_subdirectory_partial_relative_path,
+            verbosity=verbosity,
+            logger=logger,
+        )
 
         if verbosity >= Verbosity.NORMAL:
             logger.info(
                 msg=f"{search_base_directory = }",  # noqa: G004 - low overhead
             )
+            logger.info(
+                msg=f"{results_directory = }",  # noqa: G004 - low overhead
+            )
+
         run_search_on_single_base_directory_and_process_and_save(
             search_base_directory=search_base_directory,
-            data_dir=data_dir,
+            results_directory=results_directory,
             array_truncation_size=array_truncation_size,
             verbosity=verbosity,
             logger=logger,
         )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Iterating over {len(all_partial_search_base_directories_paths) = } paths DONE",  # noqa: G004 - low overhead
+        )
+
+    load_and_concatenate_saved_dataframes(
+        root_dir=analysis_output_subdirectory_absolute_path,
+        save_path=pathlib.Path(
+            analysis_output_subdirectory_absolute_path,
+            "concatenated_full_local_estimates_df.csv",
+        ),
+        verbosity=verbosity,
+        logger=logger,
+    )
 
     logger.info(
         msg="Running script DONE",
     )
 
 
+def collect_all_data_and_model_combination_paths(
+    base_path: pathlib.Path,
+    pattern: str = "data=*/split=*/lvl=*/add-prefix-space=True_max-len=512/model=*",
+) -> Generator[
+    pathlib.Path,
+    None,
+    None,
+]:
+    """Collect all full paths that match a specific nested folder structure.
+
+    Args:
+        base_path: The root directory to start the search.
+        pattern: The pattern to match the required directory layout.
+
+    Yields:
+        Path: Full paths matching the required structure as Path objects.
+
+    """
+    # Define the structured path pattern to match the required directory layout
+
+    # Yield each matching directory path
+    for path in base_path.glob(
+        pattern=pattern,
+    ):
+        if path.is_dir():
+            yield path
+
+
+def load_and_concatenate_saved_dataframes(
+    root_dir: pathlib.Path,
+    pattern: str = "full_local_estimates_df.csv",
+    save_path: pathlib.Path | None = None,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> pd.DataFrame:
+    """Load and concatenate saved dataframes from the specified directory."""
+    # Initialize an empty list to store dataframes
+    dfs = []
+
+    # Traverse the directory structure using pathlib's rglob
+    for file_path in root_dir.rglob(
+        pattern=pattern,
+    ):
+        # Load the CSV file into a dataframe
+        current_df = None
+
+        try:
+            current_df = pd.read_csv(
+                filepath_or_buffer=file_path,
+                keep_default_na=False,
+            )
+            dfs.append(
+                current_df,
+            )
+        except FileNotFoundError as e:
+            logger.exception(
+                msg=f"Error reading {file_path = }: {e}",  # noqa: G004 - low overhead
+            )
+            logger.warning(
+                msg=f"Skipping {file_path = }",  # noqa: G004 - low overhead
+            )
+
+        # Append the dataframe to the list
+        dfs.append(
+            current_df,
+        )
+
+    # Concatenate the dataframes
+    if dfs:
+        concatenated_df: pd.DataFrame = pd.concat(
+            objs=dfs,
+            ignore_index=True,
+        )
+    else:
+        logger.info(
+            msg=f"No files found with pattern {pattern = } in {root_dir = }",  # noqa: G004 - low overhead
+        )
+        logger.info(
+            msg="Returning empty dataframe.",
+        )
+        concatenated_df = pd.DataFrame()  # Empty dataframe if no files found
+
+    # Save the concatenated dataframe
+    if save_path is not None:
+        logger.info(
+            msg=f"Saving concatenated dataframe to {save_path = } ...",  # noqa: G004 - low overhead
+        )
+        save_path.parent.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+        concatenated_df.to_csv(
+            path_or_buf=save_path,
+            index=False,
+        )
+        logger.info(
+            msg=f"Saving concatenated dataframe to {save_path = } DONE",  # noqa: G004 - low overhead
+        )
+
+    if verbosity >= Verbosity.NORMAL and "model_partial_name" in concatenated_df.columns:
+        logger.info(
+            msg=f"{concatenated_df['model_partial_name'].unique() = }",  # noqa: G004 - low overhead
+        )
+
+    return concatenated_df
+
+
 def run_search_on_single_base_directory_and_process_and_save(
     search_base_directory: pathlib.Path,
-    data_dir: pathlib.Path,
+    results_directory: pathlib.Path,
+    array_data_column_name: str = "array_data",
     array_truncation_size: int = 5000,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> None:
     """Run the search and analysis on a single base directory."""
-    results_directory: pathlib.Path = build_results_directory_structure(
-        analysis_base_directory=search_base_directory,
-        data_dir=data_dir,
-        analysis_subdirectory_partial_path=pathlib.Path(
-            "sample_sizes",
-            "run_general_comparisons",
-            f"{array_truncation_size=}",
-        ),
-        verbosity=verbosity,
-        logger=logger,
-    )
-
-    array_data_column_name: str = "array_data"
-
     _, full_local_estimates_df = extract_and_preprocess_dataframes(
         search_base_directory=search_base_directory,
         results_directory=results_directory,
@@ -250,7 +340,7 @@ def run_search_on_single_base_directory_and_process_and_save(
     # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # ===== This is the start of the analysis code =====
 
-    run_analysis_influence_of_local_estimates_n_neighbors(
+    analysis_influence_of_local_estimates_n_neighbors(
         full_local_estimates_df=full_local_estimates_df,
         array_data_column_name=array_data_column_name,
         results_directory=results_directory,
@@ -337,89 +427,6 @@ def run_search_on_single_base_directory_and_process_and_save(
                 )
 
     pass  # noqa: PIE790 - This is here for setting a breakpoint
-
-
-def run_analysis_influence_of_local_estimates_n_neighbors(
-    full_local_estimates_df: pd.DataFrame,
-    array_data_column_name: str,
-    results_directory: pathlib.Path,
-    selected_subsample_dict: dict | None = None,
-    verbosity: Verbosity = Verbosity.NORMAL,
-    logger: logging.Logger = default_logger,
-) -> None:
-    """Run the analysis of local estimates for different values of 'n_neighbors'."""
-    if selected_subsample_dict is None:
-        selected_subsample_dict = retrieve_most_frequent_values(
-            full_local_estimates_df=full_local_estimates_df,
-            verbosity=verbosity,
-            logger=logger,
-        )
-
-    # Run analysis for different values of 'n_neighbors'
-    unique_n_neighbors = full_local_estimates_df["n_neighbors"].unique()
-
-    for n_neighbors in unique_n_neighbors:
-        for y_min, y_max in Y_AXIS_LIMITS.values():
-            common_prefix_path = pathlib.Path(
-                results_directory,
-                "influence_of_local_estimates_samples",
-            )
-
-            plot_save_path: pathlib.Path = pathlib.Path(
-                common_prefix_path,
-                "plots",
-                f"{n_neighbors=}_y_{y_min}_{y_max}.pdf",
-            )
-            raw_data_save_path: pathlib.Path = pathlib.Path(
-                common_prefix_path,
-                "raw_data",
-                f"{n_neighbors=}.csv",
-            )
-
-            analyze_and_plot_influence_of_local_estimates_samples(
-                df=full_local_estimates_df,
-                n_neighbors=n_neighbors,
-                selected_subsample_dict=selected_subsample_dict,
-                array_data_column_name=array_data_column_name,
-                y_min=y_min,
-                y_max=y_max,
-                show_plot=False,
-                plot_save_path=plot_save_path,
-                raw_data_save_path=raw_data_save_path,
-                verbosity=verbosity,
-                logger=logger,
-            )
-
-
-def retrieve_most_frequent_values(
-    full_local_estimates_df: pd.DataFrame,
-    verbosity: Verbosity = Verbosity.NORMAL,
-    logger: logging.Logger = default_logger,
-) -> dict[str, Any]:
-    """Retrieve the most frequent values for fixed parameters.
-
-    This handles cases where mode might be unavailable.
-    """
-    most_frequent_values = {}
-    for column in [
-        "data_prep_sampling_method",
-        "deduplication",
-        "data_prep_sampling_seed",
-        "data_prep_sampling_samples",
-    ]:
-        if full_local_estimates_df[column].notna().any():
-            most_frequent_values[column] = (
-                full_local_estimates_df[column].mode()[0] if not full_local_estimates_df[column].mode().empty else None
-            )
-        else:
-            most_frequent_values[column] = None
-
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            msg=f"most_frequent_values:\n{most_frequent_values}",  # noqa: G004 - low overhead
-        )
-
-    return most_frequent_values
 
 
 def extract_and_preprocess_dataframes(
