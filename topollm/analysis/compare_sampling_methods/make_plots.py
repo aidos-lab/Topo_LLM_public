@@ -227,6 +227,7 @@ def create_boxplot_of_mean_over_different_sampling_seeds(
     y_max: float | None = 15.5,
     show_plot: bool = False,
     connect_points: bool = False,
+    show_aggregated_stats: bool = True,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> None:
@@ -370,6 +371,51 @@ def create_boxplot_of_mean_over_different_sampling_seeds(
                 label=f"Seed {seed}" if idx < 2 else "",  # Labeling only the first few for readability
             )
 
+    # Display aggregated statistics as text boxes aligned to the x-axis
+    if show_aggregated_stats:
+        for _, row in grouped_stats.iterrows():
+            x_position = subset_local_estimates_df[x_column_name].cat.categories.get_loc(
+                key=row[x_column_name],
+            )
+            # Check that the x_position is an integer
+            if not isinstance(x_position, int):
+                logger.warning(
+                    msg=f"Could not find x_position for {row[x_column_name] = }. Skipping stats display.",  # noqa: G004 - low overhead
+                )
+                continue
+
+            # Dynamically build the text to include all stats columns
+            stats_text = "\n".join(
+                [
+                    f"{col}: {row[col]:.2f}"
+                    if isinstance(
+                        row[col],
+                        int | float,
+                    )
+                    else f"{col}: {row[col]}"
+                    for col in grouped_stats.columns
+                    if col != x_column_name
+                ],
+            )
+
+            # Set y_max if it is None
+            y_max = y_max if y_max is not None else plt.gca().get_ylim()[1]
+
+            plt.text(
+                x=x_position,
+                y=y_max - 0.2,  # Place it near the top of the y-axis
+                s=stats_text,
+                ha="center",
+                va="top",
+                fontsize=6,  # Set font size to smaller for compact display
+                bbox={
+                    "boxstyle": "round",
+                    "facecolor": "wheat",
+                    "alpha": 0.3,
+                },
+            )
+
+    # # # #
     # Adding additional information about the fixed parameters in the plot
     if fixed_params_text is not None:
         plt.text(
