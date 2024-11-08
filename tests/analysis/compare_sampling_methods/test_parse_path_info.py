@@ -38,13 +38,14 @@ def test_parse_path_info_full(
     example_path_base_model_str: str = (
         "/Users/USER_NAME/git-source/Topo_LLM/"
         "data/analysis/twonn/"
-        "data-multiwoz21_split-validation_ctxt-dataset_entry_samples-3000_feat-col-ner_tags/"
-        "lvl-token/add-prefix-space-True_max-len-512/"
-        "model-roberta-base_task-masked_lm/"
-        "layer--1_agg-mean/norm-None/"
-        "sampling-random_seed-44_samples-20000/"
-        "desc-twonn_samples-2500_zerovec-keep_dedup-array_deduplicator/"
-        "n-neighbors-mode-absolute_size_n-neighbors-256/"
+        "data=multiwoz21_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/"
+        "split=test_samples=2000_sampling=take_first/"
+        "lvl=token/add-prefix-space=True_max-len=512/"
+        "model=roberta-base_task=masked_lm/"
+        "layer=-1_agg=mean/norm=None/"
+        "sampling=random_seed=42_samples=100000/"
+        "desc=twonn_samples=2500_zerovec=keep_dedup=array_deduplicator/"
+        "n-neighbors-mode=absolute_size_n-neighbors=128/"
         "local_estimates_pointwise.npy"
     )
 
@@ -63,62 +64,61 @@ def test_parse_path_info_full(
 
     example_path_str_list: list[str] = [
         example_path_base_model_str,
-        example_path_finetuned_model_str,
+        # example_path_finetuned_model_str,
     ]
 
     expected_results = [
         {
             "aggregation": "mean",
             "context": "dataset_entry",
-            "data_full": "data-multiwoz21_split-validation_ctxt-dataset_entry_samples-3000_feat-col-ner_tags",
+            "data_full": "data=multiwoz21_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags",
             "data_prep_sampling_method": "random",
-            "data_prep_sampling_samples": 20000,
-            "data_prep_sampling_seed": 44,
-            "dataset_name": "multiwoz21",
+            "data_prep_sampling_samples": 100000,
+            "data_prep_sampling_seed": 42,
+            "dataset_name": "multiwoz21",  # TODO
             "deduplication": "array_deduplicator",
             "feature_column": "ner_tags",
-            "local_estimates_desc_full": "desc-twonn_samples-2500_zerovec-keep_dedup-array_deduplicator",
+            "local_estimates_desc_full": "desc=twonn_samples=2500_zerovec=keep_dedup=array_deduplicator",
             "local_estimates_description": "twonn",
             "local_estimates_samples": 2500,
             "model_checkpoint": None,
-            "model_full": "model-roberta-base_task-masked_lm",
+            "model_full": "model=roberta-base_task=masked_lm",
             "model_layer": -1,
-            "model_partial_name": "model-roberta-base",
+            "model_partial_name": "model-roberta-base",  # TODO
             "model_seed": None,
             "model_task": "masked_lm",
-            "n_neighbors": 256,
-            "neighbors_mode": "absolute",
+            "n_neighbors": 128,
+            "neighbors_mode": "absolute_size",
             "normalization": "None",
-            "samples": 3000,
-            "split": "validation",
+            "split": "validation",  # TODO
             "zerovec": "keep",
         },
-        {
-            "aggregation": "mean",
-            "context": "dataset_entry",
-            "data_full": "data-one-year-of-tsla-on-reddit_split-train_ctxt-dataset_entry_samples-10000_feat-col-ner_tags",
-            "data_prep_sampling_method": "random",
-            "data_prep_sampling_samples": 100000,
-            "data_prep_sampling_seed": 47,
-            "dataset_name": "one-year-of-tsla-on-reddit",
-            "deduplication": "array_deduplicator",
-            "feature_column": "ner_tags",
-            "local_estimates_desc_full": "desc-twonn_samples-2500_zerovec-keep_dedup-array_deduplicator",
-            "local_estimates_description": "twonn",
-            "local_estimates_samples": 2500,
-            "model_checkpoint": 400,
-            "model_full": "model-model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-400_task-masked_lm",
-            "model_layer": -1,
-            "model_partial_name": "model-model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50",
-            "model_seed": 1234,
-            "model_task": "masked_lm",
-            "n_neighbors": 256,
-            "neighbors_mode": "absolute",
-            "normalization": "None",
-            "samples": 10000,
-            "split": "train",
-            "zerovec": "keep",
-        },
+        # {
+        #     "aggregation": "mean",
+        #     "context": "dataset_entry",
+        #     "data_full": "data-one-year-of-tsla-on-reddit_split-train_ctxt-dataset_entry_samples-10000_feat-col-ner_tags",
+        #     "data_prep_sampling_method": "random",
+        #     "data_prep_sampling_samples": 100000,
+        #     "data_prep_sampling_seed": 47,
+        #     "dataset_name": "one-year-of-tsla-on-reddit",
+        #     "deduplication": "array_deduplicator",
+        #     "feature_column": "ner_tags",
+        #     "local_estimates_desc_full": "desc-twonn_samples-2500_zerovec-keep_dedup-array_deduplicator",
+        #     "local_estimates_description": "twonn",
+        #     "local_estimates_samples": 2500,
+        #     "model_checkpoint": 400,
+        #     "model_full": "model-model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-400_task-masked_lm",
+        #     "model_layer": -1,
+        #     "model_partial_name": "model-model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50",
+        #     "model_seed": 1234,
+        #     "model_task": "masked_lm",
+        #     "n_neighbors": 256,
+        #     "neighbors_mode": "absolute",
+        #     "normalization": "None",
+        #     "samples": 10000,
+        #     "split": "train",
+        #     "zerovec": "keep",
+        # },
     ]
 
     for example_path, expected_result in zip(

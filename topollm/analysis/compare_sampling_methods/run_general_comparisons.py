@@ -118,6 +118,10 @@ def main(
         msg="Running script ...",
     )
 
+    # # # #
+    # Global analysis settings
+    array_truncation_size: int = 5_000
+
     main_config: MainConfig = initialize_configuration(
         config=config,
         logger=logger,
@@ -142,6 +146,25 @@ def main(
         "model-model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-400_task-masked_lm",
     ]
 
+    # TODO: START TEST BLOCK
+    # TODO: Example run to test this on a top level directory
+
+    test_search_base_directory: pathlib.Path = pathlib.Path(
+        data_dir,
+        "analysis/twonn/data=multiwoz21_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags",
+    )
+
+    run_search_on_single_base_directory_and_process_and_save(
+        search_base_directory=test_search_base_directory,
+        data_dir=data_dir,
+        array_truncation_size=array_truncation_size,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+    # TODO: END TEST BLOCK
+    return  # TODO: Remove this
+
     for data_folder, model_folder in tqdm(
         iterable=product(
             data_folder_list,
@@ -161,7 +184,6 @@ def main(
             "layer--1_agg-mean",
             "norm-None",
         )
-        array_truncation_size: int = 5_000
 
         if verbosity >= Verbosity.NORMAL:
             logger.info(
@@ -184,7 +206,7 @@ def main(
 def run_search_on_single_base_directory_and_process_and_save(
     search_base_directory: pathlib.Path,
     data_dir: pathlib.Path,
-    array_truncation_size: int = 2_500,
+    array_truncation_size: int = 5000,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> None:
@@ -422,6 +444,8 @@ def extract_and_preprocess_dataframes(
             func=pd.Series,
         )
     )
+    # Note that since `parsed_columns_full` also contains the global estimates,
+    # we do not have `n_neighbors` in every row of the dataframe.
 
     # Concatenate the original DataFrame with the newly parsed columns
     full_loaded_data_df: pd.DataFrame = pd.concat(
@@ -438,6 +462,13 @@ def extract_and_preprocess_dataframes(
         verbosity=verbosity,
         logger=logger,
     )
+
+    # If the column 'n_neighbors' exists, make sure it is typed as an integer
+    if "n_neighbors" in full_local_estimates_df.columns:
+        full_local_estimates_df["n_neighbors"] = full_local_estimates_df["n_neighbors"].astype(
+            dtype=int,
+        )
+
     if verbosity >= Verbosity.NORMAL:
         log_dataframe_info(
             df=full_local_estimates_df,
@@ -491,6 +522,8 @@ def extract_and_prepare_local_estimates_data(
 
     # Filter the DataFrame to only contain the local estimates
     local_estimates_df: pd.DataFrame = loaded_data_df[loaded_data_df["array_name"] == array_name_to_match]
+    # Make a copy of the DataFrame to avoid SettingWithCopyWarning
+    local_estimates_df = local_estimates_df.copy()
 
     # Add a column with the number of elements in the array
     local_estimates_df[f"{array_data_column_name}.size"] = local_estimates_df[array_data_column_name].apply(
