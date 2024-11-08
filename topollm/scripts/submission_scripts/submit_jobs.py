@@ -421,6 +421,10 @@ def make_config_and_run_task(
             data_subsampling_sampling_seed_list = [
                 "778",
             ]
+        case DataSubsamplingSamplingSeedListOption.FIXED_777:
+            data_subsampling_sampling_seed_list = [
+                "777",
+            ]
         case DataSubsamplingSamplingSeedListOption.TWO_SEEDS:
             data_subsampling_sampling_seed_list = [
                 "778",

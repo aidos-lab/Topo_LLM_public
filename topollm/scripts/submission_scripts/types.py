@@ -62,6 +62,7 @@ class DataSubsamplingSamplingSeedListOption(StrEnum):
     """Options for the seed lists for the data subsampling."""
 
     DEFAULT = auto()
+    FIXED_777 = auto()
     TWO_SEEDS = auto()
     FIVE_SEEDS = auto()
     TEN_SEEDS = auto()
