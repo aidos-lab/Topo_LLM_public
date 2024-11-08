@@ -109,7 +109,7 @@ def parse_path_info_full(
     if layer_match:
         layer_info["model_layer"] = int(layer_match.group(1))
         layer_info["aggregation"] = layer_match.group(2)
-        layer_info["normalization"] = layer_match.group(3)
+        layer_info["normalization"] = str(object=layer_match.group(3))
 
     # Extract data information
     data_info: dict = parse_data_info(
@@ -143,13 +143,12 @@ def parse_data_info(
 
     # Matches and parses data information including dataset name, split, context, number of samples, and feature column,
     # e.g., "data-multiwoz21_split-validation_ctxt-dataset_entry_samples-3000_feat-col-ner_tags"
-    # - (\w+): Match the dataset name.
-    # - split-(\w+): Match the split type (e.g., "validation").
-    # - ctxt-([\w-]+): Match the context type (e.g., "dataset_entry").
-    # - samples-(\d+): Match the number of samples.
-    # - feat-col-([\w-]+): Match the feature column.
+    # - data=(\w+): Match the dataset name.
+    # - spl-mode=([a-zA-Z0-9_]+): Match the data splitting mode.
+    # - ctxt=([a-zA-Z0-9_]+): Match the context type (e.g., "dataset_entry").
+    # - feat-col=([a-zA-Z0-9_]+): Match the feature column.
     data_match: re.Match[str] | None = re.search(
-        pattern=r"data=([\w-]+)_spl-mode=([a-zA-Z0-9_]+)_ctxt-([a-zA-Z0-9_]+)_feat-col-([a-zA-Z0-9_]+)",
+        pattern=r"data=([\w-]+)_spl-mode=([a-zA-Z0-9_]+)_ctxt=([a-zA-Z0-9_]+)_feat-col=([a-zA-Z0-9_]+)",
         string=path_str,
     )
     if data_match:
@@ -169,16 +168,20 @@ def parse_data_subsampling_info(
     """Parse the data subsampling information from the given path."""
     parsed_info = {}
 
+    # path_str="split=test_samples=2000_sampling=take_first"
+
     subsampling_match = re.search(
-        pattern=r"split=(\w+)_samples-(\d+)_sampling=([a-zA-Z0-9_]+)(?:_sampling-seed=(\d+))?",
+        pattern=r"split=(\w+)_samples=(\d+)_sampling=([a-zA-Z0-9_]+)(?:_sampling-seed=(\d+))?",
         string=path_str,
     )
     if subsampling_match:
         parsed_info["data_subsampling_full"] = subsampling_match.group(0)  # The full matched string
-        parsed_info["split"] = subsampling_match.group(1)
-        parsed_info["number_of_samples"] = int(subsampling_match.group(2))
-        parsed_info["sampling_mode"] = subsampling_match.group(3)
-        parsed_info["sampling_seed"] = int(subsampling_match.group(4)) if subsampling_match.group(4) else None
+        parsed_info["data_split"] = subsampling_match.group(1)
+        parsed_info["data_subsampling_number_of_samples"] = int(subsampling_match.group(2))
+        parsed_info["data_subsampling_sampling_mode"] = subsampling_match.group(3)
+        parsed_info["data_subsampling_sampling_seed"] = (
+            int(subsampling_match.group(4)) if subsampling_match.group(4) else None
+        )
 
     return parsed_info
 
@@ -223,16 +226,17 @@ def parse_model_info(
         # Start from the end and remove optional components (task, checkpoint, seed)
         model_name = model_segment
 
-        # Note: Here we still use the old '-' key-value separator,
-        # because this still appears in the model names.
-
         # Remove task if present (start from the end)
-        task_match = re.search(r"_task-([\w-]+)$", model_name)
+        task_match = re.search(r"_task=([\w-]+)$", model_name)
         if task_match:
             parsed_info["model_task"] = task_match.group(1)
             model_name = model_name[: task_match.start()]
         else:
             parsed_info["model_task"] = None
+
+        # Note: For the checkpoint and seed
+        # we still use the old '-' key-value separator,
+        # because this still appears in the model names.
 
         # Remove checkpoint if present (after removing task)
         ckpt_match = re.search(r"_ckpt-(\d+)$", model_name)

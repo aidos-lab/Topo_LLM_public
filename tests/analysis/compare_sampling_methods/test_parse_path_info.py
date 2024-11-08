@@ -75,7 +75,13 @@ def test_parse_path_info_full(
             "data_prep_sampling_method": "random",
             "data_prep_sampling_samples": 100000,
             "data_prep_sampling_seed": 42,
-            "dataset_name": "multiwoz21",  # TODO
+            "data_split": "test",
+            "data_splitting_mode": "do_nothing",
+            "data_subsampling_full": "split=test_samples=2000_sampling=take_first",
+            "data_subsampling_number_of_samples": 2000,
+            "data_subsampling_sampling_mode": "take_first",
+            "data_subsampling_sampling_seed": None,
+            "dataset_name": "multiwoz21",
             "deduplication": "array_deduplicator",
             "feature_column": "ner_tags",
             "local_estimates_desc_full": "desc=twonn_samples=2500_zerovec=keep_dedup=array_deduplicator",
@@ -84,13 +90,12 @@ def test_parse_path_info_full(
             "model_checkpoint": None,
             "model_full": "model=roberta-base_task=masked_lm",
             "model_layer": -1,
-            "model_partial_name": "model-roberta-base",  # TODO
+            "model_partial_name": "model=roberta-base",
             "model_seed": None,
             "model_task": "masked_lm",
             "n_neighbors": 128,
-            "neighbors_mode": "absolute_size",
+            "n_neighbors_mode": "absolute_size",
             "normalization": "None",
-            "split": "validation",  # TODO
             "zerovec": "keep",
         },
         # {
