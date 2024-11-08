@@ -30,6 +30,7 @@
 import logging
 import os
 import pathlib
+from collections.abc import Generator
 from itertools import product
 from typing import TYPE_CHECKING, Any
 
@@ -40,9 +41,6 @@ import omegaconf
 import pandas as pd
 from tqdm import tqdm
 
-from topollm.analysis.compare_sampling_methods.compute_correlations import compute_and_save_correlations
-from topollm.analysis.compare_sampling_methods.data_selection_folder_lists import get_data_folder_list
-from topollm.analysis.compare_sampling_methods.log_statistics_of_array import log_statistics_of_array
 from topollm.analysis.compare_sampling_methods.make_plots import (
     analyze_and_plot_influence_of_local_estimates_samples,
     create_boxplot_of_mean_over_different_sampling_seeds,
@@ -57,6 +55,7 @@ from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.log_array_info import log_array_info
 from topollm.logging.log_dataframe_info import log_dataframe_info
+from topollm.logging.log_list_info import log_list_info
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
 from topollm.typing.enums import Verbosity
@@ -104,6 +103,34 @@ Y_AXIS_LIMITS_ONLY_FULL: dict[
 }
 
 
+def collect_all_data_and_model_combination_paths(
+    base_path: pathlib.Path,
+    pattern: str = "data=*/split=*/lvl=*/add-prefix-space=True_max-len=512/model=*",
+) -> Generator[
+    pathlib.Path,
+    None,
+    None,
+]:
+    """Collect all full paths that match a specific nested folder structure.
+
+    Args:
+        base_path: The root directory to start the search.
+        pattern: The pattern to match the required directory layout.
+
+    Yields:
+        Path: Full paths matching the required structure as Path objects.
+
+    """
+    # Define the structured path pattern to match the required directory layout
+
+    # Yield each matching directory path
+    for path in base_path.glob(
+        pattern=pattern,
+    ):
+        if path.is_dir():
+            yield path
+
+
 @hydra.main(
     config_path=f"{HYDRA_CONFIGS_BASE_PATH}",
     config_name="main_config",
@@ -118,9 +145,13 @@ def main(
         msg="Running script ...",
     )
 
-    # # # #
-    # Global analysis settings
-    array_truncation_size: int = 5_000
+    # # # # # # # # # # # # # # # # # # # # #
+    # START Global analysis settings
+
+    array_truncation_size: int = 10_000
+
+    # END Global analysis settings
+    # # # # # # # # # # # # # # # # # # # # #
 
     main_config: MainConfig = initialize_configuration(
         config=config,
@@ -134,62 +165,43 @@ def main(
     )
     data_dir: pathlib.Path = embeddings_path_manager.data_dir
 
-    data_folder_list: list[str] = get_data_folder_list()
-
-    model_folder_list: list[str] = [
-        "model-roberta-base_task-masked_lm",
-        "model-model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-14400_task-masked_lm",
-        "model-model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-31200_task-masked_lm",
-        "model-model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-400_task-masked_lm",
-        "model-model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-14400_task-masked_lm",
-        "model-model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-31200_task-masked_lm",
-        "model-model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-400_task-masked_lm",
-    ]
-
-    # TODO: START TEST BLOCK
-    # TODO: Example run to test this on a top level directory
-
-    test_search_base_directory: pathlib.Path = pathlib.Path(
+    data_to_analyse_base_path: pathlib.Path = pathlib.Path(
         data_dir,
-        "analysis/twonn/data=multiwoz21_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags",
+        "analysis",
+        "twonn",
     )
-
-    run_search_on_single_base_directory_and_process_and_save(
-        search_base_directory=test_search_base_directory,
-        data_dir=data_dir,
-        array_truncation_size=array_truncation_size,
-        verbosity=verbosity,
-        logger=logger,
-    )
-
-    # TODO: END TEST BLOCK
-    return  # TODO: Remove this
-
-    for data_folder, model_folder in tqdm(
-        iterable=product(
-            data_folder_list,
-            model_folder_list,
+    all_partial_search_base_directories_paths = list(
+        collect_all_data_and_model_combination_paths(
+            base_path=data_to_analyse_base_path,
         ),
-        desc="Iterating over folder choices",
-        total=len(data_folder_list) * len(model_folder_list),
+    )
+
+    if verbosity >= Verbosity.NORMAL:
+        log_list_info(
+            list_=all_partial_search_base_directories_paths,
+            list_name="all_partial_search_base_directories_paths",
+            logger=logger,
+        )
+
+    for partial_search_base_directory_path in tqdm(
+        iterable=all_partial_search_base_directories_paths,
+        desc="Processing paths",
     ):
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"{partial_search_base_directory_path = }",  # noqa: G004 - low overhead
+            )
+
         search_base_directory: pathlib.Path = pathlib.Path(
-            data_dir,
-            "analysis",
-            "twonn",
-            data_folder,
-            "lvl-token",
-            "add-prefix-space-True_max-len-512",
-            model_folder,
-            "layer--1_agg-mean",
-            "norm-None",
+            partial_search_base_directory_path,
+            "layer=-1_agg=mean",
+            "norm=None",
         )
 
         if verbosity >= Verbosity.NORMAL:
             logger.info(
                 msg=f"{search_base_directory = }",  # noqa: G004 - low overhead
             )
-
         run_search_on_single_base_directory_and_process_and_save(
             search_base_directory=search_base_directory,
             data_dir=data_dir,
