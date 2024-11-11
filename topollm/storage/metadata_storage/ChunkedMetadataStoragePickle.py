@@ -33,7 +33,7 @@ import pickle
 from topollm.storage.metadata_storage.MetadataChunk import MetadataChunk
 from topollm.storage.StorageDataclasses import ChunkIdentifier
 
-default_logger = logging.getLogger(__name__)
+default_logger: logging.Logger = logging.getLogger(name=__name__)
 
 
 def chunk_identifier_str(
@@ -55,7 +55,9 @@ class ChunkedMetadataStoragePickle:
         root_storage_path: os.PathLike,
         logger: logging.Logger = default_logger,
     ):
-        self.root_storage_path = root_storage_path
+        self.root_storage_path: pathlib.Path = pathlib.Path(
+            root_storage_path,
+        )
         self.storage_dir = pathlib.Path(
             self.root_storage_path,
             "pickle_chunked_metadata_storage",
@@ -68,8 +70,8 @@ class ChunkedMetadataStoragePickle:
     ) -> None:
         # # # #
         # Create the folder for the storage if it does not exist
-        os.makedirs(
-            self.storage_dir,
+        pathlib.Path(self.storage_dir).mkdir(
+            parents=True,
             exist_ok=True,
         )
 
@@ -82,7 +84,7 @@ class ChunkedMetadataStoragePickle:
             chunk_identifier=chunk_identifier,
         )
 
-        return f"chunk_" f"{chunk_id_str}" f".pkl"
+        return f"chunk_{chunk_id_str}.pkl"
 
     def chunk_file_path(
         self,
@@ -90,7 +92,7 @@ class ChunkedMetadataStoragePickle:
     ) -> pathlib.Path:
         return pathlib.Path(
             self.storage_dir,
-            self.chunk_file_name(chunk_identifier),
+            self.chunk_file_name(chunk_identifier=chunk_identifier),
         )
 
     def write_chunk(

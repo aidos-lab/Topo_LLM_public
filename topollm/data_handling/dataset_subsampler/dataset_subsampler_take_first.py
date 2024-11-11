@@ -25,10 +25,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Tools for organizing the directory structure of the results of the analysis."""
+"""Do nothing with the dataset dict."""
 
 import logging
-import pathlib
+
+import datasets
 
 from topollm.typing.enums import Verbosity
 
@@ -37,31 +38,37 @@ default_logger: logging.Logger = logging.getLogger(
 )
 
 
-def build_results_directory_structure(
-    analysis_base_directory: pathlib.Path,
-    data_dir: pathlib.Path,
-    analysis_output_subdirectory_partial_relative_path: pathlib.Path = pathlib.Path(
-        "sample_sizes",
-    ),
-    verbosity: Verbosity = Verbosity.NORMAL,
-    logger: logging.Logger = default_logger,
-) -> pathlib.Path:
-    """Build the results directory structure where we can save the results of the analysis."""
-    results_base_directory = pathlib.Path(
-        data_dir,
-        "analysis",
-        analysis_output_subdirectory_partial_relative_path,
-        analysis_base_directory.relative_to(
-            data_dir,
-        ),
-    )
-    results_base_directory.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            msg=f"{results_base_directory = }",  # noqa: G004 - low overhead
-        )
+class DatasetSubsamplerTakeFirst:
+    """Take the first entries from the dataset."""
 
-    return results_base_directory
+    def __init__(
+        self,
+        number_of_samples: int,
+        verbosity: Verbosity = Verbosity.NORMAL,
+        logger: logging.Logger = default_logger,
+    ) -> None:
+        """Initialize the subsampler."""
+        self.number_of_samples: int = number_of_samples
+
+        self.verbosity: Verbosity = verbosity
+        self.logger: logging.Logger = logger
+
+    def subsample_dataset(
+        self,
+        dataset: datasets.Dataset,
+    ) -> datasets.Dataset:
+        """Take first sequences from the dataset."""
+        # Truncate the dataset to the specified number of samples
+        if self.number_of_samples == -1:
+            # Use all samples
+            pass
+        elif self.number_of_samples > 0:
+            # Use only the specified number of samples
+            dataset = dataset.select(
+                indices=range(self.number_of_samples),
+            )
+        else:
+            msg: str = f"Expected {self.number_of_samples = } to be -1 or a positive integer"
+            raise ValueError(msg)
+
+        return dataset

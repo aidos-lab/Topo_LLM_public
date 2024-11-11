@@ -57,7 +57,7 @@ class EmbeddingExtractionConfig(BaseModel):
             f"{ITEM_SEP}"
             f"{NAME_PREFIXES['aggregation']}"
             f"{KV_SEP}"
-            f"{str(self.aggregation)}"
+            f"{str(object=self.aggregation)}"
         )
 
         return desc
@@ -67,4 +67,6 @@ def convert_layer_indices_to_path_part(
     layer_indices: list[int],
 ) -> str:
     """Convert a list of layer indices to a string suitable for file paths."""
-    return convert_list_to_path_part(layer_indices)
+    return convert_list_to_path_part(
+        input_list=layer_indices,
+    )

@@ -2,5 +2,6 @@ defaults:
   - .@_here_: iclr_2024_submissions
   - _self_
 
-split: train
-number_of_samples: 5000
+data_subsampling:
+  split: train
+  number_of_samples: 5000

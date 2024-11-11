@@ -197,7 +197,7 @@
             ]
         },
         {
-            "name": "with POS on reddit run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
+            "name": "with POS and data_subsampler run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
@@ -205,18 +205,24 @@
             "args": [
                 "tokenizer.add_prefix_space=True", // This is necessary to use the tokenizer with input split into words
                 "+data.dataset_type=huggingface_dataset_named_entity",
-                "data=one-year-of-tsla-on-reddit",
-                "data.number_of_samples=128",
-                // "data.split=train",
-                "data.split=validation",
-                "data.data_splitting.data_splitting_mode=proportions",
-                "data.data_splitting.split_shuffle=true",
-                "data.data_splitting.split_seed=123",
-                // "data.data_split.split_seed=null", // 'null' in the Hydra config is mapped to `None` in the Python code, and thus no seed is set for the split
+                // "data=one-year-of-tsla-on-reddit_validation",
+                // "data=one-year-of-tsla-on-reddit_test",
+                "data=multiwoz21_validation",
+                // "data=sgd_test",
+                // "data.data_splitting.data_splitting_mode=proportions",
+                // "data.data_splitting.split_shuffle=true",
+                // "data.data_splitting.split_seed=123",
+                // "data.data_split.split_seed=null", // 'null' in the Hydra config is mapped to `None` in the Python code, and then no seed is set for the split
+                "data.data_subsampling.number_of_samples=128",
+                // "data.data_subsampling.sampling_mode=take_first",
+                "data.data_subsampling.sampling_mode=random",
+                "data.data_subsampling.sampling_seed=777",
+                // "data.data_subsampling.split=train",
+                // "data.data_subsampling.split=validation",
                 "language_model=roberta-base",
                 "embeddings.embedding_extraction.layer_indices=[-1]",
                 "embeddings_data_prep.sampling.num_samples=3000",
-                "+embeddings_data_prep.sampling.sampling_mode=random",
+                "embeddings_data_prep.sampling.sampling_mode=random",
                 "local_estimates.filtering.num_samples=300",
                 "local_estimates.compute_global_estimates=true",
                 "local_estimates.pointwise.n_neighbors_mode=absolute_size",

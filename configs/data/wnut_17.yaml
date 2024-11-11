@@ -1,6 +1,6 @@
 defaults:
   - data_splitting: do_nothing
-  - subset@_here_: train_split_and_truncation
+  - data_subsampling: train_split_and_take_first
   - _self_
 
 column_name: tokens

@@ -36,7 +36,8 @@ from topollm.scripts.submission_scripts.submission_config import SubmissionConfi
 from topollm.scripts.submission_scripts.types import (
     CheckpointNoListOption,
     DataListOption,
-    DataNumberOfSamplesListOption,
+    DataSubsamplingNumberOfSamplesListOption,
+    DataSubsamplingSamplingSeedListOption,
     EmbeddingsDataPrepNumSamplesListOption,
     EmbeddingsDataPrepSamplingSeedListOption,
     FinetuningDatasetsListOption,
@@ -177,11 +178,18 @@ def parse_arguments() -> argparse.Namespace:
         help="Data list to use.",
     )
     parser.add_argument(
-        "--data_number_of_samples_list_option",
-        type=DataNumberOfSamplesListOption,
-        default=DataNumberOfSamplesListOption.NONE,
-        help="data_number_of_samples_list option to use.",
+        "--data_subsampling_number_of_samples_list_option",
+        type=DataSubsamplingNumberOfSamplesListOption,
+        default=DataSubsamplingNumberOfSamplesListOption.NONE,
+        help="data_subsampling_number_of_samples_list option to use.",
     )
+    parser.add_argument(
+        "--data_subsampling_sampling_seed_list_option",
+        type=DataSubsamplingSamplingSeedListOption,
+        default=DataSubsamplingSamplingSeedListOption.DEFAULT,
+        help="data_subsampling_sampling_seed_list option to use.",
+    )
+
     parser.add_argument(
         "--language_model_list",
         type=LanguageModelListOption,
@@ -389,19 +397,47 @@ def make_config_and_run_task(
                 msg,
             )
 
-    match args.data_number_of_samples_list_option:
-        case DataNumberOfSamplesListOption.NONE:
-            data_number_of_samples_list = None
-        case DataNumberOfSamplesListOption.FIXED_3000:
-            data_number_of_samples_list = [
+    match args.data_subsampling_number_of_samples_list_option:
+        case DataSubsamplingNumberOfSamplesListOption.NONE:
+            data_subsampling_number_of_samples_list = None
+        case DataSubsamplingNumberOfSamplesListOption.FIXED_3000:
+            data_subsampling_number_of_samples_list = [
                 "3000",
             ]
-        case DataNumberOfSamplesListOption.FIXED_10000:
-            data_number_of_samples_list = [
+        case DataSubsamplingNumberOfSamplesListOption.FIXED_10000:
+            data_subsampling_number_of_samples_list = [
                 "10000",
             ]
+        case DataSubsamplingNumberOfSamplesListOption.UP_TO_10000_WITH_STEP_SIZE_2000:
+            data_subsampling_number_of_samples_list = [str(i * 2000) for i in range(1, 6)]
         case _:
-            msg = f"Unknown {args.data_number_of_samples_list_option = }"
+            msg = f"Unknown {args.data_subsampling_number_of_samples_list_option = }"
+            raise ValueError(
+                msg,
+            )
+
+    match args.data_subsampling_sampling_seed_list_option:
+        case DataSubsamplingSamplingSeedListOption.DEFAULT:
+            data_subsampling_sampling_seed_list = [
+                "778",
+            ]
+        case DataSubsamplingSamplingSeedListOption.FIXED_777:
+            data_subsampling_sampling_seed_list = [
+                "777",
+            ]
+        case DataSubsamplingSamplingSeedListOption.TWO_SEEDS:
+            data_subsampling_sampling_seed_list = [
+                "778",
+                "779",
+            ]
+        case DataSubsamplingSamplingSeedListOption.FIVE_SEEDS:
+            data_subsampling_sampling_seed_list = [str(i) for i in range(778, 783)]
+        case DataSubsamplingSamplingSeedListOption.TEN_SEEDS:
+            data_subsampling_sampling_seed_list = [str(i) for i in range(778, 788)]
+        case DataSubsamplingSamplingSeedListOption.TWENTY_SEEDS:
+            data_subsampling_sampling_seed_list = [str(i) for i in range(778, 798)]
+        case _:
+            msg = f"Unknown {args.data_subsampling_sampling_seed_list_option = }"
             raise ValueError(
                 msg,
             )
@@ -415,7 +451,9 @@ def make_config_and_run_task(
             lr_scheduler_type = "constant"
         case _:
             msg = f"Unknown {args.finetuning_regime = }"
-            raise ValueError(msg)
+            raise ValueError(
+                msg,
+            )
 
     match args.language_model_list:
         case LanguageModelListOption.ONLY_ROBERTA_BASE:
@@ -579,7 +617,9 @@ def make_config_and_run_task(
 
     match args.local_estimates_filtering_num_samples_list:
         case LocalEstimatesFilteringNumSamplesListOption.DEFAULT:
-            local_estimates_filtering_num_samples_list = None
+            local_estimates_filtering_num_samples_list = [
+                "60000",
+            ]
         case LocalEstimatesFilteringNumSamplesListOption.FEW_SMALL_STEPS_NUM_SAMPLES:
             local_estimates_filtering_num_samples_list = [
                 "2500",
@@ -606,6 +646,8 @@ def make_config_and_run_task(
             local_estimates_filtering_num_samples_list = [str(i * 5000) for i in range(1, 19)]
         case LocalEstimatesFilteringNumSamplesListOption.UP_TO_90000_WITH_STEP_SIZE_10000_NUM_SAMPLES:
             local_estimates_filtering_num_samples_list = [str(i * 10000) for i in range(1, 10)]
+        case LocalEstimatesFilteringNumSamplesListOption.UP_TO_100000_WITH_STEP_SIZE_20000_NUM_SAMPLES:
+            local_estimates_filtering_num_samples_list = [str(i * 20000) for i in range(1, 6)]
         case _:
             msg: str = f"Unknown {args.local_estimates_filtering_num_samples_list = }"
             raise ValueError(msg)
@@ -613,7 +655,7 @@ def make_config_and_run_task(
     match args.local_estimates_pointwise_absolute_n_neighbors_list:
         case LocalEstimatesPointwiseAbsoluteNNeighborsListOption.DEFAULT:
             local_estimates_pointwise_absolute_n_neighbors_list = [
-                "256",
+                "128",
             ]
         case LocalEstimatesPointwiseAbsoluteNNeighborsListOption.SINGLE_CHOICE_128:
             local_estimates_pointwise_absolute_n_neighbors_list = [
@@ -670,7 +712,8 @@ def make_config_and_run_task(
         walltime=args.walltime,
         additional_overrides=args.additional_overrides,
         data_list=data_list,
-        data_number_of_samples_list=data_number_of_samples_list,
+        data_subsampling_number_of_samples_list=data_subsampling_number_of_samples_list,
+        data_subsampling_sampling_seed_list=data_subsampling_sampling_seed_list,
         additional_data_options=additional_data_options,
         language_model_list=language_model_list,
         language_model_seed_list=language_model_seed_list,
@@ -696,7 +739,7 @@ def make_config_and_run_task(
 
 def main() -> None:
     """Run the submission."""
-    args = parse_arguments()
+    args: argparse.Namespace = parse_arguments()
 
     make_config_and_run_task(
         args=args,

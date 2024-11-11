@@ -79,8 +79,8 @@ class EmbeddingsConfig(ConfigBaseModel):
     def config_description(
         self,
     ) -> str:
-        desc = f"{NAME_PREFIXES['level']}"
+        desc: str = f"{NAME_PREFIXES['level']}"
         desc += f"{KV_SEP}"
-        desc += f"{str(self.level)}"
+        desc += f"{str(object=self.level)}"
 
         return desc

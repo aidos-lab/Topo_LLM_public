@@ -36,6 +36,7 @@ from transformers import PreTrainedTokenizer, PreTrainedTokenizerFast
 from topollm.config_classes.data.data_config import DataConfig
 from topollm.config_classes.embeddings.embeddings_config import EmbeddingsConfig
 from topollm.config_classes.tokenizer.tokenizer_config import TokenizerConfig
+from topollm.typing.enums import Verbosity
 
 
 @dataclass
@@ -47,7 +48,9 @@ class EmbeddingDataLoaderPreparerContext:
     tokenizer_config: TokenizerConfig
     tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast
     collate_fn: Callable[[list], dict]
-    verbosity: int = 1
+    verbosity: Verbosity = Verbosity.NORMAL
     logger: logging.Logger = field(
-        default_factory=lambda: logging.getLogger(__name__),
+        default_factory=lambda: logging.getLogger(
+            name=__name__,
+        ),
     )

@@ -33,10 +33,13 @@ import datasets
 
 from topollm.config_classes.data.data_config import DataConfig
 from topollm.data_handling.dataset_splitter.protocol import DatasetSplitter
+from topollm.data_handling.dataset_subsampler.protocol import DatasetSubsampler
 from topollm.logging.log_dataset_info import log_huggingface_dataset_info
 from topollm.typing.enums import Verbosity
 
-default_logger = logging.getLogger(__name__)
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 class DatasetPreparerHuggingface:
@@ -46,6 +49,7 @@ class DatasetPreparerHuggingface:
         self,
         data_config: DataConfig,
         dataset_splitter: DatasetSplitter,
+        dataset_subsampler: DatasetSubsampler,
         verbosity: Verbosity = Verbosity.NORMAL,
         logger: logging.Logger = default_logger,
     ) -> None:
@@ -53,6 +57,7 @@ class DatasetPreparerHuggingface:
         self.data_config: DataConfig = data_config
 
         self.dataset_splitter: DatasetSplitter = dataset_splitter
+        self.dataset_subsampler: DatasetSubsampler = dataset_subsampler
 
         self.verbosity: Verbosity = verbosity
         self.logger: logging.Logger = logger
@@ -106,12 +111,14 @@ class DatasetPreparerHuggingface:
         self,
         dataset_dict: datasets.DatasetDict,
     ) -> datasets.Dataset:
-        if self.verbosity >= 1:
+        if self.verbosity >= Verbosity.NORMAL:
             default_logger.info(
                 "dataset_dict:\n%s",
                 dataset_dict,
             )
-            default_logger.info("Applying dataset splitter ...")
+            default_logger.info(
+                msg="Applying dataset splitter ...",
+            )
 
         # Apply the dataset splitter to the dataset
         new_dataset_dict: datasets.DatasetDict = self.dataset_splitter.split_dataset(
@@ -124,37 +131,32 @@ class DatasetPreparerHuggingface:
                 new_dataset_dict,
             )
 
+        # # # #
         # Select the dataset split to use
-        dataset: datasets.Dataset = new_dataset_dict[self.data_config.split.value]
-
-        # TODO: Implement a dataset sampler step here.
-
-        # Truncate the dataset to the specified number of samples
-        if self.data_config.number_of_samples == -1:
-            # Use all samples
-            pass
-        elif self.data_config.number_of_samples > 0:
-            # Use only the specified number of samples
-            dataset = dataset.select(
-                indices=range(self.data_config.number_of_samples),
+        if self.verbosity >= Verbosity.NORMAL:
+            self.logger.info(
+                msg=f"Selecting dataset split {self.data_config.data_subsampling.split.value = } ...",  # noqa: G004 - low overhead
             )
-        else:
-            msg: str = f"Expected {self.data_config.number_of_samples = } to be -1 or a positive integer"
-            raise ValueError(msg)
+        dataset: datasets.Dataset = new_dataset_dict[self.data_config.data_subsampling.split.value]
 
-        self.dataset_length = len(dataset)
+        # Apply the dataset subsampler to the dataset
+        subsampled_dataset: datasets.Dataset = self.dataset_subsampler.subsample_dataset(
+            dataset=dataset,
+        )
+
+        self.dataset_length = len(subsampled_dataset)
 
         if self.verbosity >= Verbosity.NORMAL:
             self.logger.info(
                 msg=f"{self.dataset_length = }",  # noqa: G004 - no overhead
             )
             log_huggingface_dataset_info(
-                dataset=dataset,
-                dataset_name="dataset",
+                dataset=subsampled_dataset,
+                dataset_name="subsampled_dataset",
                 logger=self.logger,
             )
 
-        return dataset
+        return subsampled_dataset
 
     def prepare_dataset(
         self,

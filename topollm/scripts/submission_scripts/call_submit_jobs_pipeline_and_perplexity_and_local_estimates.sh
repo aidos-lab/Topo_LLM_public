@@ -84,9 +84,9 @@ fi
 # ================================================================== #
 
 # DATA_LIST="full"
-# DATA_LIST="multiwoz21_and_reddit"
+DATA_LIST="multiwoz21_and_reddit"
 # DATA_LIST="multiwoz21_train_and_reddit_train"
-DATA_LIST="multiwoz21_only"
+# DATA_LIST="multiwoz21_only"
 # DATA_LIST="reddit_only"
 
 # DATA_LIST="only_train"
@@ -99,6 +99,11 @@ DATA_LIST="multiwoz21_only"
 # DATA_NUMBER_OF_SAMPLES_LIST_OPTION="none"
 # DATA_NUMBER_OF_SAMPLES_LIST_OPTION="fixed_3000"
 DATA_NUMBER_OF_SAMPLES_LIST_OPTION="fixed_10000"
+# DATA_NUMBER_OF_SAMPLES_LIST_OPTION="up_to_10000_with_step_size_2000"
+
+# DATA_SUBSAMPLING_SAMPLING_SEED_LIST_OPTION="default"
+# DATA_SUBSAMPLING_SAMPLING_SEED_LIST_OPTION="fixed_777"
+DATA_SUBSAMPLING_SAMPLING_SEED_LIST_OPTION="ten_seeds"
 
 # ================================================================== #
 
@@ -121,9 +126,11 @@ EMBEDDINGS_DATA_PREP_NUM_SAMPLES_LIST_OPTION="single_choice_100000"
 # EMBEDDINGS_DATA_PREP_NUM_SAMPLES_LIST_OPTION="five_choices_10000_steps"
 # EMBEDDINGS_DATA_PREP_NUM_SAMPLES_LIST_OPTION="single_choice_250000"
 
+LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="default"
 # LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="few_small_steps_num_samples"
 # LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="up_to_90000_with_step_size_5000_num_samples"
-LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="up_to_90000_with_step_size_10000_num_samples"
+# LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="up_to_90000_with_step_size_10000_num_samples"
+# LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="up_to_100000_with_step_size_20000_num_samples"
 
 # LOCAL_ESTIMATES_POINTWISE_ABSOLUTE_N_NEIGHBORS_LIST="powers_of_two_up_to_1024"
 LOCAL_ESTIMATES_POINTWISE_ABSOLUTE_N_NEIGHBORS_LIST="single_choice_128"
@@ -165,7 +172,8 @@ if [ "$DO_PIPELINE" = "true" ]; then
       --template="DSML" \
       --memory=$MEMORY \
       --data_list=$DATA_LIST \
-      --data_number_of_samples_list_option=$DATA_NUMBER_OF_SAMPLES_LIST_OPTION \
+      --data_subsampling_number_of_samples_list_option=$DATA_NUMBER_OF_SAMPLES_LIST_OPTION \
+      --data_subsampling_sampling_seed_list_option=$DATA_SUBSAMPLING_SAMPLING_SEED_LIST_OPTION \
       $CREATE_POS_TAGS_FLAG \
       --language_model_list=$LANGUAGE_MODEL_LIST \
       --checkpoint_no_list=$CHECKPOINT_NO_LIST \
@@ -181,27 +189,6 @@ if [ "$DO_PIPELINE" = "true" ]; then
   echo ">>> Submitting pipeline jobs DONE"
 fi
 # ================================================================== #
-
-# ================================================================== #
-if [ "$DO_PERPLEXITY" = "true" ]; then
-  echo ">>> Submitting perplexity jobs ..."
-  # Note: Do not use the CREATE_POS_TAGS_FLAG for the perplexity task.
-  poetry run submit_jobs \
-      --task="perplexity" \
-      --queue="CUDA" \
-      --template="RTX6000" \
-      --data_list=$DATA_LIST \
-      --data_number_of_samples_list_option=$DATA_NUMBER_OF_SAMPLES_LIST_OPTION \
-      --language_model_list=$LANGUAGE_MODEL_LIST \
-      --checkpoint_no_list=$CHECKPOINT_NO_LIST \
-      --language_model_seed_list=$LANGUAGE_MODEL_SEED_LIST \
-      $ADD_PREFIX_SPACE_FLAG \
-      --finetuning_regime=$FINETUNING_REGIME \
-      --submission_mode=$SUBMISSION_MODE \
-      $DRY_RUN_FLAG
-  echo ">>> Submitting perplexity jobs DONE"
-fi
-# ================================================================== #
        
 # ================================================================== #
 if [ "$DO_LOCAL_ESTIMATES_COMPUTATION" = "true" ]; then
@@ -214,7 +201,8 @@ if [ "$DO_LOCAL_ESTIMATES_COMPUTATION" = "true" ]; then
       --ngpus="0" \
       --walltime="08:00:00" \
       --data_list=$DATA_LIST \
-      --data_number_of_samples_list_option=$DATA_NUMBER_OF_SAMPLES_LIST_OPTION \
+      --data_subsampling_number_of_samples_list_option=$DATA_NUMBER_OF_SAMPLES_LIST_OPTION \
+      --data_subsampling_sampling_seed_list_option=$DATA_SUBSAMPLING_SAMPLING_SEED_LIST_OPTION \
       $CREATE_POS_TAGS_FLAG \
       --language_model_list=$LANGUAGE_MODEL_LIST \
       --checkpoint_no_list=$CHECKPOINT_NO_LIST \
@@ -229,6 +217,28 @@ if [ "$DO_LOCAL_ESTIMATES_COMPUTATION" = "true" ]; then
       --submission_mode=$SUBMISSION_MODE \
       $DRY_RUN_FLAG
   echo ">>> Submitting local estimates computation jobs DONE"
+fi
+# ================================================================== #
+
+# ================================================================== #
+if [ "$DO_PERPLEXITY" = "true" ]; then
+  echo ">>> Submitting perplexity jobs ..."
+  # Note: Do not use the CREATE_POS_TAGS_FLAG for the perplexity task.
+  poetry run submit_jobs \
+      --task="perplexity" \
+      --queue="CUDA" \
+      --template="RTX6000" \
+      --data_list=$DATA_LIST \
+      --data_subsampling_number_of_samples_list_option=$DATA_NUMBER_OF_SAMPLES_LIST_OPTION \
+      --data_subsampling_sampling_seed_list_option=$DATA_SUBSAMPLING_SAMPLING_SEED_LIST_OPTION \
+      --language_model_list=$LANGUAGE_MODEL_LIST \
+      --checkpoint_no_list=$CHECKPOINT_NO_LIST \
+      --language_model_seed_list=$LANGUAGE_MODEL_SEED_LIST \
+      $ADD_PREFIX_SPACE_FLAG \
+      --finetuning_regime=$FINETUNING_REGIME \
+      --submission_mode=$SUBMISSION_MODE \
+      $DRY_RUN_FLAG
+  echo ">>> Submitting perplexity jobs DONE"
 fi
 # ================================================================== #
 

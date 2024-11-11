@@ -34,24 +34,7 @@ import re
 def parse_path_info_full(
     path: str | pathlib.Path,
 ) -> dict[str, str | int]:
-    """Parse the information from the path.
-
-    Example path:
-    /Users/USER_NAME/git-source/Topo_LLM/
-    data/
-    analysis/
-    twonn/
-    data-multiwoz21_split-train_ctxt-dataset_entry_samples-10000_feat-col-ner_tags/
-    lvl-token/
-    add-prefix-space-True_max-len-512/
-    model-model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-31200_task-masked_lm/
-    layer--1_agg-mean/
-    norm-None/
-    sampling-take_first_seed-42_samples-30000/
-    desc-twonn_samples-2500_zerovec-keep_dedup-array_deduplicator/
-    n-neighbors-mode-absolute_size_n-neighbors-128/
-    local_estimates_pointwise.npy
-    """
+    """Parse the information from the path."""
     # Convert the path to a string
     path_str = str(
         object=path,
@@ -65,7 +48,7 @@ def parse_path_info_full(
     # - (\d+): Match one or more digits for the number of samples.
     sampling_info: dict = {}
     sampling_match: re.Match[str] | None = re.search(
-        pattern=r"sampling-(\w+)_seed-(\d+)_samples-(\d+)",
+        pattern=r"sampling=(\w+)_seed=(\d+)_samples=(\d+)",
         string=path_str,
     )
     if sampling_match:
@@ -83,7 +66,7 @@ def parse_path_info_full(
     #   followed by one or more alphanumeric or underscore characters for deduplication.
     local_estimates_info: dict = {}
     desc_match: re.Match[str] | None = re.search(
-        pattern=r"desc-(\w+)_samples-(\d+)_zerovec-([a-zA-Z0-9]+)(?:_dedup-([a-zA-Z0-9_]+))?",
+        pattern=r"desc=(\w+)_samples=(\d+)_zerovec=([a-zA-Z0-9]+)(?:_dedup=([a-zA-Z0-9_]+))?",
         string=path_str,
     )
     if desc_match:
@@ -96,15 +79,15 @@ def parse_path_info_full(
     # Extract neighbors information
     # Matches neighbors mode and number of neighbors, e.g.,
     # "n-neighbors-mode-absolute_size_n-neighbors-256"
-    # - (\w+): Match one or more word characters for the neighbors mode.
+    # - ([a-zA-Z0-9]+): Match one or more alphanumeric characters for the neighbors mode.
     # - (\d+): Match one or more digits for the number of neighbors.
     neighbors_info: dict = {}
     neighbors_match: re.Match[str] | None = re.search(
-        pattern=r"n-neighbors-mode-(\w+)_size_n-neighbors-(\d+)",
+        pattern=r"n-neighbors-mode=([a-zA-Z0-9_]+)_n-neighbors=(\d+)",
         string=path_str,
     )
     if neighbors_match:
-        neighbors_info["neighbors_mode"] = neighbors_match.group(1)
+        neighbors_info["n_neighbors_mode"] = neighbors_match.group(1)
         neighbors_info["n_neighbors"] = int(neighbors_match.group(2))
 
     # Extract model information
@@ -120,16 +103,21 @@ def parse_path_info_full(
     # - ([\w-]+): Match one or more word characters or hyphens for the normalization type.
     layer_info: dict = {}
     layer_match: re.Match[str] | None = re.search(
-        pattern=r"layer-(-?\d+)_agg-([\w-]+)/norm-([\w-]+)",
+        pattern=r"layer=(-?\d+)_agg=([\w-]+)/norm=([\w-]+)",
         string=path_str,
     )
     if layer_match:
         layer_info["model_layer"] = int(layer_match.group(1))
         layer_info["aggregation"] = layer_match.group(2)
-        layer_info["normalization"] = layer_match.group(3)
+        layer_info["normalization"] = str(object=layer_match.group(3))
 
     # Extract data information
     data_info: dict = parse_data_info(
+        path_str=path_str,
+    )
+
+    # Extract data subsampling information
+    data_subsampling_info: dict = parse_data_subsampling_info(
         path_str=path_str,
     )
 
@@ -141,6 +129,7 @@ def parse_path_info_full(
         **model_info,
         **layer_info,
         **data_info,
+        **data_subsampling_info,
     }
 
     return parsed_info
@@ -154,22 +143,45 @@ def parse_data_info(
 
     # Matches and parses data information including dataset name, split, context, number of samples, and feature column,
     # e.g., "data-multiwoz21_split-validation_ctxt-dataset_entry_samples-3000_feat-col-ner_tags"
-    # - (\w+): Match the dataset name.
-    # - split-(\w+): Match the split type (e.g., "validation").
-    # - ctxt-([\w-]+): Match the context type (e.g., "dataset_entry").
-    # - samples-(\d+): Match the number of samples.
-    # - feat-col-([\w-]+): Match the feature column.
+    # - data=(\w+): Match the dataset name.
+    # - spl-mode=([a-zA-Z0-9_]+): Match the data splitting mode.
+    # - ctxt=([a-zA-Z0-9_]+): Match the context type (e.g., "dataset_entry").
+    # - feat-col=([a-zA-Z0-9_]+): Match the feature column.
     data_match: re.Match[str] | None = re.search(
-        pattern=r"data-([\w-]+)_split-(\w+)_ctxt-([\w-]+)_samples-(\d+)_feat-col-([\w-]+)",
+        pattern=r"data=([\w-]+)_spl-mode=([a-zA-Z0-9_]+)_ctxt=([a-zA-Z0-9_]+)_feat-col=([a-zA-Z0-9_]+)",
         string=path_str,
     )
     if data_match:
         parsed_info["data_full"] = data_match.group(0)  # The full matched data string
         parsed_info["dataset_name"] = data_match.group(1)
-        parsed_info["split"] = data_match.group(2)
+        parsed_info["data_splitting_mode"] = data_match.group(2)
+        # TODO: This does not include additional data splitting information yet
         parsed_info["context"] = data_match.group(3)
-        parsed_info["samples"] = int(data_match.group(4))
-        parsed_info["feature_column"] = data_match.group(5)
+        parsed_info["feature_column"] = data_match.group(4)
+
+    return parsed_info
+
+
+def parse_data_subsampling_info(
+    path_str: str,
+) -> dict:
+    """Parse the data subsampling information from the given path."""
+    parsed_info = {}
+
+    # path_str="split=test_samples=2000_sampling=take_first"
+
+    subsampling_match = re.search(
+        pattern=r"split=(\w+)_samples=(\d+)_sampling=([a-zA-Z0-9_]+)(?:_sampling-seed=(\d+))?",
+        string=path_str,
+    )
+    if subsampling_match:
+        parsed_info["data_subsampling_full"] = subsampling_match.group(0)  # The full matched string
+        parsed_info["data_split"] = subsampling_match.group(1)
+        parsed_info["data_subsampling_number_of_samples"] = int(subsampling_match.group(2))
+        parsed_info["data_subsampling_sampling_mode"] = subsampling_match.group(3)
+        parsed_info["data_subsampling_sampling_seed"] = (
+            int(subsampling_match.group(4)) if subsampling_match.group(4) else None
+        )
 
     return parsed_info
 
@@ -188,7 +200,7 @@ def parse_model_info(
         path: Path string from which to extract model information.
 
     Returns:
-        dict[str, str | int | None]: Dictionary containing the parsed model information.
+        Dictionary containing the parsed model information.
 
     """
     # Convert the path to a string
@@ -203,7 +215,7 @@ def parse_model_info(
     # Find the segment containing the model information
     model_segment = None
     for segment in path_parts:
-        if segment.startswith("model-"):
+        if segment.startswith("model="):
             model_segment = segment
             break
 
@@ -215,12 +227,16 @@ def parse_model_info(
         model_name = model_segment
 
         # Remove task if present (start from the end)
-        task_match = re.search(r"_task-([\w-]+)$", model_name)
+        task_match = re.search(r"_task=([\w-]+)$", model_name)
         if task_match:
             parsed_info["model_task"] = task_match.group(1)
             model_name = model_name[: task_match.start()]
         else:
             parsed_info["model_task"] = None
+
+        # Note: For the checkpoint and seed
+        # we still use the old '-' key-value separator,
+        # because this still appears in the model names.
 
         # Remove checkpoint if present (after removing task)
         ckpt_match = re.search(r"_ckpt-(\d+)$", model_name)

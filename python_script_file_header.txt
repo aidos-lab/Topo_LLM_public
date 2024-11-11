@@ -1,10 +1,10 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -24,37 +24,3 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-"""Do nothing with the dataset dict."""
-
-import logging
-
-import datasets
-
-from topollm.typing.enums import Verbosity
-
-logger: logging.Logger = logging.getLogger(
-    name=__name__,
-)
-
-
-class DatasetSplitterDoNothing:
-    """Do nothing with the dataset dict."""
-
-    def __init__(
-        self,
-        verbosity: Verbosity = Verbosity.NORMAL,
-        logger: logging.Logger = logger,
-    ) -> None:
-        """Initialize the dataset splitter."""
-        self.verbosity: Verbosity = verbosity
-        self.logger: logging.Logger = logger
-
-    def split_dataset(
-        self,
-        dataset_dict: datasets.DatasetDict,
-    ) -> datasets.DatasetDict:
-        """Return the dataset_dict unchanged."""
-        if self.verbosity >= 1:
-            self.logger.info("Returning unchanged dataset_dict.")
-        return dataset_dict
