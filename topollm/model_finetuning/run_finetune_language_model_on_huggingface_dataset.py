@@ -66,7 +66,9 @@ os.environ["WANDB__SERVICE_WAIT"] = "300"
 #     "core",
 # )
 
-global_logger = logging.getLogger(__name__)
+global_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 setup_exception_logging(
     logger=global_logger,
@@ -74,6 +76,12 @@ setup_exception_logging(
 
 # Set the transformers logging level
 transformers.logging.set_verbosity_info()
+
+# Make the transformers logger propagate to the root logger
+# TODO: Make this into a function
+transformers_logger: logging.Logger = transformers.logging.get_logger()
+transformers_logger.handlers = []  # This avoids duplicate logging
+transformers_logger.propagate = True
 
 setup_omega_conf()
 
@@ -87,9 +95,9 @@ def main(
     config: omegaconf.DictConfig,
 ) -> None:
     """Run the script."""
-    logger = global_logger
+    logger: logging.Logger = global_logger
     logger.info(
-        "Running script ...",
+        msg="Running script ...",
     )
 
     main_config: MainConfig = initialize_configuration(
@@ -123,7 +131,7 @@ def main(
 
     if not main_config.feature_flags.finetuning.skip_finetuning:
         logger.info(
-            "Calling do_finetuning_process ...",
+            msg="Calling do_finetuning_process ...",
         )
 
         do_finetuning_process(
@@ -133,7 +141,7 @@ def main(
         )
 
         logger.info(
-            "Calling do_finetuning_process DONE",
+            msg="Calling do_finetuning_process DONE",
         )
 
     if main_config.feature_flags.wandb.use_wandb:
@@ -143,7 +151,7 @@ def main(
 
     if main_config.feature_flags.finetuning.do_create_finetuned_language_model_config:
         logger.info(
-            "Calling create_finetuned_language_model_config ...",
+            msg="Calling create_finetuned_language_model_config ...",
         )
 
         create_finetuned_language_model_config(
@@ -153,11 +161,11 @@ def main(
         )
 
         logger.info(
-            "Calling create_finetuned_language_model_config DONE",
+            msg="Calling create_finetuned_language_model_config DONE",
         )
 
     logger.info(
-        "Running script DONE",
+        msg="Running script DONE",
     )
 
 

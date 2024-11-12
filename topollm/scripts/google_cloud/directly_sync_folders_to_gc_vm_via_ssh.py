@@ -1,10 +1,10 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -25,24 +25,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Run script to create embedding vectors from dataset based on config."""
+"""Submit jobs for pipeline, perplexity, or finetuning."""
 
+import argparse
 import logging
-from typing import TYPE_CHECKING
+import pathlib
+import subprocess
 
 import hydra
 import hydra.core.hydra_config
 import omegaconf
 
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
+from topollm.config_classes.get_data_dir import get_data_dir
+from topollm.config_classes.main_config import MainConfig
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
-from topollm.model_handling.get_torch_device import get_torch_device
-from topollm.pipeline_scripts.worker_for_pipeline import worker_for_pipeline
-
-if TYPE_CHECKING:
-    from topollm.config_classes.main_config import MainConfig
 
 try:
     from hydra_plugins import hpc_submission_launcher
@@ -63,6 +62,22 @@ setup_exception_logging(
 setup_omega_conf()
 
 
+def parse_arguments() -> argparse.Namespace:
+    """Parse command line arguments."""
+    parser = argparse.ArgumentParser(
+        description="Directly sync data to Google Cloud virtual machines.",
+    )
+
+    parser.add_argument(
+        "--dry_run",
+        action="store_true",
+        help="Dry run the command.",
+    )
+
+    args: argparse.Namespace = parser.parse_args()
+    return args
+
+
 @hydra.main(
     config_path=f"{HYDRA_CONFIGS_BASE_PATH}",
     config_name="main_config",
@@ -80,20 +95,13 @@ def main(
         logger=logger,
     )
 
-    device = get_torch_device(
-        preferred_torch_backend=main_config.preferred_torch_backend,
-        logger=logger,
-    )
-
-    # # # # # # # # # # # # # # # #
-    # Call the worker function
-    worker_for_pipeline(
+    data_dir: pathlib.Path = get_data_dir(
         main_config=main_config,
-        logger=logger,
-        device=device,
+        verbosity=main_config.verbosity,
+        logger=global_logger,
     )
 
-    logger.info("Running script DONE")
+    # TODO: Implement this script
 
 
 if __name__ == "__main__":

@@ -39,6 +39,7 @@ import omegaconf
 import pandas as pd
 from tqdm import tqdm
 
+from topollm.config_classes.get_data_dir import get_data_dir
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.logging.log_list_info import log_list_info
@@ -71,8 +72,11 @@ def main(
         logger=global_logger,
     )
 
-    data_dir = main_config.paths.data_dir
-    global_logger.info(f"{data_dir = }")
+    data_dir: pathlib.Path = get_data_dir(
+        main_config=main_config,
+        verbosity=main_config.verbosity,
+        logger=global_logger,
+    )
 
     process_dataset(
         data_dir=data_dir,
