@@ -107,7 +107,7 @@ class FinetuningConfig(ConfigBaseModel):
     )
 
     log_level: str = Field(
-        default="info",
+        default="debug",
         description="The log level.",
     )
 

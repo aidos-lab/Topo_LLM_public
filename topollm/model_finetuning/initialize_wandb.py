@@ -30,8 +30,8 @@ import os
 import pathlib
 
 import omegaconf
-import wandb
 
+import wandb
 from topollm.config_classes.main_config import MainConfig
 
 default_logger = logging.getLogger(__name__)
