@@ -57,7 +57,7 @@ def test_hydra_with_main_config() -> None:
         cfg: omegaconf.DictConfig = compose(
             config_name="main_config",
             overrides=[
-                "data.number_of_samples=6000",
+                "data.data_subsampling.number_of_samples=6000",
             ],
         )
 

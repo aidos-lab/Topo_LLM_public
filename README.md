@@ -13,12 +13,31 @@ This repository contains code for analyzing the representations produced by cont
 - `pipx` for managing Python packages
 - `poetry` package manager
 
-On MacOS, you can install `pyenv` with homebrew: `brew install pyenv` and `pipx` with homebrew: `brew install pipx`.
-You can install `poetry` with `pipx` via: `pipx install poetry`.
+#### MacOS specific instructions
+
+On MacOS, you can install `pyenv` and `pipx` with Homebrew: 
+- `brew install pyenv`
+- `brew install pipx`.
+
+You can install `poetry` with `pipx`: 
+- `pipx install poetry`.
+
+#### Ubuntu/Debian instructions
+
+Install `pipx` via `apt` and then install `poetry` via `pipx`:
+
+```bash
+sudo apt update
+sudo apt install pipx
+pipx ensurepath
+
+pipx install poetry
+```
 
 ### Installation instructions with poetry
 
 1. Install python version with `pyenv` and set local python version for the project.
+You can install `pyenv` via Homebrew on MacOS and UNIX systems.
 
 ```bash
 pyenv install 3.12
@@ -28,8 +47,7 @@ pyenv local 3.12
 1. Tell poetry to use the local python version.
 
 ```bash
-# Optional: Tell poetry to create a virtual environment for the project
-# inside the project directory.
+# Optional: Tell poetry to create a virtual environment for the project inside the project directory.
 poetry config virtualenvs.in-project true
 
 poetry env use 3.12
