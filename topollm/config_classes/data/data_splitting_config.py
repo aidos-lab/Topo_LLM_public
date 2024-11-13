@@ -31,7 +31,7 @@ from pydantic import Field
 
 from topollm.config_classes.config_base_model import ConfigBaseModel
 from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
-from topollm.typing.enums import DataSplitMode
+from topollm.typing.enums import DataSplitMode, DescriptionType
 
 
 class Proportions(ConfigBaseModel):
@@ -55,16 +55,29 @@ class Proportions(ConfigBaseModel):
         description="The proportion of the data to use for testing.",
     )
 
-    @property
-    def config_description(
+    def get_config_description(
         self,
+        description_type: DescriptionType = DescriptionType.LONG,
+        short_description_separator: str = "-",
     ) -> str:
         """Return a description of the configuration."""
-        description: str = (
-            f"{NAME_PREFIXES['train_short']}{KV_SEP}{self.train}"
-            f"{ITEM_SEP}{NAME_PREFIXES['validation_short']}{KV_SEP}{self.validation}"
-            f"{ITEM_SEP}{NAME_PREFIXES['test_short']}{KV_SEP}{self.test}"
-        )
+        match description_type:
+            case DescriptionType.LONG:
+                description: str = (
+                    f"{NAME_PREFIXES['train_short']}{KV_SEP}{self.train}"
+                    f"{ITEM_SEP}{NAME_PREFIXES['validation_short']}{KV_SEP}{self.validation}"
+                    f"{ITEM_SEP}{NAME_PREFIXES['test_short']}{KV_SEP}{self.test}"
+                )
+            case DescriptionType.SHORT:
+                description: str = (
+                    f"{self.train}"
+                    f"{short_description_separator}{self.validation}"
+                    f"{short_description_separator}{self.test}"
+                )
+            case _:
+                msg: str = f"Invalid {description_type = }"
+                raise ValueError(msg)
+
         return description
 
 
@@ -95,20 +108,44 @@ class DataSplittingConfig(ConfigBaseModel):
         description="The proportions to use for splitting the data.",
     )
 
-    @property
-    def config_description(
+    def get_config_description(
         self,
+        description_type: DescriptionType = DescriptionType.LONG,
+        short_description_separator: str = "-",
     ) -> str:
         """Return a description of the configuration."""
         match self.data_splitting_mode:
             case DataSplitMode.DO_NOTHING:
-                # No additional information needed for DO_NOTHING
-                description: str = f"{NAME_PREFIXES['data_splitting_mode']}{KV_SEP}{self.data_splitting_mode}"
+                match description_type:
+                    case DescriptionType.LONG:
+                        description: str = f"{NAME_PREFIXES['data_splitting_mode']}{KV_SEP}{self.data_splitting_mode}"
+                    case DescriptionType.SHORT:
+                        description: str = f"{self.data_splitting_mode}"
+                    case _:
+                        msg: str = f"Invalid {description_type = }"
+                        raise ValueError(msg)
+                # No additional information except data_splitting_mode needed for DO_NOTHING
             case DataSplitMode.PROPORTIONS:
-                description: str = f"{NAME_PREFIXES['data_splitting_mode']}{KV_SEP}{self.data_splitting_mode}"
-                description += f"{ITEM_SEP}{NAME_PREFIXES['split_shuffle']}{KV_SEP}{self.split_shuffle}"
-                description += f"{ITEM_SEP}{NAME_PREFIXES['split_seed']}{KV_SEP}{self.split_seed}"
-                description += f"{ITEM_SEP}{self.proportions.config_description}"
+                match description_type:
+                    case DescriptionType.LONG:
+                        description: str = f"{NAME_PREFIXES['data_splitting_mode']}{KV_SEP}{self.data_splitting_mode}"
+                        description += f"{ITEM_SEP}{NAME_PREFIXES['split_shuffle']}{KV_SEP}{self.split_shuffle}"
+                        description += f"{ITEM_SEP}{NAME_PREFIXES['split_seed']}{KV_SEP}{self.split_seed}"
+                        description += f"{ITEM_SEP}{self.proportions.get_config_description(
+                            description_type=description_type,
+                            short_description_separator=short_description_separator,
+                        )}"
+                    case DescriptionType.SHORT:
+                        description: str = f"{self.data_splitting_mode}"
+                        description += f"{short_description_separator}{self.split_shuffle}"
+                        description += f"{short_description_separator}{self.split_seed}"
+                        description += f"{short_description_separator}{self.proportions.get_config_description(
+                            description_type=description_type,
+                            short_description_separator=short_description_separator,
+                        )}"
+                    case _:
+                        msg: str = f"Invalid {description_type = }"
+                        raise ValueError(msg)
             case _:
                 msg: str = f"Invalid {self.data_splitting_mode = }"
                 raise ValueError(msg)

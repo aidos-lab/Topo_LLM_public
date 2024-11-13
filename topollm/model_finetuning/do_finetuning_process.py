@@ -284,7 +284,7 @@ def do_finetuning_process(
         data_collator=data_collator,
         train_dataset=train_dataset_mapped,  # type: ignore - typing issue with Dataset
         eval_dataset=eval_dataset_mapped,  # type: ignore - typing issue with Dataset
-        tokenizer=tokenizer,
+        tokenizer=tokenizer,  # type: ignore - typing issue with Tokenizer
         compute_metrics=compute_metrics,
     )
 

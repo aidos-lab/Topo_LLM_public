@@ -122,7 +122,9 @@ class DataConfig(ConfigBaseModel):
             f"{KV_SEP}"
             f"{self.dataset_description_string}"
             f"{ITEM_SEP}"
-            f"{self.data_splitting.config_description}"  # Description of the data splitting configuration
+            f"{self.data_splitting.get_config_description(
+                description_type=DescriptionType.LONG,
+            )}"  # Description of the data splitting configuration
             f"{ITEM_SEP}"
             f"{NAME_PREFIXES['context']}"
             f"{KV_SEP}"
@@ -143,7 +145,9 @@ class DataConfig(ConfigBaseModel):
         description: str = (
             self.dataset_description_string
             + short_description_separator
-            + self.data_splitting.config_description
+            + self.data_splitting.get_config_description(
+                description_type=DescriptionType.SHORT,
+            )
             + short_description_separator
             + self.feature_column_name
         )
