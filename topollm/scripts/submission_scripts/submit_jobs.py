@@ -269,6 +269,16 @@ def parse_arguments() -> argparse.Namespace:
         default=LocalEstimatesPointwiseAbsoluteNNeighborsListOption.DEFAULT,
         help="Local estimates pointwise absolute n neighbors list to use.",
     )
+
+    parser.add_argument(
+        "--wandb_project",
+        type=str,
+        default="Topo_LLM_finetuning_from_submission_script",
+        help="Wandb project name.",
+    )
+
+    # # # #
+    # Feature flags
     parser.add_argument(
         "--skip_compute_and_store_embeddings",
         action="store_true",
@@ -729,6 +739,7 @@ def make_config_and_run_task(
         finetuning_seed_list=finetuning_seed_list,
         num_train_epochs=num_train_epochs,
         lr_scheduler_type=lr_scheduler_type,
+        wandb_project=args.wandb_project,
         skip_compute_and_store_embeddings=args.skip_compute_and_store_embeddings,
     )
 

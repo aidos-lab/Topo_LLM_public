@@ -259,6 +259,7 @@ if [ "$DO_FINETUNING" = "true" ]; then
     --finetuning_seed_list="one_seed" \
     --finetuning_regime="many_epochs_with_overfitting_risk" \
     --submission_mode=$SUBMISSION_MODE \
+    --wandb_project="Topo_LLM_finetuning_from_submission_script_DEBUG" \
     $DRY_RUN_FLAG
   echo ">>> Submitting finetuning jobs ..."
 fi

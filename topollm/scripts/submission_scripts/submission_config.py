@@ -139,9 +139,12 @@ class SubmissionConfig(BaseModel):
     batch_size_train: str | None = "8"
     batch_size_eval: str | None = "8"
 
+    wandb_project: str | None = "Topo_LLM_finetuning_from_submission_script"
+
     # # # #
     # Feature flags
     skip_compute_and_store_embeddings: bool = False
+    feature_flags_wandb_use_wandb: str | None = "true"
 
     python_script_name: str = Field(
         default="run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
@@ -212,6 +215,10 @@ class SubmissionConfig(BaseModel):
         if self.skip_compute_and_store_embeddings:
             feature_flags_command.append(
                 "feature_flags.compute_and_store_embeddings.skip_compute_and_store_embeddings=true",
+            )
+        if self.feature_flags_wandb_use_wandb:
+            feature_flags_command.append(
+                "feature_flags.wandb.use_wandb=" + self.feature_flags_wandb_use_wandb,
             )
 
         return feature_flags_command
@@ -310,6 +317,11 @@ class SubmissionConfig(BaseModel):
         if self.finetuning_seed_list:
             task_specific_command.append(
                 "finetuning.seed=" + ",".join(self.finetuning_seed_list),
+            )
+
+        if self.wandb_project:
+            task_specific_command.append(
+                f"wandb.project={self.wandb_project}",
             )
 
         return task_specific_command
