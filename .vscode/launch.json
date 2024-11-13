@@ -35,7 +35,7 @@
             ]
         },
         {
-            "name": "run_finetune_language_model_on_huggingface_dataset.py; skip finetuning; only config file creation",
+            "name": "skip finetuning; only config file creation; run_finetune_language_model_on_huggingface_dataset.py",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/model_finetuning/run_finetune_language_model_on_huggingface_dataset.py",
@@ -46,15 +46,15 @@
             ]
         },
         {
-            "name": "run_finetune_language_model_on_huggingface_dataset.py; on NER task",
+            "name": "on NER task; run_finetune_language_model_on_huggingface_dataset.py",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/model_finetuning/run_finetune_language_model_on_huggingface_dataset.py",
             "console": "integratedTerminal",
             "args": [
                 "finetuning=finetuning_for_token_classification",
-                "finetuning.finetuning_datasets.train_dataset.number_of_samples=100",
-                "finetuning.finetuning_datasets.eval_dataset.number_of_samples=20",
+                "finetuning.finetuning_datasets.train_dataset.data_subsampling.number_of_samples=100",
+                "finetuning.finetuning_datasets.eval_dataset.data_subsampling.number_of_samples=20",
                 "finetuning.eval_steps=2",
                 "+finetuning.trainer_modifier.mode=add_wandb_prediction_progress_callback",
                 "+finetuning.trainer_modifier.frequency=4",
@@ -63,7 +63,7 @@
             ]
         },
         {
-            "name": "run_finetune_language_model_on_huggingface_dataset.py; on masked language modeling task",
+            "name": "on MLM task; run_finetune_language_model_on_huggingface_dataset.py",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/model_finetuning/run_finetune_language_model_on_huggingface_dataset.py",
@@ -72,8 +72,8 @@
                 "--multirun",
                 "finetuning=finetuning_for_masked_lm",
                 "finetuning.eval_steps=2",
-                "finetuning.finetuning_datasets.train_dataset.number_of_samples=80",
-                "finetuning.finetuning_datasets.eval_dataset.number_of_samples=20",
+                "finetuning.finetuning_datasets.train_dataset.data_subsampling.number_of_samples=80",
+                "finetuning.finetuning_datasets.eval_dataset.data_subsampling.number_of_samples=20",
                 "finetuning.num_train_epochs=2",
                 "+finetuning.trainer_modifier.mode=add_wandb_prediction_progress_callback",
                 "+finetuning.trainer_modifier.frequency=4",
@@ -83,15 +83,15 @@
             ]
         },
         {
-            "name": "run_finetune_language_model_on_huggingface_dataset.py; on causal language modeling task",
+            "name": "on CLM task; run_finetune_language_model_on_huggingface_dataset.py",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/model_finetuning/run_finetune_language_model_on_huggingface_dataset.py",
             "console": "integratedTerminal",
             "args": [
                 "finetuning=finetuning_for_causal_lm",
-                "finetuning.finetuning_datasets.train_dataset.number_of_samples=100",
-                "finetuning.finetuning_datasets.eval_dataset.number_of_samples=20",
+                "finetuning.finetuning_datasets.train_dataset.data_subsampling.number_of_samples=100",
+                "finetuning.finetuning_datasets.eval_dataset.data_subsampling.number_of_samples=20",
                 "finetuning.eval_steps=2",
                 "+finetuning.trainer_modifier.mode=add_wandb_prediction_progress_callback",
                 "+finetuning.trainer_modifier.frequency=4",

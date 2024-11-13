@@ -34,7 +34,6 @@ from typing import TYPE_CHECKING
 
 import omegaconf
 
-from topollm.config_classes.finetuning.finetuning_config import FinetuningConfig
 from topollm.config_classes.language_model.language_model_config import LanguageModelConfig
 from topollm.config_classes.main_config import MainConfig
 from topollm.model_finetuning.compute_last_save_step import compute_last_save_step
@@ -42,9 +41,12 @@ from topollm.path_management.finetuning.factory import get_finetuning_path_manag
 from topollm.typing.enums import Verbosity
 
 if TYPE_CHECKING:
+    from topollm.config_classes.finetuning.finetuning_config import FinetuningConfig
     from topollm.path_management.finetuning.protocol import FinetuningPathManager
 
-default_logger = logging.getLogger(__name__)
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 def dump_language_model_config_to_file(
@@ -225,17 +227,17 @@ def create_finetuned_language_model_config(
 
     if verbosity >= Verbosity.NORMAL:
         logger.info(
-            f"{finetuned_model_relative_dir = }",  # noqa: G004 - low overhead
+            msg=f"{finetuned_model_relative_dir = }",  # noqa: G004 - low overhead
         )
         logger.info(
-            f"{finetuned_short_model_name = }",  # noqa: G004 - low overhead
+            msg=f"{finetuned_short_model_name = }",  # noqa: G004 - low overhead
         )
 
     # # # #
     # Find the last checkpoint global save step
     finetuning_config: FinetuningConfig = main_config.finetuning
     last_checkpoint_no: int = compute_last_save_step(
-        total_samples=finetuning_config.finetuning_datasets.train_dataset.number_of_samples,
+        total_samples=finetuning_config.finetuning_datasets.train_dataset.data_subsampling.number_of_samples,
         batch_size=finetuning_config.batch_sizes.train,
         gradient_accumulation_steps=finetuning_config.gradient_accumulation_steps,
         num_epochs=finetuning_config.num_train_epochs,

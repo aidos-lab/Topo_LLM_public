@@ -33,7 +33,9 @@ import pathlib
 from topollm.config_classes.main_config import MainConfig
 from topollm.typing.enums import PerplexityContainerSaveFormat, Verbosity
 
-default_logger = logging.getLogger(__name__)
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 class EmbeddingsPathManagerSeparateDirectories:
