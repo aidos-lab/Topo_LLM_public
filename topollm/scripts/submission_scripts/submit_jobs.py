@@ -609,6 +609,14 @@ def make_config_and_run_task(
             embeddings_data_prep_num_samples_list = [
                 "100000",
             ]
+        case EmbeddingsDataPrepNumSamplesListOption.SINGLE_CHOICE_150000:
+            embeddings_data_prep_num_samples_list = [
+                "150000",
+            ]
+        case EmbeddingsDataPrepNumSamplesListOption.SINGLE_CHOICE_250000:
+            embeddings_data_prep_num_samples_list = [
+                "250000",
+            ]
         case EmbeddingsDataPrepNumSamplesListOption.FIVE_CHOICES_10000_STEPS:
             embeddings_data_prep_num_samples_list = [
                 "20000",
@@ -616,10 +624,6 @@ def make_config_and_run_task(
                 "40000",
                 "50000",
                 "60000",
-            ]
-        case EmbeddingsDataPrepNumSamplesListOption.SINGLE_CHOICE_250000:
-            embeddings_data_prep_num_samples_list = [
-                "250000",
             ]
         case _:
             msg: str = f"Unknown {args.embeddings_data_prep_num_samples_list_option = }"

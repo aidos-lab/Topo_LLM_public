@@ -118,8 +118,9 @@ class EmbeddingsDataPrepNumSamplesListOption(StrEnum):
     DEFAULT = auto()
     SINGLE_CHOICE_50000 = auto()
     SINGLE_CHOICE_100000 = auto()
-    FIVE_CHOICES_10000_STEPS = auto()
+    SINGLE_CHOICE_150000 = auto()
     SINGLE_CHOICE_250000 = auto()
+    FIVE_CHOICES_10000_STEPS = auto()
 
 
 class LocalEstimatesFilteringNumSamplesListOption(StrEnum):
