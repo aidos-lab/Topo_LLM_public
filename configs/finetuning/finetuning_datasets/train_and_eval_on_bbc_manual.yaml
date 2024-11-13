@@ -5,9 +5,9 @@ train_dataset:
   dataset_path: json
   dataset_name: multiwoz21
   data_dir: ${paths.data_dir}/datasets/dialogue_datasets/multiwoz21
-  
-  number_of_samples: 10000
-  split: train
+  data_subsampling:
+    number_of_samples: 10000
+    split: train
 eval_dataset:
   column_name: text
   context: dataset_entry
@@ -15,6 +15,6 @@ eval_dataset:
   dataset_path: json
   dataset_name: multiwoz21
   data_dir: ${paths.data_dir}/datasets/dialogue_datasets/multiwoz21
-  
-  number_of_samples: 10000
-  split: validation
+  data_subsampling:
+    number_of_samples: 10000
+    split: validation

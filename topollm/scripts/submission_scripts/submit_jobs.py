@@ -552,6 +552,8 @@ def make_config_and_run_task(
     match args.finetuning_seed_list:
         case SeedListOption.DO_NOT_SET:
             finetuning_seed_list = None
+        case SeedListOption.ONE_SEED:
+            finetuning_seed_list = seed_list_option_one_seed
         case SeedListOption.TWO_SEEDS:
             finetuning_seed_list = seed_list_option_two_seeds
         case SeedListOption.FIVE_SEEDS:

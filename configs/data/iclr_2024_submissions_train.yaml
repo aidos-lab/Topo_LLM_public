@@ -4,4 +4,4 @@ defaults:
 
 data_subsampling:
   split: train
-  number_of_samples: 5000
+  number_of_samples: -1

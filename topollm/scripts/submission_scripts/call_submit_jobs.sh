@@ -15,6 +15,7 @@ MEMORY="32"
 DO_PIPELINE="false"
 DO_PERPLEXITY="false"
 DO_LOCAL_ESTIMATES_COMPUTATION="false"
+DO_FINETUNING="false"
 
 # Flags to select base or fine-tuned model
 USE_ROBERTA_BASE_MODEL="false"
@@ -39,6 +40,10 @@ while [[ "$#" -gt 0 ]]; do
       DO_PERPLEXITY="true"
       shift # Remove --do_perplexity from processing
       ;;
+    --do_finetuning)
+      DO_FINETUNING="true"
+      shift # Remove --do_finetuning from processing
+      ;;
     --do_local_estimates_computation)
       DO_LOCAL_ESTIMATES_COMPUTATION="true"
       shift # Remove --do_local_estimates_computation from processing
@@ -59,12 +64,13 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 # Print a message of no task is selected
-if [ "$DO_PIPELINE" = "false" ] && [ "$DO_PERPLEXITY" = "false" ] && [ "$DO_LOCAL_ESTIMATES_COMPUTATION" = "false" ]; then
+if [ "$DO_PIPELINE" = "false" ] && [ "$DO_PERPLEXITY" = "false" ] && [ "$DO_LOCAL_ESTIMATES_COMPUTATION" = "false" ] && [ "$DO_FINETUNING" = "false" ]; then
   echo ">>> NOTE: No task is selected. This script will not submit any jobs."
   echo ">>> NOTE: Use at least one of the following options:"
   echo ">>> NOTE:   --do_pipeline"
   echo ">>> NOTE:   --do_perplexity"
   echo ">>> NOTE:   --do_local_estimates_computation"
+  echo ">>> NOTE:   --do_finetuning"
 fi
 
 # Warn if neither model options are set
@@ -242,7 +248,22 @@ if [ "$DO_PERPLEXITY" = "true" ]; then
 fi
 # ================================================================== #
 
+# ================================================================== #
+if [ "$DO_FINETUNING" = "true" ]; then
+  echo ">>> Submitting finetuning jobs ..."
+  poetry run submit_jobs \
+    --task="finetuning" \
+    --queue="CUDA" \
+    --template="RTX6000" \
+    --finetuning_datasets_list="manual_in_python_script" \
+    --finetuning_seed_list="one_seed" \
+    --finetuning_regime="many_epochs_with_overfitting_risk" \
+    --submission_mode=$SUBMISSION_MODE \
+    $DRY_RUN_FLAG
+  echo ">>> Submitting finetuning jobs ..."
+fi
+
 # Exit submission script
 echo ">>> Submission script finished."
 echo ">>> Exiting ..."
-exit 0
+exit $?

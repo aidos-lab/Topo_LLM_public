@@ -7,8 +7,10 @@ defaults:
 # to make sure that they are set correctly for the training and evaluation datasets.
 
 eval_dataset:
-  split: validation
-  number_of_samples: 10000
+  data_subsampling:
+    split: validation
+    number_of_samples: 10000
 train_dataset:
-  split: train
-  number_of_samples: 50000
+  data_subsampling:
+    split: train
+    number_of_samples: 50000

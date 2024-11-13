@@ -58,7 +58,8 @@ hpc run \
     -n "finetuning_job_submission_manual" \
     --template "${TEMPLATE_STRING}" \
     -s "${RELATIVE_PYTHON_SCRIPT_PATH}" \
-    -a "finetuning/base_model="${BASE_MODEL_LIST}" \
+    -a \
+    "finetuning/base_model="${BASE_MODEL_LIST}" \
     finetuning.num_train_epochs="${NUM_TRAIN_EPOCHS}" \
     finetuning.lr_scheduler_type="${LR_SCHEDULER_TYPE}" \
     finetuning.save_steps="${SAVE_STEPS}" \
@@ -67,9 +68,17 @@ hpc run \
     finetuning.batch_sizes.train="${BATCH_SIZE_TRAIN}" \
     finetuning.batch_sizes.eval="${BATCH_SIZE_EVAL}" \
     finetuning/finetuning_datasets="${FINETUNING_DATASETS_LIST}" \
+    finetuning.finetuning_datasets.train_dataset.data_subsampling.number_of_samples=3000 \
+    finetuning.finetuning_datasets.eval_dataset.data_subsampling.number_of_samples=200 \
     finetuning/peft="${PEFT_LIST}" \
     finetuning/gradient_modifier="${GRADIENT_MODIFIER_LIST}" \
     $ADDITIONAL_OVERRIDES"
+
+# Optional settings (for wandb):
+#    +finetuning.trainer_modifier.mode=ADD_WANDB_PREDICTION_PROGRESS_CALLBACK \
+#    +finetuning.trainer_modifier.frequency=100 \
+#    feature_flags.wandb.use_wandb=true \
+#    wandb.project=Topo_LLM_finetuning_for_token_classification_debug
 
 
 # Exit with the exit code of the python command
