@@ -5,6 +5,7 @@
 # Default values
 SUBMISSION_MODE="hpc_submission"
 DRY_RUN_FLAG=""
+RUN_ONLY_FIRST_CONFIG_OPTION_FLAG=""
 
 # Note: 
 # 16GB of memory is not enough for the embeddings data prep step
@@ -31,6 +32,10 @@ while [[ "$#" -gt 0 ]]; do
     --dry_run)
       DRY_RUN_FLAG="--dry_run"
       shift # Remove --dry_run from processing
+      ;;
+    --run_only_first_config_option)
+      RUN_ONLY_FIRST_CONFIG_OPTION_FLAG="--run_only_first_config_option"
+      shift # Remove --run_only_first_config_option from processing
       ;;
     --do_pipeline)
       DO_PIPELINE="true"
@@ -192,6 +197,7 @@ if [ "$DO_PIPELINE" = "true" ]; then
       --embeddings_data_prep_num_samples_list_option=$EMBEDDINGS_DATA_PREP_NUM_SAMPLES_LIST_OPTION \
       $SKIP_COMPUTE_AND_STORE_EMBEDDINGS \
       --submission_mode=$SUBMISSION_MODE \
+      $RUN_ONLY_FIRST_CONFIG_OPTION_FLAG \
       $DRY_RUN_FLAG
   echo ">>> Submitting pipeline jobs DONE"
 fi
@@ -222,6 +228,7 @@ if [ "$DO_LOCAL_ESTIMATES_COMPUTATION" = "true" ]; then
       --local_estimates_filtering_num_samples_list=$LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST \
       --local_estimates_pointwise_absolute_n_neighbors_list=$LOCAL_ESTIMATES_POINTWISE_ABSOLUTE_N_NEIGHBORS_LIST \
       --submission_mode=$SUBMISSION_MODE \
+      $RUN_ONLY_FIRST_CONFIG_OPTION_FLAG \
       $DRY_RUN_FLAG
   echo ">>> Submitting local estimates computation jobs DONE"
 fi
@@ -244,6 +251,7 @@ if [ "$DO_PERPLEXITY" = "true" ]; then
       $ADD_PREFIX_SPACE_FLAG \
       --finetuning_regime=$FINETUNING_REGIME \
       --submission_mode=$SUBMISSION_MODE \
+      $RUN_ONLY_FIRST_CONFIG_OPTION_FLAG \
       $DRY_RUN_FLAG
   echo ">>> Submitting perplexity jobs DONE"
 fi
@@ -261,6 +269,7 @@ if [ "$DO_FINETUNING" = "true" ]; then
     --finetuning_regime="many_epochs_with_overfitting_risk" \
     --submission_mode=$SUBMISSION_MODE \
     --wandb_project="Topo_LLM_finetuning_from_submission_script_DEBUG" \
+    $RUN_ONLY_FIRST_CONFIG_OPTION_FLAG \
     $DRY_RUN_FLAG
   echo ">>> Submitting finetuning jobs ..."
 fi

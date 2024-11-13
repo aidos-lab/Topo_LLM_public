@@ -467,3 +467,30 @@ class SubmissionConfig(BaseModel):
             )
 
         return local_estimates_command
+
+
+def pick_first_option_in_each_list(
+    submission_config: SubmissionConfig,
+) -> SubmissionConfig:
+    """Make new submission config which picks out the first option in each list field of the submission config."""
+    submission_config_copy = submission_config.model_copy(
+        deep=True,
+    )
+
+    for field_name, field_value in submission_config_copy:
+        if (
+            isinstance(
+                field_value,
+                list,
+            )
+            and field_value  # Check that field_value is not None
+        ):
+            setattr(
+                submission_config_copy,
+                field_name,
+                [
+                    field_value[0],
+                ],
+            )
+
+    return submission_config_copy
