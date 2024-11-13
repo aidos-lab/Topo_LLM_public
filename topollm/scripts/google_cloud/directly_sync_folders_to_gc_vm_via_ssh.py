@@ -27,21 +27,28 @@
 
 """Submit jobs for pipeline, perplexity, or finetuning."""
 
-import argparse
 import logging
+import os
 import pathlib
+import pprint
 import subprocess
+from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 import hydra
 import hydra.core.hydra_config
 import omegaconf
+from dotenv import load_dotenv
 
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
 from topollm.config_classes.get_data_dir import get_data_dir
-from topollm.config_classes.main_config import MainConfig
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
+from topollm.typing.enums import Verbosity
+
+if TYPE_CHECKING:
+    from topollm.config_classes.main_config import MainConfig
 
 try:
     from hydra_plugins import hpc_submission_launcher
@@ -54,6 +61,9 @@ except ImportError:
 global_logger: logging.Logger = logging.getLogger(
     name=__name__,
 )
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 setup_exception_logging(
     logger=global_logger,
@@ -62,20 +72,126 @@ setup_exception_logging(
 setup_omega_conf()
 
 
-def parse_arguments() -> argparse.Namespace:
-    """Parse command line arguments."""
-    parser = argparse.ArgumentParser(
-        description="Directly sync data to Google Cloud virtual machines.",
-    )
+@dataclass
+class SyncConfig:
+    """Configuration for synchronization including VM hostname and base data directory."""
 
-    parser.add_argument(
-        "--dry_run",
-        action="store_true",
-        help="Dry run the command.",
-    )
+    local_data_dir: str
+    vm_hostname: str
+    vm_data_dir: str
 
-    args: argparse.Namespace = parser.parse_args()
-    return args
+    @staticmethod
+    def load_from_env(
+        local_data_dir: str,
+    ) -> "SyncConfig":
+        """Load environment variables and initialize SyncConfig.
+
+        Returns:
+            SyncConfig: The synchronization configuration instance.
+
+        """
+        load_dotenv()
+        vm_hostname: str | None = os.getenv(
+            key="GC_DEV_VM_HOSTNAME",
+        )
+        gc_vm_data_dir: str | None = os.getenv(
+            key="GC_DEV_VM_DATA_DIR",
+        )
+
+        if not vm_hostname:
+            msg = "GC_DEV_VM_HOSTNAME environment variable is not set."
+            raise ValueError(msg)
+        if not gc_vm_data_dir:
+            msg = "GC_DEV_VM_DATA_DIR environment variable is not set"
+            raise ValueError(msg)
+
+        return SyncConfig(
+            local_data_dir=local_data_dir,
+            vm_hostname=vm_hostname,
+            vm_data_dir=gc_vm_data_dir,
+        )
+
+
+def build_sync_paths(
+    sync_config: SyncConfig,
+    sub_paths: list[str],
+) -> list[tuple[str, str]]:
+    """Construct source and destination paths for synchronization.
+
+    Args:
+        sync_config:
+            The configuration for synchronization paths.
+        sub_paths:
+            Subdirectory paths to be appended to the base directory.
+
+    Returns:
+        List[Tuple[str, str]]: A list of (source, destination) path tuples.
+
+    """
+    sync_paths = []
+    for sub_path in sub_paths:
+        local_path = str(
+            object=pathlib.Path(
+                sync_config.local_data_dir,
+                sub_path,
+            ),
+        )
+        remote_path: str = f"{sync_config.vm_hostname}:{pathlib.Path(sync_config.vm_data_dir, sub_path)}"
+        sync_paths.append(
+            (local_path, remote_path),
+        )
+
+    return sync_paths
+
+
+def sync_datasets(
+    sync_paths: list[tuple[str, str]],
+    *,
+    dry_run: bool = False,
+    logger: logging.Logger = default_logger,
+) -> None:
+    """Synchronize each pair of local and remote paths, with an optional dry-run mode.
+
+    Args:
+        sync_paths:
+            List of (source, destination) path tuples.
+        dry_run:
+            If True, logs commands instead of executing them.
+        logger:
+            The logger to use for logging.
+
+    """
+    for local_path, remote_path in sync_paths:
+        rsync_command: list[str] = [
+            "rsync",
+            "-avz",
+            "--progress",
+            f"{local_path}",
+            f"{remote_path}",
+        ]
+
+        # Log or execute the command based on dry_run
+        command_str = " ".join(rsync_command)
+        if dry_run:
+            logger.info(
+                msg=f">>> [DRY RUN] Command:\n{command_str}",  # noqa: G004 - low overhead
+            )
+        else:
+            logger.info(
+                msg=f">>> Executing Command:\n{command_str}",  # noqa: G004 - low overhead
+            )
+            try:
+                subprocess.run(
+                    args=rsync_command,
+                    check=True,
+                )
+                logger.info(
+                    msg=f">>> Synchronization completed for {local_path = }.",  # noqa: G004 - low overhead
+                )
+            except subprocess.CalledProcessError as e:
+                logger.exception(
+                    msg=f"@@@ Error occurred during synchronization for {local_path = }:\n{e}",  # noqa: G004 - low overhead
+                )
 
 
 @hydra.main(
@@ -88,12 +204,16 @@ def main(
 ) -> None:
     """Run the script."""
     logger: logging.Logger = global_logger
-    logger.info("Running script ...")
+    logger.info(
+        msg="Running script ...",
+    )
 
     main_config: MainConfig = initialize_configuration(
         config=config,
         logger=logger,
     )
+    verbosity: Verbosity = main_config.verbosity
+    dry_run: bool = main_config.feature_flags.scripts.dry_run
 
     data_dir: pathlib.Path = get_data_dir(
         main_config=main_config,
@@ -101,7 +221,46 @@ def main(
         logger=global_logger,
     )
 
-    # TODO: Implement this script
+    # Load configuration and define paths
+    sync_config: SyncConfig = SyncConfig.load_from_env(
+        local_data_dir=str(data_dir),
+    )
+    sub_paths: list[str] = [
+        "datasets/dialogue_datasets",
+        # Note: Additional folders can be added here
+    ]
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            "sync_config:\n%s",
+            pprint.pformat(object=sync_config),
+        )
+        logger.info(
+            "sub_paths:\n%s",
+            pprint.pformat(object=sub_paths),
+        )
+
+    # Build the list of source and destination paths
+    sync_paths = build_sync_paths(
+        sync_config=sync_config,
+        sub_paths=sub_paths,
+    )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            "sync_paths:\n%s",
+            pprint.pformat(object=sync_paths),
+        )
+
+    # Synchronize each source-destination path with dry-run support
+    sync_datasets(
+        sync_paths=sync_paths,
+        dry_run=dry_run,
+    )
+
+    logger.info(
+        msg="Running script DONE",
+    )
 
 
 if __name__ == "__main__":

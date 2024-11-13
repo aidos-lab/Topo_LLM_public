@@ -32,6 +32,16 @@ from pydantic import Field
 from topollm.config_classes.config_base_model import ConfigBaseModel
 
 
+class AnalysisFeatureFlagsConfig(ConfigBaseModel):
+    """Feature flags for the analysis process."""
+
+    create_plots_in_local_estimates_worker: bool = Field(
+        default=True,
+        title="Create plots in local estimates worker.",
+        description="Whether to create plots in the local estimates worker.",
+    )
+
+
 class ComputeAndStoreEmbeddingsFeatureFlagsConfig(ConfigBaseModel):
     """Feature flags for the compute and store embeddings process."""
 
@@ -80,6 +90,16 @@ class FinetuningFeatureFlagsConfig(ConfigBaseModel):
     )
 
 
+class ScriptsFeatureFlagsConfig(ConfigBaseModel):
+    """Feature flags for the scripts."""
+
+    dry_run: bool = Field(
+        default=False,
+        title="Use dry run mode.",
+        description="Whether to use dry run mode.",
+    )
+
+
 class WandbFeatureFlagsConfig(ConfigBaseModel):
     """Feature flags for the Weights and Biases integration."""
 
@@ -87,16 +107,6 @@ class WandbFeatureFlagsConfig(ConfigBaseModel):
         default=True,
         title="Use wandb.",
         description="Whether to use wandb for logging.",
-    )
-
-
-class AnalysisFeatureFlagsConfig(ConfigBaseModel):
-    """Feature flags for the analysis process."""
-
-    create_plots_in_local_estimates_worker: bool = Field(
-        default=True,
-        title="Create plots in local estimates worker.",
-        description="Whether to create plots in the local estimates worker.",
     )
 
 
@@ -125,6 +135,12 @@ class FeatureFlagsConfig(ConfigBaseModel):
         default_factory=FinetuningFeatureFlagsConfig,
         title="Finetuning feature flags.",
         description="Feature flags for the finetuning process.",
+    )
+
+    scripts: ScriptsFeatureFlagsConfig = Field(
+        default_factory=ScriptsFeatureFlagsConfig,
+        title="Scripts feature flags.",
+        description="Feature flags for the scripts.",
     )
 
     wandb: WandbFeatureFlagsConfig = Field(
