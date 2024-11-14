@@ -40,3 +40,4 @@ model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tag
 model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50.yaml
 model=roberta-base_task=masked_lm_one-year-of-tsla-on-reddit-proportions-True-0-0.8-0.1-0.1-ner_tags_train-80-take_first-111_ftm=standard_lora-None_5e-05-linear-0.01-2.yaml
 model=roberta-base_task=masked_lm_one-year-of-tsla-on-reddit-proportions-True-0-0.8-0.1-0.1-ner_tags_train-80-take_first-111_ftm=standard_lora-None_5e-05-linear-0.01-2.yaml
+model=roberta-base_task=masked_lm_multiwoz21-do_nothing-ner_tags_train-10000-take_first-111_ftm=standard_lora-None_5e-05-constant-0.01-50.yaml
