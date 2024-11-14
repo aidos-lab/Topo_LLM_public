@@ -37,6 +37,10 @@ ENV_VARIABLE_NAMES: dict[str, str] = {
     "local_data_dir": "LOCAL_TOPO_LLM_DATA_DIR",
     "gc_vm_hostname": "GC_DEV_VM_HOSTNAME",
     "gc_vm_data_dir": "GC_DEV_VM_DATA_DIR",
+    "gc_bucket_name": "GC_TOPO_LLM_BUCKET_NAME",
+    "gc_bucket_path": "GC_TOPO_LLM_BUCKET_PATH",
+    "gc_bucket_repository_base_path": "GC_TOPO_LLM_BUCKET_REPOSITORY_BASE_PATH",
+    "gc_bucket_data_dir": "GC_TOPO_LLM_BUCKET_DATA_DIR",
 }
 
 
@@ -45,7 +49,7 @@ def get_env_variable(
     default: str | None = None,
 ) -> str:
     """Fetch environment variables and raise Error if None."""
-    value = os.getenv(
+    value: str | None = os.getenv(
         key=key,
         default=default,
     )
@@ -62,6 +66,10 @@ class SyncConfig:
     local_data_dir: str
     gc_vm_hostname: str
     gc_vm_data_dir: str
+    gc_bucket_name: str
+    gc_bucket_path: str
+    gc_bucket_repository_base_path: str
+    gc_bucket_data_dir: str
 
     @staticmethod
     def load_from_env(
@@ -88,9 +96,27 @@ class SyncConfig:
         gc_vm_data_dir: str = get_env_variable(
             key=config_keys["gc_vm_data_dir"],
         )
+        gc_bucket_name: str = get_env_variable(
+            key=config_keys["gc_bucket_name"],
+        )
+        gc_bucket_path: str = get_env_variable(
+            key=config_keys["gc_bucket_path"],
+        )
+        gc_bucket_repository_base_path: str = get_env_variable(
+            key=config_keys["gc_bucket_repository_base_path"],
+        )
+        gc_bucket_data_dir: str = get_env_variable(
+            key=config_keys["gc_bucket_data_dir"],
+        )
 
-        return SyncConfig(
+        sync_config = SyncConfig(
             local_data_dir=local_data_dir,
             gc_vm_hostname=gc_vm_hostname,
             gc_vm_data_dir=gc_vm_data_dir,
+            gc_bucket_name=gc_bucket_name,
+            gc_bucket_path=gc_bucket_path,
+            gc_bucket_repository_base_path=gc_bucket_repository_base_path,
+            gc_bucket_data_dir=gc_bucket_data_dir,
         )
+
+        return sync_config
