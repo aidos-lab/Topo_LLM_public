@@ -196,7 +196,7 @@ def main(
             msg=f"Iterating over {len(all_partial_search_base_directories_paths) = } paths DONE",  # noqa: G004 - low overhead
         )
 
-    load_and_concatenate_saved_dataframes(
+    concatenated_df: pd.DataFrame = load_and_concatenate_saved_dataframes(
         root_dir=analysis_output_subdirectory_absolute_path,
         save_path=pathlib.Path(
             analysis_output_subdirectory_absolute_path,
@@ -205,6 +205,10 @@ def main(
         verbosity=verbosity,
         logger=logger,
     )
+
+    # ================================================== #
+    # Note: You can add additional analysis steps here
+    # ================================================== #
 
     logger.info(
         msg="Running script DONE",
@@ -365,6 +369,12 @@ def run_search_on_single_base_directory_and_process_and_save(
             "deduplication": "array_deduplicator",
             "n_neighbors": 128,
             "data_prep_sampling_samples": 100000,
+        },
+        {
+            "data_prep_sampling_method": "random",
+            "deduplication": "array_deduplicator",
+            "n_neighbors": 128,
+            "data_prep_sampling_samples": 150000,
         },
         {
             "data_prep_sampling_method": "random",
