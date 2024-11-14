@@ -32,6 +32,28 @@ from dataclasses import dataclass
 
 from dotenv import load_dotenv
 
+# Configuration dictionary to make variable names configurable
+ENV_VARIABLE_NAMES: dict[str, str] = {
+    "local_data_dir": "LOCAL_TOPO_LLM_DATA_DIR",
+    "gc_vm_hostname": "GC_DEV_VM_HOSTNAME",
+    "gc_vm_data_dir": "GC_DEV_VM_DATA_DIR",
+}
+
+
+def get_env_variable(
+    key: str,
+    default: str | None = None,
+) -> str:
+    """Fetch environment variables and raise Error if None."""
+    value = os.getenv(
+        key=key,
+        default=default,
+    )
+    if value is None:
+        msg: str = f"Environment variable '{key = }' is not set."
+        raise ValueError(msg)
+    return value
+
 
 @dataclass
 class SyncConfig:
@@ -43,6 +65,7 @@ class SyncConfig:
 
     @staticmethod
     def load_from_env(
+        config_keys: dict[str, str] = ENV_VARIABLE_NAMES,
         local_data_dir_overwrite: str | None = None,
     ) -> "SyncConfig":
         """Load environment variables and initialize SyncConfig.
@@ -54,40 +77,20 @@ class SyncConfig:
         load_dotenv()
 
         # # # #
-        # Optional variables
-        local_data_dir: str | None = os.getenv(
-            key="LOCAL_TOPO_LLM_DATA_DIR",
+        # Optional overwrite
+        local_data_dir: str = local_data_dir_overwrite or get_env_variable(
+            key=config_keys["local_data_dir"],
         )
 
-        if local_data_dir_overwrite:
-            local_data_dir = local_data_dir_overwrite
-
-        if not local_data_dir:
-            msg = "LOCAL_TOPO_LLM_DATA_DIR environment variable is not set and no overwrite provided."
-            raise ValueError(
-                msg,
-            )
-
-        vm_hostname: str | None = os.getenv(
-            key="GC_DEV_VM_HOSTNAME",
+        gc_vm_hostname: str = get_env_variable(
+            key=config_keys["gc_vm_hostname"],
         )
-        gc_vm_data_dir: str | None = os.getenv(
-            key="GC_DEV_VM_DATA_DIR",
+        gc_vm_data_dir: str = get_env_variable(
+            key=config_keys["gc_vm_data_dir"],
         )
-
-        if not vm_hostname:
-            msg = "GC_DEV_VM_HOSTNAME environment variable is not set."
-            raise ValueError(
-                msg,
-            )
-        if not gc_vm_data_dir:
-            msg = "GC_DEV_VM_DATA_DIR environment variable is not set"
-            raise ValueError(
-                msg,
-            )
 
         return SyncConfig(
             local_data_dir=local_data_dir,
-            gc_vm_hostname=vm_hostname,
+            gc_vm_hostname=gc_vm_hostname,
             gc_vm_data_dir=gc_vm_data_dir,
         )
