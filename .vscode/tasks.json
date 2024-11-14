@@ -143,6 +143,34 @@
                 "panel": "new",
                 "focus": false
             }
+        },
+        {
+            "label": "GC - Sync from GC VM to GC Bucket - full 'data' directory ",
+            "command": "poetry run sync_gc_data --source \"vm\" --target \"bucket\" --subdirectory \"\"",
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": false
+            }
+        },
+        {
+            "label": "GC - Sync from GC Bucket to Local - only 'data/analysis/twonn' directory ",
+            "command": "poetry run sync_gc_data --source \"bucket\" --target \"local\" --subdirectory \"analysis/twonn\"",
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": false
+            }
         }
     ]
 }
