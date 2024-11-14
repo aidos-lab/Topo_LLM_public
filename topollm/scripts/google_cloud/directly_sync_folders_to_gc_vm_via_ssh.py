@@ -5,7 +5,6 @@
 #
 # Authors:
 # Benjamin Ruppik (mail@ruppik.net)
-# Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
 # First versions of this code were potentially generated

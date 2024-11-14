@@ -42,7 +42,9 @@ from topollm.model_inference.do_inference import do_inference
 if TYPE_CHECKING:
     from topollm.config_classes.main_config import MainConfig
 
-global_logger = logging.getLogger(__name__)
+global_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 setup_exception_logging(
     logger=global_logger,
@@ -61,7 +63,9 @@ def main(
     config: omegaconf.DictConfig,
 ) -> None:
     """Run the script."""
-    global_logger.info("Running script ...")
+    global_logger.info(
+        msg="Running script ...",
+    )
 
     main_config: MainConfig = initialize_configuration(
         config=config,
@@ -74,7 +78,9 @@ def main(
         logger=global_logger,
     )
 
-    global_logger.info("Running script DONE")
+    global_logger.info(
+        msg="Running script DONE",
+    )
 
 
 if __name__ == "__main__":

@@ -1,15 +1,16 @@
-# coding=utf-8
-#
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 #
-# This code was generated with the help of AI writing assistants
-# including GitHub Copilot, ChatGPT, Bing Chat.
+# Code generation tools and workflows:
+# First versions of this code were potentially generated
+# with the help of AI writing assistants including
+# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
+# Afterwards, the generated segments were manually reviewed and edited.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -27,11 +28,9 @@ import os
 
 from git import Repo
 
+
 def get_git_info() -> str:
-    """
-    Get the git info of the current branch and commit hash.
-    """
-    
+    """Get the git info of the current branch and commit hash."""
     repo = Repo(
         os.path.dirname(os.path.realpath(__file__)),
         search_parent_directories=True,
