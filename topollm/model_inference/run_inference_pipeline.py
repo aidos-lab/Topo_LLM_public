@@ -50,7 +50,6 @@ setup_exception_logging(
     logger=global_logger,
 )
 
-
 setup_omega_conf()
 
 

@@ -27,14 +27,15 @@
 import logging
 import os
 import sys
+import warnings
 
-logger: logging.Logger = logging.getLogger(
+default_logger: logging.Logger = logging.getLogger(
     name=__name__,
 )
 
 
 def setup_exception_logging(
-    logger: logging.Logger = logger,
+    logger: logging.Logger = default_logger,
 ) -> None:
     """Set up a custom exception handler that logs uncaught exceptions using the provided logger.
 
@@ -51,19 +52,19 @@ def setup_exception_logging(
     #
     # We use print here instead of logging, since this function is usually called before the logging is set up,
     # and we want to make sure that this message is printed.
-    print(
+    print(  # noqa: T201 - we want this function to print
         "Setting HYDRA_FULL_ERROR environment variable to '1'.",
     )
     os.environ["HYDRA_FULL_ERROR"] = "1"
-    print(
+    print(  # noqa: T201 - we want this function to print
         f"{os.environ['HYDRA_FULL_ERROR'] = }",
     )
 
     def handle_exception(
-        exc_type,
-        exc_value,
-        exc_traceback,
-    ):
+        exc_type,  # noqa: ANN001
+        exc_value,  # noqa: ANN001
+        exc_traceback,  # noqa: ANN001
+    ) -> None:
         """Handle uncaught exceptions by logging them, except for KeyboardInterrupt.
 
         This function is designed to be compatible with sys.excepthook.
@@ -100,4 +101,19 @@ def setup_exception_logging(
             ),
         )
 
+    def handle_warning(
+        message,  # noqa: ANN001
+        category,  # noqa: ANN001
+        filename,  # noqa: ANN001
+        lineno,  # noqa: ANN001
+        file=None,  # noqa: ANN001, ARG001
+        line=None,  # noqa: ANN001, ARG001
+    ) -> None:
+        """Handle warnings by logging them."""
+        logger.warning(
+            msg=f"{category.__name__} at {filename}:{lineno}: {message}",  # noqa: G004
+        )
+
+    # Attach the functions to the handling cases
     sys.excepthook = handle_exception
+    warnings.showwarning = handle_warning
