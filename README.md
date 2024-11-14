@@ -112,6 +112,14 @@ Submission scripts are located in the `topollm/scripts/submission_scripts` direc
 - See the instructions here for the HHU Hilbert HPC launcher:
   [https://gitlab.cs.uni-duesseldorf.de/dsml/HydraHPCLauncher]
 
+### Data directory
+
+The data directory is set in most of the python scripts via the Hydra config (see the script `topollm/config_classes/get_data_dir.py` for a common function to access the data directory path).
+We additionally set the path to the local data directory in the `.env` file in the project root directory, in the variable `LOCAL_TOPO_LLM_DATA_DIR`.
+Most of the shell scripts use this variable to set the data directory path.
+
+For compatibility, please make sure that these paths are set correctly and point to the same directory.
+
 ## Datasets
 
 - Dialogue data

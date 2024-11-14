@@ -43,7 +43,7 @@ def log_huggingface_dataset_info(
     """Log information about the dataset."""
     logger.info(
         f"{dataset_name}.info:\n%s",  # noqa: G004 - low overhead
-        pprint.pformat(dataset.info),
+        pprint.pformat(object=dataset.info),
     )
     logger.info(
         f"{dataset_name}.column_names:\n{pprint.pformat(dataset.column_names)}",  # noqa: G004 - low overhead

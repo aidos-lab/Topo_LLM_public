@@ -5,7 +5,6 @@
 #
 # Authors:
 # Benjamin Ruppik (mail@ruppik.net)
-# Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
 # First versions of this code were potentially generated
@@ -28,30 +27,28 @@
 """Submit jobs for pipeline, perplexity, or finetuning."""
 
 import logging
-import os
 import pathlib
 import pprint
 import subprocess
-from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 import hydra
 import hydra.core.hydra_config
 import omegaconf
-from dotenv import load_dotenv
 
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
 from topollm.config_classes.get_data_dir import get_data_dir
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
+from topollm.scripts.google_cloud.sync_config import SyncConfig
 from topollm.typing.enums import Verbosity
 
 if TYPE_CHECKING:
     from topollm.config_classes.main_config import MainConfig
 
 try:
-    from hydra_plugins import hpc_submission_launcher
+    from hydra_plugins import hpc_submission_launcher  # type: ignore - plugin not available in all environments
 
     hpc_submission_launcher.register_plugin()
 except ImportError:
@@ -70,46 +67,6 @@ setup_exception_logging(
 )
 
 setup_omega_conf()
-
-
-@dataclass
-class SyncConfig:
-    """Configuration for synchronization including VM hostname and base data directory."""
-
-    local_data_dir: str
-    vm_hostname: str
-    vm_data_dir: str
-
-    @staticmethod
-    def load_from_env(
-        local_data_dir: str,
-    ) -> "SyncConfig":
-        """Load environment variables and initialize SyncConfig.
-
-        Returns:
-            SyncConfig: The synchronization configuration instance.
-
-        """
-        load_dotenv()
-        vm_hostname: str | None = os.getenv(
-            key="GC_DEV_VM_HOSTNAME",
-        )
-        gc_vm_data_dir: str | None = os.getenv(
-            key="GC_DEV_VM_DATA_DIR",
-        )
-
-        if not vm_hostname:
-            msg = "GC_DEV_VM_HOSTNAME environment variable is not set."
-            raise ValueError(msg)
-        if not gc_vm_data_dir:
-            msg = "GC_DEV_VM_DATA_DIR environment variable is not set"
-            raise ValueError(msg)
-
-        return SyncConfig(
-            local_data_dir=local_data_dir,
-            vm_hostname=vm_hostname,
-            vm_data_dir=gc_vm_data_dir,
-        )
 
 
 def build_sync_paths(
@@ -136,7 +93,7 @@ def build_sync_paths(
                 sub_path,
             ),
         )
-        remote_path: str = f"{sync_config.vm_hostname}:{pathlib.Path(sync_config.vm_data_dir, sub_path)}"
+        remote_path: str = f"{sync_config.gc_vm_hostname}:{pathlib.Path(sync_config.gc_vm_data_dir, sub_path)}"
         sync_paths.append(
             (local_path, remote_path),
         )
@@ -223,7 +180,7 @@ def main(
 
     # Load configuration and define paths
     sync_config: SyncConfig = SyncConfig.load_from_env(
-        local_data_dir=str(data_dir),
+        local_data_dir_overwrite=str(data_dir),
     )
     sub_paths: list[str] = [
         "datasets/dialogue_datasets",

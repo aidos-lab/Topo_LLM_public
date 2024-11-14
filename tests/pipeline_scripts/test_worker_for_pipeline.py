@@ -34,6 +34,7 @@ import torch
 
 from topollm.config_classes.data.data_config import DataConfig
 from topollm.config_classes.data.data_splitting_config import DataSplittingConfig, Proportions
+from topollm.config_classes.data.data_subsampling_config import DataSubsamplingConfig
 from topollm.config_classes.data.dataset_map_config import DatasetMapConfig
 from topollm.config_classes.embeddings.embedding_extraction_config import EmbeddingExtractionConfig
 from topollm.config_classes.embeddings.embeddings_config import EmbeddingsConfig
@@ -82,8 +83,10 @@ def small_data_config() -> DataConfig:
         data_dir=None,
         dataset_path="SocialGrep/one-year-of-tsla-on-reddit",
         dataset_name="comments",
-        number_of_samples=128,
-        split=Split.TRAIN,
+        data_subsampling=DataSubsamplingConfig(
+            number_of_samples=128,
+            split=Split.TRAIN,
+        ),
         data_splitting=DataSplittingConfig(
             data_splitting_mode=DataSplitMode.PROPORTIONS,
             proportions=Proportions(),
@@ -203,15 +206,17 @@ def main_config_with_small_dataset_and_model(
     return config
 
 
-@pytest.mark.uses_transformers_models()
-@pytest.mark.slow()
+@pytest.mark.uses_transformers_models
+@pytest.mark.slow
 def test_worker_for_pipeline(
     main_config_with_small_dataset_and_model: MainConfig,
     device_fixture: torch.device,
     logger_fixture: logging.Logger,
 ) -> None:
     """Test the pipeline function."""
-    logger_fixture.info("Testing `worker_for_pipeline` ...")
+    logger_fixture.info(
+        msg="Testing `worker_for_pipeline` ...",
+    )
     logger_fixture.info(
         "main_config_with_small_dataset_and_model:%s",
         main_config_with_small_dataset_and_model,
@@ -222,4 +227,6 @@ def test_worker_for_pipeline(
         device=device_fixture,
         logger=logger_fixture,
     )
-    logger_fixture.info("Testing `worker_for_pipeline` DONE.")
+    logger_fixture.info(
+        msg="Testing `worker_for_pipeline` DONE.",
+    )
