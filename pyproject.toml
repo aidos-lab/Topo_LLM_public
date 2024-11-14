@@ -86,7 +86,6 @@ optional = true
 [tool.poetry.group.gpu.dependencies]
 faiss-gpu = "*"
 gpustat = "*"
-
 # Note: Commenting this out appears to lead to hanging install on HHU Hilbert.
 #
 # [[tool.poetry.source]]
@@ -97,10 +96,10 @@ gpustat = "*"
 # Note: You need to uncomment this section if you do not have access to the Hilbert PyPI mirror.
 # This should be commented out before releasing the package.
 #
-[[tool.poetry.source]]
-name = "hhu"
-url = "http://pypi.repo.test.hhu.de/simple/"
-priority = "primary"
+# [[tool.poetry.source]]
+# name = "hhu"
+# url = "http://pypi.repo.test.hhu.de/simple/"
+# priority = "primary"
 
 
 [build-system]

@@ -84,12 +84,15 @@ if TYPE_CHECKING:
     from topollm.model_handling.model.token_classification_from_pretrained_kwargs import (
         TokenClassificationFromPretrainedKwargs,
     )
-    from topollm.model_handling.tokenizer.tokenizer_modifier.protocol import TokenizerModifier
     from topollm.path_management.finetuning.protocol import FinetuningPathManager
     from topollm.typing.types import ModifiedModel
 
-default_device = torch.device("cpu")
-default_logger = logging.getLogger(__name__)
+default_device = torch.device(
+    device="cpu",
+)
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 def do_finetuning_process(
@@ -281,7 +284,7 @@ def do_finetuning_process(
         data_collator=data_collator,
         train_dataset=train_dataset_mapped,  # type: ignore - typing issue with Dataset
         eval_dataset=eval_dataset_mapped,  # type: ignore - typing issue with Dataset
-        tokenizer=tokenizer,
+        tokenizer=tokenizer,  # type: ignore - typing issue with Tokenizer
         compute_metrics=compute_metrics,
     )
 

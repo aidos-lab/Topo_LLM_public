@@ -38,6 +38,7 @@ import hydra.core.hydra_config
 import omegaconf
 from tqdm import tqdm
 
+from topollm.config_classes.get_data_dir import get_data_dir
 from topollm.data_processing import DialogueUtteranceDataset
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.log_dataset_info import log_torch_dataset_info
@@ -46,7 +47,9 @@ from topollm.logging.setup_exception_logging import setup_exception_logging
 if TYPE_CHECKING:
     from topollm.config_classes.main_config import MainConfig
 
-global_logger = logging.getLogger(__name__)
+global_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 setup_exception_logging(
     logger=global_logger,
@@ -69,8 +72,11 @@ def main(
         logger=global_logger,
     )
 
-    data_dir = main_config.paths.data_dir
-    global_logger.info(f"{data_dir = }")
+    data_dir: pathlib.Path = get_data_dir(
+        main_config=main_config,
+        verbosity=main_config.verbosity,
+        logger=global_logger,
+    )
 
     convlab_dataset_identifier_list = [
         "multiwoz21",

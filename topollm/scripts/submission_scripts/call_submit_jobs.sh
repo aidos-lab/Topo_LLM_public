@@ -5,6 +5,7 @@
 # Default values
 SUBMISSION_MODE="hpc_submission"
 DRY_RUN_FLAG=""
+RUN_ONLY_FIRST_CONFIG_OPTION_FLAG=""
 
 # Note: 
 # 16GB of memory is not enough for the embeddings data prep step
@@ -15,6 +16,7 @@ MEMORY="32"
 DO_PIPELINE="false"
 DO_PERPLEXITY="false"
 DO_LOCAL_ESTIMATES_COMPUTATION="false"
+DO_FINETUNING="false"
 
 # Flags to select base or fine-tuned model
 USE_ROBERTA_BASE_MODEL="false"
@@ -31,6 +33,10 @@ while [[ "$#" -gt 0 ]]; do
       DRY_RUN_FLAG="--dry_run"
       shift # Remove --dry_run from processing
       ;;
+    --run_only_first_config_option)
+      RUN_ONLY_FIRST_CONFIG_OPTION_FLAG="--run_only_first_config_option"
+      shift # Remove --run_only_first_config_option from processing
+      ;;
     --do_pipeline)
       DO_PIPELINE="true"
       shift # Remove --do_pipeline from processing
@@ -38,6 +44,10 @@ while [[ "$#" -gt 0 ]]; do
     --do_perplexity)
       DO_PERPLEXITY="true"
       shift # Remove --do_perplexity from processing
+      ;;
+    --do_finetuning)
+      DO_FINETUNING="true"
+      shift # Remove --do_finetuning from processing
       ;;
     --do_local_estimates_computation)
       DO_LOCAL_ESTIMATES_COMPUTATION="true"
@@ -59,12 +69,13 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 # Print a message of no task is selected
-if [ "$DO_PIPELINE" = "false" ] && [ "$DO_PERPLEXITY" = "false" ] && [ "$DO_LOCAL_ESTIMATES_COMPUTATION" = "false" ]; then
+if [ "$DO_PIPELINE" = "false" ] && [ "$DO_PERPLEXITY" = "false" ] && [ "$DO_LOCAL_ESTIMATES_COMPUTATION" = "false" ] && [ "$DO_FINETUNING" = "false" ]; then
   echo ">>> NOTE: No task is selected. This script will not submit any jobs."
   echo ">>> NOTE: Use at least one of the following options:"
   echo ">>> NOTE:   --do_pipeline"
   echo ">>> NOTE:   --do_perplexity"
   echo ">>> NOTE:   --do_local_estimates_computation"
+  echo ">>> NOTE:   --do_finetuning"
 fi
 
 # Warn if neither model options are set
@@ -122,9 +133,10 @@ EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="five_seeds"
 
 # EMBEDDINGS_DATA_PREP_NUM_SAMPLES_LIST_OPTION="default"
 # EMBEDDINGS_DATA_PREP_NUM_SAMPLES_LIST_OPTION="single_choice_50000"
-EMBEDDINGS_DATA_PREP_NUM_SAMPLES_LIST_OPTION="single_choice_100000"
-# EMBEDDINGS_DATA_PREP_NUM_SAMPLES_LIST_OPTION="five_choices_10000_steps"
+# EMBEDDINGS_DATA_PREP_NUM_SAMPLES_LIST_OPTION="single_choice_100000"
+EMBEDDINGS_DATA_PREP_NUM_SAMPLES_LIST_OPTION="single_choice_150000"
 # EMBEDDINGS_DATA_PREP_NUM_SAMPLES_LIST_OPTION="single_choice_250000"
+# EMBEDDINGS_DATA_PREP_NUM_SAMPLES_LIST_OPTION="five_choices_10000_steps"
 
 LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="default"
 # LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="few_small_steps_num_samples"
@@ -185,6 +197,7 @@ if [ "$DO_PIPELINE" = "true" ]; then
       --embeddings_data_prep_num_samples_list_option=$EMBEDDINGS_DATA_PREP_NUM_SAMPLES_LIST_OPTION \
       $SKIP_COMPUTE_AND_STORE_EMBEDDINGS \
       --submission_mode=$SUBMISSION_MODE \
+      $RUN_ONLY_FIRST_CONFIG_OPTION_FLAG \
       $DRY_RUN_FLAG
   echo ">>> Submitting pipeline jobs DONE"
 fi
@@ -215,6 +228,7 @@ if [ "$DO_LOCAL_ESTIMATES_COMPUTATION" = "true" ]; then
       --local_estimates_filtering_num_samples_list=$LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST \
       --local_estimates_pointwise_absolute_n_neighbors_list=$LOCAL_ESTIMATES_POINTWISE_ABSOLUTE_N_NEIGHBORS_LIST \
       --submission_mode=$SUBMISSION_MODE \
+      $RUN_ONLY_FIRST_CONFIG_OPTION_FLAG \
       $DRY_RUN_FLAG
   echo ">>> Submitting local estimates computation jobs DONE"
 fi
@@ -237,12 +251,30 @@ if [ "$DO_PERPLEXITY" = "true" ]; then
       $ADD_PREFIX_SPACE_FLAG \
       --finetuning_regime=$FINETUNING_REGIME \
       --submission_mode=$SUBMISSION_MODE \
+      $RUN_ONLY_FIRST_CONFIG_OPTION_FLAG \
       $DRY_RUN_FLAG
   echo ">>> Submitting perplexity jobs DONE"
 fi
 # ================================================================== #
 
+# ================================================================== #
+if [ "$DO_FINETUNING" = "true" ]; then
+  echo ">>> Submitting finetuning jobs ..."
+  poetry run submit_jobs \
+    --task="finetuning" \
+    --queue="CUDA" \
+    --template="RTX6000" \
+    --finetuning_datasets_list="manual_in_python_script" \
+    --finetuning_seed_list="one_seed" \
+    --finetuning_regime="many_epochs_with_overfitting_risk" \
+    --submission_mode=$SUBMISSION_MODE \
+    --wandb_project="Topo_LLM_finetuning_from_submission_script_DEBUG" \
+    $RUN_ONLY_FIRST_CONFIG_OPTION_FLAG \
+    $DRY_RUN_FLAG
+  echo ">>> Submitting finetuning jobs ..."
+fi
+
 # Exit submission script
 echo ">>> Submission script finished."
 echo ">>> Exiting ..."
-exit 0
+exit $?

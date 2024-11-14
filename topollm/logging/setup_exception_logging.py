@@ -28,7 +28,9 @@ import logging
 import os
 import sys
 
-logger = logging.getLogger(__name__)
+logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 def setup_exception_logging(
@@ -42,15 +44,20 @@ def setup_exception_logging(
     Side effects:
         - Sets the HYDRA_FULL_ERROR environment variable to "1".
         - Sets the sys.excepthook to a custom exception handler that logs uncaught exceptions using the provided logger.
+
     """
     # Setting this environment variable to "1" makes Hydra print the full stack trace of exceptions.
     # This is necessary to set here, because otherwise the exceptions would not be correctly logged.
     #
     # We use print here instead of logging, since this function is usually called before the logging is set up,
     # and we want to make sure that this message is printed.
-    print(f"Setting HYDRA_FULL_ERROR environment variable to '1'.")
+    print(
+        "Setting HYDRA_FULL_ERROR environment variable to '1'.",
+    )
     os.environ["HYDRA_FULL_ERROR"] = "1"
-    print(f"{os.environ['HYDRA_FULL_ERROR'] = }")
+    print(
+        f"{os.environ['HYDRA_FULL_ERROR'] = }",
+    )
 
     def handle_exception(
         exc_type,

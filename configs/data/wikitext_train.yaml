@@ -3,5 +3,5 @@ defaults:
   - _self_
 
 data_subsampling:
-  number_of_samples: 10000
+  number_of_samples: -1
   split: train

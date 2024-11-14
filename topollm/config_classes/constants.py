@@ -27,9 +27,14 @@
 
 """Script for setting global variables for the config files."""
 
+import logging
 import os
 
 from dotenv import load_dotenv
+
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # START Globals
@@ -135,8 +140,4 @@ ZIM_TOPO_LLM_REPOSITORY_BASE_PATH: str = os.path.expandvars(
     ),
 )
 
-
 HYDRA_CONFIGS_BASE_PATH: str = f"{TOPO_LLM_REPOSITORY_BASE_PATH}/configs"
-
-# END Globals
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #

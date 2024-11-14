@@ -35,6 +35,7 @@ import hydra
 import hydra.core.hydra_config
 import omegaconf
 
+from topollm.config_classes.get_data_dir import get_data_dir
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
@@ -68,9 +69,10 @@ def main(
         logger=global_logger,
     )
 
-    data_dir: pathlib.Path = main_config.paths.data_dir
-    logger.info(
-        f"{data_dir = }",  # noqa: G004 - low overhead
+    data_dir: pathlib.Path = get_data_dir(
+        main_config=main_config,
+        verbosity=main_config.verbosity,
+        logger=global_logger,
     )
 
     # # # #

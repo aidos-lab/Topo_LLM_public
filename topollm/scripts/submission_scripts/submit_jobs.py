@@ -32,7 +32,7 @@ import pathlib
 import subprocess
 
 from topollm.scripts.submission_scripts.get_checkpoint_no_list import get_checkpoint_no_list
-from topollm.scripts.submission_scripts.submission_config import SubmissionConfig
+from topollm.scripts.submission_scripts.submission_config import SubmissionConfig, pick_first_option_in_each_list
 from topollm.scripts.submission_scripts.types import (
     CheckpointNoListOption,
     DataListOption,
@@ -51,7 +51,7 @@ from topollm.typing.enums import EmbeddingsDataPrepSamplingMode, SubmissionMode,
 
 
 def run_task(
-    submissions_config: SubmissionConfig,
+    submission_config: SubmissionConfig,
     task: Task,
     *,
     dry_run: bool = False,
@@ -59,30 +59,28 @@ def run_task(
     """Run a task with the given configuration."""
     match task:
         case Task.LOCAL_ESTIMATES_COMPUTATION:
-            submissions_config.python_script_name = "run_local_estimates.py"
-            submissions_config.relative_python_script_folder = pathlib.Path(
+            submission_config.python_script_name = "run_local_estimates.py"
+            submission_config.relative_python_script_folder = pathlib.Path(
                 "topollm",
                 "analysis",
                 "local_estimates_computation",
             )
         case Task.PIPELINE:
-            submissions_config.python_script_name = (
-                "run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py"
-            )
-            submissions_config.relative_python_script_folder = pathlib.Path(
+            submission_config.python_script_name = "run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py"
+            submission_config.relative_python_script_folder = pathlib.Path(
                 "topollm",
                 "pipeline_scripts",
             )
         case Task.PERPLEXITY:
-            submissions_config.python_script_name = "run_compute_perplexity.py"
-            submissions_config.relative_python_script_folder = pathlib.Path(
+            submission_config.python_script_name = "run_compute_perplexity.py"
+            submission_config.relative_python_script_folder = pathlib.Path(
                 "topollm",
                 "model_inference",
                 "perplexity",
             )
         case Task.FINETUNING:
-            submissions_config.python_script_name = "run_finetune_language_model_on_huggingface_dataset.py"
-            submissions_config.relative_python_script_folder = pathlib.Path(
+            submission_config.python_script_name = "run_finetune_language_model_on_huggingface_dataset.py"
+            submission_config.relative_python_script_folder = pathlib.Path(
                 "topollm",
                 "model_finetuning",
             )
@@ -90,7 +88,7 @@ def run_task(
             msg = f"Unknown {task = }"
             raise ValueError(msg)
 
-    command: list[str] = submissions_config.get_command(
+    command: list[str] = submission_config.get_command(
         task=task,  # type: ignore - StrEnum typing problems
     )
     print(  # noqa: T201 - We want this submission script to print the command
@@ -269,10 +267,26 @@ def parse_arguments() -> argparse.Namespace:
         default=LocalEstimatesPointwiseAbsoluteNNeighborsListOption.DEFAULT,
         help="Local estimates pointwise absolute n neighbors list to use.",
     )
+
+    parser.add_argument(
+        "--wandb_project",
+        type=str,
+        default="Topo_LLM_finetuning_from_submission_script",
+        help="Wandb project name.",
+    )
+
+    # # # #
+    # Feature flags
     parser.add_argument(
         "--skip_compute_and_store_embeddings",
         action="store_true",
         help="Skip the compute and store embeddings step.",
+    )
+
+    parser.add_argument(
+        "--run_only_first_config_option",
+        action="store_true",
+        help="Run only the first option in each list.",
     )
 
     parser.add_argument(
@@ -552,6 +566,8 @@ def make_config_and_run_task(
     match args.finetuning_seed_list:
         case SeedListOption.DO_NOT_SET:
             finetuning_seed_list = None
+        case SeedListOption.ONE_SEED:
+            finetuning_seed_list = seed_list_option_one_seed
         case SeedListOption.TWO_SEEDS:
             finetuning_seed_list = seed_list_option_two_seeds
         case SeedListOption.FIVE_SEEDS:
@@ -597,6 +613,14 @@ def make_config_and_run_task(
             embeddings_data_prep_num_samples_list = [
                 "100000",
             ]
+        case EmbeddingsDataPrepNumSamplesListOption.SINGLE_CHOICE_150000:
+            embeddings_data_prep_num_samples_list = [
+                "150000",
+            ]
+        case EmbeddingsDataPrepNumSamplesListOption.SINGLE_CHOICE_250000:
+            embeddings_data_prep_num_samples_list = [
+                "250000",
+            ]
         case EmbeddingsDataPrepNumSamplesListOption.FIVE_CHOICES_10000_STEPS:
             embeddings_data_prep_num_samples_list = [
                 "20000",
@@ -604,10 +628,6 @@ def make_config_and_run_task(
                 "40000",
                 "50000",
                 "60000",
-            ]
-        case EmbeddingsDataPrepNumSamplesListOption.SINGLE_CHOICE_250000:
-            embeddings_data_prep_num_samples_list = [
-                "250000",
             ]
         case _:
             msg: str = f"Unknown {args.embeddings_data_prep_num_samples_list_option = }"
@@ -701,7 +721,7 @@ def make_config_and_run_task(
             "+data.dataset_type=huggingface_dataset_named_entity",
         ]
 
-    submissions_config = SubmissionConfig(
+    submission_config = SubmissionConfig(
         add_prefix_space=add_prefix_space,
         submission_mode=args.submission_mode,
         queue=args.queue,
@@ -727,11 +747,27 @@ def make_config_and_run_task(
         finetuning_seed_list=finetuning_seed_list,
         num_train_epochs=num_train_epochs,
         lr_scheduler_type=lr_scheduler_type,
+        wandb_project=args.wandb_project,
         skip_compute_and_store_embeddings=args.skip_compute_and_store_embeddings,
     )
 
+    run_only_first_config_option: bool = args.run_only_first_config_option
+
+    if run_only_first_config_option:
+        print(  # noqa: T201 - We want this submission script to print this output
+            f"<<< NOTE: {run_only_first_config_option = }",
+        )
+        print(  # noqa: T201 - We want this submission script to print this output
+            "<<< NOTE: Running only the first option in each list.",
+        )
+        submissions_config_to_run: SubmissionConfig = pick_first_option_in_each_list(
+            submission_config=submission_config,
+        )
+    else:
+        submissions_config_to_run = submission_config
+
     run_task(
-        submissions_config=submissions_config,
+        submission_config=submissions_config_to_run,
         task=args.task,
         dry_run=args.dry_run,
     )

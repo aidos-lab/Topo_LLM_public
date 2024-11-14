@@ -51,8 +51,10 @@ try:
 except ImportError:
     pass
 
-# logger for this file
-global_logger = logging.getLogger(__name__)
+# Logger for this file
+global_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 setup_exception_logging(
     logger=global_logger,
@@ -70,7 +72,7 @@ def main(
     config: omegaconf.DictConfig,
 ) -> None:
     """Run the script."""
-    logger = global_logger
+    logger: logging.Logger = global_logger
     logger.info("Running script ...")
 
     main_config: MainConfig = initialize_configuration(

@@ -29,6 +29,7 @@
 
 import logging
 import pathlib
+from typing import TYPE_CHECKING
 
 from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
 from topollm.config_classes.data.data_config import DataConfig
@@ -38,10 +39,14 @@ from topollm.config_classes.sanitize_dirname import sanitize_dirname
 from topollm.path_management.finetuning.peft.factory import (
     get_peft_path_manager,
 )
-from topollm.path_management.finetuning.peft.protocol import PEFTPathManager
 from topollm.typing.enums import DescriptionType, Verbosity
 
-default_logger = logging.getLogger(__name__)
+if TYPE_CHECKING:
+    from topollm.path_management.finetuning.peft.protocol import PEFTPathManager
+
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 class FinetuningPathManagerBasic:
@@ -82,7 +87,7 @@ class FinetuningPathManagerBasic:
         path = pathlib.Path(
             "models",
             "finetuned_models",
-            self.finetuning_config.finetuning_datasets.train_dataset.long_config_description_with_data_splitting_without_data_subsampling,
+            self.finetuning_config.finetuning_datasets.train_dataset.get_partial_path(),
             self.finetuning_config.base_model_config_description,
             self.peft_path_manager.peft_description_subdir,
             self.finetuning_config.gradient_modifier.gradient_modifier_description,
@@ -101,21 +106,23 @@ class FinetuningPathManagerBasic:
         """Return the short model name for the finetuned model."""
         # Note: The short model name does not include the gradient modifier at the moment
         finetuned_short_model_name: str = (
-            str(self.finetuning_config.base_model_config_description)
+            str(object=self.finetuning_config.base_model_config_description)
             + ITEM_SEP
             + str(
-                self.finetuning_config.finetuning_datasets.train_dataset.get_config_description(
+                object=self.finetuning_config.finetuning_datasets.train_dataset.get_config_description(
                     description_type=DescriptionType.SHORT,
                 ),
             )
             + ITEM_SEP
-            + sanitize_dirname(str(self.peft_path_manager.peft_description_subdir))  # We might need to shorten this
+            + sanitize_dirname(
+                dir_name=str(object=self.peft_path_manager.peft_description_subdir),
+            )  # We might need to shorten this
             + ITEM_SEP
             + str(
                 # Note: the short finetuning parameters description contains in particular:
                 # - the finetuning seed
                 # - the current epoch
-                self.get_finetuning_parameters_description_for_short_model_name(),
+                object=self.get_finetuning_parameters_description_for_short_model_name(),
             )
         )
 
@@ -126,7 +133,7 @@ class FinetuningPathManagerBasic:
         self,
     ) -> str:
         description = (
-            f"{NAME_PREFIXES['batch_size_train']}" + f"{KV_SEP}" + str(self.finetuning_config.batch_sizes.train)
+            f"{NAME_PREFIXES['batch_size_train']}" + f"{KV_SEP}" + str(object=self.finetuning_config.batch_sizes.train)
         )
 
         return description
@@ -138,15 +145,15 @@ class FinetuningPathManagerBasic:
         description: str = (
             NAME_PREFIXES["learning_rate"]
             + KV_SEP
-            + str(self.finetuning_config.learning_rate)
+            + str(object=self.finetuning_config.learning_rate)
             + ITEM_SEP
             + NAME_PREFIXES["lr_scheduler_type"]
             + KV_SEP
-            + str(self.finetuning_config.lr_scheduler_type)
+            + str(object=self.finetuning_config.lr_scheduler_type)
             + ITEM_SEP
             + NAME_PREFIXES["weight_decay"]
             + KV_SEP
-            + str(self.finetuning_config.weight_decay)
+            + str(object=self.finetuning_config.weight_decay)
         )
 
         return description
@@ -164,14 +171,14 @@ class FinetuningPathManagerBasic:
         short_description_separator: str = "-",
     ) -> str:
         """Return the config description."""
-        short_description = (
-            str(self.finetuning_config.learning_rate)
+        short_description: str = (
+            str(object=self.finetuning_config.learning_rate)
             + short_description_separator
-            + str(self.finetuning_config.lr_scheduler_type)
+            + str(object=self.finetuning_config.lr_scheduler_type)
             + short_description_separator
-            + str(self.finetuning_config.weight_decay)
+            + str(object=self.finetuning_config.weight_decay)
             + short_description_separator
-            + str(self.finetuning_config.num_train_epochs)
+            + str(object=self.finetuning_config.num_train_epochs)
         )
         return short_description
 
@@ -189,7 +196,7 @@ class FinetuningPathManagerBasic:
     def epoch_description(
         self,
     ) -> str:
-        description = f"{NAME_PREFIXES['epoch']}{KV_SEP}{self.finetuning_config.num_train_epochs}"
+        description: str = f"{NAME_PREFIXES['epoch']}{KV_SEP}{self.finetuning_config.num_train_epochs}"
 
         return description
 

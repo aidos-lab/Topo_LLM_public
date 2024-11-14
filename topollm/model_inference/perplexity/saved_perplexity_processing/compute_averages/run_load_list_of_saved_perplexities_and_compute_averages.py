@@ -37,6 +37,7 @@ import omegaconf
 import torch
 
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
+from topollm.config_classes.get_data_dir import get_data_dir
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
@@ -75,8 +76,10 @@ def main(
     config: omegaconf.DictConfig,
 ) -> None:
     """Run the script."""
-    logger = global_logger
-    logger.info("Running script ...")
+    logger: logging.Logger = global_logger
+    logger.info(
+        msg="Running script ...",
+    )
 
     main_config: MainConfig = initialize_configuration(
         config=config,
@@ -84,12 +87,11 @@ def main(
     )
     verbosity = main_config.verbosity
 
-    data_dir = main_config.paths.data_dir
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            "data_dir:\n%s",
-            data_dir,
-        )
+    data_dir: pathlib.Path = get_data_dir(
+        main_config=main_config,
+        verbosity=main_config.verbosity,
+        logger=global_logger,
+    )
 
     # # # #
     # Parameters

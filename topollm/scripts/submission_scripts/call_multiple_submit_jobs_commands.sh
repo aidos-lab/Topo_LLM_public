@@ -21,13 +21,15 @@ done
 
 # ================================================================== #
 
-CALL_SUBMIT_JOBS_SHELL_SCRIPT_PATH=$TOPO_LLM_REPOSITORY_BASE_PATH/topollm/scripts/submission_scripts/call_submit_jobs_pipeline_and_perplexity_and_local_estimates.sh
+CALL_SUBMIT_JOBS_SHELL_SCRIPT_PATH=$TOPO_LLM_REPOSITORY_BASE_PATH
+CALL_SUBMIT_JOBS_SHELL_SCRIPT_PATH+="/topollm/scripts/submission_scripts/"
+CALL_SUBMIT_JOBS_SHELL_SCRIPT_PATH+="call_submit_jobs_pipeline_and_perplexity_and_local_estimates.sh"
 
 echo ">>> CALL_SUBMIT_JOBS_SHELL_SCRIPT_PATH: $CALL_SUBMIT_JOBS_SHELL_SCRIPT_PATH"
 echo ">>> DRY_RUN_FLAG: $DRY_RUN_FLAG"
 
-# TASK_FLAG="--do_pipeline"
-TASK_FLAG="--do_local_estimates_computation"
+TASK_FLAG="--do_pipeline"
+# TASK_FLAG="--do_local_estimates_computation"
 
 $CALL_SUBMIT_JOBS_SHELL_SCRIPT_PATH \
     $TASK_FLAG \
