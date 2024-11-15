@@ -238,6 +238,12 @@ def parse_arguments() -> argparse.Namespace:
     )
 
     parser.add_argument(
+        "--common_batch_size",
+        type=int,
+        default=8,
+        help="Common batch size to use.",
+    )
+    parser.add_argument(
         "--finetuning_regime",
         type=FinetuningRegimeOption,
         default=FinetuningRegimeOption.FEW_EPOCHS,
@@ -557,6 +563,14 @@ def make_config_and_run_task(
                 "train_and_eval_on_multiwoz21_train-samples-small",
                 "train_and_eval_on_one-year-of-tsla-on-reddit_train-samples-small",
             ]
+        case FinetuningDatasetsListOption.MULTIWOZ21_FULL:
+            finetuning_datasets_list: list[str] = [
+                "train_and_eval_on_multiwoz21_train-samples-full",
+            ]
+        case FinetuningDatasetsListOption.REDDIT_FULL:
+            finetuning_datasets_list: list[str] = [
+                "train_and_eval_on_one-year-of-tsla-on-reddit_train-samples-full",
+            ]
         case FinetuningDatasetsListOption.MULTIWOZ21_AND_REDDIT_FULL:
             finetuning_datasets_list: list[str] = [
                 "train_and_eval_on_multiwoz21_train-samples-full",
@@ -750,6 +764,8 @@ def make_config_and_run_task(
         local_estimates_pointwise_absolute_n_neighbors_list=local_estimates_pointwise_absolute_n_neighbors_list,
         finetuning_datasets_list=finetuning_datasets_list,
         finetuning_seed_list=finetuning_seed_list,
+        batch_size_train=args.common_batch_size,
+        batch_size_eval=args.common_batch_size,
         num_train_epochs=num_train_epochs,
         lr_scheduler_type=lr_scheduler_type,
         wandb_project=args.wandb_project,
