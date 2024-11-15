@@ -146,7 +146,7 @@
         },
         {
             "label": "GC - Sync from GC VM to GC Bucket - logs and full 'data' directory ",
-            "command": "poetry run sync_gc_data --source vm --target bucket --subdirectory 'data'",
+            "command": "poetry run sync_gc_data --source vm --target bucket --subdirectory 'data' 'hydra_output_dir' 'wandb_output_dir'",
             "type": "shell",
             "group": {
                 "kind": "build",
@@ -160,7 +160,7 @@
         },
         {
             "label": "GC - Sync from GC Bucket to Local - logs and only 'data/analysis/twonn' directory ",
-            "command": "poetry run sync_gc_data --source bucket --target local --subdirectory 'data/analysis/twonn'",
+            "command": "poetry run sync_gc_data --source bucket --target local --subdirectory 'data/analysis/twonn' 'hydra_output_dir' 'wandb_output_dir'",
             "type": "shell",
             "group": {
                 "kind": "build",
