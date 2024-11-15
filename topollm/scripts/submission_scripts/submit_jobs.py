@@ -557,6 +557,11 @@ def make_config_and_run_task(
                 "train_and_eval_on_multiwoz21_train-samples-small",
                 "train_and_eval_on_one-year-of-tsla-on-reddit_train-samples-small",
             ]
+        case FinetuningDatasetsListOption.MULTIWOZ21_AND_REDDIT_FULL:
+            finetuning_datasets_list: list[str] = [
+                "train_and_eval_on_multiwoz21_train-samples-full",
+                "train_and_eval_on_one-year-of-tsla-on-reddit_train-samples-full",
+            ]
         case _:
             msg = f"Unknown {args.finetuning_datasets_list = }"
             raise ValueError(

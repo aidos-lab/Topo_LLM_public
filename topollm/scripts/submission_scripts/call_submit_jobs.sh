@@ -116,6 +116,9 @@ DATA_NUMBER_OF_SAMPLES_LIST_OPTION="fixed_10000"
 # DATA_SUBSAMPLING_SAMPLING_SEED_LIST_OPTION="fixed_777"
 DATA_SUBSAMPLING_SAMPLING_SEED_LIST_OPTION="ten_seeds"
 
+# FINETUNING_DATASETS_LIST="manual_in_python_script"
+FINETUNING_DATASETS_LIST="multiwoz21_and_reddit_full"
+
 # ================================================================== #
 
 # Uncomment the following to skip the compute_and_store_embeddings step:
@@ -264,7 +267,7 @@ if [ "$DO_FINETUNING" = "true" ]; then
     --task="finetuning" \
     --queue="CUDA" \
     --template="RTX6000" \
-    --finetuning_datasets_list="manual_in_python_script" \
+    --finetuning_datasets_list=$FINETUNING_DATASETS_LIST \
     --finetuning_seed_list="one_seed" \
     --finetuning_regime="many_epochs_with_overfitting_risk" \
     --submission_mode=$SUBMISSION_MODE \
@@ -273,8 +276,11 @@ if [ "$DO_FINETUNING" = "true" ]; then
     $DRY_RUN_FLAG
   echo ">>> Submitting finetuning jobs ..."
 fi
+# ================================================================== #
 
+# ================================================================== #
 # Exit submission script
 echo ">>> Submission script finished."
 echo ">>> Exiting ..."
 exit $?
+# ================================================================== #

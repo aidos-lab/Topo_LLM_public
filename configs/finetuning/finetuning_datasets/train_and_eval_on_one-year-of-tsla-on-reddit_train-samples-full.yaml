@@ -1,0 +1,13 @@
+defaults:
+ - ../../data@eval_dataset: one-year-of-tsla-on-reddit
+ - ../../data@train_dataset: one-year-of-tsla-on-reddit
+ - _self_
+
+eval_dataset:
+  data_subsampling:
+    split: validation
+    number_of_samples: -1
+train_dataset:
+  data_subsampling:
+    split: train
+    number_of_samples: -1
