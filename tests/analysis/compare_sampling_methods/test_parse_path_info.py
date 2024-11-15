@@ -123,9 +123,66 @@ def test_parse_path_info_full_sampling_take_first(
     )
 
 
+def test_parse_path_info_full_sampling_random(
+    logger_fixture: logging.Logger,
+) -> None:
+    """Example usage of parse_path_info_full function."""
+    example_path_base_model_str: str = (
+        "/Users/USER_NAME/git-source/Topo_LLM/"
+        "data/analysis/twonn/"
+        "data=one-year-of-tsla-on-reddit_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags/"
+        "split=test_samples=10000_sampling=random_sampling-seed=777/"
+        "lvl=token/add-prefix-space=True_max-len=512/"
+        "model=roberta-base_task=masked_lm/"
+        "layer=-1_agg=mean/norm=None/"
+        "sampling=random_seed=44_samples=100000/"
+        "desc=twonn_samples=5000_zerovec=keep_dedup=array_deduplicator/"
+        "n-neighbors-mode=absolute_size_n-neighbors=128/"
+        "local_estimates_pointwise.npy"
+    )
+
+    expected_result: dict = {
+        "aggregation": "mean",
+        "context": "dataset_entry",
+        "data_full": "data=one-year-of-tsla-on-reddit_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags",  # TODO this parsing currently does not work
+        "data_prep_sampling_method": "random",
+        "data_prep_sampling_samples": 100000,
+        "data_prep_sampling_seed": 44,
+        "data_split": "test",
+        "data_splitting_mode": "proportions",  # TODO: This parsing currently does not work
+        "data_subsampling_full": "split=test_samples=10000_sampling=random_sampling-seed=777",
+        "data_subsampling_number_of_samples": 10000,
+        "data_subsampling_sampling_mode": "random",  # TODO: This parsing currently does not work
+        "data_subsampling_sampling_seed": "777",
+        "dataset_name": "one-year-of-tsla-on-reddit",  # TODO: This parsing currently does not work
+        "deduplication": "array_deduplicator",
+        "feature_column": "ner_tags",
+        "local_estimates_desc_full": "desc=twonn_samples=5000_zerovec=keep_dedup=array_deduplicator",
+        "local_estimates_description": "twonn",
+        "local_estimates_samples": 5000,
+        "model_checkpoint": None,
+        "model_full": "model=roberta-base_task=masked_lm",
+        "model_layer": -1,
+        "model_partial_name": "model=roberta-base",
+        "model_seed": None,
+        "model_task": "masked_lm",
+        "n_neighbors": 128,
+        "n_neighbors_mode": "absolute_size",
+        "normalization": "None",
+        "zerovec": "keep",
+    }
+
+    compare_example_path_and_expected_result(
+        example_path=example_path_base_model_str,
+        expected_result=expected_result,
+        logger=logger_fixture,
+    )
+
+
 def test_parse_path_info_full_for_finetuned_model(
     logger_fixture: logging.Logger,
 ) -> None:
+    """Example usage of parse_path_info_full function for finetuned models."""
     example_path_finetuned_model_str: str = (
         "/Users/USER_NAME/git-source/Topo_LLM/"
         "data/analysis/twonn/"
