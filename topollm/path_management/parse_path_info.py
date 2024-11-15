@@ -168,11 +168,12 @@ def parse_data_subsampling_info(
     """Parse the data subsampling information from the given path."""
     parsed_info = {}
 
-    # e.g. "split=test_samples=2000_sampling=take_first"
+    # e.g.
+    # > "split=test_samples=2000_sampling=take_first"
+    # > "split=test_samples=10000_sampling=random_sampling-seed=777"
 
-    # TODO: This has problems parsing "take_first" and "random" in sampling
     subsampling_match = re.search(
-        pattern=r"split=(\w+)_samples=(\d+)_sampling=([a-zA-Z0-9]+)(?:_sampling-seed=(\d+))?",
+        pattern=r"split=(\w+)_samples=(\d+)_sampling=(take_first|random)(?:_sampling-seed=(\d+))?",
         string=path_str,
     )
     if subsampling_match:

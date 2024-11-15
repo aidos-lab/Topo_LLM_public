@@ -144,8 +144,9 @@ def test_parse_path_info_full_sampling_random(
     expected_result: dict = {
         "aggregation": "mean",
         "data_context": "dataset_entry",
-        "data_full": "data=one-year-of-tsla-on-reddit_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags",  # TODO this parsing currently does not work
         "data_dataset_name": "one-year-of-tsla-on-reddit",  # TODO: This parsing currently does not work
+        "data_feature_column": "ner_tags",
+        "data_full": "data=one-year-of-tsla-on-reddit_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags",  # TODO this parsing currently does not work
         "data_prep_sampling_method": "random",
         "data_prep_sampling_samples": 100000,
         "data_prep_sampling_seed": 44,
@@ -153,10 +154,9 @@ def test_parse_path_info_full_sampling_random(
         "data_splitting_mode": "proportions",  # TODO: This parsing currently does not work
         "data_subsampling_full": "split=test_samples=10000_sampling=random_sampling-seed=777",
         "data_subsampling_number_of_samples": 10000,
-        "data_subsampling_sampling_mode": "random",  # TODO: This parsing currently does not work
-        "data_subsampling_sampling_seed": "777",
+        "data_subsampling_sampling_mode": "random",
+        "data_subsampling_sampling_seed": 777,
         "local_estimates_deduplication": "array_deduplicator",
-        "data_feature_column": "ner_tags",
         "local_estimates_desc_full": "desc=twonn_samples=5000_zerovec=keep_dedup=array_deduplicator",
         "local_estimates_description": "twonn",
         "local_estimates_samples": 5000,
