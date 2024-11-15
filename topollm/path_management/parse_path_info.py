@@ -1,10 +1,10 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -73,8 +73,8 @@ def parse_path_info_full(
         local_estimates_info["local_estimates_desc_full"] = desc_match.group(0)  # The full matched description string
         local_estimates_info["local_estimates_description"] = desc_match.group(1)
         local_estimates_info["local_estimates_samples"] = int(desc_match.group(2))
-        local_estimates_info["zerovec"] = desc_match.group(3)
-        local_estimates_info["deduplication"] = desc_match.group(4) if desc_match.group(4) else None
+        local_estimates_info["local_estimates_zerovec"] = desc_match.group(3)
+        local_estimates_info["local_estimates_deduplication"] = desc_match.group(4) if desc_match.group(4) else None
 
     # Extract neighbors information
     # Matches neighbors mode and number of neighbors, e.g.,
@@ -153,11 +153,11 @@ def parse_data_info(
     )
     if data_match:
         parsed_info["data_full"] = data_match.group(0)  # The full matched data string
-        parsed_info["dataset_name"] = data_match.group(1)
+        parsed_info["data_dataset_name"] = data_match.group(1)
         parsed_info["data_splitting_mode"] = data_match.group(2)
         # TODO: This does not include additional data splitting information yet
-        parsed_info["context"] = data_match.group(3)
-        parsed_info["feature_column"] = data_match.group(4)
+        parsed_info["data_context"] = data_match.group(3)
+        parsed_info["data_feature_column"] = data_match.group(4)
 
     return parsed_info
 
@@ -168,15 +168,16 @@ def parse_data_subsampling_info(
     """Parse the data subsampling information from the given path."""
     parsed_info = {}
 
-    # path_str="split=test_samples=2000_sampling=take_first"
+    # e.g. "split=test_samples=2000_sampling=take_first"
 
+    # TODO: This has problems parsing "take_first" and "random" in sampling
     subsampling_match = re.search(
-        pattern=r"split=(\w+)_samples=(\d+)_sampling=([a-zA-Z0-9_]+)(?:_sampling-seed=(\d+))?",
+        pattern=r"split=(\w+)_samples=(\d+)_sampling=([a-zA-Z0-9]+)(?:_sampling-seed=(\d+))?",
         string=path_str,
     )
     if subsampling_match:
         parsed_info["data_subsampling_full"] = subsampling_match.group(0)  # The full matched string
-        parsed_info["data_split"] = subsampling_match.group(1)
+        parsed_info["data_subsampling_split"] = subsampling_match.group(1)
         parsed_info["data_subsampling_number_of_samples"] = int(subsampling_match.group(2))
         parsed_info["data_subsampling_sampling_mode"] = subsampling_match.group(3)
         parsed_info["data_subsampling_sampling_seed"] = (

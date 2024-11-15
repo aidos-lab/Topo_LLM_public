@@ -51,7 +51,6 @@ from topollm.analysis.compare_sampling_methods.make_plots import (
 from topollm.analysis.compare_sampling_methods.organize_results_directory_structure import (
     build_results_directory_structure,
 )
-from topollm.analysis.compare_sampling_methods.parse_path_info import parse_path_info_full
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
@@ -59,6 +58,7 @@ from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.logging.log_list_info import log_list_info
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
+from topollm.path_management.parse_path_info import parse_path_info_full
 from topollm.typing.enums import Verbosity
 
 if TYPE_CHECKING:

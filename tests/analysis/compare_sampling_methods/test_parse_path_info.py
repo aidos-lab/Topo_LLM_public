@@ -28,7 +28,7 @@
 import logging
 import pprint
 
-from topollm.analysis.compare_sampling_methods.parse_path_info import parse_path_info_full
+from topollm.path_management.parse_path_info import parse_path_info_full
 
 default_logger: logging.Logger = logging.getLogger(
     name=__name__,
@@ -87,23 +87,24 @@ def test_parse_path_info_full_sampling_take_first(
 
     expected_result: dict = {
         "aggregation": "mean",
-        "context": "dataset_entry",
+        "data_context": "dataset_entry",
         "data_full": "data=multiwoz21_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags",
+        "data_dataset_name": "multiwoz21",
+        "data_feature_column": "ner_tags",
         "data_prep_sampling_method": "random",
         "data_prep_sampling_samples": 100000,
         "data_prep_sampling_seed": 42,
-        "data_split": "test",
+        "data_subsampling_split": "test",
         "data_splitting_mode": "do_nothing",
         "data_subsampling_full": "split=test_samples=2000_sampling=take_first",
         "data_subsampling_number_of_samples": 2000,
         "data_subsampling_sampling_mode": "take_first",
         "data_subsampling_sampling_seed": None,
-        "dataset_name": "multiwoz21",
-        "deduplication": "array_deduplicator",
-        "feature_column": "ner_tags",
+        "local_estimates_deduplication": "array_deduplicator",
         "local_estimates_desc_full": "desc=twonn_samples=2500_zerovec=keep_dedup=array_deduplicator",
         "local_estimates_description": "twonn",
         "local_estimates_samples": 2500,
+        "local_estimates_zerovec": "keep",
         "model_checkpoint": None,
         "model_full": "model=roberta-base_task=masked_lm",
         "model_layer": -1,
@@ -113,7 +114,6 @@ def test_parse_path_info_full_sampling_take_first(
         "n_neighbors": 128,
         "n_neighbors_mode": "absolute_size",
         "normalization": "None",
-        "zerovec": "keep",
     }
 
     compare_example_path_and_expected_result(
@@ -143,20 +143,20 @@ def test_parse_path_info_full_sampling_random(
 
     expected_result: dict = {
         "aggregation": "mean",
-        "context": "dataset_entry",
+        "data_context": "dataset_entry",
         "data_full": "data=one-year-of-tsla-on-reddit_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags",  # TODO this parsing currently does not work
+        "data_dataset_name": "one-year-of-tsla-on-reddit",  # TODO: This parsing currently does not work
         "data_prep_sampling_method": "random",
         "data_prep_sampling_samples": 100000,
         "data_prep_sampling_seed": 44,
-        "data_split": "test",
+        "data_subsampling_split": "test",
         "data_splitting_mode": "proportions",  # TODO: This parsing currently does not work
         "data_subsampling_full": "split=test_samples=10000_sampling=random_sampling-seed=777",
         "data_subsampling_number_of_samples": 10000,
         "data_subsampling_sampling_mode": "random",  # TODO: This parsing currently does not work
         "data_subsampling_sampling_seed": "777",
-        "dataset_name": "one-year-of-tsla-on-reddit",  # TODO: This parsing currently does not work
-        "deduplication": "array_deduplicator",
-        "feature_column": "ner_tags",
+        "local_estimates_deduplication": "array_deduplicator",
+        "data_feature_column": "ner_tags",
         "local_estimates_desc_full": "desc=twonn_samples=5000_zerovec=keep_dedup=array_deduplicator",
         "local_estimates_description": "twonn",
         "local_estimates_samples": 5000,
@@ -169,7 +169,7 @@ def test_parse_path_info_full_sampling_random(
         "n_neighbors": 128,
         "n_neighbors_mode": "absolute_size",
         "normalization": "None",
-        "zerovec": "keep",
+        "local_estimates_zerovec": "keep",
     }
 
     compare_example_path_and_expected_result(
@@ -198,14 +198,14 @@ def test_parse_path_info_full_for_finetuned_model(
 
     expected_result = {
         "aggregation": "mean",
-        "context": "dataset_entry",
+        "data_context": "dataset_entry",
         "data_full": "data-one-year-of-tsla-on-reddit_split-train_ctxt-dataset_entry_samples-10000_feat-col-ner_tags",
         "data_prep_sampling_method": "random",
         "data_prep_sampling_samples": 100000,
         "data_prep_sampling_seed": 47,
-        "dataset_name": "one-year-of-tsla-on-reddit",
-        "deduplication": "array_deduplicator",
-        "feature_column": "ner_tags",
+        "data_dataset_name": "one-year-of-tsla-on-reddit",
+        "local_estimates_deduplication": "array_deduplicator",
+        "data_feature_column": "ner_tags",
         "local_estimates_desc_full": "desc-twonn_samples-2500_zerovec-keep_dedup-array_deduplicator",
         "local_estimates_description": "twonn",
         "local_estimates_samples": 2500,
@@ -220,7 +220,7 @@ def test_parse_path_info_full_for_finetuned_model(
         "normalization": "None",
         "samples": 10000,
         "split": "train",
-        "zerovec": "keep",
+        "local_estimates_zerovec": "keep",
     }
 
     # NOTE: This test has not been updated and implemented to the new format.
