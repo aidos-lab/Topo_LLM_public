@@ -118,8 +118,8 @@ DATA_SUBSAMPLING_SAMPLING_SEED_LIST_OPTION="ten_seeds"
 
 # FINETUNING_DATASETS_LIST="manual_in_python_script"
 # FINETUNING_DATASETS_LIST="multiwoz21_and_reddit_full"
-FINETUNING_DATASETS_LIST="multiwoz21_full"
-# FINETUNING_DATASETS_LIST="reddit_full"
+# FINETUNING_DATASETS_LIST="multiwoz21_full"
+FINETUNING_DATASETS_LIST="reddit_full"
 
 # ================================================================== #
 
@@ -263,6 +263,11 @@ fi
 # ================================================================== #
 
 # ================================================================== #
+# Notes on memory size:
+#
+# ++ accelerator_model=rtx6000:
+#   + `--common_batch_size="32"` appears to work for fine-tuning "roberta-base" model on rtx6000 with 24GB of VRAM.
+
 if [ "$DO_FINETUNING" = "true" ]; then
   echo ">>> Submitting finetuning jobs ..."
   poetry run submit_jobs \

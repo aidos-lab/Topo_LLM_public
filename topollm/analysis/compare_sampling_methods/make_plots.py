@@ -37,6 +37,7 @@ import pandas as pd
 import seaborn as sns
 from matplotlib.ticker import AutoLocator, MultipleLocator
 
+from topollm.config_classes.constants import NAME_PREFIXES_TO_FULL_DESCRIPTIONS
 from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.typing.enums import Verbosity
 
@@ -556,9 +557,10 @@ def analyze_and_plot_influence_of_local_estimates_samples(
     filtered_df = df[
         (df["data_prep_sampling_method"] == updated_selected_subsample_dict["data_prep_sampling_method"])
         & (
-            df["deduplication"].isna()
-            if updated_selected_subsample_dict["deduplication"] is None
-            else df["deduplication"] == updated_selected_subsample_dict["deduplication"]
+            df[NAME_PREFIXES_TO_FULL_DESCRIPTIONS["dedup"]].isna()
+            if updated_selected_subsample_dict[NAME_PREFIXES_TO_FULL_DESCRIPTIONS["dedup"]] is None
+            else df[NAME_PREFIXES_TO_FULL_DESCRIPTIONS["dedup"]]
+            == updated_selected_subsample_dict[NAME_PREFIXES_TO_FULL_DESCRIPTIONS["dedup"]]
         )
         & (df["n_neighbors"] == updated_selected_subsample_dict["n_neighbors"])
         & (df["data_prep_sampling_seed"] == updated_selected_subsample_dict["data_prep_sampling_seed"])

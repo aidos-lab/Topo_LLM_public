@@ -51,7 +51,7 @@ from topollm.analysis.compare_sampling_methods.make_plots import (
 from topollm.analysis.compare_sampling_methods.organize_results_directory_structure import (
     build_results_directory_structure,
 )
-from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
+from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH, NAME_PREFIXES_TO_FULL_DESCRIPTIONS
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.log_dataframe_info import log_dataframe_info
@@ -360,25 +360,25 @@ def run_search_on_single_base_directory_and_process_and_save(
     filters_dict_list = [
         {
             "data_prep_sampling_method": "random",
-            "deduplication": "array_deduplicator",
+            NAME_PREFIXES_TO_FULL_DESCRIPTIONS["dedup"]: "array_deduplicator",
             "n_neighbors": 128,
             "data_prep_sampling_samples": 50000,
         },
         {
             "data_prep_sampling_method": "random",
-            "deduplication": "array_deduplicator",
+            NAME_PREFIXES_TO_FULL_DESCRIPTIONS["dedup"]: "array_deduplicator",
             "n_neighbors": 128,
             "data_prep_sampling_samples": 100000,
         },
         {
             "data_prep_sampling_method": "random",
-            "deduplication": "array_deduplicator",
+            NAME_PREFIXES_TO_FULL_DESCRIPTIONS["dedup"]: "array_deduplicator",
             "n_neighbors": 128,
             "data_prep_sampling_samples": 150000,
         },
         {
             "data_prep_sampling_method": "random",
-            "deduplication": "array_deduplicator",
+            NAME_PREFIXES_TO_FULL_DESCRIPTIONS["dedup"]: "array_deduplicator",
             "n_neighbors": 256,
             "data_prep_sampling_samples": 100000,
         },

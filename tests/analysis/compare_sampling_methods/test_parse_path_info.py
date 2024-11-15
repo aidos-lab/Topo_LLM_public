@@ -28,6 +28,7 @@
 import logging
 import pprint
 
+from topollm.config_classes.constants import NAME_PREFIXES_TO_FULL_DESCRIPTIONS
 from topollm.path_management.parse_path_info import parse_path_info_full
 
 default_logger: logging.Logger = logging.getLogger(
@@ -100,7 +101,7 @@ def test_parse_path_info_full_sampling_take_first(
         "data_subsampling_number_of_samples": 2000,
         "data_subsampling_sampling_mode": "take_first",
         "data_subsampling_sampling_seed": None,
-        "local_estimates_deduplication": "array_deduplicator",
+        NAME_PREFIXES_TO_FULL_DESCRIPTIONS["dedup"]: "array_deduplicator",
         "local_estimates_desc_full": "desc=twonn_samples=2500_zerovec=keep_dedup=array_deduplicator",
         "local_estimates_description": "twonn",
         "local_estimates_samples": 2500,
@@ -156,7 +157,7 @@ def test_parse_path_info_full_sampling_random(
         "data_subsampling_number_of_samples": 10000,
         "data_subsampling_sampling_mode": "random",
         "data_subsampling_sampling_seed": 777,
-        "local_estimates_deduplication": "array_deduplicator",
+        NAME_PREFIXES_TO_FULL_DESCRIPTIONS["dedup"]: "array_deduplicator",
         "local_estimates_desc_full": "desc=twonn_samples=5000_zerovec=keep_dedup=array_deduplicator",
         "local_estimates_description": "twonn",
         "local_estimates_samples": 5000,
@@ -204,7 +205,7 @@ def test_parse_path_info_full_for_finetuned_model(
         "data_prep_sampling_samples": 100000,
         "data_prep_sampling_seed": 47,
         "data_dataset_name": "one-year-of-tsla-on-reddit",
-        "local_estimates_deduplication": "array_deduplicator",
+        NAME_PREFIXES_TO_FULL_DESCRIPTIONS["dedup"]: "array_deduplicator",
         "data_feature_column": "ner_tags",
         "local_estimates_desc_full": "desc-twonn_samples-2500_zerovec-keep_dedup-array_deduplicator",
         "local_estimates_description": "twonn",

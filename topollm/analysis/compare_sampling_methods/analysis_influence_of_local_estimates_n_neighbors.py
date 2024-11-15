@@ -10,6 +10,7 @@ from topollm.analysis.compare_sampling_methods.make_plots import (
     Y_AXIS_LIMITS,
     analyze_and_plot_influence_of_local_estimates_samples,
 )
+from topollm.config_classes.constants import NAME_PREFIXES_TO_FULL_DESCRIPTIONS
 from topollm.typing.enums import Verbosity
 
 default_logger: logging.Logger = logging.getLogger(
@@ -29,7 +30,7 @@ def retrieve_most_frequent_values(
     most_frequent_values = {}
     for column in [
         "data_prep_sampling_method",
-        "deduplication",
+        NAME_PREFIXES_TO_FULL_DESCRIPTIONS["dedup"],
         "data_prep_sampling_seed",
         "data_prep_sampling_samples",
     ]:

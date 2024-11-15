@@ -30,6 +30,8 @@
 import pathlib
 import re
 
+from topollm.config_classes.constants import NAME_PREFIXES_TO_FULL_DESCRIPTIONS
+
 
 def parse_path_info_full(
     path: str | pathlib.Path,
@@ -74,7 +76,9 @@ def parse_path_info_full(
         local_estimates_info["local_estimates_description"] = desc_match.group(1)
         local_estimates_info["local_estimates_samples"] = int(desc_match.group(2))
         local_estimates_info["local_estimates_zerovec"] = desc_match.group(3)
-        local_estimates_info["local_estimates_deduplication"] = desc_match.group(4) if desc_match.group(4) else None
+        local_estimates_info[NAME_PREFIXES_TO_FULL_DESCRIPTIONS["dedup"]] = (
+            desc_match.group(4) if desc_match.group(4) else None
+        )
 
     # Extract neighbors information
     # Matches neighbors mode and number of neighbors, e.g.,
