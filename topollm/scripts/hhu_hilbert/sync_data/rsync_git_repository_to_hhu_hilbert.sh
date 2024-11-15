@@ -11,7 +11,7 @@ source "${TOPO_LLM_REPOSITORY_BASE_PATH}/.env"
 rsync -aPe ssh \
     --exclude-from="$RSYNC_GIT_REPOSITORY_EXCLUDES_FILE" \
     "${TOPO_LLM_REPOSITORY_BASE_PATH}/" \
-    "${ZIM_USERNAME}@storage.hpc.rz.uni-duesseldorf.de:/gpfs/project/${ZIM_USERNAME}/git-source/Topo_LLM/"
+    "${ZIM_USERNAME}@Hilbert-Storage:/gpfs/project/${ZIM_USERNAME}/git-source/Topo_LLM/"
 
 # Exit with the exit code of the rsync command
 exit $?
