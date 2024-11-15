@@ -30,8 +30,44 @@ import pprint
 
 from topollm.analysis.compare_sampling_methods.parse_path_info import parse_path_info_full
 
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
-def test_parse_path_info_full(
+
+def compare_example_path_and_expected_result(
+    example_path: str,
+    expected_result: dict,
+    logger: logging.Logger = default_logger,
+) -> None:
+    """Compare the result of parse_path_info_full with the expected result."""
+    logger.info(
+        msg=f"{example_path = }",  # noqa: G004 - low overhead
+    )
+
+    result: dict = parse_path_info_full(
+        path=example_path,
+    )
+
+    logger.info(
+        msg=f"result:\n{pprint.pformat(object=result)}",  # noqa: G004 - low overhead
+    )
+
+    # Check that result is a valid dictionary
+    assert isinstance(  # noqa: S101 - pytest assertion
+        result,
+        dict,
+    )
+
+    # Assert that the result matches the expected result
+    assert result == expected_result, (  # noqa: S101 - pytest assertion
+        f"Parsing failed for {example_path = }\n"
+        f"Expected:\n{pprint.pformat(object=expected_result)}\n"
+        f"Got:\n{pprint.pformat(object=result)}"
+    )
+
+
+def test_parse_path_info_full_sampling_take_first(
     logger_fixture: logging.Logger,
 ) -> None:
     """Example usage of parse_path_info_full function."""
@@ -49,6 +85,47 @@ def test_parse_path_info_full(
         "local_estimates_pointwise.npy"
     )
 
+    expected_result: dict = {
+        "aggregation": "mean",
+        "context": "dataset_entry",
+        "data_full": "data=multiwoz21_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags",
+        "data_prep_sampling_method": "random",
+        "data_prep_sampling_samples": 100000,
+        "data_prep_sampling_seed": 42,
+        "data_split": "test",
+        "data_splitting_mode": "do_nothing",
+        "data_subsampling_full": "split=test_samples=2000_sampling=take_first",
+        "data_subsampling_number_of_samples": 2000,
+        "data_subsampling_sampling_mode": "take_first",
+        "data_subsampling_sampling_seed": None,
+        "dataset_name": "multiwoz21",
+        "deduplication": "array_deduplicator",
+        "feature_column": "ner_tags",
+        "local_estimates_desc_full": "desc=twonn_samples=2500_zerovec=keep_dedup=array_deduplicator",
+        "local_estimates_description": "twonn",
+        "local_estimates_samples": 2500,
+        "model_checkpoint": None,
+        "model_full": "model=roberta-base_task=masked_lm",
+        "model_layer": -1,
+        "model_partial_name": "model=roberta-base",
+        "model_seed": None,
+        "model_task": "masked_lm",
+        "n_neighbors": 128,
+        "n_neighbors_mode": "absolute_size",
+        "normalization": "None",
+        "zerovec": "keep",
+    }
+
+    compare_example_path_and_expected_result(
+        example_path=example_path_base_model_str,
+        expected_result=expected_result,
+        logger=logger_fixture,
+    )
+
+
+def test_parse_path_info_full_for_finetuned_model(
+    logger_fixture: logging.Logger,
+) -> None:
     example_path_finetuned_model_str: str = (
         "/Users/USER_NAME/git-source/Topo_LLM/"
         "data/analysis/twonn/"
@@ -62,96 +139,31 @@ def test_parse_path_info_full(
         "local_estimates_pointwise.npy"
     )
 
-    example_path_str_list: list[str] = [
-        example_path_base_model_str,
-        # example_path_finetuned_model_str,
-    ]
+    expected_result = {
+        "aggregation": "mean",
+        "context": "dataset_entry",
+        "data_full": "data-one-year-of-tsla-on-reddit_split-train_ctxt-dataset_entry_samples-10000_feat-col-ner_tags",
+        "data_prep_sampling_method": "random",
+        "data_prep_sampling_samples": 100000,
+        "data_prep_sampling_seed": 47,
+        "dataset_name": "one-year-of-tsla-on-reddit",
+        "deduplication": "array_deduplicator",
+        "feature_column": "ner_tags",
+        "local_estimates_desc_full": "desc-twonn_samples-2500_zerovec-keep_dedup-array_deduplicator",
+        "local_estimates_description": "twonn",
+        "local_estimates_samples": 2500,
+        "model_checkpoint": 400,
+        "model_full": "model-model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-400_task-masked_lm",
+        "model_layer": -1,
+        "model_partial_name": "model-model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50",
+        "model_seed": 1234,
+        "model_task": "masked_lm",
+        "n_neighbors": 256,
+        "neighbors_mode": "absolute",
+        "normalization": "None",
+        "samples": 10000,
+        "split": "train",
+        "zerovec": "keep",
+    }
 
-    expected_results = [
-        {
-            "aggregation": "mean",
-            "context": "dataset_entry",
-            "data_full": "data=multiwoz21_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags",
-            "data_prep_sampling_method": "random",
-            "data_prep_sampling_samples": 100000,
-            "data_prep_sampling_seed": 42,
-            "data_split": "test",
-            "data_splitting_mode": "do_nothing",
-            "data_subsampling_full": "split=test_samples=2000_sampling=take_first",
-            "data_subsampling_number_of_samples": 2000,
-            "data_subsampling_sampling_mode": "take_first",
-            "data_subsampling_sampling_seed": None,
-            "dataset_name": "multiwoz21",
-            "deduplication": "array_deduplicator",
-            "feature_column": "ner_tags",
-            "local_estimates_desc_full": "desc=twonn_samples=2500_zerovec=keep_dedup=array_deduplicator",
-            "local_estimates_description": "twonn",
-            "local_estimates_samples": 2500,
-            "model_checkpoint": None,
-            "model_full": "model=roberta-base_task=masked_lm",
-            "model_layer": -1,
-            "model_partial_name": "model=roberta-base",
-            "model_seed": None,
-            "model_task": "masked_lm",
-            "n_neighbors": 128,
-            "n_neighbors_mode": "absolute_size",
-            "normalization": "None",
-            "zerovec": "keep",
-        },
-        # {
-        #     "aggregation": "mean",
-        #     "context": "dataset_entry",
-        #     "data_full": "data-one-year-of-tsla-on-reddit_split-train_ctxt-dataset_entry_samples-10000_feat-col-ner_tags",
-        #     "data_prep_sampling_method": "random",
-        #     "data_prep_sampling_samples": 100000,
-        #     "data_prep_sampling_seed": 47,
-        #     "dataset_name": "one-year-of-tsla-on-reddit",
-        #     "deduplication": "array_deduplicator",
-        #     "feature_column": "ner_tags",
-        #     "local_estimates_desc_full": "desc-twonn_samples-2500_zerovec-keep_dedup-array_deduplicator",
-        #     "local_estimates_description": "twonn",
-        #     "local_estimates_samples": 2500,
-        #     "model_checkpoint": 400,
-        #     "model_full": "model-model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-400_task-masked_lm",
-        #     "model_layer": -1,
-        #     "model_partial_name": "model-model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50",
-        #     "model_seed": 1234,
-        #     "model_task": "masked_lm",
-        #     "n_neighbors": 256,
-        #     "neighbors_mode": "absolute",
-        #     "normalization": "None",
-        #     "samples": 10000,
-        #     "split": "train",
-        #     "zerovec": "keep",
-        # },
-    ]
-
-    for example_path, expected_result in zip(
-        example_path_str_list,
-        expected_results,
-        strict=True,
-    ):
-        logger_fixture.info(
-            msg=f"{example_path = }",  # noqa: G004 - low overhead
-        )
-
-        result = parse_path_info_full(
-            path=example_path,
-        )
-
-        logger_fixture.info(
-            msg=f"result:\n{pprint.pformat(object=result)}",  # noqa: G004 - low overhead
-        )
-
-        # Check that result is a valid dictionary
-        assert isinstance(  # noqa: S101 - pytest assertion
-            result,
-            dict,
-        )
-
-        # Assert that the result matches the expected result
-        assert result == expected_result, (  # noqa: S101 - pytest assertion
-            f"Parsing failed for {example_path = }\n"
-            f"Expected:\n{pprint.pformat(object=expected_result)}\n"
-            f"Got:\n{pprint.pformat(object=result)}"
-        )
+    # NOTE: This test has not been updated and implemented to the new format.
