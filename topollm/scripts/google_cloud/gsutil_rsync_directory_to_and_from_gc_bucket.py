@@ -95,14 +95,16 @@ def run_gsutil_rsync(
     )
 
     # Print the command for verification
-    command_str = " ".join(command)
-    print(
+    command_str: str = " ".join(
+        command,
+    )
+    print(  # noqa: T201 - we want this script to print to stdout
         f">>> Command to be executed:\n{command_str}",
     )
 
     # Countdown for 3 seconds before executing
     for i in range(3, 0, -1):
-        print(
+        print(  # noqa: T201 - we want this script to print to stdout
             f">>> Executing in {i} seconds... Press Ctrl+C to cancel.",
         )
         time.sleep(1)
@@ -114,7 +116,9 @@ def run_gsutil_rsync(
             check=True,
         )
     except subprocess.CalledProcessError as e:
-        print(f"Error occurred during synchronization: {e}")
+        print(  # noqa: T201 - we want this script to print to stdout
+            f"Error occurred during synchronization: {e}",
+        )
         sys.exit(1)
 
 
@@ -130,7 +134,7 @@ class SyncManager:
         target: SyncTarget,
         *,
         dry_run: bool = False,
-        subdirectory: str = "analysis/twonn",
+        subdirectory: str = "data/analysis/twonn",
     ) -> None:
         """Perform synchronization between source and target.
 
@@ -150,62 +154,62 @@ class SyncManager:
 
         # Determine source and target paths based on SyncConfig
         if source == SyncSource.VM and target == SyncTarget.BUCKET:
-            print(
+            print(  # noqa: T201 - we want this script to print to stdout
                 ">>> Syncing from Google Cloud VM to Google Cloud Storage Bucket ...",
             )
             source_path = os.path.join(  # noqa: PTH118 - do not use pathlib on cloud storage URIs
-                self.config.gc_vm_data_dir,
+                self.config.gc_vm_repository_base_path,
                 subdirectory,
             )
             destination_path = os.path.join(  # noqa: PTH118 - do not use pathlib on cloud storage URIs
-                self.config.gc_bucket_data_dir,
+                self.config.gc_bucket_repository_base_path,
                 subdirectory,
             )
 
         elif source == SyncSource.BUCKET and target == SyncTarget.LOCAL:
-            print(
+            print(  # noqa: T201 - we want this script to print to stdout
                 ">>> Syncing from Google Cloud Storage Bucket to Local Machine ...",
             )
             source_path = os.path.join(  # noqa: PTH118 - do not use pathlib on cloud storage URIs
-                self.config.gc_bucket_data_dir,
+                self.config.gc_bucket_repository_base_path,
                 subdirectory,
             )
             destination_path = os.path.join(  # noqa: PTH118 - do not use pathlib on cloud storage URIs
-                self.config.local_data_dir,
+                self.config.local_repository_base_path,
                 subdirectory,
             )
 
         elif source == SyncSource.BUCKET and target == SyncTarget.VM:
-            print(
+            print(  # noqa: T201 - we want this script to print to stdout
                 ">>> Syncing from Google Cloud Storage Bucket to Google Cloud VM ...",
             )
             source_path = os.path.join(  # noqa: PTH118 - do not use pathlib on cloud storage URIs
-                self.config.gc_bucket_data_dir,
+                self.config.gc_bucket_repository_base_path,
                 subdirectory,
             )
             destination_path = os.path.join(  # noqa: PTH118 - do not use pathlib on cloud storage URIs
-                self.config.gc_vm_data_dir,
+                self.config.gc_vm_repository_base_path,
                 subdirectory,
             )
 
         elif source == SyncSource.LOCAL and target == SyncTarget.BUCKET:
-            print(
+            print(  # noqa: T201 - we want this script to print to stdout
                 ">>> Syncing from Local Machine to Google Cloud Storage Bucket ...",
             )
             source_path = os.path.join(  # noqa: PTH118 - do not use pathlib on cloud storage URIs
-                self.config.local_data_dir,
+                self.config.local_repository_base_path,
                 subdirectory,
             )
             destination_path = os.path.join(  # noqa: PTH118 - do not use pathlib on cloud storage URIs
-                self.config.gc_bucket_data_dir,
+                self.config.gc_bucket_repository_base_path,
                 subdirectory,
             )
 
         else:
-            print(
+            print(  # noqa: T201 - we want this script to print to stdout
                 f"@@@ Invalid combination of source '{source = }' and target '{target = }'.",
             )
-            print(
+            print(  # noqa: T201 - we want this script to print to stdout
                 "@@@ Valid combinations are: "
                 "'vm' to 'bucket', 'bucket' to 'local', 'bucket' to 'vm', or 'local' to 'bucket'.",
             )
@@ -218,7 +222,7 @@ class SyncManager:
             dry_run=dry_run,
         )
 
-        print(
+        print(  # noqa: T201 - we want this script to print to stdout
             ">>> Sync complete.",
         )
 
