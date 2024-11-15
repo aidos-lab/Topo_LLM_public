@@ -145,8 +145,8 @@
             }
         },
         {
-            "label": "GC - Sync from GC VM to GC Bucket - full 'data' directory ",
-            "command": "poetry run sync_gc_data --source \"vm\" --target \"bucket\" --subdirectory \"\"",
+            "label": "GC - Sync from GC VM to GC Bucket - logs and full 'data' directory ",
+            "command": "poetry run sync_gc_data --source vm --target bucket --subdirectory 'data'",
             "type": "shell",
             "group": {
                 "kind": "build",
@@ -159,8 +159,8 @@
             }
         },
         {
-            "label": "GC - Sync from GC Bucket to Local - only 'data/analysis/twonn' directory ",
-            "command": "poetry run sync_gc_data --source \"bucket\" --target \"local\" --subdirectory \"analysis/twonn\"",
+            "label": "GC - Sync from GC Bucket to Local - logs and only 'data/analysis/twonn' directory ",
+            "command": "poetry run sync_gc_data --source bucket --target local --subdirectory 'data/analysis/twonn'",
             "type": "shell",
             "group": {
                 "kind": "build",
