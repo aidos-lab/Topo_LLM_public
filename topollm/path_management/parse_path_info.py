@@ -147,18 +147,23 @@ def parse_data_info(
     # - spl-mode=([a-zA-Z0-9_]+): Match the data splitting mode.
     # - ctxt=([a-zA-Z0-9_]+): Match the context type (e.g., "dataset_entry").
     # - feat-col=([a-zA-Z0-9_]+): Match the feature column.
-    data_match: re.Match[str] | None = re.search(
-        pattern=r"data=([\w-]+)_spl-mode=([a-zA-Z0-9_]+)_ctxt=([a-zA-Z0-9_]+)_feat-col=([a-zA-Z0-9_]+)",
+    regex = (
+        r"data=([\w-]+)"  # Dataset name
+        r"_spl-mode=([a-zA-Z0-9_]+)"  # Splitting mode
+        r"(?:_spl-[a-zA-Z0-9_=.-]+)*"  # Optional splitting parameters
+        r"_ctxt=([a-zA-Z0-9_]+)"  # Context
+        r"_feat-col=([a-zA-Z0-9_]+)"  # Feature column
+    )
+    data_match = re.search(
+        pattern=regex,
         string=path_str,
     )
     if data_match:
-        parsed_info["data_full"] = data_match.group(0)  # The full matched data string
+        parsed_info["data_full"] = data_match.group(0)  # Full matched string
         parsed_info["data_dataset_name"] = data_match.group(1)
         parsed_info["data_splitting_mode"] = data_match.group(2)
-        # TODO: This does not include additional data splitting information yet
         parsed_info["data_context"] = data_match.group(3)
         parsed_info["data_feature_column"] = data_match.group(4)
-
     return parsed_info
 
 
