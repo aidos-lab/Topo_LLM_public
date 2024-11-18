@@ -431,7 +431,10 @@ def make_config_and_run_task(
         case DataSubsamplingNumberOfSamplesListOption.UP_TO_10000_WITH_STEP_SIZE_2000:
             data_subsampling_number_of_samples_list = [str(i * 2000) for i in range(1, 6)]
         case DataSubsamplingNumberOfSamplesListOption.UP_TO_16000_WITH_STEP_SIZE_2000:
+            # TODO: Investigate the Problem with this submissions
             data_subsampling_number_of_samples_list = [str(i * 2000) for i in range(1, 9)]
+        case DataSubsamplingNumberOfSamplesListOption.FROM_10000_UP_TO_16000_WITH_STEP_SIZE_2000:
+            data_subsampling_number_of_samples_list = [str(i * 2000) for i in range(6, 9)]
         case DataSubsamplingNumberOfSamplesListOption.UP_TO_22000_WITH_STEP_SIZE_2000:
             data_subsampling_number_of_samples_list = [str(i * 2000) for i in range(1, 12)]
         case _:

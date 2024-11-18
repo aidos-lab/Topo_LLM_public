@@ -131,11 +131,6 @@ DATA_LIST="multiwoz21_only"
 # DATA_LIST="only_train"
 # DATA_LIST="debug"
 
-# DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION="none"
-# DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION="fixed_3000"
-# DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION="fixed_10000"
-# DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION="up_to_10000_with_step_size_2000"
-DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION="up_to_16000_with_step_size_2000"
 
 # DATA_SUBSAMPLING_SAMPLING_SEED_LIST_OPTION="default"
 # DATA_SUBSAMPLING_SAMPLING_SEED_LIST_OPTION="fixed_777"
@@ -173,8 +168,10 @@ LOCAL_ESTIMATES_POINTWISE_ABSOLUTE_N_NEIGHBORS_LIST="single_choice_128"
 # Experiment setup:
 USE_COMMON_EXPERIMENT_SETUP="true"
 
-# EXPERIMENT_SELECTOR="multiwoz21_different_data_subsampling_number_of_samples"
-EXPERIMENT_SELECTOR="reddit_different_data_subsampling_number_of_samples"
+EXPERIMENT_SELECTOR="multiwoz21_different_data_subsampling_number_of_samples"
+# EXPERIMENT_SELECTOR="reddit_different_data_subsampling_number_of_samples"
+
+# EXPERIMENT_SELECTOR="multiwoz21_different_checkpoints"
 
 EXPERIMENT_STAGE="compute_embeddings_plus_single_pipeline_run"
 # EXPERIMENT_STAGE="skip_compute_embeddings_and_multiple_pipeline_runs"
@@ -190,10 +187,13 @@ fi
 
 echo ">>> Experiment selected: ${EXPERIMENT_SELECTOR}"
 
+# # # # #
+#
 # ++++ Experiment > different subsampling number of samples for multiwoz21 dataset
 if [ "${EXPERIMENT_SELECTOR}" = "multiwoz21_different_data_subsampling_number_of_samples" ]; then
   DATA_LIST="multiwoz21_only"
-  DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION="up_to_16000_with_step_size_2000"
+  # DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION="up_to_16000_with_step_size_2000" # TODO: Investigate the problem here
+  DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION="from_10000_up_to_16000_with_step_size_2000"
   
   LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="single_choice_60000"
 fi
@@ -202,6 +202,18 @@ fi
 if [ "${EXPERIMENT_SELECTOR}" = "reddit_different_data_subsampling_number_of_samples" ]; then
   DATA_LIST="reddit_only"
   DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION="up_to_22000_with_step_size_2000"
+
+  LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="single_choice_60000"
+fi
+
+# # # # #
+#
+# ++++ Experiment > different checkpoints for multiwoz21 dataset
+if [ "${EXPERIMENT_SELECTOR}" = "multiwoz21_different_checkpoints" ]; then
+  DATA_LIST="multiwoz21_only"
+  DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION="fixed_10000"
+
+  CHECKPOINT_NO_LIST="selected"
 
   LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="single_choice_60000"
 fi
