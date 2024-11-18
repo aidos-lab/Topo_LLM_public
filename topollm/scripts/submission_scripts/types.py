@@ -56,7 +56,10 @@ class DataSubsamplingNumberOfSamplesListOption(StrEnum):
     FIXED_3000 = auto()
     FIXED_10000 = auto()
     UP_TO_10000_WITH_STEP_SIZE_2000 = auto()
-    UP_TO_16000_WITH_STEP_SIZE_2000 = auto()
+    UP_TO_16000_WITH_STEP_SIZE_2000 = auto()  # For exhausting the entire multiwoz21 validation and test sets
+    UP_TO_22000_WITH_STEP_SIZE_2000 = (
+        auto()
+    )  # For exhausting the entire one-year-of-tsla-on-reddit validation and test sets
 
 
 class DataSubsamplingSamplingSeedListOption(StrEnum):

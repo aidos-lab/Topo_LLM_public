@@ -12,6 +12,7 @@ RUN_ONLY_FIRST_CONFIG_OPTION_FLAG=""
 # on the multiwoz21_train and reddit_train datasets.
 MEMORY="32"
 NCPUS="2"
+NGPUS="1"
 
 TEMPLATE="DSML"
 QUEUE="DSML"
@@ -129,7 +130,6 @@ FINETUNING_DATASETS_LIST="reddit_full"
 # SKIP_COMPUTE_AND_STORE_EMBEDDINGS="--skip_compute_and_store_embeddings"
 
 EMBEDDINGS_DATA_PREP_SAMPLING_MODE="random"
-# EMBEDDINGS_DATA_PREP_SAMPLING_MODE="take_first"
 
 # EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="default"
 # EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="two_seeds"
@@ -137,45 +137,75 @@ EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="five_seeds"
 # EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="ten_seeds"
 # EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="twenty_seeds"
 
-# EMBEDDINGS_DATA_PREP_NUM_SAMPLES_LIST_OPTION="default"
-# EMBEDDINGS_DATA_PREP_NUM_SAMPLES_LIST_OPTION="single_choice_50000"
-# EMBEDDINGS_DATA_PREP_NUM_SAMPLES_LIST_OPTION="single_choice_100000"
-EMBEDDINGS_DATA_PREP_NUM_SAMPLES_LIST_OPTION="single_choice_150000"
-# EMBEDDINGS_DATA_PREP_NUM_SAMPLES_LIST_OPTION="single_choice_250000"
-# EMBEDDINGS_DATA_PREP_NUM_SAMPLES_LIST_OPTION="five_choices_10000_steps"
-
 LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="default"
 # LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="few_small_steps_num_samples"
 # LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="up_to_90000_with_step_size_5000_num_samples"
 # LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="up_to_90000_with_step_size_10000_num_samples"
 # LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="up_to_100000_with_step_size_20000_num_samples"
 
-# LOCAL_ESTIMATES_POINTWISE_ABSOLUTE_N_NEIGHBORS_LIST="powers_of_two_up_to_1024"
 LOCAL_ESTIMATES_POINTWISE_ABSOLUTE_N_NEIGHBORS_LIST="single_choice_128"
 
 # ---------------------------------------------------------- #
 # Experiment setup:
-EXPERIMENT_SELECTOR="multiwoz21_different_data_subsampling_number_of_samples"
+USE_COMMON_EXPERIMENT_SETUP="true"
+
+# EXPERIMENT_SELECTOR="multiwoz21_different_data_subsampling_number_of_samples"
+EXPERIMENT_SELECTOR="reddit_different_data_subsampling_number_of_samples"
+
+EXPERIMENT_STAGE="compute_embeddings_plus_single_pipeline_run"
+# EXPERIMENT_STAGE="skip_compute_embeddings_and_multiple_pipeline_runs"
+
+if [ "${USE_COMMON_EXPERIMENT_SETUP}" = "true" ]; then
+  DATA_SUBSAMPLING_SAMPLING_SEED_LIST_OPTION="three_seeds"
+
+  EMBEDDINGS_DATA_PREP_SAMPLING_MODE="random"
+  EMBEDDINGS_DATA_PREP_NUM_SAMPLES_LIST_OPTION="single_choice_150000"
+
+  LOCAL_ESTIMATES_POINTWISE_ABSOLUTE_N_NEIGHBORS_LIST="single_choice_128"
+fi
 
 echo ">>> Experiment selected: ${EXPERIMENT_SELECTOR}"
 
-#
-# > Experiment > different subsampling number of samples for multiwoz21
+# ++++ Experiment > different subsampling number of samples for multiwoz21 dataset
 if [ "${EXPERIMENT_SELECTOR}" = "multiwoz21_different_data_subsampling_number_of_samples" ]; then
-  QUEUE="CUDA"
-  # TEMPLATE="TESLAT4"
-  TEMPLATE="GTX1080"
-  NCPUS="4"
-
   DATA_LIST="multiwoz21_only"
   DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION="up_to_16000_with_step_size_2000"
-  DATA_SUBSAMPLING_SAMPLING_SEED_LIST_OPTION="three_seeds"
-  EMBEDDINGS_DATA_PREP_SAMPLING_MODE="random"
-  EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="five_seeds"
-  EMBEDDINGS_DATA_PREP_NUM_SAMPLES_LIST_OPTION="single_choice_150000"
+  
   LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="single_choice_60000"
-  LOCAL_ESTIMATES_POINTWISE_ABSOLUTE_N_NEIGHBORS_LIST="single_choice_128"
 fi
+
+# ++++ Experiment > different subsampling number of samples for reddit dataset
+if [ "${EXPERIMENT_SELECTOR}" = "reddit_different_data_subsampling_number_of_samples" ]; then
+  DATA_LIST="reddit_only"
+  DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION="up_to_22000_with_step_size_2000"
+
+  LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="single_choice_60000"
+fi
+
+echo ">>> Experiment stage selected: ${EXPERIMENT_STAGE}"
+
+if [ "${EXPERIMENT_STAGE}" = "compute_embeddings_plus_single_pipeline_run" ]; then
+  NCPUS="4"
+  NGPUS="1"
+  QUEUE="CUDA"
+  
+  # TEMPLATE="TESLAT4"
+  # TEMPLATE="GTX1080"
+  TEMPLATE="RTX6000"
+
+  EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="default"
+  
+  SKIP_COMPUTE_AND_STORE_EMBEDDINGS="" # do the embeddings computation
+elif [ "${EXPERIMENT_STAGE}" = "skip_compute_embeddings_and_multiple_pipeline_runs" ]; then
+  NCPUS="6"
+  NGPUS="0"
+  QUEUE="DEFAULT"
+  TEMPLATE="CPU"
+
+  EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="five_seeds"
+
+  SKIP_COMPUTE_AND_STORE_EMBEDDINGS="--skip_compute_and_store_embeddings" # skip the embeddings computation
+fi  
 
 # ---------------------------------------------------------- #
 
@@ -218,6 +248,7 @@ if [ "$DO_PIPELINE" = "true" ]; then
       --queue=$QUEUE \
       --memory=$MEMORY \
       --ncpus=$NCPUS \
+      --ngpus=$NGPUS \
       --data_list=$DATA_LIST \
       --data_subsampling_number_of_samples_list_option=$DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION \
       --data_subsampling_sampling_seed_list_option=$DATA_SUBSAMPLING_SAMPLING_SEED_LIST_OPTION \
@@ -240,10 +271,11 @@ fi
        
 # ================================================================== #
 if [ "$DO_LOCAL_ESTIMATES_COMPUTATION" = "true" ]; then
-  echo ">>> Overwriting TEMPLATE and QUEUE for local estimates computation ..."
+  echo ">>> Overwriting TEMPLATE; QUEUE; NGPUS for local estimates computation ..."
   TEMPLATE="CPU"
   QUEUE="DEFAULT"
-  echo ">>> Overwritten values: QUEUE=${QUEUE}, TEMPLATE=${TEMPLATE}."
+  NGPUS="0"
+  echo ">>> Overwritten values: TEMPLATE=${TEMPLATE}; QUEUE=${QUEUE}; NGPUS=${NGPUS}."
 
   echo ">>> Submitting local estimates computation jobs ..."
   # This is a CPU task, so we do not ask for a GPU.
@@ -251,7 +283,8 @@ if [ "$DO_LOCAL_ESTIMATES_COMPUTATION" = "true" ]; then
       --task="local_estimates_computation" \
       --template=$TEMPLATE \
       --queue=$QUEUE \
-      --ngpus="0" \
+      --ncpus=$NCPUS \
+      --ngpus=$NGPUS \
       --walltime="08:00:00" \
       --data_list=$DATA_LIST \
       --data_subsampling_number_of_samples_list_option=$DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION \
@@ -287,6 +320,8 @@ if [ "$DO_PERPLEXITY" = "true" ]; then
       --task="perplexity" \
       --template=$TEMPLATE \
       --queue=$QUEUE \
+      --ncpus=$NCPUS \
+      --ngpus=$NGPUS \
       --data_list=$DATA_LIST \
       --data_subsampling_number_of_samples_list_option=$DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION \
       --data_subsampling_sampling_seed_list_option=$DATA_SUBSAMPLING_SAMPLING_SEED_LIST_OPTION \
@@ -320,6 +355,8 @@ if [ "$DO_FINETUNING" = "true" ]; then
     --template=$TEMPLATE \
     --queue=$QUEUE \
     --memory=$MEMORY \
+    --ncpus=$NCPUS \
+    --ngpus=$NGPUS \
     --walltime="48:00:00" \
     --finetuning_datasets_list=$FINETUNING_DATASETS_LIST \
     --finetuning_seed_list="one_seed" \

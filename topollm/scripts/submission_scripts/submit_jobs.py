@@ -432,6 +432,8 @@ def make_config_and_run_task(
             data_subsampling_number_of_samples_list = [str(i * 2000) for i in range(1, 6)]
         case DataSubsamplingNumberOfSamplesListOption.UP_TO_16000_WITH_STEP_SIZE_2000:
             data_subsampling_number_of_samples_list = [str(i * 2000) for i in range(1, 9)]
+        case DataSubsamplingNumberOfSamplesListOption.UP_TO_22000_WITH_STEP_SIZE_2000:
+            data_subsampling_number_of_samples_list = [str(i * 2000) for i in range(1, 12)]
         case _:
             msg = f"Unknown {args.data_subsampling_number_of_samples_list_option = }"
             raise ValueError(
