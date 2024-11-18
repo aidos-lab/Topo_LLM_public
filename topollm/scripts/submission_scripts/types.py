@@ -56,6 +56,7 @@ class DataSubsamplingNumberOfSamplesListOption(StrEnum):
     FIXED_3000 = auto()
     FIXED_10000 = auto()
     UP_TO_10000_WITH_STEP_SIZE_2000 = auto()
+    UP_TO_16000_WITH_STEP_SIZE_2000 = auto()
 
 
 class DataSubsamplingSamplingSeedListOption(StrEnum):
@@ -64,6 +65,7 @@ class DataSubsamplingSamplingSeedListOption(StrEnum):
     DEFAULT = auto()
     FIXED_777 = auto()
     TWO_SEEDS = auto()
+    THREE_SEEDS = auto()
     FIVE_SEEDS = auto()
     TEN_SEEDS = auto()
     TWENTY_SEEDS = auto()
@@ -130,6 +132,7 @@ class LocalEstimatesFilteringNumSamplesListOption(StrEnum):
     """Options for the number of samples for local estimates filtering."""
 
     DEFAULT = auto()
+    SINGLE_CHOICE_60000 = auto()
     FEW_SMALL_STEPS_NUM_SAMPLES = auto()
     MEDIUM_SMALL_STEPS_NUM_SAMPLES = auto()
     UP_TO_30000_WITH_STEP_SIZE_2500_NUM_SAMPLES = auto()

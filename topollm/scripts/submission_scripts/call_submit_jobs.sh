@@ -11,6 +11,10 @@ RUN_ONLY_FIRST_CONFIG_OPTION_FLAG=""
 # 16GB of memory is not enough for the embeddings data prep step
 # on the multiwoz21_train and reddit_train datasets.
 MEMORY="32"
+NCPUS="2"
+
+TEMPLATE="DSML"
+QUEUE="DSML"
 
 # Flags to select tasks
 DO_PIPELINE="false"
@@ -95,26 +99,23 @@ fi
 # ================================================================== #
 
 # DATA_LIST="full"
-DATA_LIST="multiwoz21_and_reddit"
+# DATA_LIST="multiwoz21_and_reddit"
 # DATA_LIST="multiwoz21_train_and_reddit_train"
-# DATA_LIST="multiwoz21_only"
+DATA_LIST="multiwoz21_only"
 # DATA_LIST="reddit_only"
-
 # DATA_LIST="only_train"
-# LANGUAGE_MODEL_LIST="selected_finetuned_few_epochs_from_roberta_base"
-# CHECKPOINT_NO_LIST="selected"
-
 # DATA_LIST="debug"
-# LANGUAGE_MODEL_LIST="only_roberta_base"
 
-# DATA_NUMBER_OF_SAMPLES_LIST_OPTION="none"
-# DATA_NUMBER_OF_SAMPLES_LIST_OPTION="fixed_3000"
-DATA_NUMBER_OF_SAMPLES_LIST_OPTION="fixed_10000"
-# DATA_NUMBER_OF_SAMPLES_LIST_OPTION="up_to_10000_with_step_size_2000"
+# DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION="none"
+# DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION="fixed_3000"
+# DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION="fixed_10000"
+# DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION="up_to_10000_with_step_size_2000"
+DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION="up_to_16000_with_step_size_2000"
 
 # DATA_SUBSAMPLING_SAMPLING_SEED_LIST_OPTION="default"
 # DATA_SUBSAMPLING_SAMPLING_SEED_LIST_OPTION="fixed_777"
-DATA_SUBSAMPLING_SAMPLING_SEED_LIST_OPTION="ten_seeds"
+DATA_SUBSAMPLING_SAMPLING_SEED_LIST_OPTION="three_seeds"
+# DATA_SUBSAMPLING_SAMPLING_SEED_LIST_OPTION="ten_seeds"
 
 # FINETUNING_DATASETS_LIST="manual_in_python_script"
 # FINETUNING_DATASETS_LIST="multiwoz21_and_reddit_full"
@@ -152,6 +153,34 @@ LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="default"
 # LOCAL_ESTIMATES_POINTWISE_ABSOLUTE_N_NEIGHBORS_LIST="powers_of_two_up_to_1024"
 LOCAL_ESTIMATES_POINTWISE_ABSOLUTE_N_NEIGHBORS_LIST="single_choice_128"
 
+# ---------------------------------------------------------- #
+# Experiment setup:
+EXPERIMENT_SELECTOR="multiwoz21_different_data_subsampling_number_of_samples"
+
+echo ">>> Experiment selected: ${EXPERIMENT_SELECTOR}"
+
+#
+# > Experiment > different subsampling number of samples for multiwoz21
+if [ "${EXPERIMENT_SELECTOR}" = "multiwoz21_different_data_subsampling_number_of_samples" ]; then
+  QUEUE="CUDA"
+  # TEMPLATE="TESLAT4"
+  TEMPLATE="GTX1080"
+  NCPUS="4"
+
+  DATA_LIST="multiwoz21_only"
+  DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION="up_to_16000_with_step_size_2000"
+  DATA_SUBSAMPLING_SAMPLING_SEED_LIST_OPTION="three_seeds"
+  EMBEDDINGS_DATA_PREP_SAMPLING_MODE="random"
+  EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="five_seeds"
+  EMBEDDINGS_DATA_PREP_NUM_SAMPLES_LIST_OPTION="single_choice_150000"
+  LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="single_choice_60000"
+  LOCAL_ESTIMATES_POINTWISE_ABSOLUTE_N_NEIGHBORS_LIST="single_choice_128"
+fi
+
+# ---------------------------------------------------------- #
+
+
+
 # Configure model settings based on selected model options
 if [ "$USE_ROBERTA_BASE_MODEL" = "true" ]; then
   ####################################
@@ -185,11 +214,12 @@ if [ "$DO_PIPELINE" = "true" ]; then
   # we do not use the 'LocalEstimatesFilteringNumSamplesOption' in the pipeline.
   poetry run submit_jobs \
       --task="pipeline" \
-      --queue="DSML" \
-      --template="DSML" \
+      --template=$TEMPLATE \
+      --queue=$QUEUE \
       --memory=$MEMORY \
+      --ncpus=$NCPUS \
       --data_list=$DATA_LIST \
-      --data_subsampling_number_of_samples_list_option=$DATA_NUMBER_OF_SAMPLES_LIST_OPTION \
+      --data_subsampling_number_of_samples_list_option=$DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION \
       --data_subsampling_sampling_seed_list_option=$DATA_SUBSAMPLING_SAMPLING_SEED_LIST_OPTION \
       $CREATE_POS_TAGS_FLAG \
       --language_model_list=$LANGUAGE_MODEL_LIST \
@@ -210,16 +240,21 @@ fi
        
 # ================================================================== #
 if [ "$DO_LOCAL_ESTIMATES_COMPUTATION" = "true" ]; then
+  echo ">>> Overwriting TEMPLATE and QUEUE for local estimates computation ..."
+  TEMPLATE="CPU"
+  QUEUE="DEFAULT"
+  echo ">>> Overwritten values: QUEUE=${QUEUE}, TEMPLATE=${TEMPLATE}."
+
   echo ">>> Submitting local estimates computation jobs ..."
   # This is a CPU task, so we do not ask for a GPU.
   poetry run submit_jobs \
       --task="local_estimates_computation" \
-      --template="CPU" \
-      --queue="DEFAULT" \
+      --template=$TEMPLATE \
+      --queue=$QUEUE \
       --ngpus="0" \
       --walltime="08:00:00" \
       --data_list=$DATA_LIST \
-      --data_subsampling_number_of_samples_list_option=$DATA_NUMBER_OF_SAMPLES_LIST_OPTION \
+      --data_subsampling_number_of_samples_list_option=$DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION \
       --data_subsampling_sampling_seed_list_option=$DATA_SUBSAMPLING_SAMPLING_SEED_LIST_OPTION \
       $CREATE_POS_TAGS_FLAG \
       --language_model_list=$LANGUAGE_MODEL_LIST \
@@ -241,14 +276,19 @@ fi
 
 # ================================================================== #
 if [ "$DO_PERPLEXITY" = "true" ]; then
+  echo ">>> Overwriting TEMPLATE and QUEUE for perplexity computation ..."
+  TEMPLATE="CUDA"
+  QUEUE="RTX6000"
+  echo ">>> Overwritten values: QUEUE=${QUEUE}, TEMPLATE=${TEMPLATE}."
+
   echo ">>> Submitting perplexity jobs ..."
   # Note: Do not use the CREATE_POS_TAGS_FLAG for the perplexity task.
   poetry run submit_jobs \
       --task="perplexity" \
-      --queue="CUDA" \
-      --template="RTX6000" \
+      --template=$TEMPLATE \
+      --queue=$QUEUE \
       --data_list=$DATA_LIST \
-      --data_subsampling_number_of_samples_list_option=$DATA_NUMBER_OF_SAMPLES_LIST_OPTION \
+      --data_subsampling_number_of_samples_list_option=$DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION \
       --data_subsampling_sampling_seed_list_option=$DATA_SUBSAMPLING_SAMPLING_SEED_LIST_OPTION \
       --language_model_list=$LANGUAGE_MODEL_LIST \
       --checkpoint_no_list=$CHECKPOINT_NO_LIST \
@@ -269,11 +309,16 @@ fi
 #   + `--common_batch_size="32"` appears to work for fine-tuning "roberta-base" model on rtx6000 with 24GB of VRAM.
 
 if [ "$DO_FINETUNING" = "true" ]; then
+  echo ">>> Overwriting TEMPLATE and QUEUE for perplexity computation ..."
+  TEMPLATE="CUDA"
+  QUEUE="RTX6000"
+  echo ">>> Overwritten values: QUEUE=${QUEUE}, TEMPLATE=${TEMPLATE}."
+
   echo ">>> Submitting finetuning jobs ..."
   poetry run submit_jobs \
     --task="finetuning" \
-    --queue="CUDA" \
-    --template="RTX6000" \
+    --template=$TEMPLATE \
+    --queue=$QUEUE \
     --memory=$MEMORY \
     --walltime="48:00:00" \
     --finetuning_datasets_list=$FINETUNING_DATASETS_LIST \
