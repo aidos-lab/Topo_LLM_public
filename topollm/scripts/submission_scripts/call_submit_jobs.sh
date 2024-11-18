@@ -94,6 +94,30 @@ if [ "$USE_ROBERTA_BASE_MODEL" = "true" ] && [ "$USE_FINETUNED_MODEL" = "true" ]
   exit 1
 fi
 
+
+# Configure model settings based on selected model options
+if [ "$USE_ROBERTA_BASE_MODEL" = "true" ]; then
+  ####################################
+  ### With POS tags for base model ###
+  LANGUAGE_MODEL_LIST="only_roberta_base"
+  LANGUAGE_MODEL_SEED_LIST="do_not_set"
+  CHECKPOINT_NO_LIST="selected" # Ignored for the base model
+  FINETUNING_REGIME="few_epochs" # Ignored for the base model
+fi
+
+if [ "$USE_FINETUNED_MODEL" = "true" ]; then
+  ################################################################
+  ### With POS tags for finetuned models and three checkpoints ###
+  LANGUAGE_MODEL_LIST="selected_finetuned_many_epochs_from_roberta_base"
+  LANGUAGE_MODEL_SEED_LIST="one_seed"
+  CHECKPOINT_NO_LIST="only_beginning_and_middle_and_end"
+  FINETUNING_REGIME="many_epochs_with_overfitting_risk"
+fi
+
+ADD_PREFIX_SPACE_FLAG="--add_prefix_space"
+CREATE_POS_TAGS_FLAG="--create_pos_tags"
+
+
 # ================================================================== #
 
 
@@ -208,30 +232,6 @@ elif [ "${EXPERIMENT_STAGE}" = "skip_compute_embeddings_and_multiple_pipeline_ru
 fi  
 
 # ---------------------------------------------------------- #
-
-
-
-# Configure model settings based on selected model options
-if [ "$USE_ROBERTA_BASE_MODEL" = "true" ]; then
-  ####################################
-  ### With POS tags for base model ###
-  LANGUAGE_MODEL_LIST="only_roberta_base"
-  LANGUAGE_MODEL_SEED_LIST="do_not_set"
-  CHECKPOINT_NO_LIST="selected" # Ignored for the base model
-  FINETUNING_REGIME="few_epochs" # Ignored for the base model
-fi
-
-if [ "$USE_FINETUNED_MODEL" = "true" ]; then
-  ################################################################
-  ### With POS tags for finetuned models and three checkpoints ###
-  LANGUAGE_MODEL_LIST="selected_finetuned_many_epochs_from_roberta_base"
-  LANGUAGE_MODEL_SEED_LIST="one_seed"
-  CHECKPOINT_NO_LIST="only_beginning_and_middle_and_end"
-  FINETUNING_REGIME="many_epochs_with_overfitting_risk"
-fi
-
-ADD_PREFIX_SPACE_FLAG="--add_prefix_space"
-CREATE_POS_TAGS_FLAG="--create_pos_tags"
 
 # ================================================================== #
 
