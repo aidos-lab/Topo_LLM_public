@@ -4,7 +4,7 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "rsync git repository to hhu hilbert",
+            "label": "rsync git repository to HHU Hilbert",
             "command": "./topollm/scripts/hhu_hilbert/sync_data/rsync_git_repository_to_hhu_hilbert.sh",
             "type": "shell",
             "group": {
@@ -32,7 +32,7 @@
             }
         },
         {
-            "label": "rsync hydra_output_dir from hhu hilbert",
+            "label": "rsync hydra_output_dir from HHU Hilbert",
             "command": "./topollm/scripts/hhu_hilbert/sync_data/rsync_hydra_output_dir_from_hhu_hilbert.sh",
             "type": "shell",
             "group": {
@@ -91,6 +91,20 @@
         {
             "label": "rsync data/embeddings/perplexity to local repository folder from HHU Hilbert",
             "command": "./topollm/scripts/hhu_hilbert/sync_data/rsync_perplexity_dir_from_hhu_hilbert.sh",
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": false
+            }
+        },
+        {
+            "label": "hpc sync_job_logs && hpc backup_job_logs",
+            "command": "hpc sync_job_logs && hpc backup_job_logs",
             "type": "shell",
             "group": {
                 "kind": "build",

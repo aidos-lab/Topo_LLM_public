@@ -168,13 +168,13 @@ LOCAL_ESTIMATES_POINTWISE_ABSOLUTE_N_NEIGHBORS_LIST="single_choice_128"
 # Experiment setup:
 USE_COMMON_EXPERIMENT_SETUP="true"
 
-EXPERIMENT_SELECTOR="multiwoz21_different_data_subsampling_number_of_samples"
+# EXPERIMENT_SELECTOR="multiwoz21_different_data_subsampling_number_of_samples"
 # EXPERIMENT_SELECTOR="reddit_different_data_subsampling_number_of_samples"
 
-# EXPERIMENT_SELECTOR="multiwoz21_different_checkpoints"
+EXPERIMENT_SELECTOR="multiwoz21_different_checkpoints"
 
-EXPERIMENT_STAGE="compute_embeddings_plus_single_pipeline_run"
-# EXPERIMENT_STAGE="skip_compute_embeddings_and_multiple_pipeline_runs"
+# EXPERIMENT_STAGE="compute_embeddings_plus_single_pipeline_run"
+EXPERIMENT_STAGE="skip_compute_embeddings_and_multiple_pipeline_runs"
 
 if [ "${USE_COMMON_EXPERIMENT_SETUP}" = "true" ]; then
   DATA_SUBSAMPLING_SAMPLING_SEED_LIST_OPTION="three_seeds"
@@ -187,7 +187,7 @@ fi
 
 echo ">>> Experiment selected: ${EXPERIMENT_SELECTOR}"
 
-# # # # #
+# ================================================================== #
 #
 # ++++ Experiment > different subsampling number of samples for multiwoz21 dataset
 if [ "${EXPERIMENT_SELECTOR}" = "multiwoz21_different_data_subsampling_number_of_samples" ]; then
@@ -206,7 +206,7 @@ if [ "${EXPERIMENT_SELECTOR}" = "reddit_different_data_subsampling_number_of_sam
   LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="single_choice_60000"
 fi
 
-# # # # #
+# ================================================================== #
 #
 # ++++ Experiment > different checkpoints for multiwoz21 dataset
 if [ "${EXPERIMENT_SELECTOR}" = "multiwoz21_different_checkpoints" ]; then
