@@ -11,7 +11,7 @@ LOCAL_NLTK_DATA_PATH="$HOME/nltk_data/"
 
 rsync -avz --delete --progress \
     "${LOCAL_NLTK_DATA_PATH}" \
-    "${ZIM_USERNAME}@storage.hpc.rz.uni-duesseldorf.de:/home/${ZIM_USERNAME}/nltk_data/"
+    "${ZIM_USERNAME}@Hilbert-Storage:/home/${ZIM_USERNAME}/nltk_data/"
 
 # Exit with the exit code of the rsync command
 exit $?

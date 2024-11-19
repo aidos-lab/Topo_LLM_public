@@ -119,6 +119,14 @@ NAME_PREFIXES: dict[
     "zero_vector_handling_mode": "zerovec",
 }
 
+NAME_PREFIXES_TO_FULL_DESCRIPTIONS: dict[
+    str,
+    str,
+] = {
+    "dedup": "local_estimates_deduplication",
+}
+
+# # # #
 # Limit for length of file names
 FILE_NAME_TRUNCATION_LENGTH: int = 200
 

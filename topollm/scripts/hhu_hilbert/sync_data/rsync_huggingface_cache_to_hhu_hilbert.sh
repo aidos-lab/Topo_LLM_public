@@ -10,7 +10,7 @@ source "${TOPO_LLM_REPOSITORY_BASE_PATH}/.env"
 
 rsync -avz --delete --progress \
     "${LOCAL_HUGGINGFACE_CACHE_PATH}" \
-    "${ZIM_USERNAME}@storage.hpc.rz.uni-duesseldorf.de:/gpfs/project/${ZIM_USERNAME}/models/"
+    "${ZIM_USERNAME}@Hilbert-Storage:/gpfs/project/${ZIM_USERNAME}/models/"
 
 # Exit with the exit code of the rsync command
 exit $?

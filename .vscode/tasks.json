@@ -4,7 +4,7 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "rsync git repository to hhu hilbert",
+            "label": "rsync git repository to HHU Hilbert",
             "command": "./topollm/scripts/hhu_hilbert/sync_data/rsync_git_repository_to_hhu_hilbert.sh",
             "type": "shell",
             "group": {
@@ -18,8 +18,8 @@
             }
         },
         {
-            "label": "rsync wandb from hhu hilbert and upload to wandb",
-            "command": "./topollm/scripts/hhu_hilbert/sync_data/rsync_wandb_output_dir_from_hhu_hilbert.sh && ./wandb_output_dir/sync_wandb_runs.sh",
+            "label": "rsync wandb from HHU Hilbert",
+            "command": "./topollm/scripts/hhu_hilbert/sync_data/rsync_wandb_output_dir_from_hhu_hilbert.sh",
             "type": "shell",
             "group": {
                 "kind": "build",
@@ -32,7 +32,7 @@
             }
         },
         {
-            "label": "rsync hydra_output_dir from hhu hilbert",
+            "label": "rsync hydra_output_dir from HHU Hilbert",
             "command": "./topollm/scripts/hhu_hilbert/sync_data/rsync_hydra_output_dir_from_hhu_hilbert.sh",
             "type": "shell",
             "group": {
@@ -103,6 +103,20 @@
             }
         },
         {
+            "label": "hpc sync_job_logs && hpc backup_job_logs",
+            "command": "hpc sync_job_logs && hpc backup_job_logs",
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": false
+            }
+        },
+        {
             "label": "submit_jobs pipeline",
             "command": "poetry run submit_jobs --task=pipeline --submission_mode=hpc_submission --queue=DSML --template=DSML",
             "type": "shell",
@@ -145,8 +159,8 @@
             }
         },
         {
-            "label": "GC - Sync from GC VM to GC Bucket - full 'data' directory ",
-            "command": "poetry run sync_gc_data --source \"vm\" --target \"bucket\" --subdirectory \"\"",
+            "label": "GC - Sync from GC VM to GC Bucket - logs and full 'data' directory ",
+            "command": "poetry run sync_gc_data --source vm --target bucket --subdirectory 'data' 'hydra_output_dir' 'wandb_output_dir'",
             "type": "shell",
             "group": {
                 "kind": "build",
@@ -159,8 +173,8 @@
             }
         },
         {
-            "label": "GC - Sync from GC Bucket to Local - only 'data/analysis/twonn' directory ",
-            "command": "poetry run sync_gc_data --source \"bucket\" --target \"local\" --subdirectory \"analysis/twonn\"",
+            "label": "GC - Sync from GC Bucket to Local - logs and only 'data/analysis/twonn' directory ",
+            "command": "poetry run sync_gc_data --source bucket --target local --subdirectory 'data/analysis/twonn' 'hydra_output_dir' 'wandb_output_dir'",
             "type": "shell",
             "group": {
                 "kind": "build",

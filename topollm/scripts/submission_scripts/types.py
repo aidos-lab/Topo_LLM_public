@@ -56,6 +56,11 @@ class DataSubsamplingNumberOfSamplesListOption(StrEnum):
     FIXED_3000 = auto()
     FIXED_10000 = auto()
     UP_TO_10000_WITH_STEP_SIZE_2000 = auto()
+    UP_TO_16000_WITH_STEP_SIZE_2000 = auto()  # For exhausting the entire multiwoz21 validation and test sets
+    FROM_10000_UP_TO_16000_WITH_STEP_SIZE_2000 = auto()
+    UP_TO_22000_WITH_STEP_SIZE_2000 = (
+        auto()
+    )  # For exhausting the entire one-year-of-tsla-on-reddit validation and test sets
 
 
 class DataSubsamplingSamplingSeedListOption(StrEnum):
@@ -64,6 +69,7 @@ class DataSubsamplingSamplingSeedListOption(StrEnum):
     DEFAULT = auto()
     FIXED_777 = auto()
     TWO_SEEDS = auto()
+    THREE_SEEDS = auto()
     FIVE_SEEDS = auto()
     TEN_SEEDS = auto()
     TWENTY_SEEDS = auto()
@@ -74,6 +80,9 @@ class FinetuningDatasetsListOption(StrEnum):
 
     DEBUG = auto()
     MANUAL_IN_PYTHON_SCRIPT = auto()
+    MULTIWOZ21_AND_REDDIT_FULL = auto()
+    MULTIWOZ21_FULL = auto()
+    REDDIT_FULL = auto()
 
 
 class FinetuningRegimeOption(StrEnum):
@@ -127,6 +136,7 @@ class LocalEstimatesFilteringNumSamplesListOption(StrEnum):
     """Options for the number of samples for local estimates filtering."""
 
     DEFAULT = auto()
+    SINGLE_CHOICE_60000 = auto()
     FEW_SMALL_STEPS_NUM_SAMPLES = auto()
     MEDIUM_SMALL_STEPS_NUM_SAMPLES = auto()
     UP_TO_30000_WITH_STEP_SIZE_2500_NUM_SAMPLES = auto()

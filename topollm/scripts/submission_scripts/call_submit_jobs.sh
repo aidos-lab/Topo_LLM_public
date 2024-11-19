@@ -11,6 +11,11 @@ RUN_ONLY_FIRST_CONFIG_OPTION_FLAG=""
 # 16GB of memory is not enough for the embeddings data prep step
 # on the multiwoz21_train and reddit_train datasets.
 MEMORY="32"
+NCPUS="2"
+NGPUS="1"
+
+TEMPLATE="DSML"
+QUEUE="DSML"
 
 # Flags to select tasks
 DO_PIPELINE="false"
@@ -89,63 +94,6 @@ if [ "$USE_ROBERTA_BASE_MODEL" = "true" ] && [ "$USE_FINETUNED_MODEL" = "true" ]
   exit 1
 fi
 
-# ================================================================== #
-
-
-# ================================================================== #
-
-# DATA_LIST="full"
-DATA_LIST="multiwoz21_and_reddit"
-# DATA_LIST="multiwoz21_train_and_reddit_train"
-# DATA_LIST="multiwoz21_only"
-# DATA_LIST="reddit_only"
-
-# DATA_LIST="only_train"
-# LANGUAGE_MODEL_LIST="selected_finetuned_few_epochs_from_roberta_base"
-# CHECKPOINT_NO_LIST="selected"
-
-# DATA_LIST="debug"
-# LANGUAGE_MODEL_LIST="only_roberta_base"
-
-# DATA_NUMBER_OF_SAMPLES_LIST_OPTION="none"
-# DATA_NUMBER_OF_SAMPLES_LIST_OPTION="fixed_3000"
-DATA_NUMBER_OF_SAMPLES_LIST_OPTION="fixed_10000"
-# DATA_NUMBER_OF_SAMPLES_LIST_OPTION="up_to_10000_with_step_size_2000"
-
-# DATA_SUBSAMPLING_SAMPLING_SEED_LIST_OPTION="default"
-# DATA_SUBSAMPLING_SAMPLING_SEED_LIST_OPTION="fixed_777"
-DATA_SUBSAMPLING_SAMPLING_SEED_LIST_OPTION="ten_seeds"
-
-# ================================================================== #
-
-# Uncomment the following to skip the compute_and_store_embeddings step:
-#
-# SKIP_COMPUTE_AND_STORE_EMBEDDINGS="--skip_compute_and_store_embeddings"
-
-EMBEDDINGS_DATA_PREP_SAMPLING_MODE="random"
-# EMBEDDINGS_DATA_PREP_SAMPLING_MODE="take_first"
-
-# EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="default"
-# EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="two_seeds"
-EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="five_seeds"
-# EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="ten_seeds"
-# EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="twenty_seeds"
-
-# EMBEDDINGS_DATA_PREP_NUM_SAMPLES_LIST_OPTION="default"
-# EMBEDDINGS_DATA_PREP_NUM_SAMPLES_LIST_OPTION="single_choice_50000"
-# EMBEDDINGS_DATA_PREP_NUM_SAMPLES_LIST_OPTION="single_choice_100000"
-EMBEDDINGS_DATA_PREP_NUM_SAMPLES_LIST_OPTION="single_choice_150000"
-# EMBEDDINGS_DATA_PREP_NUM_SAMPLES_LIST_OPTION="single_choice_250000"
-# EMBEDDINGS_DATA_PREP_NUM_SAMPLES_LIST_OPTION="five_choices_10000_steps"
-
-LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="default"
-# LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="few_small_steps_num_samples"
-# LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="up_to_90000_with_step_size_5000_num_samples"
-# LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="up_to_90000_with_step_size_10000_num_samples"
-# LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="up_to_100000_with_step_size_20000_num_samples"
-
-# LOCAL_ESTIMATES_POINTWISE_ABSOLUTE_N_NEIGHBORS_LIST="powers_of_two_up_to_1024"
-LOCAL_ESTIMATES_POINTWISE_ABSOLUTE_N_NEIGHBORS_LIST="single_choice_128"
 
 # Configure model settings based on selected model options
 if [ "$USE_ROBERTA_BASE_MODEL" = "true" ]; then
@@ -169,6 +117,134 @@ fi
 ADD_PREFIX_SPACE_FLAG="--add_prefix_space"
 CREATE_POS_TAGS_FLAG="--create_pos_tags"
 
+
+# ================================================================== #
+
+
+# ================================================================== #
+
+# DATA_LIST="full"
+# DATA_LIST="multiwoz21_and_reddit"
+# DATA_LIST="multiwoz21_train_and_reddit_train"
+DATA_LIST="multiwoz21_only"
+# DATA_LIST="reddit_only"
+# DATA_LIST="only_train"
+# DATA_LIST="debug"
+
+
+# DATA_SUBSAMPLING_SAMPLING_SEED_LIST_OPTION="default"
+# DATA_SUBSAMPLING_SAMPLING_SEED_LIST_OPTION="fixed_777"
+DATA_SUBSAMPLING_SAMPLING_SEED_LIST_OPTION="three_seeds"
+# DATA_SUBSAMPLING_SAMPLING_SEED_LIST_OPTION="ten_seeds"
+
+# FINETUNING_DATASETS_LIST="manual_in_python_script"
+# FINETUNING_DATASETS_LIST="multiwoz21_and_reddit_full"
+# FINETUNING_DATASETS_LIST="multiwoz21_full"
+FINETUNING_DATASETS_LIST="reddit_full"
+
+# ================================================================== #
+
+# Uncomment the following to skip the compute_and_store_embeddings step:
+#
+# SKIP_COMPUTE_AND_STORE_EMBEDDINGS="--skip_compute_and_store_embeddings"
+
+EMBEDDINGS_DATA_PREP_SAMPLING_MODE="random"
+
+# EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="default"
+# EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="two_seeds"
+EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="five_seeds"
+# EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="ten_seeds"
+# EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="twenty_seeds"
+
+LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="default"
+# LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="few_small_steps_num_samples"
+# LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="up_to_90000_with_step_size_5000_num_samples"
+# LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="up_to_90000_with_step_size_10000_num_samples"
+# LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="up_to_100000_with_step_size_20000_num_samples"
+
+LOCAL_ESTIMATES_POINTWISE_ABSOLUTE_N_NEIGHBORS_LIST="single_choice_128"
+
+# ---------------------------------------------------------- #
+# Experiment setup:
+USE_COMMON_EXPERIMENT_SETUP="true"
+
+# EXPERIMENT_SELECTOR="multiwoz21_different_data_subsampling_number_of_samples"
+# EXPERIMENT_SELECTOR="reddit_different_data_subsampling_number_of_samples"
+
+EXPERIMENT_SELECTOR="multiwoz21_different_checkpoints"
+
+# EXPERIMENT_STAGE="compute_embeddings_plus_single_pipeline_run"
+EXPERIMENT_STAGE="skip_compute_embeddings_and_multiple_pipeline_runs"
+
+if [ "${USE_COMMON_EXPERIMENT_SETUP}" = "true" ]; then
+  DATA_SUBSAMPLING_SAMPLING_SEED_LIST_OPTION="three_seeds"
+
+  EMBEDDINGS_DATA_PREP_SAMPLING_MODE="random"
+  EMBEDDINGS_DATA_PREP_NUM_SAMPLES_LIST_OPTION="single_choice_150000"
+
+  LOCAL_ESTIMATES_POINTWISE_ABSOLUTE_N_NEIGHBORS_LIST="single_choice_128"
+fi
+
+echo ">>> Experiment selected: ${EXPERIMENT_SELECTOR}"
+
+# ================================================================== #
+#
+# ++++ Experiment > different subsampling number of samples for multiwoz21 dataset
+if [ "${EXPERIMENT_SELECTOR}" = "multiwoz21_different_data_subsampling_number_of_samples" ]; then
+  DATA_LIST="multiwoz21_only"
+  # DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION="up_to_16000_with_step_size_2000" # TODO: Investigate the problem here
+  DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION="from_10000_up_to_16000_with_step_size_2000"
+  
+  LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="single_choice_60000"
+fi
+
+# ++++ Experiment > different subsampling number of samples for reddit dataset
+if [ "${EXPERIMENT_SELECTOR}" = "reddit_different_data_subsampling_number_of_samples" ]; then
+  DATA_LIST="reddit_only"
+  DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION="up_to_22000_with_step_size_2000"
+
+  LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="single_choice_60000"
+fi
+
+# ================================================================== #
+#
+# ++++ Experiment > different checkpoints for multiwoz21 dataset
+if [ "${EXPERIMENT_SELECTOR}" = "multiwoz21_different_checkpoints" ]; then
+  DATA_LIST="multiwoz21_only"
+  DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION="fixed_10000"
+
+  CHECKPOINT_NO_LIST="selected"
+
+  LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="single_choice_60000"
+fi
+
+echo ">>> Experiment stage selected: ${EXPERIMENT_STAGE}"
+
+if [ "${EXPERIMENT_STAGE}" = "compute_embeddings_plus_single_pipeline_run" ]; then
+  NCPUS="4"
+  NGPUS="1"
+  QUEUE="CUDA"
+  
+  # TEMPLATE="TESLAT4"
+  # TEMPLATE="GTX1080"
+  TEMPLATE="RTX6000"
+
+  EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="default"
+  
+  SKIP_COMPUTE_AND_STORE_EMBEDDINGS="" # do the embeddings computation
+elif [ "${EXPERIMENT_STAGE}" = "skip_compute_embeddings_and_multiple_pipeline_runs" ]; then
+  NCPUS="6"
+  NGPUS="0"
+  QUEUE="DEFAULT"
+  TEMPLATE="CPU"
+
+  EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="five_seeds"
+
+  SKIP_COMPUTE_AND_STORE_EMBEDDINGS="--skip_compute_and_store_embeddings" # skip the embeddings computation
+fi  
+
+# ---------------------------------------------------------- #
+
 # ================================================================== #
 
 # ================================================================== #
@@ -180,11 +256,13 @@ if [ "$DO_PIPELINE" = "true" ]; then
   # we do not use the 'LocalEstimatesFilteringNumSamplesOption' in the pipeline.
   poetry run submit_jobs \
       --task="pipeline" \
-      --queue="DSML" \
-      --template="DSML" \
+      --template=$TEMPLATE \
+      --queue=$QUEUE \
       --memory=$MEMORY \
+      --ncpus=$NCPUS \
+      --ngpus=$NGPUS \
       --data_list=$DATA_LIST \
-      --data_subsampling_number_of_samples_list_option=$DATA_NUMBER_OF_SAMPLES_LIST_OPTION \
+      --data_subsampling_number_of_samples_list_option=$DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION \
       --data_subsampling_sampling_seed_list_option=$DATA_SUBSAMPLING_SAMPLING_SEED_LIST_OPTION \
       $CREATE_POS_TAGS_FLAG \
       --language_model_list=$LANGUAGE_MODEL_LIST \
@@ -205,16 +283,23 @@ fi
        
 # ================================================================== #
 if [ "$DO_LOCAL_ESTIMATES_COMPUTATION" = "true" ]; then
+  echo ">>> Overwriting TEMPLATE; QUEUE; NGPUS for local estimates computation ..."
+  TEMPLATE="CPU"
+  QUEUE="DEFAULT"
+  NGPUS="0"
+  echo ">>> Overwritten values: TEMPLATE=${TEMPLATE}; QUEUE=${QUEUE}; NGPUS=${NGPUS}."
+
   echo ">>> Submitting local estimates computation jobs ..."
   # This is a CPU task, so we do not ask for a GPU.
   poetry run submit_jobs \
       --task="local_estimates_computation" \
-      --template="CPU" \
-      --queue="DEFAULT" \
-      --ngpus="0" \
+      --template=$TEMPLATE \
+      --queue=$QUEUE \
+      --ncpus=$NCPUS \
+      --ngpus=$NGPUS \
       --walltime="08:00:00" \
       --data_list=$DATA_LIST \
-      --data_subsampling_number_of_samples_list_option=$DATA_NUMBER_OF_SAMPLES_LIST_OPTION \
+      --data_subsampling_number_of_samples_list_option=$DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION \
       --data_subsampling_sampling_seed_list_option=$DATA_SUBSAMPLING_SAMPLING_SEED_LIST_OPTION \
       $CREATE_POS_TAGS_FLAG \
       --language_model_list=$LANGUAGE_MODEL_LIST \
@@ -236,14 +321,21 @@ fi
 
 # ================================================================== #
 if [ "$DO_PERPLEXITY" = "true" ]; then
+  echo ">>> Overwriting TEMPLATE and QUEUE for perplexity computation ..."
+  TEMPLATE="CUDA"
+  QUEUE="RTX6000"
+  echo ">>> Overwritten values: QUEUE=${QUEUE}, TEMPLATE=${TEMPLATE}."
+
   echo ">>> Submitting perplexity jobs ..."
   # Note: Do not use the CREATE_POS_TAGS_FLAG for the perplexity task.
   poetry run submit_jobs \
       --task="perplexity" \
-      --queue="CUDA" \
-      --template="RTX6000" \
+      --template=$TEMPLATE \
+      --queue=$QUEUE \
+      --ncpus=$NCPUS \
+      --ngpus=$NGPUS \
       --data_list=$DATA_LIST \
-      --data_subsampling_number_of_samples_list_option=$DATA_NUMBER_OF_SAMPLES_LIST_OPTION \
+      --data_subsampling_number_of_samples_list_option=$DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION \
       --data_subsampling_sampling_seed_list_option=$DATA_SUBSAMPLING_SAMPLING_SEED_LIST_OPTION \
       --language_model_list=$LANGUAGE_MODEL_LIST \
       --checkpoint_no_list=$CHECKPOINT_NO_LIST \
@@ -258,23 +350,41 @@ fi
 # ================================================================== #
 
 # ================================================================== #
+# Notes on memory size:
+#
+# ++ accelerator_model=rtx6000:
+#   + `--common_batch_size="32"` appears to work for fine-tuning "roberta-base" model on rtx6000 with 24GB of VRAM.
+
 if [ "$DO_FINETUNING" = "true" ]; then
+  echo ">>> Overwriting TEMPLATE and QUEUE for perplexity computation ..."
+  TEMPLATE="CUDA"
+  QUEUE="RTX6000"
+  echo ">>> Overwritten values: QUEUE=${QUEUE}, TEMPLATE=${TEMPLATE}."
+
   echo ">>> Submitting finetuning jobs ..."
   poetry run submit_jobs \
     --task="finetuning" \
-    --queue="CUDA" \
-    --template="RTX6000" \
-    --finetuning_datasets_list="manual_in_python_script" \
+    --template=$TEMPLATE \
+    --queue=$QUEUE \
+    --memory=$MEMORY \
+    --ncpus=$NCPUS \
+    --ngpus=$NGPUS \
+    --walltime="48:00:00" \
+    --finetuning_datasets_list=$FINETUNING_DATASETS_LIST \
     --finetuning_seed_list="one_seed" \
     --finetuning_regime="many_epochs_with_overfitting_risk" \
+    --common_batch_size="32" \
     --submission_mode=$SUBMISSION_MODE \
-    --wandb_project="Topo_LLM_finetuning_from_submission_script_DEBUG" \
+    --wandb_project="Topo_LLM_finetuning_from_submission_script_DEBUG_large_batch_size" \
     $RUN_ONLY_FIRST_CONFIG_OPTION_FLAG \
     $DRY_RUN_FLAG
   echo ">>> Submitting finetuning jobs ..."
 fi
+# ================================================================== #
 
+# ================================================================== #
 # Exit submission script
 echo ">>> Submission script finished."
 echo ">>> Exiting ..."
 exit $?
+# ================================================================== #

@@ -136,8 +136,8 @@ class SubmissionConfig(BaseModel):
             "freeze_first_layers_bert-style-models",
         ],
     )
-    batch_size_train: str | None = "8"
-    batch_size_eval: str | None = "8"
+    batch_size_train: int | None = 8
+    batch_size_eval: int | None = 8
 
     wandb_project: str | None = "Topo_LLM_finetuning_from_submission_script"
 

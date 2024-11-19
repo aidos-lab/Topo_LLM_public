@@ -253,5 +253,22 @@
             "console": "integratedTerminal",
             "args": []
         },
+        {
+            "name": "gsutil_rsync_directory_to_and_from_gc_bucket.py",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/scripts/google_cloud/gsutil_rsync_directory_to_and_from_gc_bucket.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--source",
+                "bucket",
+                "--target",
+                "local",
+                "--subdirectory",
+                "data/analysis/twonn",
+                "hydra_output_dir",
+                "--dry_run",
+            ]
+        },
     ]
 }

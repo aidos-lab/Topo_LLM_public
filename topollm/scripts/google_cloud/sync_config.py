@@ -34,8 +34,10 @@ from dotenv import load_dotenv
 
 # Configuration dictionary to make variable names configurable
 ENV_VARIABLE_NAMES: dict[str, str] = {
+    "local_repository_base_path": "TOPO_LLM_REPOSITORY_BASE_PATH",
     "local_data_dir": "LOCAL_TOPO_LLM_DATA_DIR",
     "gc_vm_hostname": "GC_DEV_VM_HOSTNAME",
+    "gc_vm_repository_base_path": "GC_DEV_VM_REPOSITORY_BASE_PATH",
     "gc_vm_data_dir": "GC_DEV_VM_DATA_DIR",
     "gc_bucket_name": "GC_TOPO_LLM_BUCKET_NAME",
     "gc_bucket_path": "GC_TOPO_LLM_BUCKET_PATH",
@@ -63,9 +65,11 @@ def get_env_variable(
 class SyncConfig:
     """Configuration for synchronization including VM hostname and base data directory."""
 
+    local_repository_base_path: str
     local_data_dir: str
     gc_vm_hostname: str
     gc_vm_data_dir: str
+    gc_vm_repository_base_path: str
     gc_bucket_name: str
     gc_bucket_path: str
     gc_bucket_repository_base_path: str
@@ -84,18 +88,26 @@ class SyncConfig:
         """
         load_dotenv()
 
-        # # # #
-        # Optional overwrite
+        # Local machine configuration
+        local_repository_base_path: str = get_env_variable(
+            key=config_keys["local_repository_base_path"],
+        )
         local_data_dir: str = local_data_dir_overwrite or get_env_variable(
             key=config_keys["local_data_dir"],
         )
 
+        # Google Cloud VM configuration
         gc_vm_hostname: str = get_env_variable(
             key=config_keys["gc_vm_hostname"],
+        )
+        gc_vm_repository_base_path: str = get_env_variable(
+            key=config_keys["gc_vm_repository_base_path"],
         )
         gc_vm_data_dir: str = get_env_variable(
             key=config_keys["gc_vm_data_dir"],
         )
+
+        # Google Cloud Bucket configuration
         gc_bucket_name: str = get_env_variable(
             key=config_keys["gc_bucket_name"],
         )
@@ -110,8 +122,10 @@ class SyncConfig:
         )
 
         sync_config = SyncConfig(
+            local_repository_base_path=local_repository_base_path,
             local_data_dir=local_data_dir,
             gc_vm_hostname=gc_vm_hostname,
+            gc_vm_repository_base_path=gc_vm_repository_base_path,
             gc_vm_data_dir=gc_vm_data_dir,
             gc_bucket_name=gc_bucket_name,
             gc_bucket_path=gc_bucket_path,

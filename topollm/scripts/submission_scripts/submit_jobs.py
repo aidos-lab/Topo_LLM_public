@@ -238,6 +238,12 @@ def parse_arguments() -> argparse.Namespace:
     )
 
     parser.add_argument(
+        "--common_batch_size",
+        type=int,
+        default=8,
+        help="Common batch size to use.",
+    )
+    parser.add_argument(
         "--finetuning_regime",
         type=FinetuningRegimeOption,
         default=FinetuningRegimeOption.FEW_EPOCHS,
@@ -424,6 +430,13 @@ def make_config_and_run_task(
             ]
         case DataSubsamplingNumberOfSamplesListOption.UP_TO_10000_WITH_STEP_SIZE_2000:
             data_subsampling_number_of_samples_list = [str(i * 2000) for i in range(1, 6)]
+        case DataSubsamplingNumberOfSamplesListOption.UP_TO_16000_WITH_STEP_SIZE_2000:
+            # TODO: Investigate the Problem with this submissions
+            data_subsampling_number_of_samples_list = [str(i * 2000) for i in range(1, 9)]
+        case DataSubsamplingNumberOfSamplesListOption.FROM_10000_UP_TO_16000_WITH_STEP_SIZE_2000:
+            data_subsampling_number_of_samples_list = [str(i * 2000) for i in range(6, 9)]
+        case DataSubsamplingNumberOfSamplesListOption.UP_TO_22000_WITH_STEP_SIZE_2000:
+            data_subsampling_number_of_samples_list = [str(i * 2000) for i in range(1, 12)]
         case _:
             msg = f"Unknown {args.data_subsampling_number_of_samples_list_option = }"
             raise ValueError(
@@ -443,6 +456,12 @@ def make_config_and_run_task(
             data_subsampling_sampling_seed_list = [
                 "778",
                 "779",
+            ]
+        case DataSubsamplingSamplingSeedListOption.THREE_SEEDS:
+            data_subsampling_sampling_seed_list = [
+                "778",
+                "779",
+                "780",
             ]
         case DataSubsamplingSamplingSeedListOption.FIVE_SEEDS:
             data_subsampling_sampling_seed_list = [str(i) for i in range(778, 783)]
@@ -557,6 +576,19 @@ def make_config_and_run_task(
                 "train_and_eval_on_multiwoz21_train-samples-small",
                 "train_and_eval_on_one-year-of-tsla-on-reddit_train-samples-small",
             ]
+        case FinetuningDatasetsListOption.MULTIWOZ21_FULL:
+            finetuning_datasets_list: list[str] = [
+                "train_and_eval_on_multiwoz21_train-samples-full",
+            ]
+        case FinetuningDatasetsListOption.REDDIT_FULL:
+            finetuning_datasets_list: list[str] = [
+                "train_and_eval_on_one-year-of-tsla-on-reddit_train-samples-full",
+            ]
+        case FinetuningDatasetsListOption.MULTIWOZ21_AND_REDDIT_FULL:
+            finetuning_datasets_list: list[str] = [
+                "train_and_eval_on_multiwoz21_train-samples-full",
+                "train_and_eval_on_one-year-of-tsla-on-reddit_train-samples-full",
+            ]
         case _:
             msg = f"Unknown {args.finetuning_datasets_list = }"
             raise ValueError(
@@ -636,7 +668,10 @@ def make_config_and_run_task(
             )
 
     match args.local_estimates_filtering_num_samples_list:
-        case LocalEstimatesFilteringNumSamplesListOption.DEFAULT:
+        case (
+            LocalEstimatesFilteringNumSamplesListOption.DEFAULT
+            | LocalEstimatesFilteringNumSamplesListOption.SINGLE_CHOICE_60000
+        ):
             local_estimates_filtering_num_samples_list = [
                 "60000",
             ]
@@ -745,6 +780,8 @@ def make_config_and_run_task(
         local_estimates_pointwise_absolute_n_neighbors_list=local_estimates_pointwise_absolute_n_neighbors_list,
         finetuning_datasets_list=finetuning_datasets_list,
         finetuning_seed_list=finetuning_seed_list,
+        batch_size_train=args.common_batch_size,
+        batch_size_eval=args.common_batch_size,
         num_train_epochs=num_train_epochs,
         lr_scheduler_type=lr_scheduler_type,
         wandb_project=args.wandb_project,
