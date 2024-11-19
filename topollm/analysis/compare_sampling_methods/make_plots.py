@@ -264,6 +264,7 @@ def create_boxplot_of_mean_over_different_sampling_seeds(
     grouped_stats: pd.DataFrame = (
         subset_local_estimates_df.groupby(
             by=x_column_name,
+            observed=True,
         )
         .agg(
             mean_value=(y_column_name, "mean"),

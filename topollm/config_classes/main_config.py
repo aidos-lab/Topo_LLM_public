@@ -107,7 +107,7 @@ class MainConfig(ConfigBaseModel):
     )
 
     paths: PathsConfig = Field(
-        default_factory=PathsConfig,
+        default=PathsConfig(),
         title="Paths configuration.",
         description="The configuration for specifying paths.",
     )
@@ -146,6 +146,15 @@ class MainConfig(ConfigBaseModel):
         default=Verbosity.NORMAL,
         title="Verbosity level.",
         description="The verbosity level.",
+    )
+
+    n_jobs: int = Field(
+        default=1,
+        title="Number of jobs.",
+        description=(
+            "The number of jobs to use for scripts which support multiprocessing. "
+            "If 1 is given, no parallel computing code will be used at all, which is useful for debugging."
+        ),
     )
 
     wandb: WandBConfig = Field(

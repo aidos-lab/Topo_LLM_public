@@ -29,12 +29,12 @@
 
 import logging
 import pprint
-import warnings
 
-import numpy as np
 import pandas as pd
 
-default_logger = logging.getLogger(__name__)
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 def log_dataframe_info(
@@ -68,31 +68,32 @@ def log_dataframe_info(
 
     Side effects:
         Logs information about the DataFrame to the logger.
+
     """
     logger.info(
-        f"{df_name}.shape:\n{df.shape}",  # noqa: G004 - low overhead
+        msg=f"{df_name}.shape:\n{df.shape}",  # noqa: G004 - low overhead
     )
     logger.info(
-        f"{df_name}.info():\n{df.info()}",  # noqa: G004 - low overhead
+        msg=f"{df_name}.info():\n{df.info()}",  # noqa: G004 - low overhead
     )
     logger.info(
-        f"{df_name}.head({max_log_rows}):\n{df.head(max_log_rows).to_string()}",  # noqa: G004 - low overhead
+        msg=f"{df_name}.head({max_log_rows}):\n{df.head(max_log_rows).to_string()}",  # noqa: G004 - low overhead
     )
     logger.info(
-        f"{df_name}.tail({max_log_rows}):\n{df.tail(max_log_rows).to_string()}",  # noqa: G004 - low overhead
+        msg=f"{df_name}.tail({max_log_rows}):\n{df.tail(max_log_rows).to_string()}",  # noqa: G004 - low overhead
     )
 
     if check_for_nan:
         # Check if the dataframe contains NaN values
         has_nan = df.isna().any().any()
         logger.info(
-            f"has_nan:\n{has_nan}",  # noqa: G004 - low overhead
+            msg=f"has_nan:\n{has_nan}",  # noqa: G004 - low overhead
         )
 
         if has_nan:
             logger.warning(
-                f"{df_name}.isna().sum():\n{df.isna().sum()}",  # noqa: G004 - low overhead
+                msg=f"{df_name}.isna().sum():\n{df.isna().sum()}",  # noqa: G004 - low overhead
             )
-            warnings.warn(
-                f"The dataframe contains NaN values. " f"Please make sure that this is intended.",
+            logger.warning(
+                msg="The dataframe contains NaN values. Please make sure that this is intended.",
             )

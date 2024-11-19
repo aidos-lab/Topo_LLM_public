@@ -35,6 +35,7 @@ from typing import TYPE_CHECKING
 
 import hydra
 import hydra.core.hydra_config
+import joblib
 import numpy as np
 import omegaconf
 import pandas as pd
@@ -159,43 +160,35 @@ def main(
         analysis_output_subdirectory_partial_relative_path,
     )
 
-    for partial_search_base_directory_path in tqdm(
-        iterable=all_partial_search_base_directories_paths,
-        desc="Processing paths",
-    ):
-        if verbosity >= Verbosity.NORMAL:
-            logger.info(
-                msg=f"{partial_search_base_directory_path = }",  # noqa: G004 - low overhead
-            )
-
-        search_base_directory: pathlib.Path = pathlib.Path(
-            partial_search_base_directory_path,
-            "layer=-1_agg=mean",
-            "norm=None",
-        )
-        results_directory: pathlib.Path = build_results_directory_structure(
-            analysis_base_directory=search_base_directory,
-            data_dir=data_dir,
+    def process_partial_search_base_directory_partial_function(
+        partial_search_base_directory_path: pathlib.Path,
+    ) -> None:
+        process_partial_search_base_directory(
+            partial_search_base_directory_path=partial_search_base_directory_path,
             analysis_output_subdirectory_partial_relative_path=analysis_output_subdirectory_partial_relative_path,
-            verbosity=verbosity,
-            logger=logger,
-        )
-
-        if verbosity >= Verbosity.NORMAL:
-            logger.info(
-                msg=f"{search_base_directory = }",  # noqa: G004 - low overhead
-            )
-            logger.info(
-                msg=f"{results_directory = }",  # noqa: G004 - low overhead
-            )
-
-        run_search_on_single_base_directory_and_process_and_save(
-            search_base_directory=search_base_directory,
-            results_directory=results_directory,
+            data_dir=data_dir,
             array_truncation_size=array_truncation_size,
             verbosity=verbosity,
             logger=logger,
         )
+
+    # The list application is used to evaluate the generator
+    _ = list(
+        tqdm(
+            # Note the new return_as argument here, which requires joblib >= 1.3:
+            joblib.Parallel(
+                return_as="generator",
+                n_jobs=main_config.n_jobs,
+            )(
+                joblib.delayed(function=process_partial_search_base_directory_partial_function)(
+                    partial_search_base_directory_path=partial_search_base_directory_path,
+                )
+                for partial_search_base_directory_path in all_partial_search_base_directories_paths
+            ),
+            total=len(all_partial_search_base_directories_paths),
+            desc="Processing paths",
+        ),
+    )
 
     if verbosity >= Verbosity.NORMAL:
         logger.info(
@@ -218,6 +211,49 @@ def main(
 
     logger.info(
         msg="Running script DONE",
+    )
+
+
+def process_partial_search_base_directory(
+    partial_search_base_directory_path: pathlib.Path,
+    analysis_output_subdirectory_partial_relative_path: pathlib.Path,
+    data_dir: pathlib.Path,
+    array_truncation_size: int,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"{partial_search_base_directory_path = }",  # noqa: G004 - low overhead
+        )
+
+    search_base_directory: pathlib.Path = pathlib.Path(
+        partial_search_base_directory_path,
+        "layer=-1_agg=mean",
+        "norm=None",
+    )
+    results_directory: pathlib.Path = build_results_directory_structure(
+        analysis_base_directory=search_base_directory,
+        data_dir=data_dir,
+        analysis_output_subdirectory_partial_relative_path=analysis_output_subdirectory_partial_relative_path,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"{search_base_directory = }",  # noqa: G004 - low overhead
+        )
+        logger.info(
+            msg=f"{results_directory = }",  # noqa: G004 - low overhead
+        )
+
+    run_search_on_single_base_directory_and_process_and_save(
+        search_base_directory=search_base_directory,
+        results_directory=results_directory,
+        array_truncation_size=array_truncation_size,
+        verbosity=verbosity,
+        logger=logger,
     )
 
 
