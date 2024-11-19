@@ -1,10 +1,10 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -31,7 +31,7 @@ import logging
 import os
 import pathlib
 from collections.abc import Generator
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 import hydra
 import hydra.core.hydra_config
@@ -42,6 +42,12 @@ from tqdm import tqdm
 
 from topollm.analysis.compare_sampling_methods.analysis_influence_of_local_estimates_n_neighbors import (
     analysis_influence_of_local_estimates_n_neighbors,
+)
+from topollm.analysis.compare_sampling_methods.filter_dataframe_based_on_filters_dict import (
+    filter_dataframe_based_on_filters_dict,
+)
+from topollm.analysis.compare_sampling_methods.load_and_concatenate_saved_dataframes import (
+    load_and_concatenate_saved_dataframes,
 )
 from topollm.analysis.compare_sampling_methods.make_plots import (
     Y_AXIS_LIMITS,
@@ -243,85 +249,6 @@ def collect_all_data_and_model_combination_paths(
             yield path
 
 
-def load_and_concatenate_saved_dataframes(
-    root_dir: pathlib.Path,
-    pattern: str = "full_local_estimates_df.csv",
-    save_path: pathlib.Path | None = None,
-    verbosity: Verbosity = Verbosity.NORMAL,
-    logger: logging.Logger = default_logger,
-) -> pd.DataFrame:
-    """Load and concatenate saved dataframes from the specified directory."""
-    # Initialize an empty list to store dataframes
-    dfs = []
-
-    # Traverse the directory structure using pathlib's rglob
-    for file_path in root_dir.rglob(
-        pattern=pattern,
-    ):
-        # Load the CSV file into a dataframe
-        current_df = None
-
-        try:
-            current_df = pd.read_csv(
-                filepath_or_buffer=file_path,
-                keep_default_na=False,
-            )
-            dfs.append(
-                current_df,
-            )
-        except FileNotFoundError as e:
-            logger.exception(
-                msg=f"Error reading {file_path = }: {e}",  # noqa: G004 - low overhead
-            )
-            logger.warning(
-                msg=f"Skipping {file_path = }",  # noqa: G004 - low overhead
-            )
-
-        # Append the dataframe to the list
-        dfs.append(
-            current_df,
-        )
-
-    # Concatenate the dataframes
-    if dfs:
-        concatenated_df: pd.DataFrame = pd.concat(
-            objs=dfs,
-            ignore_index=True,
-        )
-    else:
-        logger.info(
-            msg=f"No files found with pattern {pattern = } in {root_dir = }",  # noqa: G004 - low overhead
-        )
-        logger.info(
-            msg="Returning empty dataframe.",
-        )
-        concatenated_df = pd.DataFrame()  # Empty dataframe if no files found
-
-    # Save the concatenated dataframe
-    if save_path is not None:
-        logger.info(
-            msg=f"Saving concatenated dataframe to {save_path = } ...",  # noqa: G004 - low overhead
-        )
-        save_path.parent.mkdir(
-            parents=True,
-            exist_ok=True,
-        )
-        concatenated_df.to_csv(
-            path_or_buf=save_path,
-            index=False,
-        )
-        logger.info(
-            msg=f"Saving concatenated dataframe to {save_path = } DONE",  # noqa: G004 - low overhead
-        )
-
-    if verbosity >= Verbosity.NORMAL and "model_partial_name" in concatenated_df.columns:
-        logger.info(
-            msg=f"{concatenated_df['model_partial_name'].unique() = }",  # noqa: G004 - low overhead
-        )
-
-    return concatenated_df
-
-
 def run_search_on_single_base_directory_and_process_and_save(
     search_base_directory: pathlib.Path,
     results_directory: pathlib.Path,
@@ -362,25 +289,25 @@ def run_search_on_single_base_directory_and_process_and_save(
             "data_prep_sampling_method": "random",
             NAME_PREFIXES_TO_FULL_DESCRIPTIONS["dedup"]: "array_deduplicator",
             "n_neighbors": 128,
-            "data_prep_sampling_samples": 50000,
+            "data_prep_sampling_samples": 50_000,
         },
         {
             "data_prep_sampling_method": "random",
             NAME_PREFIXES_TO_FULL_DESCRIPTIONS["dedup"]: "array_deduplicator",
             "n_neighbors": 128,
-            "data_prep_sampling_samples": 100000,
+            "data_prep_sampling_samples": 100_000,
         },
         {
             "data_prep_sampling_method": "random",
             NAME_PREFIXES_TO_FULL_DESCRIPTIONS["dedup"]: "array_deduplicator",
             "n_neighbors": 128,
-            "data_prep_sampling_samples": 150000,
+            "data_prep_sampling_samples": 150_000,
         },
         {
             "data_prep_sampling_method": "random",
             NAME_PREFIXES_TO_FULL_DESCRIPTIONS["dedup"]: "array_deduplicator",
             "n_neighbors": 256,
-            "data_prep_sampling_samples": 100000,
+            "data_prep_sampling_samples": 100_000,
         },
     ]
 
@@ -517,31 +444,9 @@ def extract_and_preprocess_dataframes(
     return full_loaded_data_df, full_local_estimates_df
 
 
-def filter_dataframe_based_on_filters_dict(
-    df: pd.DataFrame,
-    filters_dict: dict[str, Any],
-) -> pd.DataFrame:
-    """Filter a DataFrame based on key-value pairs specified in a dictionary.
-
-    Args:
-        df:
-            The DataFrame to be filtered.
-        filters_dict:
-            A dictionary of column names and corresponding values to filter by.
-
-    Returns:
-        A filtered DataFrame with rows matching all key-value pairs.
-
-    """
-    subset_df: pd.DataFrame = df.copy()
-    for column, value in filters_dict.items():
-        subset_df = subset_df[subset_df[column] == value]
-    return subset_df
-
-
 def extract_and_prepare_local_estimates_data(
     loaded_data_df: pd.DataFrame,
-    array_truncation_size: int = 2_500,
+    array_truncation_size: int = 5_000,
     array_data_column_name: str = "array_data",
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
