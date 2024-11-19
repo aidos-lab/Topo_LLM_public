@@ -171,10 +171,11 @@ USE_COMMON_EXPERIMENT_SETUP="true"
 # EXPERIMENT_SELECTOR="multiwoz21_different_data_subsampling_number_of_samples"
 # EXPERIMENT_SELECTOR="reddit_different_data_subsampling_number_of_samples"
 
-EXPERIMENT_SELECTOR="multiwoz21_different_checkpoints"
+# EXPERIMENT_SELECTOR="multiwoz21_different_checkpoints"
+EXPERIMENT_SELECTOR="reddit_different_checkpoints"
 
-# EXPERIMENT_STAGE="compute_embeddings_plus_single_pipeline_run"
-EXPERIMENT_STAGE="skip_compute_embeddings_and_multiple_pipeline_runs"
+EXPERIMENT_STAGE="compute_embeddings_plus_single_pipeline_run"
+# EXPERIMENT_STAGE="skip_compute_embeddings_and_multiple_pipeline_runs"
 
 if [ "${USE_COMMON_EXPERIMENT_SETUP}" = "true" ]; then
   DATA_SUBSAMPLING_SAMPLING_SEED_LIST_OPTION="three_seeds"
@@ -218,6 +219,18 @@ if [ "${EXPERIMENT_SELECTOR}" = "multiwoz21_different_checkpoints" ]; then
   LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="single_choice_60000"
 fi
 
+# ++++ Experiment > different checkpoints for reddit dataset
+if [ "${EXPERIMENT_SELECTOR}" = "reddit_different_checkpoints" ]; then
+  DATA_LIST="reddit_only"
+  DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION="fixed_10000"
+
+  CHECKPOINT_NO_LIST="selected"
+
+  LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="single_choice_60000"
+fi
+
+# ================================================================== #
+#
 echo ">>> Experiment stage selected: ${EXPERIMENT_STAGE}"
 
 if [ "${EXPERIMENT_STAGE}" = "compute_embeddings_plus_single_pipeline_run" ]; then
