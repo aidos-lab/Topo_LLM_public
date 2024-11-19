@@ -185,6 +185,20 @@
                 "panel": "new",
                 "focus": false
             }
-        }
+        },
+        {
+            "label": "Without iteration - run_general_comparisons",
+            "command": "poetry run python3 ./topollm/analysis/compare_sampling_methods/run_general_comparisons.py feature_flags.analysis.compare_sampling_methods.do_iterate_all_partial_search_base_directories=False",
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": false
+            }
+        },
     ]
 }

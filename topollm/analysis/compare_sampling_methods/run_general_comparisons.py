@@ -139,16 +139,6 @@ def main(
         ),
     )
 
-    if verbosity >= Verbosity.NORMAL:
-        log_list_info(
-            list_=all_partial_search_base_directories_paths,
-            list_name="all_partial_search_base_directories_paths",
-            logger=logger,
-        )
-        logger.info(
-            msg=f"Iterating over {len(all_partial_search_base_directories_paths) = } paths ...",  # noqa: G004 - low overhead
-        )
-
     analysis_output_subdirectory_partial_relative_path = pathlib.Path(
         "sample_sizes",
         "run_general_comparisons",
@@ -172,28 +162,42 @@ def main(
             logger=logger,
         )
 
-    # The list application is used to evaluate the generator
-    _ = list(
-        tqdm(
-            # Note the new return_as argument here, which requires joblib >= 1.3:
-            iterable=joblib.Parallel(
-                return_as="generator",
-                n_jobs=main_config.n_jobs,
-            )(
-                joblib.delayed(function=process_partial_search_base_directory_partial_function)(
-                    partial_search_base_directory_path=partial_search_base_directory_path,
-                )
-                for partial_search_base_directory_path in all_partial_search_base_directories_paths
-            ),
-            total=len(all_partial_search_base_directories_paths),
-            desc="Processing paths",
-        ),
-    )
+    # ================================================== #
+    if main_config.feature_flags.analysis.compare_sampling_methods.do_iterate_all_partial_search_base_directories:
+        if verbosity >= Verbosity.NORMAL:
+            log_list_info(
+                list_=all_partial_search_base_directories_paths,
+                list_name="all_partial_search_base_directories_paths",
+                logger=logger,
+            )
+            logger.info(
+                msg=f"Iterating over {len(all_partial_search_base_directories_paths) = } paths ...",  # noqa: G004 - low overhead
+            )
 
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            msg=f"Iterating over {len(all_partial_search_base_directories_paths) = } paths DONE",  # noqa: G004 - low overhead
+        # The list application is used to evaluate the generator
+        _ = list(
+            tqdm(
+                # Note the new return_as argument here, which requires joblib >= 1.3:
+                iterable=joblib.Parallel(
+                    return_as="generator",
+                    n_jobs=main_config.n_jobs,
+                )(
+                    joblib.delayed(function=process_partial_search_base_directory_partial_function)(
+                        partial_search_base_directory_path=partial_search_base_directory_path,
+                    )
+                    for partial_search_base_directory_path in all_partial_search_base_directories_paths
+                ),
+                total=len(all_partial_search_base_directories_paths),
+                desc="Processing paths",
+            ),
         )
+
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"Iterating over {len(all_partial_search_base_directories_paths) = } paths DONE",  # noqa: G004 - low overhead
+            )
+
+    # ================================================== #
 
     concatenated_df: pd.DataFrame = load_and_concatenate_saved_dataframes(
         root_dir=analysis_output_subdirectory_absolute_path,

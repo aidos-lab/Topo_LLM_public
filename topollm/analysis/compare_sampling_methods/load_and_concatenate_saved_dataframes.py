@@ -29,9 +29,11 @@
 
 import logging
 import pathlib
+import pprint
 
 import pandas as pd
 
+from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.typing.enums import Verbosity
 
 default_logger: logging.Logger = logging.getLogger(
@@ -110,9 +112,33 @@ def load_and_concatenate_saved_dataframes(
             msg=f"Saving concatenated dataframe to {save_path = } DONE",  # noqa: G004 - low overhead
         )
 
-    if verbosity >= Verbosity.NORMAL and "model_partial_name" in concatenated_df.columns:
-        logger.info(
-            msg=f"{concatenated_df['model_partial_name'].unique() = }",  # noqa: G004 - low overhead
+    # # # #
+    # Log information about the concatenated dataframe
+    if verbosity >= Verbosity.NORMAL:
+        log_dataframe_info(
+            df=concatenated_df,
+            df_name="concatenated_df",
+            logger=logger,
         )
+
+    columns_to_investigate: list[str] = [
+        "data_full",
+        "data_subsampling_full",
+        "model_partial_name",
+    ]
+
+    if verbosity >= Verbosity.NORMAL:
+        for column_name in columns_to_investigate:
+            if column_name not in concatenated_df.columns:
+                continue
+
+            unique_values = concatenated_df[column_name].unique()
+            logger.info(
+                msg=f"Unique values in column '{column_name = }': {len(unique_values)}",  # noqa: G004 - low overhead
+            )
+
+            logger.info(
+                msg=f"concatenated_df[{column_name}].unique():{pprint.pformat(unique_values)}",  # noqa: G004 - low overhead
+            )
 
     return concatenated_df

@@ -3,6 +3,8 @@ defaults:
 
 analysis:
   create_plots_in_local_estimates_worker: false
+  compare_sampling_methods:
+    do_iterate_all_partial_search_base_directories: true
 
 compute_and_store_embeddings:
   skip_compute_and_store_embeddings: false
