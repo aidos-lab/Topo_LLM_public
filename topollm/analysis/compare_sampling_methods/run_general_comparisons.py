@@ -176,7 +176,7 @@ def main(
     _ = list(
         tqdm(
             # Note the new return_as argument here, which requires joblib >= 1.3:
-            joblib.Parallel(
+            iterable=joblib.Parallel(
                 return_as="generator",
                 n_jobs=main_config.n_jobs,
             )(
@@ -222,6 +222,7 @@ def process_partial_search_base_directory(
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> None:
+    """Process a single partial search base directory."""
     if verbosity >= Verbosity.NORMAL:
         logger.info(
             msg=f"{partial_search_base_directory_path = }",  # noqa: G004 - low overhead
