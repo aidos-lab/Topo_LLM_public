@@ -189,10 +189,14 @@ data/embeddings/metadata/
 data/embeddings/perplexity/
 
 data/models/finetuned_models/
+data/models/finetuning_monitoring/
 data/models/trippy_checkpoints/
 data/models/setsumbt_checkpoints/
 
 data/saved_plots/
+
+# Path to a typical log file
+data/test_output.txt
 
 hilbert_job_logs/
 hilbert_job_logs_backup/
