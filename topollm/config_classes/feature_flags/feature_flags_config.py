@@ -32,6 +32,16 @@ from pydantic import Field
 from topollm.config_classes.config_base_model import ConfigBaseModel
 
 
+class CompareSamplingMethodsFeatureFlagsConfig(ConfigBaseModel):
+    """Feature flags for the comparison of sampling methods."""
+
+    do_iterate_all_partial_search_base_directories: bool = Field(
+        default=True,
+        title="Iterate over all partial search base directories.",
+        description="Whether to iterate over all partial search base directories.",
+    )
+
+
 class AnalysisFeatureFlagsConfig(ConfigBaseModel):
     """Feature flags for the analysis process."""
 
@@ -39,6 +49,12 @@ class AnalysisFeatureFlagsConfig(ConfigBaseModel):
         default=True,
         title="Create plots in local estimates worker.",
         description="Whether to create plots in the local estimates worker.",
+    )
+
+    compare_sampling_methods: CompareSamplingMethodsFeatureFlagsConfig = Field(
+        default_factory=CompareSamplingMethodsFeatureFlagsConfig,
+        title="Compare sampling methods.",
+        description="Feature flags for the comparison of sampling methods.",
     )
 
 

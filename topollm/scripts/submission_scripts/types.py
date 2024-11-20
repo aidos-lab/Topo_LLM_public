@@ -109,6 +109,7 @@ class SeedListOption(StrEnum):
     ONE_SEED = auto()
     TWO_SEEDS = auto()
     FIVE_SEEDS = auto()
+    FIXED_1235_AND_1236 = auto()
 
 
 class EmbeddingsDataPrepSamplingSeedListOption(StrEnum):

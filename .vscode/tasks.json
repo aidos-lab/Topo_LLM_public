@@ -18,7 +18,7 @@
             }
         },
         {
-            "label": "rsync wandb from HHU Hilbert",
+            "label": "rsync from HHU Hilbert to local repository folder: 'wandb' directory",
             "command": "./topollm/scripts/hhu_hilbert/sync_data/rsync_wandb_output_dir_from_hhu_hilbert.sh",
             "type": "shell",
             "group": {
@@ -32,7 +32,7 @@
             }
         },
         {
-            "label": "rsync hydra_output_dir from HHU Hilbert",
+            "label": "rsync from HHU Hilbert to local repository folder: 'hydra_output_dir' directory",
             "command": "./topollm/scripts/hhu_hilbert/sync_data/rsync_hydra_output_dir_from_hhu_hilbert.sh",
             "type": "shell",
             "group": {
@@ -47,8 +47,8 @@
             "problemMatcher": []
         },
         {
-            "label": "rsync analysis/prepared and analysis/twonn directories to external drive from HHU Hilbert",
-            "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_partial_analysis_dir_from_hhu_hilbert.py --sync_to_external_drive --file-type all",
+            "label": "rsync from HHU Hilbert to external drive: 'analysis/prepared' and 'analysis/twonn' directories",
+            "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/twonn/' 'data/analysis/prepared/' --file-type all --sync_to_external_drive ",
             "type": "shell",
             "group": {
                 "kind": "build",
@@ -61,8 +61,8 @@
             }
         },
         {
-            "label": "rsync analysis/twonn directories to local repository folder from HHU Hilbert",
-            "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_partial_analysis_dir_from_hhu_hilbert.py --skip-prepared --file-type all",
+            "label": "rsync from HHU Hilbert to local repository folder: ALL file types 'analysis/twonn' directory",
+            "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/twonn/' --file-type all",
             "type": "shell",
             "group": {
                 "kind": "build",
@@ -75,7 +75,21 @@
             }
         },
         {
-            "label": "rsync language model config dir to local repository folder from HHU Hilbert",
+            "label": "rsync from HHU Hilbert to local repository folder: ONLY .npy file types 'analysis/twonn' directory",
+            "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/twonn/' --file-type npy",
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": false
+            }
+        },
+        {
+            "label": "rsync from HHU Hilbert to local repository folder: language model config directory",
             "command": "./topollm/scripts/hhu_hilbert/sync_data/rsync_language_model_config_dir_from_hhu_hilbert.sh",
             "type": "shell",
             "group": {
@@ -185,6 +199,20 @@
                 "panel": "new",
                 "focus": false
             }
-        }
+        },
+        {
+            "label": "Without iteration - run_general_comparisons",
+            "command": "poetry run python3 ./topollm/analysis/compare_sampling_methods/run_general_comparisons.py feature_flags.analysis.compare_sampling_methods.do_iterate_all_partial_search_base_directories=False",
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": false
+            }
+        },
     ]
 }

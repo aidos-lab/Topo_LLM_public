@@ -241,6 +241,7 @@ def create_boxplot_of_mean_over_different_sampling_seeds(
     fixed_params_text: str | None = None,
     additional_title: str | None = None,
     *,
+    figsize: tuple[float, float] = (12, 8),
     y_min: float | None = 6.5,
     y_max: float | None = 15.5,
     show_plot: bool = False,
@@ -264,6 +265,7 @@ def create_boxplot_of_mean_over_different_sampling_seeds(
     grouped_stats: pd.DataFrame = (
         subset_local_estimates_df.groupby(
             by=x_column_name,
+            observed=True,
         )
         .agg(
             mean_value=(y_column_name, "mean"),
@@ -297,7 +299,7 @@ def create_boxplot_of_mean_over_different_sampling_seeds(
     # # # #
     # Plotting
     plt.figure(
-        figsize=(12, 8),
+        figsize=figsize,
     )
 
     # Set the fixed y-axis limits

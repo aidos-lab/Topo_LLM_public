@@ -15,6 +15,7 @@ defaults:
   - override hydra/job_logging: custom
   - _self_
 
+n_jobs: 1
 seed: 1111 # The main_config seed is currently not used, but it is here for future use
 verbosity: 1
 preferred_torch_backend: auto

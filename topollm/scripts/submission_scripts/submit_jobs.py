@@ -560,6 +560,11 @@ def make_config_and_run_task(
             language_model_seed_list = seed_list_option_two_seeds
         case SeedListOption.FIVE_SEEDS:
             language_model_seed_list = seed_list_option_five_seeds
+        case SeedListOption.FIXED_1235_AND_1236:
+            language_model_seed_list = [
+                "1235",
+                "1236",
+            ]
         case _:
             msg: str = f"Unknown {args.language_model_seed_list = }"
             raise ValueError(
