@@ -109,9 +109,12 @@ if [ "$USE_FINETUNED_MODEL" = "true" ]; then
   ################################################################
   ### With POS tags for finetuned models and three checkpoints ###
   LANGUAGE_MODEL_LIST="selected_finetuned_many_epochs_from_roberta_base"
-  LANGUAGE_MODEL_SEED_LIST="one_seed"
-  CHECKPOINT_NO_LIST="only_beginning_and_middle_and_end"
   FINETUNING_REGIME="many_epochs_with_overfitting_risk"
+  
+  # LANGUAGE_MODEL_SEED_LIST="one_seed"
+  LANGUAGE_MODEL_SEED_LIST="fixed_1235_and_1236"
+  
+  CHECKPOINT_NO_LIST="only_beginning_and_middle_and_end"
 fi
 
 ADD_PREFIX_SPACE_FLAG="--add_prefix_space"
@@ -174,8 +177,8 @@ USE_COMMON_EXPERIMENT_SETUP="true"
 # EXPERIMENT_SELECTOR="multiwoz21_different_checkpoints"
 EXPERIMENT_SELECTOR="reddit_different_checkpoints"
 
-# EXPERIMENT_STAGE="compute_embeddings_plus_single_pipeline_run"
-EXPERIMENT_STAGE="skip_compute_embeddings_and_multiple_pipeline_runs"
+EXPERIMENT_STAGE="compute_embeddings_plus_single_pipeline_run"
+# EXPERIMENT_STAGE="skip_compute_embeddings_and_multiple_pipeline_runs"
 
 if [ "${USE_COMMON_EXPERIMENT_SETUP}" = "true" ]; then
   DATA_SUBSAMPLING_SAMPLING_SEED_LIST_OPTION="three_seeds"
