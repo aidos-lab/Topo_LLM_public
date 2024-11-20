@@ -174,8 +174,8 @@ USE_COMMON_EXPERIMENT_SETUP="true"
 # EXPERIMENT_SELECTOR="multiwoz21_different_checkpoints"
 EXPERIMENT_SELECTOR="reddit_different_checkpoints"
 
-EXPERIMENT_STAGE="compute_embeddings_plus_single_pipeline_run"
-# EXPERIMENT_STAGE="skip_compute_embeddings_and_multiple_pipeline_runs"
+# EXPERIMENT_STAGE="compute_embeddings_plus_single_pipeline_run"
+EXPERIMENT_STAGE="skip_compute_embeddings_and_multiple_pipeline_runs"
 
 if [ "${USE_COMMON_EXPERIMENT_SETUP}" = "true" ]; then
   DATA_SUBSAMPLING_SAMPLING_SEED_LIST_OPTION="three_seeds"
