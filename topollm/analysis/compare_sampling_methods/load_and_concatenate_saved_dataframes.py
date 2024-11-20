@@ -52,7 +52,13 @@ def load_and_concatenate_saved_dataframes(
     # Initialize an empty list to store dataframes
     dfs = []
 
+    # # # #
     # Traverse the directory structure using pathlib's rglob
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Iterating over {root_dir = } ...",  # noqa: G004 - low overhead
+        )
+
     for file_path in root_dir.rglob(
         pattern=pattern,
     ):
@@ -64,6 +70,7 @@ def load_and_concatenate_saved_dataframes(
                 filepath_or_buffer=file_path,
                 keep_default_na=False,
             )
+            # Append the dataframe to the list
             dfs.append(
                 current_df,
             )
@@ -75,12 +82,18 @@ def load_and_concatenate_saved_dataframes(
                 msg=f"Skipping {file_path = }",  # noqa: G004 - low overhead
             )
 
-        # Append the dataframe to the list
-        dfs.append(
-            current_df,
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Iterating over {root_dir = } DONE",  # noqa: G004 - low overhead
         )
 
+    # # # #
     # Concatenate the dataframes
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg="Concatenating dataframes ...",
+        )
+
     if dfs:
         concatenated_df: pd.DataFrame = pd.concat(
             objs=dfs,
@@ -95,6 +108,12 @@ def load_and_concatenate_saved_dataframes(
         )
         concatenated_df = pd.DataFrame()  # Empty dataframe if no files found
 
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg="Concatenating dataframes DONE",
+        )
+
+    # # # #
     # Save the concatenated dataframe
     if save_path is not None:
         logger.info(
