@@ -56,7 +56,9 @@ class SubmissionConfig(BaseModel):
         ],
     )
     data_subsampling_sampling_mode: str | None = "random"
-    data_subsampling_number_of_samples_list: list[str] | None = None
+    data_subsampling_number_of_samples_list: list[str] | None = [
+        "10000",
+    ]
     data_subsampling_sampling_seed_list: list[str] | None = [
         "777",
     ]
