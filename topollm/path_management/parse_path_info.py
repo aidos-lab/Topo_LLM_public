@@ -252,10 +252,10 @@ def parse_model_info(
         # Remove checkpoint if present (after removing task)
         ckpt_match = re.search(r"_ckpt-(\d+)$", model_name)
         if ckpt_match:
-            parsed_info["model_checkpoint"] = int(ckpt_match.group(1))
+            parsed_info[NAME_PREFIXES_TO_FULL_DESCRIPTIONS["ckpt"]] = int(ckpt_match.group(1))
             model_name = model_name[: ckpt_match.start()]
         else:
-            parsed_info["model_checkpoint"] = None
+            parsed_info[NAME_PREFIXES_TO_FULL_DESCRIPTIONS["ckpt"]] = None
 
         # Remove seed if present (after removing checkpoint)
         seed_match = re.search(r"_seed-(\d+)$", model_name)

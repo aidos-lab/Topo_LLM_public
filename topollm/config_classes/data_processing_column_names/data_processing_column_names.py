@@ -25,6 +25,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Column names for data processing."""
+
 from pydantic import Field
 
 from topollm.config_classes.config_base_model import ConfigBaseModel
