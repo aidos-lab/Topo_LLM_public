@@ -440,6 +440,10 @@ def make_config_and_run_task(
             data_subsampling_number_of_samples_list = [
                 "12000",
             ]
+        case DataSubsamplingNumberOfSamplesListOption.FIXED_16000:
+            data_subsampling_number_of_samples_list = [
+                "16000",
+            ]
         case DataSubsamplingNumberOfSamplesListOption.RANGE_START_2000_STOP_12000_STEP_2000:
             data_subsampling_number_of_samples_list = [
                 str(i)
@@ -472,6 +476,15 @@ def make_config_and_run_task(
                 str(i)
                 for i in range(
                     2_000,
+                    24_000,
+                    2_000,
+                )
+            ]
+        case DataSubsamplingNumberOfSamplesListOption.RANGE_START_12000_STOP_24000_STEP_2000:
+            data_subsampling_number_of_samples_list = [
+                str(i)
+                for i in range(
+                    12_000,
                     24_000,
                     2_000,
                 )

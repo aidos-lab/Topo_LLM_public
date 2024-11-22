@@ -164,8 +164,8 @@ LOCAL_ESTIMATES_POINTWISE_ABSOLUTE_N_NEIGHBORS_LIST="single_choice_128"
 # Note that the individual experiment setup can override these values.
 USE_COMMON_EXPERIMENT_SETUP="true"
 
-EXPERIMENT_SELECTOR="multiwoz21_different_data_subsampling_number_of_samples"
-# EXPERIMENT_SELECTOR="reddit_different_data_subsampling_number_of_samples"
+# EXPERIMENT_SELECTOR="multiwoz21_different_data_subsampling_number_of_samples"
+EXPERIMENT_SELECTOR="reddit_different_data_subsampling_number_of_samples"
 
 # EXPERIMENT_SELECTOR="multiwoz21_different_checkpoints"
 # EXPERIMENT_SELECTOR="reddit_different_checkpoints"
@@ -197,8 +197,8 @@ echo ">>> Experiment selected: ${EXPERIMENT_SELECTOR}"
 if [ "${EXPERIMENT_SELECTOR}" = "multiwoz21_different_data_subsampling_number_of_samples" ]; then
   DATA_LIST="multiwoz21_only"
   # DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION="range_start_2000_stop_18000_step_2000"
-  DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION="range_start_12000_stop_18000_step_2000"
-  # DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION="fixed_12000"
+  # DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION="range_start_12000_stop_18000_step_2000"
+  DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION="fixed_16000"
   
   LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="single_choice_60000"
 
@@ -211,9 +211,15 @@ fi
 # ++++ Experiment > different subsampling number of samples for reddit dataset
 if [ "${EXPERIMENT_SELECTOR}" = "reddit_different_data_subsampling_number_of_samples" ]; then
   DATA_LIST="reddit_only"
-  DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION="range_start_2000_stop_24000_step_2000"
+  # DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION="range_start_2000_stop_24000_step_2000"
+  DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION="range_start_12000_stop_24000_step_2000"
 
   LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="single_choice_60000"
+
+  # Note: We explicitly increase the memory size here,
+  # since for the embeddings data prep step on 12_000 and more data subsamlping samples,
+  # the embeddings data prep step requires more memory.
+  MEMORY="80"
 fi
 
 # ================================================================== #
