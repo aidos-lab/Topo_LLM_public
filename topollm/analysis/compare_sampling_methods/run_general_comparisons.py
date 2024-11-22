@@ -45,10 +45,14 @@ from topollm.analysis.compare_sampling_methods.extract_results_from_directory_st
 from topollm.analysis.compare_sampling_methods.load_and_concatenate_saved_dataframes import (
     load_and_concatenate_saved_dataframes,
 )
+from topollm.analysis.compare_sampling_methods.model_checkpoint_analysis import (
+    run_checkpoint_analysis_over_different_data_and_models,
+)
+from topollm.analysis.compare_sampling_methods.model_loss_extractor import ModelLossExtractor
 from topollm.analysis.compare_sampling_methods.organize_results_directory_structure import (
     build_results_directory_structure,
 )
-from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
+from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH, TOPO_LLM_REPOSITORY_BASE_PATH
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.log_list_info import log_list_info
@@ -151,6 +155,11 @@ def main(
         )
 
     # ================================================== #
+    # Iterate over all partial search base directories and process them.
+    #
+    # Note: This step might take a while, depending on the number of directories.
+    # ================================================== #
+
     if main_config.feature_flags.analysis.compare_sampling_methods.do_iterate_all_partial_search_base_directories:
         if verbosity >= Verbosity.NORMAL:
             log_list_info(
@@ -186,6 +195,8 @@ def main(
             )
 
     # ================================================== #
+    # Concatenate the extracted dataframes
+    # ================================================== #
 
     concatenated_df: pd.DataFrame = load_and_concatenate_saved_dataframes(
         root_dir=analysis_output_subdirectory_absolute_path,
@@ -198,12 +209,106 @@ def main(
     )
 
     # ================================================== #
+    # Checkpoint analysis
+    # ================================================== #
+
+    do_checkpoint_analysis(
+        concatenated_df=concatenated_df,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+    # ================================================== #
     # Note: You can add additional analysis steps here
     # ================================================== #
 
     logger.info(
         msg="Running script DONE",
     )
+
+
+def do_checkpoint_analysis(
+    concatenated_df: pd.DataFrame,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
+    # Get optional model loss extractor
+    model_loss_extractor = create_model_loss_extractor()
+
+    # # # #
+    # Select which analysis to run and call the analysis
+    data_full_list_to_process: list[str] = [
+        "data=multiwoz21_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags",
+        "data=one-year-of-tsla-on-reddit_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags",
+    ]
+
+    data_subsampling_split_list_to_process: list[str] = [
+        "train",
+        "validation",
+        "test",
+    ]
+
+    data_subsampling_sampling_mode_list_to_process: list[str] = [
+        "random",
+        "take_first",
+    ]
+
+    model_partial_name_list_to_process: list[str] = [
+        "model=model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50",
+        "model=model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50",
+    ]
+
+    # Note: The "model_seed" column contains type integer values
+    language_model_seed_list_to_process: list[int] = [
+        1234,
+        1235,
+        1236,
+    ]
+
+    # # # #
+    # Uncomment to run the checkpoint analysis on the full available data
+    #
+    run_checkpoint_analysis_over_different_data_and_models(
+        concatenated_df=concatenated_df,
+        data_full_list_to_process=data_full_list_to_process,
+        data_subsampling_split_list_to_process=data_subsampling_split_list_to_process,
+        data_subsampling_sampling_mode_list_to_process=data_subsampling_sampling_mode_list_to_process,
+        model_partial_name_list_to_process=model_partial_name_list_to_process,
+        language_model_seed_list_to_process=language_model_seed_list_to_process,
+        model_loss_extractor=model_loss_extractor,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+
+def create_model_loss_extractor(
+    logger: logging.Logger = default_logger,
+) -> ModelLossExtractor | None:
+    """Create a ModelLossExtractor instance."""
+    # Try to initialize the class
+    try:
+        model_loss_extractor = ModelLossExtractor(
+            train_loss_file_path=pathlib.Path(
+                TOPO_LLM_REPOSITORY_BASE_PATH,
+                "data/models/finetuning_monitoring/",
+                "wandb_export_2024-11-20T18_47_32.346+01_00_train_loss.csv",
+            ),
+            eval_loss_file_path=pathlib.Path(
+                TOPO_LLM_REPOSITORY_BASE_PATH,
+                "data/models/finetuning_monitoring/",
+                "wandb_export_2024-11-20T19_02_59.541+01_00_eval_loss.csv",
+            ),
+        )
+    except FileNotFoundError as e:
+        logger.exception(
+            msg=e,
+        )
+        logger.info(
+            msg="Returning model_loss_extractor=None.",
+        )
+        model_loss_extractor = None
+
+    return model_loss_extractor
 
 
 def process_partial_search_base_directory(
