@@ -8,8 +8,11 @@ DRY_RUN_FLAG=""
 RUN_ONLY_FIRST_CONFIG_OPTION_FLAG=""
 
 # Note: 
-# 16GB of memory is not enough for the embeddings data prep step
-# on the multiwoz21_train and reddit_train datasets.
+# - 16GB of memory is not enough for the embeddings data prep step
+#   for dataset subsampling sample size 10_000 on the multiwoz21_train and reddit_train datasets.
+# - 32GB of memory is enough for the embeddings data prep step
+#   for dataset subsampling sample size 12_000 on the multiwoz21_train and reddit_train datasets.
+
 MEMORY="32"
 NCPUS="2"
 NGPUS="1"
@@ -171,8 +174,8 @@ EXPERIMENT_SELECTOR="multiwoz21_different_data_subsampling_number_of_samples"
 
 # ---------------------------------------------------------- #
 
-EXPERIMENT_STAGE="compute_embeddings_plus_single_pipeline_run"
-# EXPERIMENT_STAGE="skip_compute_embeddings_and_multiple_pipeline_runs"
+# EXPERIMENT_STAGE="compute_embeddings_plus_single_pipeline_run"
+EXPERIMENT_STAGE="skip_compute_embeddings_and_multiple_pipeline_runs"
 
 # ---------------------------------------------------------- #
 
@@ -193,11 +196,16 @@ echo ">>> Experiment selected: ${EXPERIMENT_SELECTOR}"
 # ++++ Experiment > different subsampling number of samples for multiwoz21 dataset
 if [ "${EXPERIMENT_SELECTOR}" = "multiwoz21_different_data_subsampling_number_of_samples" ]; then
   DATA_LIST="multiwoz21_only"
-  # DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION="range_start_2000_stop_18000_step_2000" # TODO: Investigate the problem here with sample sizes > 10000
-  # DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION="range_start_12000_stop_18000_step_2000"
-  DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION="fixed_12000" # TODO: This is for investigating the problem with sample sizes > 10000
+  # DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION="range_start_2000_stop_18000_step_2000"
+  DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION="range_start_12000_stop_18000_step_2000"
+  # DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION="fixed_12000"
   
   LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="single_choice_60000"
+
+  # Note: We explicitly increase the memory size here,
+  # since for the embeddings data prep step on 12_000 and more data subsamlping samples,
+  # the embeddings data prep step requires more memory.
+  MEMORY="64"
 fi
 
 # ++++ Experiment > different subsampling number of samples for reddit dataset
