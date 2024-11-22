@@ -47,7 +47,7 @@ from topollm.scripts.submission_scripts.types import (
     LocalEstimatesPointwiseAbsoluteNNeighborsListOption,
     SeedListOption,
 )
-from topollm.typing.enums import EmbeddingsDataPrepSamplingMode, SubmissionMode, Task
+from topollm.typing.enums import DataSamplingMode, EmbeddingsDataPrepSamplingMode, SubmissionMode, Task
 
 
 def run_task(
@@ -174,6 +174,14 @@ def parse_arguments() -> argparse.Namespace:
         type=DataListOption,
         default=DataListOption.DEBUG,
         help="Data list to use.",
+    )
+
+    parser.add_argument(
+        "--data_subsampling_sampling_mode",
+        type=DataSamplingMode,
+        choices=DataSamplingMode,
+        default=DataSamplingMode.RANDOM,
+        help="Data subsampling sampling mode to use.",
     )
     parser.add_argument(
         "--data_subsampling_number_of_samples_list_option",
@@ -444,6 +452,8 @@ def make_config_and_run_task(
             )
 
     match args.data_subsampling_sampling_seed_list_option:
+        case DataSubsamplingSamplingSeedListOption.NONE:
+            data_subsampling_sampling_seed_list = None
         case DataSubsamplingSamplingSeedListOption.DEFAULT:
             data_subsampling_sampling_seed_list = [
                 "778",
@@ -560,8 +570,14 @@ def make_config_and_run_task(
             language_model_seed_list = seed_list_option_two_seeds
         case SeedListOption.FIVE_SEEDS:
             language_model_seed_list = seed_list_option_five_seeds
-        case SeedListOption.FIXED_1235_AND_1236:
+        case SeedListOption.FIXED_SEEDS_1235_1236:
             language_model_seed_list = [
+                "1235",
+                "1236",
+            ]
+        case SeedListOption.FIXED_SEEDS_1234_1235_1236:
+            language_model_seed_list = [
+                "1234",
                 "1235",
                 "1236",
             ]
@@ -772,6 +788,7 @@ def make_config_and_run_task(
         walltime=args.walltime,
         additional_overrides=args.additional_overrides,
         data_list=data_list,
+        data_subsampling_sampling_mode=args.data_subsampling_sampling_mode,
         data_subsampling_number_of_samples_list=data_subsampling_number_of_samples_list,
         data_subsampling_sampling_seed_list=data_subsampling_sampling_seed_list,
         additional_data_options=additional_data_options,

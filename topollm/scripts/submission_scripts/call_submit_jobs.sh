@@ -112,7 +112,8 @@ if [ "$USE_FINETUNED_MODEL" = "true" ]; then
   FINETUNING_REGIME="many_epochs_with_overfitting_risk"
   
   # LANGUAGE_MODEL_SEED_LIST="one_seed"
-  LANGUAGE_MODEL_SEED_LIST="fixed_1235_and_1236"
+  # LANGUAGE_MODEL_SEED_LIST="fixed_seeds_1235_1236"
+  LANGUAGE_MODEL_SEED_LIST="fixed_seeds_1234_1235_1236"
   
   CHECKPOINT_NO_LIST="only_beginning_and_middle_and_end"
 fi
@@ -125,6 +126,7 @@ CREATE_POS_TAGS_FLAG="--create_pos_tags"
 
 
 # ================================================================== #
+# Note that these values might be overridden by the individual experiment setup below.
 
 # DATA_LIST="full"
 # DATA_LIST="multiwoz21_and_reddit"
@@ -134,53 +136,48 @@ DATA_LIST="multiwoz21_only"
 # DATA_LIST="only_train"
 # DATA_LIST="debug"
 
-
-# DATA_SUBSAMPLING_SAMPLING_SEED_LIST_OPTION="default"
-# DATA_SUBSAMPLING_SAMPLING_SEED_LIST_OPTION="fixed_777"
 DATA_SUBSAMPLING_SAMPLING_SEED_LIST_OPTION="three_seeds"
-# DATA_SUBSAMPLING_SAMPLING_SEED_LIST_OPTION="ten_seeds"
 
 # FINETUNING_DATASETS_LIST="manual_in_python_script"
 # FINETUNING_DATASETS_LIST="multiwoz21_and_reddit_full"
 # FINETUNING_DATASETS_LIST="multiwoz21_full"
 FINETUNING_DATASETS_LIST="reddit_full"
 
-# ================================================================== #
-
 # Uncomment the following to skip the compute_and_store_embeddings step:
 #
 # SKIP_COMPUTE_AND_STORE_EMBEDDINGS="--skip_compute_and_store_embeddings"
 
 EMBEDDINGS_DATA_PREP_SAMPLING_MODE="random"
-
-# EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="default"
-# EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="two_seeds"
 EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="five_seeds"
-# EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="ten_seeds"
-# EMBEDDINGS_DATA_PREP_SAMPLING_SEED_LIST_OPTION="twenty_seeds"
 
 LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="default"
-# LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="few_small_steps_num_samples"
-# LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="up_to_90000_with_step_size_5000_num_samples"
-# LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="up_to_90000_with_step_size_10000_num_samples"
-# LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="up_to_100000_with_step_size_20000_num_samples"
-
 LOCAL_ESTIMATES_POINTWISE_ABSOLUTE_N_NEIGHBORS_LIST="single_choice_128"
 
+
+# ================================================================== #
+
 # ---------------------------------------------------------- #
-# Experiment setup:
+# Experiment setup.
+# Note that the individual experiment setup can override these values.
 USE_COMMON_EXPERIMENT_SETUP="true"
 
 # EXPERIMENT_SELECTOR="multiwoz21_different_data_subsampling_number_of_samples"
 # EXPERIMENT_SELECTOR="reddit_different_data_subsampling_number_of_samples"
 
 # EXPERIMENT_SELECTOR="multiwoz21_different_checkpoints"
-EXPERIMENT_SELECTOR="reddit_different_checkpoints"
+# EXPERIMENT_SELECTOR="reddit_different_checkpoints"
+
+EXPERIMENT_SELECTOR="multiwoz21_and_reddit_data_subsampling_take_first_different_checkpoints"
+
+# ---------------------------------------------------------- #
 
 EXPERIMENT_STAGE="compute_embeddings_plus_single_pipeline_run"
 # EXPERIMENT_STAGE="skip_compute_embeddings_and_multiple_pipeline_runs"
 
+# ---------------------------------------------------------- #
+
 if [ "${USE_COMMON_EXPERIMENT_SETUP}" = "true" ]; then
+  DATA_SUBSAMPLING_SAMPLING_MODE="random"
   DATA_SUBSAMPLING_SAMPLING_SEED_LIST_OPTION="three_seeds"
 
   EMBEDDINGS_DATA_PREP_SAMPLING_MODE="random"
@@ -196,7 +193,7 @@ echo ">>> Experiment selected: ${EXPERIMENT_SELECTOR}"
 # ++++ Experiment > different subsampling number of samples for multiwoz21 dataset
 if [ "${EXPERIMENT_SELECTOR}" = "multiwoz21_different_data_subsampling_number_of_samples" ]; then
   DATA_LIST="multiwoz21_only"
-  # DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION="up_to_16000_with_step_size_2000" # TODO: Investigate the problem here
+  # DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION="up_to_16000_with_step_size_2000" # TODO: Investigate the problem here with sample sizes > 10000
   DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION="from_10000_up_to_16000_with_step_size_2000"
   
   LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="single_choice_60000"
@@ -234,6 +231,27 @@ fi
 
 # ================================================================== #
 #
+# ++++ Experiment > different checkpoints for multiwoz21 dataset
+
+if [ "${EXPERIMENT_SELECTOR}" = "multiwoz21_and_reddit_data_subsampling_take_first_different_checkpoints" ]; then
+  # Select 10_000 from the dataset with the take_first sampling mode.
+  # Note that in this case, we need to set the data_subsampling_sampling_seed_list_option to none.
+  DATA_LIST="multiwoz21_and_reddit"
+
+  DATA_SUBSAMPLING_SAMPLING_MODE="take_first"
+  DATA_SUBSAMPLING_SAMPLING_SEED_LIST_OPTION="none"
+  DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION="fixed_10000"
+
+  CHECKPOINT_NO_LIST="selected"
+
+  EMBEDDINGS_DATA_PREP_SAMPLING_MODE="random"
+  EMBEDDINGS_DATA_PREP_NUM_SAMPLES_LIST_OPTION="single_choice_150000"
+
+  LOCAL_ESTIMATES_POINTWISE_ABSOLUTE_N_NEIGHBORS_LIST="single_choice_128"
+fi
+
+# ================================================================== #
+#
 echo ">>> Experiment stage selected: ${EXPERIMENT_STAGE}"
 
 if [ "${EXPERIMENT_STAGE}" = "compute_embeddings_plus_single_pipeline_run" ]; then
@@ -262,6 +280,7 @@ fi
 # ---------------------------------------------------------- #
 
 # ================================================================== #
+# ================================================================== #
 
 # ================================================================== #
 if [ "$DO_PIPELINE" = "true" ]; then
@@ -278,6 +297,7 @@ if [ "$DO_PIPELINE" = "true" ]; then
       --ncpus=$NCPUS \
       --ngpus=$NGPUS \
       --data_list=$DATA_LIST \
+      --data_subsampling_sampling_mode=$DATA_SUBSAMPLING_SAMPLING_MODE \
       --data_subsampling_number_of_samples_list_option=$DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION \
       --data_subsampling_sampling_seed_list_option=$DATA_SUBSAMPLING_SAMPLING_SEED_LIST_OPTION \
       $CREATE_POS_TAGS_FLAG \
@@ -315,6 +335,7 @@ if [ "$DO_LOCAL_ESTIMATES_COMPUTATION" = "true" ]; then
       --ngpus=$NGPUS \
       --walltime="08:00:00" \
       --data_list=$DATA_LIST \
+      --data_subsampling_sampling_mode=$DATA_SUBSAMPLING_SAMPLING_MODE \
       --data_subsampling_number_of_samples_list_option=$DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION \
       --data_subsampling_sampling_seed_list_option=$DATA_SUBSAMPLING_SAMPLING_SEED_LIST_OPTION \
       $CREATE_POS_TAGS_FLAG \
@@ -351,6 +372,7 @@ if [ "$DO_PERPLEXITY" = "true" ]; then
       --ncpus=$NCPUS \
       --ngpus=$NGPUS \
       --data_list=$DATA_LIST \
+      --data_subsampling_sampling_mode=$DATA_SUBSAMPLING_SAMPLING_MODE \
       --data_subsampling_number_of_samples_list_option=$DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION \
       --data_subsampling_sampling_seed_list_option=$DATA_SUBSAMPLING_SAMPLING_SEED_LIST_OPTION \
       --language_model_list=$LANGUAGE_MODEL_LIST \

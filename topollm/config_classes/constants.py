@@ -124,6 +124,7 @@ NAME_PREFIXES_TO_FULL_DESCRIPTIONS: dict[
     str,
 ] = {
     "dedup": "local_estimates_deduplication",
+    "ckpt": "model_checkpoint",
 }
 
 # # # #

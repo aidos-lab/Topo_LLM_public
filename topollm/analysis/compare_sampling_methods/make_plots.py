@@ -240,10 +240,16 @@ def create_boxplot_of_mean_over_different_sampling_seeds(
     array_data_size_column_name: str = "array_data.size",
     fixed_params_text: str | None = None,
     additional_title: str | None = None,
+    # Additional optional data points to plot
+    model_losses_df: pd.DataFrame | None = None,
+    loss_x_column_name: str = "model_checkpoint",
+    loss_y_column_name: str = "loss",
     *,
     figsize: tuple[float, float] = (12, 8),
     y_min: float | None = 6.5,
     y_max: float | None = 15.5,
+    y_min_additional_plot: float | None = 0.0,
+    y_max_additional_plot: float | None = 3.0,
     show_plot: bool = False,
     connect_points: bool = False,
     show_aggregated_stats: bool = True,
@@ -296,55 +302,33 @@ def create_boxplot_of_mean_over_different_sampling_seeds(
             index=False,
         )
 
+    # Extract unique x-axis checkpoints from the subset_local_estimates_df and convert to categorical with sorted order
+    # Convert the x-axis column to categorical for proper ordering
+    unique_checkpoints = sorted(subset_local_estimates_df[x_column_name].unique())
+    subset_local_estimates_df[x_column_name] = pd.Categorical(
+        values=subset_local_estimates_df[x_column_name],
+        categories=unique_checkpoints,  # TODO: We might need to add -1 manually if it is not present
+        ordered=True,
+    )
+
+    # Sort subset_local_estimates_df by the ordered categories
+    subset_local_estimates_df = subset_local_estimates_df.sort_values(
+        by=x_column_name,
+    )
+
     # # # #
     # Plotting
-    plt.figure(
+    # Plotting with a secondary y-axis for loss values
+    fig, ax1 = plt.subplots(
         figsize=figsize,
     )
 
-    # Set the fixed y-axis limits
-    if y_min is not None and y_max is not None:
-        plt.ylim(
-            y_min,
-            y_max,
-        )
-    else:
-        # Automatically adjust the y-axis limits
-        plt.autoscale(
-            axis="y",
-        )
-
-    # Automatically set major and minor tick locators
-    plt.gca().yaxis.set_major_locator(
-        locator=AutoLocator(),
-    )  # Auto-adjust major ticks
-    plt.gca().yaxis.set_minor_locator(
-        locator=MultipleLocator(base=0.1),
-    )  # Set minor ticks for finer grid
-
-    # Enable the grid with different styling for major and minor lines
-    plt.grid(
-        which="major",
-        axis="y",
-        color="gray",
-        linestyle="-",
-        linewidth=0.6,
-        alpha=0.5,
-    )  # Major grid lines
-    plt.grid(
-        which="minor",
-        axis="y",
-        color="gray",
-        linestyle="--",
-        linewidth=0.3,
-        alpha=0.3,
-    )  # Minor grid lines
-
-    # Create boxplot and stripplot
+    # Plot boxplot and stripplot on the primary y-axis
     sns.boxplot(
         x=x_column_name,
         y=y_column_name,
         data=subset_local_estimates_df,
+        ax=ax1,
     )
     sns.stripplot(
         x=x_column_name,
@@ -355,19 +339,118 @@ def create_boxplot_of_mean_over_different_sampling_seeds(
         dodge=True,
         marker="o",
         alpha=0.5,
+        ax=ax1,
     )
 
-    # Improve x-axis labeling by rotating labels and using a shorthand format for large numbers
-    plt.xticks(
+    # Set y-axis limits for the boxplot
+    if y_min is not None and y_max is not None:
+        # Set the fixed y-axis limits
+        ax1.set_ylim(
+            bottom=y_min,
+            top=y_max,
+        )
+    else:
+        # Automatically adjust the y-axis limits
+        ax1.autoscale(
+            axis="y",
+        )
+
+    ax1.set_xlabel(
+        xlabel=x_column_name,
+    )
+    ax1.set_ylabel(
+        ylabel=y_column_name,
+    )
+    # Rotate x-axis labels 45 degrees for better readability
+    ax1.tick_params(
+        axis="x",
         rotation=45,
-        ha="right",
-    )  # Rotate x-axis labels 45 degrees for better readability
-
-    # Convert the x-axis column to categorical for proper ordering
-    subset_local_estimates_df[x_column_name] = pd.Categorical(
-        values=subset_local_estimates_df[x_column_name],
-        ordered=True,
     )
+
+    # Enable grid on primary y-axis.
+    # Automatically set major and minor tick locators.
+    ax1.yaxis.set_major_locator(
+        locator=AutoLocator(),
+    )  # Auto-adjust major ticks
+    ax1.yaxis.set_minor_locator(
+        locator=MultipleLocator(base=0.1),
+    )  # Set minor ticks for finer grid
+    # Enable the grid with different styling for major and minor lines
+    ax1.grid(
+        which="major",
+        axis="y",
+        color="gray",
+        linestyle="-",
+        linewidth=0.6,
+        alpha=0.5,
+    )  # Major grid lines
+    ax1.grid(
+        which="minor",
+        axis="y",
+        color="gray",
+        linestyle="--",
+        linewidth=0.3,
+        alpha=0.3,
+    )  # Minor grid lines
+
+    # Add secondary y-axis for filtered loss values if provided
+    if model_losses_df is not None:
+        # Filter the model_losses_df to only include the checkpoints present in subset_local_estimates_df
+        filtered_losses_df = model_losses_df[model_losses_df[loss_x_column_name].isin(values=unique_checkpoints)]
+
+        # Convert the `loss_x_column_name` column to categorical using the same categories as subset_local_estimates_df
+        filtered_losses_df[loss_x_column_name] = pd.Categorical(
+            filtered_losses_df[loss_x_column_name],
+            categories=unique_checkpoints,
+            ordered=True,
+        )
+
+        # Sort filtered_losses_df by the ordered categories
+        filtered_losses_df = filtered_losses_df.sort_values(
+            by=loss_x_column_name,
+        )
+
+        # Create a secondary y-axis
+        ax2 = ax1.twinx()
+        ax2.set_ylabel(
+            ylabel=loss_y_column_name,
+            color="blue",
+        )
+
+        # Plot filtered loss values on the secondary y-axis using categorical values directly without conversion
+        ax2.plot(
+            filtered_losses_df[loss_x_column_name].astype(str),
+            filtered_losses_df[loss_y_column_name],
+            linestyle="--",
+            linewidth=2,
+            color="blue",
+            alpha=0.7,
+            label="Loss (Filtered Checkpoints)",
+        )
+
+        # Set y-axis properties for loss axis
+        ax2.tick_params(
+            axis="y",
+            labelcolor="blue",
+        )
+
+        # Add legend for the secondary y-axis line
+        ax2.legend(
+            loc="upper right",
+        )
+
+        # Set y-axis limits for the loss values
+        if y_min_additional_plot is not None and y_max_additional_plot is not None:
+            # Set the fixed y-axis limits
+            ax2.set_ylim(
+                bottom=y_min_additional_plot,
+                top=y_max_additional_plot,
+            )
+        else:
+            # Automatically adjust the y-axis limits
+            ax2.autoscale(
+                axis="y",
+            )
 
     # Connect the points from the same seed across different samples if requested
     if connect_points:
@@ -398,7 +481,10 @@ def create_boxplot_of_mean_over_different_sampling_seeds(
                 key=row[x_column_name],
             )
             # Check that the x_position is an integer
-            if not isinstance(x_position, int):
+            if not isinstance(
+                x_position,
+                int,
+            ):
                 logger.warning(
                     msg=f"Could not find x_position for {row[x_column_name] = }. Skipping stats display.",  # noqa: G004 - low overhead
                 )
@@ -419,9 +505,9 @@ def create_boxplot_of_mean_over_different_sampling_seeds(
             )
 
             # Set y_max if it is None
-            y_max = y_max if y_max is not None else plt.gca().get_ylim()[1]
+            y_max = y_max if y_max is not None else ax1.get_ylim()[1]
 
-            plt.text(
+            ax1.text(
                 x=x_position,
                 y=y_max - 0.2,  # Place it near the top of the y-axis
                 s=stats_text,
