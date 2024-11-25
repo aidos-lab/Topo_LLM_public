@@ -232,6 +232,7 @@ def do_checkpoint_analysis(
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> None:
+    """Run the checkpoint analysis."""
     # Get optional model loss extractor
     model_loss_extractor = create_model_loss_extractor()
 
