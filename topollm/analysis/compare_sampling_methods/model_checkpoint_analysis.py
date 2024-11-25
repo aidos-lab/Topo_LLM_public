@@ -37,6 +37,7 @@ from topollm.analysis.compare_sampling_methods.filter_dataframe_based_on_filters
 )
 from topollm.analysis.compare_sampling_methods.make_plots import (
     Y_AXIS_LIMITS,
+    PlotSavePathCollection,
     create_boxplot_of_mean_over_different_sampling_seeds,
     generate_fixed_params_text,
 )
@@ -128,29 +129,15 @@ def create_histograms_over_model_checkpoints(
     # # # #
     # Create the plots
     for y_min, y_max in Y_AXIS_LIMITS.values():
-        if common_prefix_path is not None:
-            plot_save_path = pathlib.Path(
-                common_prefix_path,
-                "plots",
-                f"y_{y_min}_{y_max}.pdf",
-            )
-            raw_data_save_path = pathlib.Path(
-                common_prefix_path,
-                "raw_data",
-                "raw_data.csv",
-            )
-            aggregated_results_save_path = pathlib.Path(
-                common_prefix_path,
-                "raw_data",
-                "aggregated_results.csv",
-            )
-        else:
-            plot_save_path = None
-            raw_data_save_path = None
-            aggregated_results_save_path = None
+        plot_save_path_collection: PlotSavePathCollection = PlotSavePathCollection.create_from_common_prefix_path(
+            common_prefix_path=common_prefix_path,
+            y_min=y_min,
+            y_max=y_max,
+        )
 
         create_boxplot_of_mean_over_different_sampling_seeds(
             subset_local_estimates_df=data_for_checkpoint_analysis_df,
+            plot_save_path_collection=plot_save_path_collection,
             x_column_name=NAME_PREFIXES_TO_FULL_DESCRIPTIONS["ckpt"],
             y_column_name="array_data_truncated_mean",
             fixed_params_text=fixed_params_text,
@@ -158,9 +145,6 @@ def create_histograms_over_model_checkpoints(
             figsize=figsize,  # This should be a bit larger than the default size, because we have many checkpoints to show
             y_min=y_min,
             y_max=y_max,
-            plot_save_path=plot_save_path,
-            raw_data_save_path=raw_data_save_path,
-            aggregated_results_save_path=aggregated_results_save_path,
             verbosity=verbosity,
             logger=logger,
         )
