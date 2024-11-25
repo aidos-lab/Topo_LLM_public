@@ -39,6 +39,9 @@ import omegaconf
 import pandas as pd
 from tqdm import tqdm
 
+from topollm.analysis.compare_sampling_methods.data_subsampling_number_of_samples_analysis import (
+    run_data_subsampling_number_of_samples_analysis,
+)
 from topollm.analysis.compare_sampling_methods.extract_results_from_directory_structure import (
     run_search_on_single_base_directory_and_process_and_save,
 )
@@ -219,11 +222,48 @@ def main(
     )
 
     # ================================================== #
+    # Data subsampling number of samples analysis
+    # ================================================== #
+
+    do_data_subsampling_number_of_samples_analysis(
+        concatenated_df=concatenated_df,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+    # ================================================== #
     # Note: You can add additional analysis steps here
     # ================================================== #
 
     logger.info(
         msg="Running script DONE",
+    )
+
+
+def do_data_subsampling_number_of_samples_analysis(
+    concatenated_df: pd.DataFrame,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
+    """Run the data subsampling number of samples analysis."""
+    data_full_list_to_process = list(concatenated_df["data_full"].unique())
+    data_subsampling_split_list_to_process = list(concatenated_df["data_subsampling_split"].unique())
+    data_subsampling_sampling_mode_list_to_process: list[str] = [
+        "random",
+    ]
+
+    model_full_list_to_process: list[str] = [
+        "model=roberta-base_task=masked_lm",
+    ]
+
+    run_data_subsampling_number_of_samples_analysis(
+        concatenated_df=concatenated_df,
+        data_full_list_to_process=data_full_list_to_process,
+        data_subsampling_split_list_to_process=data_subsampling_split_list_to_process,
+        data_subsampling_sampling_mode_list_to_process=data_subsampling_sampling_mode_list_to_process,
+        model_full_list_to_process=model_full_list_to_process,
+        verbosity=verbosity,
+        logger=logger,
     )
 
 

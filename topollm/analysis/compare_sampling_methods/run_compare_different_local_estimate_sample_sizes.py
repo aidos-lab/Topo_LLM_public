@@ -41,7 +41,7 @@ import pandas as pd
 from tqdm import tqdm
 
 from topollm.analysis.compare_sampling_methods.compute_correlations import compute_and_save_correlations
-from topollm.analysis.compare_sampling_methods.log_statistics_of_array import log_statistics_of_array
+from topollm.analysis.compare_sampling_methods.log_statistics import log_statistics_of_array
 from topollm.analysis.compare_sampling_methods.make_plots import make_mean_std_plot, make_multiple_line_plots
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
