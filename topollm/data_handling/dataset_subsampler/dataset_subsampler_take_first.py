@@ -31,6 +31,9 @@ import logging
 
 import datasets
 
+from topollm.data_handling.dataset_subsampler.truncate_dataset import (
+    truncate_dataset_with_maximum_the_actual_number_of_samples,
+)
 from topollm.typing.enums import Verbosity
 
 default_logger: logging.Logger = logging.getLogger(
@@ -59,16 +62,10 @@ class DatasetSubsamplerTakeFirst:
     ) -> datasets.Dataset:
         """Take first sequences from the dataset."""
         # Truncate the dataset to the specified number of samples
-        if self.number_of_samples == -1:
-            # Use all samples
-            pass
-        elif self.number_of_samples > 0:
-            # Use only the specified number of samples
-            dataset = dataset.select(
-                indices=range(self.number_of_samples),
-            )
-        else:
-            msg: str = f"Expected {self.number_of_samples = } to be -1 or a positive integer"
-            raise ValueError(msg)
+        subsampled_dataset: datasets.Dataset = truncate_dataset_with_maximum_the_actual_number_of_samples(
+            dataset=dataset,
+            number_of_samples=self.number_of_samples,
+            logger=self.logger,
+        )
 
-        return dataset
+        return subsampled_dataset

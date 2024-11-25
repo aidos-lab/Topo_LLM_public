@@ -35,7 +35,9 @@ from topollm.embeddings_data_prep.subset_sampler.subset_sampler_random import Su
 from topollm.embeddings_data_prep.subset_sampler.subset_sampler_take_first import SubsetSamplerTakeFirst
 from topollm.typing.enums import EmbeddingsDataPrepSamplingMode, Verbosity
 
-default_logger = logging.getLogger(__name__)
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 def get_subset_sampler(
@@ -47,7 +49,9 @@ def get_subset_sampler(
     match embeddings_data_prep_sampling_config.sampling_mode:
         case EmbeddingsDataPrepSamplingMode.RANDOM:
             if verbosity >= Verbosity.NORMAL:
-                logger.info("Using random sampling.")
+                logger.info(
+                    msg="Using random subset sampling via SubsetSamplerRandom.",
+                )
             result = SubsetSamplerRandom(
                 embeddings_data_prep_sampling_config=embeddings_data_prep_sampling_config,
                 verbosity=verbosity,
@@ -55,14 +59,18 @@ def get_subset_sampler(
             )
         case EmbeddingsDataPrepSamplingMode.TAKE_FIRST:
             if verbosity >= Verbosity.NORMAL:
-                logger.info("Using take first sampling.")
+                logger.info(
+                    msg="Using take first subset sampling via SubsetSamplerTakeFirst.",
+                )
             result = SubsetSamplerTakeFirst(
                 embeddings_data_prep_sampling_config=embeddings_data_prep_sampling_config,
                 verbosity=verbosity,
                 logger=logger,
             )
         case _:
-            msg = f"Sampling mode {embeddings_data_prep_sampling_config.sampling_mode} not supported."
-            raise ValueError(msg)
+            msg: str = f"Sampling mode {embeddings_data_prep_sampling_config.sampling_mode} not supported."
+            raise ValueError(
+                msg,
+            )
 
     return result

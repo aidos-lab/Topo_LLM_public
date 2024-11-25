@@ -62,7 +62,9 @@ def prepare_training_args(
         eval_strategy="steps",
         eval_steps=finetuning_config.eval_steps,
         save_steps=finetuning_config.save_steps,
-        label_names=["labels"],
+        label_names=[
+            "labels",
+        ],
         logging_dir=logging_dir,  # type: ignore - typing problem with None and str
         report_to=finetuning_config.report_to,
         log_level=finetuning_config.log_level,

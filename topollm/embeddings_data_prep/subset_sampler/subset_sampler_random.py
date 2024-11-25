@@ -36,7 +36,9 @@ from topollm.embeddings_data_prep.prepared_data_containers import PreparedData
 from topollm.logging.log_array_info import log_array_info
 from topollm.typing.enums import Verbosity
 
-default_logger = logging.getLogger(__name__)
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 class SubsetSamplerRandom:
@@ -81,7 +83,7 @@ class SubsetSamplerRandom:
             )
         else:
             self.logger.warning(
-                f"{requested_num_samples = } is larger than the number of available samples {array.shape[0] = }.",  # noqa: G004 - low overhead
+                msg=f"{requested_num_samples = } is larger than the number of available samples {array.shape[0] = }.",  # noqa: G004 - low overhead
             )
             subsample_idx_vector: np.ndarray = self.rng.choice(
                 range(len(array)),

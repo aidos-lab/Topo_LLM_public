@@ -73,11 +73,15 @@ class DatasetPreparerHuggingface:
             "dataset_length",
         ):
             msg = "The dataset length is not available."
-            raise ValueError(msg)
+            raise ValueError(
+                msg,
+            )
 
         if self.dataset_length < 0:
             msg = "The dataset length was not properly set."
-            raise ValueError(msg)
+            raise ValueError(
+                msg,
+            )
 
         return self.dataset_length
 

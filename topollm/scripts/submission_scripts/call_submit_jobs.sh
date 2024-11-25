@@ -174,8 +174,8 @@ EXPERIMENT_SELECTOR="reddit_different_data_subsampling_number_of_samples"
 
 # ---------------------------------------------------------- #
 
-# EXPERIMENT_STAGE="compute_embeddings_plus_single_pipeline_run"
-EXPERIMENT_STAGE="skip_compute_embeddings_and_multiple_pipeline_runs"
+EXPERIMENT_STAGE="compute_embeddings_plus_single_pipeline_run"
+# EXPERIMENT_STAGE="skip_compute_embeddings_and_multiple_pipeline_runs"
 
 # ---------------------------------------------------------- #
 
@@ -212,7 +212,8 @@ fi
 if [ "${EXPERIMENT_SELECTOR}" = "reddit_different_data_subsampling_number_of_samples" ]; then
   DATA_LIST="reddit_only"
   # DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION="range_start_2000_stop_24000_step_2000"
-  DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION="range_start_12000_stop_24000_step_2000"
+  # DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION="range_start_12000_stop_24000_step_2000"
+  DATA_SUBSAMPLING_NUMBER_OF_SAMPLES_LIST_OPTION="fixed_22000"
 
   LOCAL_ESTIMATES_FILTERING_NUM_SAMPLES_LIST="single_choice_60000"
 
