@@ -42,7 +42,7 @@ from tqdm import tqdm
 
 from topollm.analysis.compare_sampling_methods.compute_correlations import compute_and_save_correlations
 from topollm.analysis.compare_sampling_methods.data_selection_folder_lists import get_data_folder_list
-from topollm.analysis.compare_sampling_methods.log_statistics_of_array import log_statistics_of_array
+from topollm.analysis.compare_sampling_methods.log_statistics import log_statistics_of_array
 from topollm.analysis.compare_sampling_methods.make_plots import make_mean_std_plot, make_multiple_line_plots
 from topollm.analysis.compare_sampling_methods.organize_results_directory_structure import (
     build_results_directory_structure,

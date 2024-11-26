@@ -29,6 +29,7 @@
 
 import logging
 import pathlib
+from dataclasses import dataclass
 from typing import Any
 
 import matplotlib.pyplot as plt
@@ -229,11 +230,44 @@ def make_mean_std_plot(
         plt.show()
 
 
+@dataclass
+class PlotSavePathCollection:
+    """Dataclass to hold the paths for saving plots and raw data."""
+
+    plot: pathlib.Path | None = None
+    raw_data: pathlib.Path | None = None
+    aggregated_results: pathlib.Path | None = None
+
+    @staticmethod
+    def create_from_common_prefix_path(
+        common_prefix_path: pathlib.Path | None = None,
+        plot_file_name: str = "plot.pdf",
+    ) -> "PlotSavePathCollection":
+        """Create a PlotSavePathCollection from a common prefix path."""
+        if common_prefix_path is not None:
+            return PlotSavePathCollection(
+                plot=pathlib.Path(
+                    common_prefix_path,
+                    "plots",
+                    plot_file_name,
+                ),
+                raw_data=pathlib.Path(
+                    common_prefix_path,
+                    "raw_data",
+                    "raw_data.csv",
+                ),
+                aggregated_results=pathlib.Path(
+                    common_prefix_path,
+                    "raw_data",
+                    "aggregated_results.csv",
+                ),
+            )
+        return PlotSavePathCollection()
+
+
 def create_boxplot_of_mean_over_different_sampling_seeds(
     subset_local_estimates_df: pd.DataFrame,
-    plot_save_path: pathlib.Path | None = None,
-    raw_data_save_path: pathlib.Path | None = None,
-    aggregated_results_save_path: pathlib.Path | None = None,
+    plot_save_path_collection: PlotSavePathCollection | None = None,
     x_column_name: str = "local_estimates_samples",
     y_column_name: str = "array_data_truncated_mean",
     seed_column_name: str = "data_prep_sampling_seed",
@@ -264,6 +298,10 @@ def create_boxplot_of_mean_over_different_sampling_seeds(
         )
         return
 
+    # Set default save paths if not provided
+    if plot_save_path_collection is None:
+        plot_save_path_collection = PlotSavePathCollection()
+
     # # # #
     # Aggregating the results
 
@@ -292,13 +330,13 @@ def create_boxplot_of_mean_over_different_sampling_seeds(
         )
 
     # Save the aggregated results to a CSV if a path is provided
-    if aggregated_results_save_path is not None:
-        aggregated_results_save_path.parent.mkdir(
+    if plot_save_path_collection.aggregated_results is not None:
+        plot_save_path_collection.aggregated_results.parent.mkdir(
             parents=True,
             exist_ok=True,
         )
         grouped_stats.to_csv(
-            path_or_buf=aggregated_results_save_path,
+            path_or_buf=plot_save_path_collection.aggregated_results,
             index=False,
         )
 
@@ -307,7 +345,7 @@ def create_boxplot_of_mean_over_different_sampling_seeds(
     unique_checkpoints = sorted(subset_local_estimates_df[x_column_name].unique())
     subset_local_estimates_df[x_column_name] = pd.Categorical(
         values=subset_local_estimates_df[x_column_name],
-        categories=unique_checkpoints,  # TODO: We might need to add -1 manually if it is not present
+        categories=unique_checkpoints,
         ordered=True,
     )
 
@@ -395,65 +433,20 @@ def create_boxplot_of_mean_over_different_sampling_seeds(
 
     # Add secondary y-axis for filtered loss values if provided
     if model_losses_df is not None:
-        # Filter the model_losses_df to only include the checkpoints present in subset_local_estimates_df
-        filtered_losses_df = model_losses_df[model_losses_df[loss_x_column_name].isin(values=unique_checkpoints)]
-
-        # Convert the `loss_x_column_name` column to categorical using the same categories as subset_local_estimates_df
-        filtered_losses_df[loss_x_column_name] = pd.Categorical(
-            filtered_losses_df[loss_x_column_name],
-            categories=unique_checkpoints,
-            ordered=True,
+        add_secondary_loss_plot(
+            ax1=ax1,
+            model_losses_df=model_losses_df,
+            unique_checkpoints=unique_checkpoints,
+            loss_x_column_name=loss_x_column_name,
+            loss_y_column_name=loss_y_column_name,
+            y_min_additional_plot=y_min_additional_plot,
+            y_max_additional_plot=y_max_additional_plot,
         )
-
-        # Sort filtered_losses_df by the ordered categories
-        filtered_losses_df = filtered_losses_df.sort_values(
-            by=loss_x_column_name,
-        )
-
-        # Create a secondary y-axis
-        ax2 = ax1.twinx()
-        ax2.set_ylabel(
-            ylabel=loss_y_column_name,
-            color="blue",
-        )
-
-        # Plot filtered loss values on the secondary y-axis using categorical values directly without conversion
-        ax2.plot(
-            filtered_losses_df[loss_x_column_name].astype(str),
-            filtered_losses_df[loss_y_column_name],
-            linestyle="--",
-            linewidth=2,
-            color="blue",
-            alpha=0.7,
-            label="Loss (Filtered Checkpoints)",
-        )
-
-        # Set y-axis properties for loss axis
-        ax2.tick_params(
-            axis="y",
-            labelcolor="blue",
-        )
-
-        # Add legend for the secondary y-axis line
-        ax2.legend(
-            loc="upper right",
-        )
-
-        # Set y-axis limits for the loss values
-        if y_min_additional_plot is not None and y_max_additional_plot is not None:
-            # Set the fixed y-axis limits
-            ax2.set_ylim(
-                bottom=y_min_additional_plot,
-                top=y_max_additional_plot,
-            )
-        else:
-            # Automatically adjust the y-axis limits
-            ax2.autoscale(
-                axis="y",
-            )
 
     # Connect the points from the same seed across different samples if requested
     if connect_points:
+        number_of_seeds_to_label = 2
+
         unique_seeds = subset_local_estimates_df[seed_column_name].unique()
         # Use modern colormap access without resampling argument
         colormap = plt.colormaps.get_cmap("tab20")
@@ -471,7 +464,9 @@ def create_boxplot_of_mean_over_different_sampling_seeds(
                 linewidth=1,
                 alpha=0.7,
                 color=colormap(idx / len(unique_seeds)),  # Use a different color for each seed
-                label=f"Seed {seed}" if idx < 2 else "",  # Labeling only the first few for readability
+                label=f"Seed {seed}"
+                if idx < number_of_seeds_to_label
+                else "",  # Labeling only the first few for readability
             )
 
     # Display aggregated statistics as text boxes aligned to the x-axis
@@ -553,27 +548,96 @@ def create_boxplot_of_mean_over_different_sampling_seeds(
         )
 
     # Save plot to the specified path if provided
-    if plot_save_path is not None:
-        plot_save_path.parent.mkdir(
+    if plot_save_path_collection.plot is not None:
+        plot_save_path_collection.plot.parent.mkdir(
             parents=True,
             exist_ok=True,
         )
         plt.savefig(
-            plot_save_path,
+            plot_save_path_collection.plot,
             bbox_inches="tight",
         )
-    if raw_data_save_path is not None:
-        raw_data_save_path.parent.mkdir(
+    if plot_save_path_collection.raw_data is not None:
+        plot_save_path_collection.raw_data.parent.mkdir(
             parents=True,
             exist_ok=True,
         )
         subset_local_estimates_df.to_csv(
-            path_or_buf=raw_data_save_path,
+            path_or_buf=plot_save_path_collection.raw_data,
         )
 
     # Show plot if needed
     if show_plot:
         plt.show()
+
+
+def add_secondary_loss_plot(
+    ax1: plt.Axes,  # type: ignore - no type checking for matplotlib
+    model_losses_df: pd.DataFrame,
+    unique_checkpoints: list[str],
+    loss_x_column_name: str = "model_checkpoint",
+    loss_y_column_name: str = "loss",
+    y_min_additional_plot: float | None = 0.0,
+    y_max_additional_plot: float | None = 3.0,
+) -> plt.Axes:  # type: ignore - no type checking for matplotlib
+    # Filter the model_losses_df to only include the checkpoints present in subset_local_estimates_df
+    filtered_losses_df = model_losses_df[model_losses_df[loss_x_column_name].isin(values=unique_checkpoints)]
+
+    # Convert the `loss_x_column_name` column to categorical using the same categories as subset_local_estimates_df
+    filtered_losses_df[loss_x_column_name] = pd.Categorical(
+        filtered_losses_df[loss_x_column_name],
+        categories=unique_checkpoints,
+        ordered=True,
+    )
+
+    # Sort filtered_losses_df by the ordered categories
+    filtered_losses_df = filtered_losses_df.sort_values(
+        by=loss_x_column_name,
+    )
+
+    # Create a secondary y-axis
+    ax2 = ax1.twinx()
+    ax2.set_ylabel(
+        ylabel=loss_y_column_name,
+        color="blue",
+    )
+
+    # Plot filtered loss values on the secondary y-axis using categorical values directly without conversion
+    ax2.plot(
+        filtered_losses_df[loss_x_column_name].astype(str),
+        filtered_losses_df[loss_y_column_name],
+        linestyle="--",
+        linewidth=2,
+        color="blue",
+        alpha=0.7,
+        label="Loss (Filtered Checkpoints)",
+    )
+
+    # Set y-axis properties for loss axis
+    ax2.tick_params(
+        axis="y",
+        labelcolor="blue",
+    )
+
+    # Add legend for the secondary y-axis line
+    ax2.legend(
+        loc="upper right",
+    )
+
+    # Set y-axis limits for the loss values
+    if y_min_additional_plot is not None and y_max_additional_plot is not None:
+        # Set the fixed y-axis limits
+        ax2.set_ylim(
+            bottom=y_min_additional_plot,
+            top=y_max_additional_plot,
+        )
+    else:
+        # Automatically adjust the y-axis limits
+        ax2.autoscale(
+            axis="y",
+        )
+
+    return ax2
 
 
 def generate_fixed_params_text(

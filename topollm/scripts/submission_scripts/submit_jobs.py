@@ -436,15 +436,63 @@ def make_config_and_run_task(
             data_subsampling_number_of_samples_list = [
                 "10000",
             ]
-        case DataSubsamplingNumberOfSamplesListOption.UP_TO_10000_WITH_STEP_SIZE_2000:
-            data_subsampling_number_of_samples_list = [str(i * 2000) for i in range(1, 6)]
-        case DataSubsamplingNumberOfSamplesListOption.UP_TO_16000_WITH_STEP_SIZE_2000:
-            # TODO: Investigate the Problem with this submissions
-            data_subsampling_number_of_samples_list = [str(i * 2000) for i in range(1, 9)]
-        case DataSubsamplingNumberOfSamplesListOption.FROM_10000_UP_TO_16000_WITH_STEP_SIZE_2000:
-            data_subsampling_number_of_samples_list = [str(i * 2000) for i in range(6, 9)]
-        case DataSubsamplingNumberOfSamplesListOption.UP_TO_22000_WITH_STEP_SIZE_2000:
-            data_subsampling_number_of_samples_list = [str(i * 2000) for i in range(1, 12)]
+        case DataSubsamplingNumberOfSamplesListOption.FIXED_12000:
+            data_subsampling_number_of_samples_list = [
+                "12000",
+            ]
+        case DataSubsamplingNumberOfSamplesListOption.FIXED_16000:
+            data_subsampling_number_of_samples_list = [
+                "16000",
+            ]
+        case DataSubsamplingNumberOfSamplesListOption.FIXED_22000:
+            data_subsampling_number_of_samples_list = [
+                "22000",
+            ]
+        case DataSubsamplingNumberOfSamplesListOption.RANGE_START_2000_STOP_12000_STEP_2000:
+            data_subsampling_number_of_samples_list = [
+                str(i)
+                for i in range(
+                    2_000,
+                    12_000,
+                    2_000,
+                )
+            ]
+        case DataSubsamplingNumberOfSamplesListOption.RANGE_START_2000_STOP_18000_STEP_2000:
+            data_subsampling_number_of_samples_list = [
+                str(i)
+                for i in range(
+                    2_000,
+                    18_000,
+                    2_000,
+                )
+            ]
+        case DataSubsamplingNumberOfSamplesListOption.RANGE_START_12000_STOP_18000_STEP_2000:
+            data_subsampling_number_of_samples_list = [
+                str(i)
+                for i in range(
+                    12_000,
+                    18_000,
+                    2_000,
+                )
+            ]
+        case DataSubsamplingNumberOfSamplesListOption.RANGE_START_2000_STOP_24000_STEP_2000:
+            data_subsampling_number_of_samples_list = [
+                str(i)
+                for i in range(
+                    2_000,
+                    24_000,
+                    2_000,
+                )
+            ]
+        case DataSubsamplingNumberOfSamplesListOption.RANGE_START_12000_STOP_24000_STEP_2000:
+            data_subsampling_number_of_samples_list = [
+                str(i)
+                for i in range(
+                    12_000,
+                    24_000,
+                    2_000,
+                )
+            ]
         case _:
             msg = f"Unknown {args.data_subsampling_number_of_samples_list_option = }"
             raise ValueError(

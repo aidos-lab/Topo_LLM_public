@@ -46,12 +46,21 @@ def get_dataset_subsampler(
 ) -> DatasetSubsampler:
     """Return a dataset subsampler."""
     if data_subsampling_config.sampling_mode == DataSamplingMode.TAKE_FIRST:
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg="Using take first dataset subsampling via DatasetSubsamplerTakeFirst.",
+            )
         result = dataset_subsampler_take_first.DatasetSubsamplerTakeFirst(
             number_of_samples=data_subsampling_config.number_of_samples,
             verbosity=verbosity,
             logger=logger,
         )
     elif data_subsampling_config.sampling_mode == DataSamplingMode.RANDOM:
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg="Using take random dataset subsampling via DatasetSubsamplerRandom.",
+            )
+
         if data_subsampling_config.sampling_seed is None:
             msg: str = (
                 f"Unsupported {data_subsampling_config.sampling_seed = } for {data_subsampling_config.sampling_mode = }"

@@ -31,6 +31,9 @@ import logging
 
 import datasets
 
+from topollm.data_handling.dataset_subsampler.truncate_dataset import (
+    truncate_dataset_with_maximum_the_actual_number_of_samples,
+)
 from topollm.typing.enums import Verbosity
 
 default_logger: logging.Logger = logging.getLogger(
@@ -62,21 +65,16 @@ class DatasetSubsamplerRandom:
         """Take random sequences from the dataset."""
         # Tutorial for taking a random dataset subsample:
         # https://huggingface.co/learn/nlp-course/en/chapter5/3
+
+        # Shuffle the dataset first
         dataset_shuffled: datasets.Dataset = dataset.shuffle(
             seed=self.sampling_seed,
         )
 
-        if self.number_of_samples == -1:
-            # Use all samples
-            dataset_shuffled_subsampled: datasets.Dataset = dataset_shuffled
-        elif self.number_of_samples > 0:
-            dataset_shuffled_subsampled = dataset_shuffled.select(
-                indices=range(self.number_of_samples),
-            )
-        else:
-            msg: str = f"Expected {self.number_of_samples = } to be -1 or a positive integer"
-            raise ValueError(
-                msg,
-            )
+        dataset_shuffled_subsampled = truncate_dataset_with_maximum_the_actual_number_of_samples(
+            dataset=dataset_shuffled,
+            number_of_samples=self.number_of_samples,
+            logger=self.logger,
+        )
 
         return dataset_shuffled_subsampled
