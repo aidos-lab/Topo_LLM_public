@@ -896,6 +896,12 @@ def make_config_and_run_task(
     help="Local estimates pointwise absolute n neighbors list option to use.",
 )
 @click.option(
+    "--wandb-project",
+    type=str,
+    default="Topo_LLM_finetuning_from_submission_script_large_batch_size",
+    help="Wandb project to use.",
+)
+@click.option(
     "--use-roberta-base",
     is_flag=True,
     default=False,
@@ -971,6 +977,7 @@ def orchestrate_job_submission(
     data_subsampling_sampling_seed_list_option: DataSubsamplingSamplingSeedListOption,
     embeddings_data_prep_sampling_mode: EmbeddingsDataPrepSamplingMode,
     local_estimates_pointwise_absolute_n_neighbors_list_option: LocalEstimatesPointwiseAbsoluteNNeighborsListOption,
+    wandb_project: str,
     *,
     memory: str,
     ncpus: str,
@@ -1052,10 +1059,7 @@ def orchestrate_job_submission(
 
     walltime = "08:00:00"  # Default walltime
 
-    # TODO: Set correct options for finetuning
     finetuning_seed_list_option = SeedListOption.ONE_SEED
-
-    wandb_project = "Topo_LLM_finetuning_from_submission_script_DEBUG_large_batch_size"
 
     ########################################
     ### Experiment selector configurations

@@ -9,7 +9,7 @@ echo ">>> Submission script started."
 poetry run submit_jobs \
   --experiment-selector multiwoz21_different_data_subsampling_number_of_samples \
   --experiment-stage skip_compute_embeddings_and_multiple_pipeline_runs \
-  --use-roberta-base \
+  --use-finetuned-model \
   --task=finetuning \
   --dry-run
 
