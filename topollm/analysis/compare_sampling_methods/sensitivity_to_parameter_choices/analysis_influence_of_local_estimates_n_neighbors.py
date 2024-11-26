@@ -78,7 +78,7 @@ def analysis_influence_of_local_estimates_n_neighbors(
             plot_save_path: pathlib.Path = pathlib.Path(
                 common_prefix_path,
                 "plots",
-                f"{n_neighbors=}_y_{y_min}_{y_max}.pdf",
+                f"{n_neighbors=}_{y_min=}_{y_max=}.pdf",
             )
             raw_data_save_path: pathlib.Path = pathlib.Path(
                 common_prefix_path,

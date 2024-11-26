@@ -174,8 +174,8 @@ EXPERIMENT_SELECTOR="reddit_different_data_subsampling_number_of_samples"
 
 # ---------------------------------------------------------- #
 
-EXPERIMENT_STAGE="compute_embeddings_plus_single_pipeline_run"
-# EXPERIMENT_STAGE="skip_compute_embeddings_and_multiple_pipeline_runs"
+# EXPERIMENT_STAGE="compute_embeddings_plus_single_pipeline_run"
+EXPERIMENT_STAGE="skip_compute_embeddings_and_multiple_pipeline_runs"
 
 # ---------------------------------------------------------- #
 

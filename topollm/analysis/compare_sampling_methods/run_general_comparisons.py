@@ -39,21 +39,21 @@ import omegaconf
 import pandas as pd
 from tqdm import tqdm
 
-from topollm.analysis.compare_sampling_methods.data_subsampling_number_of_samples_analysis import (
-    run_data_subsampling_number_of_samples_analysis,
+from topollm.analysis.compare_sampling_methods.checkpoint_analysis.model_checkpoint_analysis import (
+    run_checkpoint_analysis_over_different_data_and_models,
 )
+from topollm.analysis.compare_sampling_methods.checkpoint_analysis.model_loss_extractor import ModelLossExtractor
 from topollm.analysis.compare_sampling_methods.extract_results_from_directory_structure import (
     run_search_on_single_base_directory_and_process_and_save,
 )
 from topollm.analysis.compare_sampling_methods.load_and_concatenate_saved_dataframes import (
     load_and_concatenate_saved_dataframes,
 )
-from topollm.analysis.compare_sampling_methods.model_checkpoint_analysis import (
-    run_checkpoint_analysis_over_different_data_and_models,
-)
-from topollm.analysis.compare_sampling_methods.model_loss_extractor import ModelLossExtractor
 from topollm.analysis.compare_sampling_methods.organize_results_directory_structure import (
     build_results_directory_structure,
+)
+from topollm.analysis.compare_sampling_methods.sensitivity_to_parameter_choices.data_subsampling_number_of_samples_analysis import (
+    run_data_subsampling_number_of_samples_analysis,
 )
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH, TOPO_LLM_REPOSITORY_BASE_PATH
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf

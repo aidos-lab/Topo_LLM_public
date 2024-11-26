@@ -241,8 +241,7 @@ class PlotSavePathCollection:
     @staticmethod
     def create_from_common_prefix_path(
         common_prefix_path: pathlib.Path | None = None,
-        y_min: float | None = None,
-        y_max: float | None = None,
+        plot_file_name: str = "plot.pdf",
     ) -> "PlotSavePathCollection":
         """Create a PlotSavePathCollection from a common prefix path."""
         if common_prefix_path is not None:
@@ -250,7 +249,7 @@ class PlotSavePathCollection:
                 plot=pathlib.Path(
                     common_prefix_path,
                     "plots",
-                    f"y_{y_min}_{y_max}.pdf",
+                    plot_file_name,
                 ),
                 raw_data=pathlib.Path(
                     common_prefix_path,
