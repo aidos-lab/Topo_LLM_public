@@ -39,6 +39,50 @@ from topollm.config_classes.language_model.tokenizer_modifier.tokenizer_modifier
 from topollm.typing.enums import LMmode, TaskType
 
 
+class DropoutConfig(ConfigBaseModel):
+    """Configuration for specifying the dropout rate."""
+
+    hidden_dropout_prob: float = Field(
+        default=0.1,
+        title="Hidden dropout probability.",
+        description="The dropout probability for all fully connected layers in the embeddings, encoder, and pooler.",
+    )
+
+    attention_probs_dropout_prob: float = Field(
+        default=0.1,
+        title="Attention dropout probability.",
+        description="The dropout ratio for the attention probabilities.",
+    )
+
+    classifier_dropout: float | None = Field(
+        default=None,
+        title="Classifier dropout probability.",
+        description="The dropout ratio for the classification head.",
+    )
+
+    @property
+    def config_description(
+        self,
+    ) -> str:
+        # Construct and return the model parameters description
+
+        description: str = (
+            f"{NAME_PREFIXES['hidden_dropout_prob']}"
+            f"{KV_SEP}"
+            f"{self.hidden_dropout_prob}"
+            f"{ITEM_SEP}"
+            f"{NAME_PREFIXES['attention_probs_dropout_prob']}"
+            f"{KV_SEP}"
+            f"{self.attention_probs_dropout_prob}"
+            f"{ITEM_SEP}"
+            f"{NAME_PREFIXES['classifier_dropout']}"
+            f"{KV_SEP}"
+            f"{self.classifier_dropout}"
+        )
+
+        return description
+
+
 class LanguageModelConfig(ConfigBaseModel):
     """Configuration for specifying the language model."""
 
@@ -84,6 +128,8 @@ class LanguageModelConfig(ConfigBaseModel):
         description="The short model name.",
     )
 
+    # TODO: Add dropout as optional config group here
+
     tokenizer_modifier: TokenizerModifierConfig = Field(
         default_factory=TokenizerModifierConfig,
         description="The configuration for modifying the tokenizer.",
@@ -95,7 +141,7 @@ class LanguageModelConfig(ConfigBaseModel):
     ) -> str:
         # Construct and return the model parameters description
 
-        description = (
+        description: str = (
             f"{NAME_PREFIXES['model']}"
             f"{KV_SEP}"
             f"{self.short_model_name}"

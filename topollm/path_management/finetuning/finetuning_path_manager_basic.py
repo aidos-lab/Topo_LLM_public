@@ -91,7 +91,7 @@ class FinetuningPathManagerBasic:
             self.finetuning_config.base_model_config_description,
             self.peft_path_manager.peft_description_subdir,
             self.finetuning_config.gradient_modifier.gradient_modifier_description,
-            self.finetuning_parameters_description_for_directory_partial_path,
+            self.finetuning_parameters_partial_path,
             self.batch_size_description,
             self.training_duration_subdir,
             self.finetuning_reproducibility_description,
@@ -139,10 +139,10 @@ class FinetuningPathManagerBasic:
         return description
 
     @property
-    def finetuning_parameters_description_for_directory_partial_path(
+    def finetuning_parameters_partial_path(
         self,
     ) -> str:
-        description: str = (
+        learning_parameters_description: str = (
             NAME_PREFIXES["learning_rate"]
             + KV_SEP
             + str(object=self.finetuning_config.learning_rate)
@@ -155,8 +155,9 @@ class FinetuningPathManagerBasic:
             + KV_SEP
             + str(object=self.finetuning_config.weight_decay)
         )
+        # TODO: Add the dropout here
 
-        return description
+        return learning_parameters_description
 
     @property
     def finetuning_reproducibility_description(
@@ -180,6 +181,7 @@ class FinetuningPathManagerBasic:
             + short_description_separator
             + str(object=self.finetuning_config.num_train_epochs)
         )
+        # TODO: Add the dropout here
         return short_description
 
     @property
