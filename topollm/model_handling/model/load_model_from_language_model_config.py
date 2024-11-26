@@ -55,20 +55,24 @@ def load_model_from_language_model_config(
     )
 
     if from_pretrained_kwargs_instance is None:
-        from_pretrained_kwargs: dict = {}
+        from_pretrained_kwargs_dict: dict = {}
     elif isinstance(
         from_pretrained_kwargs_instance,
         BaseModel,
     ):
-        from_pretrained_kwargs: dict = from_pretrained_kwargs_instance.model_dump()
+        from_pretrained_kwargs_dict: dict = from_pretrained_kwargs_instance.model_dump()
     elif isinstance(
         from_pretrained_kwargs_instance,
         dict,
     ):
-        from_pretrained_kwargs: dict = from_pretrained_kwargs_instance
+        from_pretrained_kwargs_dict: dict = from_pretrained_kwargs_instance
     else:
-        msg = f"Unknown {from_pretrained_kwargs_instance = }"
-        raise ValueError(msg)
+        msg: str = f"Unknown {from_pretrained_kwargs_instance = }"
+        raise ValueError(
+            msg,
+        )
+
+    # TODO:
 
     if verbosity >= Verbosity.NORMAL:
         logger.info(
@@ -81,13 +85,13 @@ def load_model_from_language_model_config(
         )
         logger.info(
             "from_pretrained_kwargs:\n%s",
-            from_pretrained_kwargs,
+            from_pretrained_kwargs_dict,
         )
 
-    model = load_model(
+    model: PreTrainedModel = load_model(
         pretrained_model_name_or_path=language_model_config.pretrained_model_name_or_path,
         model_loading_class=model_loading_class,
-        from_pretrained_kwargs=from_pretrained_kwargs,
+        from_pretrained_kwargs=from_pretrained_kwargs_dict,
         device=device,
         verbosity=verbosity,
         logger=logger,

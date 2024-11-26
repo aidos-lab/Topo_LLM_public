@@ -1,10 +1,10 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -43,7 +43,6 @@ from topollm.model_finetuning.evaluate_tuned_model import evaluate_tuned_model
 from topollm.model_finetuning.finetune_model import finetune_model
 from topollm.model_finetuning.generate_from_pretrained_kwargs_instance import (
     extract_label_list,
-    generate_from_pretrained_kwargs_instance,
 )
 from topollm.model_finetuning.get_compute_metrics import get_compute_metrics
 from topollm.model_finetuning.gradient_modifiers.factory import get_gradient_modifier
@@ -81,9 +80,6 @@ if TYPE_CHECKING:
     from topollm.model_finetuning.gradient_modifiers.protocol import GradientModifier
     from topollm.model_finetuning.model_modifiers.protocol import ModelModifier
     from topollm.model_finetuning.trainer_modifiers.protocol import TrainerModifier
-    from topollm.model_handling.model.token_classification_from_pretrained_kwargs import (
-        TokenClassificationFromPretrainedKwargs,
-    )
     from topollm.path_management.finetuning.protocol import FinetuningPathManager
     from topollm.typing.types import ModifiedModel
 
@@ -143,16 +139,9 @@ def do_finetuning_process(
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Load tokenizer and model
 
-    from_pretrained_kwargs_instance: TokenClassificationFromPretrainedKwargs | None = (
-        generate_from_pretrained_kwargs_instance(
-            finetuning_config=finetuning_config,
-            label_list=label_list,
-        )
-    )
-
     base_model: transformers.PreTrainedModel = load_base_model_from_finetuning_config(
+        label_list=label_list,
         finetuning_config=finetuning_config,
-        from_pretrained_kwargs_instance=from_pretrained_kwargs_instance,
         device=device,
         verbosity=verbosity,
         logger=logger,
