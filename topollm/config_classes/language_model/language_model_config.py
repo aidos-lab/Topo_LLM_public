@@ -36,11 +36,11 @@ from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
 from topollm.config_classes.language_model.tokenizer_modifier.tokenizer_modifier_config import (
     TokenizerModifierConfig,
 )
-from topollm.typing.enums import LMmode, TaskType
+from topollm.typing.enums import DescriptionType, DropoutMode, LMmode, TaskType
 
 
-class DropoutConfig(ConfigBaseModel):
-    """Configuration for specifying the dropout rate."""
+class DropoutProbabilities(ConfigBaseModel):
+    """Configuration for specifying dropout probabilities."""
 
     hidden_dropout_prob: float = Field(
         default=0.1,
@@ -60,25 +60,98 @@ class DropoutConfig(ConfigBaseModel):
         description="The dropout ratio for the classification head.",
     )
 
-    @property
-    def config_description(
+    def get_config_description(
         self,
+        description_type: DescriptionType = DescriptionType.LONG,
+        short_description_separator: str = "-",
     ) -> str:
-        # Construct and return the model parameters description
+        """Return a description of the configuration."""
+        match description_type:
+            case DescriptionType.LONG:
+                description: str = (
+                    f"{NAME_PREFIXES['hidden_dropout_prob']}"
+                    f"{KV_SEP}"
+                    f"{self.hidden_dropout_prob}"
+                    f"{ITEM_SEP}"
+                    f"{NAME_PREFIXES['attention_probs_dropout_prob']}"
+                    f"{KV_SEP}"
+                    f"{self.attention_probs_dropout_prob}"
+                    f"{ITEM_SEP}"
+                    f"{NAME_PREFIXES['classifier_dropout']}"
+                    f"{KV_SEP}"
+                    f"{self.classifier_dropout}"
+                )
+            case DescriptionType.SHORT:
+                description: str = (
+                    str(object=self.hidden_dropout_prob)
+                    + short_description_separator
+                    + str(object=self.attention_probs_dropout_prob)
+                    + short_description_separator
+                    + str(object=self.classifier_dropout)
+                )
+            case _:
+                msg: str = f"Unknown {description_type = }"
+                raise ValueError(
+                    msg,
+                )
 
-        description: str = (
-            f"{NAME_PREFIXES['hidden_dropout_prob']}"
-            f"{KV_SEP}"
-            f"{self.hidden_dropout_prob}"
-            f"{ITEM_SEP}"
-            f"{NAME_PREFIXES['attention_probs_dropout_prob']}"
-            f"{KV_SEP}"
-            f"{self.attention_probs_dropout_prob}"
-            f"{ITEM_SEP}"
-            f"{NAME_PREFIXES['classifier_dropout']}"
-            f"{KV_SEP}"
-            f"{self.classifier_dropout}"
-        )
+        return description
+
+
+class DropoutConfig(ConfigBaseModel):
+    """Configuration for specifying dropout."""
+
+    mode: DropoutMode = Field(
+        default=DropoutMode.DEFAULTS,
+        title="Dropout mode.",
+        description="The dropout mode: Selecting 'DEFAULTS' "
+        "will use the default parameters for the given model class.",
+    )
+
+    probabilities: DropoutProbabilities = Field(
+        default_factory=DropoutProbabilities,
+        title="Dropout probabilities.",
+        description="The dropout probabilities.",
+    )
+
+    def get_config_description(
+        self,
+        description_type: DescriptionType = DescriptionType.LONG,
+        short_description_separator: str = "-",
+    ) -> str:
+        match self.mode:
+            case DropoutMode.DEFAULTS:
+                # Here we use the same description for all modes
+                description: str = f"{NAME_PREFIXES['dropout_mode']}{KV_SEP}{str(object=self.mode)}"
+            case DropoutMode.MODIFY_ROBERTA_DROPOUT_PARAMETERS:
+                match description_type:
+                    case DescriptionType.LONG:
+                        description: str = (
+                            f"{NAME_PREFIXES['dropout_mode']}{KV_SEP}{str(object=self.mode)}"
+                            + ITEM_SEP
+                            + self.probabilities.get_config_description(
+                                description_type=description_type,
+                                short_description_separator=short_description_separator,
+                            )
+                        )
+                    case DescriptionType.SHORT:
+                        description: str = (
+                            # We do not use the dropout mode in the short description
+                            self.probabilities.get_config_description(
+                                description_type=description_type,
+                                short_description_separator=short_description_separator,
+                            )
+                        )
+                    case _:
+                        msg: str = f"Unknown {description_type = }"
+                        raise ValueError(
+                            msg,
+                        )
+            case _:
+                msg: str = f"Unknown {self.mode = }"
+                raise ValueError(
+                    msg,
+                )
 
         return description
 
@@ -128,7 +201,12 @@ class LanguageModelConfig(ConfigBaseModel):
         description="The short model name.",
     )
 
-    # TODO: Add dropout as optional config group here
+    # Note: There is a parameter in the DropoutConfig class to deactivate the dropout.
+    dropout: DropoutConfig = Field(
+        default_factory=DropoutConfig,
+        title="Dropout configuration.",
+        description="The configuration for specifying the dropout rate.",
+    )
 
     tokenizer_modifier: TokenizerModifierConfig = Field(
         default_factory=TokenizerModifierConfig,
