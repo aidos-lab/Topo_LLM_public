@@ -27,12 +27,17 @@
 
 """Submit jobs for pipeline, perplexity, or finetuning."""
 
-import argparse
 import pathlib
 import subprocess
 
+import click
+
 from topollm.scripts.submission_scripts.get_checkpoint_no_list import get_checkpoint_no_list
-from topollm.scripts.submission_scripts.submission_config import SubmissionConfig, pick_first_option_in_each_list
+from topollm.scripts.submission_scripts.submission_config import (
+    MachineConfig,
+    SubmissionConfig,
+    pick_first_option_in_each_list,
+)
 from topollm.scripts.submission_scripts.types import (
     CheckpointNoListOption,
     DataListOption,
@@ -107,212 +112,6 @@ def run_task(
         )
 
 
-def parse_arguments() -> argparse.Namespace:
-    """Parse command line arguments."""
-    parser = argparse.ArgumentParser(
-        description="Run computations for pipeline, perplexity, or finetuning.",
-    )
-
-    parser.add_argument(
-        "--task",
-        type=Task,
-        default=Task.PIPELINE,
-        help="Specify the task to run.",
-    )
-    parser.add_argument(
-        "--submission_mode",
-        type=SubmissionMode,
-        default=SubmissionMode.HPC_SUBMISSION,
-        help="Submission mode.",
-    )
-    parser.add_argument(
-        "--queue",
-        type=str,
-        default="",
-        help="Queue name for HPC submission.",
-    )
-    parser.add_argument(
-        "--template",
-        type=str,
-        default=None,
-        help="Template name for HPC submission.",
-    )
-    parser.add_argument(
-        "--additional_overrides",
-        type=str,
-        default="",
-        help="Additional overrides for Hydra.",
-    )
-    parser.add_argument(
-        "--memory",
-        type=str,
-        default=None,
-        help="Memory to use.",
-    )
-    parser.add_argument(
-        "--ncpus",
-        type=str,
-        default=None,
-        help="Number of CPUs.",
-    )
-    parser.add_argument(
-        "--ngpus",
-        type=str,
-        default=None,
-        help="Number of GPUs.",
-    )
-    parser.add_argument(
-        "--walltime",
-        type=str,
-        default="8:00:00",
-        help="Walltime.",
-    )
-
-    # Selecting groups of data and language models
-    parser.add_argument(
-        "--data_list",
-        type=DataListOption,
-        default=DataListOption.DEBUG,
-        help="Data list to use.",
-    )
-
-    parser.add_argument(
-        "--data_subsampling_sampling_mode",
-        type=DataSamplingMode,
-        choices=DataSamplingMode,
-        default=DataSamplingMode.RANDOM,
-        help="Data subsampling sampling mode to use.",
-    )
-    parser.add_argument(
-        "--data_subsampling_number_of_samples_list_option",
-        type=DataSubsamplingNumberOfSamplesListOption,
-        default=DataSubsamplingNumberOfSamplesListOption.NONE,
-        help="data_subsampling_number_of_samples_list option to use.",
-    )
-    parser.add_argument(
-        "--data_subsampling_sampling_seed_list_option",
-        type=DataSubsamplingSamplingSeedListOption,
-        default=DataSubsamplingSamplingSeedListOption.DEFAULT,
-        help="data_subsampling_sampling_seed_list option to use.",
-    )
-
-    parser.add_argument(
-        "--language_model_list",
-        type=LanguageModelListOption,
-        default=LanguageModelListOption.SELECTED_FINETUNED_FEW_EPOCHS_FROM_ROBERTA_BASE,
-        help="Language model list to use.",
-    )
-    parser.add_argument(
-        "--language_model_seed_list",
-        type=SeedListOption,
-        default=SeedListOption.DO_NOT_SET,
-        help="Language model seed list to use.",
-    )
-    parser.add_argument(
-        "--finetuning_datasets_list",
-        type=FinetuningDatasetsListOption,
-        default=FinetuningDatasetsListOption.DEBUG,
-        help="Finetuning datasets list to use.",
-    )
-    parser.add_argument(
-        "--finetuning_seed_list",
-        type=SeedListOption,
-        default=SeedListOption.DO_NOT_SET,
-        help="Finetuning seed list to use.",
-    )
-    parser.add_argument(
-        "--checkpoint_no_list",
-        type=CheckpointNoListOption,
-        default=CheckpointNoListOption.SELECTED,
-        help="Checkpoint number list to use.",
-    )
-    parser.add_argument(
-        "--embeddings_data_prep_num_samples_list_option",
-        type=EmbeddingsDataPrepNumSamplesListOption,
-        default=EmbeddingsDataPrepNumSamplesListOption.DEFAULT,
-        help="Embeddings data prep number of samples list to use.",
-    )
-    parser.add_argument(
-        "--embeddings_data_prep_sampling_mode",
-        type=EmbeddingsDataPrepSamplingMode,
-        default=EmbeddingsDataPrepSamplingMode.RANDOM,
-        help="Embeddings data prep sampling mode to use.",
-    )
-    parser.add_argument(
-        "--embeddings_data_prep_sampling_seed_list_option",
-        type=EmbeddingsDataPrepSamplingSeedListOption,
-        default=EmbeddingsDataPrepSamplingSeedListOption.DEFAULT,
-        help="Embeddings data prep sampling seed list option to use.",
-    )
-
-    parser.add_argument(
-        "--common_batch_size",
-        type=int,
-        default=8,
-        help="Common batch size to use.",
-    )
-    parser.add_argument(
-        "--finetuning_regime",
-        type=FinetuningRegimeOption,
-        default=FinetuningRegimeOption.FEW_EPOCHS,
-        help="Finetuning regime to use.",
-    )
-    parser.add_argument(
-        "--add_prefix_space",
-        action="store_true",
-        help="Set the add_prefix_space option.",
-    )
-
-    parser.add_argument(
-        "--create_pos_tags",
-        action="store_true",
-        help="Whether to create POS tags in the dataset.",
-    )
-
-    parser.add_argument(
-        "--local_estimates_filtering_num_samples_list",
-        type=LocalEstimatesFilteringNumSamplesListOption,
-        default=LocalEstimatesFilteringNumSamplesListOption.DEFAULT,
-        help="Local estimates filtering number of samples list to use.",
-    )
-    parser.add_argument(
-        "--local_estimates_pointwise_absolute_n_neighbors_list",
-        type=LocalEstimatesPointwiseAbsoluteNNeighborsListOption,
-        default=LocalEstimatesPointwiseAbsoluteNNeighborsListOption.DEFAULT,
-        help="Local estimates pointwise absolute n neighbors list to use.",
-    )
-
-    parser.add_argument(
-        "--wandb_project",
-        type=str,
-        default="Topo_LLM_finetuning_from_submission_script",
-        help="Wandb project name.",
-    )
-
-    # # # #
-    # Feature flags
-    parser.add_argument(
-        "--skip_compute_and_store_embeddings",
-        action="store_true",
-        help="Skip the compute and store embeddings step.",
-    )
-
-    parser.add_argument(
-        "--run_only_first_config_option",
-        action="store_true",
-        help="Run only the first option in each list.",
-    )
-
-    parser.add_argument(
-        "--dry_run",
-        action="store_true",
-        help="Dry run the command.",
-    )
-
-    args = parser.parse_args()
-    return args
-
-
 full_data_list: list[str] = [
     "iclr_2024_submissions_test",
     "iclr_2024_submissions_train",
@@ -371,11 +170,11 @@ seed_list_option_five_seeds: list[str] = [
 ]
 
 
-def make_config_and_run_task(
-    args: argparse.Namespace,
-) -> None:
-    """Make a submission configuration and run the task."""
-    match args.data_list:
+def retrieve_data_list(
+    data_list_option: DataListOption,
+) -> list[str]:
+    """Retrieve the data list based on the option."""
+    match data_list_option:
         case DataListOption.FULL:
             data_list = full_data_list
         case DataListOption.TRAIN_ONLY:
@@ -420,12 +219,19 @@ def make_config_and_run_task(
                 "one-year-of-tsla-on-reddit_validation",
             ]
         case _:
-            msg = f"Unknown {args.data_list = }"
+            msg = f"Unknown {data_list = }"
             raise ValueError(
                 msg,
             )
 
-    match args.data_subsampling_number_of_samples_list_option:
+    return data_list
+
+
+def retrieve_subsampling_number_list(
+    data_subsampling_number_of_samples_list_option: DataSubsamplingNumberOfSamplesListOption,
+) -> list[str] | None:
+    """Retrieve the data subsampling number of samples list based on the option."""
+    match data_subsampling_number_of_samples_list_option:
         case DataSubsamplingNumberOfSamplesListOption.NONE:
             data_subsampling_number_of_samples_list = None
         case DataSubsamplingNumberOfSamplesListOption.FIXED_3000:
@@ -494,12 +300,18 @@ def make_config_and_run_task(
                 )
             ]
         case _:
-            msg = f"Unknown {args.data_subsampling_number_of_samples_list_option = }"
+            msg = f"Unknown {data_subsampling_number_of_samples_list_option = }"
             raise ValueError(
                 msg,
             )
 
-    match args.data_subsampling_sampling_seed_list_option:
+    return data_subsampling_number_of_samples_list
+
+
+def retrieve_data_subsampling_sampling_seed_list(
+    data_subsampling_sampling_seed_list_option: DataSubsamplingSamplingSeedListOption,
+) -> list[str] | None:
+    match data_subsampling_sampling_seed_list_option:
         case DataSubsamplingSamplingSeedListOption.NONE:
             data_subsampling_sampling_seed_list = None
         case DataSubsamplingSamplingSeedListOption.DEFAULT:
@@ -528,25 +340,100 @@ def make_config_and_run_task(
         case DataSubsamplingSamplingSeedListOption.TWENTY_SEEDS:
             data_subsampling_sampling_seed_list = [str(i) for i in range(778, 798)]
         case _:
-            msg = f"Unknown {args.data_subsampling_sampling_seed_list_option = }"
+            msg = f"Unknown {data_subsampling_sampling_seed_list_option = }"
             raise ValueError(
                 msg,
             )
 
-    match args.finetuning_regime:
-        case FinetuningRegimeOption.FEW_EPOCHS:
-            num_train_epochs = "5"
-            lr_scheduler_type = "linear"
-        case FinetuningRegimeOption.MANY_EPOCHS_WITH_OVERFITTING_RISK:
-            num_train_epochs = "50"
-            lr_scheduler_type = "constant"
+    return data_subsampling_sampling_seed_list
+
+
+def retrieve_finetuning_datasets_list(
+    finetuning_datasets_list_option: FinetuningDatasetsListOption,
+) -> list[str]:
+    """Retrieve the finetuning datasets list based on the option."""
+    match finetuning_datasets_list_option:
+        case FinetuningDatasetsListOption.DEBUG:
+            finetuning_datasets_list: list[str] = [
+                "train_and_eval_on_multiwoz21_train-samples-small",
+            ]
+        case FinetuningDatasetsListOption.MANUAL_IN_PYTHON_SCRIPT:
+            finetuning_datasets_list: list[str] = [
+                "train_and_eval_on_multiwoz21_train-samples-small",
+                "train_and_eval_on_one-year-of-tsla-on-reddit_train-samples-small",
+            ]
+        case FinetuningDatasetsListOption.MULTIWOZ21_SMALL:
+            finetuning_datasets_list: list[str] = [
+                "train_and_eval_on_multiwoz21_train-samples-small",
+            ]
+        case FinetuningDatasetsListOption.MULTIWOZ21_FULL:
+            finetuning_datasets_list: list[str] = [
+                "train_and_eval_on_multiwoz21_train-samples-full",
+            ]
+        case FinetuningDatasetsListOption.REDDIT_SMALL:
+            finetuning_datasets_list: list[str] = [
+                "train_and_eval_on_one-year-of-tsla-on-reddit_train-samples-small",
+            ]
+        case FinetuningDatasetsListOption.REDDIT_FULL:
+            finetuning_datasets_list: list[str] = [
+                "train_and_eval_on_one-year-of-tsla-on-reddit_train-samples-full",
+            ]
+        case FinetuningDatasetsListOption.MULTIWOZ21_AND_REDDIT_FULL:
+            finetuning_datasets_list: list[str] = [
+                "train_and_eval_on_multiwoz21_train-samples-full",
+                "train_and_eval_on_one-year-of-tsla-on-reddit_train-samples-full",
+            ]
         case _:
-            msg = f"Unknown {args.finetuning_regime = }"
+            msg = f"Unknown {finetuning_datasets_list_option = }"
             raise ValueError(
                 msg,
             )
 
-    match args.language_model_list:
+    return finetuning_datasets_list
+
+
+def retrieve_local_estimates_pointwise_absolute_n_neighbors_list(
+    local_estimates_pointwise_absolute_n_neighbors_list_option: LocalEstimatesPointwiseAbsoluteNNeighborsListOption,
+) -> list[str]:
+    """Retrieve the local estimates pointwise absolute n neighbors list based on the option."""
+    match local_estimates_pointwise_absolute_n_neighbors_list_option:
+        case LocalEstimatesPointwiseAbsoluteNNeighborsListOption.DEFAULT:
+            local_estimates_pointwise_absolute_n_neighbors_list = [
+                "128",
+            ]
+        case LocalEstimatesPointwiseAbsoluteNNeighborsListOption.SINGLE_CHOICE_128:
+            local_estimates_pointwise_absolute_n_neighbors_list = [
+                "128",
+            ]
+        case LocalEstimatesPointwiseAbsoluteNNeighborsListOption.POWERS_OF_TWO_UP_TO_1024:
+            local_estimates_pointwise_absolute_n_neighbors_list = [
+                "16",
+                "32",
+                "64",
+                "128",
+                "256",
+                "512",
+                "1024",
+            ]
+        case _:
+            msg: str = f"Unknown {local_estimates_pointwise_absolute_n_neighbors_list_option = }"
+            raise ValueError(
+                msg,
+            )
+
+    return local_estimates_pointwise_absolute_n_neighbors_list
+
+
+def retrieve_model_and_checkpoint_list(
+    language_model_list_option: LanguageModelListOption,
+    checkpoint_no_list_option: CheckpointNoListOption,
+    num_train_epochs: str,
+) -> tuple[
+    list[str],
+    list[str] | None,
+]:
+    """Retrieve the language model list and checkpoint number list based on the option."""
+    match language_model_list_option:
         case LanguageModelListOption.ONLY_ROBERTA_BASE:
             language_model_list = only_roberta_base_language_model_list
             # No checkpoints for the base model
@@ -555,21 +442,21 @@ def make_config_and_run_task(
             language_model_list = selected_finetuned_few_epochs_from_roberta_base_language_model_list
 
             checkpoint_no_list = get_checkpoint_no_list(
-                checkpoint_no_list_option=args.checkpoint_no_list,
+                checkpoint_no_list_option=checkpoint_no_list_option,
                 num_train_epochs=int(num_train_epochs),
             )
         case LanguageModelListOption.FULL_FINETUNED_FEW_EPOCHS_FROM_ROBERTA_BASE:
             language_model_list = full_finetuned_few_epochs_from_roberta_base_language_model_list
 
             checkpoint_no_list = get_checkpoint_no_list(
-                checkpoint_no_list_option=args.checkpoint_no_list,
+                checkpoint_no_list_option=checkpoint_no_list_option,
                 num_train_epochs=int(num_train_epochs),
             )
         case LanguageModelListOption.SELECTED_FINETUNED_MANY_EPOCHS_FROM_ROBERTA_BASE:
             language_model_list = selected_finetuned_many_epochs_from_roberta_base_language_model_list
 
             checkpoint_no_list = get_checkpoint_no_list(
-                checkpoint_no_list_option=args.checkpoint_no_list,
+                checkpoint_no_list_option=checkpoint_no_list_option,
                 num_train_epochs=int(num_train_epochs),
             )
         case LanguageModelListOption.SETSUMBT_SELECTED:
@@ -604,12 +491,19 @@ def make_config_and_run_task(
                 msg = f"Unknown {setsumbt_seed = }"
                 raise ValueError(msg)
         case _:
-            msg = f"Unknown {args.language_model_list = }"
+            msg = f"Unknown {language_model_list_option = }"
             raise ValueError(
                 msg,
             )
 
-    match args.language_model_seed_list:
+    return language_model_list, checkpoint_no_list
+
+
+def retrieve_language_model_seed_list(
+    language_model_seed_list_option: SeedListOption,
+) -> list[str] | None:
+    """Retrieve the language model seed list based on the option."""
+    match language_model_seed_list_option:
         case SeedListOption.DO_NOT_SET:
             language_model_seed_list = None
         case SeedListOption.ONE_SEED:
@@ -630,41 +524,19 @@ def make_config_and_run_task(
                 "1236",
             ]
         case _:
-            msg: str = f"Unknown {args.language_model_seed_list = }"
+            msg: str = f"Unknown {language_model_seed_list_option = }"
             raise ValueError(
                 msg,
             )
 
-    match args.finetuning_datasets_list:
-        case FinetuningDatasetsListOption.DEBUG:
-            finetuning_datasets_list: list[str] = [
-                "train_and_eval_on_multiwoz21_train-samples-small",
-            ]
-        case FinetuningDatasetsListOption.MANUAL_IN_PYTHON_SCRIPT:
-            finetuning_datasets_list: list[str] = [
-                "train_and_eval_on_multiwoz21_train-samples-small",
-                "train_and_eval_on_one-year-of-tsla-on-reddit_train-samples-small",
-            ]
-        case FinetuningDatasetsListOption.MULTIWOZ21_FULL:
-            finetuning_datasets_list: list[str] = [
-                "train_and_eval_on_multiwoz21_train-samples-full",
-            ]
-        case FinetuningDatasetsListOption.REDDIT_FULL:
-            finetuning_datasets_list: list[str] = [
-                "train_and_eval_on_one-year-of-tsla-on-reddit_train-samples-full",
-            ]
-        case FinetuningDatasetsListOption.MULTIWOZ21_AND_REDDIT_FULL:
-            finetuning_datasets_list: list[str] = [
-                "train_and_eval_on_multiwoz21_train-samples-full",
-                "train_and_eval_on_one-year-of-tsla-on-reddit_train-samples-full",
-            ]
-        case _:
-            msg = f"Unknown {args.finetuning_datasets_list = }"
-            raise ValueError(
-                msg,
-            )
+    return language_model_seed_list
 
-    match args.finetuning_seed_list:
+
+def retrieve_finetuning_seed_list(
+    finetuning_seed_list_option: SeedListOption,
+) -> list[str] | None:
+    """Retrieve the finetuning seed list based on the option."""
+    match finetuning_seed_list_option:
         case SeedListOption.DO_NOT_SET:
             finetuning_seed_list = None
         case SeedListOption.ONE_SEED:
@@ -674,12 +546,19 @@ def make_config_and_run_task(
         case SeedListOption.FIVE_SEEDS:
             finetuning_seed_list = seed_list_option_five_seeds
         case _:
-            msg: str = f"Unknown {args.finetuning_seed_list = }"
+            msg: str = f"Unknown {finetuning_seed_list_option = }"
             raise ValueError(
                 msg,
             )
 
-    match args.embeddings_data_prep_sampling_seed_list_option:
+    return finetuning_seed_list
+
+
+def retrieve_embeddings_data_prep_sampling_seed_list(
+    embeddings_data_prep_sampling_seed_list_option: EmbeddingsDataPrepSamplingSeedListOption,
+) -> list[str]:
+    """Retrieve the embeddings data prep sampling seed list based on the option."""
+    match embeddings_data_prep_sampling_seed_list_option:
         case EmbeddingsDataPrepSamplingSeedListOption.DEFAULT:
             embeddings_data_prep_sampling_seed_list = [
                 "42",
@@ -696,12 +575,19 @@ def make_config_and_run_task(
         case EmbeddingsDataPrepSamplingSeedListOption.TWENTY_SEEDS:
             embeddings_data_prep_sampling_seed_list = [str(i) for i in range(42, 62)]
         case _:
-            msg: str = f"Unknown {args.embeddings_data_prep_sampling_seed_list_option = }"
+            msg: str = f"Unknown {embeddings_data_prep_sampling_seed_list_option = }"
             raise ValueError(
                 msg,
             )
 
-    match args.embeddings_data_prep_num_samples_list_option:
+    return embeddings_data_prep_sampling_seed_list
+
+
+def retrieve_embeddings_data_prep_num_samples_list(
+    embeddings_data_prep_num_samples_list_option: EmbeddingsDataPrepNumSamplesListOption,
+) -> list[str]:
+    """Retrieve the embeddings data prep number of samples list based on the option."""
+    match embeddings_data_prep_num_samples_list_option:
         case EmbeddingsDataPrepNumSamplesListOption.DEFAULT:
             embeddings_data_prep_num_samples_list = [
                 "30000",
@@ -731,12 +617,19 @@ def make_config_and_run_task(
                 "60000",
             ]
         case _:
-            msg: str = f"Unknown {args.embeddings_data_prep_num_samples_list_option = }"
+            msg: str = f"Unknown {embeddings_data_prep_num_samples_list_option = }"
             raise ValueError(
                 msg,
             )
 
-    match args.local_estimates_filtering_num_samples_list:
+    return embeddings_data_prep_num_samples_list
+
+
+def retrieve_local_estimates_filtering_num_samples_list(
+    local_estimates_filtering_num_samples_list_option: LocalEstimatesFilteringNumSamplesListOption,
+) -> list[str]:
+    """Retrieve the local estimates filtering number of samples list based on the option."""
+    match local_estimates_filtering_num_samples_list_option:
         case (
             LocalEstimatesFilteringNumSamplesListOption.DEFAULT
             | LocalEstimatesFilteringNumSamplesListOption.SINGLE_CHOICE_60000
@@ -773,44 +666,109 @@ def make_config_and_run_task(
         case LocalEstimatesFilteringNumSamplesListOption.UP_TO_100000_WITH_STEP_SIZE_20000_NUM_SAMPLES:
             local_estimates_filtering_num_samples_list = [str(i * 20000) for i in range(1, 6)]
         case _:
-            msg: str = f"Unknown {args.local_estimates_filtering_num_samples_list = }"
-            raise ValueError(msg)
-
-    match args.local_estimates_pointwise_absolute_n_neighbors_list:
-        case LocalEstimatesPointwiseAbsoluteNNeighborsListOption.DEFAULT:
-            local_estimates_pointwise_absolute_n_neighbors_list = [
-                "128",
-            ]
-        case LocalEstimatesPointwiseAbsoluteNNeighborsListOption.SINGLE_CHOICE_128:
-            local_estimates_pointwise_absolute_n_neighbors_list = [
-                "128",
-            ]
-        case LocalEstimatesPointwiseAbsoluteNNeighborsListOption.POWERS_OF_TWO_UP_TO_1024:
-            local_estimates_pointwise_absolute_n_neighbors_list = [
-                "16",
-                "32",
-                "64",
-                "128",
-                "256",
-                "512",
-                "1024",
-            ]
-        case _:
-            msg: str = f"Unknown {args.local_estimates_pointwise_absolute_n_neighbors_list = }"
+            msg: str = f"Unknown {local_estimates_filtering_num_samples_list_option = }"
             raise ValueError(
                 msg,
             )
 
-    # # # #
-    # Handle the potential creation of POS tags
-    add_prefix_space = False  # Default is False
+    return local_estimates_filtering_num_samples_list
+
+
+def make_config_and_run_task(
+    data_list_option: DataListOption,
+    data_subsampling_sampling_mode: DataSamplingMode,
+    data_subsampling_number_of_samples_list_option: DataSubsamplingNumberOfSamplesListOption,
+    data_subsampling_sampling_seed_list_option: DataSubsamplingSamplingSeedListOption,
+    finetuning_datasets_list_option: FinetuningDatasetsListOption,
+    finetuning_regime_option: FinetuningRegimeOption,
+    finetuning_seed_list_option: SeedListOption,
+    batch_size_train: int,
+    batch_size_eval: int,
+    wandb_project: str,
+    language_model_list_option: LanguageModelListOption,
+    language_model_seed_list_option: SeedListOption,
+    checkpoint_no_list_option: CheckpointNoListOption,
+    embeddings_data_prep_sampling_mode: EmbeddingsDataPrepSamplingMode,
+    embeddings_data_prep_sampling_seed_list_option: EmbeddingsDataPrepSamplingSeedListOption,
+    embeddings_data_prep_num_samples_list_option: EmbeddingsDataPrepNumSamplesListOption,
+    local_estimates_filtering_num_samples_list_option: LocalEstimatesFilteringNumSamplesListOption,
+    local_estimates_pointwise_absolute_n_neighbors_list_option: LocalEstimatesPointwiseAbsoluteNNeighborsListOption,
+    machine_config: MachineConfig,
+    submission_mode: SubmissionMode,
+    task: Task,
+    additional_overrides: str,
+    *,
+    add_prefix_space: bool,
+    create_pos_tags: bool,
+    skip_compute_and_store_embeddings: bool,
+    run_only_first_config_option: bool = False,
+    dry_run: bool = False,
+) -> None:
+    """Make a submission configuration and run the task."""
+    data_list: list[str] = retrieve_data_list(
+        data_list_option=data_list_option,
+    )
+
+    data_subsampling_number_of_samples_list: list[str] | None = retrieve_subsampling_number_list(
+        data_subsampling_number_of_samples_list_option=data_subsampling_number_of_samples_list_option,
+    )
+
+    data_subsampling_sampling_seed_list: list[str] | None = retrieve_data_subsampling_sampling_seed_list(
+        data_subsampling_sampling_seed_list_option=data_subsampling_sampling_seed_list_option,
+    )
+
+    match finetuning_regime_option:
+        case FinetuningRegimeOption.FEW_EPOCHS:
+            num_train_epochs = "5"
+            lr_scheduler_type = "linear"
+        case FinetuningRegimeOption.MANY_EPOCHS_WITH_OVERFITTING_RISK:
+            num_train_epochs = "50"
+            lr_scheduler_type = "constant"
+        case _:
+            msg: str = f"Unknown {finetuning_regime_option = }"
+            raise ValueError(
+                msg,
+            )
+
+    language_model_list, checkpoint_no_list = retrieve_model_and_checkpoint_list(
+        language_model_list_option=language_model_list_option,
+        checkpoint_no_list_option=checkpoint_no_list_option,
+        num_train_epochs=num_train_epochs,
+    )
+
+    language_model_seed_list: None | list[str] = retrieve_language_model_seed_list(
+        language_model_seed_list_option=language_model_seed_list_option,
+    )
+
+    finetuning_datasets_list: list[str] = retrieve_finetuning_datasets_list(
+        finetuning_datasets_list_option=finetuning_datasets_list_option,
+    )
+
+    finetuning_seed_list: list[str] | None = retrieve_finetuning_seed_list(
+        finetuning_seed_list_option=finetuning_seed_list_option,
+    )
+
+    embeddings_data_prep_sampling_seed_list: list[str] = retrieve_embeddings_data_prep_sampling_seed_list(
+        embeddings_data_prep_sampling_seed_list_option=embeddings_data_prep_sampling_seed_list_option,
+    )
+
+    embeddings_data_prep_num_samples_list: list[str] = retrieve_embeddings_data_prep_num_samples_list(
+        embeddings_data_prep_num_samples_list_option=embeddings_data_prep_num_samples_list_option,
+    )
+
+    local_estimates_filtering_num_samples_list: list[str] = retrieve_local_estimates_filtering_num_samples_list(
+        local_estimates_filtering_num_samples_list_option=local_estimates_filtering_num_samples_list_option,
+    )
+
+    local_estimates_pointwise_absolute_n_neighbors_list: list[str] = (
+        retrieve_local_estimates_pointwise_absolute_n_neighbors_list(
+            local_estimates_pointwise_absolute_n_neighbors_list_option=local_estimates_pointwise_absolute_n_neighbors_list_option
+        )
+    )
+
     additional_data_options = None  # Default is no additional data options
 
-    if args.add_prefix_space:
-        # Manually set the add_prefix_space option
-        add_prefix_space = True
-
-    if args.create_pos_tags:
+    if create_pos_tags:
         print(  # noqa: T201 - We want this script to print this output
             "create_pos_tags is set to True.",
         )
@@ -827,38 +785,31 @@ def make_config_and_run_task(
 
     submission_config = SubmissionConfig(
         add_prefix_space=add_prefix_space,
-        submission_mode=args.submission_mode,
-        queue=args.queue,
-        template=args.template,
-        memory=args.memory,
-        ncpus=args.ncpus,
-        ngpus=args.ngpus,
-        walltime=args.walltime,
-        additional_overrides=args.additional_overrides,
+        submission_mode=submission_mode,
+        machine_config=machine_config,
+        additional_overrides=additional_overrides,
         data_list=data_list,
-        data_subsampling_sampling_mode=args.data_subsampling_sampling_mode,
+        data_subsampling_sampling_mode=data_subsampling_sampling_mode,
         data_subsampling_number_of_samples_list=data_subsampling_number_of_samples_list,
         data_subsampling_sampling_seed_list=data_subsampling_sampling_seed_list,
         additional_data_options=additional_data_options,
         language_model_list=language_model_list,
         language_model_seed_list=language_model_seed_list,
         checkpoint_no_list=checkpoint_no_list,
-        embeddings_data_prep_sampling_mode=args.embeddings_data_prep_sampling_mode,
+        embeddings_data_prep_sampling_mode=embeddings_data_prep_sampling_mode,
         embeddings_data_prep_sampling_seed_list=embeddings_data_prep_sampling_seed_list,
         embeddings_data_prep_num_samples_list=embeddings_data_prep_num_samples_list,
         local_estimates_filtering_num_samples_list=local_estimates_filtering_num_samples_list,
         local_estimates_pointwise_absolute_n_neighbors_list=local_estimates_pointwise_absolute_n_neighbors_list,
         finetuning_datasets_list=finetuning_datasets_list,
         finetuning_seed_list=finetuning_seed_list,
-        batch_size_train=args.common_batch_size,
-        batch_size_eval=args.common_batch_size,
+        batch_size_train=batch_size_train,
+        batch_size_eval=batch_size_eval,
         num_train_epochs=num_train_epochs,
         lr_scheduler_type=lr_scheduler_type,
-        wandb_project=args.wandb_project,
-        skip_compute_and_store_embeddings=args.skip_compute_and_store_embeddings,
+        wandb_project=wandb_project,
+        skip_compute_and_store_embeddings=skip_compute_and_store_embeddings,
     )
-
-    run_only_first_config_option: bool = args.run_only_first_config_option
 
     if run_only_first_config_option:
         print(  # noqa: T201 - We want this submission script to print this output
@@ -875,19 +826,357 @@ def make_config_and_run_task(
 
     run_task(
         submission_config=submissions_config_to_run,
-        task=args.task,
-        dry_run=args.dry_run,
+        task=task,
+        dry_run=dry_run,
+    )
+
+
+@click.command()
+@click.option(
+    "--experiment-stage",
+    type=click.Choice(
+        choices=[
+            "compute_embeddings_plus_single_pipeline_run",
+            "skip_compute_embeddings_and_multiple_pipeline_runs",
+        ],
+        case_sensitive=False,
+    ),
+    default=None,
+    help="Specify the experiment stage to run.",
+)
+@click.option(
+    "--experiment-selector",
+    type=click.Choice(
+        choices=[
+            "multiwoz21_different_data_subsampling_number_of_samples",
+            "reddit_different_data_subsampling_number_of_samples",
+            "multiwoz21_different_checkpoints",
+            "reddit_different_checkpoints",
+            "multiwoz21_and_reddit_data_subsampling_take_first_different_checkpoints",
+        ],
+        case_sensitive=False,
+    ),
+    required=True,
+    help="Select the experiment type.",
+)
+@click.option(
+    "--task",
+    type=Task,
+    required=True,
+    help="Specify the task to run.",
+)
+@click.option(
+    "--data-subsampling-sampling-seed-list-option",
+    type=DataSubsamplingSamplingSeedListOption,
+    default=DataSubsamplingSamplingSeedListOption.THREE_SEEDS,
+    help="Data subsampling sampling seed list option to use.",
+)
+@click.option(
+    "--data-subsampling-sampling-mode",
+    type=DataSamplingMode,
+    default=DataSamplingMode.RANDOM,
+    help="Data subsampling sampling mode to use.",
+)
+@click.option(
+    "--embeddings-data-prep-sampling-mode",
+    type=EmbeddingsDataPrepSamplingMode,
+    default=EmbeddingsDataPrepSamplingMode.RANDOM,
+    help="Embeddings data prep sampling mode to use.",
+)
+@click.option(
+    "--finetuning-datasets-list-option",
+    type=FinetuningDatasetsListOption,
+    default=FinetuningDatasetsListOption.MULTIWOZ21_SMALL,
+    help="Finetuning datasets list option to use.",
+)
+@click.option(
+    "--local-estimates-pointwise-absolute-n-neighbors-list-option",
+    type=LocalEstimatesPointwiseAbsoluteNNeighborsListOption,
+    default=LocalEstimatesPointwiseAbsoluteNNeighborsListOption.SINGLE_CHOICE_128,
+    help="Local estimates pointwise absolute n neighbors list option to use.",
+)
+@click.option(
+    "--wandb-project",
+    type=str,
+    default="Topo_LLM_finetuning_from_submission_script_large_batch_size",
+    help="Wandb project to use.",
+)
+@click.option(
+    "--use-roberta-base",
+    is_flag=True,
+    default=False,
+    help="Use the base Roberta model.",
+)
+@click.option(
+    "--use-finetuned-model",
+    is_flag=True,
+    default=False,
+    help="Use a fine-tuned Roberta model.",
+)
+@click.option(
+    "--additional-overrides",
+    type=str,
+    default="",
+    help="Additional overrides to use.",
+)
+@click.option(
+    "--local",
+    is_flag=True,
+    default=False,
+    help="Run locally instead of on HPC.",
+)
+@click.option(
+    "--dry-run",
+    is_flag=True,
+    default=False,
+    help="Only print the commands without executing them.",
+)
+@click.option(
+    "--run-only-first-config",
+    is_flag=True,
+    default=False,
+    help="Run only the first configuration option.",
+)
+@click.option(
+    "--memory",
+    type=str,
+    default="32",
+    help="Amount of memory to allocate.",
+)
+@click.option(
+    "--ncpus",
+    type=str,
+    default="2",
+    help="Number of CPUs to allocate.",
+)
+@click.option(
+    "--ngpus",
+    type=str,
+    default="1",
+    help="Number of GPUs to allocate.",
+)
+@click.option(
+    "--queue",
+    type=str,
+    default="DSML",
+    help="Queue to submit the job to.",
+)
+@click.option(
+    "--template",
+    type=str,
+    default="DSML",
+    help="Template to use for the job submission.",
+)
+def orchestrate_job_submission(
+    experiment_stage: str | None,
+    experiment_selector: str,
+    task: Task,
+    additional_overrides: str,
+    finetuning_datasets_list_option: FinetuningDatasetsListOption,
+    data_subsampling_sampling_mode: DataSamplingMode,
+    data_subsampling_sampling_seed_list_option: DataSubsamplingSamplingSeedListOption,
+    embeddings_data_prep_sampling_mode: EmbeddingsDataPrepSamplingMode,
+    local_estimates_pointwise_absolute_n_neighbors_list_option: LocalEstimatesPointwiseAbsoluteNNeighborsListOption,
+    wandb_project: str,
+    *,
+    memory: str,
+    ncpus: str,
+    ngpus: str,
+    queue: str,
+    template: str,
+    local: bool,
+    dry_run: bool,
+    run_only_first_config: bool,
+    use_roberta_base: bool,
+    use_finetuned_model: bool,
+) -> None:
+    """Submit jobs based on the specified options.
+
+    Default resource configurations
+    -------------------------------
+    - 16GB of memory is not enough for the embeddings data prep step
+      for dataset subsampling sample size 10_000 on the multiwoz21_train and reddit_train datasets.
+    - 32GB of memory is enough for the embeddings data prep step
+      for dataset subsampling sample size 12_000 on the multiwoz21_train and reddit_train datasets.
+    """
+    # Validate the model flags
+    if not (use_roberta_base or use_finetuned_model):
+        raise click.UsageError(
+            message="You must specify either --use-roberta-base or --use-finetuned-model.",
+        )
+    if use_roberta_base and use_finetuned_model:
+        raise click.UsageError(
+            message="You cannot specify both --use-roberta-base and --use-finetuned-model.",
+        )
+
+    # Set submission mode
+    submission_mode: SubmissionMode = SubmissionMode.LOCAL if local else SubmissionMode.HPC_SUBMISSION
+
+    # Model-specific configurations
+    if use_roberta_base:
+        ####################################
+        ### With POS tags for base model ###
+        language_model_list_option = LanguageModelListOption.ONLY_ROBERTA_BASE
+        finetuning_regime_option = FinetuningRegimeOption.FEW_EPOCHS  # Ignored for the base model
+        language_model_seed_list_option = SeedListOption.DO_NOT_SET
+        checkpoint_no_list_option = CheckpointNoListOption.SELECTED  # Ignored for the base model
+    elif use_finetuned_model:
+        ################################################################
+        ### With POS tags for finetuned models and three checkpoints ###
+        language_model_list_option = LanguageModelListOption.SELECTED_FINETUNED_MANY_EPOCHS_FROM_ROBERTA_BASE
+        finetuning_regime_option = FinetuningRegimeOption.MANY_EPOCHS_WITH_OVERFITTING_RISK
+        language_model_seed_list_option = SeedListOption.FIXED_SEEDS_1234_1235_1236
+        checkpoint_no_list_option = CheckpointNoListOption.ONLY_BEGINNING_AND_MIDDLE_AND_END
+    else:
+        raise click.UsageError(
+            message="Unknown model configuration.",
+        )
+
+    ########################################
+    ### Default configurations
+    ###
+    ### Note that these values might be overridden by the individual experiment setup below.
+
+    add_prefix_space = True
+    create_pos_tags = True
+    skip_compute_and_store_embeddings = False
+
+    # `embeddings_data_prep_sampling_seed_list_option` is set here and will be overwritten
+    # in the experiment stage configurations below.
+    embeddings_data_prep_sampling_seed_list_option = EmbeddingsDataPrepSamplingSeedListOption.FIVE_SEEDS
+
+    embeddings_data_prep_num_samples_list_option = EmbeddingsDataPrepNumSamplesListOption.SINGLE_CHOICE_150000
+
+    local_estimates_filtering_num_samples_list_option = LocalEstimatesFilteringNumSamplesListOption.SINGLE_CHOICE_60000
+
+    # Notes on memory size:
+    #
+    # ++ accelerator_model=rtx6000:
+    #   + `--common_batch_size="32"` appears to work for fine-tuning "roberta-base" model on rtx6000 with 24GB of VRAM.
+    common_batch_size = 32
+    batch_size_train = common_batch_size
+    batch_size_eval = common_batch_size
+
+    walltime = "08:00:00"  # Default walltime
+
+    finetuning_seed_list_option = SeedListOption.ONE_SEED
+
+    ########################################
+    ### Experiment selector configurations
+    if experiment_selector == "multiwoz21_different_data_subsampling_number_of_samples":
+        # ++++ Experiment > different subsampling number of samples for multiwoz21 dataset
+        data_list_option = DataListOption.MULTIWOZ21_ONLY
+        data_subsampling_number_of_samples_list_option = (
+            DataSubsamplingNumberOfSamplesListOption.RANGE_START_2000_STOP_18000_STEP_2000
+        )
+
+        # Note: We explicitly increase the memory size here,
+        # since for the embeddings data prep step on 12_000 and more data subsamlping samples,
+        # the embeddings data prep step requires more memory.
+        memory = "64"
+    elif experiment_selector == "reddit_different_data_subsampling_number_of_samples":
+        # ++++ Experiment > different subsampling number of samples for reddit dataset
+        data_list_option = DataListOption.REDDIT_ONLY
+        data_subsampling_number_of_samples_list_option = (
+            DataSubsamplingNumberOfSamplesListOption.RANGE_START_2000_STOP_24000_STEP_2000
+        )
+
+        # Note: We explicitly increase the memory size here,
+        # since for the embeddings data prep step on 12_000 and more data subsamlping samples,
+        # the embeddings data prep step requires more memory.
+        memory = "80"
+    elif experiment_selector == "multiwoz21_different_checkpoints":
+        data_list_option = DataListOption.MULTIWOZ21_ONLY
+        data_subsampling_number_of_samples_list_option = DataSubsamplingNumberOfSamplesListOption.FIXED_10000
+
+        checkpoint_no_list_option = CheckpointNoListOption.SELECTED
+    elif experiment_selector == "reddit_different_checkpoints":
+        data_list_option = DataListOption.REDDIT_ONLY
+        data_subsampling_number_of_samples_list_option = DataSubsamplingNumberOfSamplesListOption.FIXED_10000
+
+        checkpoint_no_list_option = CheckpointNoListOption.SELECTED
+    else:
+        msg: str = f"Unknown {experiment_selector = }"
+        raise click.UsageError(message=msg)
+
+    ########################################
+    ### Experiment stage configurations
+    if experiment_stage == "compute_embeddings_plus_single_pipeline_run":
+        ncpus = "4"
+        ngpus = "1"
+        queue = "CUDA"
+        template = "RTX6000"
+
+        # Only run a for a single embeddings data prep sampling seed
+        embeddings_data_prep_sampling_seed_list_option = EmbeddingsDataPrepSamplingSeedListOption.DEFAULT
+        skip_compute_and_store_embeddings = False  # do the embeddings computation
+    elif experiment_stage == "skip_compute_embeddings_and_multiple_pipeline_runs":
+        ncpus = "6"
+        ngpus = "0"
+        queue = "DEFAULT"
+        template = "CPU"
+
+        # Assume embeddings are already computed and run for different embeddings data prep sampling seeds
+        embeddings_data_prep_sampling_seed_list_option = EmbeddingsDataPrepSamplingSeedListOption.FIVE_SEEDS
+        skip_compute_and_store_embeddings = True  # skip the embeddings computation
+
+    # Overwrite the machine configuration based on the task
+    match task:
+        case Task.PERPLEXITY:
+            queue = "CUDA"
+            template = "RTX6000"
+            walltime = "12:00:00"  # Use slightly longer walltime for perplexity
+        case Task.FINETUNING:
+            ncpus = "4"
+            ngpus = "1"
+            queue = "CUDA"
+            template = "RTX6000"
+            walltime = "48:00:00"  # Use significantly longer walltime for finetuning
+
+    machine_config = MachineConfig(
+        queue=queue,
+        template=template,
+        memory=memory,
+        ncpus=ncpus,
+        ngpus=ngpus,
+        walltime=walltime,
+    )
+
+    make_config_and_run_task(
+        data_list_option=data_list_option,
+        data_subsampling_sampling_mode=data_subsampling_sampling_mode,
+        data_subsampling_number_of_samples_list_option=data_subsampling_number_of_samples_list_option,
+        data_subsampling_sampling_seed_list_option=data_subsampling_sampling_seed_list_option,
+        embeddings_data_prep_sampling_mode=embeddings_data_prep_sampling_mode,
+        embeddings_data_prep_sampling_seed_list_option=embeddings_data_prep_sampling_seed_list_option,
+        embeddings_data_prep_num_samples_list_option=embeddings_data_prep_num_samples_list_option,
+        finetuning_datasets_list_option=finetuning_datasets_list_option,
+        finetuning_seed_list_option=finetuning_seed_list_option,
+        finetuning_regime_option=finetuning_regime_option,
+        batch_size_train=batch_size_train,
+        batch_size_eval=batch_size_eval,
+        wandb_project=wandb_project,
+        language_model_list_option=language_model_list_option,
+        language_model_seed_list_option=language_model_seed_list_option,
+        checkpoint_no_list_option=checkpoint_no_list_option,
+        local_estimates_filtering_num_samples_list_option=local_estimates_filtering_num_samples_list_option,
+        local_estimates_pointwise_absolute_n_neighbors_list_option=local_estimates_pointwise_absolute_n_neighbors_list_option,
+        machine_config=machine_config,
+        submission_mode=submission_mode,
+        task=task,
+        additional_overrides=additional_overrides,
+        add_prefix_space=add_prefix_space,
+        create_pos_tags=create_pos_tags,
+        skip_compute_and_store_embeddings=skip_compute_and_store_embeddings,
+        run_only_first_config_option=run_only_first_config,
+        dry_run=dry_run,
     )
 
 
 def main() -> None:
-    """Run the submission."""
-    args: argparse.Namespace = parse_arguments()
-
-    make_config_and_run_task(
-        args=args,
-    )
+    """Run the job submission."""
+    orchestrate_job_submission()
 
 
 if __name__ == "__main__":
-    main()
+    orchestrate_job_submission()

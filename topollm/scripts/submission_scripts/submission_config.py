@@ -35,17 +35,24 @@ from topollm.config_classes.constants import TOPO_LLM_REPOSITORY_BASE_PATH
 from topollm.typing.enums import EmbeddingsDataPrepSamplingMode, SubmissionMode, Task
 
 
-class SubmissionConfig(BaseModel):
-    """Configuration for submitting a certain job."""
+class MachineConfig(BaseModel):
+    """Configuration for the machine on which the job is run."""
 
-    # Submission parameters
     queue: str | None = ""  # Empty string means the default queue
     template: str | None = "DSML"
+
     memory: str | None = "64"
     ncpus: str | None = "2"
     ngpus: str | None = "1"
     walltime: str | None = "16:00:00"
-    submission_mode: SubmissionMode = SubmissionMode.HPC_SUBMISSION  # type: ignore - StrEnum typing problems
+
+
+class SubmissionConfig(BaseModel):
+    """Configuration for submitting a certain job."""
+
+    # Submission parameters
+    submission_mode: SubmissionMode = SubmissionMode.HPC_SUBMISSION
+    machine_config: MachineConfig = MachineConfig()
 
     # Common parameters
     add_prefix_space: bool = False
@@ -261,29 +268,29 @@ class SubmissionConfig(BaseModel):
                 hydra_launcher_command.append(
                     "hydra/launcher=hpc_submission",
                 )
-                if self.queue:
+                if self.machine_config.queue:
                     hydra_launcher_command.append(
-                        f"hydra.launcher.queue={self.queue}",
+                        f"hydra.launcher.queue={self.machine_config.queue}",
                     )
-                if self.template:
+                if self.machine_config.template:
                     hydra_launcher_command.append(
-                        f"hydra.launcher.template={self.template}",
+                        f"hydra.launcher.template={self.machine_config.template}",
                     )
-                if self.memory:
+                if self.machine_config.memory:
                     hydra_launcher_command.append(
-                        f"hydra.launcher.memory={self.memory}",
+                        f"hydra.launcher.memory={self.machine_config.memory}",
                     )
-                if self.ncpus:
+                if self.machine_config.ncpus:
                     hydra_launcher_command.append(
-                        f"hydra.launcher.ncpus={self.ncpus}",
+                        f"hydra.launcher.ncpus={self.machine_config.ncpus}",
                     )
-                if self.ngpus:
+                if self.machine_config.ngpus:
                     hydra_launcher_command.append(
-                        f"hydra.launcher.ngpus={self.ngpus}",
+                        f"hydra.launcher.ngpus={self.machine_config.ngpus}",
                     )
-                if self.walltime:
+                if self.machine_config.walltime:
                     hydra_launcher_command.append(
-                        f"hydra.launcher.walltime={self.walltime}",
+                        f"hydra.launcher.walltime={self.machine_config.walltime}",
                     )
             case SubmissionMode.LOCAL:
                 hydra_launcher_command.extend(
