@@ -15,11 +15,13 @@ This repository contains code for analyzing the representations produced by cont
 
 #### MacOS specific instructions
 
-On MacOS, you can install `pyenv` and `pipx` with Homebrew: 
+On MacOS, you can install `pyenv` and `pipx` with Homebrew:
+
 - `brew install pyenv`
 - `brew install pipx`.
 
-You can install `poetry` with `pipx`: 
+You can install `poetry` with `pipx`:
+
 - `pipx install poetry`.
 
 #### Ubuntu/Debian instructions

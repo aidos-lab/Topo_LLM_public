@@ -101,8 +101,8 @@ def test_hydra_launcher_command_hpc_mode(
     )
 
     assert "hydra/launcher=hpc_submission" in hydra_command  # noqa: S101 - pytest assertion
-    assert f"hydra.launcher.memory={default_submission_config.memory}" in hydra_command  # noqa: S101 - pytest assertion
-    assert f"hydra.launcher.walltime={default_submission_config.walltime}" in hydra_command  # noqa: S101 - pytest assertion
+    assert f"hydra.launcher.memory={default_submission_config.machine_config.memory}" in hydra_command  # noqa: S101 - pytest assertion
+    assert f"hydra.launcher.walltime={default_submission_config.machine_config.walltime}" in hydra_command  # noqa: S101 - pytest assertion
 
 
 def test_generate_local_estimates_command(
