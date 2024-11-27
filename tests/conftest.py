@@ -40,6 +40,7 @@ import transformers
 from dotenv import find_dotenv, load_dotenv
 
 from topollm.config_classes.data.data_config import DataConfig
+from topollm.config_classes.data.data_subsampling_config import DataSubsamplingConfig
 from topollm.config_classes.data.dataset_map_config import DatasetMapConfig
 from topollm.config_classes.embeddings.embedding_extraction_config import (
     EmbeddingExtractionConfig,
@@ -56,6 +57,7 @@ from topollm.config_classes.finetuning.gradient_modifier.gradient_modifier_confi
 from topollm.config_classes.finetuning.peft.peft_config import PEFTConfig
 from topollm.config_classes.inference.inference_config import InferenceConfig
 from topollm.config_classes.language_model.language_model_config import (
+    DropoutConfig,
     LanguageModelConfig,
 )
 from topollm.config_classes.language_model.tokenizer_modifier.tokenizer_modifier_config import TokenizerModifierConfig
@@ -81,9 +83,7 @@ from topollm.typing.enums import (
     DatasetType,
     FinetuningMode,
     GradientModifierMode,
-    Level,
     LMmode,
-    MaskingMode,
     MetadataStorageType,
     PreferredTorchBackend,
     Split,
@@ -245,6 +245,20 @@ def verbosity() -> Verbosity:
 @pytest.fixture(
     scope="session",
 )
+def data_subsampling_config() -> DataSubsamplingConfig:
+    """Return a DataSubsamplingConfig object."""
+    config = DataSubsamplingConfig(
+        number_of_samples=10,
+        sampling_seed=42,
+        split=Split.TRAIN,
+    )
+
+    return config
+
+
+@pytest.fixture(
+    scope="session",
+)
 def data_config() -> DataConfig:
     """Return a DataConfig object."""
     config = DataConfig(
@@ -256,8 +270,6 @@ def data_config() -> DataConfig:
         dataset_path="xsum",
         dataset_name=None,
         feature_column_name="summary",
-        number_of_samples=10,
-        split=Split.TRAIN,
     )
 
     return config
@@ -296,6 +308,7 @@ model_config_list_for_testing = [
             mode=TokenizerModifierMode.DO_NOTHING,
             padding_token="<pad>",  # noqa: S106 - This is the hardcoded padding token
         ),
+        DropoutConfig(),  # Use the default dropout configuration
     ),
     (
         LMmode.MLM,
@@ -306,6 +319,7 @@ model_config_list_for_testing = [
             mode=TokenizerModifierMode.DO_NOTHING,
             padding_token="[PAD]",  # noqa: S106 - This is the hardcoded padding token
         ),
+        DropoutConfig(),  # Use the default dropout configuration
     ),
     (
         LMmode.CLM,
@@ -316,6 +330,7 @@ model_config_list_for_testing = [
             mode=TokenizerModifierMode.ADD_PADDING_TOKEN,
             padding_token="<|pad|>",  # noqa: S106 - This is the hardcoded padding token
         ),
+        DropoutConfig(),  # Use the default dropout configuration for the causal language model
     ),
 ]
 
@@ -328,13 +343,21 @@ def language_model_config(
     request: pytest.FixtureRequest,
 ) -> LanguageModelConfig:
     """Return a LanguageModelConfig object."""
-    lm_mode, task_type, pretrained_model_name_or_path, short_model_name, tokenizer_modifier_config = request.param
+    (
+        lm_mode,
+        task_type,
+        pretrained_model_name_or_path,
+        short_model_name,
+        tokenizer_modifier_config,
+        dropout_config,
+    ) = request.param
 
     config = LanguageModelConfig(
         lm_mode=lm_mode,
         task_type=task_type,
         pretrained_model_name_or_path=pretrained_model_name_or_path,
         short_model_name=short_model_name,
+        dropout=dropout_config,
         tokenizer_modifier=tokenizer_modifier_config,
     )
 
@@ -590,7 +613,7 @@ def wandb_config() -> WandBConfig:
 @pytest.fixture(
     scope="session",
 )
-def main_config(
+def main_config(  # noqa: PLR0913 - many arguments here because main config contains many components
     data_config: DataConfig,
     embeddings_config: EmbeddingsConfig,
     embeddings_data_prep_config: EmbeddingsDataPrepConfig,

@@ -40,7 +40,7 @@ from topollm.config_classes.finetuning.peft.peft_config import PEFTConfig
 from topollm.config_classes.finetuning.trainer_modifier.trainer_modifier_config import TrainerModifierConfig
 from topollm.config_classes.language_model.language_model_config import LanguageModelConfig
 from topollm.config_classes.tokenizer.tokenizer_config import TokenizerConfig
-from topollm.typing.enums import ComputeMetricsMode, LrSchedulerType
+from topollm.typing.enums import ComputeMetricsMode, DescriptionType, LrSchedulerType
 
 
 class FinetuningConfig(ConfigBaseModel):
@@ -175,12 +175,15 @@ class FinetuningConfig(ConfigBaseModel):
         description="The reporting tool.",
     )
 
-    @property
-    def base_model_config_description(
+    def get_base_model_config_description(
         self,
+        description_type: DescriptionType = DescriptionType.LONG,
+        short_description_separator: str = "-",
     ) -> str:
-        # Construct and return the model parameters description
-
-        description = self.base_model.config_description
+        """Construct and return the model description."""
+        description: str = self.base_model.get_config_description(
+            description_type=description_type,
+            short_description_separator=short_description_separator,
+        )
 
         return description

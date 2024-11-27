@@ -1,10 +1,10 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -121,8 +121,11 @@ class DropoutConfig(ConfigBaseModel):
     ) -> str:
         match self.mode:
             case DropoutMode.DEFAULTS:
-                # Here we use the same description for all modes
-                description: str = f"{NAME_PREFIXES['dropout_mode']}{KV_SEP}{str(object=self.mode)}"
+                match description_type:
+                    case DescriptionType.LONG:
+                        description: str = f"{NAME_PREFIXES['dropout_mode']}{KV_SEP}{str(object=self.mode)}"
+                    case DescriptionType.SHORT:
+                        description: str = str(object=self.mode)
             case DropoutMode.MODIFY_ROBERTA_DROPOUT_PARAMETERS:
                 match description_type:
                     case DescriptionType.LONG:
@@ -213,20 +216,34 @@ class LanguageModelConfig(ConfigBaseModel):
         description="The configuration for modifying the tokenizer.",
     )
 
-    @property
-    def config_description(
+    def get_config_description(
         self,
+        description_type: DescriptionType = DescriptionType.LONG,
+        short_description_separator: str = "-",
     ) -> str:
-        # Construct and return the model parameters description
-
-        description: str = (
-            f"{NAME_PREFIXES['model']}"
-            f"{KV_SEP}"
-            f"{self.short_model_name}"
-            f"{ITEM_SEP}"
-            f"{NAME_PREFIXES['task_type']}"
-            f"{KV_SEP}"
-            f"{self.task_type}"
+        """Construct and return the model description."""
+        dropout_description: str = self.dropout.get_config_description(
+            description_type=description_type,
+            short_description_separator=short_description_separator,
         )
+
+        match description_type:
+            case DescriptionType.LONG:
+                model_and_task_description_long: str = (
+                    f"{NAME_PREFIXES['model']}"
+                    f"{KV_SEP}"
+                    f"{self.short_model_name}"
+                    f"{ITEM_SEP}"
+                    f"{NAME_PREFIXES['task_type']}"
+                    f"{KV_SEP}"
+                    f"{self.task_type}"
+                )
+
+                description: str = model_and_task_description_long + ITEM_SEP + dropout_description
+            case DescriptionType.SHORT:
+                model_and_task_description_short: str = (
+                    f"{self.short_model_name}" + short_description_separator + f"{self.task_type}"
+                )
+                description: str = model_and_task_description_short + short_description_separator + dropout_description
 
         return description
