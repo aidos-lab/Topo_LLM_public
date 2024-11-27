@@ -194,7 +194,10 @@ def do_finetuning_process(
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Prepare model input.
 
-    train_dataset_mapped, eval_dataset_mapped = prepare_model_input(
+    (
+        train_dataset_mapped,
+        eval_dataset_mapped,
+    ) = prepare_model_input(
         train_dataset=train_dataset,
         eval_dataset=eval_dataset,
         tokenizer=tokenizer,
