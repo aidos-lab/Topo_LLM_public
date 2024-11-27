@@ -867,9 +867,8 @@ def make_config_and_run_task(
         choices=[
             "multiwoz21_different_data_subsampling_number_of_samples",
             "reddit_different_data_subsampling_number_of_samples",
-            "multiwoz21_different_checkpoints",
-            "reddit_different_checkpoints",
-            "fixed_parameters_reddit_dataset_high_checkpoint_resolution",
+            "coarse_checkpoint_resolution",
+            "fixed_parameters_high_checkpoint_resolution",
         ],
         case_sensitive=False,
     ),
@@ -881,6 +880,12 @@ def make_config_and_run_task(
     type=Task,
     required=True,
     help="Specify the task to run.",
+)
+@click.option(
+    "--data-list-option",
+    type=DataListOption,
+    default=DataListOption.MULTIWOZ21_ONLY,
+    help="Data list option to use.",
 )
 @click.option(
     "--data-subsampling-sampling-seed-list-option",
@@ -990,6 +995,7 @@ def orchestrate_job_submission(
     task: Task,
     additional_overrides: str,
     finetuning_datasets_list_option: FinetuningDatasetsListOption,
+    data_list_option: DataListOption,
     data_subsampling_sampling_mode: DataSamplingMode,
     data_subsampling_sampling_seed_list_option: DataSubsamplingSamplingSeedListOption,
     embeddings_data_prep_sampling_mode: EmbeddingsDataPrepSamplingMode,
@@ -1086,6 +1092,10 @@ def orchestrate_job_submission(
     match experiment_selector:
         case "multiwoz21_different_data_subsampling_number_of_samples":
             # ++++ Experiment > different subsampling number of samples for multiwoz21 dataset
+            #
+            # Note:
+            # - There are different setups for the multiwoz21 and the reddit dataset,
+            #   since they have a different number of samples.
             data_list_option = DataListOption.MULTIWOZ21_ONLY
             data_subsampling_number_of_samples_list_option = (
                 DataSubsamplingNumberOfSamplesListOption.RANGE_START_2000_STOP_18000_STEP_2000
@@ -1097,30 +1107,34 @@ def orchestrate_job_submission(
             memory = "64"
         case "reddit_different_data_subsampling_number_of_samples":
             # ++++ Experiment > different subsampling number of samples for reddit dataset
+            #
+            # Note:
+            # - There are different setups for the multiwoz21 and the reddit dataset,
+            #   since they have a different number of samples.
+            # - We explicitly increase the memory size here,
+            #   since for the embeddings data prep step on 12_000 and more data subsamlping samples,
+            #   the embeddings data prep step requires more memory.
             data_list_option = DataListOption.REDDIT_ONLY
             data_subsampling_number_of_samples_list_option = (
                 DataSubsamplingNumberOfSamplesListOption.RANGE_START_2000_STOP_24000_STEP_2000
             )
 
-            # Note: We explicitly increase the memory size here,
-            # since for the embeddings data prep step on 12_000 and more data subsamlping samples,
-            # the embeddings data prep step requires more memory.
             memory = "80"
-        case "multiwoz21_different_checkpoints":
+        case "coarse_checkpoint_resolution":
+            # ++++ Experiment > Coarse checkpoint resolution
+            #
+            # Note:
+            # - You need to set the data_list_option via the command line arguments.
             data_list_option = DataListOption.MULTIWOZ21_ONLY
             data_subsampling_number_of_samples_list_option = DataSubsamplingNumberOfSamplesListOption.FIXED_10000
 
             checkpoint_no_list_option = CheckpointNoListOption.SELECTED
-        case "reddit_different_checkpoints":
-            data_list_option = DataListOption.REDDIT_ONLY
-            data_subsampling_number_of_samples_list_option = DataSubsamplingNumberOfSamplesListOption.FIXED_10000
-
-            checkpoint_no_list_option = CheckpointNoListOption.SELECTED
-        case "fixed_parameters_reddit_dataset_high_checkpoint_resolution":
+        case "fixed_parameters_high_checkpoint_resolution":
             # ++++ Experiment > Fixing many of the parameters so that we can run the
             #      checkpoint comparison experiment with high checkpoint resolution
-
-            data_list_option = DataListOption.REDDIT_ONLY
+            #
+            # Note:
+            # - You need to set the data_list_option via the command line arguments.
             data_subsampling_number_of_samples_list_option = DataSubsamplingNumberOfSamplesListOption.FIXED_10000
 
             # Uncomment the following to do this only for one data subsampling sampling seed
