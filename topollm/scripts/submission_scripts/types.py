@@ -86,6 +86,7 @@ class FinetuningDatasetsListOption(StrEnum):
     DEBUG = auto()
     MANUAL_IN_PYTHON_SCRIPT = auto()
     MULTIWOZ21_AND_REDDIT_FULL = auto()
+    MULTIWOZ21_AND_REDDIT_SMALL = auto()
     MULTIWOZ21_SMALL = auto()
     MULTIWOZ21_FULL = auto()
     REDDIT_SMALL = auto()

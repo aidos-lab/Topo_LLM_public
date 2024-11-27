@@ -380,6 +380,11 @@ def retrieve_finetuning_datasets_list(
             finetuning_datasets_list: list[str] = [
                 "train_and_eval_on_one-year-of-tsla-on-reddit_train-samples-full",
             ]
+        case FinetuningDatasetsListOption.MULTIWOZ21_AND_REDDIT_SMALL:
+            finetuning_datasets_list: list[str] = [
+                "train_and_eval_on_multiwoz21_train-samples-small",
+                "train_and_eval_on_one-year-of-tsla-on-reddit_train-samples-small",
+            ]
         case FinetuningDatasetsListOption.MULTIWOZ21_AND_REDDIT_FULL:
             finetuning_datasets_list: list[str] = [
                 "train_and_eval_on_multiwoz21_train-samples-full",
@@ -702,7 +707,7 @@ def make_config_and_run_task(
     machine_config: MachineConfig,
     submission_mode: SubmissionMode,
     task: Task,
-    additional_overrides: str,
+    additional_overrides: list[str] | None,
     *,
     add_prefix_space: bool,
     create_pos_tags: bool,
@@ -788,6 +793,8 @@ def make_config_and_run_task(
         additional_data_options = [
             "+data.dataset_type=huggingface_dataset_named_entity",
         ]
+
+    print(f"{additional_overrides = }")
 
     submission_config = SubmissionConfig(
         add_prefix_space=add_prefix_space,
@@ -920,7 +927,7 @@ def make_config_and_run_task(
 @click.option(
     "--wandb-project",
     type=str,
-    default="Topo_LLM_finetuning_from_submission_script_large_batch_size",
+    default="Topo_LLM_finetuning_from_submission_script",
     help="Wandb project to use.",
 )
 @click.option(
@@ -938,8 +945,7 @@ def make_config_and_run_task(
 @click.option(
     "--additional-overrides",
     type=str,
-    default="",
-    help="Additional overrides to use.",
+    multiple=True,
 )
 @click.option(
     "--local",
@@ -993,7 +999,7 @@ def orchestrate_job_submission(
     experiment_stage: str | None,
     experiment_selector: str,
     task: Task,
-    additional_overrides: str,
+    additional_overrides: list[str] | None,
     finetuning_datasets_list_option: FinetuningDatasetsListOption,
     data_list_option: DataListOption,
     data_subsampling_sampling_mode: DataSamplingMode,
@@ -1201,6 +1207,8 @@ def orchestrate_job_submission(
         walltime=walltime,
     )
 
+    print(f"{additional_overrides = }")  # noqa: T201 - We want this script to print this output
+
     make_config_and_run_task(
         data_list_option=data_list_option,
         data_subsampling_sampling_mode=data_subsampling_sampling_mode,
@@ -1223,7 +1231,7 @@ def orchestrate_job_submission(
         machine_config=machine_config,
         submission_mode=submission_mode,
         task=task,
-        additional_overrides=additional_overrides,
+        additional_overrides=list(additional_overrides) if additional_overrides else None,
         add_prefix_space=add_prefix_space,
         create_pos_tags=create_pos_tags,
         skip_compute_and_store_embeddings=skip_compute_and_store_embeddings,

@@ -108,7 +108,7 @@ class SubmissionConfig(BaseModel):
     embeddings_data_prep_sampling_seed_list: list[str] | None = [
         "42",
     ]
-    additional_overrides: str | None = ""
+    additional_overrides: list[str] | None = None
 
     # # # #
     # Local estimates parameters
@@ -229,7 +229,9 @@ class SubmissionConfig(BaseModel):
         )
 
         if self.additional_overrides:
-            command.append(self.additional_overrides)
+            command.extend(
+                self.additional_overrides,
+            )
 
         return command
 
@@ -513,6 +515,10 @@ def pick_selected_options_in_each_list(
             and field_value  # Check that field_value is not None
             and len(field_value) > 0  # Check that field_value is not an empty list
         ):
+            # Skip the field for additional overrides
+            if field_name == "additional_overrides":
+                continue
+
             match run_only_selected_configs_option:
                 case RunOnlySelectedConfigsOption.RUN_ONLY_FIRST:
                     selection_index = 0
