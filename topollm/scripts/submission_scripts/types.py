@@ -163,3 +163,12 @@ class LocalEstimatesPointwiseAbsoluteNNeighborsListOption(StrEnum):
     DEFAULT = auto()
     SINGLE_CHOICE_128 = auto()
     POWERS_OF_TWO_UP_TO_1024 = auto()
+
+
+class RunOnlySelectedConfigsOption(StrEnum):
+    """Options to run only a single or selected config."""
+
+    RUN_ALL = auto()
+    RUN_ONLY_FIRST = auto()
+    RUN_ONLY_LAST = auto()
+    RUN_SINGLE_RANDOM = auto()

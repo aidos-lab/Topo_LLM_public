@@ -37,7 +37,7 @@ from topollm.scripts.submission_scripts.submission_config import (
     MachineConfig,
     SubmissionConfig,
     Template,
-    pick_first_option_in_each_list,
+    pick_selected_options_in_each_list,
 )
 from topollm.scripts.submission_scripts.types import (
     CheckpointNoListOption,
@@ -51,6 +51,7 @@ from topollm.scripts.submission_scripts.types import (
     LanguageModelListOption,
     LocalEstimatesFilteringNumSamplesListOption,
     LocalEstimatesPointwiseAbsoluteNNeighborsListOption,
+    RunOnlySelectedConfigsOption,
     SeedListOption,
 )
 from topollm.typing.enums import DataSamplingMode, EmbeddingsDataPrepSamplingMode, SubmissionMode, Task
@@ -706,7 +707,7 @@ def make_config_and_run_task(
     add_prefix_space: bool,
     create_pos_tags: bool,
     skip_compute_and_store_embeddings: bool,
-    run_only_first_config_option: bool = False,
+    run_only_selected_configs_option: RunOnlySelectedConfigsOption = RunOnlySelectedConfigsOption.RUN_ALL,
     dry_run: bool = False,
 ) -> None:
     """Make a submission configuration and run the task."""
@@ -816,18 +817,29 @@ def make_config_and_run_task(
         skip_compute_and_store_embeddings=skip_compute_and_store_embeddings,
     )
 
-    if run_only_first_config_option:
-        print(  # noqa: T201 - We want this submission script to print this output
-            f"<<< NOTE: {run_only_first_config_option = }",
-        )
-        print(  # noqa: T201 - We want this submission script to print this output
-            "<<< NOTE: Running only the first option in each list.",
-        )
-        submissions_config_to_run: SubmissionConfig = pick_first_option_in_each_list(
-            submission_config=submission_config,
-        )
-    else:
-        submissions_config_to_run = submission_config
+    match run_only_selected_configs_option:
+        case RunOnlySelectedConfigsOption.RUN_ALL:
+            submissions_config_to_run = submission_config
+        case (
+            RunOnlySelectedConfigsOption.RUN_ONLY_FIRST
+            | RunOnlySelectedConfigsOption.RUN_ONLY_LAST
+            | RunOnlySelectedConfigsOption.RUN_SINGLE_RANDOM
+        ):
+            print(  # noqa: T201 - We want this submission script to print this output
+                f"<<< NOTE: {run_only_selected_configs_option = }",
+            )
+            print(  # noqa: T201 - We want this submission script to print this output
+                "<<< NOTE: Running only a selection of the options in the given argument lists.",
+            )
+            submissions_config_to_run: SubmissionConfig = pick_selected_options_in_each_list(
+                submission_config=submission_config,
+                run_only_selected_configs_option=run_only_selected_configs_option,
+            )
+        case _:
+            msg: str = f"Unknown {run_only_selected_configs_option = }"
+            raise ValueError(
+                msg,
+            )
 
     run_task(
         submission_config=submissions_config_to_run,
@@ -937,10 +949,10 @@ def make_config_and_run_task(
     help="Only print the commands without executing them.",
 )
 @click.option(
-    "--run-only-first-config",
-    is_flag=True,
-    default=False,
-    help="Run only the first configuration option.",
+    "--run-only-selected-configs-option",
+    type=RunOnlySelectedConfigsOption,
+    default=RunOnlySelectedConfigsOption.RUN_ALL,
+    help="Run only a selected set of configurations.",
 )
 @click.option(
     "--memory",
@@ -991,7 +1003,7 @@ def orchestrate_job_submission(
     template: Template,
     local: bool,
     dry_run: bool,
-    run_only_first_config: bool,
+    run_only_selected_configs_option: RunOnlySelectedConfigsOption,
     use_roberta_base: bool,
     use_finetuned_model: bool,
 ) -> None:
@@ -1201,7 +1213,7 @@ def orchestrate_job_submission(
         add_prefix_space=add_prefix_space,
         create_pos_tags=create_pos_tags,
         skip_compute_and_store_embeddings=skip_compute_and_store_embeddings,
-        run_only_first_config_option=run_only_first_config,
+        run_only_selected_configs_option=run_only_selected_configs_option,
         dry_run=dry_run,
     )
 

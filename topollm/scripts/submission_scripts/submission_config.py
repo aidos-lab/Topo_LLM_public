@@ -28,11 +28,13 @@
 """Configuration for submitting a certain job."""
 
 import pathlib
+import random
 from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
 from topollm.config_classes.constants import TOPO_LLM_REPOSITORY_BASE_PATH
+from topollm.scripts.submission_scripts.types import RunOnlySelectedConfigsOption
 from topollm.typing.enums import EmbeddingsDataPrepSamplingMode, SubmissionMode, Task
 
 
@@ -493,11 +495,12 @@ class SubmissionConfig(BaseModel):
         return local_estimates_command
 
 
-def pick_first_option_in_each_list(
+def pick_selected_options_in_each_list(
     submission_config: SubmissionConfig,
+    run_only_selected_configs_option: RunOnlySelectedConfigsOption,
 ) -> SubmissionConfig:
-    """Make new submission config which picks out the first option in each list field of the submission config."""
-    submission_config_copy = submission_config.model_copy(
+    """Make new submission config which picks out selected options in each list field of the submission config."""
+    submission_config_copy: SubmissionConfig = submission_config.model_copy(
         deep=True,
     )
 
@@ -508,12 +511,29 @@ def pick_first_option_in_each_list(
                 list,
             )
             and field_value  # Check that field_value is not None
+            and len(field_value) > 0  # Check that field_value is not an empty list
         ):
+            match run_only_selected_configs_option:
+                case RunOnlySelectedConfigsOption.RUN_ONLY_FIRST:
+                    selection_index = 0
+                case RunOnlySelectedConfigsOption.RUN_ONLY_LAST:
+                    selection_index = -1
+                case RunOnlySelectedConfigsOption.RUN_SINGLE_RANDOM:
+                    length_of_field_value = len(field_value)
+                    selection_index = random.randint(  # noqa: S311 - this random is not used for security purposes
+                        0,
+                        length_of_field_value - 1,
+                    )
+                case _:
+                    msg: str = f"Unknown {run_only_selected_configs_option = }"
+                    raise ValueError(
+                        msg,
+                    )
             setattr(
                 submission_config_copy,
                 field_name,
                 [
-                    field_value[0],
+                    field_value[selection_index],
                 ],
             )
 

@@ -35,8 +35,8 @@ poetry run submit_jobs \
   --experiment-stage compute_embeddings_plus_single_pipeline_run \
   --use-finetuned-model \
   --task=pipeline \
-  --run-only-first-config \
   --dry-run
+  # --run-only-selected-configs-option run_single_random \
 
 
 # ================================================================== #
