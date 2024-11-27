@@ -28,6 +28,7 @@
 """Configuration for submitting a certain job."""
 
 import pathlib
+from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
@@ -35,11 +36,25 @@ from topollm.config_classes.constants import TOPO_LLM_REPOSITORY_BASE_PATH
 from topollm.typing.enums import EmbeddingsDataPrepSamplingMode, SubmissionMode, Task
 
 
+class Template(StrEnum):
+    """Enumeration of HPC templates."""
+
+    DSML_SHORT = "DSML_SHORT"
+    DSML = "DSML"
+    CPU = "CPU"
+    GTX1080 = "GTX1080"
+    TESLAT4 = "TESLAT4"
+    RTX6000 = "RTX6000"
+    RTX8000 = "RTX8000"
+    A100_40GB = "A100_40GB"
+    A100_80GB = "A100_80GB"
+
+
 class MachineConfig(BaseModel):
     """Configuration for the machine on which the job is run."""
 
     queue: str | None = ""  # Empty string means the default queue
-    template: str | None = "DSML"
+    template: Template | None = Template.DSML
 
     memory: str | None = "64"
     ncpus: str | None = "2"

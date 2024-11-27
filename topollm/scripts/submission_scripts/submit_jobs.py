@@ -36,6 +36,7 @@ from topollm.scripts.submission_scripts.get_checkpoint_no_list import get_checkp
 from topollm.scripts.submission_scripts.submission_config import (
     MachineConfig,
     SubmissionConfig,
+    Template,
     pick_first_option_in_each_list,
 )
 from topollm.scripts.submission_scripts.types import (
@@ -512,6 +513,10 @@ def retrieve_language_model_seed_list(
             language_model_seed_list = seed_list_option_two_seeds
         case SeedListOption.FIVE_SEEDS:
             language_model_seed_list = seed_list_option_five_seeds
+        case SeedListOption.FIXED_SEED_1234:
+            language_model_seed_list = [
+                "1234",
+            ]
         case SeedListOption.FIXED_SEEDS_1235_1236:
             language_model_seed_list = [
                 "1235",
@@ -852,7 +857,7 @@ def make_config_and_run_task(
             "reddit_different_data_subsampling_number_of_samples",
             "multiwoz21_different_checkpoints",
             "reddit_different_checkpoints",
-            "multiwoz21_and_reddit_data_subsampling_take_first_different_checkpoints",
+            "fixed_parameters_reddit_dataset_high_checkpoint_resolution",
         ],
         case_sensitive=False,
     ),
@@ -963,8 +968,8 @@ def make_config_and_run_task(
 )
 @click.option(
     "--template",
-    type=str,
-    default="DSML",
+    type=Template,
+    default=Template.DSML,
     help="Template to use for the job submission.",
 )
 def orchestrate_job_submission(
@@ -983,7 +988,7 @@ def orchestrate_job_submission(
     ncpus: str,
     ngpus: str,
     queue: str,
-    template: str,
+    template: Template,
     local: bool,
     dry_run: bool,
     run_only_first_config: bool,
@@ -1053,7 +1058,9 @@ def orchestrate_job_submission(
     #
     # ++ accelerator_model=rtx6000:
     #   + `--common_batch_size="32"` appears to work for fine-tuning "roberta-base" model on rtx6000 with 24GB of VRAM.
-    common_batch_size = 32
+    #
+    # - Note that some previous fine-tuning runs were done with a batch size of 8.
+    common_batch_size = 8
     batch_size_train = common_batch_size
     batch_size_eval = common_batch_size
 
@@ -1063,58 +1070,82 @@ def orchestrate_job_submission(
 
     ########################################
     ### Experiment selector configurations
-    if experiment_selector == "multiwoz21_different_data_subsampling_number_of_samples":
-        # ++++ Experiment > different subsampling number of samples for multiwoz21 dataset
-        data_list_option = DataListOption.MULTIWOZ21_ONLY
-        data_subsampling_number_of_samples_list_option = (
-            DataSubsamplingNumberOfSamplesListOption.RANGE_START_2000_STOP_18000_STEP_2000
-        )
+    ########################################
+    match experiment_selector:
+        case "multiwoz21_different_data_subsampling_number_of_samples":
+            # ++++ Experiment > different subsampling number of samples for multiwoz21 dataset
+            data_list_option = DataListOption.MULTIWOZ21_ONLY
+            data_subsampling_number_of_samples_list_option = (
+                DataSubsamplingNumberOfSamplesListOption.RANGE_START_2000_STOP_18000_STEP_2000
+            )
 
-        # Note: We explicitly increase the memory size here,
-        # since for the embeddings data prep step on 12_000 and more data subsamlping samples,
-        # the embeddings data prep step requires more memory.
-        memory = "64"
-    elif experiment_selector == "reddit_different_data_subsampling_number_of_samples":
-        # ++++ Experiment > different subsampling number of samples for reddit dataset
-        data_list_option = DataListOption.REDDIT_ONLY
-        data_subsampling_number_of_samples_list_option = (
-            DataSubsamplingNumberOfSamplesListOption.RANGE_START_2000_STOP_24000_STEP_2000
-        )
+            # Note: We explicitly increase the memory size here,
+            # since for the embeddings data prep step on 12_000 and more data subsamlping samples,
+            # the embeddings data prep step requires more memory.
+            memory = "64"
+        case "reddit_different_data_subsampling_number_of_samples":
+            # ++++ Experiment > different subsampling number of samples for reddit dataset
+            data_list_option = DataListOption.REDDIT_ONLY
+            data_subsampling_number_of_samples_list_option = (
+                DataSubsamplingNumberOfSamplesListOption.RANGE_START_2000_STOP_24000_STEP_2000
+            )
 
-        # Note: We explicitly increase the memory size here,
-        # since for the embeddings data prep step on 12_000 and more data subsamlping samples,
-        # the embeddings data prep step requires more memory.
-        memory = "80"
-    elif experiment_selector == "multiwoz21_different_checkpoints":
-        data_list_option = DataListOption.MULTIWOZ21_ONLY
-        data_subsampling_number_of_samples_list_option = DataSubsamplingNumberOfSamplesListOption.FIXED_10000
+            # Note: We explicitly increase the memory size here,
+            # since for the embeddings data prep step on 12_000 and more data subsamlping samples,
+            # the embeddings data prep step requires more memory.
+            memory = "80"
+        case "multiwoz21_different_checkpoints":
+            data_list_option = DataListOption.MULTIWOZ21_ONLY
+            data_subsampling_number_of_samples_list_option = DataSubsamplingNumberOfSamplesListOption.FIXED_10000
 
-        checkpoint_no_list_option = CheckpointNoListOption.SELECTED
-    elif experiment_selector == "reddit_different_checkpoints":
-        data_list_option = DataListOption.REDDIT_ONLY
-        data_subsampling_number_of_samples_list_option = DataSubsamplingNumberOfSamplesListOption.FIXED_10000
+            checkpoint_no_list_option = CheckpointNoListOption.SELECTED
+        case "reddit_different_checkpoints":
+            data_list_option = DataListOption.REDDIT_ONLY
+            data_subsampling_number_of_samples_list_option = DataSubsamplingNumberOfSamplesListOption.FIXED_10000
 
-        checkpoint_no_list_option = CheckpointNoListOption.SELECTED
-    else:
-        msg: str = f"Unknown {experiment_selector = }"
-        raise click.UsageError(message=msg)
+            checkpoint_no_list_option = CheckpointNoListOption.SELECTED
+        case "fixed_parameters_reddit_dataset_high_checkpoint_resolution":
+            # ++++ Experiment > Fixing many of the parameters so that we can run the
+            #      checkpoint comparison experiment with high checkpoint resolution
+
+            data_list_option = DataListOption.REDDIT_ONLY
+            data_subsampling_number_of_samples_list_option = DataSubsamplingNumberOfSamplesListOption.FIXED_10000
+
+            # Uncomment the following to do this only for one data subsampling sampling seed
+            data_subsampling_sampling_seed_list_option = DataSubsamplingSamplingSeedListOption.FIXED_777
+
+            # Select the models which are fine-tuned until they run into overfitting
+            language_model_list_option = LanguageModelListOption.SELECTED_FINETUNED_MANY_EPOCHS_FROM_ROBERTA_BASE
+            finetuning_regime_option = FinetuningRegimeOption.MANY_EPOCHS_WITH_OVERFITTING_RISK
+            # Select only a single training seed
+            language_model_seed_list_option = SeedListOption.FIXED_SEED_1234
+
+            # Select all checkpoints for which we have evaluation results
+            checkpoint_no_list_option = CheckpointNoListOption.FULL
+        # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+        # NOTE: You can add more experiment configurations here.
+        case _:
+            msg: str = f"Unknown {experiment_selector = }"
+            raise click.UsageError(message=msg)
 
     ########################################
     ### Experiment stage configurations
+    ########################################
     if experiment_stage == "compute_embeddings_plus_single_pipeline_run":
         ncpus = "4"
         ngpus = "1"
         queue = "CUDA"
-        template = "RTX6000"
 
-        # Only run a for a single embeddings data prep sampling seed
+        template = Template.GTX1080
+
+        # Only run for a single embeddings data prep sampling seed
         embeddings_data_prep_sampling_seed_list_option = EmbeddingsDataPrepSamplingSeedListOption.DEFAULT
         skip_compute_and_store_embeddings = False  # do the embeddings computation
     elif experiment_stage == "skip_compute_embeddings_and_multiple_pipeline_runs":
         ncpus = "6"
         ngpus = "0"
         queue = "DEFAULT"
-        template = "CPU"
+        template = Template.CPU
 
         # Assume embeddings are already computed and run for different embeddings data prep sampling seeds
         embeddings_data_prep_sampling_seed_list_option = EmbeddingsDataPrepSamplingSeedListOption.FIVE_SEEDS
@@ -1124,13 +1155,15 @@ def orchestrate_job_submission(
     match task:
         case Task.PERPLEXITY:
             queue = "CUDA"
-            template = "RTX6000"
+            template = Template.RTX6000
+
             walltime = "12:00:00"  # Use slightly longer walltime for perplexity
         case Task.FINETUNING:
+            queue = "CUDA"
+            template = Template.RTX6000
+
             ncpus = "4"
             ngpus = "1"
-            queue = "CUDA"
-            template = "RTX6000"
             walltime = "48:00:00"  # Use significantly longer walltime for finetuning
 
     machine_config = MachineConfig(
