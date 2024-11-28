@@ -1,10 +1,10 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -88,10 +88,12 @@ class FinetuningPathManagerBasic:
             "models",
             "finetuned_models",
             self.finetuning_config.finetuning_datasets.train_dataset.get_partial_path(),
-            self.finetuning_config.base_model_config_description,
+            self.finetuning_config.get_base_model_config_description(
+                description_type=DescriptionType.LONG,
+            ),
             self.peft_path_manager.peft_description_subdir,
             self.finetuning_config.gradient_modifier.gradient_modifier_description,
-            self.finetuning_parameters_description_for_directory_partial_path,
+            self.finetuning_parameters_partial_path,
             self.batch_size_description,
             self.training_duration_subdir,
             self.finetuning_reproducibility_description,
@@ -102,11 +104,22 @@ class FinetuningPathManagerBasic:
 
     def get_finetuned_short_model_name(
         self,
+        short_description_separator: str = "-",
     ) -> str:
-        """Return the short model name for the finetuned model."""
-        # Note: The short model name does not include the gradient modifier at the moment
+        """Return the short model name for the finetuned model.
+
+        Note:
+        - Dropout parameters are part of the base model config description.
+        - The short model name does not include the gradient modifier at the moment.
+
+        """
         finetuned_short_model_name: str = (
-            str(object=self.finetuning_config.base_model_config_description)
+            str(
+                object=self.finetuning_config.get_base_model_config_description(
+                    description_type=DescriptionType.SHORT,
+                    short_description_separator=short_description_separator,
+                ),
+            )
             + ITEM_SEP
             + str(
                 object=self.finetuning_config.finetuning_datasets.train_dataset.get_config_description(
@@ -139,10 +152,16 @@ class FinetuningPathManagerBasic:
         return description
 
     @property
-    def finetuning_parameters_description_for_directory_partial_path(
+    def finetuning_parameters_partial_path(
         self,
     ) -> str:
-        description: str = (
+        """Return the partial path for the finetuning parameters.
+
+        Note:
+        - Dropout parameters are part of the base model config description.
+
+        """
+        learning_parameters_description: str = (
             NAME_PREFIXES["learning_rate"]
             + KV_SEP
             + str(object=self.finetuning_config.learning_rate)
@@ -156,7 +175,7 @@ class FinetuningPathManagerBasic:
             + str(object=self.finetuning_config.weight_decay)
         )
 
-        return description
+        return learning_parameters_description
 
     @property
     def finetuning_reproducibility_description(
@@ -170,7 +189,12 @@ class FinetuningPathManagerBasic:
         self,
         short_description_separator: str = "-",
     ) -> str:
-        """Return the config description."""
+        """Return the config description.
+
+        Note:
+        - Dropout parameters are part of the base model config description.
+
+        """
         short_description: str = (
             str(object=self.finetuning_config.learning_rate)
             + short_description_separator

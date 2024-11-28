@@ -28,18 +28,35 @@
 """Configuration for submitting a certain job."""
 
 import pathlib
+import random
+from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
 from topollm.config_classes.constants import TOPO_LLM_REPOSITORY_BASE_PATH
+from topollm.scripts.submission_scripts.types import RunOnlySelectedConfigsOption
 from topollm.typing.enums import EmbeddingsDataPrepSamplingMode, SubmissionMode, Task
+
+
+class Template(StrEnum):
+    """Enumeration of HPC templates."""
+
+    DSML_SHORT = "DSML_SHORT"
+    DSML = "DSML"
+    CPU = "CPU"
+    GTX1080 = "GTX1080"
+    TESLAT4 = "TESLAT4"
+    RTX6000 = "RTX6000"
+    RTX8000 = "RTX8000"
+    A100_40GB = "A100_40GB"
+    A100_80GB = "A100_80GB"
 
 
 class MachineConfig(BaseModel):
     """Configuration for the machine on which the job is run."""
 
     queue: str | None = ""  # Empty string means the default queue
-    template: str | None = "DSML"
+    template: Template | None = Template.DSML
 
     memory: str | None = "64"
     ncpus: str | None = "2"
@@ -91,7 +108,7 @@ class SubmissionConfig(BaseModel):
     embeddings_data_prep_sampling_seed_list: list[str] | None = [
         "42",
     ]
-    additional_overrides: str | None = ""
+    additional_overrides: list[str] | None = None
 
     # # # #
     # Local estimates parameters
@@ -212,7 +229,9 @@ class SubmissionConfig(BaseModel):
         )
 
         if self.additional_overrides:
-            command.append(self.additional_overrides)
+            command.extend(
+                self.additional_overrides,
+            )
 
         return command
 
@@ -478,11 +497,12 @@ class SubmissionConfig(BaseModel):
         return local_estimates_command
 
 
-def pick_first_option_in_each_list(
+def pick_selected_options_in_each_list(
     submission_config: SubmissionConfig,
+    run_only_selected_configs_option: RunOnlySelectedConfigsOption,
 ) -> SubmissionConfig:
-    """Make new submission config which picks out the first option in each list field of the submission config."""
-    submission_config_copy = submission_config.model_copy(
+    """Make new submission config which picks out selected options in each list field of the submission config."""
+    submission_config_copy: SubmissionConfig = submission_config.model_copy(
         deep=True,
     )
 
@@ -493,12 +513,33 @@ def pick_first_option_in_each_list(
                 list,
             )
             and field_value  # Check that field_value is not None
+            and len(field_value) > 0  # Check that field_value is not an empty list
         ):
+            # Skip the field for additional overrides
+            if field_name == "additional_overrides":
+                continue
+
+            match run_only_selected_configs_option:
+                case RunOnlySelectedConfigsOption.RUN_ONLY_FIRST:
+                    selection_index = 0
+                case RunOnlySelectedConfigsOption.RUN_ONLY_LAST:
+                    selection_index = -1
+                case RunOnlySelectedConfigsOption.RUN_SINGLE_RANDOM:
+                    length_of_field_value = len(field_value)
+                    selection_index = random.randint(  # noqa: S311 - this random is not used for security purposes
+                        0,
+                        length_of_field_value - 1,
+                    )
+                case _:
+                    msg: str = f"Unknown {run_only_selected_configs_option = }"
+                    raise ValueError(
+                        msg,
+                    )
             setattr(
                 submission_config_copy,
                 field_name,
                 [
-                    field_value[0],
+                    field_value[selection_index],
                 ],
             )
 

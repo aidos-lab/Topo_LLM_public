@@ -31,7 +31,7 @@ import logging
 import pathlib
 
 from topollm.config_classes.main_config import MainConfig
-from topollm.typing.enums import PerplexityContainerSaveFormat, Verbosity
+from topollm.typing.enums import DescriptionType, PerplexityContainerSaveFormat, Verbosity
 
 default_logger: logging.Logger = logging.getLogger(
     name=__name__,
@@ -73,7 +73,9 @@ class EmbeddingsPathManagerSeparateDirectories:
             self.main_config.data.get_partial_path(),
             self.main_config.embeddings.config_description,
             self.main_config.tokenizer.config_description,
-            self.main_config.language_model.config_description,
+            self.main_config.language_model.get_config_description(
+                description_type=DescriptionType.LONG,
+            ),
             self.main_config.embeddings.embedding_extraction.config_description,
             self.main_config.transformations.config_description,
         )

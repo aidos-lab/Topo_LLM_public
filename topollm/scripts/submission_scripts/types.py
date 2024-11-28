@@ -86,6 +86,7 @@ class FinetuningDatasetsListOption(StrEnum):
     DEBUG = auto()
     MANUAL_IN_PYTHON_SCRIPT = auto()
     MULTIWOZ21_AND_REDDIT_FULL = auto()
+    MULTIWOZ21_AND_REDDIT_SMALL = auto()
     MULTIWOZ21_SMALL = auto()
     MULTIWOZ21_FULL = auto()
     REDDIT_SMALL = auto()
@@ -116,8 +117,9 @@ class SeedListOption(StrEnum):
     ONE_SEED = auto()
     TWO_SEEDS = auto()
     FIVE_SEEDS = auto()
-    FIXED_SEEDS_1235_1236 = auto()
+    FIXED_SEED_1234 = auto()
     FIXED_SEEDS_1234_1235_1236 = auto()
+    FIXED_SEEDS_1235_1236 = auto()
 
 
 class EmbeddingsDataPrepSamplingSeedListOption(StrEnum):
@@ -162,3 +164,12 @@ class LocalEstimatesPointwiseAbsoluteNNeighborsListOption(StrEnum):
     DEFAULT = auto()
     SINGLE_CHOICE_128 = auto()
     POWERS_OF_TWO_UP_TO_1024 = auto()
+
+
+class RunOnlySelectedConfigsOption(StrEnum):
+    """Options to run only a single or selected config."""
+
+    RUN_ALL = auto()
+    RUN_ONLY_FIRST = auto()
+    RUN_ONLY_LAST = auto()
+    RUN_SINGLE_RANDOM = auto()

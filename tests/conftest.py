@@ -1,10 +1,10 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -40,6 +40,7 @@ import transformers
 from dotenv import find_dotenv, load_dotenv
 
 from topollm.config_classes.data.data_config import DataConfig
+from topollm.config_classes.data.data_subsampling_config import DataSubsamplingConfig
 from topollm.config_classes.data.dataset_map_config import DatasetMapConfig
 from topollm.config_classes.embeddings.embedding_extraction_config import (
     EmbeddingExtractionConfig,
@@ -56,6 +57,8 @@ from topollm.config_classes.finetuning.gradient_modifier.gradient_modifier_confi
 from topollm.config_classes.finetuning.peft.peft_config import PEFTConfig
 from topollm.config_classes.inference.inference_config import InferenceConfig
 from topollm.config_classes.language_model.language_model_config import (
+    DropoutConfig,
+    DropoutProbabilities,
     LanguageModelConfig,
 )
 from topollm.config_classes.language_model.tokenizer_modifier.tokenizer_modifier_config import TokenizerModifierConfig
@@ -79,11 +82,10 @@ from topollm.typing.enums import (
     AggregationType,
     ArrayStorageType,
     DatasetType,
+    DropoutMode,
     FinetuningMode,
     GradientModifierMode,
-    Level,
     LMmode,
-    MaskingMode,
     MetadataStorageType,
     PreferredTorchBackend,
     Split,
@@ -245,6 +247,20 @@ def verbosity() -> Verbosity:
 @pytest.fixture(
     scope="session",
 )
+def data_subsampling_config() -> DataSubsamplingConfig:
+    """Return a DataSubsamplingConfig object."""
+    config = DataSubsamplingConfig(
+        number_of_samples=10,
+        sampling_seed=42,
+        split=Split.TRAIN,
+    )
+
+    return config
+
+
+@pytest.fixture(
+    scope="session",
+)
 def data_config() -> DataConfig:
     """Return a DataConfig object."""
     config = DataConfig(
@@ -256,8 +272,6 @@ def data_config() -> DataConfig:
         dataset_path="xsum",
         dataset_name=None,
         feature_column_name="summary",
-        number_of_samples=10,
-        split=Split.TRAIN,
     )
 
     return config
@@ -286,7 +300,16 @@ def dataset_map_config() -> DatasetMapConfig:
     return config
 
 
-model_config_list_for_testing = [
+model_config_list_for_testing: list[
+    tuple[
+        LMmode,
+        TaskType,
+        str,
+        str,
+        TokenizerModifierConfig,
+        DropoutConfig,
+    ],
+] = [
     (
         LMmode.MLM,
         TaskType.MASKED_LM,
@@ -295,6 +318,25 @@ model_config_list_for_testing = [
         TokenizerModifierConfig(
             mode=TokenizerModifierMode.DO_NOTHING,
             padding_token="<pad>",  # noqa: S106 - This is the hardcoded padding token
+        ),
+        DropoutConfig(),  # Use the default dropout configuration
+    ),
+    (
+        LMmode.MLM,
+        TaskType.MASKED_LM,
+        "roberta-base",
+        "roberta-base",
+        TokenizerModifierConfig(
+            mode=TokenizerModifierMode.DO_NOTHING,
+            padding_token="<pad>",  # noqa: S106 - This is the hardcoded padding token
+        ),
+        DropoutConfig(
+            mode=DropoutMode.MODIFY_ROBERTA_DROPOUT_PARAMETERS,
+            probabilities=DropoutProbabilities(
+                hidden_dropout_prob=0.2,
+                attention_probs_dropout_prob=0.3,
+                classifier_dropout=None,
+            ),
         ),
     ),
     (
@@ -306,6 +348,7 @@ model_config_list_for_testing = [
             mode=TokenizerModifierMode.DO_NOTHING,
             padding_token="[PAD]",  # noqa: S106 - This is the hardcoded padding token
         ),
+        DropoutConfig(),  # Use the default dropout configuration
     ),
     (
         LMmode.CLM,
@@ -316,6 +359,7 @@ model_config_list_for_testing = [
             mode=TokenizerModifierMode.ADD_PADDING_TOKEN,
             padding_token="<|pad|>",  # noqa: S106 - This is the hardcoded padding token
         ),
+        DropoutConfig(),  # Use the default dropout configuration for the causal language model
     ),
 ]
 
@@ -328,13 +372,21 @@ def language_model_config(
     request: pytest.FixtureRequest,
 ) -> LanguageModelConfig:
     """Return a LanguageModelConfig object."""
-    lm_mode, task_type, pretrained_model_name_or_path, short_model_name, tokenizer_modifier_config = request.param
+    (
+        lm_mode,
+        task_type,
+        pretrained_model_name_or_path,
+        short_model_name,
+        tokenizer_modifier_config,
+        dropout_config,
+    ) = request.param
 
     config = LanguageModelConfig(
         lm_mode=lm_mode,
         task_type=task_type,
         pretrained_model_name_or_path=pretrained_model_name_or_path,
         short_model_name=short_model_name,
+        dropout=dropout_config,
         tokenizer_modifier=tokenizer_modifier_config,
     )
 
@@ -365,11 +417,13 @@ def embeddings_config(
 ) -> EmbeddingsConfig:
     """Return an EmbeddingsConfig object.
 
-    Note: You should set 'num_workers=0' to avoid the following multiprocessing error
-    on the torch.device("mps") backend:
-    `RuntimeError: _share_filename_: only available on CPU`
-    Setting 'num_workers=1', while only starting a single process,
-    does use the multiprocessing module and can lead to the error.
+    Notes:
+    - You should set 'num_workers=0' to avoid the following multiprocessing error
+      on the torch.device("mps") backend:
+      `RuntimeError: _share_filename_: only available on CPU`
+      Setting 'num_workers=1', while only starting a single process,
+      does use the multiprocessing module and can lead to the error.
+
     """
     config = EmbeddingsConfig(
         dataset_map=dataset_map_config,
@@ -514,11 +568,11 @@ def device_fixture() -> torch.device:
 
     if use_mps_if_available:
         device = torch.device(
-            "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu",
+            device="cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu",
         )
     else:
         device = torch.device(
-            "cuda" if torch.cuda.is_available() else "cpu",
+            device="cuda" if torch.cuda.is_available() else "cpu",
         )
 
     return device
@@ -590,7 +644,7 @@ def wandb_config() -> WandBConfig:
 @pytest.fixture(
     scope="session",
 )
-def main_config(
+def main_config(  # noqa: PLR0913 - many arguments here because main config contains many components
     data_config: DataConfig,
     embeddings_config: EmbeddingsConfig,
     embeddings_data_prep_config: EmbeddingsDataPrepConfig,

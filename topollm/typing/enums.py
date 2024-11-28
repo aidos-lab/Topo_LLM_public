@@ -249,6 +249,14 @@ class FinetuningMode(StrEnum):
     LORA = auto()
 
 
+@unique
+class DropoutMode(StrEnum):
+    """The different modes for dropout."""
+
+    DEFAULTS = auto()
+    MODIFY_ROBERTA_DROPOUT_PARAMETERS = auto()
+
+
 class ComputeMetricsMode(StrEnum):
     """Compute metrics to use in the finetuning Trainer."""
 

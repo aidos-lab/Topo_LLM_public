@@ -244,7 +244,9 @@ def create_finetuned_language_model_config(
         save_steps=finetuning_config.save_steps,
     )
 
-    base_language_model_config: LanguageModelConfig = main_config.language_model
+    # Note that this needs to be the config of the base model for the finetuning,
+    # and NOT `main_config.language_model` (which is the config of the language model used for embedding computation)
+    base_language_model_config: LanguageModelConfig = main_config.finetuning.base_model
     new_language_model_config: LanguageModelConfig = update_language_model_config(
         base_language_model_config=base_language_model_config,
         finetuned_model_relative_dir=finetuned_model_relative_dir,

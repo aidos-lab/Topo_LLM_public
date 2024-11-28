@@ -1,10 +1,10 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -75,7 +75,7 @@ class TestFinetuningPathManager:
 
         if result is not None:
             assert validate_path_part(  # noqa: S101 - pytest assertion
-                path_part=str(result),
+                path_part=str(object=result),
             )
 
     def test_get_finetuned_short_model_name(

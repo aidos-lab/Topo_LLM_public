@@ -49,7 +49,7 @@ logger: logging.Logger = logging.getLogger(
     [
         "gpt2-medium",
         "roberta-base",
-        "roberta-base_finetuned-on-multiwoz21_ftm-standard",
+        "model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50",
     ],
 )
 def test_hydra_with_language_model_config(
