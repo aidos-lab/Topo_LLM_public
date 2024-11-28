@@ -1190,15 +1190,22 @@ def orchestrate_job_submission(
     ### Experiment stage configurations
     ########################################
     if experiment_stage == "compute_embeddings_plus_single_pipeline_run":
-        ncpus = "4"
-        ngpus = "1"
-        queue = "CUDA"
-
-        template = Template.GTX1080
-
         # Only run for a single embeddings data prep sampling seed
         embeddings_data_prep_sampling_seed_list_option = EmbeddingsDataPrepSamplingSeedListOption.DEFAULT
         skip_compute_and_store_embeddings = False  # do the embeddings computation
+
+        # queue = "CUDA"
+        # template = Template.GTX1080
+
+        queue = "DSML"
+        template = Template.DSML
+
+        ncpus = "4"
+        ngpus = "1"
+
+        # For the datasets with 10_000 samples, one pipeline run usually takes about 30 min.
+        # We set the walltime to 2 hours to be on the safe side.
+        walltime = "02:00:00"
     elif experiment_stage == "skip_compute_embeddings_and_multiple_pipeline_runs":
         ncpus = "6"
         ngpus = "0"
