@@ -218,10 +218,13 @@ def parse_model_info(
     path_str = str(object=path)
 
     # Initialize an empty dictionary to hold parsed values
-    parsed_info: dict[str, str | int | None] = {}
+    parsed_info: dict[
+        str,
+        str | int | None,
+    ] = {}
 
     # Use pathlib to handle different path delimiters
-    path_parts = pathlib.PurePath(path_str).parts
+    path_parts: tuple = pathlib.PurePath(path_str).parts
 
     # Find the segment containing the model information
     model_segment = None
@@ -230,42 +233,56 @@ def parse_model_info(
             model_segment = segment
             break
 
-    if model_segment:
-        # Store the full model section
-        parsed_info["model_full"] = model_segment
+    if model_segment is None:
+        # Early return if no model segment was found
+        return parsed_info
 
-        # Start from the end and remove optional components (task, checkpoint, seed)
-        model_name = model_segment
+    # If model segment was found, parse the model information
 
-        # Remove task if present (start from the end)
-        task_match = re.search(r"_task=([\w-]+)$", model_name)
-        if task_match:
-            parsed_info["model_task"] = task_match.group(1)
-            model_name = model_name[: task_match.start()]
-        else:
-            parsed_info["model_task"] = None
+    # Store the full model section
+    parsed_info["model_full"] = model_segment
 
-        # Note: For the checkpoint and seed
-        # we still use the old '-' key-value separator,
-        # because this still appears in the model names.
+    # Start from the end and remove optional components (task, checkpoint, seed)
+    model_name = model_segment
 
-        # Remove checkpoint if present (after removing task)
-        ckpt_match = re.search(r"_ckpt-(\d+)$", model_name)
-        if ckpt_match:
-            parsed_info[NAME_PREFIXES_TO_FULL_DESCRIPTIONS["ckpt"]] = int(ckpt_match.group(1))
-            model_name = model_name[: ckpt_match.start()]
-        else:
-            parsed_info[NAME_PREFIXES_TO_FULL_DESCRIPTIONS["ckpt"]] = None
+    # Remove task if present (start from the end)
+    task_match: re.Match[str] | None = re.search(
+        pattern=r"_task=([\w-]+)$",
+        string=model_name,
+    )
+    if task_match:
+        parsed_info["model_task"] = task_match.group(1)
+        model_name: str = model_name[: task_match.start()]
+    else:
+        parsed_info["model_task"] = None
 
-        # Remove seed if present (after removing checkpoint)
-        seed_match = re.search(r"_seed-(\d+)$", model_name)
-        if seed_match:
-            parsed_info["model_seed"] = int(seed_match.group(1))
-            model_name = model_name[: seed_match.start()]
-        else:
-            parsed_info["model_seed"] = None
+    # Note: For the checkpoint and seed
+    # we still use the old '-' key-value separator,
+    # because this still appears in the model names.
 
-        # Store the final model name
-        parsed_info["model_partial_name"] = model_name
+    # Remove checkpoint if present (after removing task)
+    ckpt_match: re.Match[str] | None = re.search(
+        pattern=r"_ckpt-(\d+)$",
+        string=model_name,
+    )
+    if ckpt_match:
+        parsed_info[NAME_PREFIXES_TO_FULL_DESCRIPTIONS["ckpt"]] = int(ckpt_match.group(1))
+        model_name = model_name[: ckpt_match.start()]
+    else:
+        parsed_info[NAME_PREFIXES_TO_FULL_DESCRIPTIONS["ckpt"]] = None
+
+    # Remove seed if present (after removing checkpoint)
+    seed_match: re.Match[str] | None = re.search(
+        pattern=r"_seed-(\d+)$",
+        string=model_name,
+    )
+    if seed_match:
+        parsed_info["model_seed"] = int(seed_match.group(1))
+        model_name = model_name[: seed_match.start()]
+    else:
+        parsed_info["model_seed"] = None
+
+    # Store the final model name
+    parsed_info["model_partial_name"] = model_name
 
     return parsed_info
