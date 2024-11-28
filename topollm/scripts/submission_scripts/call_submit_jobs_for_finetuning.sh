@@ -5,8 +5,11 @@
 echo ">>> Submission script started."
 # ================================================================== #
 
-LOCAL_OPTION="--local"
+# # # #
+#
+# LOCAL_OPTION="--local"
 
+# # # #
 # Leave DRY_RUN_OPTION empty to run without the dry-run option, i.e., to actually submit the jobs
 #
 # DRY_RUN_OPTION="--dry-run"
@@ -16,16 +19,18 @@ LOCAL_OPTION="--local"
 RUN_ONLY_SELECTED_CONFIGS_OPTION="run_only_first"
 
 DROPOUT_PARAMETER_LIST=(
-  "0.05"
-  "0.15"
-  "0.2"
-  "0.25"
-  "0.3"
+  # "0.05"
+  "0.06"
+  "0.07"
+  # "0.15"
+  # "0.2"
+  # "0.25"
+  # "0.3"
   # "0.35"
 )
 
-SKIP_FINETUNING_OPTION="--additional-overrides feature_flags.finetuning.skip_finetuning=true"
-USE_WANDB_FALSE_OPTION="--additional-overrides feature_flags.wandb.use_wandb=false"
+# SKIP_FINETUNING_OPTION="--additional-overrides feature_flags.finetuning.skip_finetuning=true"
+# USE_WANDB_FALSE_OPTION="--additional-overrides feature_flags.wandb.use_wandb=false"
 
 
 ### Finetuning
