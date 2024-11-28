@@ -52,8 +52,4 @@ roberta-base-masked_lm-0.15-0.15-None_multiwoz21-do_nothing-ner_tags_train-10000
 roberta-base-masked_lm-0.2-0.2-None_multiwoz21-do_nothing-ner_tags_train-10000-take_first-111_ftm=standard_lora-None_5e-05-constant-0.01-50.yaml
 roberta-base-masked_lm-0.25-0.25-None_multiwoz21-do_nothing-ner_tags_train-10000-take_first-111_ftm=standard_lora-None_5e-05-constant-0.01-50.yaml
 roberta-base-masked_lm-0.3-0.3-None_multiwoz21-do_nothing-ner_tags_train-10000-take_first-111_ftm=standard_lora-None_5e-05-constant-0.01-50.yaml
-roberta-base-masked_lm-0.05-0.05-None_multiwoz21-do_nothing-ner_tags_train-10000-take_first-111_ftm=standard_lora-None_5e-05-constant-0.01-50.yaml
-roberta-base-masked_lm-0.15-0.15-None_multiwoz21-do_nothing-ner_tags_train-10000-take_first-111_ftm=standard_lora-None_5e-05-constant-0.01-50.yaml
-roberta-base-masked_lm-0.2-0.2-None_multiwoz21-do_nothing-ner_tags_train-10000-take_first-111_ftm=standard_lora-None_5e-05-constant-0.01-50.yaml
-roberta-base-masked_lm-0.25-0.25-None_multiwoz21-do_nothing-ner_tags_train-10000-take_first-111_ftm=standard_lora-None_5e-05-constant-0.01-50.yaml
-roberta-base-masked_lm-0.3-0.3-None_multiwoz21-do_nothing-ner_tags_train-10000-take_first-111_ftm=standard_lora-None_5e-05-constant-0.01-50.yaml
+roberta-base-masked_lm-0.35-0.35-None_multiwoz21-do_nothing-ner_tags_train-10000-take_first-111_ftm=standard_lora-None_5e-05-constant-0.01-50.yaml

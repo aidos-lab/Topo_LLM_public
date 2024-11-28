@@ -1,6 +1,13 @@
 #!/bin/bash
 
+
+# Default values
 DRY_RUN=false
+
+WANDB_PROJECT_DIR_NAME=""
+# WANDB_PROJECT_DIR_NAME="Topo_LLM_finetuning_from_submission_script_DEBUG_large_batch_size"
+WANDB_PROJECT_DIR_NAME="Topo_LLM_finetuning_from_submission_script_dropout_different_choices"
+
 
 # Parse command line arguments
 while [[ "$#" -gt 0 ]]; do
@@ -8,6 +15,10 @@ while [[ "$#" -gt 0 ]]; do
     --dry_run)
       DRY_RUN=true
       shift # Remove --dry_run from processing
+      ;;
+    --wandb_project_dir_name)
+      WANDB_PROJECT_DIR_NAME="$2"
+      shift 2 # Remove --wandb_project_dir_name and its value
       ;;
     *)
       echo "Unknown option: $1"
@@ -17,7 +28,14 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 # # # # # # # # # # # # # # # # # # # # # # # #
-# Check if TOPO_LLM_REPOSITORY_BASE_PATH is set
+# Check if required variables are set
+# Check if WANDB_PROJECT_DIR_NAME is provided
+if [[ -z "${WANDB_PROJECT_DIR_NAME}" ]]; then
+  echo "@@@ Error: --wandb_project_dir_name is required."
+  echo "@@@ Exiting script now without doing anything."
+  exit 1
+fi
+
 if [[ -z "${TOPO_LLM_REPOSITORY_BASE_PATH}" ]]; then
   echo "@@@ Error: TOPO_LLM_REPOSITORY_BASE_PATH is not set."
   echo "@@@ Exiting script now without doing anything."
@@ -26,10 +44,8 @@ else
   echo ">>> TOPO_LLM_REPOSITORY_BASE_PATH=${TOPO_LLM_REPOSITORY_BASE_PATH}"
 fi
 
-WANDB_OUTPUT_DIR_PATH="${TOPO_LLM_REPOSITORY_BASE_PATH}/wandb_output_dir"
-WANDB_PROJECT_DIR_NAME="Topo_LLM_finetuning_from_submission_script_DEBUG_large_batch_size"
-
 # Construct the full path to the project directory
+WANDB_OUTPUT_DIR_PATH="${TOPO_LLM_REPOSITORY_BASE_PATH}/wandb_output_dir"
 WANDB_PROJECT_DIR_PATH="${WANDB_OUTPUT_DIR_PATH}/${WANDB_PROJECT_DIR_NAME}/wandb"
 echo ">>> WANDB_PROJECT_DIR_PATH=${WANDB_PROJECT_DIR_PATH}"
 
