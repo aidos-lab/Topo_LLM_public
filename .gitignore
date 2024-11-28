@@ -206,4 +206,5 @@ hydra_output_dir/
 hydra_plugins/
 
 # Weights and Biases (wandb)
+wandb_output_dir/
 wandb/
