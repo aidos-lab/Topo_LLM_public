@@ -241,6 +241,7 @@ def test_parse_path_info_full_for_finetuned_model(
 def test_parse_model_info(
     logger_fixture: logging.Logger,
 ) -> None:
+    """Example usage of parse_model_info function."""
     # # # # # # # #
     # Test case 1:
     # Default dropout rate parameters

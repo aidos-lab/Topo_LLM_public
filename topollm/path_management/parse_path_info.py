@@ -242,8 +242,31 @@ def parse_model_info(
     # Store the full model section
     parsed_info["model_full"] = model_segment
 
+    # # # #
     # Start from the end and remove optional components (task, checkpoint, seed)
     model_name = model_segment
+
+    # Remove dropout parameters if present (start from the end)
+    clf_dr_match: re.Match[str] | None = re.search(
+        pattern=r"_clf-dr=([\wd-]+)$",
+        string=model_name,
+    )
+    if clf_dr_match:
+        parsed_info["model_clf-dr"] = clf_dr_match.group(1)
+        model_name = model_name[: clf_dr_match.start()]
+    else:
+        parsed_info["model_clf-dr"] = None
+
+    # TODO: This does not work yet
+    attn_dr_match: re.Match[str] | None = re.search(
+        pattern=r"_attn-dr=([\wd-]+)$",
+        string=model_name,
+    )
+    if attn_dr_match:
+        parsed_info["model_attn-dr"] = attn_dr_match.group(1)
+        model_name = model_name[: attn_dr_match.start()]
+    else:
+        parsed_info["model_attn-dr"] = None
 
     # Remove task if present (start from the end)
     task_match: re.Match[str] | None = re.search(
