@@ -1,10 +1,10 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -25,6 +25,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Factory for creating a PEFTPathManager instance."""
+
 import logging
 
 from topollm.config_classes.finetuning.peft.peft_config import PEFTConfig
@@ -34,13 +36,16 @@ from topollm.path_management.finetuning.peft.peft_path_manager_basic import (
 from topollm.path_management.finetuning.peft.protocol import (
     PEFTPathManager,
 )
+from topollm.typing.enums import Verbosity
 
-default_logger = logging.getLogger(__name__)
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 def get_peft_path_manager(
     peft_config: PEFTConfig,
-    verbosity: int = 1,
+    verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> PEFTPathManager:
     """Create a PEFTPathManager instance."""

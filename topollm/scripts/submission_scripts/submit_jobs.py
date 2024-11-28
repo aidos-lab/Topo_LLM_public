@@ -469,9 +469,9 @@ def retrieve_model_and_checkpoint_list(
         case LanguageModelListOption.WITH_005_015_02_DROPOUT_FINETUNED_ON_MULTIWOZ_SMALL_MANY_EPOCHS_FROM_ROBERTA_BASE:
             # TODO(Ben): There is a problem with equal signs in the model name.
             language_model_list: list[str] = [
-                "roberta-base-masked_lm-0.05-0.05-None_multiwoz21-do_nothing-ner_tags_train-10000-take_first-111_ftm=standard_lora-None_5e-05-constant-0.01-50.yaml",
-                "roberta-base-masked_lm-0.15-0.15-None_multiwoz21-do_nothing-ner_tags_train-10000-take_first-111_ftm=standard_lora-None_5e-05-constant-0.01-50.yaml",
-                "roberta-base-masked_lm-0.2-0.2-None_multiwoz21-do_nothing-ner_tags_train-10000-take_first-111_ftm=standard_lora-None_5e-05-constant-0.01-50",
+                "roberta-base-masked_lm-0.05-0.05-None_multiwoz21-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-constant-0.01-50.yaml",
+                "roberta-base-masked_lm-0.15-0.15-None_multiwoz21-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-constant-0.01-50.yaml",
+                "roberta-base-masked_lm-0.2-0.2-None_multiwoz21-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-constant-0.01-50",
             ]
 
             checkpoint_no_list = get_checkpoint_no_list(

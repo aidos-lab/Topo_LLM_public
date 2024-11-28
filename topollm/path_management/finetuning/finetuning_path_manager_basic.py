@@ -35,7 +35,6 @@ from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
 from topollm.config_classes.data.data_config import DataConfig
 from topollm.config_classes.finetuning.finetuning_config import FinetuningConfig
 from topollm.config_classes.paths.paths_config import PathsConfig
-from topollm.config_classes.sanitize_dirname import sanitize_dirname
 from topollm.path_management.finetuning.peft.factory import (
     get_peft_path_manager,
 )
@@ -132,9 +131,10 @@ class FinetuningPathManagerBasic:
                 ),
             )
             + ITEM_SEP
-            + sanitize_dirname(
-                dir_name=str(object=self.peft_path_manager.peft_description_subdir),
-            )  # We might need to shorten this
+            + self.peft_path_manager.get_config_description(
+                description_type=DescriptionType.SHORT,
+                short_description_separator=short_description_separator,
+            )
             + ITEM_SEP
             + str(
                 # Note: the short finetuning parameters description contains in particular:

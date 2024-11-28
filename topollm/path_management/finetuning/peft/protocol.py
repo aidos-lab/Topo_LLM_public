@@ -1,10 +1,11 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
+# Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
 # First versions of this code were potentially generated
@@ -29,6 +30,8 @@
 import pathlib
 from typing import Protocol
 
+from topollm.typing.enums import DescriptionType
+
 
 class PEFTPathManager(Protocol):
     """Manages the paths for the PEFT process."""
@@ -37,3 +40,9 @@ class PEFTPathManager(Protocol):
     def peft_description_subdir(
         self,
     ) -> pathlib.Path: ...  # pragma: no cover
+
+    def get_config_description(
+        self,
+        description_type: DescriptionType = DescriptionType.LONG,
+        short_description_separator: str = "-",
+    ) -> str: ...  # pragma: no cover
