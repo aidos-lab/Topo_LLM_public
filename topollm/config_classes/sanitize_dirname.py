@@ -51,7 +51,7 @@ def sanitize_dirname(
         "_",
     )
 
-    result = truncate_length_of_desc(
+    result: str = truncate_length_of_desc(
         desc=result,
     )
 

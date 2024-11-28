@@ -1,10 +1,10 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -33,9 +33,11 @@ import pathlib
 from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
 from topollm.config_classes.finetuning.peft.peft_config import PEFTConfig
 from topollm.path_management.convert_object_to_valid_path_part import convert_list_to_path_part
-from topollm.typing.enums import FinetuningMode
+from topollm.typing.enums import FinetuningMode, Verbosity
 
-default_logger = logging.getLogger(__name__)
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 class PEFTPathManagerBasic:
@@ -44,14 +46,14 @@ class PEFTPathManagerBasic:
     def __init__(
         self,
         peft_config: PEFTConfig,
-        verbosity: int = 1,
+        verbosity: Verbosity = Verbosity.NORMAL,
         logger: logging.Logger = default_logger,
     ) -> None:
         """Initialize the PEFTPathManagerBasic."""
         self.peft_config: PEFTConfig = peft_config
 
-        self.verbosity = verbosity
-        self.logger = logger
+        self.verbosity: Verbosity = verbosity
+        self.logger: logging.Logger = logger
 
     @property
     def peft_description_subdir(
@@ -69,11 +71,11 @@ class PEFTPathManagerBasic:
         self,
     ) -> str:
         if self.peft_config.finetuning_mode == FinetuningMode.STANDARD:
-            desc = f"{NAME_PREFIXES['FinetuningMode']}{KV_SEP}standard"
+            desc: str = f"{NAME_PREFIXES['FinetuningMode']}{KV_SEP}standard"
         elif self.peft_config.finetuning_mode == FinetuningMode.LORA:
             desc = f"{NAME_PREFIXES['FinetuningMode']}{KV_SEP}lora"
         else:
-            msg = f"Unknown finetuning_mode: {self.peft_config.finetuning_mode = }"
+            msg: str = f"Unknown {self.peft_config.finetuning_mode = }"
             raise ValueError(msg)
 
         return desc
@@ -88,11 +90,11 @@ class PEFTPathManagerBasic:
             description = (
                 f"{NAME_PREFIXES['lora_r']}"
                 f"{KV_SEP}"
-                f"{str(self.peft_config.r)}"
+                f"{str(object=self.peft_config.r)}"
                 f"{ITEM_SEP}"
                 f"{NAME_PREFIXES['lora_alpha']}"
                 f"{KV_SEP}"
-                f"{str(self.peft_config.lora_alpha)}"
+                f"{str(object=self.peft_config.lora_alpha)}"
                 f"{ITEM_SEP}"
                 f"{NAME_PREFIXES['lora_target_modules']}"
                 f"{KV_SEP}"
@@ -107,7 +109,7 @@ class PEFTPathManagerBasic:
                 f"{self.peft_config.use_rslora}"
             )
         else:
-            msg = f"Unknown finetuning_mode: {self.peft_config.finetuning_mode = }"
+            msg: str = f"Unknown finetuning_mode: {self.peft_config.finetuning_mode = }"
             raise ValueError(msg)
 
         return description
@@ -118,13 +120,15 @@ def target_modules_to_path_part(
 ) -> str:
     """Convert the target_modules to a path part."""
     if target_modules is None:
-        return "None"
+        target_modules_path_part = "None"
     elif isinstance(
         target_modules,
         str,
     ):
-        return target_modules
+        target_modules_path_part = target_modules
     else:
-        return convert_list_to_path_part(
+        target_modules_path_part = convert_list_to_path_part(
             input_list=target_modules,
         )
+
+    return target_modules_path_part

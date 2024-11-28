@@ -228,7 +228,8 @@ class SubmissionConfig(BaseModel):
             + self.generate_hydra_launcher_command()
         )
 
-        if self.additional_overrides:
+        # We need to check that the additional overrides are not None and not empty
+        if self.additional_overrides and len(self.additional_overrides) > 0:
             command.extend(
                 self.additional_overrides,
             )

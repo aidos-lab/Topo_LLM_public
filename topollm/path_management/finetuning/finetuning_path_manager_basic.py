@@ -108,6 +108,10 @@ class FinetuningPathManagerBasic:
     ) -> str:
         """Return the short model name for the finetuned model.
 
+        Note: Since the short model name is used to identify the language model config file,
+        it should NOT include the equals sign "=",
+        since this will interfer with the overwrite syntax for the hydra config command line interface.
+
         Note:
         - Dropout parameters are part of the base model config description.
         - The short model name does not include the gradient modifier at the moment.
@@ -124,6 +128,7 @@ class FinetuningPathManagerBasic:
             + str(
                 object=self.finetuning_config.finetuning_datasets.train_dataset.get_config_description(
                     description_type=DescriptionType.SHORT,
+                    short_description_separator=short_description_separator,
                 ),
             )
             + ITEM_SEP
@@ -135,7 +140,9 @@ class FinetuningPathManagerBasic:
                 # Note: the short finetuning parameters description contains in particular:
                 # - the finetuning seed
                 # - the current epoch
-                object=self.get_finetuning_parameters_description_for_short_model_name(),
+                object=self.get_finetuning_parameters_description_for_short_model_name(
+                    short_description_separator=short_description_separator,
+                ),
             )
         )
 

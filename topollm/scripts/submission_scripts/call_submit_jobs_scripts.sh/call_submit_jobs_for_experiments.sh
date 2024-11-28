@@ -25,8 +25,8 @@ echo ">>> Submission script started."
 #
 # DRY_RUN_OPTION="--dry-run"
 
-RUN_ONLY_SELECTED_CONFIGS_OPTION="run_all"
-# RUN_ONLY_SELECTED_CONFIGS_OPTION="run_single_random"
+# RUN_ONLY_SELECTED_CONFIGS_OPTION="run_all"
+RUN_ONLY_SELECTED_CONFIGS_OPTION="run_single_random"
 # RUN_ONLY_SELECTED_CONFIGS_OPTION="run_only_first"
 
 DATA_LIST_OPTION_LIST=(
@@ -34,10 +34,13 @@ DATA_LIST_OPTION_LIST=(
   "multiwoz21_only"
 )
 
+# EXPERIMENT_SELECTOR="fixed_parameters_high_checkpoint_resolution"
+EXPERIMENT_SELECTOR="exploratory_dropout_analysis_coarse_checkpoint_resolution"
+
 for DATA_LIST_OPTION in "${DATA_LIST_OPTION_LIST[@]}"; do
   poetry run submit_jobs \
     --data-list-option "${DATA_LIST_OPTION}" \
-    --experiment-selector fixed_parameters_high_checkpoint_resolution \
+    --experiment-selector "${EXPERIMENT_SELECTOR}" \
     --experiment-stage compute_embeddings_plus_single_pipeline_run \
     --use-finetuned-model \
     --task=pipeline \
