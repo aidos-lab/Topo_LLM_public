@@ -183,6 +183,7 @@ data/analysis/aligned_and_analyzed/
 data/analysis/prepared/
 data/analysis/sample_sizes/
 data/analysis/twonn/
+data/analysis/twonn.backup.*
 
 data/backup/
 

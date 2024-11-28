@@ -32,6 +32,20 @@
             }
         },
         {
+            "label": "sync wandb runs to cloud",
+            "command": "./wandb_output_dir/sync_wandb_runs.sh",
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": false
+            }
+        },
+        {
             "label": "rsync from HHU Hilbert to local repository folder: 'hydra_output_dir' directory",
             "command": "./topollm/scripts/hhu_hilbert/sync_data/rsync_hydra_output_dir_from_hhu_hilbert.sh",
             "type": "shell",
