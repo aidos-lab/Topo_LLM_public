@@ -4,7 +4,7 @@ task_type: masked_lm
 pretrained_model_name_or_path: ${paths.data_dir}/models/finetuned_models/data=multiwoz21_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/split=train_samples=10000_sampling=take_first/model=roberta-base_task=masked_lm/ftm=standard/lora-None/gradmod=do_nothing_target-freeze=/lr=5e-05_lr-scheduler-type=constant_wd=0.01/bs-train=8/ep=50/seed=1234/model_files/checkpoint-${language_model.checkpoint_no}
 manual_tokenizer_override_pretrained_model_name_or_path: null
 seed: 1234
-short_model_name: model=roberta-base_task=masked_lm_multiwoz21-do_nothing-ner_tags_train-10000-take_first-111_ftm=standard_lora-None_5e-05-constant-0.01-50_seed-${language_model.seed}_ckpt-${language_model.checkpoint_no}
+short_model_name: model=roberta-base_task=masked_lm_multiwoz21-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-constant-0.01-50_seed-${language_model.seed}_ckpt-${language_model.checkpoint_no}
 tokenizer_modifier:
   mode: do_nothing
   padding_token: <pad>

@@ -35,7 +35,6 @@ from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
 from topollm.config_classes.data.data_config import DataConfig
 from topollm.config_classes.finetuning.finetuning_config import FinetuningConfig
 from topollm.config_classes.paths.paths_config import PathsConfig
-from topollm.config_classes.sanitize_dirname import sanitize_dirname
 from topollm.path_management.finetuning.peft.factory import (
     get_peft_path_manager,
 )
@@ -108,6 +107,10 @@ class FinetuningPathManagerBasic:
     ) -> str:
         """Return the short model name for the finetuned model.
 
+        Note: Since the short model name is used to identify the language model config file,
+        it should NOT include the equals sign "=",
+        since this will interfer with the overwrite syntax for the hydra config command line interface.
+
         Note:
         - Dropout parameters are part of the base model config description.
         - The short model name does not include the gradient modifier at the moment.
@@ -124,18 +127,22 @@ class FinetuningPathManagerBasic:
             + str(
                 object=self.finetuning_config.finetuning_datasets.train_dataset.get_config_description(
                     description_type=DescriptionType.SHORT,
+                    short_description_separator=short_description_separator,
                 ),
             )
             + ITEM_SEP
-            + sanitize_dirname(
-                dir_name=str(object=self.peft_path_manager.peft_description_subdir),
-            )  # We might need to shorten this
+            + self.peft_path_manager.get_config_description(
+                description_type=DescriptionType.SHORT,
+                short_description_separator=short_description_separator,
+            )
             + ITEM_SEP
             + str(
                 # Note: the short finetuning parameters description contains in particular:
                 # - the finetuning seed
                 # - the current epoch
-                object=self.get_finetuning_parameters_description_for_short_model_name(),
+                object=self.get_finetuning_parameters_description_for_short_model_name(
+                    short_description_separator=short_description_separator,
+                ),
             )
         )
 

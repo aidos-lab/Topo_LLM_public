@@ -442,25 +442,37 @@ def retrieve_model_and_checkpoint_list(
     """Retrieve the language model list and checkpoint number list based on the option."""
     match language_model_list_option:
         case LanguageModelListOption.ONLY_ROBERTA_BASE:
-            language_model_list = only_roberta_base_language_model_list
+            language_model_list: list[str] = only_roberta_base_language_model_list
             # No checkpoints for the base model
             checkpoint_no_list = None
         case LanguageModelListOption.SELECTED_FINETUNED_FEW_EPOCHS_FROM_ROBERTA_BASE:
-            language_model_list = selected_finetuned_few_epochs_from_roberta_base_language_model_list
+            language_model_list: list[str] = selected_finetuned_few_epochs_from_roberta_base_language_model_list
 
             checkpoint_no_list = get_checkpoint_no_list(
                 checkpoint_no_list_option=checkpoint_no_list_option,
                 num_train_epochs=int(num_train_epochs),
             )
         case LanguageModelListOption.FULL_FINETUNED_FEW_EPOCHS_FROM_ROBERTA_BASE:
-            language_model_list = full_finetuned_few_epochs_from_roberta_base_language_model_list
+            language_model_list: list[str] = full_finetuned_few_epochs_from_roberta_base_language_model_list
 
             checkpoint_no_list = get_checkpoint_no_list(
                 checkpoint_no_list_option=checkpoint_no_list_option,
                 num_train_epochs=int(num_train_epochs),
             )
         case LanguageModelListOption.SELECTED_FINETUNED_MANY_EPOCHS_FROM_ROBERTA_BASE:
-            language_model_list = selected_finetuned_many_epochs_from_roberta_base_language_model_list
+            language_model_list: list[str] = selected_finetuned_many_epochs_from_roberta_base_language_model_list
+
+            checkpoint_no_list = get_checkpoint_no_list(
+                checkpoint_no_list_option=checkpoint_no_list_option,
+                num_train_epochs=int(num_train_epochs),
+            )
+        case LanguageModelListOption.WITH_005_015_02_DROPOUT_FINETUNED_ON_MULTIWOZ_SMALL_MANY_EPOCHS_FROM_ROBERTA_BASE:
+            # TODO(Ben): There is a problem with equal signs in the model name.
+            language_model_list: list[str] = [
+                "roberta-base-masked_lm-0.05-0.05-None_multiwoz21-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-constant-0.01-50.yaml",
+                "roberta-base-masked_lm-0.15-0.15-None_multiwoz21-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-constant-0.01-50.yaml",
+                "roberta-base-masked_lm-0.2-0.2-None_multiwoz21-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-constant-0.01-50",
+            ]
 
             checkpoint_no_list = get_checkpoint_no_list(
                 checkpoint_no_list_option=checkpoint_no_list_option,
@@ -468,7 +480,7 @@ def retrieve_model_and_checkpoint_list(
             )
         case LanguageModelListOption.SETSUMBT_SELECTED:
             setsumbt_seed: int = 0
-            language_model_list = setsumbt_model_list
+            language_model_list: list[str] = setsumbt_model_list
 
             # Note: For the different seeds in the SETSUMBT training,
             # we have saved checkpoints at different global steps.
@@ -495,10 +507,10 @@ def retrieve_model_and_checkpoint_list(
                     "126585",
                 ]
             else:
-                msg = f"Unknown {setsumbt_seed = }"
+                msg: str = f"Unknown {setsumbt_seed = }"
                 raise ValueError(msg)
         case _:
-            msg = f"Unknown {language_model_list_option = }"
+            msg: str = f"Unknown {language_model_list_option = }"
             raise ValueError(
                 msg,
             )
@@ -875,6 +887,7 @@ def make_config_and_run_task(
             "multiwoz21_different_data_subsampling_number_of_samples",
             "reddit_different_data_subsampling_number_of_samples",
             "coarse_checkpoint_resolution",
+            "exploratory_dropout_analysis_coarse_checkpoint_resolution",
             "fixed_parameters_high_checkpoint_resolution",
         ],
         case_sensitive=False,
@@ -1131,8 +1144,21 @@ def orchestrate_job_submission(
             #
             # Note:
             # - You need to set the data_list_option via the command line arguments.
-            data_list_option = DataListOption.MULTIWOZ21_ONLY
             data_subsampling_number_of_samples_list_option = DataSubsamplingNumberOfSamplesListOption.FIXED_10000
+
+            checkpoint_no_list_option = CheckpointNoListOption.SELECTED
+        case "exploratory_dropout_analysis_coarse_checkpoint_resolution":
+            # ++++ Experiment > Coarse checkpoint resolution for first exploratory dropout analysis
+            #
+            # Note:
+            # - You need to set the data_list_option via the command line arguments.
+            data_subsampling_number_of_samples_list_option = DataSubsamplingNumberOfSamplesListOption.FIXED_10000
+
+            # Select a few of the dropout models for the first exploratory dropout analysis
+            language_model_list_option = LanguageModelListOption.WITH_005_015_02_DROPOUT_FINETUNED_ON_MULTIWOZ_SMALL_MANY_EPOCHS_FROM_ROBERTA_BASE
+            finetuning_regime_option = FinetuningRegimeOption.MANY_EPOCHS_WITH_OVERFITTING_RISK
+            # Select only a single training seed
+            language_model_seed_list_option = SeedListOption.FIXED_SEED_1234
 
             checkpoint_no_list_option = CheckpointNoListOption.SELECTED
         case "fixed_parameters_high_checkpoint_resolution":
@@ -1164,15 +1190,22 @@ def orchestrate_job_submission(
     ### Experiment stage configurations
     ########################################
     if experiment_stage == "compute_embeddings_plus_single_pipeline_run":
-        ncpus = "4"
-        ngpus = "1"
-        queue = "CUDA"
-
-        template = Template.GTX1080
-
         # Only run for a single embeddings data prep sampling seed
         embeddings_data_prep_sampling_seed_list_option = EmbeddingsDataPrepSamplingSeedListOption.DEFAULT
         skip_compute_and_store_embeddings = False  # do the embeddings computation
+
+        # queue = "CUDA"
+        # template = Template.GTX1080
+
+        queue = "DSML"
+        template = Template.DSML
+
+        ncpus = "4"
+        ngpus = "1"
+
+        # For the datasets with 10_000 samples, one pipeline run usually takes about 30 min.
+        # We set the walltime to 2 hours to be on the safe side.
+        walltime = "02:00:00"
     elif experiment_stage == "skip_compute_embeddings_and_multiple_pipeline_runs":
         ncpus = "6"
         ngpus = "0"

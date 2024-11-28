@@ -5,6 +5,23 @@
 echo ">>> Submission script started."
 # ================================================================== #
 
+# Initialize dry_run flag to false
+dry_run=false
+
+# Parse command line options
+while [[ "$#" -gt 0 ]]; do
+  case $1 in
+    --dry_run)
+      dry_run=true
+      shift # Remove the --dry_run argument
+      ;;
+    *)
+      echo "Unknown option: $1"
+      exit 1
+      ;;
+  esac
+done
+
 # poetry run submit_jobs \
 #   --experiment-selector multiwoz21_different_data_subsampling_number_of_samples \
 #   --experiment-stage compute_embeddings_plus_single_pipeline_run \
@@ -22,8 +39,11 @@ echo ">>> Submission script started."
 # ++++ Experiment > High checkpoint resolution ++++
 
 # Leave DRY_RUN_OPTION empty to run without the dry-run option, i.e., to actually submit the jobs
-#
-# DRY_RUN_OPTION="--dry-run"
+if [ "$dry_run" = true ]; then
+  DRY_RUN_OPTION="--dry-run"
+else
+  DRY_RUN_OPTION=""
+fi
 
 RUN_ONLY_SELECTED_CONFIGS_OPTION="run_all"
 # RUN_ONLY_SELECTED_CONFIGS_OPTION="run_single_random"
@@ -34,10 +54,13 @@ DATA_LIST_OPTION_LIST=(
   "multiwoz21_only"
 )
 
+# EXPERIMENT_SELECTOR="fixed_parameters_high_checkpoint_resolution"
+EXPERIMENT_SELECTOR="exploratory_dropout_analysis_coarse_checkpoint_resolution"
+
 for DATA_LIST_OPTION in "${DATA_LIST_OPTION_LIST[@]}"; do
   poetry run submit_jobs \
     --data-list-option "${DATA_LIST_OPTION}" \
-    --experiment-selector fixed_parameters_high_checkpoint_resolution \
+    --experiment-selector "${EXPERIMENT_SELECTOR}" \
     --experiment-stage compute_embeddings_plus_single_pipeline_run \
     --use-finetuned-model \
     --task=pipeline \
