@@ -1194,11 +1194,11 @@ def orchestrate_job_submission(
         embeddings_data_prep_sampling_seed_list_option = EmbeddingsDataPrepSamplingSeedListOption.DEFAULT
         skip_compute_and_store_embeddings = False  # do the embeddings computation
 
-        # queue = "CUDA"
-        # template = Template.GTX1080
+        queue = "CUDA"
+        template = Template.GTX1080
 
-        queue = "DSML"
-        template = Template.DSML
+        # queue = "DSML"
+        # template = Template.DSML
 
         ncpus = "4"
         ngpus = "1"
@@ -1240,7 +1240,10 @@ def orchestrate_job_submission(
         walltime=walltime,
     )
 
-    print(f"{additional_overrides = }")  # noqa: T201 - We want this script to print this output
+    additional_overrides_parameter = list(additional_overrides) if additional_overrides else None
+    print(  # noqa: T201 - We want this script to print this output
+        f"{additional_overrides_parameter = }",
+    )
 
     make_config_and_run_task(
         data_list_option=data_list_option,
@@ -1264,7 +1267,7 @@ def orchestrate_job_submission(
         machine_config=machine_config,
         submission_mode=submission_mode,
         task=task,
-        additional_overrides=list(additional_overrides) if additional_overrides else None,
+        additional_overrides=additional_overrides_parameter,
         add_prefix_space=add_prefix_space,
         create_pos_tags=create_pos_tags,
         skip_compute_and_store_embeddings=skip_compute_and_store_embeddings,
