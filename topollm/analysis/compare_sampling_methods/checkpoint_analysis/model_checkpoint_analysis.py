@@ -180,7 +180,7 @@ def run_checkpoint_analysis_over_different_data_and_models(
         language_model_seed,
     ) in tqdm(
         iterable=product_to_process_list,
-        desc="Processing different combinations of data_full, data_subsampling_split, and model_partial_name",
+        desc="Processing different combinations of data subsamples and models",
         total=len(product_to_process_list),
     ):
         concatenated_filters_dict = {

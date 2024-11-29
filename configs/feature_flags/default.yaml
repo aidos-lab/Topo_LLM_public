@@ -5,6 +5,8 @@ analysis:
   create_plots_in_local_estimates_worker: false
   compare_sampling_methods:
     do_iterate_all_partial_search_base_directories: true
+    do_analysis_influence_of_local_estimates_n_neighbors: true
+    do_create_boxplot_of_mean_over_different_sampling_seeds: true
 
 compute_and_store_embeddings:
   skip_compute_and_store_embeddings: false

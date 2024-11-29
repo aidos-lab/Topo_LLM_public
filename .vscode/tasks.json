@@ -215,8 +215,22 @@
             }
         },
         {
-            "label": "run_general_comparisons - With n_jobs=3 and writing to log",
-            "command": "poetry run python3 ./topollm/analysis/compare_sampling_methods/run_general_comparisons.py n_jobs=3 > data/logs/run_general_comparisons_output.txt ",
+            "label": "run_general_comparisons - With `n_jobs=3` and all analysis steps and writing to log",
+            "command": "poetry run python3 ./topollm/analysis/compare_sampling_methods/run_general_comparisons.py n_jobs=3 > data/logs/run_general_comparisons_output.txt",
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": false
+            }
+        },
+        {
+            "label": "run_general_comparisons - With `n_jobs=3` and with iteration but without expensive plots during iteration",
+            "command": "poetry run python3 ./topollm/analysis/compare_sampling_methods/run_general_comparisons.py n_jobs=3 feature_flags.analysis.compare_sampling_methods.do_iterate_all_partial_search_base_directories=True feature_flags.analysis.compare_sampling_methods.do_analysis_influence_of_local_estimates_n_neighbors=False feature_flags.analysis.compare_sampling_methods.do_create_boxplot_of_mean_over_different_sampling_seeds=False > data/logs/run_general_comparisons_output.txt",
             "type": "shell",
             "group": {
                 "kind": "build",

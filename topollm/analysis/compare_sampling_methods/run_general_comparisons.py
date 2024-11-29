@@ -154,6 +154,8 @@ def main(
             analysis_output_subdirectory_partial_relative_path=analysis_output_subdirectory_partial_relative_path,
             data_dir=data_dir,
             array_truncation_size=array_truncation_size,
+            do_analysis_influence_of_local_estimates_n_neighbors=main_config.feature_flags.analysis.compare_sampling_methods.do_analysis_influence_of_local_estimates_n_neighbors,
+            do_create_boxplot_of_mean_over_different_sampling_seeds=main_config.feature_flags.analysis.compare_sampling_methods.do_create_boxplot_of_mean_over_different_sampling_seeds,
             verbosity=verbosity,
             logger=logger,
         )
@@ -358,6 +360,9 @@ def process_partial_search_base_directory(
     analysis_output_subdirectory_partial_relative_path: pathlib.Path,
     data_dir: pathlib.Path,
     array_truncation_size: int,
+    *,
+    do_analysis_influence_of_local_estimates_n_neighbors: bool = True,
+    do_create_boxplot_of_mean_over_different_sampling_seeds: bool = True,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> None:
@@ -392,6 +397,8 @@ def process_partial_search_base_directory(
         search_base_directory=search_base_directory,
         results_directory=results_directory,
         array_truncation_size=array_truncation_size,
+        do_analysis_influence_of_local_estimates_n_neighbors=do_analysis_influence_of_local_estimates_n_neighbors,
+        do_create_boxplot_of_mean_over_different_sampling_seeds=do_create_boxplot_of_mean_over_different_sampling_seeds,
         verbosity=verbosity,
         logger=logger,
     )

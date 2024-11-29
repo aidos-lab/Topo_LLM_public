@@ -41,6 +41,18 @@ class CompareSamplingMethodsFeatureFlagsConfig(ConfigBaseModel):
         description="Whether to iterate over all partial search base directories.",
     )
 
+    do_analysis_influence_of_local_estimates_n_neighbors: bool = Field(
+        default=True,
+        title="Analyze the influence of the number of neighbors in the local estimates.",
+        description="Whether to analyze the influence of the number of neighbors in the local estimates.",
+    )
+
+    do_create_boxplot_of_mean_over_different_sampling_seeds: bool = Field(
+        default=True,
+        title="Create boxplot of mean over different sampling seeds.",
+        description="Whether to create a boxplot of the mean over different sampling seeds.",
+    )
+
 
 class AnalysisFeatureFlagsConfig(ConfigBaseModel):
     """Feature flags for the analysis process."""
