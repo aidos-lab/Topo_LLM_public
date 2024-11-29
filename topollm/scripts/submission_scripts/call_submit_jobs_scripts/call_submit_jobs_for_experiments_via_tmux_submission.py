@@ -40,13 +40,12 @@ import click
 
 @click.command()
 @click.option(
-    "--dry_run",
+    "--do_submission",
     is_flag=True,
-    help="Run in dry-run mode without actual submission.",
+    help="Skip the dry-run option and run the actual submission.",
 )
 @click.option(
     "--run_configs_option",
-    default="run_single_random",
     type=click.Choice(
         choices=[
             "run_all",
@@ -55,12 +54,13 @@ import click
         ],
         case_sensitive=False,
     ),
+    required=True,
     help="Run configuration option.",
 )
 def submit_jobs(
     run_configs_option: str,
     *,
-    dry_run: bool,
+    do_submission: bool,
 ) -> None:
     """Submit jobs in tmux sessions with logging and resource management."""
     # Define job-specific configurations
@@ -71,8 +71,21 @@ def submit_jobs(
     experiment_selector = "tiny_dropout_variations_coarse_checkpoint_resolution"
     log_dir: pathlib.Path = create_log_directory()
 
-    # Convert dry_run flag to a string option
-    dry_run_option: str = "--dry-run" if dry_run else ""
+    # Convert the do_submission flag to a dry_run_option.
+    # Note:
+    # - By default, the script will run in dry-run mode.
+    #   To actually submit the jobs, the --do_submission flag must be set.
+    if not do_submission:
+        print(  # noqa: T201 - we want this script to print"
+            70 * "@",
+        )
+        print(  # noqa: T201 - we want this script to print"
+            "@@@ Dry-run mode enabled. No actual submission will take place.",
+        )
+        print(  # noqa: T201 - we want this script to print"
+            70 * "@",
+        )
+    dry_run_option: str = "" if do_submission else "--dry-run"
 
     # Track tmux session names and logs
     session_names: list = []
@@ -135,6 +148,17 @@ def submit_jobs(
 
             time.sleep(1)
 
+    if not do_submission:
+        print(  # noqa: T201 - we want this script to print"
+            70 * "@",
+        )
+        print(  # noqa: T201 - we want this script to print"
+            "@@@ Dry-run mode enabled. No actual submission took place.",
+        )
+        print(  # noqa: T201 - we want this script to print"
+            70 * "@",
+        )
+
     print(  # noqa: T201 - we want this script to print
         ">>> Call submit jobs script finished.",
     )
@@ -160,7 +184,7 @@ def run_tmux_session(
     experiment_selector: str,
     dry_run_option: str,
     run_configs_option: str,
-    session_timeout: int = 10,
+    session_timeout: int = 6,
 ) -> None:
     """Start a tmux session to run the job and log the output."""
     timeout_message = (
