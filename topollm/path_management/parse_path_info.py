@@ -29,8 +29,60 @@
 
 import pathlib
 import re
+from collections.abc import Callable
+from dataclasses import dataclass
 
-from topollm.config_classes.constants import NAME_PREFIXES_TO_FULL_DESCRIPTIONS
+from topollm.config_classes.constants import NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS
+
+
+@dataclass
+class ParsingRule:
+    """Encapsulate information required for parsing a specific component from the path part string."""
+
+    pattern: str
+    key: str
+    cast_fn: Callable[
+        [str],
+        str | int | None,
+    ]
+
+
+def extract_and_update_in_place_and_truncate(
+    rule: ParsingRule,
+    target: str,
+    parsed_info: dict[str, str | int | None],
+) -> str:
+    """Extract a value from the target string using a ParsingRule.
+
+    Updates the parsed_info dictionary in place, and returns the truncated string.
+
+    Args:
+        rule:
+            An instance of ParsingRule defining the pattern, key, and cast function.
+        target:
+            String to search and truncate.
+        parsed_info:
+            Dictionary to store extracted values.
+
+    Returns:
+        Truncated string with the matched part removed.
+
+    """
+    match: re.Match[str] | None = re.search(
+        pattern=rule.pattern,
+        string=target,
+    )
+    if match:
+        # Extract the value and store it in the parsed_info dictionary
+        parsed_info[rule.key] = rule.cast_fn(
+            match.group(1),
+        )
+        # Return the truncated string without the matched part
+        return target[: match.start()]
+
+    # If no match was found, set the value to None
+    parsed_info[rule.key] = None
+    return target
 
 
 def parse_path_info_full(
@@ -76,7 +128,7 @@ def parse_path_info_full(
         local_estimates_info["local_estimates_description"] = desc_match.group(1)
         local_estimates_info["local_estimates_samples"] = int(desc_match.group(2))
         local_estimates_info["local_estimates_zerovec"] = desc_match.group(3)
-        local_estimates_info[NAME_PREFIXES_TO_FULL_DESCRIPTIONS["dedup"]] = (
+        local_estimates_info[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["dedup"]] = (
             desc_match.group(4) if desc_match.group(4) else None
         )
 
@@ -229,7 +281,9 @@ def parse_model_info(
     # Find the segment containing the model information
     model_segment = None
     for segment in path_parts:
-        if segment.startswith("model="):
+        if segment.startswith(
+            "model=",
+        ):
             model_segment = segment
             break
 
@@ -243,69 +297,73 @@ def parse_model_info(
     parsed_info["model_full"] = model_segment
 
     # # # #
-    # Start from the end and remove optional components (task, checkpoint, seed)
+    # Start from the end and remove optional components,
+    # i.e., dropout parameters, task, checkpoint, seed, ...
     model_name = model_segment
 
-    # Remove dropout parameters if present (start from the end)
-    clf_dr_match: re.Match[str] | None = re.search(
-        pattern=r"_clf-dr=([\wd-]+)$",
-        string=model_name,
-    )
-    if clf_dr_match:
-        parsed_info["model_clf-dr"] = clf_dr_match.group(1)
-        model_name = model_name[: clf_dr_match.start()]
-    else:
-        parsed_info["model_clf-dr"] = None
+    # Define parsing rules
+    rules: list[ParsingRule] = [
+        # > Classification dropout rate
+        ParsingRule(
+            pattern=r"_clf-dr=([\wd.-]+)$",
+            key=NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["clf-dr"],
+            cast_fn=str,
+        ),
+        # > Attention dropout rate
+        # The '.' is necessary to match the decimal point in the dropout rate.
+        ParsingRule(
+            pattern=r"_attn-dr=([\wd.-]+)$",
+            key=NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["attn-dr"],
+            cast_fn=str,
+        ),
+        # > Hidden dropout rate
+        # The '.' is necessary to match the decimal point in the dropout rate.
+        ParsingRule(
+            pattern=r"_h-dr=([\wd.-]+)$",
+            key=NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["h-dr"],
+            cast_fn=str,
+        ),
+        # > Dropout mode
+        ParsingRule(
+            pattern=r"_dr=([\w-]+)$",
+            key=NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["dr"],
+            cast_fn=str,
+        ),
+        # > Task description
+        ParsingRule(
+            pattern=r"_task=([\w-]+)$",
+            key="model_task",
+            cast_fn=str,
+        ),
+        # Note: For the checkpoint and seed
+        # we use the short_description_separator '-',
+        # because this appears in the model names.
+        # We avoid the '=' sign here because of clashes with the hydra overrides.
+        #
+        # > Checkpoint number
+        ParsingRule(
+            pattern=r"_ckpt-(\d+)$",
+            key=NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["ckpt"],
+            cast_fn=int,
+        ),
+        # > Model seed
+        ParsingRule(
+            pattern=r"_seed-(\d+)$",
+            key="model_seed",
+            cast_fn=int,
+        ),
+    ]
 
-    # TODO: This does not work yet
-    attn_dr_match: re.Match[str] | None = re.search(
-        pattern=r"_attn-dr=([\wd-]+)$",
-        string=model_name,
-    )
-    if attn_dr_match:
-        parsed_info["model_attn-dr"] = attn_dr_match.group(1)
-        model_name = model_name[: attn_dr_match.start()]
-    else:
-        parsed_info["model_attn-dr"] = None
+    # Iterate over rules to extract and truncate.
+    # Note that parsed_info is updated in-place.
+    for rule in rules:
+        model_name: str = extract_and_update_in_place_and_truncate(
+            rule=rule,
+            target=model_name,
+            parsed_info=parsed_info,
+        )
 
-    # Remove task if present (start from the end)
-    task_match: re.Match[str] | None = re.search(
-        pattern=r"_task=([\w-]+)$",
-        string=model_name,
-    )
-    if task_match:
-        parsed_info["model_task"] = task_match.group(1)
-        model_name: str = model_name[: task_match.start()]
-    else:
-        parsed_info["model_task"] = None
-
-    # Note: For the checkpoint and seed
-    # we still use the old '-' key-value separator,
-    # because this still appears in the model names.
-
-    # Remove checkpoint if present (after removing task)
-    ckpt_match: re.Match[str] | None = re.search(
-        pattern=r"_ckpt-(\d+)$",
-        string=model_name,
-    )
-    if ckpt_match:
-        parsed_info[NAME_PREFIXES_TO_FULL_DESCRIPTIONS["ckpt"]] = int(ckpt_match.group(1))
-        model_name = model_name[: ckpt_match.start()]
-    else:
-        parsed_info[NAME_PREFIXES_TO_FULL_DESCRIPTIONS["ckpt"]] = None
-
-    # Remove seed if present (after removing checkpoint)
-    seed_match: re.Match[str] | None = re.search(
-        pattern=r"_seed-(\d+)$",
-        string=model_name,
-    )
-    if seed_match:
-        parsed_info["model_seed"] = int(seed_match.group(1))
-        model_name = model_name[: seed_match.start()]
-    else:
-        parsed_info["model_seed"] = None
-
-    # Store the final model name
+    # Store the final truncated model name
     parsed_info["model_partial_name"] = model_name
 
     return parsed_info

@@ -29,7 +29,7 @@ import logging
 import pathlib
 import pprint
 
-from topollm.config_classes.constants import NAME_PREFIXES_TO_FULL_DESCRIPTIONS
+from topollm.config_classes.constants import NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS
 from topollm.path_management.parse_path_info import parse_model_info, parse_path_info_full
 
 default_logger: logging.Logger = logging.getLogger(
@@ -103,12 +103,12 @@ def test_parse_path_info_full_sampling_take_first(
         "data_subsampling_number_of_samples": 2000,
         "data_subsampling_sampling_mode": "take_first",
         "data_subsampling_sampling_seed": None,
-        NAME_PREFIXES_TO_FULL_DESCRIPTIONS["dedup"]: "array_deduplicator",
+        NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["dedup"]: "array_deduplicator",
         "local_estimates_desc_full": "desc=twonn_samples=2500_zerovec=keep_dedup=array_deduplicator",
         "local_estimates_description": "twonn",
         "local_estimates_samples": 2500,
         "local_estimates_zerovec": "keep",
-        NAME_PREFIXES_TO_FULL_DESCRIPTIONS["ckpt"]: None,
+        NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["ckpt"]: None,
         "model_full": "model=roberta-base_task=masked_lm",
         "model_layer": -1,
         "model_partial_name": "model=roberta-base",
@@ -161,11 +161,11 @@ def test_parse_path_info_full_sampling_random(
         "data_subsampling_number_of_samples": 10000,
         "data_subsampling_sampling_mode": "random",
         "data_subsampling_sampling_seed": 777,
-        NAME_PREFIXES_TO_FULL_DESCRIPTIONS["dedup"]: "array_deduplicator",
+        NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["dedup"]: "array_deduplicator",
         "local_estimates_desc_full": "desc=twonn_samples=5000_zerovec=keep_dedup=array_deduplicator",
         "local_estimates_description": "twonn",
         "local_estimates_samples": 5000,
-        NAME_PREFIXES_TO_FULL_DESCRIPTIONS["ckpt"]: None,
+        NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["ckpt"]: None,
         "model_full": "model=roberta-base_task=masked_lm",
         "model_layer": -1,
         "model_partial_name": "model=roberta-base",
@@ -210,12 +210,12 @@ def test_parse_path_info_full_for_finetuned_model(
         "data_prep_sampling_samples": 100000,
         "data_prep_sampling_seed": 47,
         "data_dataset_name": "one-year-of-tsla-on-reddit",
-        NAME_PREFIXES_TO_FULL_DESCRIPTIONS["dedup"]: "array_deduplicator",
+        NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["dedup"]: "array_deduplicator",
         "data_feature_column": "ner_tags",
         "local_estimates_desc_full": "desc-twonn_samples-2500_zerovec-keep_dedup-array_deduplicator",
         "local_estimates_description": "twonn",
         "local_estimates_samples": 2500,
-        NAME_PREFIXES_TO_FULL_DESCRIPTIONS["ckpt"]: 400,
+        NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["ckpt"]: 400,
         "model_full": "model-model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-400_task-masked_lm",
         "model_layer": -1,
         "model_partial_name": "model-model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50",
@@ -251,6 +251,18 @@ def test_parse_model_info(
         "example_suffix",
     )
 
+    expected_result: dict = {
+        "model_attention_probs_dropout_prob": None,
+        "model_checkpoint": 13200,
+        "model_classifier_dropout": None,
+        "model_dropout_mode": "defaults",
+        "model_full": "model=model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-13200_task=masked_lm_dr=defaults",
+        "model_hidden_dropout_prob": None,
+        "model_partial_name": "model=model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50",
+        "model_seed": 1234,
+        "model_task": "masked_lm",
+    }
+
     model_info: dict = parse_model_info(
         path=example_path,
     )
@@ -260,6 +272,19 @@ def test_parse_model_info(
     )
     logger_fixture.info(
         msg=f"model_info:\n{pprint.pformat(object=model_info)}",  # noqa: G004 - low overhead
+    )
+
+    # Check that result is a valid dictionary
+    assert isinstance(  # noqa: S101 - pytest assertion
+        model_info,
+        dict,
+    )
+
+    # Assert that the result matches the expected result
+    assert model_info == expected_result, (  # noqa: S101 - pytest assertion
+        f"Parsing failed for {example_path = }\n"
+        f"Expected:\n{pprint.pformat(object=expected_result)}\n"
+        f"Got:\n{pprint.pformat(object=model_info)}"
     )
 
     # # # # # # # #
@@ -272,6 +297,18 @@ def test_parse_model_info(
         "example_suffix",
     )
 
+    expected_result: dict = {
+        "model_attention_probs_dropout_prob": "0.05",
+        "model_checkpoint": 8800,
+        "model_classifier_dropout": "None",
+        "model_dropout_mode": "modify_roberta_dropout_parameters",
+        "model_full": "model=roberta-base-masked_lm-0.05-0.05-None_multiwoz21-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-constant-0.01-50_seed-1234_ckpt-8800_task=masked_lm_dr=modify_roberta_dropout_parameters_h-dr=0.05_attn-dr=0.05_clf-dr=None",
+        "model_hidden_dropout_prob": "0.05",
+        "model_partial_name": "model=roberta-base-masked_lm-0.05-0.05-None_multiwoz21-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-constant-0.01-50",
+        "model_seed": 1234,
+        "model_task": "masked_lm",
+    }
+
     model_info: dict = parse_model_info(
         path=example_path,
     )
@@ -283,4 +320,15 @@ def test_parse_model_info(
         msg=f"model_info:\n{pprint.pformat(object=model_info)}",  # noqa: G004 - low overhead
     )
 
-    # TODO: Add assertions comparing the model_info dictionary to the expected result
+    # Check that result is a valid dictionary
+    assert isinstance(  # noqa: S101 - pytest assertion
+        model_info,
+        dict,
+    )
+
+    # Assert that the result matches the expected result
+    assert model_info == expected_result, (  # noqa: S101 - pytest assertion
+        f"Parsing failed for {example_path = }\n"
+        f"Expected:\n{pprint.pformat(object=expected_result)}\n"
+        f"Got:\n{pprint.pformat(object=model_info)}"
+    )

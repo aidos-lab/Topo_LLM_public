@@ -31,7 +31,7 @@ import pathlib
 
 import pandas as pd
 
-from topollm.config_classes.constants import NAME_PREFIXES_TO_FULL_DESCRIPTIONS
+from topollm.config_classes.constants import NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS
 
 
 class ModelLossExtractor:
@@ -106,7 +106,7 @@ class ModelLossExtractor:
 
         output_table = output_table.rename(
             columns={
-                "train/global_step": NAME_PREFIXES_TO_FULL_DESCRIPTIONS["ckpt"],
+                "train/global_step": NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["ckpt"],
                 loss_column_name: "loss",
             },
         )

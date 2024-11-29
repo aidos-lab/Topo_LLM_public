@@ -44,7 +44,7 @@ from topollm.analysis.compare_sampling_methods.make_plots import (
 from topollm.analysis.compare_sampling_methods.sensitivity_to_parameter_choices.analysis_influence_of_local_estimates_n_neighbors import (
     analysis_influence_of_local_estimates_n_neighbors,
 )
-from topollm.config_classes.constants import NAME_PREFIXES_TO_FULL_DESCRIPTIONS
+from topollm.config_classes.constants import NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS
 from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.path_management.parse_path_info import parse_path_info_full
 from topollm.typing.enums import Verbosity
@@ -165,7 +165,7 @@ def walk_through_subdirectories_and_load_arrays(
     return loaded_data_df
 
 
-def extract_and_preprocess_dataframes(
+def extract_and_preprocess_and_save_full_local_estimates_df_dataframes(
     search_base_directory: pathlib.Path,
     results_directory: pathlib.Path,
     filenames_to_match: list[str] | None = None,
@@ -252,7 +252,7 @@ def run_search_on_single_base_directory_and_process_and_save(
     logger: logging.Logger = default_logger,
 ) -> None:
     """Run the search and analysis on a single base directory."""
-    _, full_local_estimates_df = extract_and_preprocess_dataframes(
+    _, full_local_estimates_df = extract_and_preprocess_and_save_full_local_estimates_df_dataframes(
         search_base_directory=search_base_directory,
         results_directory=results_directory,
         filenames_to_match=None,
@@ -281,25 +281,25 @@ def run_search_on_single_base_directory_and_process_and_save(
     filters_dict_list = [
         {
             "data_prep_sampling_method": "random",
-            NAME_PREFIXES_TO_FULL_DESCRIPTIONS["dedup"]: "array_deduplicator",
+            NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["dedup"]: "array_deduplicator",
             "n_neighbors": 128,
             "data_prep_sampling_samples": 50_000,
         },
         {
             "data_prep_sampling_method": "random",
-            NAME_PREFIXES_TO_FULL_DESCRIPTIONS["dedup"]: "array_deduplicator",
+            NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["dedup"]: "array_deduplicator",
             "n_neighbors": 128,
             "data_prep_sampling_samples": 100_000,
         },
         {
             "data_prep_sampling_method": "random",
-            NAME_PREFIXES_TO_FULL_DESCRIPTIONS["dedup"]: "array_deduplicator",
+            NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["dedup"]: "array_deduplicator",
             "n_neighbors": 128,
             "data_prep_sampling_samples": 150_000,
         },
         {
             "data_prep_sampling_method": "random",
-            NAME_PREFIXES_TO_FULL_DESCRIPTIONS["dedup"]: "array_deduplicator",
+            NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["dedup"]: "array_deduplicator",
             "n_neighbors": 256,
             "data_prep_sampling_samples": 100_000,
         },

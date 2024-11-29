@@ -44,7 +44,7 @@ from topollm.analysis.compare_sampling_methods.make_plots import (
     create_boxplot_of_mean_over_different_sampling_seeds,
     generate_fixed_params_text,
 )
-from topollm.config_classes.constants import NAME_PREFIXES_TO_FULL_DESCRIPTIONS, TOPO_LLM_REPOSITORY_BASE_PATH
+from topollm.config_classes.constants import NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS, TOPO_LLM_REPOSITORY_BASE_PATH
 from topollm.typing.enums import Verbosity
 
 default_logger: logging.Logger = logging.getLogger(
@@ -84,7 +84,7 @@ def create_histograms_over_model_checkpoints(
     )
 
     # Set all the values in the "model_checkpoint" column to "-1"
-    filtered_for_base_model_concatenated_df[NAME_PREFIXES_TO_FULL_DESCRIPTIONS["ckpt"]] = -1
+    filtered_for_base_model_concatenated_df[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["ckpt"]] = -1
 
     # # # #
     # Create a dataframe by concatenating the two dataframes
@@ -139,7 +139,7 @@ def create_histograms_over_model_checkpoints(
         create_boxplot_of_mean_over_different_sampling_seeds(
             subset_local_estimates_df=data_for_checkpoint_analysis_df,
             plot_save_path_collection=plot_save_path_collection,
-            x_column_name=NAME_PREFIXES_TO_FULL_DESCRIPTIONS["ckpt"],
+            x_column_name=NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["ckpt"],
             y_column_name="array_data_truncated_mean",
             fixed_params_text=fixed_params_text,
             model_losses_df=model_losses_df,
@@ -192,7 +192,7 @@ def run_checkpoint_analysis_over_different_data_and_models(
             "model_seed": language_model_seed,
             "data_prep_sampling_method": "random",
             "data_prep_sampling_samples": 150_000,
-            NAME_PREFIXES_TO_FULL_DESCRIPTIONS["dedup"]: "array_deduplicator",
+            NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["dedup"]: "array_deduplicator",
             "local_estimates_samples": 60_000,
             "n_neighbors": 128,
         }
