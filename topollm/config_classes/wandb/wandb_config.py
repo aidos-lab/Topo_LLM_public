@@ -28,6 +28,7 @@
 """Configuration class for Weights and Biases."""
 
 import pathlib
+from typing import Literal
 
 from pydantic import Field
 
@@ -62,4 +63,10 @@ class WandBConfig(ConfigBaseModel):
         ),
         title="Directory.",
         description="Directory.",
+    )
+
+    watch_log: Literal["gradients", "parameters", "all"] | None = Field(
+        default="all",
+        title="Argument passed to wandb.watch(log=watch_log).",
+        description="Argument passed to wandb.watch(log=watch_log).",
     )

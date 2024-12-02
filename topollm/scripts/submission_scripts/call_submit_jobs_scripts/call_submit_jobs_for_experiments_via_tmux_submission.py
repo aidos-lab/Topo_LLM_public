@@ -29,11 +29,11 @@
 
 """Submit jobs in tmux sessions with logging and resource management."""
 
+import datetime
 import pathlib
 import pprint
 import subprocess
 import time
-from datetime import datetime
 
 import click
 
@@ -168,7 +168,7 @@ def create_log_directory() -> pathlib.Path:
     """Create a directory for log files based on timestamp."""
     log_dir = pathlib.Path(
         "logs",
-        datetime.now().strftime(format="%Y%m%d_%H%M%S"),
+        datetime.datetime.now(tz=datetime.UTC).strftime(format="%Y%m%d_%H%M%S"),
     )
     log_dir.mkdir(
         parents=True,

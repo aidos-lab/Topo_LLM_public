@@ -200,8 +200,8 @@ def do_finetuning_process(
         # Note that this needs to be called after wandb.init and creation of the model.
         wandb.watch(
             models=model_which_will_be_trained,
-            log="all",
-            log_freq=finetuning_config.eval_steps,
+            log=main_config.wandb.watch_log,
+            log_freq=finetuning_config.eval_steps,  # Log every eval_steps
             log_graph=True,
         )
 
