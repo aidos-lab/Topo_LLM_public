@@ -34,7 +34,9 @@ import wandb
 
 from topollm.config_classes.main_config import MainConfig
 
-default_logger = logging.getLogger(__name__)
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 def initialize_wandb(

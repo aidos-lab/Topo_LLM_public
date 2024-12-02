@@ -34,11 +34,11 @@ from topollm.typing.enums import TrainerModifierMode
 
 
 class TrainerModifierConfig(ConfigBaseModel):
-    """Configurations for the gradient modifier."""
+    """Configurations for the trainer modifier."""
 
     mode: TrainerModifierMode = Field(
         default=TrainerModifierMode.DO_NOTHING,
-        description="The gradient modifier mode.",
+        description="The trainer modifier mode.",
     )
 
     num_samples: int = Field(
