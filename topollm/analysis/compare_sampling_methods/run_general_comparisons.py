@@ -330,17 +330,24 @@ def create_model_loss_extractor(
 ) -> ModelLossExtractor | None:
     """Create a ModelLossExtractor instance."""
     # Try to initialize the class
+    finetuning_monitoring_base_directory: pathlib.Path = pathlib.Path(
+        TOPO_LLM_REPOSITORY_BASE_PATH,
+        "data",
+        "models",
+        "finetuning_monitoring",
+    )
+
     try:
         model_loss_extractor = ModelLossExtractor(
             train_loss_file_path=pathlib.Path(
-                TOPO_LLM_REPOSITORY_BASE_PATH,
-                "data/models/finetuning_monitoring/",
-                "wandb_export_2024-11-20T18_47_32.346+01_00_train_loss.csv",
+                finetuning_monitoring_base_directory,
+                "Topo_LLM_finetuning_from_submission_script_DEBUG",
+                "wandb_export_2024-11-20T18_47_32.346+01_00_overfitted_models_50_epochs_train_loss.csv",
             ),
             eval_loss_file_path=pathlib.Path(
-                TOPO_LLM_REPOSITORY_BASE_PATH,
-                "data/models/finetuning_monitoring/",
-                "wandb_export_2024-11-20T19_02_59.541+01_00_eval_loss.csv",
+                finetuning_monitoring_base_directory,
+                "Topo_LLM_finetuning_from_submission_script_DEBUG",
+                "wandb_export_2024-11-20T19_02_59.541+01_00_overfitted_models_50_epochs_eval_loss.csv",
             ),
         )
     except FileNotFoundError as e:
