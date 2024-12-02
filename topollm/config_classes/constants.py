@@ -123,12 +123,22 @@ NAME_PREFIXES: dict[
     "zero_vector_handling_mode": "zerovec",
 }
 
-NAME_PREFIXES_TO_FULL_DESCRIPTIONS: dict[
+# The values in this dictionary can be used to uniquely identify
+# the full descriptions of the augmented descriptions,
+# for example, for the checkpoints they also contain the prefix
+# "model_" to make them unique.
+# They will usually be used as column headers in the analysis dataframes.
+NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS: dict[
     str,
     str,
 ] = {
     "dedup": "local_estimates_deduplication",
     "ckpt": "model_checkpoint",
+    # Dropout parameters
+    "dr": "model_dropout_mode",
+    "h-dr": "model_hidden_dropout_prob",
+    "attn-dr": "model_attention_probs_dropout_prob",
+    "clf-dr": "model_classifier_dropout",
 }
 
 # # # #

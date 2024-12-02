@@ -45,7 +45,7 @@ from topollm.analysis.compare_sampling_methods.make_plots import (
     create_boxplot_of_mean_over_different_sampling_seeds,
     generate_fixed_params_text,
 )
-from topollm.config_classes.constants import NAME_PREFIXES_TO_FULL_DESCRIPTIONS, TOPO_LLM_REPOSITORY_BASE_PATH
+from topollm.config_classes.constants import NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS, TOPO_LLM_REPOSITORY_BASE_PATH
 from topollm.typing.enums import Verbosity
 
 default_logger: logging.Logger = logging.getLogger(
@@ -145,7 +145,7 @@ def run_data_subsampling_number_of_samples_analysis(
             "data_subsampling_sampling_mode": data_subsampling_sampling_mode,
             "data_prep_sampling_method": "random",
             "data_prep_sampling_samples": 150_000,
-            NAME_PREFIXES_TO_FULL_DESCRIPTIONS["dedup"]: "array_deduplicator",
+            NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["dedup"]: "array_deduplicator",
             "local_estimates_samples": 60_000,
             "n_neighbors": 128,
         }

@@ -1,10 +1,10 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -467,11 +467,20 @@ def retrieve_model_and_checkpoint_list(
                 num_train_epochs=int(num_train_epochs),
             )
         case LanguageModelListOption.WITH_005_015_02_DROPOUT_FINETUNED_ON_MULTIWOZ_SMALL_MANY_EPOCHS_FROM_ROBERTA_BASE:
-            # TODO(Ben): There is a problem with equal signs in the model name.
             language_model_list: list[str] = [
                 "roberta-base-masked_lm-0.05-0.05-None_multiwoz21-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-constant-0.01-50.yaml",
                 "roberta-base-masked_lm-0.15-0.15-None_multiwoz21-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-constant-0.01-50.yaml",
                 "roberta-base-masked_lm-0.2-0.2-None_multiwoz21-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-constant-0.01-50",
+            ]
+
+            checkpoint_no_list = get_checkpoint_no_list(
+                checkpoint_no_list_option=checkpoint_no_list_option,
+                num_train_epochs=int(num_train_epochs),
+            )
+        case LanguageModelListOption.WITH_006_007_DROPOUT_FINETUNED_ON_MULTIWOZ_SMALL_MANY_EPOCHS_FROM_ROBERTA_BASE:
+            language_model_list: list[str] = [
+                "roberta-base-masked_lm-0.06-0.06-None_multiwoz21-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-constant-0.01-50.yaml",
+                "roberta-base-masked_lm-0.07-0.07-None_multiwoz21-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-constant-0.01-50.yaml",
             ]
 
             checkpoint_no_list = get_checkpoint_no_list(
@@ -888,6 +897,7 @@ def make_config_and_run_task(
             "reddit_different_data_subsampling_number_of_samples",
             "coarse_checkpoint_resolution",
             "exploratory_dropout_analysis_coarse_checkpoint_resolution",
+            "tiny_dropout_variations_coarse_checkpoint_resolution",
             "fixed_parameters_high_checkpoint_resolution",
         ],
         case_sensitive=False,
@@ -1161,6 +1171,22 @@ def orchestrate_job_submission(
             language_model_seed_list_option = SeedListOption.FIXED_SEED_1234
 
             checkpoint_no_list_option = CheckpointNoListOption.SELECTED
+        case "tiny_dropout_variations_coarse_checkpoint_resolution":
+            # ++++ Experiment > Coarse checkpoint resolution for first dropout with small variations analysis
+            #
+            # Note:
+            # - You need to set the data_list_option via the command line arguments.
+            data_subsampling_number_of_samples_list_option = DataSubsamplingNumberOfSamplesListOption.FIXED_10000
+
+            # Select a few of the dropout models for the first exploratory dropout analysis
+            language_model_list_option = (
+                LanguageModelListOption.WITH_006_007_DROPOUT_FINETUNED_ON_MULTIWOZ_SMALL_MANY_EPOCHS_FROM_ROBERTA_BASE
+            )
+            finetuning_regime_option = FinetuningRegimeOption.MANY_EPOCHS_WITH_OVERFITTING_RISK
+            # Select only a single training seed
+            language_model_seed_list_option = SeedListOption.FIXED_SEED_1234
+
+            checkpoint_no_list_option = CheckpointNoListOption.SELECTED
         case "fixed_parameters_high_checkpoint_resolution":
             # ++++ Experiment > Fixing many of the parameters so that we can run the
             #      checkpoint comparison experiment with high checkpoint resolution
@@ -1194,11 +1220,11 @@ def orchestrate_job_submission(
         embeddings_data_prep_sampling_seed_list_option = EmbeddingsDataPrepSamplingSeedListOption.DEFAULT
         skip_compute_and_store_embeddings = False  # do the embeddings computation
 
-        # queue = "CUDA"
-        # template = Template.GTX1080
+        queue = "CUDA"
+        template = Template.GTX1080
 
-        queue = "DSML"
-        template = Template.DSML
+        # queue = "DSML"
+        # template = Template.DSML
 
         ncpus = "4"
         ngpus = "1"
@@ -1240,7 +1266,10 @@ def orchestrate_job_submission(
         walltime=walltime,
     )
 
-    print(f"{additional_overrides = }")  # noqa: T201 - We want this script to print this output
+    additional_overrides_parameter = list(additional_overrides) if additional_overrides else None
+    print(  # noqa: T201 - We want this script to print this output
+        f"{additional_overrides_parameter = }",
+    )
 
     make_config_and_run_task(
         data_list_option=data_list_option,
@@ -1264,7 +1293,7 @@ def orchestrate_job_submission(
         machine_config=machine_config,
         submission_mode=submission_mode,
         task=task,
-        additional_overrides=list(additional_overrides) if additional_overrides else None,
+        additional_overrides=additional_overrides_parameter,
         add_prefix_space=add_prefix_space,
         create_pos_tags=create_pos_tags,
         skip_compute_and_store_embeddings=skip_compute_and_store_embeddings,

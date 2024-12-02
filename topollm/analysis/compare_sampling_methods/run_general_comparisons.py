@@ -29,6 +29,7 @@
 
 import logging
 import pathlib
+import pprint
 from collections.abc import Generator
 from typing import TYPE_CHECKING
 
@@ -153,6 +154,8 @@ def main(
             analysis_output_subdirectory_partial_relative_path=analysis_output_subdirectory_partial_relative_path,
             data_dir=data_dir,
             array_truncation_size=array_truncation_size,
+            do_analysis_influence_of_local_estimates_n_neighbors=main_config.feature_flags.analysis.compare_sampling_methods.do_analysis_influence_of_local_estimates_n_neighbors,
+            do_create_boxplot_of_mean_over_different_sampling_seeds=main_config.feature_flags.analysis.compare_sampling_methods.do_create_boxplot_of_mean_over_different_sampling_seeds,
             verbosity=verbosity,
             logger=logger,
         )
@@ -274,7 +277,7 @@ def do_checkpoint_analysis(
 ) -> None:
     """Run the checkpoint analysis."""
     # Get optional model loss extractor
-    model_loss_extractor = create_model_loss_extractor()
+    model_loss_extractor: ModelLossExtractor | None = create_model_loss_extractor()
 
     # # # #
     # Select which analysis to run and call the analysis
@@ -294,21 +297,21 @@ def do_checkpoint_analysis(
         "take_first",
     ]
 
-    model_partial_name_list_to_process: list[str] = [
-        "model=model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50",
-        "model=model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50",
-    ]
+    model_partial_name_list_to_process: list[str] = concatenated_df["model_partial_name"].unique().tolist()
 
     # Note: The "model_seed" column contains type integer values
-    language_model_seed_list_to_process: list[int] = [
-        1234,
-        1235,
-        1236,
-    ]
+    language_model_seed_list_to_process: list[int] = concatenated_df["model_seed"].unique().tolist()
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"model_partial_name_list_to_process:\n{pprint.pformat(model_partial_name_list_to_process)}",  # noqa: G004 - low overhead
+        )
+        logger.info(
+            msg=f"language_model_seed_list_to_process:\n{pprint.pformat(language_model_seed_list_to_process)}",  # noqa: G004 - low overhead
+        )
 
     # # # #
-    # Uncomment to run the checkpoint analysis on the full available data
-    #
+    # Run the checkpoint analysis on the selected data
     run_checkpoint_analysis_over_different_data_and_models(
         concatenated_df=concatenated_df,
         data_full_list_to_process=data_full_list_to_process,
@@ -327,17 +330,24 @@ def create_model_loss_extractor(
 ) -> ModelLossExtractor | None:
     """Create a ModelLossExtractor instance."""
     # Try to initialize the class
+    finetuning_monitoring_base_directory: pathlib.Path = pathlib.Path(
+        TOPO_LLM_REPOSITORY_BASE_PATH,
+        "data",
+        "models",
+        "finetuning_monitoring",
+    )
+
     try:
         model_loss_extractor = ModelLossExtractor(
             train_loss_file_path=pathlib.Path(
-                TOPO_LLM_REPOSITORY_BASE_PATH,
-                "data/models/finetuning_monitoring/",
-                "wandb_export_2024-11-20T18_47_32.346+01_00_train_loss.csv",
+                finetuning_monitoring_base_directory,
+                "Topo_LLM_finetuning_from_submission_script_DEBUG",
+                "wandb_export_2024-11-20T18_47_32.346+01_00_overfitted_models_50_epochs_train_loss.csv",
             ),
             eval_loss_file_path=pathlib.Path(
-                TOPO_LLM_REPOSITORY_BASE_PATH,
-                "data/models/finetuning_monitoring/",
-                "wandb_export_2024-11-20T19_02_59.541+01_00_eval_loss.csv",
+                finetuning_monitoring_base_directory,
+                "Topo_LLM_finetuning_from_submission_script_DEBUG",
+                "wandb_export_2024-11-20T19_02_59.541+01_00_overfitted_models_50_epochs_eval_loss.csv",
             ),
         )
     except FileNotFoundError as e:
@@ -357,6 +367,9 @@ def process_partial_search_base_directory(
     analysis_output_subdirectory_partial_relative_path: pathlib.Path,
     data_dir: pathlib.Path,
     array_truncation_size: int,
+    *,
+    do_analysis_influence_of_local_estimates_n_neighbors: bool = True,
+    do_create_boxplot_of_mean_over_different_sampling_seeds: bool = True,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> None:
@@ -391,6 +404,8 @@ def process_partial_search_base_directory(
         search_base_directory=search_base_directory,
         results_directory=results_directory,
         array_truncation_size=array_truncation_size,
+        do_analysis_influence_of_local_estimates_n_neighbors=do_analysis_influence_of_local_estimates_n_neighbors,
+        do_create_boxplot_of_mean_over_different_sampling_seeds=do_create_boxplot_of_mean_over_different_sampling_seeds,
         verbosity=verbosity,
         logger=logger,
     )

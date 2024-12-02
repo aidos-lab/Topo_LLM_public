@@ -44,7 +44,7 @@ from topollm.analysis.compare_sampling_methods.make_plots import (
 from topollm.analysis.compare_sampling_methods.sensitivity_to_parameter_choices.analysis_influence_of_local_estimates_n_neighbors import (
     analysis_influence_of_local_estimates_n_neighbors,
 )
-from topollm.config_classes.constants import NAME_PREFIXES_TO_FULL_DESCRIPTIONS
+from topollm.config_classes.constants import NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS
 from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.path_management.parse_path_info import parse_path_info_full
 from topollm.typing.enums import Verbosity
@@ -165,7 +165,7 @@ def walk_through_subdirectories_and_load_arrays(
     return loaded_data_df
 
 
-def extract_and_preprocess_dataframes(
+def extract_and_preprocess_and_save_full_local_estimates_df_dataframes(
     search_base_directory: pathlib.Path,
     results_directory: pathlib.Path,
     filenames_to_match: list[str] | None = None,
@@ -248,11 +248,14 @@ def run_search_on_single_base_directory_and_process_and_save(
     results_directory: pathlib.Path,
     array_data_column_name: str = "array_data",
     array_truncation_size: int = 5000,
+    *,
+    do_analysis_influence_of_local_estimates_n_neighbors: bool = True,
+    do_create_boxplot_of_mean_over_different_sampling_seeds: bool = True,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> None:
     """Run the search and analysis on a single base directory."""
-    _, full_local_estimates_df = extract_and_preprocess_dataframes(
+    _, full_local_estimates_df = extract_and_preprocess_and_save_full_local_estimates_df_dataframes(
         search_base_directory=search_base_directory,
         results_directory=results_directory,
         filenames_to_match=None,
@@ -265,86 +268,86 @@ def run_search_on_single_base_directory_and_process_and_save(
     # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # ===== This is the start of the analysis code =====
 
-    analysis_influence_of_local_estimates_n_neighbors(
-        full_local_estimates_df=full_local_estimates_df,
-        array_data_column_name=array_data_column_name,
-        results_directory=results_directory,
-        verbosity=verbosity,
-        logger=logger,
-    )
+    if do_analysis_influence_of_local_estimates_n_neighbors:
+        analysis_influence_of_local_estimates_n_neighbors(
+            full_local_estimates_df=full_local_estimates_df,
+            array_data_column_name=array_data_column_name,
+            results_directory=results_directory,
+            verbosity=verbosity,
+            logger=logger,
+        )
 
     # Select a subset of the data with the same parameters.
     # This allows comparing over different seeds.
     #
     # We do not fix the local_estimates_samples,
     # since we want to compare the results for different sample sizes.
-    filters_dict_list = [
-        {
-            "data_prep_sampling_method": "random",
-            NAME_PREFIXES_TO_FULL_DESCRIPTIONS["dedup"]: "array_deduplicator",
-            "n_neighbors": 128,
-            "data_prep_sampling_samples": 50_000,
-        },
-        {
-            "data_prep_sampling_method": "random",
-            NAME_PREFIXES_TO_FULL_DESCRIPTIONS["dedup"]: "array_deduplicator",
-            "n_neighbors": 128,
-            "data_prep_sampling_samples": 100_000,
-        },
-        {
-            "data_prep_sampling_method": "random",
-            NAME_PREFIXES_TO_FULL_DESCRIPTIONS["dedup"]: "array_deduplicator",
-            "n_neighbors": 128,
-            "data_prep_sampling_samples": 150_000,
-        },
-        {
-            "data_prep_sampling_method": "random",
-            NAME_PREFIXES_TO_FULL_DESCRIPTIONS["dedup"]: "array_deduplicator",
-            "n_neighbors": 256,
-            "data_prep_sampling_samples": 100_000,
-        },
-    ]
+    if do_create_boxplot_of_mean_over_different_sampling_seeds:
+        filters_dict_list = [
+            {
+                "data_prep_sampling_method": "random",
+                NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["dedup"]: "array_deduplicator",
+                "n_neighbors": 128,
+                "data_prep_sampling_samples": 50_000,
+            },
+            {
+                "data_prep_sampling_method": "random",
+                NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["dedup"]: "array_deduplicator",
+                "n_neighbors": 128,
+                "data_prep_sampling_samples": 100_000,
+            },
+            {
+                "data_prep_sampling_method": "random",
+                NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["dedup"]: "array_deduplicator",
+                "n_neighbors": 128,
+                "data_prep_sampling_samples": 150_000,
+            },
+            {
+                "data_prep_sampling_method": "random",
+                NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["dedup"]: "array_deduplicator",
+                "n_neighbors": 256,
+                "data_prep_sampling_samples": 100_000,
+            },
+        ]
 
-    for filters_dict in filters_dict_list:
-        subset_local_estimates_df: pd.DataFrame = filter_dataframe_based_on_filters_dict(
-            df=full_local_estimates_df,
-            filters_dict=filters_dict,
-        )
+        for filters_dict in filters_dict_list:
+            subset_local_estimates_df: pd.DataFrame = filter_dataframe_based_on_filters_dict(
+                df=full_local_estimates_df,
+                filters_dict=filters_dict,
+            )
 
-        fixed_params_text: str = generate_fixed_params_text(
-            filters_dict=filters_dict,
-        )
+            fixed_params_text: str = generate_fixed_params_text(
+                filters_dict=filters_dict,
+            )
 
-        common_prefix_path = pathlib.Path(
-            results_directory,
-            "different_data_prep_sampling_seeds",
-            f"{filters_dict['data_prep_sampling_samples']=}",
-            f"{filters_dict['n_neighbors']=}",
-            "array_data_truncated_mean_boxplot",
-        )
+            common_prefix_path = pathlib.Path(
+                results_directory,
+                "different_data_prep_sampling_seeds",
+                f"{filters_dict['data_prep_sampling_samples']=}",
+                f"{filters_dict['n_neighbors']=}",
+                "array_data_truncated_mean_boxplot",
+            )
 
-        for connect_points in [
-            True,
-            False,
-        ]:
-            for y_min, y_max in Y_AXIS_LIMITS.values():
-                plot_save_path_collection: PlotSavePathCollection = (
-                    PlotSavePathCollection.create_from_common_prefix_path(
-                        common_prefix_path=common_prefix_path,
-                        plot_file_name=f"{y_min=}_{y_max=}_{connect_points=}.pdf",
+            for connect_points in [
+                True,
+                False,
+            ]:
+                for y_min, y_max in Y_AXIS_LIMITS.values():
+                    plot_save_path_collection: PlotSavePathCollection = (
+                        PlotSavePathCollection.create_from_common_prefix_path(
+                            common_prefix_path=common_prefix_path,
+                            plot_file_name=f"{y_min=}_{y_max=}_{connect_points=}.pdf",
+                        )
                     )
-                )
 
-                create_boxplot_of_mean_over_different_sampling_seeds(
-                    subset_local_estimates_df=subset_local_estimates_df,
-                    plot_save_path_collection=plot_save_path_collection,
-                    fixed_params_text=fixed_params_text,
-                    y_min=y_min,
-                    y_max=y_max,
-                    show_plot=False,
-                    connect_points=connect_points,
-                    verbosity=verbosity,
-                    logger=logger,
-                )
-
-    pass  # noqa: PIE790 - This is here for setting a breakpoint
+                    create_boxplot_of_mean_over_different_sampling_seeds(
+                        subset_local_estimates_df=subset_local_estimates_df,
+                        plot_save_path_collection=plot_save_path_collection,
+                        fixed_params_text=fixed_params_text,
+                        y_min=y_min,
+                        y_max=y_max,
+                        show_plot=False,
+                        connect_points=connect_points,
+                        verbosity=verbosity,
+                        logger=logger,
+                    )
