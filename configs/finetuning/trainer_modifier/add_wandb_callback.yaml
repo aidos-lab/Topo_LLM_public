@@ -1,0 +1,3 @@
+mode: add_wandb_prediction_progress_callback
+num_samples: 10
+frequency: 400
