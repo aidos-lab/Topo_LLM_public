@@ -711,6 +711,7 @@ def make_config_and_run_task(
     data_subsampling_sampling_mode: DataSamplingMode,
     data_subsampling_number_of_samples_list_option: DataSubsamplingNumberOfSamplesListOption,
     data_subsampling_sampling_seed_list_option: DataSubsamplingSamplingSeedListOption,
+    fp16: str,
     finetuning_datasets_list_option: FinetuningDatasetsListOption,
     finetuning_regime_option: FinetuningRegimeOption,
     finetuning_seed_list_option: SeedListOption,
@@ -830,6 +831,7 @@ def make_config_and_run_task(
         language_model_list=language_model_list,
         language_model_seed_list=language_model_seed_list,
         checkpoint_no_list=checkpoint_no_list,
+        fp16=fp16,
         embeddings_data_prep_sampling_mode=embeddings_data_prep_sampling_mode,
         embeddings_data_prep_sampling_seed_list=embeddings_data_prep_sampling_seed_list,
         embeddings_data_prep_num_samples_list=embeddings_data_prep_num_samples_list,
@@ -942,6 +944,12 @@ def make_config_and_run_task(
     help="Finetuning datasets list option to use.",
 )
 @click.option(
+    "--fp16",
+    type=str,
+    default="true",
+    help="Whether to use FP16.",
+)
+@click.option(
     "--local-estimates-pointwise-absolute-n-neighbors-list-option",
     type=LocalEstimatesPointwiseAbsoluteNNeighborsListOption,
     default=LocalEstimatesPointwiseAbsoluteNNeighborsListOption.SINGLE_CHOICE_128,
@@ -1024,6 +1032,7 @@ def orchestrate_job_submission(
     task: Task,
     additional_overrides: list[str] | None,
     finetuning_datasets_list_option: FinetuningDatasetsListOption,
+    fp16: str,
     data_list_option: DataListOption,
     data_subsampling_sampling_mode: DataSamplingMode,
     data_subsampling_sampling_seed_list_option: DataSubsamplingSamplingSeedListOption,
@@ -1282,6 +1291,7 @@ def orchestrate_job_submission(
         finetuning_datasets_list_option=finetuning_datasets_list_option,
         finetuning_seed_list_option=finetuning_seed_list_option,
         finetuning_regime_option=finetuning_regime_option,
+        fp16=fp16,
         batch_size_train=batch_size_train,
         batch_size_eval=batch_size_eval,
         wandb_project=wandb_project,

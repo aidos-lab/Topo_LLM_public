@@ -6,8 +6,8 @@ DRY_RUN=false
 
 WANDB_PROJECT_DIR_NAME=""
 # WANDB_PROJECT_DIR_NAME="Topo_LLM_finetuning_from_submission_script_DEBUG_large_batch_size"
-WANDB_PROJECT_DIR_NAME="Topo_LLM_finetuning_from_submission_script_dropout_different_choices"
-
+# WANDB_PROJECT_DIR_NAME="Topo_LLM_finetuning_from_submission_script_dropout_different_choices"
+WANDB_PROJECT_DIR_NAME="Topo_LLM_finetuning_from_submission_script_dropout_different_choices_with_parameter_and_gradient_logging"
 
 # Parse command line arguments
 while [[ "$#" -gt 0 ]]; do
@@ -34,6 +34,8 @@ if [[ -z "${WANDB_PROJECT_DIR_NAME}" ]]; then
   echo "@@@ Error: --wandb_project_dir_name is required."
   echo "@@@ Exiting script now without doing anything."
   exit 1
+else
+  echo ">>> WANDB_PROJECT_DIR_NAME=${WANDB_PROJECT_DIR_NAME}"
 fi
 
 if [[ -z "${TOPO_LLM_REPOSITORY_BASE_PATH}" ]]; then

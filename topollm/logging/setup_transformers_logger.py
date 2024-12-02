@@ -1,10 +1,10 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -25,37 +25,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
+"""Setting up logging for the transformers library."""
+
+from typing import TYPE_CHECKING
 
 import transformers
 
-from topollm.typing.enums import Verbosity
-
-default_logger: logging.Logger = logging.getLogger(
-    name=__name__,
-)
+if TYPE_CHECKING:
+    import logging
 
 
-def finetune_model(
-    trainer: transformers.Trainer,
-    verbosity: Verbosity = Verbosity.NORMAL,
-    logger: logging.Logger = default_logger,
-) -> None:
-    """Finetune a model using the provided trainer."""
-    if verbosity >= 1:
-        logger.info(
-            msg="Calling trainer.train() ...",
-        )
+def setup_transformers_logger() -> None:
+    """Set up the transformers logger for propagating to the root logger."""
+    # Set the transformers logging level
+    transformers.logging.set_verbosity_info()
 
-    training_call_output = trainer.train(
-        resume_from_checkpoint=False,
-    )
-
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            msg="Calling trainer.train() DONE",
-        )
-        logger.info(
-            "training_call_output:\n%s",
-            training_call_output,
-        )
+    # Make the transformers logger propagate to the root logger
+    transformers_logger: logging.Logger = transformers.logging.get_logger()
+    transformers_logger.handlers = []  # This avoids duplicate logging
+    transformers_logger.propagate = True

@@ -1,10 +1,11 @@
 defaults:
   - base_model: roberta-base_for_token_classification
   - batch_sizes: default
-  - gradient_modifier: do_nothing
   - finetuning_datasets: train_and_eval_on_wnut_17
   - finetuning_parameters@_here_: default_parameters
+  - gradient_modifier: do_nothing
   - ../tokenizer@tokenizer: basic_tokenizer
+  - trainer_modifier: add_wandb_callback
   - peft: standard
   - _self_
 

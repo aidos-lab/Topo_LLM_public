@@ -1,10 +1,10 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -34,13 +34,13 @@ from typing import TYPE_CHECKING
 import hydra
 import hydra.core.hydra_config
 import omegaconf
-import transformers
 import wandb
 
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
+from topollm.logging.setup_transformers_logger import setup_transformers_logger
 from topollm.model_finetuning.create_finetuned_language_model_config import create_finetuned_language_model_config
 from topollm.model_finetuning.do_finetuning_process import do_finetuning_process
 from topollm.model_finetuning.initialize_wandb import initialize_wandb
@@ -74,15 +74,8 @@ setup_exception_logging(
     logger=global_logger,
 )
 
-# Set the transformers logging level
-transformers.logging.set_verbosity_info()
 
-# Make the transformers logger propagate to the root logger
-# TODO: Make this into a function
-transformers_logger: logging.Logger = transformers.logging.get_logger()
-transformers_logger.handlers = []  # This avoids duplicate logging
-transformers_logger.propagate = True
-
+setup_transformers_logger()
 setup_omega_conf()
 
 
