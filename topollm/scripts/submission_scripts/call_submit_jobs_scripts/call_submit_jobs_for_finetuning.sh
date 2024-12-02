@@ -12,7 +12,7 @@ echo ">>> Submission script started."
 # # # #
 # Leave DRY_RUN_OPTION empty to run without the dry-run option, i.e., to actually submit the jobs
 #
-DRY_RUN_OPTION="--dry-run"
+# DRY_RUN_OPTION="--dry-run"
 
 RUN_ONLY_SELECTED_CONFIGS_OPTION="run_all"
 # RUN_ONLY_SELECTED_CONFIGS_OPTION="run_single_random"
