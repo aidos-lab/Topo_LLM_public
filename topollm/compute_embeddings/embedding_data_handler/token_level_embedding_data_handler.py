@@ -53,7 +53,9 @@ from topollm.storage.StorageDataclasses import (
 )
 from topollm.typing.enums import Verbosity
 
-default_logger = logging.getLogger(__name__)
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 class TokenLevelEmbeddingDataHandler:
@@ -70,14 +72,14 @@ class TokenLevelEmbeddingDataHandler:
         logger: logging.Logger = default_logger,
     ) -> None:
         """Create a Data Handler Class with Dependency Injection."""
-        self.array_storage_backend = array_storage_backend
-        self.metadata_storage_backend = metadata_storage_backend
-        self.model = model
+        self.array_storage_backend: ChunkedArrayStorageProtocol = array_storage_backend
+        self.metadata_storage_backend: ChunkedMetadataStorageProtocol = metadata_storage_backend
+        self.model: PreTrainedModel = model
         self.dataloader = dataloader
-        self.embedding_extractor = embedding_extractor
+        self.embedding_extractor: EmbeddingExtractor = embedding_extractor
 
-        self.verbosity = verbosity
-        self.logger = logger
+        self.verbosity: Verbosity = verbosity
+        self.logger: logging.Logger = logger
 
     def process_data(
         self,
@@ -141,8 +143,6 @@ class TokenLevelEmbeddingDataHandler:
         batch_cpu = move_batch_to_cpu(
             batch=batch,
         )
-
-        # TODO: Make model input compatible with new collate function
 
         # Write metadata to storage
         metadata_data_chunk = MetadataChunk(

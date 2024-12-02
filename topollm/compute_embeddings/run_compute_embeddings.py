@@ -1,10 +1,10 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -47,7 +47,9 @@ if TYPE_CHECKING:
     from topollm.config_classes.main_config import MainConfig
 
 # logger for this file
-global_logger = logging.getLogger(__name__)
+global_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 setup_exception_logging(
     logger=global_logger,
@@ -59,13 +61,15 @@ setup_omega_conf()
 @hydra.main(
     config_path=f"{HYDRA_CONFIGS_BASE_PATH}",
     config_name="main_config",
-    version_base="1.2",
+    version_base="1.3",
 )
 def main(
     config: omegaconf.DictConfig,
 ) -> None:
     """Run the script."""
-    global_logger.info("Running script ...")
+    global_logger.info(
+        msg="Running script ...",
+    )
 
     main_config: MainConfig = initialize_configuration(
         config=config,
@@ -83,7 +87,9 @@ def main(
         logger=global_logger,
     )
 
-    global_logger.info("Running script DONE")
+    global_logger.info(
+        msg="Running script DONE",
+    )
 
 
 if __name__ == "__main__":
