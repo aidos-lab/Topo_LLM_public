@@ -31,7 +31,9 @@ import transformers
 
 from topollm.typing.enums import Verbosity
 
-default_logger = logging.getLogger(__name__)
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 def finetune_model(
@@ -41,14 +43,18 @@ def finetune_model(
 ) -> None:
     """Finetune a model using the provided trainer."""
     if verbosity >= 1:
-        logger.info("Calling trainer.train() ...")
+        logger.info(
+            msg="Calling trainer.train() ...",
+        )
 
     training_call_output = trainer.train(
         resume_from_checkpoint=False,
     )
 
     if verbosity >= Verbosity.NORMAL:
-        logger.info("Calling trainer.train() DONE")
+        logger.info(
+            msg="Calling trainer.train() DONE",
+        )
         logger.info(
             "training_call_output:\n%s",
             training_call_output,

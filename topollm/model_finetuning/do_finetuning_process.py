@@ -32,6 +32,7 @@ from typing import TYPE_CHECKING
 
 import torch
 import transformers
+import wandb
 
 from topollm.config_classes.main_config import MainConfig
 from topollm.data_handling.dataset_preparer.factory import get_dataset_preparer
@@ -191,6 +192,19 @@ def do_finetuning_process(
         model=modified_model,
     )
 
+    # Set the model to train
+    model_which_will_be_trained: ModifiedModel = gradient_modified_model.train()
+
+    if main_config.feature_flags.wandb.use_wandb:
+        # Log gradients and parameters to wandb.
+        # Note that this needs to be called after wandb.init and creation of the model.
+        wandb.watch(
+            models=model_which_will_be_trained,
+            log="all",
+            log_freq=finetuning_config.eval_steps,
+            log_graph=True,
+        )
+
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Prepare model input.
 
@@ -271,7 +285,7 @@ def do_finetuning_process(
     )
 
     trainer: transformers.Trainer = transformers.Trainer(
-        model=gradient_modified_model,
+        model=model_which_will_be_trained,
         args=training_args,
         data_collator=data_collator,
         train_dataset=train_dataset_mapped,  # type: ignore - typing issue with Dataset
