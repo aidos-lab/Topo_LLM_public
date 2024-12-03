@@ -25,6 +25,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import TYPE_CHECKING
+
 import numpy as np
 import transformers.modeling_outputs
 
@@ -34,6 +36,9 @@ from topollm.compute_embeddings.embedding_extractor.layer_aggregator.protocol im
 from topollm.compute_embeddings.embedding_extractor.layer_extractor.protocol import (
     LayerExtractor,
 )
+
+if TYPE_CHECKING:
+    import torch
 
 
 class EmbeddingExtractorTokenLevel:
@@ -69,12 +74,12 @@ class EmbeddingExtractorTokenLevel:
             raise ValueError(msg)
 
         # Extract specified layers
-        layers_to_extract = self.layer_extractor.extract_layers_from_model_outputs(
+        layers_to_extract: list[torch.Tensor] = self.layer_extractor.extract_layers_from_model_outputs(
             hidden_states=hidden_states,
         )
 
         # Aggregate the extracted layers
-        embeddings = self.layer_aggregator.aggregate_layers(
+        embeddings: torch.Tensor = self.layer_aggregator.aggregate_layers(
             layers_to_extract=layers_to_extract,
         )
 

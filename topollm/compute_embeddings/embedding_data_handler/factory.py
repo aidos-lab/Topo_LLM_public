@@ -47,6 +47,9 @@ from topollm.storage.metadata_storage.protocol import ChunkedMetadataStorageProt
 from topollm.typing.enums import EmbeddingDataHandlerMode, LMmode, Verbosity
 from topollm.typing.types import TransformersTokenizer
 
+default_device: torch.device = torch.device(
+    device="cpu",
+)
 default_logger: logging.Logger = logging.getLogger(
     name=__name__,
 )
@@ -61,6 +64,7 @@ def get_embedding_data_handler(
     model: PreTrainedModel,
     dataloader: torch.utils.data.DataLoader,
     embedding_extractor: EmbeddingExtractor,
+    device: torch.device = default_device,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> BaseEmbeddingDataHandler:
@@ -88,6 +92,7 @@ def get_embedding_data_handler(
                 model=model,
                 dataloader=dataloader,
                 embedding_extractor=embedding_extractor,
+                device=device,
                 verbosity=verbosity,
                 logger=logger,
             )
@@ -105,6 +110,7 @@ def get_embedding_data_handler(
                 model=model,
                 dataloader=dataloader,
                 embedding_extractor=embedding_extractor,
+                device=device,
                 verbosity=verbosity,
                 logger=logger,
             )

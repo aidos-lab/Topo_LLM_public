@@ -45,6 +45,9 @@ from topollm.storage.StorageDataclasses import ArrayDataChunk, ChunkIdentifier
 from topollm.typing.enums import Verbosity
 from topollm.typing.types import TransformersTokenizer
 
+default_device: torch.device = torch.device(
+    device="cpu",
+)
 default_logger: logging.Logger = logging.getLogger(
     name=__name__,
 )
@@ -61,6 +64,7 @@ class BaseEmbeddingDataHandler(ABC):
         model: PreTrainedModel,
         dataloader: torch.utils.data.DataLoader,
         embedding_extractor: EmbeddingExtractor,
+        device: torch.device = default_device,
         verbosity: Verbosity = Verbosity.NORMAL,
         logger: logging.Logger = default_logger,
     ) -> None:
@@ -75,6 +79,8 @@ class BaseEmbeddingDataHandler(ABC):
         self.model: PreTrainedModel = model
         self.dataloader: torch.utils.data.DataLoader = dataloader
         self.embedding_extractor: EmbeddingExtractor = embedding_extractor
+
+        self.device: torch.device = device
 
         self.verbosity: Verbosity = verbosity
         self.logger: logging.Logger = logger

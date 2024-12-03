@@ -202,6 +202,8 @@ def compute_and_store_embeddings(
         model=model,
         dataloader=dataloader,
         embedding_extractor=embedding_extractor,
+        device=device,
+        verbosity=verbosity,
         logger=logger,
     )
 

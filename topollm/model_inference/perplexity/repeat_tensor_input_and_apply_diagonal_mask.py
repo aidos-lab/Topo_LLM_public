@@ -27,10 +27,15 @@
 
 import torch
 
+default_device: torch.device = torch.device(
+    device="cpu",
+)
+
 
 def repeat_tensor_input_and_apply_diagonal_mask(
     tensor_input: torch.Tensor,
     mask_token_id: int,
+    device: torch.device = default_device,
 ) -> tuple[
     torch.Tensor,
     torch.Tensor,
@@ -62,6 +67,7 @@ def repeat_tensor_input_and_apply_diagonal_mask(
 
     diagonal_mask: torch.Tensor = torch.ones(
         tensor_input.size(dim=-1) - 1,
+        device=device,
     ).diag(
         diagonal=1,
     )[:-2]
