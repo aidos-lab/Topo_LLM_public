@@ -194,6 +194,7 @@ def compute_and_store_embeddings(
         model_hidden_size=embedding_dimension,
     )
 
+    # TODO: Use a factory pattern here to select the correct EmbeddingDataHandler
     data_handler = TokenLevelEmbeddingDataHandler(
         array_storage_backend=array_storage_backend,
         metadata_storage_backend=metadata_storage_backend,

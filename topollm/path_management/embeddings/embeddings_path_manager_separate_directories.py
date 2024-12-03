@@ -69,6 +69,7 @@ class EmbeddingsPathManagerSeparateDirectories:
             pathlib.Path: The constructed nested subfolder path.
 
         """
+        # TODO: Include the masking mode for the embeddings and EmbeddingDataHandler into the embeddings.config_description
         path = pathlib.Path(
             self.main_config.data.get_partial_path(),
             self.main_config.embeddings.config_description,

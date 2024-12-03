@@ -58,6 +58,9 @@ default_logger: logging.Logger = logging.getLogger(
 )
 
 
+# TODO: Move the common methods into a common abstract base class
+
+
 class TokenLevelEmbeddingDataHandler:
     """Data Handler for computing and storing token-level embeddings."""
 
