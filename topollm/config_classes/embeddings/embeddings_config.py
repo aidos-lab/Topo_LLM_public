@@ -30,19 +30,50 @@
 from pydantic import Field
 
 from topollm.config_classes.config_base_model import ConfigBaseModel
-from topollm.config_classes.constants import KV_SEP, NAME_PREFIXES
+from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
 from topollm.config_classes.data.dataset_map_config import DatasetMapConfig
 from topollm.config_classes.embeddings.embedding_extraction_config import (
     EmbeddingExtractionConfig,
 )
-from topollm.typing.enums import Level
+from topollm.typing.enums import EmbeddingDataHandlerMode, Level
+
+
+class EmbeddingDataHandlerConfig(ConfigBaseModel):
+    """Configuration for specifying the embedding data handler."""
+
+    level: Level = Field(
+        default=Level.TOKEN,
+        title="Level to use for computing embeddings.",
+        description="The level to use for computing embeddings.",
+    )
+
+    mode: EmbeddingDataHandlerMode = Field(
+        default=EmbeddingDataHandlerMode.REGULAR,
+        title="Mode for embedding data handler.",
+        description="The mode for embedding data handler.",
+    )
+
+    @property
+    def config_description(
+        self,
+    ) -> str:
+        description: str = ""
+        description += f"{NAME_PREFIXES['embedding_data_handler_mode']}"
+        description += KV_SEP
+        description += f"{str(object=self.mode)}"
+        description += ITEM_SEP
+        description += f"{NAME_PREFIXES['level']}"
+        description += KV_SEP
+        description += f"{str(object=self.level)}"
+
+        return description
 
 
 class EmbeddingsConfig(ConfigBaseModel):
     """Configurations for specifying embeddings."""
 
     dataset_map: DatasetMapConfig = Field(
-        ...,
+        default=...,
         title="Dataset map configuration.",
         description="The configuration for specifying dataset map.",
     )
@@ -53,16 +84,16 @@ class EmbeddingsConfig(ConfigBaseModel):
         description="The batch size for computing embeddings.",
     )
 
-    embedding_extraction: EmbeddingExtractionConfig = Field(
-        ...,
-        title="Embedding extraction configuration.",
-        description="The configuration for specifying embedding extraction.",
+    embedding_data_handler: EmbeddingDataHandlerConfig = Field(
+        default=...,
+        title="Embedding data handler configuration.",
+        description="The configuration for specifying embedding data handler.",
     )
 
-    level: Level = Field(
-        default=Level.TOKEN,
-        title="Level to use for computing embeddings.",
-        description="The level to use for computing embeddings.",
+    embedding_extraction: EmbeddingExtractionConfig = Field(
+        default=...,
+        title="Embedding extraction configuration.",
+        description="The configuration for specifying embedding extraction.",
     )
 
     num_workers: int = Field(
@@ -71,7 +102,7 @@ class EmbeddingsConfig(ConfigBaseModel):
         description=(
             "The number of workers for dataloader. "
             "Note that is appears to be necessary "
-            "to set this to 0 for the 'mps' backend to work."
+            "to set num_workers=0 for the 'mps' backend to work."
         ),
     )
 
@@ -79,8 +110,7 @@ class EmbeddingsConfig(ConfigBaseModel):
     def config_description(
         self,
     ) -> str:
-        desc: str = f"{NAME_PREFIXES['level']}"
-        desc += f"{KV_SEP}"
-        desc += f"{str(object=self.level)}"
+        # Note: The embedding extration is not part of this description and is handled separately.
+        description: str = self.embedding_data_handler.config_description
 
-        return desc
+        return description

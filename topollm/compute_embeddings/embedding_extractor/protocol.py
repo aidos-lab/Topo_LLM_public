@@ -24,19 +24,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import numpy as np
-
 from typing import Protocol
+
+import numpy as np
+import transformers.modeling_outputs
 
 
 class EmbeddingExtractor(Protocol):
+    """Extract embeddings from model outputs."""
+
     embedding_dimension: int
 
     def extract_embeddings_from_model_outputs(
         self,
-        model_outputs,
+        model_outputs: transformers.modeling_outputs.BaseModelOutput,
     ) -> np.ndarray:
-        """
-        This method extracts embeddings from the model outputs.
-        """
+        """Extract embeddings from the model outputs."""
         ...

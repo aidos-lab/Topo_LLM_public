@@ -44,10 +44,11 @@ class EmbeddingExtractorTokenLevel:
         layer_extractor: LayerExtractor,
         layer_aggregator: LayerAggregator,
         embedding_dimension: int,
-    ):
-        self.layer_extractor = layer_extractor
-        self.layer_aggregator = layer_aggregator
-        self.embedding_dimension = embedding_dimension
+    ) -> None:
+        """Initialize the EmbeddingExtractorTokenLevel."""
+        self.layer_extractor: LayerExtractor = layer_extractor
+        self.layer_aggregator: LayerAggregator = layer_aggregator
+        self.embedding_dimension: int = embedding_dimension
 
     def extract_embeddings_from_model_outputs(
         self,

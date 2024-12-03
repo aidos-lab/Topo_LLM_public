@@ -25,6 +25,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Base class for all data handlers for computing and storing embeddings."""
+
 import logging
 from abc import ABC, abstractmethod
 
@@ -93,9 +95,10 @@ class BaseEmbeddingDataHandler(ABC):
         self,
     ) -> None:
         # Iterate over batches and write embeddings to storage
-        self.logger.info(
-            msg="Computing and storing embeddings ...",
-        )
+        if self.verbosity >= Verbosity.NORMAL:
+            self.logger.info(
+                msg="Computing and storing embeddings ...",
+            )
 
         for batch_idx, batch in enumerate(
             iterable=tqdm(
@@ -108,9 +111,10 @@ class BaseEmbeddingDataHandler(ABC):
                 batch_idx=batch_idx,
             )
 
-        self.logger.info(
-            msg="Computing and storing embeddings DONE",
-        )
+        if self.verbosity >= Verbosity.NORMAL:
+            self.logger.info(
+                msg="Computing and storing embeddings DONE",
+            )
 
     def process_single_batch(
         self,
@@ -180,7 +184,6 @@ class BaseEmbeddingDataHandler(ABC):
         batch_len: int = len(inputs["input_ids"])
         return batch_len
 
-    @abstractmethod
     def prepare_model_inputs_from_batch(
         self,
         batch: dict,
@@ -189,7 +192,8 @@ class BaseEmbeddingDataHandler(ABC):
         torch.Tensor,
     ]:
         """Prepare model inputs from a batch."""
-        ...  # pragma: no cover
+        inputs = batch["model_inputs"]
+        return inputs
 
     @abstractmethod
     def compute_embeddings_from_batch(

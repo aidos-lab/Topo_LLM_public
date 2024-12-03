@@ -41,19 +41,8 @@ default_logger: logging.Logger = logging.getLogger(
 )
 
 
-class TokenLevelEmbeddingDataHandler(BaseEmbeddingDataHandler):
+class RegularTokenEmbeddingDataHandler(BaseEmbeddingDataHandler):
     """Data handler for regular computation and storing of token-level embeddings."""
-
-    def prepare_model_inputs_from_batch(
-        self,
-        batch: dict,
-    ) -> dict[
-        str,
-        torch.Tensor,
-    ]:
-        """Prepare model inputs from a batch."""
-        inputs = batch["model_inputs"]
-        return inputs
 
     def compute_embeddings_from_batch(
         self,
@@ -66,10 +55,10 @@ class TokenLevelEmbeddingDataHandler(BaseEmbeddingDataHandler):
         ] = self.prepare_model_inputs_from_batch(
             batch=batch,
         )
-        model_outputs = self.compute_model_outputs_from_single_inputs(
+        model_outputs: transformers.modeling_outputs.BaseModelOutput = self.compute_model_outputs_from_single_inputs(
             inputs=inputs,
         )
-        embeddings = self.embedding_extractor.extract_embeddings_from_model_outputs(
+        embeddings: np.ndarray = self.embedding_extractor.extract_embeddings_from_model_outputs(
             model_outputs=model_outputs,
         )
 

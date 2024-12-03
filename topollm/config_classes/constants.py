@@ -79,6 +79,7 @@ NAME_PREFIXES: dict[
     "deduplication_mode": "dedup",
     "description": "desc",
     "dropout_mode": "dr",
+    "embedding_data_handler_mode": "edh-mode",
     "epoch": "ep",
     "feature_column_name": "feat-col",
     "FinetuningMode": "ftm",

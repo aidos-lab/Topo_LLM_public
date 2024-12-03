@@ -37,8 +37,10 @@ import torch.utils.data
 from topollm.compute_embeddings.collate_batch_for_embedding import (
     collate_batch_and_move_to_device,
 )
-from topollm.compute_embeddings.embedding_data_handler.token_level_embedding_data_handler import (
-    TokenLevelEmbeddingDataHandler,
+from topollm.compute_embeddings.embedding_data_handler.base_embedding_data_handler import BaseEmbeddingDataHandler
+from topollm.compute_embeddings.embedding_data_handler.factory import get_embedding_data_handler
+from topollm.compute_embeddings.embedding_data_handler.regular_token_embedding_data_handler import (
+    RegularTokenEmbeddingDataHandler,
 )
 from topollm.compute_embeddings.embedding_dataloader_preparer.embedding_dataloader_preparer_context import (
     EmbeddingDataLoaderPreparerContext,
@@ -194,8 +196,9 @@ def compute_and_store_embeddings(
         model_hidden_size=embedding_dimension,
     )
 
-    # TODO: Use a factory pattern here to select the correct EmbeddingDataHandler
-    data_handler = TokenLevelEmbeddingDataHandler(
+    embedding_data_handler: BaseEmbeddingDataHandler = get_embedding_data_handler(
+        embeddings_config=main_config.embeddings,
+        language_model_config=main_config.language_model,
         array_storage_backend=array_storage_backend,
         metadata_storage_backend=metadata_storage_backend,
         model=model,
@@ -203,4 +206,5 @@ def compute_and_store_embeddings(
         embedding_extractor=embedding_extractor,
         logger=logger,
     )
-    data_handler.process_data()
+
+    embedding_data_handler.process_data()
