@@ -230,6 +230,30 @@
             ]
         },
         {
+            "name": "Masked Token Embedding; with POS and data_subsampler - run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
+            "console": "integratedTerminal",
+            "args": [
+                "tokenizer.add_prefix_space=True", // This is necessary to use the tokenizer with input split into words
+                "+data.dataset_type=huggingface_dataset_named_entity",
+                "data=multiwoz21_validation",
+                "data.data_subsampling.number_of_samples=128",
+                "data.data_subsampling.sampling_mode=random",
+                "data.data_subsampling.sampling_seed=777",
+                "language_model=roberta-base",
+                "embeddings.embedding_data_handler.mode=masked_token",
+                "embeddings.embedding_extraction.layer_indices=[-1]",
+                "embeddings_data_prep.sampling.num_samples=3000",
+                "embeddings_data_prep.sampling.sampling_mode=random",
+                "local_estimates.filtering.num_samples=300",
+                "local_estimates.compute_global_estimates=true",
+                "local_estimates.pointwise.n_neighbors_mode=absolute_size",
+                "local_estimates.pointwise.absolute_n_neighbors=256",
+            ]
+        },
+        {
             "name": "run_single_setup_load_saved_perplexity_and_local_estimates_and_analyse.py",
             "type": "debugpy",
             "request": "launch",
