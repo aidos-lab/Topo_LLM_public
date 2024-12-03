@@ -60,6 +60,8 @@ class MLMMaskedTokenEmbeddingDataHandler(BaseEmbeddingDataHandler):
             batch=batch,
         )
 
+        mask_token_id = self.tokenizer.mask_token_id
+
         raise NotImplementedError
 
         model_outputs: transformers.modeling_outputs.BaseModelOutput = self.compute_model_outputs_from_single_inputs(

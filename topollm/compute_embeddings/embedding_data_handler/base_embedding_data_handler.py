@@ -43,6 +43,7 @@ from topollm.storage.metadata_storage.MetadataChunk import MetadataChunk
 from topollm.storage.metadata_storage.protocol import ChunkedMetadataStorageProtocol
 from topollm.storage.StorageDataclasses import ArrayDataChunk, ChunkIdentifier
 from topollm.typing.enums import Verbosity
+from topollm.typing.types import TransformersTokenizer
 
 default_logger: logging.Logger = logging.getLogger(
     name=__name__,
@@ -56,6 +57,7 @@ class BaseEmbeddingDataHandler(ABC):
         self,
         array_storage_backend: ChunkedArrayStorageProtocol,
         metadata_storage_backend: ChunkedMetadataStorageProtocol,
+        tokenizer: TransformersTokenizer,
         model: PreTrainedModel,
         dataloader: torch.utils.data.DataLoader,
         embedding_extractor: EmbeddingExtractor,
@@ -68,6 +70,8 @@ class BaseEmbeddingDataHandler(ABC):
         """
         self.array_storage_backend: ChunkedArrayStorageProtocol = array_storage_backend
         self.metadata_storage_backend: ChunkedMetadataStorageProtocol = metadata_storage_backend
+
+        self.tokenizer: TransformersTokenizer = tokenizer
         self.model: PreTrainedModel = model
         self.dataloader: torch.utils.data.DataLoader = dataloader
         self.embedding_extractor: EmbeddingExtractor = embedding_extractor
