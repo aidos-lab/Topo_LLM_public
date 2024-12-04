@@ -61,6 +61,8 @@ class RegularTokenEmbeddingDataHandler(BaseEmbeddingDataHandler):
         embeddings: np.ndarray = self.embedding_extractor.extract_embeddings_from_model_outputs(
             model_outputs=model_outputs,
         )
+        # `embeddings` will be of shape:
+        # `(batch_size, sequence_length, embedding_dimension)`, e.g., `embeddings.shape = (32, 512, 768)`
 
         return embeddings
 

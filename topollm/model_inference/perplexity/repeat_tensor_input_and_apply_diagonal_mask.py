@@ -65,12 +65,10 @@ def repeat_tensor_input_and_apply_diagonal_mask(
     # >         [    0, 32826,    16,    11,  1470,     4,     2],
     # >         [    0, 32826,    16,    11,  1470,     4,     2]])
 
-    diagonal_mask: torch.Tensor = torch.ones(
-        tensor_input.size(dim=-1) - 1,
+    diagonal_mask: torch.Tensor = create_diagonal_mask_without_special_tokens(
+        sequence_length=tensor_input.size(dim=-1),
         device=device,
-    ).diag(
-        diagonal=1,
-    )[:-2]
+    )
     # > diagonal_mask =
     # > tensor([[0., 1., 0., 0., 0., 0., 0.],
     # >         [0., 0., 1., 0., 0., 0., 0.],
@@ -101,3 +99,34 @@ def repeat_tensor_input_and_apply_diagonal_mask(
     # >         [ -100,  -100,  -100,  -100,  -100,     4,  -100]])
 
     return masked_input, labels
+
+
+def create_diagonal_mask_without_special_tokens(
+    sequence_length: int,
+    device: torch.device = default_device,
+) -> torch.Tensor:
+    """Create a diagonal mask for the input tensor without the special tokens.
+
+    > Example for sequence_length = 7:
+    >
+    > torch.ones(
+    >    sequence_length - 1,
+    >    device=device,
+    > ) =
+    > tensor([1., 1., 1., 1., 1., 1.])
+    >
+    > diagonal_mask =
+    > tensor([[0., 1., 0., 0., 0., 0., 0.],
+    >         [0., 0., 1., 0., 0., 0., 0.],
+    >         [0., 0., 0., 1., 0., 0., 0.],
+    >         [0., 0., 0., 0., 1., 0., 0.],
+    >         [0., 0., 0., 0., 0., 1., 0.]])
+    """
+    diagonal_mask: torch.Tensor = torch.ones(
+        sequence_length - 1,
+        device=device,
+    ).diag(
+        diagonal=1,
+    )[:-2]
+
+    return diagonal_mask
