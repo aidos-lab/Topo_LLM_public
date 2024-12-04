@@ -35,7 +35,7 @@ from pydantic import BaseModel, Field
 
 from topollm.config_classes.constants import TOPO_LLM_REPOSITORY_BASE_PATH
 from topollm.scripts.submission_scripts.types import RunOnlySelectedConfigsOption
-from topollm.typing.enums import EmbeddingsDataPrepSamplingMode, SubmissionMode, Task
+from topollm.typing.enums import EmbeddingDataHandlerMode, EmbeddingsDataPrepSamplingMode, SubmissionMode, Task
 
 
 class Template(StrEnum):
@@ -99,6 +99,7 @@ class SubmissionConfig(BaseModel):
     checkpoint_no_list: list[str] | None = None
 
     layer_indices: str | None = "[-1]"
+    embedding_data_handler_mode: EmbeddingDataHandlerMode | None = EmbeddingDataHandlerMode.REGULAR
     embeddings_data_prep_num_samples_list: list[str] | None = [
         "60000",
     ]
@@ -395,6 +396,11 @@ class SubmissionConfig(BaseModel):
         task_specific_command.extend(
             language_model_command,
         )
+
+        if self.embedding_data_handler_mode:
+            task_specific_command.append(
+                f"embeddings.embedding_data_handler.mode={self.embedding_data_handler_mode}",
+            )
 
         if self.layer_indices:
             task_specific_command.append(

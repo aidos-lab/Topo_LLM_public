@@ -54,7 +54,13 @@ from topollm.scripts.submission_scripts.types import (
     RunOnlySelectedConfigsOption,
     SeedListOption,
 )
-from topollm.typing.enums import DataSamplingMode, EmbeddingsDataPrepSamplingMode, SubmissionMode, Task
+from topollm.typing.enums import (
+    DataSamplingMode,
+    EmbeddingDataHandlerMode,
+    EmbeddingsDataPrepSamplingMode,
+    SubmissionMode,
+    Task,
+)
 
 
 def run_task(
@@ -718,6 +724,7 @@ def make_config_and_run_task(
     batch_size_train: int,
     batch_size_eval: int,
     wandb_project: str,
+    embedding_data_handler_mode: EmbeddingDataHandlerMode,
     language_model_list_option: LanguageModelListOption,
     language_model_seed_list_option: SeedListOption,
     checkpoint_no_list_option: CheckpointNoListOption,
@@ -828,6 +835,7 @@ def make_config_and_run_task(
         data_subsampling_number_of_samples_list=data_subsampling_number_of_samples_list,
         data_subsampling_sampling_seed_list=data_subsampling_sampling_seed_list,
         additional_data_options=additional_data_options,
+        embedding_data_handler_mode=embedding_data_handler_mode,
         language_model_list=language_model_list,
         language_model_seed_list=language_model_seed_list,
         checkpoint_no_list=checkpoint_no_list,
@@ -901,6 +909,7 @@ def make_config_and_run_task(
             "exploratory_dropout_analysis_coarse_checkpoint_resolution",
             "tiny_dropout_variations_coarse_checkpoint_resolution",
             "fixed_parameters_high_checkpoint_resolution",
+            "masked_token_embeddings",
         ],
         case_sensitive=False,
     ),
@@ -930,6 +939,12 @@ def make_config_and_run_task(
     type=DataSamplingMode,
     default=DataSamplingMode.RANDOM,
     help="Data subsampling sampling mode to use.",
+)
+@click.option(
+    "--embedding-data-handler-mode",
+    type=EmbeddingDataHandlerMode,
+    default=EmbeddingDataHandlerMode.REGULAR,
+    help="Embedding data handler mode to use.",
 )
 @click.option(
     "--embeddings-data-prep-sampling-mode",
@@ -1036,6 +1051,7 @@ def orchestrate_job_submission(
     data_list_option: DataListOption,
     data_subsampling_sampling_mode: DataSamplingMode,
     data_subsampling_sampling_seed_list_option: DataSubsamplingSamplingSeedListOption,
+    embedding_data_handler_mode: EmbeddingDataHandlerMode,
     embeddings_data_prep_sampling_mode: EmbeddingsDataPrepSamplingMode,
     local_estimates_pointwise_absolute_n_neighbors_list_option: LocalEstimatesPointwiseAbsoluteNNeighborsListOption,
     wandb_project: str,
@@ -1215,6 +1231,16 @@ def orchestrate_job_submission(
 
             # Select all checkpoints for which we have evaluation results
             checkpoint_no_list_option = CheckpointNoListOption.FULL
+        case "masked_token_embeddings":
+            # Note:
+            # - You need to set the data_list_option via the command line arguments.
+
+            data_subsampling_number_of_samples_list_option = DataSubsamplingNumberOfSamplesListOption.FIXED_10000
+
+            embedding_data_handler_mode = EmbeddingDataHandlerMode.MASKED_TOKEN
+
+            checkpoint_no_list_option = CheckpointNoListOption.SELECTED
+
         # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
         # NOTE: You can add more experiment configurations here.
         case _:
@@ -1229,11 +1255,9 @@ def orchestrate_job_submission(
         embeddings_data_prep_sampling_seed_list_option = EmbeddingsDataPrepSamplingSeedListOption.DEFAULT
         skip_compute_and_store_embeddings = False  # do the embeddings computation
 
-        queue = "CUDA"
-        template = Template.GTX1080
-
-        # queue = "DSML"
-        # template = Template.DSML
+        # queue, template = "CUDA", Template.GTX1080
+        queue, template = "CUDA", Template.RTX6000
+        # queue, template = "DSML", Template.DSML
 
         ncpus = "4"
         ngpus = "1"
@@ -1295,6 +1319,7 @@ def orchestrate_job_submission(
         batch_size_train=batch_size_train,
         batch_size_eval=batch_size_eval,
         wandb_project=wandb_project,
+        embedding_data_handler_mode=embedding_data_handler_mode,
         language_model_list_option=language_model_list_option,
         language_model_seed_list_option=language_model_seed_list_option,
         checkpoint_no_list_option=checkpoint_no_list_option,
