@@ -58,7 +58,7 @@ class AnalysisFeatureFlagsConfig(ConfigBaseModel):
     """Feature flags for the analysis process."""
 
     create_plots_in_local_estimates_worker: bool = Field(
-        default=True,
+        default=False,
         title="Create plots in local estimates worker.",
         description="Whether to create plots in the local estimates worker.",
     )

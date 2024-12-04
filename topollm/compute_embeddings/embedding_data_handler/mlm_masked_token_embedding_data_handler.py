@@ -28,17 +28,20 @@
 """Data Handler for computing and storing token-level embeddings."""
 
 import logging
+from typing import TYPE_CHECKING
 
 import numpy as np
 import torch
 import torch.utils.data
-import transformers.modeling_outputs
 
 from topollm.compute_embeddings.embedding_data_handler.base_embedding_data_handler import BaseEmbeddingDataHandler
 from topollm.model_inference.perplexity.repeat_tensor_input_and_apply_diagonal_mask import (
     create_diagonal_mask_without_special_tokens,
     repeat_tensor_input_and_apply_diagonal_mask,
 )
+
+if TYPE_CHECKING:
+    import transformers.modeling_outputs
 
 default_logger: logging.Logger = logging.getLogger(
     name=__name__,
@@ -68,7 +71,7 @@ class MLMMaskedTokenEmbeddingDataHandler(BaseEmbeddingDataHandler):
             )
 
         # Container to hold the embedding arrays for each sequence in the input
-        sequence_embedding_arrays_list = []
+        list_of_sequence_embedding_arrays: list[np.ndarray] = []
 
         # Iterate over the individual input sequences, and process each one separately.
         for single_sequence_input_ids, single_sequence_attention_mask in zip(
@@ -97,13 +100,16 @@ class MLMMaskedTokenEmbeddingDataHandler(BaseEmbeddingDataHandler):
             #
             # Note: We currently do not pass any attention masks.
             with torch.no_grad():
+                # TODO: This might lead to out of memory issues if the input sequence is too long, since then the repeated_masked_input tensor will be too large.
+                # TODO(Ben): Implement the model forward pass in batches to avoid this issue.
+
                 repeated_masked_model_outputs: transformers.modeling_outputs.BaseModelOutput = self.model(
                     repeated_masked_input,
                     output_hidden_states=True,
                 )
 
                 # Extract embeddings of all input vectors.
-                # We extract the masked tokens later.
+                # We extract each sequence's masked token later.
                 repeated_masked_embeddings: np.ndarray = self.embedding_extractor.extract_embeddings_from_model_outputs(
                     model_outputs=repeated_masked_model_outputs,
                 )
@@ -132,18 +138,74 @@ class MLMMaskedTokenEmbeddingDataHandler(BaseEmbeddingDataHandler):
                     device=torch.device(device="cpu"),  # We want this to be on the CPU for the numpy operations.
                 )
                 diagonal_mask_np: np.ndarray = diagonal_mask.cpu().numpy()
-                mask_indices = np.where(diagonal_mask == 1)
+                mask_indices = np.where(diagonal_mask_np == 1)
 
+                # `extracted_masked_embeddings.shape = (single_sequence_length - 2, embedding_dimension)`
                 extracted_masked_embeddings: np.ndarray = repeated_masked_embeddings[mask_indices]
 
-                # single_sequence_embeddings_with_averaged_special_tokens =
+                # Assemble the embeddings of the special tokens and the masked tokens into a single array.
+                # `single_sequence_embeddings_with_averaged_special_tokens.shape = (single_sequence_length, embedding_dimension)`
+                single_sequence_embeddings_with_averaged_special_tokens: np.ndarray = np.vstack(
+                    tup=[
+                        start_token_average_embedding,  # Add as the first row
+                        extracted_masked_embeddings,  # Existing array
+                        end_token_average_embedding,  # Add as the last row
+                    ],
+                )
 
-                # TODO(Ben): Extract the embedding vectors of the first special token, the "diagonal" masked tokens, the last special token and assemble into single array.
+                # Append the embeddings of the current sequence to the list.
+                list_of_sequence_embedding_arrays.append(
+                    single_sequence_embeddings_with_averaged_special_tokens,
+                )
 
-                pass  # noqa: PIE790 - this is here for setting breakpoints
+        # # # #
+        # After iterating over all sequences in the batch, we concatenate the embeddings into a single array.
 
-        # TODO(Ben): Assemble extracted embeddings into array for the entire batch (note that we need to fill up to the padding length again).
+        # Check that the number of computed embeddings matches the number of input sequences.
+        # `len(list_of_sequence_embedding_arrays) = batch_size`
+        if len(list_of_sequence_embedding_arrays) != inputs["input_ids"].shape[0]:
+            msg = "The number of computed embeddings does not match the number of input sequences."
+            raise ValueError(
+                msg,
+            )
 
-        raise NotImplementedError
+        # Fill up the embeddings to the padding length.
+        expected_sequence_length: int = inputs["input_ids"].shape[1]
 
-        return repeated_masked_embeddings
+        padded_sequences: list[np.ndarray] = []
+        for single_sequence_embedding_array in list_of_sequence_embedding_arrays:
+            padding = np.zeros(
+                shape=(
+                    expected_sequence_length - single_sequence_embedding_array.shape[0],
+                    single_sequence_embedding_array.shape[1],
+                ),
+            )
+            padded_single_sequence_embedding_array = np.vstack(
+                [
+                    single_sequence_embedding_array,
+                    padding,
+                ],
+            )  # Stack original sequence and zero-padding
+            padded_sequences.append(
+                padded_single_sequence_embedding_array,
+            )
+
+        # Stack all padded sequences to create a single array.
+        # `final_array.shape = (batch_size, expected_sequence_length, embedding_dimension)`
+        final_array = np.stack(
+            arrays=padded_sequences,
+        )
+
+        # Check that the final array has the expected shape.
+        if final_array.shape[0] != inputs["input_ids"].shape[0]:
+            msg = "The number of sequences in the final array does not match the number of input sequences."
+            raise ValueError(
+                msg,
+            )
+        if final_array.shape[1] != expected_sequence_length:
+            msg = "The sequence length in the final array does not match the expected sequence length."
+            raise ValueError(
+                msg,
+            )
+
+        return final_array

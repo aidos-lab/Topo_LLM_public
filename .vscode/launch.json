@@ -227,6 +227,7 @@
                 "local_estimates.compute_global_estimates=true",
                 "local_estimates.pointwise.n_neighbors_mode=absolute_size",
                 "local_estimates.pointwise.absolute_n_neighbors=256",
+                "feature_flags.analysis.create_plots_in_local_estimates_worker=true",
             ]
         },
         {
@@ -239,6 +240,8 @@
                 "tokenizer.add_prefix_space=True", // This is necessary to use the tokenizer with input split into words
                 "+data.dataset_type=huggingface_dataset_named_entity",
                 "data=multiwoz21_validation",
+                // "data=one-year-of-tsla-on-reddit", // Note: With our naive sequence processing, this runs out of memory on the 16GB Apple M1 machine
+                "data.data_subsampling.split=validation",
                 "data.data_subsampling.number_of_samples=128",
                 "data.data_subsampling.sampling_mode=random",
                 "data.data_subsampling.sampling_seed=777",
@@ -247,10 +250,11 @@
                 "embeddings.embedding_extraction.layer_indices=[-1]",
                 "embeddings_data_prep.sampling.num_samples=3000",
                 "embeddings_data_prep.sampling.sampling_mode=random",
-                "local_estimates.filtering.num_samples=300",
+                "local_estimates.filtering.num_samples=1000",
                 "local_estimates.compute_global_estimates=true",
                 "local_estimates.pointwise.n_neighbors_mode=absolute_size",
                 "local_estimates.pointwise.absolute_n_neighbors=256",
+                "feature_flags.analysis.create_plots_in_local_estimates_worker=true",
             ]
         },
         {
