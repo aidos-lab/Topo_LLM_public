@@ -35,4 +35,4 @@ class LayerExtractor(Protocol):
         hidden_states,
     ) -> list[torch.Tensor]:
         """Extract layers from the model outputs."""
-        ...
+        ...  # pragma: no cover

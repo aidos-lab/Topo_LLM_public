@@ -36,7 +36,9 @@ from topollm.path_management.embeddings.protocol import (
     EmbeddingsPathManager,
 )
 
-default_logger = logging.getLogger(__name__)
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 def get_embeddings_path_manager(

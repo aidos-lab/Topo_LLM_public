@@ -1,10 +1,10 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -37,12 +37,19 @@ from transformers import PreTrainedModel, PreTrainedTokenizer, PreTrainedTokeniz
 
 from topollm.config_classes.tokenizer.tokenizer_config import TokenizerConfig
 from topollm.model_handling.loaded_model_container import LoadedModelContainer
+from topollm.model_inference.perplexity.repeat_tensor_input_and_apply_diagonal_mask import (
+    repeat_tensor_input_and_apply_diagonal_mask,
+)
 from topollm.model_inference.perplexity.saving.sentence_perplexity_container import SentencePerplexityContainer
 from topollm.typing.enums import LMmode, MLMPseudoperplexityGranularity, Verbosity
 from topollm.typing.types import PerplexityResultsList
 
-default_device = torch.device("cpu")
-default_logger = logging.getLogger(__name__)
+default_device = torch.device(
+    device="cpu",
+)
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 def pseudoperplexity_per_token_of_sentence(
@@ -66,17 +73,12 @@ def pseudoperplexity_per_token_of_sentence(
 
     # Make sure that `padding=False`, otherwise the repeated input will be duplicated many times.
     tensor_input = tokenizer.encode(
-        sentence,
+        text=sentence,
         return_tensors="pt",
         max_length=tokenizer_config.max_length,
         padding=False,
         truncation="longest_first",
     )
-    # Example:
-    # `model = 'roberta-base'`
-    # `sentence = 'Paris is in France.'
-    # `tensor_input = tensor([[    0, 32826,    16,    11,  1470,     4,     2]])`
-    # `[tokenizer.decode(single_token_id) for single_token_id in tensor_input[0]] = ['<s>', 'Paris', ' is', ' in', ' France', '.', '</s>']`
 
     if not isinstance(
         tensor_input,
@@ -91,50 +93,21 @@ def pseudoperplexity_per_token_of_sentence(
         for single_token_id in tensor_input[0]  # type: ignore - tensor_input can be subscripted
     ]
 
-    repeat_input = tensor_input.repeat(
-        tensor_input.size(-1) - 2,
-        1,
+    (
+        masked_input,
+        labels,
+    ) = repeat_tensor_input_and_apply_diagonal_mask(
+        tensor_input=tensor_input,
+        mask_token_id=mask_token_id,
     )
-    # > repeat_input =
-    # > tensor([[    0, 32826,    16,    11,  1470,     4,     2],
-    # >         [    0, 32826,    16,    11,  1470,     4,     2],
-    # >         [    0, 32826,    16,    11,  1470,     4,     2],
-    # >         [    0, 32826,    16,    11,  1470,     4,     2],
-    # >         [    0, 32826,    16,    11,  1470,     4,     2]])
-
-    diagonal_mask = torch.ones(tensor_input.size(-1) - 1).diag(1)[:-2]
-    # > diagonal_mask =
-    # > tensor([[0., 1., 0., 0., 0., 0., 0.],
-    # >         [0., 0., 1., 0., 0., 0., 0.],
-    # >         [0., 0., 0., 1., 0., 0., 0.],
-    # >         [0., 0., 0., 0., 1., 0., 0.],
-    # >         [0., 0., 0., 0., 0., 1., 0.]])
-
-    masked_input = repeat_input.masked_fill(
-        mask=(diagonal_mask == 1),
-        value=mask_token_id,
-    )
-    # > masked_input =
-    # > tensor([[    0, 50264,    16,    11,  1470,     4,     2],
-    # >         [    0, 32826, 50264,    11,  1470,     4,     2],
-    # >         [    0, 32826,    16, 50264,  1470,     4,     2],
-    # >         [    0, 32826,    16,    11, 50264,     4,     2],
-    # >         [    0, 32826,    16,    11,  1470, 50264,     2]])
-
-    labels = repeat_input.masked_fill(
-        mask=(masked_input != mask_token_id),
-        value=-100,
-    )
-    # > labels =
-    # > tensor([[ -100, 32826,  -100,  -100,  -100,  -100,  -100],
-    # >         [ -100,  -100,    16,  -100,  -100,  -100,  -100],
-    # >         [ -100,  -100,  -100,    11,  -100,  -100,  -100],
-    # >         [ -100,  -100,  -100,  -100,  1470,  -100,  -100],
-    # >         [ -100,  -100,  -100,  -100,  -100,     4,  -100]])
 
     # Move inputs and labels to the correct device.
-    masked_input = masked_input.to(device)
-    labels = labels.to(device)
+    masked_input = masked_input.to(
+        device=device,
+    )
+    labels = labels.to(
+        device=device,
+    )
 
     results_loss_list: list[float] = []
 
@@ -193,7 +166,8 @@ def pseudoperplexity_per_token_of_sentence(
 
 def token_level_to_sentence_level_pseudoperplexity(
     loss: torch.Tensor,
-):
+) -> float:
+    """Convert token-level loss to sentence-level loss."""
     return np.exp(loss.item())
 
 
@@ -204,6 +178,7 @@ def compute_perplexity_over_dataset(
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> PerplexityResultsList:
+    """Compute the perplexity for each sentence in a dataset."""
     if loaded_model_container.lm_mode == LMmode.CLM:
         msg = "Perplexity computation not implemented for CLM yet."
         raise NotImplementedError(msg)

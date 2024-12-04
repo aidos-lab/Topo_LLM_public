@@ -65,10 +65,12 @@ def submit_jobs(
     """Submit jobs in tmux sessions with logging and resource management."""
     # Define job-specific configurations
     data_list_options: list[str] = [
-        "reddit_only",
+        # "reddit_only",
         "multiwoz21_only",
     ]
-    experiment_selector = "tiny_dropout_variations_coarse_checkpoint_resolution"
+
+    experiment_selector = "masked_token_embeddings"
+    # experiment_selector = "tiny_dropout_variations_coarse_checkpoint_resolution"
     log_dir: pathlib.Path = create_log_directory()
 
     # Convert the do_submission flag to a dry_run_option.
@@ -184,6 +186,7 @@ def run_tmux_session(
     experiment_selector: str,
     dry_run_option: str,
     run_configs_option: str,
+    experiment_stage: str = "compute_embeddings_plus_single_pipeline_run",
     session_timeout: int = 6,
 ) -> None:
     """Start a tmux session to run the job and log the output."""
@@ -197,8 +200,9 @@ def run_tmux_session(
         f"poetry run submit_jobs "
         f"--data-list-option {data_option} "
         f"--experiment-selector {experiment_selector} "
-        f"--experiment-stage compute_embeddings_plus_single_pipeline_run "
+        f"--experiment-stage {experiment_stage} "
         f"--use-finetuned-model "
+        # f"--use-roberta-base "
         f"--task=pipeline "
         f"{dry_run_option} "
         f"--run-only-selected-configs-option {run_configs_option} "

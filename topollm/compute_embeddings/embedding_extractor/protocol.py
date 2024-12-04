@@ -1,16 +1,17 @@
-# coding=utf-8
-#
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
-# Benjamin Ruppik (ruppik@hhu.de)
 #
-# This code was generated with the help of AI writing assistants
-# including GitHub Copilot, ChatGPT, Bing Chat.
+# Code generation tools and workflows:
+# First versions of this code were potentially generated
+# with the help of AI writing assistants including
+# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
+# Afterwards, the generated segments were manually reviewed and edited.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -24,19 +25,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import numpy as np
-
 from typing import Protocol
+
+import numpy as np
+import transformers.modeling_outputs
 
 
 class EmbeddingExtractor(Protocol):
+    """Extract embeddings from model outputs."""
+
     embedding_dimension: int
 
     def extract_embeddings_from_model_outputs(
         self,
-        model_outputs,
+        model_outputs: transformers.modeling_outputs.BaseModelOutput,
     ) -> np.ndarray:
-        """
-        This method extracts embeddings from the model outputs.
-        """
-        ...
+        """Extract embeddings from the model outputs."""
+        ...  # pragma: no cover

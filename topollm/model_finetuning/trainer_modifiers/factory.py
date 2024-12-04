@@ -44,7 +44,9 @@ from topollm.typing.enums import TrainerModifierMode, Verbosity
 if TYPE_CHECKING:
     from topollm.config_classes.finetuning.trainer_modifier.trainer_modifier_config import TrainerModifierConfig
 
-default_logger = logging.getLogger(__name__)
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 def get_trainer_modifier(

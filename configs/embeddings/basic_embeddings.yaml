@@ -4,5 +4,7 @@ defaults:
   - _self_
 
 batch_size: 32
-level: token
+embedding_data_handler:
+  level: token
+  mode: regular
 num_workers: 0

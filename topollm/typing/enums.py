@@ -120,6 +120,14 @@ class Level(StrEnum):
 
 
 @unique
+class EmbeddingDataHandlerMode(StrEnum):
+    """The different modes for the embedding data handler."""
+
+    REGULAR = auto()
+    MASKED_TOKEN = auto()
+
+
+@unique
 class Split(StrEnum):
     """Splits of a dataset."""
 

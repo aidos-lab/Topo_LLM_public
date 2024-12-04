@@ -1,10 +1,10 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -25,59 +25,65 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Data Handler for computing and storing token-level embeddings."""
+"""Base class for all data handlers for computing and storing embeddings."""
 
 import logging
+from abc import ABC, abstractmethod
 
 import numpy as np
 import torch
 import torch.utils.data
-import transformers.modeling_outputs
 from tqdm import tqdm
 from transformers import PreTrainedModel
 
-from topollm.compute_embeddings.embedding_extractor.protocol import (
-    EmbeddingExtractor,
-)
+from topollm.compute_embeddings.embedding_extractor.protocol import EmbeddingExtractor
 from topollm.compute_embeddings.move_batch_to_cpu import move_batch_to_cpu
-from topollm.storage.array_storage.protocol import (
-    ChunkedArrayStorageProtocol,
-)
+from topollm.storage.array_storage.protocol import ChunkedArrayStorageProtocol
 from topollm.storage.metadata_storage.MetadataChunk import MetadataChunk
-from topollm.storage.metadata_storage.protocol import (
-    ChunkedMetadataStorageProtocol,
-)
-from topollm.storage.StorageDataclasses import (
-    ArrayDataChunk,
-    ChunkIdentifier,
-)
+from topollm.storage.metadata_storage.protocol import ChunkedMetadataStorageProtocol
+from topollm.storage.StorageDataclasses import ArrayDataChunk, ChunkIdentifier
 from topollm.typing.enums import Verbosity
+from topollm.typing.types import TransformersTokenizer
 
-default_logger = logging.getLogger(__name__)
+default_device: torch.device = torch.device(
+    device="cpu",
+)
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
-class TokenLevelEmbeddingDataHandler:
-    """Data Handler for computing and storing token-level embeddings."""
+class BaseEmbeddingDataHandler(ABC):
+    """Base class for handling embedding computation and storage."""
 
     def __init__(
         self,
         array_storage_backend: ChunkedArrayStorageProtocol,
         metadata_storage_backend: ChunkedMetadataStorageProtocol,
+        tokenizer: TransformersTokenizer,
         model: PreTrainedModel,
         dataloader: torch.utils.data.DataLoader,
         embedding_extractor: EmbeddingExtractor,
+        device: torch.device = default_device,
         verbosity: Verbosity = Verbosity.NORMAL,
         logger: logging.Logger = default_logger,
     ) -> None:
-        """Create a Data Handler Class with Dependency Injection."""
-        self.array_storage_backend = array_storage_backend
-        self.metadata_storage_backend = metadata_storage_backend
-        self.model = model
-        self.dataloader = dataloader
-        self.embedding_extractor = embedding_extractor
+        """Create a Data Handler Class.
 
-        self.verbosity = verbosity
-        self.logger = logger
+        The storage and embedding extraction are handled via dependency injection.
+        """
+        self.array_storage_backend: ChunkedArrayStorageProtocol = array_storage_backend
+        self.metadata_storage_backend: ChunkedMetadataStorageProtocol = metadata_storage_backend
+
+        self.tokenizer: TransformersTokenizer = tokenizer
+        self.model: PreTrainedModel = model
+        self.dataloader: torch.utils.data.DataLoader = dataloader
+        self.embedding_extractor: EmbeddingExtractor = embedding_extractor
+
+        self.device: torch.device = device
+
+        self.verbosity: Verbosity = verbosity
+        self.logger: logging.Logger = logger
 
     def process_data(
         self,
@@ -99,10 +105,13 @@ class TokenLevelEmbeddingDataHandler:
         self,
     ) -> None:
         # Iterate over batches and write embeddings to storage
-        self.logger.info("Computing and storing embeddings ...")
+        if self.verbosity >= Verbosity.NORMAL:
+            self.logger.info(
+                msg="Computing and storing embeddings ...",
+            )
 
         for batch_idx, batch in enumerate(
-            tqdm(
+            iterable=tqdm(
                 self.dataloader,
                 desc="Computing and storing embeddings",
             ),
@@ -112,14 +121,17 @@ class TokenLevelEmbeddingDataHandler:
                 batch_idx=batch_idx,
             )
 
-        self.logger.info("Computing and storing embeddings DONE")
+        if self.verbosity >= Verbosity.NORMAL:
+            self.logger.info(
+                msg="Computing and storing embeddings DONE",
+            )
 
     def process_single_batch(
         self,
         batch: dict,
         batch_idx: int,
     ) -> None:
-        embeddings = self.compute_embeddings_from_batch(
+        embeddings: np.ndarray = self.compute_embeddings_from_batch(
             batch=batch,
         )
 
@@ -141,8 +153,6 @@ class TokenLevelEmbeddingDataHandler:
         batch_cpu = move_batch_to_cpu(
             batch=batch,
         )
-
-        # TODO: Make model input compatible with new collate function
 
         # Write metadata to storage
         metadata_data_chunk = MetadataChunk(
@@ -175,31 +185,14 @@ class TokenLevelEmbeddingDataHandler:
         self,
         batch: dict,
     ) -> int:
-        inputs = self.prepare_model_inputs_from_batch(
-            batch=batch,
-        )
-        batch_len = len(inputs["input_ids"])
-        return batch_len
-
-    def compute_embeddings_from_batch(
-        self,
-        batch: dict,
-    ) -> np.ndarray:
-        """Compute model outputs and extract embeddings from a batch."""
         inputs: dict[
             str,
             torch.Tensor,
         ] = self.prepare_model_inputs_from_batch(
             batch=batch,
         )
-        model_outputs = self.compute_model_outputs_from_single_inputs(
-            inputs=inputs,
-        )
-        embeddings = self.embedding_extractor.extract_embeddings_from_model_outputs(
-            model_outputs=model_outputs,
-        )
-
-        return embeddings
+        batch_len: int = len(inputs["input_ids"])
+        return batch_len
 
     def prepare_model_inputs_from_batch(
         self,
@@ -212,18 +205,10 @@ class TokenLevelEmbeddingDataHandler:
         inputs = batch["model_inputs"]
         return inputs
 
-    def compute_model_outputs_from_single_inputs(
+    @abstractmethod
+    def compute_embeddings_from_batch(
         self,
-        inputs: dict,
-    ) -> transformers.modeling_outputs.BaseModelOutput:
-        """Compute embeddings for the given inputs using the given model."""
-        with torch.no_grad():
-            # Compute embeddings.
-            # The `output_hidden_states` argument needs to be set to `True`
-            # so that we can access the hidden states from the different layers
-            outputs = self.model(
-                **inputs,
-                output_hidden_states=True,
-            )
-
-        return outputs
+        batch: dict,
+    ) -> np.ndarray:
+        """Compute model outputs and extract embeddings from a batch."""
+        ...  # pragma: no cover

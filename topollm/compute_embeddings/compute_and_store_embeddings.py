@@ -1,10 +1,10 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -37,9 +37,7 @@ import torch.utils.data
 from topollm.compute_embeddings.collate_batch_for_embedding import (
     collate_batch_and_move_to_device,
 )
-from topollm.compute_embeddings.embedding_data_handler.token_level_embedding_data_handler import (
-    TokenLevelEmbeddingDataHandler,
-)
+from topollm.compute_embeddings.embedding_data_handler.factory import get_embedding_data_handler
 from topollm.compute_embeddings.embedding_dataloader_preparer.embedding_dataloader_preparer_context import (
     EmbeddingDataLoaderPreparerContext,
 )
@@ -66,6 +64,7 @@ from topollm.typing.enums import Verbosity
 if TYPE_CHECKING:
     from transformers.modeling_utils import PreTrainedModel
 
+    from topollm.compute_embeddings.embedding_data_handler.base_embedding_data_handler import BaseEmbeddingDataHandler
     from topollm.compute_embeddings.embedding_dataloader_preparer.protocol import EmbeddingDataLoaderPreparer
     from topollm.compute_embeddings.embedding_extractor.protocol import EmbeddingExtractor
     from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
@@ -194,12 +193,18 @@ def compute_and_store_embeddings(
         model_hidden_size=embedding_dimension,
     )
 
-    data_handler = TokenLevelEmbeddingDataHandler(
+    embedding_data_handler: BaseEmbeddingDataHandler = get_embedding_data_handler(
+        embeddings_config=main_config.embeddings,
+        language_model_config=main_config.language_model,
         array_storage_backend=array_storage_backend,
         metadata_storage_backend=metadata_storage_backend,
+        tokenizer=tokenizer,
         model=model,
         dataloader=dataloader,
         embedding_extractor=embedding_extractor,
+        device=device,
+        verbosity=verbosity,
         logger=logger,
     )
-    data_handler.process_data()
+
+    embedding_data_handler.process_data()
