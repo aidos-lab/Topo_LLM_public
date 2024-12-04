@@ -25,9 +25,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
+from typing import TYPE_CHECKING
+
 import numpy as np
 from scipy.spatial import KDTree
 from scipy.spatial.distance import directed_hausdorff
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
 
 
 def compute_exact_hausdorff(
@@ -52,7 +58,7 @@ def compute_exact_hausdorff(
     return max(h1, h2)
 
 
-def approximate_hausdorff_kdtree_with_distortion(
+def approximate_hausdorff_via_kdtree(
     array_1: np.ndarray,
     array_2: np.ndarray,
 ) -> float:
@@ -95,7 +101,7 @@ def add_gaussian_distortion(
     original_array: np.ndarray,
     distortion_param: np.ndarray,
     seed: int = 0,
-):
+) -> np.ndarray:
     """Distort and array with Gaussian noise.
 
     Args:
@@ -111,12 +117,20 @@ def add_gaussian_distortion(
         msg = "Distortion parameter must be non-negative."
         raise ValueError(msg)
 
-    # TODO: Update this with a np random Generator
-    if seed is not None:
-        np.random.seed(seed)
+    rng: Generator[
+        int,
+        None,
+        None,
+    ] = np.random.default_rng(
+        seed=seed,
+    )  # type: ignore - typing problem with default_rng
 
     # Generate Gaussian noise
-    noise = np.random.normal(0, distortion_param, original_array.shape)
-    distorted_array = original_array + noise
+    noise = rng.normal(  # type: ignore - typing problem with numpy typing
+        0,
+        distortion_param,
+        original_array.shape,
+    )
+    distorted_array: np.ndarray = original_array + noise
 
     return distorted_array

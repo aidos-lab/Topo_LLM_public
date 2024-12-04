@@ -121,6 +121,8 @@ def global_and_pointwise_local_estimates_worker(
         local_estimates_sample_size=local_estimates_sample_size,
     )
 
+    # TODO(Ben): Add optional noise application here
+
     array_for_estimator = prepared_data_filtered_deduplicated_truncated.array
 
     if verbosity >= Verbosity.NORMAL:
