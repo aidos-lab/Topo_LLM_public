@@ -1,10 +1,10 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -38,11 +38,11 @@ from topollm.analysis.local_estimates_computation.global_and_pointwise_local_est
     global_and_pointwise_local_estimates_computation,
 )
 from topollm.analysis.local_estimates_computation.truncate_prepared_data import truncate_prepared_data
-from topollm.analysis.local_estimates_handling.deduplicator.get_prepared_data_deduplicator import (
+from topollm.analysis.local_estimates_handling.deduplicator.factory import (
     get_prepared_data_deduplicator,
 )
 from topollm.analysis.local_estimates_handling.deduplicator.protocol import PreparedDataDeduplicator
-from topollm.analysis.local_estimates_handling.filter.get_local_estimates_filter import get_local_estimates_filter
+from topollm.analysis.local_estimates_handling.filter.factory import get_local_estimates_filter
 from topollm.analysis.local_estimates_handling.saving.local_estimates_containers import LocalEstimatesContainer
 from topollm.analysis.local_estimates_handling.saving.save_local_estimates import save_local_estimates
 from topollm.analysis.visualization.create_projected_data import create_projected_data

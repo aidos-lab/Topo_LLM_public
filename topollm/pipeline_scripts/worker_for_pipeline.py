@@ -1,10 +1,10 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -41,7 +41,9 @@ from topollm.typing.enums import Verbosity
 
 logger_section_separation_line = 30 * "="
 
-default_device = torch.device("cpu")
+default_device = torch.device(
+    device="cpu",
+)
 default_logger: logging.Logger = logging.getLogger(
     name=__name__,
 )
@@ -62,7 +64,9 @@ def worker_for_pipeline(
             logger.info(
                 msg=logger_section_separation_line,
             )
-            logger.info("Calling compute embeddings worker ...")
+            logger.info(
+                msg="Calling compute embeddings worker ...",
+            )
         compute_and_store_embeddings(
             main_config=main_config,
             device=device,
@@ -82,7 +86,9 @@ def worker_for_pipeline(
         logger.info(
             msg=logger_section_separation_line,
         )
-        logger.info("Calling data prep worker ...")
+        logger.info(
+            msg="Calling data prep worker ...",
+        )
 
     embeddings_data_prep_worker(
         main_config=main_config,
@@ -92,18 +98,22 @@ def worker_for_pipeline(
     )
 
     if verbosity >= Verbosity.NORMAL:
-        logger.info("Calling data prep worker DONE")
         logger.info(
-            logger_section_separation_line,
+            msg="Calling data prep worker DONE",
+        )
+        logger.info(
+            msg=logger_section_separation_line,
         )
 
     # # # # # # # # # # # # # # # #
     # Local estimates worker
     if verbosity >= Verbosity.NORMAL:
         logger.info(
-            logger_section_separation_line,
+            msg=logger_section_separation_line,
         )
-        logger.info("Calling local estimates worker ...")
+        logger.info(
+            msg="Calling local estimates worker ...",
+        )
 
     global_and_pointwise_local_estimates_worker(
         main_config=main_config,
@@ -113,7 +123,9 @@ def worker_for_pipeline(
     )
 
     if verbosity >= Verbosity.NORMAL:
-        logger.info("Calling local estimates worker DONE")
         logger.info(
-            logger_section_separation_line,
+            msg="Calling local estimates worker DONE",
+        )
+        logger.info(
+            msg=logger_section_separation_line,
         )
