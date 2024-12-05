@@ -40,7 +40,7 @@ default_logger: logging.Logger = logging.getLogger(
 )
 
 
-def get_prepared_data_deduplicator(
+def get_prepared_data_noiser(
     # TODO
     local_estimates_filtering_config: LocalEstimatesFilteringConfig,
     verbosity: Verbosity = Verbosity.NORMAL,

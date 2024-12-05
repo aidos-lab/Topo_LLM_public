@@ -45,11 +45,11 @@ def compute_exact_hausdorff(
     Note that this might be expensive, depending on the number of points.
     """
     # Compute directed Hausdorff distances
-    h1 = directed_hausdorff(
+    h1: float = directed_hausdorff(
         array_1,
         array_2,
     )[0]
-    h2 = directed_hausdorff(
+    h2: float = directed_hausdorff(
         array_2,
         array_1,
     )[0]
@@ -77,20 +77,20 @@ def approximate_hausdorff_via_kdtree(
     )
 
     # Compute nearest neighbor distances
-    distances_orig_to_dist, _ = tree_1.query(
+    distances_array_1_to_array_2, _ = tree_1.query(
         x=array_2,
     )
-    distances_dist_to_orig, _ = tree_dist.query(
+    distances_array_2_to_array_1, _ = tree_dist.query(
         array_1,
     )
 
     # Approximate Hausdorff distance
     hausdorff_distance = max(
         np.max(
-            distances_orig_to_dist,
+            distances_array_1_to_array_2,
         ),
         np.max(
-            distances_dist_to_orig,
+            distances_array_2_to_array_1,
         ),
     )
 
@@ -99,15 +99,18 @@ def approximate_hausdorff_via_kdtree(
 
 def add_gaussian_distortion(
     original_array: np.ndarray,
-    distortion_param: np.ndarray,
+    distortion_param: float,
     seed: int = 0,
 ) -> np.ndarray:
     """Distort and array with Gaussian noise.
 
     Args:
-        original_array (np.ndarray): The original NumPy array.
-        distortion_param (float): Standard deviation of the Gaussian noise.
-        seed (int, optional): Random seed for reproducibility.
+        original_array:
+            The original NumPy array.
+        distortion_param:
+            Standard deviation of the Gaussian noise.
+        seed:
+            Random seed for reproducibility.
 
     Returns:
         np.ndarray: The distorted array.
@@ -126,7 +129,7 @@ def add_gaussian_distortion(
     )  # type: ignore - typing problem with default_rng
 
     # Generate Gaussian noise
-    noise = rng.normal(  # type: ignore - typing problem with numpy typing
+    noise: np.ndarray = rng.normal(  # type: ignore - typing problem with numpy typing
         0,
         distortion_param,
         original_array.shape,

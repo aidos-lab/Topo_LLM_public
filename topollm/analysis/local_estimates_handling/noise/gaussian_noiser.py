@@ -30,6 +30,7 @@ import logging
 import numpy as np
 import pandas as pd
 
+from topollm.analysis.local_estimates_handling.noise.gaussian_noise_with_distances import add_gaussian_distortion
 from topollm.embeddings_data_prep.prepared_data_containers import PreparedData
 from topollm.logging.log_array_info import log_array_info
 from topollm.typing.enums import Verbosity
@@ -44,10 +45,15 @@ class GaussianNoiser:
 
     def __init__(
         self,
+        distortion_param: float,
+        seed: int,
         verbosity: Verbosity = Verbosity.NORMAL,
         logger: logging.Logger = default_logger,
     ) -> None:
         """Initialize the deduplicator."""
+        self.distortion_param: float = distortion_param
+        self.seed: int = seed
+
         self.verbosity: Verbosity = verbosity
         self.logger: logging.Logger = logger
 
@@ -59,26 +65,15 @@ class GaussianNoiser:
         input_array = prepared_data.array
         input_meta_frame = prepared_data.meta_df
 
-        # TODO: Implement this
-
-        raise NotImplementedError
-
-        if self.verbosity >= Verbosity.NORMAL:
-            self.logger.info(
-                msg=f"unique_vectors.shape = {unique_vectors.shape}",  # noqa: G004 - low overhead
-            )
-            # Log if duplicates were removed
-            if len(unique_vectors) < len(input_array):
-                self.logger.info(
-                    msg=f"Removed {len(input_array) - len(unique_vectors) = } duplicate vectors.",  # noqa: G004 - low overhead
-                )
-
-        output_array = input_array[sorted_indices_of_original_array]
-        output_meta_frame: pd.DataFrame = input_meta_frame.iloc[sorted_indices_of_original_array]
+        distorted_array = add_gaussian_distortion(
+            original_array=input_array,
+            distortion_param=self.distortion_param,
+            seed=self.seed,
+        )
 
         output_data = PreparedData(
-            array=output_array,
-            meta_df=output_meta_frame,
+            array=distorted_array,
+            meta_df=input_meta_frame,
         )
 
         return output_data

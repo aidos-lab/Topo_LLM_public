@@ -122,6 +122,7 @@ def global_and_pointwise_local_estimates_worker(
     )
 
     # TODO(Ben): Add optional noise application here
+    # TODO(Ben): We will add the distance computation between the original and the distorted data here, so that it can be applied to all noise types.
 
     array_for_estimator = prepared_data_filtered_deduplicated_truncated.array
 
