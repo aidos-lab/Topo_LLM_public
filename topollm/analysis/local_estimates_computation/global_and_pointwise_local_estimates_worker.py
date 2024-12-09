@@ -31,6 +31,7 @@ import logging
 import pathlib
 from typing import TYPE_CHECKING
 
+import numpy as np
 import torch
 from tqdm import tqdm
 
@@ -47,21 +48,21 @@ from topollm.analysis.local_estimates_handling.saving.local_estimates_containers
 from topollm.analysis.local_estimates_handling.saving.save_local_estimates import save_local_estimates
 from topollm.analysis.visualization.create_projected_data import create_projected_data
 from topollm.analysis.visualization.create_projection_plot import create_projection_plot, save_projection_plot
+from topollm.config_classes.local_estimates.plot_config import LocalEstminatesPlotConfig
 from topollm.config_classes.main_config import MainConfig
+from topollm.embeddings_data_prep.prepared_data_containers import PreparedData
 from topollm.embeddings_data_prep.save_prepared_data import load_prepared_data
 from topollm.logging.log_array_info import log_array_info
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
+from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 from topollm.typing.enums import Verbosity
 
 if TYPE_CHECKING:
-    import numpy as np
-
     from topollm.analysis.local_estimates_handling.filter.protocol import LocalEstimatesFilter
-    from topollm.config_classes.local_estimates.plot_config import LocalEstminatesPlotConfig
-    from topollm.embeddings_data_prep.prepared_data_containers import PreparedData
-    from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 
-default_device = torch.device(device="cpu")
+default_device = torch.device(
+    device="cpu",
+)
 default_logger: logging.Logger = logging.getLogger(
     name=__name__,
 )
@@ -174,49 +175,73 @@ def global_and_pointwise_local_estimates_worker(
     if main_config.feature_flags.analysis.create_plots_in_local_estimates_worker:
         local_estimates_plot_config: LocalEstminatesPlotConfig = main_config.local_estimates.plot
 
-        tsne_array: np.ndarray = create_projected_data(
-            array=prepared_data_filtered.array,
-            pca_n_components=local_estimates_plot_config.pca_n_components,
-            tsne_n_components=local_estimates_plot_config.tsne_n_components,
-            tsne_random_state=local_estimates_plot_config.tsne_random_state,
+        generate_tsne_visualizations(
+            embeddings_path_manager=embeddings_path_manager,
+            prepared_data_filtered=prepared_data_filtered,
+            pointwise_results_array_np=pointwise_results_array_np,
+            local_estimates_plot_config=local_estimates_plot_config,
             verbosity=verbosity,
             logger=logger,
         )
 
-        for maximum_number_of_points in tqdm(
-            iterable=[
-                500,
-                1_000,
-                5_000,
-            ],
-            desc="Creating projection plots",
-        ):
-            figure, tsne_df = create_projection_plot(
-                tsne_result=tsne_array,
-                meta_df=prepared_data_filtered.meta_df,
-                results_array_np=pointwise_results_array_np,
-                maximum_number_of_points=maximum_number_of_points,
-                verbosity=verbosity,
-                logger=logger,
+
+def generate_tsne_visualizations(
+    embeddings_path_manager: EmbeddingsPathManager,
+    prepared_data_filtered: PreparedData,
+    pointwise_results_array_np: np.ndarray,
+    local_estimates_plot_config: LocalEstminatesPlotConfig,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
+    """Generate t-SNE visualizations of the local estimates."""
+    tsne_array: np.ndarray = create_projected_data(
+        array=prepared_data_filtered.array,
+        pca_n_components=local_estimates_plot_config.pca_n_components,
+        tsne_n_components=local_estimates_plot_config.tsne_n_components,
+        tsne_random_state=local_estimates_plot_config.tsne_random_state,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+    for maximum_number_of_points in tqdm(
+        iterable=[
+            500,
+            1_000,
+            5_000,
+        ],
+        desc="Creating projection plots",
+    ):
+        figure, tsne_df = create_projection_plot(
+            tsne_result=tsne_array,
+            meta_df=prepared_data_filtered.meta_df,
+            results_array_np=pointwise_results_array_np,
+            maximum_number_of_points=maximum_number_of_points,
+            verbosity=verbosity,
+            logger=logger,
+        )
+
+        number_of_points_in_plot: int = len(tsne_df)
+        output_folder = pathlib.Path(
+            embeddings_path_manager.get_saved_plots_local_estimates_projection_dir_absolute_path(),
+            f"no-points-in-plot-{number_of_points_in_plot}",
+        )
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"Saving projection plot to {output_folder = }",  # noqa: G004 - low overhead
             )
 
-            number_of_points_in_plot: int = len(tsne_df)
-            output_folder = pathlib.Path(
-                embeddings_path_manager.get_saved_plots_local_estimates_projection_dir_absolute_path(),
-                f"no-points-in-plot-{number_of_points_in_plot}",
-            )
-            if verbosity >= Verbosity.NORMAL:
-                logger.info(
-                    msg=f"Saving projection plot to {output_folder = }",  # noqa: G004 - low overhead
-                )
+        save_projection_plot(
+            figure=figure,
+            tsne_df=tsne_df,
+            output_folder=output_folder,
+            save_html=local_estimates_plot_config.saving.save_html,
+            save_pdf=local_estimates_plot_config.saving.save_pdf,
+            save_csv=local_estimates_plot_config.saving.save_csv,
+            verbosity=verbosity,
+            logger=logger,
+        )
 
-            save_projection_plot(
-                figure=figure,
-                tsne_df=tsne_df,
-                output_folder=output_folder,
-                save_html=local_estimates_plot_config.saving.save_html,
-                save_pdf=local_estimates_plot_config.saving.save_pdf,
-                save_csv=local_estimates_plot_config.saving.save_csv,
-                verbosity=verbosity,
-                logger=logger,
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"Saving projection plot to {output_folder = } DONE",  # noqa: G004 - low overhead
             )
