@@ -40,6 +40,4 @@ class PreparedDataNoiser(Protocol):
         prepared_data: PreparedData,
     ) -> PreparedData:
         """Apply the selected method."""
-        # TODO: Add possibility for returning the additional information
-
         ...  # pragma: no cover

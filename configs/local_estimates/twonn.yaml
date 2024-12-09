@@ -10,6 +10,11 @@ filtering:
   zero_vector_handling_mode: "keep"
   deduplication_mode: "array_deduplicator"
 
+noise:
+  artificial_noise_mode: "do_nothing"
+  distortion_parameter: 0.0
+  seed: 0
+
 pointwise:
   n_neighbors_mode: "relative_size"
   absolute_n_neighbors: 128

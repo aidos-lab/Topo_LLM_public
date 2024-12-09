@@ -30,7 +30,7 @@ import logging
 import numpy as np
 import pandas as pd
 
-from topollm.analysis.local_estimates_handling.noise.gaussian_noise_with_distances import add_gaussian_distortion
+from topollm.analysis.local_estimates_handling.noise.gaussian_distortion import add_gaussian_distortion
 from topollm.embeddings_data_prep.prepared_data_containers import PreparedData
 from topollm.logging.log_array_info import log_array_info
 from topollm.typing.enums import Verbosity

@@ -29,11 +29,11 @@
 
 import logging
 
-from topollm.analysis.local_estimates_handling.deduplicator.array_deduplicator import ArrayDeduplicator
-from topollm.analysis.local_estimates_handling.deduplicator.identity_deduplicator import IdentityDeduplicator
-from topollm.analysis.local_estimates_handling.deduplicator.protocol import PreparedDataDeduplicator
-from topollm.config_classes.local_estimates.filtering_config import LocalEstimatesFilteringConfig
-from topollm.typing.enums import DeduplicationMode, Verbosity
+from topollm.analysis.local_estimates_handling.noise.gaussian_noiser import GaussianNoiser
+from topollm.analysis.local_estimates_handling.noise.identity_noiser import IdentityNoiser
+from topollm.analysis.local_estimates_handling.noise.protocol import PreparedDataNoiser
+from topollm.config_classes.local_estimates.local_estimates_config import LocalEstimatesNoiseConfig
+from topollm.typing.enums import ArtificialNoiseMode, Verbosity
 
 default_logger: logging.Logger = logging.getLogger(
     name=__name__,
@@ -41,45 +41,43 @@ default_logger: logging.Logger = logging.getLogger(
 
 
 def get_prepared_data_noiser(
-    # TODO
-    local_estimates_filtering_config: LocalEstimatesFilteringConfig,
+    local_estimates_noise_config: LocalEstimatesNoiseConfig,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
-) -> PreparedDataDeduplicator:
-    """Get the filter for the local estimates computation."""
+) -> PreparedDataNoiser:
+    """Get the noiser for the data array."""
     if verbosity >= Verbosity.NORMAL:
         logger.info(
-            msg="Getting prepared data deduplicator ...",
+            msg="Getting prepared data noiser ...",
         )
 
-    match local_estimates_filtering_config.deduplication_mode:
-        case DeduplicationMode.IDENTITY:
+    match local_estimates_noise_config.artificial_noise_mode:
+        case ArtificialNoiseMode.DO_NOTHING:
             if verbosity >= Verbosity.NORMAL:
                 logger.info(
-                    msg="Returning IdentityNoiser ...",
+                    msg="Creating IdentityNoiser ...",
                 )
-            deduplicator = IdentityDeduplicator()
-        case DeduplicationMode.ARRAY_DEDUPLICATOR:
-            raise NotImplementedError
-
-            # TODO: Implement this
+            result = IdentityNoiser()
+        case ArtificialNoiseMode.GAUSSIAN:
             if verbosity >= Verbosity.NORMAL:
                 logger.info(
-                    msg="Returning ArrayDeduplicator ...",
+                    msg="Creating GaussianNoiser ...",
                 )
-            deduplicator = ArrayDeduplicator(
+            result = GaussianNoiser(
+                distortion_param=local_estimates_noise_config.distortion_parameter,
+                seed=local_estimates_noise_config.seed,
                 verbosity=verbosity,
                 logger=logger,
             )
         case _:
-            msg: str = f"Unknown {local_estimates_filtering_config.deduplication_mode = }"
+            msg: str = f"Unknown {local_estimates_noise_config.artificial_noise_mode = }"
             raise ValueError(
                 msg,
             )
 
     if verbosity >= Verbosity.NORMAL:
         logger.info(
-            msg="Getting prepared data deduplicator DONE",
+            msg="Getting prepared data noiser DONE",
         )
 
-    return deduplicator
+    return result

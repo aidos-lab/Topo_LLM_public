@@ -44,6 +44,8 @@ from topollm.analysis.local_estimates_handling.deduplicator.factory import (
 )
 from topollm.analysis.local_estimates_handling.deduplicator.protocol import PreparedDataDeduplicator
 from topollm.analysis.local_estimates_handling.filter.factory import get_local_estimates_filter
+from topollm.analysis.local_estimates_handling.noise.factory import get_prepared_data_noiser
+from topollm.analysis.local_estimates_handling.noise.protocol import PreparedDataNoiser
 from topollm.analysis.local_estimates_handling.saving.local_estimates_containers import LocalEstimatesContainer
 from topollm.analysis.local_estimates_handling.saving.save_local_estimates import save_local_estimates
 from topollm.analysis.visualization.create_projected_data import create_projected_data
@@ -105,7 +107,7 @@ def global_and_pointwise_local_estimates_worker(
         prepared_data=prepared_data,
     )
 
-    # Apply a deduplicator; for example, for removing duplicate vectors in the array
+    # Apply a deduplicator; for example, for removing duplicate vectors in the array.
     prepared_data_deduplicator: PreparedDataDeduplicator = get_prepared_data_deduplicator(
         local_estimates_filtering_config=main_config.local_estimates.filtering,
         verbosity=verbosity,
@@ -115,17 +117,26 @@ def global_and_pointwise_local_estimates_worker(
         prepared_data=prepared_data_filtered,
     )
 
-    # Restrict to the first `local_estimates_sample_size` samples
+    # Restrict to the first `local_estimates_sample_size` samples.
     local_estimates_sample_size: int = main_config.local_estimates.filtering.num_samples
     prepared_data_filtered_deduplicated_truncated: PreparedData = truncate_prepared_data(
         prepared_data=prepared_data_filtered_deduplicated,
         local_estimates_sample_size=local_estimates_sample_size,
     )
 
-    # TODO(Ben): Add optional noise application here
+    # Potentially apply noise to the data.
+    prepared_data_noiser: PreparedDataNoiser = get_prepared_data_noiser(
+        local_estimates_noise_config=main_config.local_estimates.noise,
+        verbosity=verbosity,
+        logger=logger,
+    )
+    prepared_data_filtered_deduplicated_truncated_noised: PreparedData = prepared_data_noiser.apply_noise_to_data(
+        prepared_data=prepared_data_filtered_deduplicated_truncated,
+    )
+
     # TODO(Ben): We will add the distance computation between the original and the distorted data here, so that it can be applied to all noise types.
 
-    array_for_estimator = prepared_data_filtered_deduplicated_truncated.array
+    array_for_estimator = prepared_data_filtered_deduplicated_truncated_noised.array
 
     if verbosity >= Verbosity.NORMAL:
         log_array_info(
@@ -136,7 +147,7 @@ def global_and_pointwise_local_estimates_worker(
             logger=logger,
         )
     if verbosity >= Verbosity.DEBUG:
-        prepared_data_filtered_deduplicated_truncated.log_info(
+        prepared_data_filtered_deduplicated_truncated_noised.log_info(
             logger=logger,
         )
 
@@ -148,7 +159,10 @@ def global_and_pointwise_local_estimates_worker(
     # # # #
     # Local estimates computation
 
-    global_estimate_array_np, pointwise_results_array_np = global_and_pointwise_local_estimates_computation(
+    (
+        global_estimate_array_np,
+        pointwise_results_array_np,
+    ) = global_and_pointwise_local_estimates_computation(
         array_for_estimator=array_for_estimator,
         local_estimates_config=main_config.local_estimates,
         verbosity=verbosity,
@@ -159,9 +173,11 @@ def global_and_pointwise_local_estimates_worker(
     # Save the results
     local_estimates_container = LocalEstimatesContainer(
         pointwise_results_array_np=pointwise_results_array_np,
-        pointwise_results_meta_frame=prepared_data_filtered_deduplicated_truncated.meta_df,
+        pointwise_results_meta_frame=prepared_data_filtered_deduplicated_truncated_noised.meta_df,
         global_estimate_array_np=global_estimate_array_np,
     )
+
+    # TODO: Implement saving of the subsample vector, which were the basis of the local estimates computation
 
     save_local_estimates(
         embeddings_path_manager=embeddings_path_manager,
