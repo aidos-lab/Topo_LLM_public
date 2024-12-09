@@ -25,6 +25,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Backup and zip a list of folders and copy the zip files to a Dropbox directory."""
+
 import datetime
 import pathlib
 import shutil

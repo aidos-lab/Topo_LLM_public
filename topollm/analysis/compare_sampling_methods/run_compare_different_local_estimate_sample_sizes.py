@@ -40,14 +40,9 @@ import omegaconf
 import pandas as pd
 from tqdm import tqdm
 
-from topollm.analysis.compare_sampling_methods.compute_correlations import compute_and_save_correlations
-from topollm.analysis.compare_sampling_methods.log_statistics import log_statistics_of_array
-from topollm.analysis.compare_sampling_methods.make_plots import make_mean_std_plot, make_multiple_line_plots
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
-from topollm.logging.log_array_info import log_array_info
-from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
 from topollm.typing.enums import Verbosity

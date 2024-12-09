@@ -156,6 +156,7 @@ def run_checkpoint_analysis_over_different_data_and_models(
     data_full_list_to_process: list[str],
     data_subsampling_split_list_to_process: list[str],
     data_subsampling_sampling_mode_list_to_process: list[str],
+    embedding_data_handler_mode_to_process: list[str],
     model_partial_name_list_to_process: list[str],
     language_model_seed_list_to_process: list[int],
     model_loss_extractor: ModelLossExtractor | None = None,
@@ -167,6 +168,7 @@ def run_checkpoint_analysis_over_different_data_and_models(
         data_full_list_to_process,
         data_subsampling_split_list_to_process,
         data_subsampling_sampling_mode_list_to_process,
+        embedding_data_handler_mode_to_process,
         model_partial_name_list_to_process,
         language_model_seed_list_to_process,
     )
@@ -176,6 +178,7 @@ def run_checkpoint_analysis_over_different_data_and_models(
         data_full,
         data_subsampling_split,
         data_subsampling_sampling_mode,
+        embedding_data_handler_mode,
         model_partial_name,
         language_model_seed,
     ) in tqdm(
@@ -192,6 +195,7 @@ def run_checkpoint_analysis_over_different_data_and_models(
             "model_seed": language_model_seed,
             "data_prep_sampling_method": "random",
             "data_prep_sampling_samples": 150_000,
+            "embedding_data_handler_mode": embedding_data_handler_mode,
             NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["dedup"]: "array_deduplicator",
             "local_estimates_samples": 60_000,
             "n_neighbors": 128,
@@ -205,6 +209,7 @@ def run_checkpoint_analysis_over_different_data_and_models(
             f"{data_full=}",
             f"{data_subsampling_split=}",
             f"{data_subsampling_sampling_mode=}",
+            f"{embedding_data_handler_mode=}",
             f"{model_partial_name=}",
             f"{language_model_seed=}",
         )

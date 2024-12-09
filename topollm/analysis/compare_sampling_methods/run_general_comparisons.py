@@ -255,6 +255,8 @@ def do_data_subsampling_number_of_samples_analysis(
         "random",
     ]
 
+    embedding_data_handler_mode_to_process: list[str] = concatenated_df["embedding_data_handler_mode"].unique().tolist()
+
     model_full_list_to_process: list[str] = [
         "model=roberta-base_task=masked_lm",
     ]
@@ -264,6 +266,7 @@ def do_data_subsampling_number_of_samples_analysis(
         data_full_list_to_process=data_full_list_to_process,
         data_subsampling_split_list_to_process=data_subsampling_split_list_to_process,
         data_subsampling_sampling_mode_list_to_process=data_subsampling_sampling_mode_list_to_process,
+        embedding_data_handler_mode_to_process=embedding_data_handler_mode_to_process,
         model_full_list_to_process=model_full_list_to_process,
         verbosity=verbosity,
         logger=logger,
@@ -297,6 +300,8 @@ def do_checkpoint_analysis(
         "take_first",
     ]
 
+    embedding_data_handler_mode_to_process: list[str] = concatenated_df["embedding_data_handler_mode"].unique().tolist()
+
     model_partial_name_list_to_process: list[str] = concatenated_df["model_partial_name"].unique().tolist()
 
     # Note: The "model_seed" column contains type integer values
@@ -317,6 +322,7 @@ def do_checkpoint_analysis(
         data_full_list_to_process=data_full_list_to_process,
         data_subsampling_split_list_to_process=data_subsampling_split_list_to_process,
         data_subsampling_sampling_mode_list_to_process=data_subsampling_sampling_mode_list_to_process,
+        embedding_data_handler_mode_to_process=embedding_data_handler_mode_to_process,
         model_partial_name_list_to_process=model_partial_name_list_to_process,
         language_model_seed_list_to_process=language_model_seed_list_to_process,
         model_loss_extractor=model_loss_extractor,
@@ -413,7 +419,7 @@ def process_partial_search_base_directory(
 
 def collect_all_data_and_model_combination_paths(
     base_path: pathlib.Path,
-    pattern: str = "data=*/split=*/lvl=*/add-prefix-space=True_max-len=512/model=*",
+    pattern: str = "data=*/split=*/edh-mode=*/add-prefix-space=True_max-len=512/model=*",
 ) -> Generator[
     pathlib.Path,
     None,

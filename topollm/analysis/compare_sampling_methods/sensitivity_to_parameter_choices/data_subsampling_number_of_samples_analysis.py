@@ -115,6 +115,7 @@ def run_data_subsampling_number_of_samples_analysis(
     data_full_list_to_process: list[str],
     data_subsampling_split_list_to_process: list[str],
     data_subsampling_sampling_mode_list_to_process: list[str],
+    embedding_data_handler_mode_to_process: list[str],
     model_full_list_to_process: list[str],
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
@@ -124,6 +125,7 @@ def run_data_subsampling_number_of_samples_analysis(
         data_full_list_to_process,
         data_subsampling_split_list_to_process,
         data_subsampling_sampling_mode_list_to_process,
+        embedding_data_handler_mode_to_process,
         model_full_list_to_process,
     )
     product_to_process_list = list(product_to_process)
@@ -132,6 +134,7 @@ def run_data_subsampling_number_of_samples_analysis(
         data_full,
         data_subsampling_split,
         data_subsampling_sampling_mode,
+        embedding_data_handler_mode,
         model_full,
     ) in tqdm(
         iterable=product_to_process_list,
@@ -145,6 +148,7 @@ def run_data_subsampling_number_of_samples_analysis(
             "data_subsampling_sampling_mode": data_subsampling_sampling_mode,
             "data_prep_sampling_method": "random",
             "data_prep_sampling_samples": 150_000,
+            "embedding_data_handler_mode": embedding_data_handler_mode,
             NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["dedup"]: "array_deduplicator",
             "local_estimates_samples": 60_000,
             "n_neighbors": 128,
@@ -158,6 +162,7 @@ def run_data_subsampling_number_of_samples_analysis(
             f"{data_full=}",
             f"{data_subsampling_split=}",
             f"{data_subsampling_sampling_mode=}",
+            f"{embedding_data_handler_mode=}",
             f"{model_full=}",
         )
 
