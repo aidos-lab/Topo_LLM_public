@@ -69,6 +69,12 @@ class AnalysisFeatureFlagsConfig(ConfigBaseModel):
         description="Feature flags for the comparison of sampling methods.",
     )
 
+    compute_distance_between_clean_and_noisy_arrays: bool = Field(
+        default=True,
+        title="Compute distance between clean and noisy arrays.",
+        description="Whether to compute the distance between clean and noisy arrays.",
+    )
+
 
 class ComputeAndStoreEmbeddingsFeatureFlagsConfig(ConfigBaseModel):
     """Feature flags for the compute and store embeddings process."""

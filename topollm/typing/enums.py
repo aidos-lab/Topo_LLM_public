@@ -194,6 +194,14 @@ class DeduplicationMode(StrEnum):
     ARRAY_DEDUPLICATOR = auto()
 
 
+@unique
+class ArtificialNoiseMode(StrEnum):
+    """Different modes for adding artificial noise to the data."""
+
+    DO_NOTHING = auto()
+    GAUSSIAN = auto()
+
+
 # ==============================
 
 

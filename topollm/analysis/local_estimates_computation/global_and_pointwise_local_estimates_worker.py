@@ -1,10 +1,10 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -31,6 +31,7 @@ import logging
 import pathlib
 from typing import TYPE_CHECKING
 
+import numpy as np
 import torch
 from tqdm import tqdm
 
@@ -38,30 +39,32 @@ from topollm.analysis.local_estimates_computation.global_and_pointwise_local_est
     global_and_pointwise_local_estimates_computation,
 )
 from topollm.analysis.local_estimates_computation.truncate_prepared_data import truncate_prepared_data
-from topollm.analysis.local_estimates_handling.deduplicator.get_prepared_data_deduplicator import (
+from topollm.analysis.local_estimates_handling.deduplicator.factory import (
     get_prepared_data_deduplicator,
 )
 from topollm.analysis.local_estimates_handling.deduplicator.protocol import PreparedDataDeduplicator
-from topollm.analysis.local_estimates_handling.filter.get_local_estimates_filter import get_local_estimates_filter
+from topollm.analysis.local_estimates_handling.filter.factory import get_local_estimates_filter
+from topollm.analysis.local_estimates_handling.noise.factory import get_prepared_data_noiser
+from topollm.analysis.local_estimates_handling.noise.protocol import PreparedDataNoiser
 from topollm.analysis.local_estimates_handling.saving.local_estimates_containers import LocalEstimatesContainer
 from topollm.analysis.local_estimates_handling.saving.save_local_estimates import save_local_estimates
 from topollm.analysis.visualization.create_projected_data import create_projected_data
 from topollm.analysis.visualization.create_projection_plot import create_projection_plot, save_projection_plot
+from topollm.config_classes.local_estimates.plot_config import LocalEstminatesPlotConfig
 from topollm.config_classes.main_config import MainConfig
+from topollm.embeddings_data_prep.prepared_data_containers import PreparedData
 from topollm.embeddings_data_prep.save_prepared_data import load_prepared_data
 from topollm.logging.log_array_info import log_array_info
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
+from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 from topollm.typing.enums import Verbosity
 
 if TYPE_CHECKING:
-    import numpy as np
-
     from topollm.analysis.local_estimates_handling.filter.protocol import LocalEstimatesFilter
-    from topollm.config_classes.local_estimates.plot_config import LocalEstminatesPlotConfig
-    from topollm.embeddings_data_prep.prepared_data_containers import PreparedData
-    from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 
-default_device = torch.device(device="cpu")
+default_device = torch.device(
+    device="cpu",
+)
 default_logger: logging.Logger = logging.getLogger(
     name=__name__,
 )
@@ -89,39 +92,28 @@ def global_and_pointwise_local_estimates_worker(
     )
 
     # # # #
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            msg="Filtering prepared data and truncating to first vectors ...",
+    (
+        prepared_data_filtered_deduplicated_truncated,
+        prepared_data_filtered_deduplicated_truncated_noised,
+    ) = preprocess_prepared_data(
+        main_config=main_config,
+        prepared_data=prepared_data,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+    # # # #
+    # Distance computation between the original and the distorted data
+    if main_config.feature_flags.analysis.compute_distance_between_clean_and_noisy_arrays:
+        # TODO(Ben): We will add the distance computation between the original and the distorted data here, so that it can be applied to all noise types.
+
+        logger.warning(
+            msg="Distance computation between the original and the distorted data is not tested fully yet.",
         )
 
-    # Applay a filter; for example, for removing zero vectors in the array
-    local_estimates_filter: LocalEstimatesFilter = get_local_estimates_filter(
-        local_estimates_filtering_config=main_config.local_estimates.filtering,
-        verbosity=verbosity,
-        logger=logger,
-    )
-    prepared_data_filtered: PreparedData = local_estimates_filter.filter_data(
-        prepared_data=prepared_data,
-    )
-
-    # Apply a deduplicator; for example, for removing duplicate vectors in the array
-    prepared_data_deduplicator: PreparedDataDeduplicator = get_prepared_data_deduplicator(
-        local_estimates_filtering_config=main_config.local_estimates.filtering,
-        verbosity=verbosity,
-        logger=logger,
-    )
-    prepared_data_filtered_deduplicated: PreparedData = prepared_data_deduplicator.filter_data(
-        prepared_data=prepared_data_filtered,
-    )
-
-    # Restrict to the first `local_estimates_sample_size` samples
-    local_estimates_sample_size: int = main_config.local_estimates.filtering.num_samples
-    prepared_data_filtered_deduplicated_truncated: PreparedData = truncate_prepared_data(
-        prepared_data=prepared_data_filtered_deduplicated,
-        local_estimates_sample_size=local_estimates_sample_size,
-    )
-
-    array_for_estimator = prepared_data_filtered_deduplicated_truncated.array
+    # # # #
+    # Local estimates computation
+    array_for_estimator: np.ndarray = prepared_data_filtered_deduplicated_truncated_noised.array
 
     if verbosity >= Verbosity.NORMAL:
         log_array_info(
@@ -131,20 +123,11 @@ def global_and_pointwise_local_estimates_worker(
             log_row_l2_norms=True,
             logger=logger,
         )
-    if verbosity >= Verbosity.DEBUG:
-        prepared_data_filtered_deduplicated_truncated.log_info(
-            logger=logger,
-        )
 
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            msg="Filtering local estimates and truncating to first vectors DONE",
-        )
-
-    # # # #
-    # Local estimates computation
-
-    global_estimate_array_np, pointwise_results_array_np = global_and_pointwise_local_estimates_computation(
+    (
+        global_estimate_array_np,
+        pointwise_results_array_np,
+    ) = global_and_pointwise_local_estimates_computation(
         array_for_estimator=array_for_estimator,
         local_estimates_config=main_config.local_estimates,
         verbosity=verbosity,
@@ -155,9 +138,11 @@ def global_and_pointwise_local_estimates_worker(
     # Save the results
     local_estimates_container = LocalEstimatesContainer(
         pointwise_results_array_np=pointwise_results_array_np,
-        pointwise_results_meta_frame=prepared_data_filtered_deduplicated_truncated.meta_df,
+        pointwise_results_meta_frame=prepared_data_filtered_deduplicated_truncated_noised.meta_df,
         global_estimate_array_np=global_estimate_array_np,
     )
+
+    # TODO: Implement saving of the subsample vector, which were the basis of the local estimates computation
 
     save_local_estimates(
         embeddings_path_manager=embeddings_path_manager,
@@ -171,49 +156,138 @@ def global_and_pointwise_local_estimates_worker(
     if main_config.feature_flags.analysis.create_plots_in_local_estimates_worker:
         local_estimates_plot_config: LocalEstminatesPlotConfig = main_config.local_estimates.plot
 
-        tsne_array: np.ndarray = create_projected_data(
-            array=prepared_data_filtered.array,
-            pca_n_components=local_estimates_plot_config.pca_n_components,
-            tsne_n_components=local_estimates_plot_config.tsne_n_components,
-            tsne_random_state=local_estimates_plot_config.tsne_random_state,
+        generate_tsne_visualizations(
+            embeddings_path_manager=embeddings_path_manager,
+            prepared_data_filtered=prepared_data_filtered_deduplicated_truncated_noised,
+            pointwise_results_array_np=pointwise_results_array_np,
+            local_estimates_plot_config=local_estimates_plot_config,
             verbosity=verbosity,
             logger=logger,
         )
 
-        for maximum_number_of_points in tqdm(
-            iterable=[
-                500,
-                1_000,
-                5_000,
-            ],
-            desc="Creating projection plots",
-        ):
-            figure, tsne_df = create_projection_plot(
-                tsne_result=tsne_array,
-                meta_df=prepared_data_filtered.meta_df,
-                results_array_np=pointwise_results_array_np,
-                maximum_number_of_points=maximum_number_of_points,
-                verbosity=verbosity,
-                logger=logger,
+
+def preprocess_prepared_data(
+    main_config: MainConfig,
+    prepared_data: PreparedData,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> tuple[
+    PreparedData,
+    PreparedData,
+]:
+    """Preprocess the prepared data for local estimates computation."""
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg="Filtering, deduplicating, truncating, noising the prepared data ...",
+        )
+
+    # Apply a filter; for example, for removing zero vectors in the array.
+    local_estimates_filter: LocalEstimatesFilter = get_local_estimates_filter(
+        local_estimates_filtering_config=main_config.local_estimates.filtering,
+        verbosity=verbosity,
+        logger=logger,
+    )
+    prepared_data_filtered: PreparedData = local_estimates_filter.filter_data(
+        prepared_data=prepared_data,
+    )
+
+    # Apply a deduplicator; for example, for removing duplicate vectors in the array.
+    prepared_data_deduplicator: PreparedDataDeduplicator = get_prepared_data_deduplicator(
+        local_estimates_filtering_config=main_config.local_estimates.filtering,
+        verbosity=verbosity,
+        logger=logger,
+    )
+    prepared_data_filtered_deduplicated: PreparedData = prepared_data_deduplicator.filter_data(
+        prepared_data=prepared_data_filtered,
+    )
+
+    # Restrict to the first `local_estimates_sample_size` samples.
+    local_estimates_sample_size: int = main_config.local_estimates.filtering.num_samples
+    prepared_data_filtered_deduplicated_truncated: PreparedData = truncate_prepared_data(
+        prepared_data=prepared_data_filtered_deduplicated,
+        local_estimates_sample_size=local_estimates_sample_size,
+    )
+
+    # Potentially apply noise to the data.
+    prepared_data_noiser: PreparedDataNoiser = get_prepared_data_noiser(
+        local_estimates_noise_config=main_config.local_estimates.noise,
+        verbosity=verbosity,
+        logger=logger,
+    )
+    prepared_data_filtered_deduplicated_truncated_noised: PreparedData = prepared_data_noiser.apply_noise_to_data(
+        prepared_data=prepared_data_filtered_deduplicated_truncated,
+    )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg="Filtering, deduplicating, truncating, noising the prepared data DONE",
+        )
+
+    if verbosity >= Verbosity.DEBUG:
+        prepared_data_filtered_deduplicated_truncated_noised.log_info(
+            logger=logger,
+        )
+
+    return prepared_data_filtered_deduplicated_truncated, prepared_data_filtered_deduplicated_truncated_noised
+
+
+def generate_tsne_visualizations(
+    embeddings_path_manager: EmbeddingsPathManager,
+    prepared_data_filtered: PreparedData,
+    pointwise_results_array_np: np.ndarray,
+    local_estimates_plot_config: LocalEstminatesPlotConfig,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
+    """Generate t-SNE visualizations of the local estimates."""
+    tsne_array: np.ndarray = create_projected_data(
+        array=prepared_data_filtered.array,
+        pca_n_components=local_estimates_plot_config.pca_n_components,
+        tsne_n_components=local_estimates_plot_config.tsne_n_components,
+        tsne_random_state=local_estimates_plot_config.tsne_random_state,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+    for maximum_number_of_points in tqdm(
+        iterable=[
+            500,
+            1_000,
+            5_000,
+        ],
+        desc="Creating projection plots",
+    ):
+        figure, tsne_df = create_projection_plot(
+            tsne_result=tsne_array,
+            meta_df=prepared_data_filtered.meta_df,
+            results_array_np=pointwise_results_array_np,
+            maximum_number_of_points=maximum_number_of_points,
+            verbosity=verbosity,
+            logger=logger,
+        )
+
+        number_of_points_in_plot: int = len(tsne_df)
+        output_folder = pathlib.Path(
+            embeddings_path_manager.get_saved_plots_local_estimates_projection_dir_absolute_path(),
+            f"no-points-in-plot-{number_of_points_in_plot}",
+        )
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"Saving projection plot to {output_folder = }",  # noqa: G004 - low overhead
             )
 
-            number_of_points_in_plot: int = len(tsne_df)
-            output_folder = pathlib.Path(
-                embeddings_path_manager.get_saved_plots_local_estimates_projection_dir_absolute_path(),
-                f"no-points-in-plot-{number_of_points_in_plot}",
-            )
-            if verbosity >= Verbosity.NORMAL:
-                logger.info(
-                    msg=f"Saving projection plot to {output_folder = }",  # noqa: G004 - low overhead
-                )
+        save_projection_plot(
+            figure=figure,
+            tsne_df=tsne_df,
+            output_folder=output_folder,
+            save_html=local_estimates_plot_config.saving.save_html,
+            save_pdf=local_estimates_plot_config.saving.save_pdf,
+            save_csv=local_estimates_plot_config.saving.save_csv,
+            verbosity=verbosity,
+            logger=logger,
+        )
 
-            save_projection_plot(
-                figure=figure,
-                tsne_df=tsne_df,
-                output_folder=output_folder,
-                save_html=local_estimates_plot_config.saving.save_html,
-                save_pdf=local_estimates_plot_config.saving.save_pdf,
-                save_csv=local_estimates_plot_config.saving.save_csv,
-                verbosity=verbosity,
-                logger=logger,
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"Saving projection plot to {output_folder = } DONE",  # noqa: G004 - low overhead
             )

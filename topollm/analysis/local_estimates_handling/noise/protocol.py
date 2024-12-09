@@ -1,10 +1,10 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -25,17 +25,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dataclasses import dataclass
+"""Protocol for adding noise to prepared data."""
 
-import numpy as np
-import pandas as pd
+from typing import Protocol
+
+from topollm.embeddings_data_prep.prepared_data_containers import PreparedData
 
 
-@dataclass
-class LocalEstimatesContainer:
-    """Container for the local estimates data."""
+class PreparedDataNoiser(Protocol):
+    """Protocol for adding noise to prepared data."""
 
-    pointwise_results_array_np: np.ndarray
-    pointwise_results_meta_frame: pd.DataFrame | None = None
-    global_estimate_array_np: np.ndarray | None = None
-    additional_distances: dict | None = None
+    def apply_noise_to_data(
+        self,
+        prepared_data: PreparedData,
+    ) -> PreparedData:
+        """Apply the selected method."""
+        ...  # pragma: no cover
