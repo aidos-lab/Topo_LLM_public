@@ -102,9 +102,18 @@ def global_and_pointwise_local_estimates_worker(
         logger=logger,
     )
 
-    # TODO(Ben): We will add the distance computation between the original and the distorted data here, so that it can be applied to all noise types.
+    # # # #
+    # Distance computation between the original and the distorted data
+    if main_config.feature_flags.analysis.compute_distance_between_clean_and_noisy_arrays:
+        # TODO(Ben): We will add the distance computation between the original and the distorted data here, so that it can be applied to all noise types.
 
-    array_for_estimator = prepared_data_filtered_deduplicated_truncated_noised.array
+        logger.warning(
+            msg="Distance computation between the original and the distorted data is not tested fully yet.",
+        )
+
+    # # # #
+    # Local estimates computation
+    array_for_estimator: np.ndarray = prepared_data_filtered_deduplicated_truncated_noised.array
 
     if verbosity >= Verbosity.NORMAL:
         log_array_info(
@@ -115,8 +124,6 @@ def global_and_pointwise_local_estimates_worker(
             logger=logger,
         )
 
-    # # # #
-    # Local estimates computation
     (
         global_estimate_array_np,
         pointwise_results_array_np,
