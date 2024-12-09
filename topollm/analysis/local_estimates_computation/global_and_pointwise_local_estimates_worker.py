@@ -92,12 +92,89 @@ def global_and_pointwise_local_estimates_worker(
     )
 
     # # # #
+    (
+        prepared_data_filtered_deduplicated_truncated,
+        prepared_data_filtered_deduplicated_truncated_noised,
+    ) = preprocess_prepared_data(
+        main_config=main_config,
+        prepared_data=prepared_data,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+    # TODO(Ben): We will add the distance computation between the original and the distorted data here, so that it can be applied to all noise types.
+
+    array_for_estimator = prepared_data_filtered_deduplicated_truncated_noised.array
+
     if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            msg="Filtering prepared data and truncating to first vectors ...",
+        log_array_info(
+            array_=array_for_estimator,
+            array_name="array_for_estimator",
+            log_array_size=True,
+            log_row_l2_norms=True,
+            logger=logger,
         )
 
-    # Applay a filter; for example, for removing zero vectors in the array
+    # # # #
+    # Local estimates computation
+    (
+        global_estimate_array_np,
+        pointwise_results_array_np,
+    ) = global_and_pointwise_local_estimates_computation(
+        array_for_estimator=array_for_estimator,
+        local_estimates_config=main_config.local_estimates,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+    # # # #
+    # Save the results
+    local_estimates_container = LocalEstimatesContainer(
+        pointwise_results_array_np=pointwise_results_array_np,
+        pointwise_results_meta_frame=prepared_data_filtered_deduplicated_truncated_noised.meta_df,
+        global_estimate_array_np=global_estimate_array_np,
+    )
+
+    # TODO: Implement saving of the subsample vector, which were the basis of the local estimates computation
+
+    save_local_estimates(
+        embeddings_path_manager=embeddings_path_manager,
+        local_estimates_container=local_estimates_container,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+    # # # #
+    # Create plots
+    if main_config.feature_flags.analysis.create_plots_in_local_estimates_worker:
+        local_estimates_plot_config: LocalEstminatesPlotConfig = main_config.local_estimates.plot
+
+        generate_tsne_visualizations(
+            embeddings_path_manager=embeddings_path_manager,
+            prepared_data_filtered=prepared_data_filtered_deduplicated_truncated_noised,
+            pointwise_results_array_np=pointwise_results_array_np,
+            local_estimates_plot_config=local_estimates_plot_config,
+            verbosity=verbosity,
+            logger=logger,
+        )
+
+
+def preprocess_prepared_data(
+    main_config: MainConfig,
+    prepared_data: PreparedData,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> tuple[
+    PreparedData,
+    PreparedData,
+]:
+    """Preprocess the prepared data for local estimates computation."""
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg="Filtering, deduplicating, truncating, noising the prepared data ...",
+        )
+
+    # Apply a filter; for example, for removing zero vectors in the array.
     local_estimates_filter: LocalEstimatesFilter = get_local_estimates_filter(
         local_estimates_filtering_config=main_config.local_estimates.filtering,
         verbosity=verbosity,
@@ -134,71 +211,17 @@ def global_and_pointwise_local_estimates_worker(
         prepared_data=prepared_data_filtered_deduplicated_truncated,
     )
 
-    # TODO(Ben): We will add the distance computation between the original and the distorted data here, so that it can be applied to all noise types.
-
-    array_for_estimator = prepared_data_filtered_deduplicated_truncated_noised.array
-
     if verbosity >= Verbosity.NORMAL:
-        log_array_info(
-            array_=array_for_estimator,
-            array_name="array_for_estimator",
-            log_array_size=True,
-            log_row_l2_norms=True,
-            logger=logger,
+        logger.info(
+            msg="Filtering, deduplicating, truncating, noising the prepared data DONE",
         )
+
     if verbosity >= Verbosity.DEBUG:
         prepared_data_filtered_deduplicated_truncated_noised.log_info(
             logger=logger,
         )
 
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            msg="Filtering local estimates and truncating to first vectors DONE",
-        )
-
-    # # # #
-    # Local estimates computation
-
-    (
-        global_estimate_array_np,
-        pointwise_results_array_np,
-    ) = global_and_pointwise_local_estimates_computation(
-        array_for_estimator=array_for_estimator,
-        local_estimates_config=main_config.local_estimates,
-        verbosity=verbosity,
-        logger=logger,
-    )
-
-    # # # #
-    # Save the results
-    local_estimates_container = LocalEstimatesContainer(
-        pointwise_results_array_np=pointwise_results_array_np,
-        pointwise_results_meta_frame=prepared_data_filtered_deduplicated_truncated_noised.meta_df,
-        global_estimate_array_np=global_estimate_array_np,
-    )
-
-    # TODO: Implement saving of the subsample vector, which were the basis of the local estimates computation
-
-    save_local_estimates(
-        embeddings_path_manager=embeddings_path_manager,
-        local_estimates_container=local_estimates_container,
-        verbosity=verbosity,
-        logger=logger,
-    )
-
-    # # # #
-    # Create plots
-    if main_config.feature_flags.analysis.create_plots_in_local_estimates_worker:
-        local_estimates_plot_config: LocalEstminatesPlotConfig = main_config.local_estimates.plot
-
-        generate_tsne_visualizations(
-            embeddings_path_manager=embeddings_path_manager,
-            prepared_data_filtered=prepared_data_filtered,
-            pointwise_results_array_np=pointwise_results_array_np,
-            local_estimates_plot_config=local_estimates_plot_config,
-            verbosity=verbosity,
-            logger=logger,
-        )
+    return prepared_data_filtered_deduplicated_truncated, prepared_data_filtered_deduplicated_truncated_noised
 
 
 def generate_tsne_visualizations(
