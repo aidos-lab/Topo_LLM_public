@@ -303,6 +303,18 @@ def create_boxplot_of_mean_over_different_sampling_seeds(
         plot_save_path_collection = PlotSavePathCollection()
 
     # # # #
+    # Save the raw data to a CSV if a path is provided.
+    # Note: We place this early in the function to ensure the raw data is saved even if the plot fails.
+    if plot_save_path_collection.raw_data is not None:
+        plot_save_path_collection.raw_data.parent.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+        subset_local_estimates_df.to_csv(
+            path_or_buf=plot_save_path_collection.raw_data,
+        )
+
+    # # # #
     # Aggregating the results
 
     # Calculate mean and standard deviation for each unique value in the x-axis column
@@ -556,14 +568,6 @@ def create_boxplot_of_mean_over_different_sampling_seeds(
         plt.savefig(
             plot_save_path_collection.plot,
             bbox_inches="tight",
-        )
-    if plot_save_path_collection.raw_data is not None:
-        plot_save_path_collection.raw_data.parent.mkdir(
-            parents=True,
-            exist_ok=True,
-        )
-        subset_local_estimates_df.to_csv(
-            path_or_buf=plot_save_path_collection.raw_data,
         )
 
     # Show plot if needed

@@ -282,6 +282,28 @@
             "args": []
         },
         {
+            "name": "run_general_comparisons.py without iteration",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/analysis/compare_sampling_methods/run_general_comparisons.py",
+            "console": "integratedTerminal",
+            "args": [
+                "feature_flags.analysis.compare_sampling_methods.do_iterate_all_partial_search_base_directories=False",
+            ]
+        },
+        {
+            "name": "run_general_comparisons.py with iteration but without expensive plots during iteration",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/analysis/compare_sampling_methods/run_general_comparisons.py",
+            "console": "integratedTerminal",
+            "args": [
+                "feature_flags.analysis.compare_sampling_methods.do_iterate_all_partial_search_base_directories=True",
+                "feature_flags.analysis.compare_sampling_methods.do_analysis_influence_of_local_estimates_n_neighbors=False",
+                "feature_flags.analysis.compare_sampling_methods.do_create_boxplot_of_mean_over_different_sampling_seeds=False"
+            ]
+        },
+        {
             "name": "gsutil_rsync_directory_to_and_from_gc_bucket.py",
             "type": "debugpy",
             "request": "launch",

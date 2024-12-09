@@ -94,6 +94,21 @@ def parse_path_info_full(
         object=path,
     )
 
+    # Extract data information
+    data_info: dict = parse_data_info(
+        path_str=path_str,
+    )
+
+    # Extract data subsampling information
+    data_subsampling_info: dict = parse_data_subsampling_info(
+        path_str=path_str,
+    )
+
+    # Extract embedding data handler information
+    embedding_data_handler_info: dict = parse_embedding_data_handler_info(
+        path_str=path_str,
+    )
+
     # Extract sampling information
     # Matches sampling method, seed, and number of samples, e.g.,
     # "sampling-random_seed-44_samples-20000"
@@ -167,25 +182,16 @@ def parse_path_info_full(
         layer_info["aggregation"] = layer_match.group(2)
         layer_info["normalization"] = str(object=layer_match.group(3))
 
-    # Extract data information
-    data_info: dict = parse_data_info(
-        path_str=path_str,
-    )
-
-    # Extract data subsampling information
-    data_subsampling_info: dict = parse_data_subsampling_info(
-        path_str=path_str,
-    )
-
     # Assemble the parsed information
     parsed_info: dict = {
+        **data_info,
+        **data_subsampling_info,
+        **embedding_data_handler_info,
         **sampling_info,
         **local_estimates_info,
         **neighbors_info,
         **model_info,
         **layer_info,
-        **data_info,
-        **data_subsampling_info,
     }
 
     return parsed_info
@@ -245,6 +251,28 @@ def parse_data_subsampling_info(
         parsed_info["data_subsampling_sampling_seed"] = (
             int(subsampling_match.group(4)) if subsampling_match.group(4) else None
         )
+
+    return parsed_info
+
+
+def parse_embedding_data_handler_info(
+    path_str: str,
+) -> dict:
+    """Parse the embedding data handler information from the given path."""
+    parsed_info: dict = {}
+
+    # e.g.
+    # > "edh-mode=masked_token_lvl=token"
+    # > "edh-mode=regular_lvl=token"
+
+    match: re.Match[str] | None = re.search(
+        pattern=r"edh-mode=(masked_token|regular)_lvl=(token|word)",
+        string=path_str,
+    )
+    if match:
+        parsed_info["embedding_data_handler_full"] = match.group(0)  # The full matched string
+        parsed_info["embedding_data_handler_mode"] = match.group(1)
+        parsed_info["embedding_data_handler_level"] = match.group(2)
 
     return parsed_info
 
