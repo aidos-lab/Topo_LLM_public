@@ -25,6 +25,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Tests for the path management module."""
+
 import logging
 import pathlib
 import pprint
@@ -114,6 +116,10 @@ def test_parse_path_info_full_sampling_take_first(
         "model_partial_name": "model=roberta-base",
         "model_seed": None,
         "model_task": "masked_lm",
+        "model_attention_probs_dropout_prob": None,
+        "model_classifier_dropout": None,
+        "model_dropout_mode": None,
+        "model_hidden_dropout_prob": None,
         "n_neighbors": 128,
         "n_neighbors_mode": "absolute_size",
         "normalization": "None",
@@ -123,6 +129,90 @@ def test_parse_path_info_full_sampling_take_first(
         example_path=example_path_base_model_str,
         expected_result=expected_result,
         logger=logger_fixture,
+    )
+
+
+def test_parse_path_info_embedding_data_handler_example(
+    logger_fixture: logging.Logger,
+) -> None:
+    """Example usage of parse_path_info_full function for paths which contain embedding data handler part."""
+    example_path_str: str = (
+        "/Users/USER_NAME/git-source/Topo_LLM/"
+        "data/analysis/twonn/"
+        "data=multiwoz21_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/"
+        "split=test_samples=10000_sampling=random_sampling-seed=778/"
+        "edh-mode=masked_token_lvl=token/"
+        "add-prefix-space=True_max-len=512/"
+        "model=model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-400_task=masked_lm_dr=defaults/"
+        "layer=-1_agg=mean/"
+        "norm=None/"
+        "sampling=random_seed=42_samples=150000/"
+        "desc=twonn_samples=60000_zerovec=keep_dedup=array_deduplicator/"
+        "n-neighbors-mode=absolute_size_n-neighbors=128/"
+        "local_estimates_pointwise.npy"
+    )
+
+    expected_result: dict = {
+        "aggregation": "mean",
+        "data_context": "dataset_entry",
+        "data_dataset_name": "multiwoz21",
+        "data_feature_column": "ner_tags",
+        "data_full": "data=multiwoz21_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags",
+        "data_prep_sampling_method": "random",
+        "data_prep_sampling_samples": 150000,
+        "data_prep_sampling_seed": 42,
+        "data_splitting_mode": "do_nothing",
+        "data_subsampling_full": "split=test_samples=10000_sampling=random_sampling-seed=778",
+        "data_subsampling_number_of_samples": 10000,
+        "data_subsampling_sampling_mode": "random",
+        "data_subsampling_sampling_seed": 778,
+        "data_subsampling_split": "test",
+        "embedding_data_handler_full": "edh-mode=masked_token_lvl=token",
+        "embedding_data_handler_level": "token",
+        "embedding_data_handler_mode": "masked_token",
+        "local_estimates_deduplication": "array_deduplicator",
+        "local_estimates_desc_full": "desc=twonn_samples=60000_zerovec=keep_dedup=array_deduplicator",
+        "local_estimates_description": "twonn",
+        "local_estimates_samples": 60000,
+        "local_estimates_zerovec": "keep",
+        "model_attention_probs_dropout_prob": None,
+        "model_checkpoint": 400,
+        "model_classifier_dropout": None,
+        "model_dropout_mode": "defaults",
+        "model_full": "model=model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-400_task=masked_lm_dr=defaults",
+        "model_hidden_dropout_prob": None,
+        "model_layer": -1,
+        "model_partial_name": "model=model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50",
+        "model_seed": 1234,
+        "model_task": "masked_lm",
+        "n_neighbors": 128,
+        "n_neighbors_mode": "absolute_size",
+        "normalization": "None",
+    }
+
+    # # # #
+    result: dict = parse_path_info_full(
+        path=example_path_str,
+    )
+
+    logger_fixture.info(
+        msg=f"example_path_str:\n{example_path_str}",  # noqa: G004 - low overhead
+    )
+    logger_fixture.info(
+        msg=f"result:\n{pprint.pformat(object=result)}",  # noqa: G004 - low overhead
+    )
+
+    # Check that result is a valid dictionary
+    assert isinstance(  # noqa: S101 - pytest assertion
+        result,
+        dict,
+    )
+
+    # Assert that the result matches the expected result
+    assert result == expected_result, (  # noqa: S101 - pytest assertion
+        f"Parsing failed for {example_path_str = }\n"
+        f"Expected:\n{pprint.pformat(object=expected_result)}\n"
+        f"Got:\n{pprint.pformat(object=result)}"
     )
 
 
@@ -171,6 +261,10 @@ def test_parse_path_info_full_sampling_random(
         "model_partial_name": "model=roberta-base",
         "model_seed": None,
         "model_task": "masked_lm",
+        "model_attention_probs_dropout_prob": None,
+        "model_classifier_dropout": None,
+        "model_dropout_mode": None,
+        "model_hidden_dropout_prob": None,
         "n_neighbors": 128,
         "n_neighbors_mode": "absolute_size",
         "normalization": "None",
@@ -245,7 +339,7 @@ def test_parse_model_info(
     # # # # # # # #
     # Test case 1:
     # Default dropout rate parameters
-    example_path = pathlib.Path(
+    example_path_str = pathlib.Path(
         "example_prefix",
         "model=model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50_seed-1234_ckpt-13200_task=masked_lm_dr=defaults",
         "example_suffix",
@@ -264,11 +358,11 @@ def test_parse_model_info(
     }
 
     model_info: dict = parse_model_info(
-        path=example_path,
+        path=example_path_str,
     )
 
     logger_fixture.info(
-        msg=f"example_path:\n{example_path}",  # noqa: G004 - low overhead
+        msg=f"example_path_str:\n{example_path_str}",  # noqa: G004 - low overhead
     )
     logger_fixture.info(
         msg=f"model_info:\n{pprint.pformat(object=model_info)}",  # noqa: G004 - low overhead
@@ -282,7 +376,7 @@ def test_parse_model_info(
 
     # Assert that the result matches the expected result
     assert model_info == expected_result, (  # noqa: S101 - pytest assertion
-        f"Parsing failed for {example_path = }\n"
+        f"Parsing failed for {example_path_str = }\n"
         f"Expected:\n{pprint.pformat(object=expected_result)}\n"
         f"Got:\n{pprint.pformat(object=model_info)}"
     )
@@ -291,7 +385,7 @@ def test_parse_model_info(
     # Test case 2:
     # Modified dropout rate parameters
 
-    example_path = pathlib.Path(
+    example_path_str = pathlib.Path(
         "example_prefix",
         "model=roberta-base-masked_lm-0.05-0.05-None_multiwoz21-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-constant-0.01-50_seed-1234_ckpt-8800_task=masked_lm_dr=modify_roberta_dropout_parameters_h-dr=0.05_attn-dr=0.05_clf-dr=None",
         "example_suffix",
@@ -310,11 +404,11 @@ def test_parse_model_info(
     }
 
     model_info: dict = parse_model_info(
-        path=example_path,
+        path=example_path_str,
     )
 
     logger_fixture.info(
-        msg=f"example_path:\n{example_path}",  # noqa: G004 - low overhead
+        msg=f"example_path_str:\n{example_path_str}",  # noqa: G004 - low overhead
     )
     logger_fixture.info(
         msg=f"model_info:\n{pprint.pformat(object=model_info)}",  # noqa: G004 - low overhead
@@ -328,7 +422,7 @@ def test_parse_model_info(
 
     # Assert that the result matches the expected result
     assert model_info == expected_result, (  # noqa: S101 - pytest assertion
-        f"Parsing failed for {example_path = }\n"
+        f"Parsing failed for {example_path_str = }\n"
         f"Expected:\n{pprint.pformat(object=expected_result)}\n"
         f"Got:\n{pprint.pformat(object=model_info)}"
     )

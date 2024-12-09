@@ -73,7 +73,7 @@ class EmbeddingsConfig(ConfigBaseModel):
     """Configurations for specifying embeddings."""
 
     dataset_map: DatasetMapConfig = Field(
-        default=...,
+        default_factory=DatasetMapConfig,
         title="Dataset map configuration.",
         description="The configuration for specifying dataset map.",
     )
@@ -85,7 +85,7 @@ class EmbeddingsConfig(ConfigBaseModel):
     )
 
     embedding_data_handler: EmbeddingDataHandlerConfig = Field(
-        default=...,
+        default_factory=EmbeddingDataHandlerConfig,
         title="Embedding data handler configuration.",
         description="The configuration for specifying embedding data handler.",
     )
