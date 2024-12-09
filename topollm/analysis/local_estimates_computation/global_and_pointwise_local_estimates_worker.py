@@ -29,6 +29,7 @@
 
 import logging
 import pathlib
+import pprint
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -43,6 +44,11 @@ from topollm.analysis.local_estimates_handling.deduplicator.factory import (
     get_prepared_data_deduplicator,
 )
 from topollm.analysis.local_estimates_handling.deduplicator.protocol import PreparedDataDeduplicator
+from topollm.analysis.local_estimates_handling.distances.distance_functions import (
+    approximate_hausdorff_via_kdtree,
+    compute_exact_hausdorff,
+    geomloss_sinkhorn_wasserstein,
+)
 from topollm.analysis.local_estimates_handling.filter.factory import get_local_estimates_filter
 from topollm.analysis.local_estimates_handling.noise.factory import get_prepared_data_noiser
 from topollm.analysis.local_estimates_handling.noise.protocol import PreparedDataNoiser
@@ -102,17 +108,6 @@ def global_and_pointwise_local_estimates_worker(
         logger=logger,
     )
 
-    # # # #
-    # Distance computation between the original and the distorted data
-    if main_config.feature_flags.analysis.compute_distance_between_clean_and_noisy_arrays:
-        # TODO(Ben): We will add the distance computation between the original and the distorted data here, so that it can be applied to all noise types.
-
-        logger.warning(
-            msg="Distance computation between the original and the distorted data is not tested fully yet.",
-        )
-
-    # # # #
-    # Local estimates computation
     array_for_estimator: np.ndarray = prepared_data_filtered_deduplicated_truncated_noised.array
 
     if verbosity >= Verbosity.NORMAL:
@@ -123,6 +118,28 @@ def global_and_pointwise_local_estimates_worker(
             log_row_l2_norms=True,
             logger=logger,
         )
+
+    # # # #
+    # Distance computation between the original and the distorted data
+
+    clean_array: np.ndarray = prepared_data_filtered_deduplicated_truncated.array
+    noisy_array: np.ndarray = array_for_estimator
+
+    additional_distance_computations_results: dict = compute_distance_metrics(
+        main_config=main_config,
+        clean_array=clean_array,
+        noisy_array=noisy_array,
+        verbosity=verbosity,
+        logger=logger,
+    )
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"additional_distance_computations_results:\n"  # noqa: G004 - low overhead
+            f"{pprint.pformat(object=additional_distance_computations_results)}",
+        )
+
+    # # # #
+    # Local estimates computation
 
     (
         global_estimate_array_np,
@@ -142,7 +159,8 @@ def global_and_pointwise_local_estimates_worker(
         global_estimate_array_np=global_estimate_array_np,
     )
 
-    # TODO: Implement saving of the subsample vector, which were the basis of the local estimates computation
+    # TODO: Implement saving of the additional distance computations results
+    # TODO: Implement saving of the subsample array which was the basis of the local estimates computation
 
     save_local_estimates(
         embeddings_path_manager=embeddings_path_manager,
@@ -164,6 +182,76 @@ def global_and_pointwise_local_estimates_worker(
             verbosity=verbosity,
             logger=logger,
         )
+
+
+def compute_distance_metrics(
+    main_config: MainConfig,
+    clean_array: np.ndarray,
+    noisy_array: np.ndarray,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> dict:
+    """Compute additional distance metrics between the clean and noisy arrays."""
+    # Container for additional distance computations
+    additional_distance_computations_results: dict = {}
+
+    if main_config.feature_flags.analysis.distance_functions.use_approximate_hausdorff_via_kdtree:
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg="Computing approximate Hausdorff distance via KDTree ...",
+            )
+
+        approximate_hausdorff_distance: float = approximate_hausdorff_via_kdtree(
+            array_1=clean_array,
+            array_2=noisy_array,
+        )
+
+        additional_distance_computations_results["approximate_hausdorff_via_kdtree"] = approximate_hausdorff_distance
+
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"{approximate_hausdorff_distance = }",  # noqa: G004 - low overhead
+            )
+
+    if main_config.feature_flags.analysis.distance_functions.use_exact_hausdorff:
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg="Computing exact Hausdorff distance ...",
+            )
+
+        exact_hausdorff_distance: float = compute_exact_hausdorff(
+            array_1=clean_array,
+            array_2=noisy_array,
+        )
+
+        additional_distance_computations_results["exact_hausdorff"] = exact_hausdorff_distance
+
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"{exact_hausdorff_distance = }",  # noqa: G004 - low overhead
+            )
+
+    if main_config.feature_flags.analysis.distance_functions.use_sinkhorn_wasserstein:
+        pass  # TODO(Ben): The current implementation of the Sinkhorn Wasserstein distance computation is not working.
+
+        # if verbosity >= Verbosity.NORMAL:
+        #     logger.info(
+        #         msg="Computing Sinkhorn Wasserstein distance ...",
+        #     )
+
+        # sinkhorn_wasserstein = geomloss_sinkhorn_wasserstein(
+        #     P_np=clean_array,
+        #     Q_np=noisy_array,
+        # )
+
+        # additional_distance_computations_results["sinkhorn_wasserstein"] = sinkhorn_wasserstein
+
+        # if verbosity >= Verbosity.NORMAL:
+        #     logger.info(
+        #         msg=f"{sinkhorn_wasserstein = }",  # noqa: G004 - low overhead
+        #     )
+
+    return additional_distance_computations_results
 
 
 def preprocess_prepared_data(

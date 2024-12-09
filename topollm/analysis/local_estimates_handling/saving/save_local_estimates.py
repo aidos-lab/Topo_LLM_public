@@ -52,13 +52,18 @@ def save_local_estimates(
             msg="Calling save_local_estimates ...",
         )
 
-    global_estimates_save_path, local_estimates_pointwise_array_save_path, local_estimates_pointwise_meta_save_path = (
-        setup_local_estimate_directories(
-            embeddings_path_manager=embeddings_path_manager,
-            verbosity=verbosity,
-            logger=logger,
-        )
+    (
+        global_estimates_save_path,
+        local_estimates_pointwise_array_save_path,
+        local_estimates_pointwise_meta_save_path,
+    ) = setup_local_estimate_directories(
+        embeddings_path_manager=embeddings_path_manager,
+        verbosity=verbosity,
+        logger=logger,
     )
+
+    # # # #
+    # Save the local estimates
 
     if verbosity >= Verbosity.NORMAL:
         logger.info(
@@ -74,6 +79,9 @@ def save_local_estimates(
         logger.info(
             msg="Saving pointwise_results_array_np array DONE",
         )
+
+    # # # #
+    # Save the meta data
 
     if local_estimates_container.pointwise_results_meta_frame is not None:
         if verbosity >= Verbosity.NORMAL:
@@ -93,6 +101,9 @@ def save_local_estimates(
         logger.info(
             msg="No meta data to save.",
         )
+
+    # # # #
+    # Save the global estimate
 
     if local_estimates_container.global_estimate_array_np is not None:
         if verbosity >= Verbosity.NORMAL:

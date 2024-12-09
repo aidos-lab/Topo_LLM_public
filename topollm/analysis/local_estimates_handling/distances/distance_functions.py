@@ -27,6 +27,8 @@
 
 
 import numpy as np
+import torch
+from geomloss import SamplesLoss
 from scipy.spatial import KDTree
 from scipy.spatial.distance import directed_hausdorff
 
@@ -90,3 +92,97 @@ def approximate_hausdorff_via_kdtree(
     )
 
     return hausdorff_distance
+
+
+def geomloss_sinkhorn_wasserstein(
+    P_np: np.ndarray,
+    Q_np: np.ndarray,
+    weights_P_np: np.ndarray | None = None,
+    weights_Q_np: np.ndarray | None = None,
+    p: int = 2,
+    blur: float = 0.05,
+    scaling: float = 0.9,
+):
+    """SCompute Wasserstein distance W_p using GeomLoss Sinkhorn divergence.
+
+    Parameters
+    ----------
+    - P (ndarray): Array of shape (n, d), representing n points in d-dimensional space.
+    - Q (ndarray): Array of shape (m, d), representing m points in d-dimensional space.
+    - weights_P (ndarray): Optional array of shape (n,) for weights of P. Defaults to uniform.
+    - weights_Q (ndarray): Optional array of shape (m,) for weights of Q. Defaults to uniform.
+    - p: Order of Wasserstein distance.
+    - blur: Regularization parameter (similar to reg in Sinkhorn).
+    - scaling: Scaling parameter for convergence.
+
+    Returns
+    -------
+    - wp (float): Approximate Wasserstein distance.
+
+    """
+    # Convert to PyTorch tensors
+    P = torch.tensor(
+        P_np,
+        dtype=torch.float32,
+    )
+    Q = torch.tensor(
+        Q_np,
+        dtype=torch.float32,
+    )
+
+    n, d = P.shape
+    m, _ = Q.shape
+
+    # Default weights
+    if weights_P_np is None:
+        weights_P = torch.ones(n, dtype=torch.float32) / n
+    else:
+        weights_P = torch.tensor(
+            weights_P_np,
+            dtype=torch.float32,
+        )
+    if weights_Q_np is None:
+        weights_Q = torch.ones(m, dtype=torch.float32) / m
+    else:
+        weights_Q = torch.tensor(
+            weights_Q_np,
+            dtype=torch.float32,
+        )
+
+    # Define the Sinkhorn divergence loss
+    loss_fn = SamplesLoss(
+        "sinkhorn",
+        p=p,
+        blur=blur,
+        scaling=scaling,
+    )
+
+    # Compute Wasserstein distance
+    #
+    # TODO:
+    #     Exception has occurred: ValueError
+    # Input weights 'α' and 'β' should have the same number of dimensions.
+    #   File "/Users/ruppik/git-source/Topo_LLM/topollm/analysis/local_estimates_handling/distances/distance_functions.py", line 161, in geomloss_sinkhorn_wasserstein
+    #     wp = loss_fn(
+    #          ^^^^^^^^
+    #   File "/Users/ruppik/git-source/Topo_LLM/topollm/analysis/local_estimates_computation/global_and_pointwise_local_estimates_worker.py", line 240, in compute_distance_metrics
+    #     sinkhorn_wasserstein = geomloss_sinkhorn_wasserstein(
+    #                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    #   File "/Users/ruppik/git-source/Topo_LLM/topollm/analysis/local_estimates_computation/global_and_pointwise_local_estimates_worker.py", line 128, in global_and_pointwise_local_estimates_worker
+    #     additional_distance_computations_results: dict = compute_distance_metrics(
+    #                                                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+    #   File "/Users/ruppik/git-source/Topo_LLM/topollm/pipeline_scripts/worker_for_pipeline.py", line 118, in worker_for_pipeline
+    #     global_and_pointwise_local_estimates_worker(
+    #   File "/Users/ruppik/git-source/Topo_LLM/topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py", line 90, in main
+    #     worker_for_pipeline(
+    #   File "/Users/ruppik/git-source/Topo_LLM/topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py", line 100, in <module>
+    #     main()
+    # ValueError: Input weights 'α' and 'β' should have the same number of dimensions.
+    wp = loss_fn(
+        P,
+        Q,
+        weights_P,
+        weights_Q,
+    )
+
+    return wp.item()
