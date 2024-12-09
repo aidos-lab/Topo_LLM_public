@@ -31,6 +31,7 @@ import logging
 import pathlib
 import pprint
 from collections.abc import Generator
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 import hydra
@@ -44,6 +45,7 @@ from topollm.analysis.compare_sampling_methods.checkpoint_analysis.model_checkpo
     run_checkpoint_analysis_over_different_data_and_models,
 )
 from topollm.analysis.compare_sampling_methods.checkpoint_analysis.model_loss_extractor import ModelLossExtractor
+from topollm.analysis.compare_sampling_methods.checkpoint_analysis_modes import CheckpointAnalysisModes
 from topollm.analysis.compare_sampling_methods.extract_results_from_directory_structure import (
     run_search_on_single_base_directory_and_process_and_save,
 )
@@ -283,48 +285,24 @@ def do_checkpoint_analysis(
     model_loss_extractor: ModelLossExtractor | None = create_model_loss_extractor()
 
     # # # #
-    # Select which analysis to run and call the analysis
-    data_full_list_to_process: list[str] = [
-        "data=multiwoz21_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags",
-        "data=one-year-of-tsla-on-reddit_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags",
-    ]
+    # Select which analysis to run
 
-    data_subsampling_split_list_to_process: list[str] = [
-        "train",
-        "validation",
-        "test",
-    ]
-
-    data_subsampling_sampling_mode_list_to_process: list[str] = [
-        "random",
-        "take_first",
-    ]
-
-    embedding_data_handler_mode_to_process: list[str] = concatenated_df["embedding_data_handler_mode"].unique().tolist()
-
-    model_partial_name_list_to_process: list[str] = concatenated_df["model_partial_name"].unique().tolist()
-
-    # Note: The "model_seed" column contains type integer values
-    language_model_seed_list_to_process: list[int] = concatenated_df["model_seed"].unique().tolist()
+    # Create the analysis modes configuration
+    checkpoint_analysis_modes = CheckpointAnalysisModes()
+    checkpoint_analysis_modes.from_concatenated_df(
+        concatenated_df=concatenated_df,
+    )
 
     if verbosity >= Verbosity.NORMAL:
         logger.info(
-            msg=f"model_partial_name_list_to_process:\n{pprint.pformat(model_partial_name_list_to_process)}",  # noqa: G004 - low overhead
-        )
-        logger.info(
-            msg=f"language_model_seed_list_to_process:\n{pprint.pformat(language_model_seed_list_to_process)}",  # noqa: G004 - low overhead
+            msg=f"checkpoint_analysis_modes:\n{pprint.pformat(object=checkpoint_analysis_modes)}",  # noqa: G004 - low overhead
         )
 
     # # # #
     # Run the checkpoint analysis on the selected data
     run_checkpoint_analysis_over_different_data_and_models(
         concatenated_df=concatenated_df,
-        data_full_list_to_process=data_full_list_to_process,
-        data_subsampling_split_list_to_process=data_subsampling_split_list_to_process,
-        data_subsampling_sampling_mode_list_to_process=data_subsampling_sampling_mode_list_to_process,
-        embedding_data_handler_mode_to_process=embedding_data_handler_mode_to_process,
-        model_partial_name_list_to_process=model_partial_name_list_to_process,
-        language_model_seed_list_to_process=language_model_seed_list_to_process,
+        checkpoint_analysis_modes=checkpoint_analysis_modes,
         model_loss_extractor=model_loss_extractor,
         verbosity=verbosity,
         logger=logger,

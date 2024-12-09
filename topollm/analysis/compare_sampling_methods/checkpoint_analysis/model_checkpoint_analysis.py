@@ -29,12 +29,15 @@
 
 import logging
 import pathlib
-from itertools import product
 
 import pandas as pd
 from tqdm import tqdm
 
 from topollm.analysis.compare_sampling_methods.checkpoint_analysis.model_loss_extractor import ModelLossExtractor
+from topollm.analysis.compare_sampling_methods.checkpoint_analysis_modes import (
+    CheckpointAnalysisCombination,
+    CheckpointAnalysisModes,
+)
 from topollm.analysis.compare_sampling_methods.filter_dataframe_based_on_filters_dict import (
     filter_dataframe_based_on_filters_dict,
 )
@@ -71,27 +74,62 @@ def create_histograms_over_model_checkpoints(
     )
 
     # # # #
-    # Filter for the dataframe with just the base model data
+    # Filter for the dataframe with just the base model data.
+    #
+    # Note:
+    # If you accidentally run this function with the concatenated_filters_dict
+    # containing the same base_model_partial_name as the model_partial_name,
+    # you will duplicate the data for the base model here.
+    # This might lead to a problem in the plotting function. We will log a warning here and handle this case separately.
+    if concatenated_filters_dict["model_partial_name"] == base_model_partial_name:
+        logger.warning(
+            msg=f"The concatenated_filters_dict contains the same model_partial_name "  # noqa: G004 - low overhead
+            f"as the {base_model_partial_name = }. "
+            f"This could lead to duplicated data for the base model in the plotting function. "
+            f"We handle this case separately to avoid problems.",
+        )
 
-    same_filters_but_for_base_model = concatenated_filters_dict.copy()
-    same_filters_but_for_base_model["model_partial_name"] = base_model_partial_name
-    # We need to drop the entry for "model_seed", because for the base model this value is empty
-    same_filters_but_for_base_model.pop("model_seed")
+        # Check that in this special case, the model checkpoint column is filled with empty strings
+        if not filtered_concatenated_df[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["ckpt"]].eq(other="").all():
+            msg = (
+                "The model checkpoint column is not filled with empty strings for the base model. "
+                "This should not happen. Please check the data."
+            )
+            raise ValueError(
+                msg,
+            )
 
-    filtered_for_base_model_concatenated_df = filter_dataframe_based_on_filters_dict(
-        df=concatenated_df,
-        filters_dict=same_filters_but_for_base_model,
-    )
+        # Set all the values in the "model_checkpoint" column (all belonging to the base model) to "-1"
+        filtered_concatenated_df[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["ckpt"]] = -1
 
-    # Set all the values in the "model_checkpoint" column to "-1"
-    filtered_for_base_model_concatenated_df[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["ckpt"]] = -1
+        # For this base model case, we use the resulting dataframe as the filtered_for_base_model_concatenated_df
+        data_for_checkpoint_analysis_df = filtered_concatenated_df
+    else:
+        # Augment the dataframe with information for the base model
+        same_filters_but_for_base_model: dict = concatenated_filters_dict.copy()
+        same_filters_but_for_base_model["model_partial_name"] = base_model_partial_name
+        # We need to drop the entry for "model_seed", because for the base model this value is empty
+        same_filters_but_for_base_model.pop("model_seed")
 
-    # # # #
-    # Create a dataframe by concatenating the two dataframes
-    data_for_checkpoint_analysis_df: pd.DataFrame = pd.concat(
-        objs=[filtered_concatenated_df, filtered_for_base_model_concatenated_df],
-        ignore_index=True,
-    )
+        filtered_for_base_model_concatenated_df: pd.DataFrame = filter_dataframe_based_on_filters_dict(
+            df=concatenated_df,
+            filters_dict=same_filters_but_for_base_model,
+            verbosity=verbosity,
+            logger=logger,
+        )
+
+        # Set all the values in the "model_checkpoint" column belonging to the base model to "-1"
+        filtered_for_base_model_concatenated_df[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["ckpt"]] = -1
+
+        # # # #
+        # Create a dataframe by concatenating the two dataframes
+        data_for_checkpoint_analysis_df: pd.DataFrame = pd.concat(
+            objs=[
+                filtered_concatenated_df,
+                filtered_for_base_model_concatenated_df,
+            ],
+            ignore_index=True,
+        )
 
     # # # #
     # Group "data_for_checkpoint_analysis_df" by value in 'model_checkpoint' column
@@ -119,7 +157,10 @@ def create_histograms_over_model_checkpoints(
             )
             # Save the model losses to a CSV file if available
             if model_losses_df is not None:
-                model_losses_save_path.parent.mkdir(parents=True, exist_ok=True)
+                model_losses_save_path.parent.mkdir(
+                    parents=True,
+                    exist_ok=True,
+                )
                 model_losses_df.to_csv(
                     path_or_buf=model_losses_save_path,
                     index=False,
@@ -153,49 +194,29 @@ def create_histograms_over_model_checkpoints(
 
 def run_checkpoint_analysis_over_different_data_and_models(
     concatenated_df: pd.DataFrame,
-    data_full_list_to_process: list[str],
-    data_subsampling_split_list_to_process: list[str],
-    data_subsampling_sampling_mode_list_to_process: list[str],
-    embedding_data_handler_mode_to_process: list[str],
-    model_partial_name_list_to_process: list[str],
-    language_model_seed_list_to_process: list[int],
+    checkpoint_analysis_modes: CheckpointAnalysisModes,
     model_loss_extractor: ModelLossExtractor | None = None,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> None:
     """Run the checkpoint analysis over different data and models."""
-    product_to_process = product(
-        data_full_list_to_process,
-        data_subsampling_split_list_to_process,
-        data_subsampling_sampling_mode_list_to_process,
-        embedding_data_handler_mode_to_process,
-        model_partial_name_list_to_process,
-        language_model_seed_list_to_process,
-    )
-    product_to_process_list = list(product_to_process)
+    product_to_process: list[CheckpointAnalysisCombination] = checkpoint_analysis_modes.all_combinations()
 
-    for (
-        data_full,
-        data_subsampling_split,
-        data_subsampling_sampling_mode,
-        embedding_data_handler_mode,
-        model_partial_name,
-        language_model_seed,
-    ) in tqdm(
-        iterable=product_to_process_list,
+    for comb in tqdm(
+        iterable=product_to_process,
         desc="Processing different combinations of data subsamples and models",
-        total=len(product_to_process_list),
+        total=len(product_to_process),
     ):
         concatenated_filters_dict = {
-            "data_full": data_full,
-            "data_subsampling_split": data_subsampling_split,
-            "data_subsampling_sampling_mode": data_subsampling_sampling_mode,
+            "data_full": comb.data_full,
+            "data_subsampling_split": comb.data_subsampling_split,
+            "data_subsampling_sampling_mode": comb.data_subsampling_sampling_mode,
             "data_subsampling_number_of_samples": 10_000,
-            "model_partial_name": model_partial_name,
-            "model_seed": language_model_seed,
+            "model_partial_name": comb.model_partial_name,
+            "model_seed": comb.language_model_seed,
             "data_prep_sampling_method": "random",
             "data_prep_sampling_samples": 150_000,
-            "embedding_data_handler_mode": embedding_data_handler_mode,
+            "embedding_data_handler_mode": comb.embedding_data_handler_mode,
             NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["dedup"]: "array_deduplicator",
             "local_estimates_samples": 60_000,
             "n_neighbors": 128,
@@ -206,12 +227,12 @@ def run_checkpoint_analysis_over_different_data_and_models(
             "data",
             "saved_plots",
             "mean_estimates_over_different_checkpoints",
-            f"{data_full=}",
-            f"{data_subsampling_split=}",
-            f"{data_subsampling_sampling_mode=}",
-            f"{embedding_data_handler_mode=}",
-            f"{model_partial_name=}",
-            f"{language_model_seed=}",
+            f"{comb.data_full=}",
+            f"{comb.data_subsampling_split=}",
+            f"{comb.data_subsampling_sampling_mode=}",
+            f"{comb.embedding_data_handler_mode=}",
+            f"{comb.model_partial_name=}",
+            f"{comb.language_model_seed=}",
         )
 
         create_histograms_over_model_checkpoints(
