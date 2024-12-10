@@ -121,6 +121,19 @@ def global_and_pointwise_local_estimates_worker(
         )
 
     # # # #
+    # Local estimates computation
+
+    (
+        global_estimate_array_np,
+        pointwise_results_array_np,
+    ) = global_and_pointwise_local_estimates_computation(
+        array_for_estimator=array_for_estimator,
+        local_estimates_config=main_config.local_estimates,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+    # # # #
     # Distance computation between the original and the distorted data
 
     clean_array: np.ndarray = prepared_data_filtered_deduplicated_truncated.array
@@ -135,18 +148,6 @@ def global_and_pointwise_local_estimates_worker(
     )
 
     # # # #
-    # Local estimates computation
-
-    (
-        global_estimate_array_np,
-        pointwise_results_array_np,
-    ) = global_and_pointwise_local_estimates_computation(
-        array_for_estimator=array_for_estimator,
-        local_estimates_config=main_config.local_estimates,
-        verbosity=verbosity,
-        logger=logger,
-    )
-
     # Create additional statistics for easier storage and analysis
     additional_pointwise_results_statistics: dict = create_additional_pointwise_results_statistics(
         pointwise_results_array_np=pointwise_results_array_np,

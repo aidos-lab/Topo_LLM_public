@@ -58,7 +58,7 @@ class DistanceFunctionsFeatureFlagsConfig(ConfigBaseModel):
     """Feature flags for the distance functions."""
 
     use_exact_hausdorff: bool = Field(
-        default=True,
+        default=False,  # We set this to false by default, since the computation of the exact Hausdorff distance is very slow.
         title="Use exact Hausdorff distance.",
         description="Whether to use the exact Hausdorff distance.",
     )
