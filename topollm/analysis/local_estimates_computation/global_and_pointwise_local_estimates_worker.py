@@ -155,17 +155,30 @@ def global_and_pointwise_local_estimates_worker(
         logger=logger,
     )
 
+    # Select to save the array for the estimator based on the feature flag
+    if main_config.feature_flags.analysis.saving.save_array_for_estimator:
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg="array_for_estimator will be part of the container and will be saved.",
+            )
+        array_for_estimator_for_container = array_for_estimator
+    else:
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg="array_for_estimator will NOT be part of the container and will NOT be saved.",
+            )
+        array_for_estimator_for_container = None
+
     # # # #
     # Save the results
     local_estimates_container = LocalEstimatesContainer(
         pointwise_results_array_np=pointwise_results_array_np,
         pointwise_results_meta_frame=prepared_data_filtered_deduplicated_truncated_noised.meta_df,
         global_estimate_array_np=global_estimate_array_np,
+        array_for_estimator_np=array_for_estimator_for_container,
         additional_distance_computations_results=additional_distance_computations_results,
         additional_pointwise_results_statistics=additional_pointwise_results_statistics,
     )
-
-    # TODO: Implement saving of the subsample array which was the basis of the local estimates computation
 
     local_estimates_save_manager = LocalEstimatesSavingManager(
         embeddings_path_manager=embeddings_path_manager,
