@@ -133,11 +133,6 @@ def global_and_pointwise_local_estimates_worker(
         verbosity=verbosity,
         logger=logger,
     )
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            msg=f"additional_distance_computations_results:\n"  # noqa: G004 - low overhead
-            f"{pprint.pformat(object=additional_distance_computations_results)}",
-        )
 
     # # # #
     # Local estimates computation
@@ -155,6 +150,8 @@ def global_and_pointwise_local_estimates_worker(
     # Create additional statistics for easier storage and analysis
     additional_pointwise_results_statistics: dict = create_additional_pointwise_results_statistics(
         pointwise_results_array_np=pointwise_results_array_np,
+        verbosity=verbosity,
+        logger=logger,
     )
 
     # # # #
@@ -196,6 +193,8 @@ def global_and_pointwise_local_estimates_worker(
 
 def create_additional_pointwise_results_statistics(
     pointwise_results_array_np: np.ndarray,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
 ) -> dict:
     """Create additional statistics from the pointwise results array and other computation results."""
     additional_pointwise_results_statistics: dict = {}
@@ -210,7 +209,25 @@ def create_additional_pointwise_results_statistics(
 
     additional_pointwise_results_statistics[subkey] = subdict
 
-    # TODO: Implement creation of the additional statistics
+    # Add statistics of truncated pointwise results arrays
+    for truncation_size in range(
+        5_000,
+        60_001,
+        5_000,
+    ):
+        subkey: str = f"pointwise_results_array_np_truncated_first_{truncation_size}"
+        subdict: dict = make_array_statistics_dict(
+            array=pointwise_results_array_np[:truncation_size],
+            array_name=subkey,
+        )
+
+        additional_pointwise_results_statistics[subkey] = subdict
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"additional_pointwise_results_statistics:\n"  # noqa: G004 - low overhead
+            f"{pprint.pformat(object=additional_pointwise_results_statistics)}",
+        )
 
     return additional_pointwise_results_statistics
 
@@ -308,6 +325,12 @@ def compute_distance_metrics(
                 msg=f"{sinkhorn_wasserstein = }",  # noqa: G004 - low overhead
             )
 
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"additional_distance_computations_results:\n"  # noqa: G004 - low overhead
+            f"{pprint.pformat(object=additional_distance_computations_results)}",
+        )
+
     return additional_distance_computations_results
 
 
@@ -402,7 +425,10 @@ def generate_tsne_visualizations(
         ],
         desc="Creating projection plots",
     ):
-        figure, tsne_df = create_projection_plot(
+        (
+            figure,
+            tsne_df,
+        ) = create_projection_plot(
             tsne_result=tsne_array,
             meta_df=prepared_data_filtered.meta_df,
             results_array_np=pointwise_results_array_np,
