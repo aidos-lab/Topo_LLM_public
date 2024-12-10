@@ -232,24 +232,22 @@ def compute_distance_metrics(
             )
 
     if main_config.feature_flags.analysis.distance_functions.use_sinkhorn_wasserstein:
-        pass  # TODO(Ben): The current implementation of the Sinkhorn Wasserstein distance computation is not working.
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg="Computing Sinkhorn Wasserstein distance ...",
+            )
 
-        # if verbosity >= Verbosity.NORMAL:
-        #     logger.info(
-        #         msg="Computing Sinkhorn Wasserstein distance ...",
-        #     )
+        sinkhorn_wasserstein = geomloss_sinkhorn_wasserstein(
+            P_np=clean_array,
+            Q_np=noisy_array,
+        )
 
-        # sinkhorn_wasserstein = geomloss_sinkhorn_wasserstein(
-        #     P_np=clean_array,
-        #     Q_np=noisy_array,
-        # )
+        additional_distance_computations_results["sinkhorn_wasserstein"] = sinkhorn_wasserstein
 
-        # additional_distance_computations_results["sinkhorn_wasserstein"] = sinkhorn_wasserstein
-
-        # if verbosity >= Verbosity.NORMAL:
-        #     logger.info(
-        #         msg=f"{sinkhorn_wasserstein = }",  # noqa: G004 - low overhead
-        #     )
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"{sinkhorn_wasserstein = }",  # noqa: G004 - low overhead
+            )
 
     return additional_distance_computations_results
 
