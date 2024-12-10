@@ -104,6 +104,10 @@ class EmbeddingsPathManager(Protocol):
         self,
     ) -> pathlib.Path: ...  # pragma: no cover
 
+    def get_additional_distance_computations_results_save_path(
+        self,
+    ) -> pathlib.Path: ...  # pragma: no cover
+
     # # # #
     # saved plots directories
 

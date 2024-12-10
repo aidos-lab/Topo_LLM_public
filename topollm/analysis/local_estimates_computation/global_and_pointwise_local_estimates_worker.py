@@ -157,6 +157,7 @@ def global_and_pointwise_local_estimates_worker(
         pointwise_results_array_np=pointwise_results_array_np,
         pointwise_results_meta_frame=prepared_data_filtered_deduplicated_truncated_noised.meta_df,
         global_estimate_array_np=global_estimate_array_np,
+        additional_distance_computations_results=additional_distance_computations_results,
     )
 
     # TODO: Implement saving of the additional distance computations results
