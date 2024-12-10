@@ -53,32 +53,27 @@ class LocalEstimatesSavePathCollection:
     global_estimates_save_path: pathlib.Path
     local_estimates_pointwise_array_save_path: pathlib.Path
     local_estimates_pointwise_meta_save_path: pathlib.Path
+
     additional_distance_computations_results_save_path: pathlib.Path
+    additional_pointwise_results_statistics_save_path: pathlib.Path
 
     def setup_directories(
         self,
     ) -> None:
         # Make sure the save path exists
-        pathlib.Path(self.local_estimates_dir_absolute_path).mkdir(
-            parents=True,
-            exist_ok=True,
-        )
-        pathlib.Path(self.global_estimates_save_path).parent.mkdir(
-            parents=True,
-            exist_ok=True,
-        )
-        pathlib.Path(self.local_estimates_pointwise_array_save_path).parent.mkdir(
-            parents=True,
-            exist_ok=True,
-        )
-        pathlib.Path(self.local_estimates_pointwise_meta_save_path).parent.mkdir(
-            parents=True,
-            exist_ok=True,
-        )
-        pathlib.Path(self.additional_distance_computations_results_save_path).parent.mkdir(
-            parents=True,
-            exist_ok=True,
-        )
+        for path in [
+            self.local_estimates_dir_absolute_path,
+            self.global_estimates_save_path,
+            self.local_estimates_pointwise_array_save_path,
+            self.local_estimates_pointwise_meta_save_path,
+            self.additional_distance_computations_results_save_path,
+            self.additional_pointwise_results_statistics_save_path,
+        ]:
+            if not path.parent.exists():
+                path.parent.mkdir(
+                    parents=True,
+                    exist_ok=True,
+                )
 
 
 @dataclass
@@ -108,6 +103,9 @@ class LocalEstimatesSavingManager:
         additional_distance_computations_results_save_path: pathlib.Path = (
             embeddings_path_manager.get_additional_distance_computations_results_save_path()
         )
+        additional_pointwise_results_statistics_save_path: pathlib.Path = (
+            embeddings_path_manager.get_additional_pointwise_results_statistics_save_path()
+        )
 
         self.save_path_collection = LocalEstimatesSavePathCollection(
             local_estimates_dir_absolute_path=local_estimates_dir_absolute_path,
@@ -115,6 +113,7 @@ class LocalEstimatesSavingManager:
             local_estimates_pointwise_array_save_path=local_estimates_pointwise_array_save_path,
             local_estimates_pointwise_meta_save_path=local_estimates_pointwise_meta_save_path,
             additional_distance_computations_results_save_path=additional_distance_computations_results_save_path,
+            additional_pointwise_results_statistics_save_path=additional_pointwise_results_statistics_save_path,
         )
 
         if self.verbosity >= Verbosity.NORMAL:
@@ -137,88 +136,248 @@ class LocalEstimatesSavingManager:
 
         # # # #
         # Save the local estimates
-
-        if self.verbosity >= Verbosity.NORMAL:
-            self.logger.info(
-                msg=f"Saving pointwise_results_array_np array to "  # noqa: G004 - low overhead
-                f"{self.save_path_collection.local_estimates_pointwise_array_save_path = } ...",
-            )
-
-        np.save(
-            file=self.save_path_collection.local_estimates_pointwise_array_save_path,
-            arr=local_estimates_container.pointwise_results_array_np,
+        self.save_numpy_array_as_npy(
+            array_np=local_estimates_container.pointwise_results_array_np,
+            save_path=self.save_path_collection.local_estimates_pointwise_array_save_path,
+            array_name_for_logging="pointwise_results_array_np",
         )
-
-        if self.verbosity >= Verbosity.NORMAL:
-            self.logger.info(
-                msg=f"Saving pointwise_results_array_np array to "  # noqa: G004 - low overhead
-                f"{self.save_path_collection.local_estimates_pointwise_array_save_path = } DONE",
-            )
 
         # # # #
         # Save the meta data
-
-        if local_estimates_container.pointwise_results_meta_frame is not None:
-            if self.verbosity >= Verbosity.NORMAL:
-                self.logger.info(
-                    msg=f"Saving local estimates meta to "  # noqa: G004 - low overhead
-                    f"{self.save_path_collection.local_estimates_pointwise_meta_save_path = } ...",
-                )
-
-            local_estimates_container.pointwise_results_meta_frame.to_pickle(
-                path=self.save_path_collection.local_estimates_pointwise_meta_save_path,
-            )
-
-            if self.verbosity >= Verbosity.NORMAL:
-                self.logger.info(
-                    msg=f"Saving local estimates meta to "  # noqa: G004 - low overhead
-                    f"{self.save_path_collection.local_estimates_pointwise_meta_save_path = } DONE",
-                )
-        else:
-            self.logger.info(
-                msg="No meta data to save.",
-            )
+        self.save_python_object_as_pickle(
+            python_object=local_estimates_container.pointwise_results_meta_frame,
+            save_path=self.save_path_collection.local_estimates_pointwise_meta_save_path,
+            python_object_name_for_logging="pointwise_results_meta_frame",
+        )
 
         # # # #
         # Save the global estimate
-
-        if local_estimates_container.global_estimate_array_np is not None:
-            if self.verbosity >= Verbosity.NORMAL:
-                self.logger.info(
-                    msg=f"Saving global estimate array to "  # noqa: G004 - low overhead
-                    f"{self.save_path_collection.global_estimates_save_path = } ...",
-                )
-
-            np.save(
-                file=self.save_path_collection.global_estimates_save_path,
-                arr=local_estimates_container.global_estimate_array_np,
-            )
-
-            if self.verbosity >= Verbosity.NORMAL:
-                self.logger.info(
-                    msg=f"Saving global estimate array to "  # noqa: G004 - low overhead
-                    f"{self.save_path_collection.global_estimates_save_path = } DONE",
-                )
-        else:
-            self.logger.info(
-                msg="No global estimate to save.",
-            )
+        self.save_numpy_array_as_npy(
+            array_np=local_estimates_container.global_estimate_array_np,
+            save_path=self.save_path_collection.global_estimates_save_path,
+            array_name_for_logging="global_estimate_array_np",
+        )
 
         # # # #
         # Save the additional additional_distance_computations_results dictionary as json file
-        if local_estimates_container.additional_distance_computations_results is not None:
+        self.save_python_dict_as_json(
+            python_dict=local_estimates_container.additional_distance_computations_results,
+            save_path=self.save_path_collection.additional_distance_computations_results_save_path,
+            python_dict_name_for_logging="additional_distance_computations_results",
+        )
+
+        # # # #
+        # Save the additional statistics dictionary as json file
+        self.save_python_dict_as_json(
+            python_dict=local_estimates_container.additional_pointwise_results_statistics,
+            save_path=self.save_path_collection.additional_pointwise_results_statistics_save_path,
+            python_dict_name_for_logging="additional_pointwise_results_statistics",
+        )
+
+        # TODO Implement saving of the vector array which the local estimates are based on
+
+        if self.verbosity >= Verbosity.NORMAL:
+            self.logger.info(
+                msg="Calling save_local_estimates DONE",
+            )
+
+    def save_numpy_array_as_npy(
+        self,
+        array_np: np.ndarray | None,
+        save_path: pathlib.Path,
+        array_name_for_logging: str = "array_np",
+    ) -> None:
+        if array_np is not None:
             if self.verbosity >= Verbosity.NORMAL:
                 self.logger.info(
-                    msg=f"Saving additional_distance_computations_results to "  # noqa: G004 - low overhead
-                    f"{self.save_path_collection.additional_distance_computations_results_save_path = } ...",
+                    msg=f"Saving {array_name_for_logging} array to "  # noqa: G004 - low overhead
+                    f"{save_path = } ...",
+                )
+
+            if not isinstance(
+                array_np,
+                np.ndarray,
+            ):
+                msg = f"Expected {array_name_for_logging} to be of type np.ndarray, but got {type(array_np)}."
+                raise ValueError(
+                    msg,
+                )
+
+            np.save(
+                file=save_path,
+                arr=array_np,
+            )
+
+            if self.verbosity >= Verbosity.NORMAL:
+                self.logger.info(
+                    msg=f"Saving {array_name_for_logging} array to "  # noqa: G004 - low overhead
+                    f"{save_path = } DONE",
+                )
+        else:
+            self.logger.info(
+                msg=f"No {array_name_for_logging} to save.",  # noqa: G004 - low overhead
+            )
+
+    def load_numpy_array_from_npy(
+        self,
+        save_path: pathlib.Path,
+        array_name_for_logging: str = "array_np",
+        *,
+        required: bool = True,
+    ) -> np.ndarray | None:
+        if save_path.exists():
+            if self.verbosity >= Verbosity.NORMAL:
+                self.logger.info(
+                    msg=f"Loading array {array_name_for_logging} from "  # noqa: G004 - low overhead
+                    f"{save_path = } ...",
+                )
+
+            try:
+                array_np = np.load(
+                    file=save_path,
+                )
+            except FileNotFoundError as e:
+                msg: str = f"FileNotFoundError: {e}"
+                self.logger.exception(
+                    msg=msg,
+                )
+                raise
+
+            if not isinstance(
+                array_np,
+                np.ndarray,
+            ):
+                msg = f"Expected array {array_name_for_logging} to be of type np.ndarray, but got {type(array_np) = }."
+                raise ValueError(
+                    msg,
+                )
+
+            if self.verbosity >= Verbosity.NORMAL:
+                self.logger.info(
+                    msg=f"Loading array {array_name_for_logging} from "  # noqa: G004 - low overhead
+                    f"{save_path = } DONE",
+                )
+        elif required:
+            msg: str = f"Required file for {array_name_for_logging} not found: {save_path = }."
+            raise FileNotFoundError(
+                msg,
+            )
+        else:
+            array_np = None
+
+        return array_np
+
+    def save_python_object_as_pickle(
+        self,
+        python_object: object | None,
+        save_path: pathlib.Path,
+        python_object_name_for_logging: str = "python_object",
+    ) -> None:
+        """Save a python object as pickle file.
+
+        Note:
+        This function only supports pandas DataFrames.
+
+        """
+        if python_object is not None:
+            if self.verbosity >= Verbosity.NORMAL:
+                self.logger.info(
+                    msg=f"Saving {python_object_name_for_logging} to "  # noqa: G004 - low overhead
+                    f"{save_path = } ...",
+                )
+
+            # Save object as pickle file
+            if isinstance(
+                python_object,
+                pd.DataFrame,
+            ):
+                python_object.to_pickle(
+                    path=save_path,
+                )
+            else:
+                msg: str = f"Unsupported type for {python_object_name_for_logging}: {type(python_object) = }."
+                raise ValueError(
+                    msg,
+                )
+
+            if self.verbosity >= Verbosity.NORMAL:
+                self.logger.info(
+                    msg=f"Saving {python_object_name_for_logging} to "  # noqa: G004 - low overhead
+                    f"{save_path = } DONE",
+                )
+        else:
+            self.logger.info(
+                msg=f"No {python_object_name_for_logging} to save.",  # noqa: G004 - low overhead
+            )
+
+    def load_dataframe_from_pickle(
+        self,
+        save_path: pathlib.Path,
+        dataframe_name_for_logging: str = "dataframe",
+        *,
+        required: bool = True,
+    ) -> pd.DataFrame | None:
+        if save_path.exists():
+            if self.verbosity >= Verbosity.NORMAL:
+                self.logger.info(
+                    msg=f"Loading {dataframe_name_for_logging} from "  # noqa: G004 - low overhead
+                    f"{save_path = } ...",
+                )
+
+            try:
+                dataframe = pd.read_pickle(  # noqa: S301 - we trust our own data
+                    filepath_or_buffer=save_path,
+                )
+            except FileNotFoundError as e:
+                msg: str = f"FileNotFoundError: {e}"
+                self.logger.exception(
+                    msg=msg,
+                )
+                raise
+
+            if not isinstance(
+                dataframe,
+                pd.DataFrame,
+            ):
+                msg = f"Expected {dataframe_name_for_logging} to be of type pd.DataFrame, but got {type(dataframe) = }."
+                raise ValueError(
+                    msg,
+                )
+
+            if self.verbosity >= Verbosity.NORMAL:
+                self.logger.info(
+                    msg=f"Loading {dataframe_name_for_logging} from "  # noqa: G004 - low overhead
+                    f"{save_path = } DONE",
+                )
+        elif required:
+            msg: str = f"Required file for {dataframe_name_for_logging} not found: {save_path = }."
+            raise FileNotFoundError(
+                msg,
+            )
+        else:
+            dataframe = None
+
+        return dataframe
+
+    def save_python_dict_as_json(
+        self,
+        python_dict: dict | None,
+        save_path: pathlib.Path,
+        python_dict_name_for_logging: str = "python_dict",
+    ) -> None:
+        if python_dict is not None:
+            if self.verbosity >= Verbosity.NORMAL:
+                self.logger.info(
+                    msg=f"Saving {python_dict_name_for_logging} to "  # noqa: G004 - low overhead
+                    f"{save_path = } ...",
                 )
 
             # Save dictionary as json file
-            with self.save_path_collection.additional_distance_computations_results_save_path.open(
+            with save_path.open(
                 mode="w",
             ) as fp:
                 json.dump(
-                    obj=local_estimates_container.additional_distance_computations_results,
+                    obj=python_dict,
                     fp=fp,
                     sort_keys=True,
                     indent=4,
@@ -226,136 +385,111 @@ class LocalEstimatesSavingManager:
 
             if self.verbosity >= Verbosity.NORMAL:
                 self.logger.info(
-                    msg=f"Saving additional_distance_computations_results to "  # noqa: G004 - low overhead
-                    f"{self.save_path_collection.additional_distance_computations_results_save_path = } DONE",
+                    msg=f"Saving {python_dict_name_for_logging} to "  # noqa: G004 - low overhead
+                    f"{save_path = } DONE",
                 )
         else:
             self.logger.info(
-                msg="No additional_distance_computations_results to save.",
+                msg=f"No {python_dict} to save.",  # noqa: G004 - low overhead
             )
 
-        # TODO Implement saving of the additional local estimates statistics
+    def load_python_dict_from_json(
+        self,
+        save_path: pathlib.Path,
+        python_dict_name_for_logging: str = "python_dict",
+        *,
+        required: bool = True,
+    ) -> dict | None:
+        if save_path.exists():
+            if self.verbosity >= Verbosity.NORMAL:
+                self.logger.info(
+                    msg=f"Loading {python_dict_name_for_logging} from "  # noqa: G004 - low overhead
+                    f"{save_path = } ...",
+                )
 
-        if self.verbosity >= Verbosity.NORMAL:
-            self.logger.info(
-                msg="Calling save_local_estimates DONE",
+            with save_path.open(
+                mode="r",
+            ) as fp:
+                python_dict = json.load(
+                    fp=fp,
+                )
+
+            if not isinstance(
+                python_dict,
+                dict,
+            ):
+                msg = f"Expected {python_dict_name_for_logging} to be of type dict, but got {type(python_dict) = }."
+                raise ValueError(
+                    msg,
+                )
+
+            if self.verbosity >= Verbosity.NORMAL:
+                self.logger.info(
+                    msg=f"Loading {python_dict_name_for_logging} from "  # noqa: G004 - low overhead
+                    f"{save_path = } DONE",
+                )
+        elif required:
+            msg: str = f"Required file for {python_dict_name_for_logging} not found: {save_path = }."
+            raise FileNotFoundError(
+                msg,
             )
+        else:
+            python_dict = None
+
+        return python_dict
 
     def load_local_estimates(
         self,
     ) -> LocalEstimatesContainer:
         """Load the local estimates from disk."""
         # # # #
-        # Local estimates array
-        if self.verbosity >= Verbosity.NORMAL:
-            self.logger.info(
-                msg=f"Loading local estimates array from "  # noqa: G004 - low overhead
-                f"{self.save_path_collection.local_estimates_pointwise_array_save_path = } ...",
+        # Local estimates array, which is required
+        pointwise_results_array_np = self.load_numpy_array_from_npy(
+            save_path=self.save_path_collection.local_estimates_pointwise_array_save_path,
+            array_name_for_logging="pointwise_results_array_np",
+            required=True,
+        )
+        if not isinstance(
+            pointwise_results_array_np,
+            np.ndarray,
+        ):
+            msg = (
+                f"Expected pointwise_results_array_np to be of type np.ndarray, "
+                f"but got {type(pointwise_results_array_np) = }."
             )
-
-        try:
-            pointwise_results_array_np = np.load(
-                file=self.save_path_collection.local_estimates_pointwise_array_save_path,
-            )
-        except FileNotFoundError as e:
-            msg: str = f"FileNotFoundError: {e}"
-            self.logger.exception(
-                msg=msg,
-            )
-            raise
-
-        if self.verbosity >= Verbosity.NORMAL:
-            self.logger.info(
-                msg=f"Loading local estimates array from "  # noqa: G004 - low overhead
-                f"{self.save_path_collection.local_estimates_pointwise_array_save_path = } DONE",
+            raise TypeError(
+                msg,
             )
 
         # # # #
         # Check if the meta data exists
-        if not pathlib.Path(
-            self.save_path_collection.local_estimates_pointwise_meta_save_path,
-        ).exists():
-            self.logger.warning(
-                msg="No meta data found.",
-            )
-            pointwise_results_meta_frame = None
-        else:
-            if self.verbosity >= Verbosity.NORMAL:
-                self.logger.info(
-                    msg=f"Loading local estimates meta from "  # noqa: G004 - low overhead
-                    f"{self.save_path_collection.local_estimates_pointwise_meta_save_path = } ...",
-                )
-
-            # Load the meta data
-            pointwise_results_meta_frame = pd.read_pickle(  # noqa: S301 - we trust our own data
-                filepath_or_buffer=self.save_path_collection.local_estimates_pointwise_meta_save_path,
-            )
-
-            if self.verbosity >= Verbosity.NORMAL:
-                self.logger.info(
-                    msg=f"Loading local estimates meta from "  # noqa: G004 - low overhead
-                    f"{self.save_path_collection.local_estimates_pointwise_meta_save_path = } DONE",
-                )
+        pointwise_results_meta_frame: pd.DataFrame | None = self.load_dataframe_from_pickle(
+            save_path=self.save_path_collection.local_estimates_pointwise_meta_save_path,
+            dataframe_name_for_logging="pointwise_results_meta_frame",
+            required=True,
+        )
 
         # # # #
         # Check if the global estimate exists
-        if not pathlib.Path(
-            self.save_path_collection.global_estimates_save_path,
-        ).exists():
-            self.logger.warning(
-                msg="No global estimate found.",
-            )
-            global_estimate_array_np = None
-        else:
-            if self.verbosity >= Verbosity.NORMAL:
-                self.logger.info(
-                    msg=f"Loading global estimate array from "  # noqa: G004 - low overhead
-                    f"{self.save_path_collection.global_estimates_save_path = } ...",
-                )
-
-            # Load the global estimate
-            global_estimate_array_np = np.load(
-                file=self.save_path_collection.global_estimates_save_path,
-            )
-
-            if self.verbosity >= Verbosity.NORMAL:
-                self.logger.info(
-                    msg=f"Loading global estimate array from "  # noqa: G004 - low overhead
-                    f"{self.save_path_collection.global_estimates_save_path = } DONE",
-                )
+        global_estimate_array_np: np.ndarray | None = self.load_numpy_array_from_npy(
+            save_path=self.save_path_collection.global_estimates_save_path,
+            array_name_for_logging="global_estimate_array_np",
+            required=False,
+        )
 
         # # # #
-        # Load the additional additional_distance_computations_results
+        # Load the additional dictionaries
+        additional_distance_computations_results: dict | None = self.load_python_dict_from_json(
+            save_path=self.save_path_collection.additional_distance_computations_results_save_path,
+            python_dict_name_for_logging="additional_distance_computations_results",
+            required=False,
+        )
 
-        if not pathlib.Path(
-            self.save_path_collection.additional_distance_computations_results_save_path,
-        ).exists():
-            self.logger.warning(
-                msg="No additional_distance_computations_results found.",
-            )
-            additional_distance_computations_results = None
-        else:
-            if self.verbosity >= Verbosity.NORMAL:
-                self.logger.info(
-                    msg=f"Loading additional_distance_computations_results from "  # noqa: G004 - low overhead
-                    f"{self.save_path_collection.additional_distance_computations_results_save_path = } ...",
-                )
-
-            # Load the additional_distance_computations_results
-            with self.save_path_collection.additional_distance_computations_results_save_path.open(
-                mode="r",
-            ) as fp:
-                additional_distance_computations_results = json.load(
-                    fp=fp,
-                )
-
-            if self.verbosity >= Verbosity.NORMAL:
-                self.logger.info(
-                    msg=f"Loading additional_distance_computations_results from "  # noqa: G004 - low overhead
-                    f"{self.save_path_collection.additional_distance_computations_results_save_path = } DONE",
-                )
-
-        # TODO Implement loading of the additional statistics
+        additional_pointwise_results_statistics: dict | None = self.load_python_dict_from_json(
+            save_path=self.save_path_collection.additional_pointwise_results_statistics_save_path,
+            python_dict_name_for_logging="additional_pointwise_results_statistics",
+            required=False,
+        )
 
         # # # #
         # Create the local estimates container
@@ -364,6 +498,7 @@ class LocalEstimatesSavingManager:
             pointwise_results_meta_frame=pointwise_results_meta_frame,
             global_estimate_array_np=global_estimate_array_np,
             additional_distance_computations_results=additional_distance_computations_results,
+            additional_pointwise_results_statistics=additional_pointwise_results_statistics,
         )
 
         return local_estimates_container

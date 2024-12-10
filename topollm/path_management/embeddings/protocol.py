@@ -108,6 +108,10 @@ class EmbeddingsPathManager(Protocol):
         self,
     ) -> pathlib.Path: ...  # pragma: no cover
 
+    def get_additional_pointwise_results_statistics_save_path(
+        self,
+    ) -> pathlib.Path: ...  # pragma: no cover
+
     # # # #
     # saved plots directories
 

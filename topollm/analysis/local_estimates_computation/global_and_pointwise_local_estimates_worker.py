@@ -33,6 +33,7 @@ import pprint
 from typing import TYPE_CHECKING
 
 import numpy as np
+import pandas as pd
 import torch
 from tqdm import tqdm
 
@@ -151,6 +152,11 @@ def global_and_pointwise_local_estimates_worker(
         logger=logger,
     )
 
+    # Create additional statistics for easier storage and analysis
+    additional_pointwise_results_statistics: dict = create_additional_pointwise_results_statistics(
+        pointwise_results_array_np=pointwise_results_array_np,
+    )
+
     # # # #
     # Save the results
     local_estimates_container = LocalEstimatesContainer(
@@ -158,10 +164,9 @@ def global_and_pointwise_local_estimates_worker(
         pointwise_results_meta_frame=prepared_data_filtered_deduplicated_truncated_noised.meta_df,
         global_estimate_array_np=global_estimate_array_np,
         additional_distance_computations_results=additional_distance_computations_results,
+        additional_pointwise_results_statistics=additional_pointwise_results_statistics,
     )
 
-    # TODO: Implement saving of the additional distance computations results
-    # TODO: Implement saving of the local estimates statistics in an additional container
     # TODO: Implement saving of the subsample array which was the basis of the local estimates computation
 
     local_estimates_save_manager = LocalEstimatesSavingManager(
@@ -187,6 +192,39 @@ def global_and_pointwise_local_estimates_worker(
             verbosity=verbosity,
             logger=logger,
         )
+
+
+def create_additional_pointwise_results_statistics(
+    pointwise_results_array_np: np.ndarray,
+) -> dict:
+    """Create additional statistics from the pointwise results array and other computation results."""
+    additional_pointwise_results_statistics: dict = {}
+
+    # We collect the statistics of the pointwise results array under a separate key.
+    # This allows for a more structured storage of the results and easier extension in the future.
+    subkey = "pointwise_results_array_np"
+    additional_pointwise_results_statistics[subkey] = {}
+
+    # Add the mean and standard deviation of the pointwise results array.
+    additional_pointwise_results_statistics[subkey]["mean"] = np.mean(
+        a=pointwise_results_array_np,
+    )
+    additional_pointwise_results_statistics[subkey]["std"] = np.std(
+        a=pointwise_results_array_np,
+    )
+
+    # Convert into a pandas DataFrame and save the describe() output.
+    # Note that numpy and pandas use different versions of the standard deviation,
+    # where pandas is the unbiased estimator with N-1 in the denominator,
+    # while numpy uses N.
+    pd_describe_df = pd.DataFrame(
+        data=pointwise_results_array_np,
+    ).describe()
+    additional_pointwise_results_statistics[subkey]["describe"] = pd_describe_df.to_dict()
+
+    # TODO: Implement creation of the additional statistics
+
+    return additional_pointwise_results_statistics
 
 
 def compute_distance_metrics(
