@@ -78,6 +78,7 @@ hydra-zen = "*"
 hydra-joblib-launcher = "*"
 pypdf = "*"
 reportlab = "*"
+geomloss = "^0.2.6"
 
 [tool.poetry.group.dev.dependencies]
 hypothesis = "*"

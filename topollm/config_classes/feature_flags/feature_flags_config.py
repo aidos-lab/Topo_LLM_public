@@ -1,10 +1,10 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -54,6 +54,28 @@ class CompareSamplingMethodsFeatureFlagsConfig(ConfigBaseModel):
     )
 
 
+class DistanceFunctionsFeatureFlagsConfig(ConfigBaseModel):
+    """Feature flags for the distance functions."""
+
+    use_exact_hausdorff: bool = Field(
+        default=True,
+        title="Use exact Hausdorff distance.",
+        description="Whether to use the exact Hausdorff distance.",
+    )
+
+    use_approximate_hausdorff_via_kdtree: bool = Field(
+        default=True,
+        title="Use approximate Hausdorff distance via KDTree.",
+        description="Whether to use the approximate Hausdorff distance via KDTree.",
+    )
+
+    use_sinkhorn_wasserstein: bool = Field(
+        default=True,
+        title="Use Sinkhorn Wasserstein distance.",
+        description="Whether to use the Sinkhorn Wasserstein distance.",
+    )
+
+
 class AnalysisFeatureFlagsConfig(ConfigBaseModel):
     """Feature flags for the analysis process."""
 
@@ -69,10 +91,10 @@ class AnalysisFeatureFlagsConfig(ConfigBaseModel):
         description="Feature flags for the comparison of sampling methods.",
     )
 
-    compute_distance_between_clean_and_noisy_arrays: bool = Field(
-        default=True,
-        title="Compute distance between clean and noisy arrays.",
-        description="Whether to compute the distance between clean and noisy arrays.",
+    distance_functions: DistanceFunctionsFeatureFlagsConfig = Field(
+        default_factory=DistanceFunctionsFeatureFlagsConfig,
+        title="Distance functions.",
+        description="Feature flags for the distance functions.",
     )
 
 

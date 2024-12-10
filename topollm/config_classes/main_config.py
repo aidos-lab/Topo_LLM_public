@@ -1,10 +1,10 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -53,7 +53,7 @@ class MainConfig(ConfigBaseModel):
     """Main configuration for all scripts."""
 
     data: DataConfig = Field(
-        ...,
+        default=...,
         title="Data configuration.",
         description="The configuration for specifying data.",
     )
@@ -65,13 +65,13 @@ class MainConfig(ConfigBaseModel):
     )
 
     embeddings_data_prep: EmbeddingsDataPrepConfig = Field(
-        ...,
+        default=...,
         title="Embeddings data preparation configuration.",
         description="The configuration for specifying embeddings data preparation.",
     )
 
     embeddings: EmbeddingsConfig = Field(
-        ...,
+        default=...,
         title="Embeddings configuration.",
         description="The configuration for specifying embeddings.",
     )
@@ -83,19 +83,19 @@ class MainConfig(ConfigBaseModel):
     )
 
     finetuning: FinetuningConfig = Field(
-        ...,
+        default=...,
         title="Finetuning configuration.",
         description="The configuration for specifying finetuning.",
     )
 
     inference: InferenceConfig = Field(
-        ...,
+        default=...,
         title="Inference configuration.",
         description="The configuration for specifying inference.",
     )
 
     language_model: LanguageModelConfig = Field(
-        ...,
+        default=...,
         title="Model configuration.",
         description="The configuration for specifying model.",
     )
@@ -131,7 +131,7 @@ class MainConfig(ConfigBaseModel):
     )
 
     tokenizer: TokenizerConfig = Field(
-        ...,
+        default=...,
         title="Tokenizer configuration.",
         description="The configuration for specifying tokenizer.",
     )

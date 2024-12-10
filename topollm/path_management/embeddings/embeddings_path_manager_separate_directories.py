@@ -313,7 +313,7 @@ class EmbeddingsPathManagerSeparateDirectories:
 
     def get_local_estimates_pointwise_array_save_path(
         self,
-        local_estimates_file_name: str = "local_estimates_pointwise.npy",
+        local_estimates_file_name: str = "local_estimates_pointwise_array.npy",
     ) -> pathlib.Path:
         path = pathlib.Path(
             self.get_local_estimates_pointwise_dir_absolute_path(),
@@ -324,11 +324,37 @@ class EmbeddingsPathManagerSeparateDirectories:
 
     def get_local_estimates_pointwise_meta_save_path(
         self,
-        local_estimates_meta_file_name: str = "local_estimates_pointwise.pkl",
+        local_estimates_meta_file_name: str = "local_estimates_pointwise_meta.pkl",
     ) -> pathlib.Path:
         path = pathlib.Path(
             self.get_local_estimates_pointwise_dir_absolute_path(),
             local_estimates_meta_file_name,
+        )
+
+        return path
+
+    def get_additional_distance_computations_results_save_path(
+        self,
+        additional_distance_computations_results_file_name: str = "additional_distance_computations_results.json",
+    ) -> pathlib.Path:
+        # These results are placed in the global estimates directory,
+        # since they depend on the global pointcloud.
+        path = pathlib.Path(
+            self.get_local_estimates_dir_absolute_path(),
+            additional_distance_computations_results_file_name,
+        )
+
+        return path
+
+    def get_additional_pointwise_results_statistics_save_path(
+        self,
+        additional_pointwise_results_statistics_file_name: str = "additional_pointwise_results_statistics.json",
+    ) -> pathlib.Path:
+        # These additional results should be saved in the local estimates pointwise directory,
+        # since they are computed on the pointwise local estimates.
+        path = pathlib.Path(
+            self.get_local_estimates_pointwise_dir_absolute_path(),
+            additional_pointwise_results_statistics_file_name,
         )
 
         return path

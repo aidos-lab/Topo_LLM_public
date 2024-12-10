@@ -28,6 +28,7 @@
 """Factory function to get the noise adding module."""
 
 import logging
+import pprint
 
 from topollm.analysis.local_estimates_handling.noise.gaussian_noiser import GaussianNoiser
 from topollm.analysis.local_estimates_handling.noise.identity_noiser import IdentityNoiser
@@ -49,6 +50,9 @@ def get_prepared_data_noiser(
     if verbosity >= Verbosity.NORMAL:
         logger.info(
             msg="Getting prepared data noiser ...",
+        )
+        logger.info(
+            msg=f"local_estimates_noise_config:\n{pprint.pformat(object=local_estimates_noise_config)}",  # noqa: G004 - low overhead
         )
 
     match local_estimates_noise_config.artificial_noise_mode:

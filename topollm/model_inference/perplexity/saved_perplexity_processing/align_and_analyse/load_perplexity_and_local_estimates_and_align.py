@@ -28,13 +28,14 @@
 """Loading perplexity and local estimates."""
 
 import logging
+from typing import TYPE_CHECKING
 
 import pandas as pd
 import transformers
 from huggingface_hub.errors import HFValidationError
 
 from topollm.analysis.local_estimates_handling.saving.local_estimates_containers import LocalEstimatesContainer
-from topollm.analysis.local_estimates_handling.saving.save_local_estimates import load_local_estimates
+from topollm.analysis.local_estimates_handling.saving.local_estimates_saving_manager import LocalEstimatesSavingManager
 from topollm.config_classes.main_config import MainConfig
 from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.model_handling.tokenizer.load_modified_tokenizer_from_main_config import (
@@ -65,7 +66,12 @@ from topollm.path_management.embeddings.factory import get_embeddings_path_manag
 from topollm.typing.enums import Verbosity
 from topollm.typing.types import PerplexityResultsList, TransformersTokenizer
 
-default_logger = logging.getLogger(__name__)
+if TYPE_CHECKING:
+    from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
+
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 def load_perplexity_and_local_estimates_and_align(
@@ -84,7 +90,7 @@ def load_perplexity_and_local_estimates_and_align(
     """
     # # # #
     # Get save paths
-    perplexity_embeddings_path_manager = get_embeddings_path_manager(
+    perplexity_embeddings_path_manager: EmbeddingsPathManager = get_embeddings_path_manager(
         main_config=main_config_for_perplexity,
         logger=logger,
     )
@@ -97,13 +103,16 @@ def load_perplexity_and_local_estimates_and_align(
 
     # # # #
     # Convert the token perplexities to a pandas dataframe
-    token_perplexities_df, token_perplexities_array = convert_perplexity_results_list_to_dataframe(
+    (
+        token_perplexities_df,
+        token_perplexities_array,
+    ) = convert_perplexity_results_list_to_dataframe(
         loaded_data=loaded_data,
         verbosity=verbosity,
         logger=logger,
     )
 
-    token_perplexities_df = add_token_log_perplexity_column(
+    token_perplexities_df: pd.DataFrame = add_token_log_perplexity_column(
         token_perplexities_df=token_perplexities_df,
     )
 
@@ -126,7 +135,7 @@ def load_perplexity_and_local_estimates_and_align(
         logger=logger,
     )
 
-    token_perplexities_without_filtered_tokens_df = save_perplexity_statistics(
+    token_perplexities_without_filtered_tokens_df: pd.DataFrame = save_perplexity_statistics(
         main_config=main_config_for_perplexity,
         embeddings_path_manager=perplexity_embeddings_path_manager,
         token_perplexities_df=token_perplexities_df,
@@ -135,20 +144,24 @@ def load_perplexity_and_local_estimates_and_align(
         logger=logger,
     )
 
-    local_estimates_embeddings_path_manager = get_embeddings_path_manager(
+    local_estimates_embeddings_path_manager: EmbeddingsPathManager = get_embeddings_path_manager(
         main_config=main_config_for_local_estimates,
         logger=logger,
     )
 
     try:
-        local_estimates_container: LocalEstimatesContainer = load_local_estimates(
+        local_estimates_saving_manager = LocalEstimatesSavingManager(
             embeddings_path_manager=local_estimates_embeddings_path_manager,
             verbosity=verbosity,
             logger=logger,
         )
+
+        local_estimates_container: LocalEstimatesContainer = local_estimates_saving_manager.load_local_estimates()
     except FileNotFoundError as e:
-        msg = f"FileNotFoundError: {e}"
-        logger.exception(msg)
+        msg: str = f"FileNotFoundError: {e}"
+        logger.exception(
+            msg=msg,
+        )
         raise
 
     aligned_df: pd.DataFrame | None = create_aligned_df(
@@ -159,10 +172,10 @@ def load_perplexity_and_local_estimates_and_align(
     )
     if aligned_df is None:
         logger.warning(
-            "aligned_df is None. This function will return None.",
+            msg="aligned_df is None. This function will return None.",
         )
         logger.warning(
-            "Correlations between perplexities and local estimates cannot be computed.",
+            msg="Correlations between perplexities and local estimates cannot be computed.",
         )
         return None
 
@@ -197,7 +210,7 @@ def create_aligned_df(
 
     if local_estimates_meta_frame is None:
         logger.error(
-            "local_estimates_meta_frame is None. The function will return None.",
+            msg="local_estimates_meta_frame is None. The function will return None.",
         )
         return None
 

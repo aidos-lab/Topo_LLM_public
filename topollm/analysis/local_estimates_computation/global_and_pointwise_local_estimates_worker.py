@@ -29,9 +29,11 @@
 
 import logging
 import pathlib
+import pprint
 from typing import TYPE_CHECKING
 
 import numpy as np
+import pandas as pd
 import torch
 from tqdm import tqdm
 
@@ -42,12 +44,15 @@ from topollm.analysis.local_estimates_computation.truncate_prepared_data import 
 from topollm.analysis.local_estimates_handling.deduplicator.factory import (
     get_prepared_data_deduplicator,
 )
-from topollm.analysis.local_estimates_handling.deduplicator.protocol import PreparedDataDeduplicator
+from topollm.analysis.local_estimates_handling.distances.distance_functions import (
+    approximate_hausdorff_via_kdtree,
+    compute_exact_hausdorff,
+    geomloss_sinkhorn_wasserstein,
+)
 from topollm.analysis.local_estimates_handling.filter.factory import get_local_estimates_filter
 from topollm.analysis.local_estimates_handling.noise.factory import get_prepared_data_noiser
-from topollm.analysis.local_estimates_handling.noise.protocol import PreparedDataNoiser
 from topollm.analysis.local_estimates_handling.saving.local_estimates_containers import LocalEstimatesContainer
-from topollm.analysis.local_estimates_handling.saving.save_local_estimates import save_local_estimates
+from topollm.analysis.local_estimates_handling.saving.local_estimates_saving_manager import LocalEstimatesSavingManager
 from topollm.analysis.visualization.create_projected_data import create_projected_data
 from topollm.analysis.visualization.create_projection_plot import create_projection_plot, save_projection_plot
 from topollm.config_classes.local_estimates.plot_config import LocalEstminatesPlotConfig
@@ -60,7 +65,9 @@ from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 from topollm.typing.enums import Verbosity
 
 if TYPE_CHECKING:
+    from topollm.analysis.local_estimates_handling.deduplicator.protocol import PreparedDataDeduplicator
     from topollm.analysis.local_estimates_handling.filter.protocol import LocalEstimatesFilter
+    from topollm.analysis.local_estimates_handling.noise.protocol import PreparedDataNoiser
 
 default_device = torch.device(
     device="cpu",
@@ -102,17 +109,6 @@ def global_and_pointwise_local_estimates_worker(
         logger=logger,
     )
 
-    # # # #
-    # Distance computation between the original and the distorted data
-    if main_config.feature_flags.analysis.compute_distance_between_clean_and_noisy_arrays:
-        # TODO(Ben): We will add the distance computation between the original and the distorted data here, so that it can be applied to all noise types.
-
-        logger.warning(
-            msg="Distance computation between the original and the distorted data is not tested fully yet.",
-        )
-
-    # # # #
-    # Local estimates computation
     array_for_estimator: np.ndarray = prepared_data_filtered_deduplicated_truncated_noised.array
 
     if verbosity >= Verbosity.NORMAL:
@@ -124,6 +120,23 @@ def global_and_pointwise_local_estimates_worker(
             logger=logger,
         )
 
+    # # # #
+    # Distance computation between the original and the distorted data
+
+    clean_array: np.ndarray = prepared_data_filtered_deduplicated_truncated.array
+    noisy_array: np.ndarray = array_for_estimator
+
+    additional_distance_computations_results: dict = compute_distance_metrics(
+        main_config=main_config,
+        clean_array=clean_array,
+        noisy_array=noisy_array,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+    # # # #
+    # Local estimates computation
+
     (
         global_estimate_array_np,
         pointwise_results_array_np,
@@ -134,21 +147,33 @@ def global_and_pointwise_local_estimates_worker(
         logger=logger,
     )
 
+    # Create additional statistics for easier storage and analysis
+    additional_pointwise_results_statistics: dict = create_additional_pointwise_results_statistics(
+        pointwise_results_array_np=pointwise_results_array_np,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
     # # # #
     # Save the results
     local_estimates_container = LocalEstimatesContainer(
         pointwise_results_array_np=pointwise_results_array_np,
         pointwise_results_meta_frame=prepared_data_filtered_deduplicated_truncated_noised.meta_df,
         global_estimate_array_np=global_estimate_array_np,
+        additional_distance_computations_results=additional_distance_computations_results,
+        additional_pointwise_results_statistics=additional_pointwise_results_statistics,
     )
 
-    # TODO: Implement saving of the subsample vector, which were the basis of the local estimates computation
+    # TODO: Implement saving of the subsample array which was the basis of the local estimates computation
 
-    save_local_estimates(
+    local_estimates_save_manager = LocalEstimatesSavingManager(
         embeddings_path_manager=embeddings_path_manager,
-        local_estimates_container=local_estimates_container,
         verbosity=verbosity,
         logger=logger,
+    )
+
+    local_estimates_save_manager.save_local_estimates(
+        local_estimates_container=local_estimates_container,
     )
 
     # # # #
@@ -164,6 +189,149 @@ def global_and_pointwise_local_estimates_worker(
             verbosity=verbosity,
             logger=logger,
         )
+
+
+def create_additional_pointwise_results_statistics(
+    pointwise_results_array_np: np.ndarray,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> dict:
+    """Create additional statistics from the pointwise results array and other computation results."""
+    additional_pointwise_results_statistics: dict = {}
+
+    # We collect the statistics of the pointwise results array under a separate key.
+    # This allows for a more structured storage of the results and easier extension in the future.
+    subkey = "pointwise_results_array_np"
+    subdict: dict = make_array_statistics_dict(
+        array=pointwise_results_array_np,
+        array_name=subkey,
+    )
+
+    additional_pointwise_results_statistics[subkey] = subdict
+
+    # Add statistics of truncated pointwise results arrays
+    for truncation_size in range(
+        5_000,
+        60_001,
+        5_000,
+    ):
+        subkey: str = f"pointwise_results_array_np_truncated_first_{truncation_size}"
+        subdict: dict = make_array_statistics_dict(
+            array=pointwise_results_array_np[:truncation_size],
+            array_name=subkey,
+        )
+
+        additional_pointwise_results_statistics[subkey] = subdict
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"additional_pointwise_results_statistics:\n"  # noqa: G004 - low overhead
+            f"{pprint.pformat(object=additional_pointwise_results_statistics)}",
+        )
+
+    return additional_pointwise_results_statistics
+
+
+def make_array_statistics_dict(
+    array: np.ndarray,
+    array_name: str,
+) -> dict:
+    """Create a dictionary with statistics about the array."""
+    array_statistics_dict: dict = {}
+
+    array_statistics_dict["array_name"] = array_name
+    array_statistics_dict["shape"] = array.shape
+    array_statistics_dict["np_mean"] = np.mean(
+        a=array,
+    )
+    array_statistics_dict["np_std"] = np.std(
+        a=array,
+    )
+
+    # Convert into a pandas DataFrame and save the describe() output.
+    # Note that numpy and pandas use different versions of the standard deviation,
+    # where pandas is the unbiased estimator with N-1 in the denominator,
+    # while numpy uses N.
+    pd_describe_df: pd.DataFrame = pd.DataFrame(
+        data=array,
+    ).describe()
+    array_statistics_dict["pd_describe"] = pd_describe_df.to_dict()
+
+    return array_statistics_dict
+
+
+def compute_distance_metrics(
+    main_config: MainConfig,
+    clean_array: np.ndarray,
+    noisy_array: np.ndarray,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> dict:
+    """Compute additional distance metrics between the clean and noisy arrays."""
+    # Container for additional distance computations
+    additional_distance_computations_results: dict = {}
+
+    if main_config.feature_flags.analysis.distance_functions.use_approximate_hausdorff_via_kdtree:
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg="Computing approximate Hausdorff distance via KDTree ...",
+            )
+
+        approximate_hausdorff_distance: float = approximate_hausdorff_via_kdtree(
+            array_1=clean_array,
+            array_2=noisy_array,
+        )
+
+        additional_distance_computations_results["approximate_hausdorff_via_kdtree"] = approximate_hausdorff_distance
+
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"{approximate_hausdorff_distance = }",  # noqa: G004 - low overhead
+            )
+
+    if main_config.feature_flags.analysis.distance_functions.use_exact_hausdorff:
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg="Computing exact Hausdorff distance ...",
+            )
+
+        exact_hausdorff_distance: float = compute_exact_hausdorff(
+            array_1=clean_array,
+            array_2=noisy_array,
+        )
+
+        additional_distance_computations_results["exact_hausdorff"] = exact_hausdorff_distance
+
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"{exact_hausdorff_distance = }",  # noqa: G004 - low overhead
+            )
+
+    if main_config.feature_flags.analysis.distance_functions.use_sinkhorn_wasserstein:
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg="Computing Sinkhorn Wasserstein distance ...",
+            )
+
+        sinkhorn_wasserstein = geomloss_sinkhorn_wasserstein(
+            P_np=clean_array,
+            Q_np=noisy_array,
+        )
+
+        additional_distance_computations_results["sinkhorn_wasserstein"] = sinkhorn_wasserstein
+
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"{sinkhorn_wasserstein = }",  # noqa: G004 - low overhead
+            )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"additional_distance_computations_results:\n"  # noqa: G004 - low overhead
+            f"{pprint.pformat(object=additional_distance_computations_results)}",
+        )
+
+    return additional_distance_computations_results
 
 
 def preprocess_prepared_data(
@@ -257,7 +425,10 @@ def generate_tsne_visualizations(
         ],
         desc="Creating projection plots",
     ):
-        figure, tsne_df = create_projection_plot(
+        (
+            figure,
+            tsne_df,
+        ) = create_projection_plot(
             tsne_result=tsne_array,
             meta_df=prepared_data_filtered.meta_df,
             results_array_np=pointwise_results_array_np,

@@ -27,6 +27,8 @@
 
 
 import numpy as np
+import torch
+from geomloss import SamplesLoss
 from scipy.spatial import KDTree
 from scipy.spatial.distance import directed_hausdorff
 
@@ -90,3 +92,77 @@ def approximate_hausdorff_via_kdtree(
     )
 
     return hausdorff_distance
+
+
+def geomloss_sinkhorn_wasserstein(
+    P_np: np.ndarray,
+    Q_np: np.ndarray,
+    weights_P_np: np.ndarray | None = None,
+    weights_Q_np: np.ndarray | None = None,
+    p: int = 2,
+    blur: float = 0.05,
+    scaling: float = 0.9,
+):
+    """SCompute Wasserstein distance W_p using GeomLoss Sinkhorn divergence.
+
+    Parameters
+    ----------
+    - P (ndarray): Array of shape (n, d), representing n points in d-dimensional space.
+    - Q (ndarray): Array of shape (m, d), representing m points in d-dimensional space.
+    - weights_P (ndarray): Optional array of shape (n,) for weights of P. Defaults to uniform.
+    - weights_Q (ndarray): Optional array of shape (m,) for weights of Q. Defaults to uniform.
+    - p: Order of Wasserstein distance.
+    - blur: Regularization parameter (similar to reg in Sinkhorn).
+    - scaling: Scaling parameter for convergence.
+
+    Returns
+    -------
+    - wp (float): Approximate Wasserstein distance.
+
+    """
+    # Convert to PyTorch tensors
+    P: torch.Tensor = torch.tensor(
+        data=P_np,
+        dtype=torch.float32,
+    )
+    Q: torch.Tensor = torch.tensor(
+        data=Q_np,
+        dtype=torch.float32,
+    )
+
+    n, d = P.shape
+    m, _ = Q.shape
+
+    # Default weights
+    if weights_P_np is None:
+        weights_P: torch.Tensor = torch.ones(n, dtype=torch.float32) / n
+    else:
+        weights_P = torch.tensor(
+            weights_P_np,
+            dtype=torch.float32,
+        )
+    if weights_Q_np is None:
+        weights_Q = torch.ones(m, dtype=torch.float32) / m
+    else:
+        weights_Q = torch.tensor(
+            weights_Q_np,
+            dtype=torch.float32,
+        )
+
+    # Define the Sinkhorn divergence loss
+    loss_fn = SamplesLoss(
+        loss="sinkhorn",
+        p=p,
+        blur=blur,
+        scaling=scaling,
+    )
+
+    # Compute the Wasserstein distance
+    wp = loss_fn(
+        weights_P,
+        P,
+        weights_Q,
+        Q,
+    ).item()
+
+    return wp

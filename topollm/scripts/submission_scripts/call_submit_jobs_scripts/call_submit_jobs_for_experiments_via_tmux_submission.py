@@ -71,6 +71,10 @@ def submit_jobs(
 
     experiment_selector = "masked_token_embeddings"
     # experiment_selector = "tiny_dropout_variations_coarse_checkpoint_resolution"
+
+    # experiment_stage = "compute_embeddings_plus_single_pipeline_run"
+    experiment_stage = "skip_compute_embeddings_and_multiple_pipeline_runs"
+
     log_dir: pathlib.Path = create_log_directory()
 
     # Convert the do_submission flag to a dry_run_option.
@@ -110,6 +114,7 @@ def submit_jobs(
             log_file=str(object=log_file),
             data_option=data_option,
             experiment_selector=experiment_selector,
+            experiment_stage=experiment_stage,
             dry_run_option=dry_run_option,
             run_configs_option=run_configs_option,
         )
@@ -186,7 +191,7 @@ def run_tmux_session(
     experiment_selector: str,
     dry_run_option: str,
     run_configs_option: str,
-    experiment_stage: str = "compute_embeddings_plus_single_pipeline_run",
+    experiment_stage: str,
     session_timeout: int = 6,
 ) -> None:
     """Start a tmux session to run the job and log the output."""

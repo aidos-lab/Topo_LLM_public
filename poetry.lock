@@ -1271,6 +1271,28 @@ url = "http://pypi.repo.test.hhu.de/simple"
 reference = "hhu"
 
 [[package]]
+name = "geomloss"
+version = "0.2.6"
+description = "Geometric loss functions between point clouds, images and volumes."
+optional = false
+python-versions = ">=3"
+files = [
+    {file = "geomloss-0.2.6.tar.gz", hash = "sha256:491c47085c5001b2cb6128ea541fd2d0a8808ae50e88a0798c7853c9d995faeb"},
+]
+
+[package.dependencies]
+numpy = "*"
+torch = "*"
+
+[package.extras]
+full = ["pykeops"]
+
+[package.source]
+type = "legacy"
+url = "http://pypi.repo.test.hhu.de/simple"
+reference = "hhu"
+
+[[package]]
 name = "giotto-ph"
 version = "0.2.4"
 description = "High performance tool for Persistent Homology computations."
@@ -5796,4 +5818,4 @@ reference = "hhu"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "b0011a66a782311254338c6f03ed5aab90e6bc557808baaf0ca092e10ebbabff"
+content-hash = "1393fc8c6d28d66d76c8300a35cf352e7ccc8e0710dae3a7e728e61c0bbfd1e5"
