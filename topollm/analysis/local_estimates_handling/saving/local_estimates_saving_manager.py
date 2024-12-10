@@ -50,9 +50,12 @@ class LocalEstimatesSavePathCollection:
     """Dataclass to hold the paths for saving and loading local estimates."""
 
     local_estimates_dir_absolute_path: pathlib.Path
+
     global_estimates_save_path: pathlib.Path
     local_estimates_pointwise_array_save_path: pathlib.Path
     local_estimates_pointwise_meta_save_path: pathlib.Path
+
+    array_for_estimator_save_path: pathlib.Path
 
     additional_distance_computations_results_save_path: pathlib.Path
     additional_pointwise_results_statistics_save_path: pathlib.Path
@@ -60,15 +63,16 @@ class LocalEstimatesSavePathCollection:
     def setup_directories(
         self,
     ) -> None:
-        # Make sure the save path exists
         for path in [
             self.local_estimates_dir_absolute_path,
             self.global_estimates_save_path,
             self.local_estimates_pointwise_array_save_path,
             self.local_estimates_pointwise_meta_save_path,
+            self.array_for_estimator_save_path,
             self.additional_distance_computations_results_save_path,
             self.additional_pointwise_results_statistics_save_path,
         ]:
+            # Create the directories if they do not exist
             if not path.parent.exists():
                 path.parent.mkdir(
                     parents=True,
@@ -106,6 +110,7 @@ class LocalEstimatesSavingManager:
         additional_pointwise_results_statistics_save_path: pathlib.Path = (
             embeddings_path_manager.get_additional_pointwise_results_statistics_save_path()
         )
+        array_for_estimator_save_path: pathlib.Path = embeddings_path_manager.get_array_for_estimator_save_path()
 
         self.save_path_collection = LocalEstimatesSavePathCollection(
             local_estimates_dir_absolute_path=local_estimates_dir_absolute_path,
@@ -114,6 +119,7 @@ class LocalEstimatesSavingManager:
             local_estimates_pointwise_meta_save_path=local_estimates_pointwise_meta_save_path,
             additional_distance_computations_results_save_path=additional_distance_computations_results_save_path,
             additional_pointwise_results_statistics_save_path=additional_pointwise_results_statistics_save_path,
+            array_for_estimator_save_path=array_for_estimator_save_path,
         )
 
         if self.verbosity >= Verbosity.NORMAL:
@@ -125,7 +131,11 @@ class LocalEstimatesSavingManager:
         self,
         local_estimates_container: LocalEstimatesContainer,
     ) -> None:
-        """Save the local estimates array to disk."""
+        """Save the local estimates array to disk.
+
+        Note that if one of these objects is None in the LocalEstimatesContainer, it will not be saved.
+        This logic is implemented in the individual data type saving functions.
+        """
         if self.verbosity >= Verbosity.NORMAL:
             self.logger.info(
                 msg="Calling save_local_estimates ...",
@@ -174,7 +184,13 @@ class LocalEstimatesSavingManager:
             python_dict_name_for_logging="additional_pointwise_results_statistics",
         )
 
-        # TODO Implement saving of the vector array which the local estimates are based on
+        # # # #
+        # Save the array for the estimator
+        self.save_numpy_array_as_npy(
+            array_np=local_estimates_container.array_for_estimator_np,
+            save_path=self.save_path_collection.array_for_estimator_save_path,
+            array_name_for_logging="array_for_estimator",
+        )
 
         if self.verbosity >= Verbosity.NORMAL:
             self.logger.info(
@@ -492,6 +508,14 @@ class LocalEstimatesSavingManager:
         )
 
         # # # #
+        # Load the array for the estimator
+        array_for_estimator_np: np.ndarray | None = self.load_numpy_array_from_npy(
+            save_path=self.save_path_collection.array_for_estimator_save_path,
+            array_name_for_logging="array_for_estimator_np",
+            required=False,
+        )
+
+        # # # #
         # Create the local estimates container
         local_estimates_container = LocalEstimatesContainer(
             pointwise_results_array_np=pointwise_results_array_np,
@@ -499,6 +523,7 @@ class LocalEstimatesSavingManager:
             global_estimate_array_np=global_estimate_array_np,
             additional_distance_computations_results=additional_distance_computations_results,
             additional_pointwise_results_statistics=additional_pointwise_results_statistics,
+            array_for_estimator_np=array_for_estimator_np,
         )
 
         return local_estimates_container

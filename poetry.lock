@@ -2057,6 +2057,21 @@ url = "http://pypi.repo.test.hhu.de/simple"
 reference = "hhu"
 
 [[package]]
+name = "keopscore"
+version = "2.2.3"
+description = "keopscore is the KeOps meta programming engine. This python module should be used through a binder (e.g. pykeops or rkeops)"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "keopscore-2.2.3.tar.gz", hash = "sha256:64d5dad1e8c806d7070cdc60e48fd5bbf006f2bf1afd39ad3fa5e9fb213517d2"},
+]
+
+[package.source]
+type = "legacy"
+url = "http://pypi.repo.test.hhu.de/simple"
+reference = "hhu"
+
+[[package]]
 name = "kiwisolver"
 version = "1.4.7"
 description = "A fast implementation of the Cassowary constraint solver"
@@ -3769,6 +3784,25 @@ url = "http://pypi.repo.test.hhu.de/simple"
 reference = "hhu"
 
 [[package]]
+name = "pybind11"
+version = "2.13.6"
+description = "Seamless operability between C++11 and Python"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "pybind11-2.13.6-py3-none-any.whl", hash = "sha256:237c41e29157b962835d356b370ededd57594a26d5894a795960f0047cb5caf5"},
+    {file = "pybind11-2.13.6.tar.gz", hash = "sha256:ba6af10348c12b24e92fa086b39cfba0eff619b61ac77c406167d813b096d39a"},
+]
+
+[package.extras]
+global = ["pybind11-global (==2.13.6)"]
+
+[package.source]
+type = "legacy"
+url = "http://pypi.repo.test.hhu.de/simple"
+reference = "hhu"
+
+[[package]]
 name = "pydantic"
 version = "2.10.2"
 description = ""
@@ -3945,6 +3979,30 @@ files = [
     {file = "pygments-2.18.0-py3-none-any.whl", hash = "sha256:b8e6aca0523f3ab76fee51799c488e38782ac06eafcf95e7ba832985c8e7b13a"},
     {file = "pygments-2.18.0.tar.gz", hash = "sha256:786ff802f32e91311bff3889f6e9a86e81505fe99f2735bb6d60ae0c5004f199"},
 ]
+
+[package.source]
+type = "legacy"
+url = "http://pypi.repo.test.hhu.de/simple"
+reference = "hhu"
+
+[[package]]
+name = "pykeops"
+version = "2.2.3"
+description = "Python bindings of KeOps: KErnel OPerationS, on CPUs and GPUs, with autodiff and without memory overflows"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "pykeops-2.2.3.tar.gz", hash = "sha256:2e2cba1de5e05c35559957a14f41cb5165dc667cc51b3b2118d7e0027eb435a1"},
+]
+
+[package.dependencies]
+keopscore = "2.2.3"
+numpy = "*"
+pybind11 = "*"
+
+[package.extras]
+full = ["breathe", "faiss", "gpytorch", "h5py", "imageio", "jax", "jaxlib", "matplotlib", "multiprocess", "recommonmark", "scikit-learn", "sphinx", "sphinx-gallery", "sphinx-prompt", "sphinx_rtd_theme", "sphinxcontrib-httpdomain", "torch"]
+test = ["numpy", "pytest", "torch"]
 
 [package.source]
 type = "legacy"
@@ -5818,4 +5876,4 @@ reference = "hhu"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "1393fc8c6d28d66d76c8300a35cf352e7ccc8e0710dae3a7e728e61c0bbfd1e5"
+content-hash = "fe5c70faf4ce13304618635c166d5666732cc1b7deaebdec38c499711793bd4a"

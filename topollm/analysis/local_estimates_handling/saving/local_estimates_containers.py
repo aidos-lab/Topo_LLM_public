@@ -39,6 +39,9 @@ class LocalEstimatesContainer:
     pointwise_results_meta_frame: pd.DataFrame | None = None
     global_estimate_array_np: np.ndarray | None = None
 
+    # Optional: Array which was used to compute the local estimates
+    array_for_estimator_np: np.ndarray | None = None
+
     # Optional additional results
     additional_distance_computations_results: dict | None = None
     additional_pointwise_results_statistics: dict | None = None

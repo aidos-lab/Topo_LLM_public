@@ -112,6 +112,10 @@ class EmbeddingsPathManager(Protocol):
         self,
     ) -> pathlib.Path: ...  # pragma: no cover
 
+    def get_array_for_estimator_save_path(
+        self,
+    ) -> pathlib.Path: ...  # pragma: no cover
+
     # # # #
     # saved plots directories
 

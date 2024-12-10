@@ -70,9 +70,19 @@ class DistanceFunctionsFeatureFlagsConfig(ConfigBaseModel):
     )
 
     use_sinkhorn_wasserstein: bool = Field(
-        default=True,
+        default=False,  # We set this to false by default, since the computation with the `geomloss` has some issues on the cluster.
         title="Use Sinkhorn Wasserstein distance.",
         description="Whether to use the Sinkhorn Wasserstein distance.",
+    )
+
+
+class LocalEstimatesSavingFeatureFlagsConfig(ConfigBaseModel):
+    """Feature flags for saving of the local estimates."""
+
+    save_array_for_estimator: bool = Field(
+        default=True,
+        title="Save array for estimator.",
+        description=("Whether to save the array for the estimator. Note that this might require a lot of disk space."),
     )
 
 
@@ -95,6 +105,12 @@ class AnalysisFeatureFlagsConfig(ConfigBaseModel):
         default_factory=DistanceFunctionsFeatureFlagsConfig,
         title="Distance functions.",
         description="Feature flags for the distance functions.",
+    )
+
+    saving: LocalEstimatesSavingFeatureFlagsConfig = Field(
+        default_factory=LocalEstimatesSavingFeatureFlagsConfig,
+        title="Local estimates saving.",
+        description="Feature flags for saving of the local estimates.",
     )
 
 
