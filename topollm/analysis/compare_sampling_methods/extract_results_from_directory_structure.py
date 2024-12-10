@@ -255,7 +255,10 @@ def run_search_on_single_base_directory_and_process_and_save(
     logger: logging.Logger = default_logger,
 ) -> None:
     """Run the search and analysis on a single base directory."""
-    _, full_local_estimates_df = extract_and_preprocess_and_save_full_local_estimates_df_dataframes(
+    (
+        _,
+        full_local_estimates_df,
+    ) = extract_and_preprocess_and_save_full_local_estimates_df_dataframes(
         search_base_directory=search_base_directory,
         results_directory=results_directory,
         filenames_to_match=None,

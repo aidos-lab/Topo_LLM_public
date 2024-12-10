@@ -43,7 +43,6 @@ from topollm.analysis.local_estimates_computation.truncate_prepared_data import 
 from topollm.analysis.local_estimates_handling.deduplicator.factory import (
     get_prepared_data_deduplicator,
 )
-from topollm.analysis.local_estimates_handling.deduplicator.protocol import PreparedDataDeduplicator
 from topollm.analysis.local_estimates_handling.distances.distance_functions import (
     approximate_hausdorff_via_kdtree,
     compute_exact_hausdorff,
@@ -51,9 +50,8 @@ from topollm.analysis.local_estimates_handling.distances.distance_functions impo
 )
 from topollm.analysis.local_estimates_handling.filter.factory import get_local_estimates_filter
 from topollm.analysis.local_estimates_handling.noise.factory import get_prepared_data_noiser
-from topollm.analysis.local_estimates_handling.noise.protocol import PreparedDataNoiser
 from topollm.analysis.local_estimates_handling.saving.local_estimates_containers import LocalEstimatesContainer
-from topollm.analysis.local_estimates_handling.saving.save_local_estimates import save_local_estimates
+from topollm.analysis.local_estimates_handling.saving.local_estimates_saving_manager import LocalEstimatesSavingManager
 from topollm.analysis.visualization.create_projected_data import create_projected_data
 from topollm.analysis.visualization.create_projection_plot import create_projection_plot, save_projection_plot
 from topollm.config_classes.local_estimates.plot_config import LocalEstminatesPlotConfig
@@ -66,7 +64,9 @@ from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 from topollm.typing.enums import Verbosity
 
 if TYPE_CHECKING:
+    from topollm.analysis.local_estimates_handling.deduplicator.protocol import PreparedDataDeduplicator
     from topollm.analysis.local_estimates_handling.filter.protocol import LocalEstimatesFilter
+    from topollm.analysis.local_estimates_handling.noise.protocol import PreparedDataNoiser
 
 default_device = torch.device(
     device="cpu",
@@ -160,13 +160,17 @@ def global_and_pointwise_local_estimates_worker(
     )
 
     # TODO: Implement saving of the additional distance computations results
+    # TODO: Implement saving of the local estimates statistics in an additional container
     # TODO: Implement saving of the subsample array which was the basis of the local estimates computation
 
-    save_local_estimates(
+    local_estimates_save_manager = LocalEstimatesSavingManager(
         embeddings_path_manager=embeddings_path_manager,
-        local_estimates_container=local_estimates_container,
         verbosity=verbosity,
         logger=logger,
+    )
+
+    local_estimates_save_manager.save_local_estimates(
+        local_estimates_container=local_estimates_container,
     )
 
     # # # #
