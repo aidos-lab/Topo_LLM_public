@@ -203,28 +203,44 @@ def create_additional_pointwise_results_statistics(
     # We collect the statistics of the pointwise results array under a separate key.
     # This allows for a more structured storage of the results and easier extension in the future.
     subkey = "pointwise_results_array_np"
-    additional_pointwise_results_statistics[subkey] = {}
-
-    # Add the mean and standard deviation of the pointwise results array.
-    additional_pointwise_results_statistics[subkey]["mean"] = np.mean(
-        a=pointwise_results_array_np,
+    subdict: dict = make_array_statistics_dict(
+        array=pointwise_results_array_np,
+        array_name=subkey,
     )
-    additional_pointwise_results_statistics[subkey]["std"] = np.std(
-        a=pointwise_results_array_np,
+
+    additional_pointwise_results_statistics[subkey] = subdict
+
+    # TODO: Implement creation of the additional statistics
+
+    return additional_pointwise_results_statistics
+
+
+def make_array_statistics_dict(
+    array: np.ndarray,
+    array_name: str,
+) -> dict:
+    """Create a dictionary with statistics about the array."""
+    array_statistics_dict: dict = {}
+
+    array_statistics_dict["array_name"] = array_name
+    array_statistics_dict["shape"] = array.shape
+    array_statistics_dict["np_mean"] = np.mean(
+        a=array,
+    )
+    array_statistics_dict["np_std"] = np.std(
+        a=array,
     )
 
     # Convert into a pandas DataFrame and save the describe() output.
     # Note that numpy and pandas use different versions of the standard deviation,
     # where pandas is the unbiased estimator with N-1 in the denominator,
     # while numpy uses N.
-    pd_describe_df = pd.DataFrame(
-        data=pointwise_results_array_np,
+    pd_describe_df: pd.DataFrame = pd.DataFrame(
+        data=array,
     ).describe()
-    additional_pointwise_results_statistics[subkey]["describe"] = pd_describe_df.to_dict()
+    array_statistics_dict["pd_describe"] = pd_describe_df.to_dict()
 
-    # TODO: Implement creation of the additional statistics
-
-    return additional_pointwise_results_statistics
+    return array_statistics_dict
 
 
 def compute_distance_metrics(
