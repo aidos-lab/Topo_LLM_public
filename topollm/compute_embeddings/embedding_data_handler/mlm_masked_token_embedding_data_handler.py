@@ -84,6 +84,7 @@ class MLMMaskedTokenEmbeddingDataHandler(BaseEmbeddingDataHandler):
                 single_sequence_attention_mask == 1,
             ]
 
+            # `repeated_masked_input.shape = torch.Size([single_sequence_length - 2, single_sequence_length])`
             (
                 repeated_masked_input,
                 _,
@@ -92,7 +93,6 @@ class MLMMaskedTokenEmbeddingDataHandler(BaseEmbeddingDataHandler):
                 mask_token_id=mask_token_id,
                 device=self.device,
             )
-            # `repeated_masked_input.shape = torch.Size([single_sequence_length - 2, single_sequence_length])`
 
             # Compute embeddings.
             # The `output_hidden_states` argument needs to be set to `True`
@@ -110,12 +110,15 @@ class MLMMaskedTokenEmbeddingDataHandler(BaseEmbeddingDataHandler):
 
                 # Extract embeddings of all input vectors.
                 # We extract each sequence's masked token later.
-                repeated_masked_embeddings: np.ndarray = self.embedding_extractor.extract_embeddings_from_model_outputs(
-                    model_outputs=repeated_masked_model_outputs,
-                )
+                #
                 # `repeated_masked_embeddings.shape = (single_sequence_length - 2, single_sequence_length, embedding_dimension)`,
                 # where the `- 2` results from the start and end tokens.
                 # E.g., for an input sequence of 7 tokens this will be of shape `(5, 7, 768)`.
+                repeated_masked_embeddings: np.ndarray = self.embedding_extractor.extract_embeddings_from_model_outputs(
+                    model_outputs=repeated_masked_model_outputs,
+                )
+
+                # TODO: Extract the following code into a separate function.
 
                 # Note that the embeddings of the special start and end tokens are not the same for the differently masked sequences
                 # in the `repeated_masked_embeddings`, since a different token was masked in each row.

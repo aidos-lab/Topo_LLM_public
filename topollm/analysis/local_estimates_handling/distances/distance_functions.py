@@ -25,8 +25,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 import numpy as np
+import ot
 import torch
 from geomloss import SamplesLoss
 from scipy.spatial import KDTree
@@ -92,6 +92,63 @@ def approximate_hausdorff_via_kdtree(
     )
 
     return hausdorff_distance
+
+
+def pot_sinkhorn_wasserstein(
+    P: np.ndarray,
+    Q: np.ndarray,
+    weights_P: np.ndarray | None = None,
+    weights_Q: np.ndarray | None = None,
+    p: int = 2,
+    reg: float = 0.5,
+) -> float:
+    """Compute Wasserstein distance W_p using POT Sinkhorn algorithm.
+
+    Parameters
+    ----------
+    - P (ndarray): Array of shape (n, d), representing n points in d-dimensional space.
+    - Q (ndarray): Array of shape (m, d), representing m points in d-dimensional space.
+    - weights_P (ndarray): Optional array of shape (n,) for weights of P. Defaults to uniform.
+    - weights_Q (ndarray): Optional array of shape (m,) for weights of Q. Defaults to uniform.
+    - p (float): Order of Wasserstein distance.
+    - reg (float): Regularization parameter for Sinkhorn algorithm.
+
+    Returns
+    -------
+    - wp (float): Approximate Wasserstein distance.
+
+    """
+    # Default weights
+    n = P.shape[0]
+    m = Q.shape[0]
+
+    if weights_P is None:
+        weights_P = np.ones(shape=n) / n
+    if weights_Q is None:
+        weights_Q = np.ones(shape=m) / m
+
+    # Compute the cost matrix (pairwise distances to the power of p)
+    cost_matrix = (
+        ot.dist(
+            x1=P,
+            x2=Q,
+            metric="euclidean",
+        )
+        ** p
+    )
+
+    # Compute the Sinkhorn divergence
+    transport_matrix = ot.sinkhorn(
+        a=weights_P,
+        b=weights_Q,
+        M=cost_matrix,
+        reg=reg,
+    )
+
+    # Compute the Wasserstein distance (Sinkhorn output is the transport cost)
+    wp = np.sum(a=transport_matrix * cost_matrix) ** (1 / p)
+
+    return wp
 
 
 def geomloss_sinkhorn_wasserstein(
