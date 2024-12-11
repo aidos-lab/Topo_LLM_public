@@ -1262,9 +1262,13 @@ def orchestrate_job_submission(
         ncpus = "4"
         ngpus = "1"
 
-        # For the datasets with 10_000 samples, one pipeline run usually takes about 30 min.
+        # For the datasets with 10_000 samples, one pipeline run with regular embeddings usually takes about 30 min.
         # We set the walltime to 2 hours to be on the safe side.
-        walltime = "02:00:00"
+        #
+        # > walltime = "02:00:00"
+
+        # For the masked embeddings on datasets with long sequences, the walltime can be significantly longer.
+        walltime = "06:00:00"  # Longer walltime to make sure it is long enough for the masked embeddings
     elif experiment_stage == "skip_compute_embeddings_and_multiple_pipeline_runs":
         ncpus = "6"
         ngpus = "0"

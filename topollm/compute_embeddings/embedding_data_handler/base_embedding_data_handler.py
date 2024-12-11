@@ -64,6 +64,7 @@ class BaseEmbeddingDataHandler(ABC):
         model: PreTrainedModel,
         dataloader: torch.utils.data.DataLoader,
         embedding_extractor: EmbeddingExtractor,
+        single_sequence_batch_size: int = 16,
         device: torch.device = default_device,
         verbosity: Verbosity = Verbosity.NORMAL,
         logger: logging.Logger = default_logger,
@@ -79,6 +80,9 @@ class BaseEmbeddingDataHandler(ABC):
         self.model: PreTrainedModel = model
         self.dataloader: torch.utils.data.DataLoader = dataloader
         self.embedding_extractor: EmbeddingExtractor = embedding_extractor
+
+        # The batch size used in the MLM masked token mode to iterate over the single repeated sequence.
+        self.single_sequence_batch_size: int = single_sequence_batch_size
 
         self.device: torch.device = device
 
