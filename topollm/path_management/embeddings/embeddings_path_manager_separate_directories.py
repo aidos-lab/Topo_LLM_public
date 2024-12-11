@@ -359,8 +359,21 @@ class EmbeddingsPathManagerSeparateDirectories:
 
         return path
 
+    def get_array_for_estimator_save_path(
+        self,
+        array_for_estimator_file_name: str = "array_for_estimator.npy",
+    ) -> pathlib.Path:
+        # This array is placed in the global estimates directory,
+        # since it consists of the global pointcloud.
+        path = pathlib.Path(
+            self.get_local_estimates_dir_absolute_path(),
+            array_for_estimator_file_name,
+        )
+
+        return path
+
     # # # #
-    # saved plots directories
+    # Saved plots directories
 
     @property
     def saved_plots_dir_absolute_path(
