@@ -260,7 +260,7 @@
             ]
         },
         {
-            "name": "Masked Token Embedding; with POS and data_subsampler - run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
+            "name": "Masked Token Embedding; with POS, with data_subsampler - run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",

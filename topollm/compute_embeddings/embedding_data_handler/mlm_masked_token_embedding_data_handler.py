@@ -111,49 +111,19 @@ class MLMMaskedTokenEmbeddingDataHandler(BaseEmbeddingDataHandler):
                 # Extract embeddings of all input vectors.
                 # We extract each sequence's masked token later.
                 #
-                # `repeated_masked_embeddings.shape = (single_sequence_length - 2, single_sequence_length, embedding_dimension)`,
+                # `repeated_masked_embeddings.shape =
+                # (single_sequence_length - 2, single_sequence_length, embedding_dimension)`,
                 # where the `- 2` results from the start and end tokens.
                 # E.g., for an input sequence of 7 tokens this will be of shape `(5, 7, 768)`.
                 repeated_masked_embeddings: np.ndarray = self.embedding_extractor.extract_embeddings_from_model_outputs(
                     model_outputs=repeated_masked_model_outputs,
                 )
 
-                # TODO: Extract the following code into a separate function.
-
-                # Note that the embeddings of the special start and end tokens are not the same for the differently masked sequences
-                # in the `repeated_masked_embeddings`, since a different token was masked in each row.
-                # We take the average of the different special tokens to derive a common embedding for this sequence.
-                first_vectors_in_each_sequence: np.ndarray = repeated_masked_embeddings[:, 0, :]
-                start_token_average_embedding = np.mean(
-                    first_vectors_in_each_sequence,
-                    axis=0,
-                )
-
-                last_vector_in_each_sequence: np.ndarray = repeated_masked_embeddings[:, -1, :]
-                end_token_average_embedding = np.mean(
-                    last_vector_in_each_sequence,
-                    axis=0,
-                )
-
-                # Extract the embeddings of the masked tokens.
-                diagonal_mask = create_diagonal_mask_without_special_tokens(
-                    sequence_length=len(single_sequence_input_ids_non_padding),
-                    device=torch.device(device="cpu"),  # We want this to be on the CPU for the numpy operations.
-                )
-                diagonal_mask_np: np.ndarray = diagonal_mask.cpu().numpy()
-                mask_indices = np.where(diagonal_mask_np == 1)
-
-                # `extracted_masked_embeddings.shape = (single_sequence_length - 2, embedding_dimension)`
-                extracted_masked_embeddings: np.ndarray = repeated_masked_embeddings[mask_indices]
-
-                # Assemble the embeddings of the special tokens and the masked tokens into a single array.
-                # `single_sequence_embeddings_with_averaged_special_tokens.shape = (single_sequence_length, embedding_dimension)`
-                single_sequence_embeddings_with_averaged_special_tokens: np.ndarray = np.vstack(
-                    tup=[
-                        start_token_average_embedding,  # Add as the first row
-                        extracted_masked_embeddings,  # Existing array
-                        end_token_average_embedding,  # Add as the last row
-                    ],
+                single_sequence_embeddings_with_averaged_special_tokens: np.ndarray = (
+                    self.extract_masked_token_embeddings_and_averaged_special_tokens(
+                        repeated_masked_embeddings=repeated_masked_embeddings,
+                        sequence_length=len(single_sequence_input_ids_non_padding),
+                    )
                 )
 
                 # Append the embeddings of the current sequence to the list.
@@ -163,7 +133,18 @@ class MLMMaskedTokenEmbeddingDataHandler(BaseEmbeddingDataHandler):
 
         # # # #
         # After iterating over all sequences in the batch, we concatenate the embeddings into a single array.
+        final_array: np.ndarray = self.make_final_array_from_list_of_sequence_embedding_arrays(
+            inputs=inputs,
+            list_of_sequence_embedding_arrays=list_of_sequence_embedding_arrays,
+        )
 
+        return final_array
+
+    @staticmethod
+    def make_final_array_from_list_of_sequence_embedding_arrays(
+        inputs: dict,
+        list_of_sequence_embedding_arrays: list[np.ndarray],
+    ) -> np.ndarray:
         # Check that the number of computed embeddings matches the number of input sequences.
         # `len(list_of_sequence_embedding_arrays) = batch_size`
         if len(list_of_sequence_embedding_arrays) != inputs["input_ids"].shape[0]:
@@ -177,14 +158,14 @@ class MLMMaskedTokenEmbeddingDataHandler(BaseEmbeddingDataHandler):
 
         padded_sequences: list[np.ndarray] = []
         for single_sequence_embedding_array in list_of_sequence_embedding_arrays:
-            padding = np.zeros(
+            padding: np.ndarray = np.zeros(
                 shape=(
                     expected_sequence_length - single_sequence_embedding_array.shape[0],
                     single_sequence_embedding_array.shape[1],
                 ),
             )
-            padded_single_sequence_embedding_array = np.vstack(
-                [
+            padded_single_sequence_embedding_array: np.ndarray = np.vstack(
+                tup=[
                     single_sequence_embedding_array,
                     padding,
                 ],
@@ -195,7 +176,7 @@ class MLMMaskedTokenEmbeddingDataHandler(BaseEmbeddingDataHandler):
 
         # Stack all padded sequences to create a single array.
         # `final_array.shape = (batch_size, expected_sequence_length, embedding_dimension)`
-        final_array = np.stack(
+        final_array: np.ndarray = np.stack(
             arrays=padded_sequences,
         )
 
@@ -212,3 +193,50 @@ class MLMMaskedTokenEmbeddingDataHandler(BaseEmbeddingDataHandler):
             )
 
         return final_array
+
+    @staticmethod
+    def extract_masked_token_embeddings_and_averaged_special_tokens(
+        repeated_masked_embeddings: np.ndarray,
+        sequence_length: int,
+    ) -> np.ndarray:
+        """Extract the embeddings of the masked tokens and average the embeddings of the special tokens."""
+        # Note that the embeddings of the special start and end tokens
+        # are not the same for the differently masked sequences
+        # in the `repeated_masked_embeddings`, since a different token was masked in each row.
+        # We take the average of the different special tokens to derive a common embedding for this sequence.
+        first_vectors_in_each_sequence: np.ndarray = repeated_masked_embeddings[:, 0, :]
+        start_token_average_embedding = np.mean(
+            first_vectors_in_each_sequence,
+            axis=0,
+        )
+
+        last_vector_in_each_sequence: np.ndarray = repeated_masked_embeddings[:, -1, :]
+        end_token_average_embedding = np.mean(
+            last_vector_in_each_sequence,
+            axis=0,
+        )
+
+        # Extract the embeddings of the masked tokens.
+        diagonal_mask: torch.Tensor = create_diagonal_mask_without_special_tokens(
+            sequence_length=sequence_length,
+            device=torch.device(device="cpu"),  # We want this to be on the CPU for the numpy operations.
+        )
+        diagonal_mask_np: np.ndarray = diagonal_mask.cpu().numpy()
+        mask_indices: tuple = np.where(diagonal_mask_np == 1)
+
+        # `extracted_masked_embeddings.shape
+        # = (single_sequence_length - 2, embedding_dimension)`
+        extracted_masked_embeddings: np.ndarray = repeated_masked_embeddings[mask_indices]
+
+        # Assemble the embeddings of the special tokens and the masked tokens into a single array.
+        # `single_sequence_embeddings_with_averaged_special_tokens.shape =
+        # (single_sequence_length, embedding_dimension)`
+        single_sequence_embeddings_with_averaged_special_tokens: np.ndarray = np.vstack(
+            tup=[
+                start_token_average_embedding,  # Add as the first row
+                extracted_masked_embeddings,  # Existing array
+                end_token_average_embedding,  # Add as the last row
+            ],
+        )
+
+        return single_sequence_embeddings_with_averaged_special_tokens
