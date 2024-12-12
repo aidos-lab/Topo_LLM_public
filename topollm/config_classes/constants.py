@@ -76,6 +76,7 @@ NAME_PREFIXES: dict[
     "data": "data",
     "dataloader_desc": "dataloader",
     "data_splitting_mode": "spl-mode",
+    "data_filtering_remove_empty_sequences": "rm-empty",
     "deduplication_mode": "dedup",
     "description": "desc",
     "dropout_mode": "dr",
