@@ -31,6 +31,8 @@ import logging
 from typing import TYPE_CHECKING
 
 from topollm.config_classes.data.data_config import DataConfig
+from topollm.data_handling.dataset_filtering.factory import get_dataset_filter
+from topollm.data_handling.dataset_filtering.protocol import DatasetFilter
 from topollm.data_handling.dataset_preparer import dataset_preparer_huggingface
 from topollm.data_handling.dataset_preparer.protocol import DatasetPreparer
 from topollm.data_handling.dataset_splitter.factory import get_dataset_splitter
@@ -52,6 +54,16 @@ def get_dataset_preparer(
     logger: logging.Logger = default_logger,
 ) -> DatasetPreparer:
     """Return a dataset preparer for the given dataset type."""
+    dataset_filter: DatasetFilter = get_dataset_filter(
+        data_config=data_config,
+        verbosity=verbosity,
+        logger=logger,
+    )
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Using {dataset_filter.__class__.__name__ = } as dataset filter.",  # noqa: G004 - low overhead
+        )
+
     dataset_splitter: DatasetSplitter = get_dataset_splitter(
         data_splitting_config=data_config.data_splitting,
         verbosity=verbosity,
@@ -75,6 +87,7 @@ def get_dataset_preparer(
     if data_config.dataset_type in (DatasetType.HUGGINGFACE_DATASET, DatasetType.HUGGINGFACE_DATASET_NAMED_ENTITY):
         result = dataset_preparer_huggingface.DatasetPreparerHuggingface(
             data_config=data_config,
+            dataset_filter=dataset_filter,
             dataset_splitter=dataset_splitter,
             dataset_subsampler=dataset_subsampler,
             verbosity=verbosity,
@@ -82,6 +95,8 @@ def get_dataset_preparer(
         )
     else:
         msg: str = f"Unsupported {data_config.dataset_type = }"
-        raise ValueError(msg)
+        raise ValueError(
+            msg,
+        )
 
     return result

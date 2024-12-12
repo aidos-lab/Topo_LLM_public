@@ -33,6 +33,7 @@ from pydantic import Field
 
 from topollm.config_classes.config_base_model import ConfigBaseModel
 from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
+from topollm.config_classes.data.data_filtering_config import DataFilteringConfig
 from topollm.config_classes.data.data_splitting_config import DataSplittingConfig
 from topollm.config_classes.data.data_subsampling_config import DataSubsamplingConfig
 from topollm.typing.enums import DatasetType, DescriptionType
@@ -83,15 +84,21 @@ class DataConfig(ConfigBaseModel):
     )
 
     data_splitting: DataSplittingConfig = Field(
-        default=DataSplittingConfig(),
+        default_factory=DataSplittingConfig,
         title="Data splitting configuration.",
         description="The data splitting configuration. This is useful if the dataset is not already split.",
     )
 
     data_subsampling: DataSubsamplingConfig = Field(
-        default=DataSubsamplingConfig(),
+        default_factory=DataSubsamplingConfig,
         title="Data subsampling configuration.",
         description="The data subsampling configuration.",
+    )
+
+    filtering: DataFilteringConfig = Field(
+        default_factory=DataFilteringConfig,
+        title="Data filtering configuration.",
+        description="The data filtering configuration.",
     )
 
     feature_column_name: str = Field(
@@ -122,6 +129,10 @@ class DataConfig(ConfigBaseModel):
             f"{KV_SEP}"
             f"{self.dataset_description_string}"
             f"{ITEM_SEP}"
+            f"{self.filtering.get_config_description(
+                description_type=DescriptionType.LONG,
+            )}"  # Description of the data filtering configuration
+            f"{ITEM_SEP}"
             f"{self.data_splitting.get_config_description(
                 description_type=DescriptionType.LONG,
             )}"  # Description of the data splitting configuration
@@ -144,6 +155,10 @@ class DataConfig(ConfigBaseModel):
         """Return a short description of the configuration without the data subsampling information."""
         description: str = (
             self.dataset_description_string
+            + short_description_separator
+            + self.filtering.get_config_description(
+                description_type=DescriptionType.SHORT,
+            )
             + short_description_separator
             + self.data_splitting.get_config_description(
                 description_type=DescriptionType.SHORT,

@@ -34,7 +34,6 @@ from typing import TYPE_CHECKING
 import pytest
 from hydra import compose, initialize
 
-from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
 from topollm.config_classes.main_config import DataConfig
 
 if TYPE_CHECKING:
@@ -54,7 +53,7 @@ default_logger: logging.Logger = logging.getLogger(
         "multiwoz21_train",
         "multiwoz21_validation",
         "sgd",
-        "wikitext",
+        "wikitext-103-v1",
     ],
 )
 def test_hydra_with_data_config(

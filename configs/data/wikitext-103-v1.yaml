@@ -8,3 +8,8 @@ context: dataset_entry
 dataset_description_string: wikitext-103-v1
 dataset_path: wikitext
 dataset_name: wikitext-103-v1
+
+filtering:
+  remove_sequences_with_starting_segment_in_this_blocklist: [
+    " = ",
+  ]

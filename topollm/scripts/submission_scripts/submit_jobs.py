@@ -226,6 +226,12 @@ def retrieve_data_list(
                 "one-year-of-tsla-on-reddit_train",
                 "one-year-of-tsla-on-reddit_validation",
             ]
+        case DataListOption.WIKITEXT_ONLY:
+            data_list: list[str] = [
+                "wikitext-103-v1_test",
+                "wikitext-103-v1_train",
+                "wikitext-103-v1_validation",
+            ]
         case _:
             msg = f"Unknown {data_list = }"
             raise ValueError(
@@ -909,6 +915,7 @@ def make_config_and_run_task(
             "exploratory_dropout_analysis_coarse_checkpoint_resolution",
             "tiny_dropout_variations_coarse_checkpoint_resolution",
             "fixed_parameters_high_checkpoint_resolution",
+            "regular_token_embeddings",
             "masked_token_embeddings",
         ],
         case_sensitive=False,
@@ -1231,6 +1238,18 @@ def orchestrate_job_submission(
 
             # Select all checkpoints for which we have evaluation results
             checkpoint_no_list_option = CheckpointNoListOption.FULL
+        case "regular_token_embeddings":
+            # Note:
+            # - You need to set the data_list_option via the command line arguments.
+
+            data_subsampling_number_of_samples_list_option = DataSubsamplingNumberOfSamplesListOption.FIXED_10000
+
+            embedding_data_handler_mode = EmbeddingDataHandlerMode.REGULAR
+
+            checkpoint_no_list_option = CheckpointNoListOption.SELECTED
+
+            # Select only a single training seed
+            language_model_seed_list_option = SeedListOption.FIXED_SEED_1234
         case "masked_token_embeddings":
             # Note:
             # - You need to set the data_list_option via the command line arguments.
@@ -1241,6 +1260,8 @@ def orchestrate_job_submission(
 
             checkpoint_no_list_option = CheckpointNoListOption.SELECTED
 
+            # Select only a single training seed
+            language_model_seed_list_option = SeedListOption.FIXED_SEED_1234
         # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
         # NOTE: You can add more experiment configurations here.
         case _:

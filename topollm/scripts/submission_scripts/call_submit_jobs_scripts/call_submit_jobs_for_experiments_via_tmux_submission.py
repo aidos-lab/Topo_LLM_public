@@ -34,6 +34,7 @@ import pathlib
 import pprint
 import subprocess
 import time
+from itertools import product
 
 import click
 
@@ -65,15 +66,27 @@ def submit_jobs(
     """Submit jobs in tmux sessions with logging and resource management."""
     # Define job-specific configurations
     data_list_options: list[str] = [
-        "reddit_only",
+        # "reddit_only",
         # "multiwoz21_only",
+        "wikitext_only",
     ]
 
-    experiment_selector = "masked_token_embeddings"
-    # experiment_selector = "tiny_dropout_variations_coarse_checkpoint_resolution"
+    experiment_selector_options: list[str] = [
+        "regular_token_embeddings",
+        "masked_token_embeddings",
+        # "tiny_dropout_variations_coarse_checkpoint_resolution",
+    ]
 
+    # We do not make the experiment_stage into a list option, because the embedding computation jobs
+    # need to be run before the additional pipeline runs (they depend on the embeddings).
+    #
     experiment_stage = "compute_embeddings_plus_single_pipeline_run"
     # experiment_stage = "skip_compute_embeddings_and_multiple_pipeline_runs"
+
+    model_selection_option_list: list[str] = [
+        # "--use-roberta-base",
+        "--use-finetuned-model",
+    ]
 
     log_dir: pathlib.Path = create_log_directory()
 
@@ -93,19 +106,35 @@ def submit_jobs(
         )
     dry_run_option: str = "" if do_submission else "--dry-run"
 
+    # Generator combinations to call submissions for
+    combinations_to_call = product(
+        data_list_options,
+        experiment_selector_options,
+        model_selection_option_list,
+    )
+
     # Track tmux session names and logs
     session_names: list = []
 
-    for session_counter, data_option in enumerate(
-        iterable=data_list_options,
+    for session_counter, (
+        data_option,
+        experiment_selector,
+        model_selection_option,
+    ) in enumerate(
+        iterable=combinations_to_call,
     ):
-        session_name = f"job_session_{session_counter}"
+        session_name: str = (
+            f"job_session_{session_counter=}_{data_option=}_{experiment_selector=}_{model_selection_option=}"
+        )
         log_file = pathlib.Path(
             log_dir,
             f"output_{session_name}.log",
         )
         session_names.append(
-            (session_name, log_file),
+            (
+                session_name,
+                log_file,
+            ),
         )
 
         # Submit the job in a tmux session
@@ -115,8 +144,9 @@ def submit_jobs(
             data_option=data_option,
             experiment_selector=experiment_selector,
             experiment_stage=experiment_stage,
-            dry_run_option=dry_run_option,
+            model_selection_option=model_selection_option,
             run_configs_option=run_configs_option,
+            dry_run_option=dry_run_option,
         )
 
     # Automatically attach to the first session
@@ -189,9 +219,10 @@ def run_tmux_session(
     log_file: str,
     data_option: str,
     experiment_selector: str,
-    dry_run_option: str,
-    run_configs_option: str,
     experiment_stage: str,
+    model_selection_option: str,
+    run_configs_option: str,
+    dry_run_option: str,
     session_timeout: int = 6,
 ) -> None:
     """Start a tmux session to run the job and log the output."""
@@ -206,8 +237,7 @@ def run_tmux_session(
         f"--data-list-option {data_option} "
         f"--experiment-selector {experiment_selector} "
         f"--experiment-stage {experiment_stage} "
-        f"--use-finetuned-model "
-        # f"--use-roberta-base "
+        f"{model_selection_option} "
         f"--task=pipeline "
         f"{dry_run_option} "
         f"--run-only-selected-configs-option {run_configs_option} "

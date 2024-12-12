@@ -1,10 +1,10 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -32,6 +32,7 @@ import logging
 import datasets
 
 from topollm.config_classes.data.data_config import DataConfig
+from topollm.data_handling.dataset_filtering.protocol import DatasetFilter
 from topollm.data_handling.dataset_splitter.protocol import DatasetSplitter
 from topollm.data_handling.dataset_subsampler.protocol import DatasetSubsampler
 from topollm.logging.log_dataset_info import log_huggingface_dataset_info
@@ -48,6 +49,7 @@ class DatasetPreparerHuggingface:
     def __init__(
         self,
         data_config: DataConfig,
+        dataset_filter: DatasetFilter,
         dataset_splitter: DatasetSplitter,
         dataset_subsampler: DatasetSubsampler,
         verbosity: Verbosity = Verbosity.NORMAL,
@@ -56,6 +58,7 @@ class DatasetPreparerHuggingface:
         """Initialize the dataset preparer."""
         self.data_config: DataConfig = data_config
 
+        self.dataset_filter: DatasetFilter = dataset_filter
         self.dataset_splitter: DatasetSplitter = dataset_splitter
         self.dataset_subsampler: DatasetSubsampler = dataset_subsampler
 
@@ -106,8 +109,10 @@ class DatasetPreparerHuggingface:
             dataset_dict,
             datasets.DatasetDict,
         ):
-            msg = f"Expected {dataset_dict = } to be a datasets.DatasetDict"
-            raise TypeError(msg)
+            msg: str = f"Expected {dataset_dict = } to be a datasets.DatasetDict, but got {type(dataset_dict) = }."
+            raise TypeError(
+                msg,
+            )
 
         return dataset_dict
 
@@ -129,7 +134,9 @@ class DatasetPreparerHuggingface:
             dataset_dict=dataset_dict,
         )
         if self.verbosity >= Verbosity.NORMAL:
-            default_logger.info("Applying dataset splitter DONE.")
+            default_logger.info(
+                msg="Applying dataset splitter DONE.",
+            )
             default_logger.info(
                 "new_dataset_dict:\n%s",
                 new_dataset_dict,
@@ -143,6 +150,7 @@ class DatasetPreparerHuggingface:
             )
         dataset: datasets.Dataset = new_dataset_dict[self.data_config.data_subsampling.split.value]
 
+        # # # #
         # Apply the dataset subsampler to the dataset
         subsampled_dataset: datasets.Dataset = self.dataset_subsampler.subsample_dataset(
             dataset=dataset,
@@ -168,8 +176,12 @@ class DatasetPreparerHuggingface:
         """Load and prepare a dataset."""
         dataset_dict: datasets.DatasetDict = self.load_dataset_dict()
 
-        dataset: datasets.Dataset = self.select_dataset(
+        dataset_dict_filtered: datasets.DatasetDict = self.dataset_filter.filter_dataset_dict(
             dataset_dict=dataset_dict,
+        )
+
+        dataset: datasets.Dataset = self.select_dataset(
+            dataset_dict=dataset_dict_filtered,
         )
 
         return dataset
