@@ -47,6 +47,7 @@ class DataListOption(StrEnum):
     MULTIWOZ21_TRAIN_AND_REDDIT_TRAIN = auto()
     MULTIWOZ21_ONLY = auto()
     REDDIT_ONLY = auto()
+    WIKITEXT_ONLY = auto()
 
 
 class DataSubsamplingNumberOfSamplesListOption(StrEnum):

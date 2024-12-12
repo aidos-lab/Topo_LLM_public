@@ -105,6 +105,50 @@ class DatasetFilterBasic:
 
         if self.verbosity >= Verbosity.NORMAL:
             self.logger.info(
+                msg="Logging information of dataset_dict_filtered after potentially removing empty sequences",
+            )
+            self.logger.info(
+                "dataset_dict_filtered:\n%s",
+                dataset_dict_filtered,
+            )
+
+        # # # #
+        # Potentially remove sequences with starting segment in the blocklist.
+        # If the blocklist is empty, no sequences will be removed.
+        blocklist: list[str] = self.data_filtering_config.remove_sequences_with_starting_segment_in_this_blocklist
+        if blocklist:
+            # We expect the dataset_dict to have a column with the name `column_name` which has a startswith function.
+            for blocklist_item in blocklist:
+                if self.verbosity >= Verbosity.NORMAL:
+                    self.logger.info(
+                        msg=f"Removing sequences with starting segment in blocklist item {blocklist_item = }.",  # noqa: G004 - low overhead
+                    )
+
+                def current_filter_function(
+                    x: dict,
+                    blocklist_item: str = blocklist_item,  # Use default argument to avoid late binding
+                ) -> bool:
+                    return not x[self.column_name].startswith(blocklist_item)
+
+                dataset_dict_filtered = dataset_dict_filtered.filter(
+                    function=current_filter_function,
+                )
+
+                if self.verbosity >= Verbosity.NORMAL:
+                    self.logger.info(
+                        msg=f"Logging information of dataset_dict_filtered after removing sequences "  # noqa: G004 - low overhead
+                        f"with starting segment in blocklist item {blocklist_item = }.",
+                    )
+                    self.logger.info(
+                        "dataset_dict_filtered:\n%s",
+                        dataset_dict_filtered,
+                    )
+
+        if self.verbosity >= Verbosity.NORMAL:
+            self.logger.info(
+                msg="Logging information of dataset_dict_filtered at the end of filtering.",
+            )
+            self.logger.info(
                 "dataset_dict_filtered:\n%s",
                 dataset_dict_filtered,
             )

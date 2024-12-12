@@ -65,15 +65,20 @@ def submit_jobs(
     """Submit jobs in tmux sessions with logging and resource management."""
     # Define job-specific configurations
     data_list_options: list[str] = [
-        "reddit_only",
+        # "reddit_only",
         # "multiwoz21_only",
+        "wikitext_only",
     ]
 
-    experiment_selector = "masked_token_embeddings"
+    experiment_selector = "regular_token_embeddings"
+    # experiment_selector = "masked_token_embeddings"
     # experiment_selector = "tiny_dropout_variations_coarse_checkpoint_resolution"
 
     experiment_stage = "compute_embeddings_plus_single_pipeline_run"
     # experiment_stage = "skip_compute_embeddings_and_multiple_pipeline_runs"
+
+    # model_selection_option = "--use-finetuned-model "
+    model_selection_option = "--use-roberta-base "
 
     log_dir: pathlib.Path = create_log_directory()
 
@@ -115,8 +120,9 @@ def submit_jobs(
             data_option=data_option,
             experiment_selector=experiment_selector,
             experiment_stage=experiment_stage,
-            dry_run_option=dry_run_option,
+            model_selection_option=model_selection_option,
             run_configs_option=run_configs_option,
+            dry_run_option=dry_run_option,
         )
 
     # Automatically attach to the first session
@@ -189,9 +195,10 @@ def run_tmux_session(
     log_file: str,
     data_option: str,
     experiment_selector: str,
-    dry_run_option: str,
-    run_configs_option: str,
     experiment_stage: str,
+    model_selection_option: str,
+    run_configs_option: str,
+    dry_run_option: str,
     session_timeout: int = 6,
 ) -> None:
     """Start a tmux session to run the job and log the output."""
@@ -206,8 +213,7 @@ def run_tmux_session(
         f"--data-list-option {data_option} "
         f"--experiment-selector {experiment_selector} "
         f"--experiment-stage {experiment_stage} "
-        f"--use-finetuned-model "
-        # f"--use-roberta-base "
+        f"{model_selection_option} "
         f"--task=pipeline "
         f"{dry_run_option} "
         f"--run-only-selected-configs-option {run_configs_option} "

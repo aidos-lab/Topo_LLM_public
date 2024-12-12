@@ -43,12 +43,21 @@ class DataFilteringConfig(ConfigBaseModel):
         description="Remove empty sequences.",
     )
 
+    remove_sequences_with_starting_segment_in_this_blocklist: list[str] = Field(
+        default_factory=list,
+        title="Remove sequences with starting segment in this blocklist.",
+        description="Remove sequences with starting segment in this blocklist. Empty list by default.",
+    )
+
     def get_config_description(
         self,
         description_type: DescriptionType = DescriptionType.LONG,
         short_description_separator: str = "-",
     ) -> str:
-        """Return the config description."""
+        """Return the config description.
+
+        Note that the sequence starting segment blocklist is not included in the description.
+        """
         match description_type:
             case DescriptionType.LONG:
                 description: str = (
