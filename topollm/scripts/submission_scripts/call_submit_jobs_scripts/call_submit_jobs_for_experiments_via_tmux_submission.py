@@ -65,15 +65,15 @@ def submit_jobs(
     """Submit jobs in tmux sessions with logging and resource management."""
     # Define job-specific configurations
     data_list_options: list[str] = [
-        # "reddit_only",
-        "multiwoz21_only",
+        "reddit_only",
+        # "multiwoz21_only",
     ]
 
     experiment_selector = "masked_token_embeddings"
     # experiment_selector = "tiny_dropout_variations_coarse_checkpoint_resolution"
 
-    # experiment_stage = "compute_embeddings_plus_single_pipeline_run"
-    experiment_stage = "skip_compute_embeddings_and_multiple_pipeline_runs"
+    experiment_stage = "compute_embeddings_plus_single_pipeline_run"
+    # experiment_stage = "skip_compute_embeddings_and_multiple_pipeline_runs"
 
     log_dir: pathlib.Path = create_log_directory()
 
@@ -206,8 +206,8 @@ def run_tmux_session(
         f"--data-list-option {data_option} "
         f"--experiment-selector {experiment_selector} "
         f"--experiment-stage {experiment_stage} "
-        # f"--use-finetuned-model "
-        f"--use-roberta-base "
+        f"--use-finetuned-model "
+        # f"--use-roberta-base "
         f"--task=pipeline "
         f"{dry_run_option} "
         f"--run-only-selected-configs-option {run_configs_option} "
