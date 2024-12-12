@@ -34,6 +34,7 @@ import pathlib
 import pprint
 import subprocess
 import time
+from itertools import product
 
 import click
 
@@ -70,15 +71,22 @@ def submit_jobs(
         "wikitext_only",
     ]
 
-    # experiment_selector = "regular_token_embeddings"
-    experiment_selector = "masked_token_embeddings"
-    # experiment_selector = "tiny_dropout_variations_coarse_checkpoint_resolution"
+    experiment_selector_options: list[str] = [
+        "regular_token_embeddings",
+        "masked_token_embeddings",
+        # "tiny_dropout_variations_coarse_checkpoint_resolution",
+    ]
 
+    # We do not make the experiment_stage into a list option, because the embedding computation jobs
+    # need to be run before the additional pipeline runs (they depend on the embeddings).
+    #
     experiment_stage = "compute_embeddings_plus_single_pipeline_run"
     # experiment_stage = "skip_compute_embeddings_and_multiple_pipeline_runs"
 
-    # model_selection_option = "--use-finetuned-model"
-    model_selection_option = "--use-roberta-base"
+    model_selection_option_list: list[str] = [
+        # "--use-roberta-base",
+        "--use-finetuned-model",
+    ]
 
     log_dir: pathlib.Path = create_log_directory()
 
@@ -98,13 +106,26 @@ def submit_jobs(
         )
     dry_run_option: str = "" if do_submission else "--dry-run"
 
+    # Generator combinations to call submissions for
+    combinations_to_call = product(
+        data_list_options,
+        experiment_selector_options,
+        model_selection_option_list,
+    )
+
     # Track tmux session names and logs
     session_names: list = []
 
-    for session_counter, data_option in enumerate(
-        iterable=data_list_options,
+    for session_counter, (
+        data_option,
+        experiment_selector,
+        model_selection_option,
+    ) in enumerate(
+        iterable=combinations_to_call,
     ):
-        session_name: str = f"job_session_{session_counter=}"
+        session_name: str = (
+            f"job_session_{session_counter=}_{data_option=}_{experiment_selector=}_{model_selection_option=}"
+        )
         log_file = pathlib.Path(
             log_dir,
             f"output_{session_name}.log",

@@ -1247,6 +1247,9 @@ def orchestrate_job_submission(
             embedding_data_handler_mode = EmbeddingDataHandlerMode.REGULAR
 
             checkpoint_no_list_option = CheckpointNoListOption.SELECTED
+
+            # Select only a single training seed
+            language_model_seed_list_option = SeedListOption.FIXED_SEED_1234
         case "masked_token_embeddings":
             # Note:
             # - You need to set the data_list_option via the command line arguments.
@@ -1256,6 +1259,9 @@ def orchestrate_job_submission(
             embedding_data_handler_mode = EmbeddingDataHandlerMode.MASKED_TOKEN
 
             checkpoint_no_list_option = CheckpointNoListOption.SELECTED
+
+            # Select only a single training seed
+            language_model_seed_list_option = SeedListOption.FIXED_SEED_1234
         # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
         # NOTE: You can add more experiment configurations here.
         case _:
