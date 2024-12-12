@@ -70,15 +70,15 @@ def submit_jobs(
         "wikitext_only",
     ]
 
-    experiment_selector = "regular_token_embeddings"
-    # experiment_selector = "masked_token_embeddings"
+    # experiment_selector = "regular_token_embeddings"
+    experiment_selector = "masked_token_embeddings"
     # experiment_selector = "tiny_dropout_variations_coarse_checkpoint_resolution"
 
     experiment_stage = "compute_embeddings_plus_single_pipeline_run"
     # experiment_stage = "skip_compute_embeddings_and_multiple_pipeline_runs"
 
-    # model_selection_option = "--use-finetuned-model "
-    model_selection_option = "--use-roberta-base "
+    # model_selection_option = "--use-finetuned-model"
+    model_selection_option = "--use-roberta-base"
 
     log_dir: pathlib.Path = create_log_directory()
 
@@ -104,13 +104,16 @@ def submit_jobs(
     for session_counter, data_option in enumerate(
         iterable=data_list_options,
     ):
-        session_name = f"job_session_{session_counter}"
+        session_name: str = f"job_session_{session_counter=}"
         log_file = pathlib.Path(
             log_dir,
             f"output_{session_name}.log",
         )
         session_names.append(
-            (session_name, log_file),
+            (
+                session_name,
+                log_file,
+            ),
         )
 
         # Submit the job in a tmux session
