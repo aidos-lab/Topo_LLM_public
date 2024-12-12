@@ -25,19 +25,35 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Protocol for splitting a dataset dict."""
+"""Factory for creating a dataset filter."""
 
-from typing import Protocol
+import logging
 
-import datasets
+from topollm.config_classes.data.data_config import DataConfig
+from topollm.data_handling.dataset_filtering.dataset_filter_basic import DatasetFilterBasic
+from topollm.data_handling.dataset_filtering.protocol import DatasetFilter
+from topollm.typing.enums import Verbosity
+
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
-class DatasetSplitter(Protocol):
-    """Protocol for splitting a dataset."""
+def get_dataset_filter(
+    data_config: DataConfig,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> DatasetFilter:
+    """Get a dataset filter.
 
-    def split_dataset(
-        self,
-        dataset_dict: datasets.DatasetDict,
-    ) -> datasets.DatasetDict:
-        """Create the split or rearrange the split."""
-        ...  # pragma: no cover
+    Note that we acre using the data_config instead of the more specific filter config,
+    since to configure to filter, we need to know the column_name which determines which data is embedded.
+    """
+    result = DatasetFilterBasic(
+        data_filtering_config=data_config.filtering,
+        column_name=data_config.column_name,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+    return result

@@ -25,19 +25,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Protocol for splitting a dataset dict."""
+"""Protocol for filtering a dataset dict."""
 
 from typing import Protocol
 
 import datasets
 
 
-class DatasetSplitter(Protocol):
-    """Protocol for splitting a dataset."""
+class DatasetFilter(Protocol):
+    """Protocol for filtering a dataset."""
 
-    def split_dataset(
+    def filter_dataset_dict(
         self,
         dataset_dict: datasets.DatasetDict,
     ) -> datasets.DatasetDict:
-        """Create the split or rearrange the split."""
+        """Return a filtered version of the dataset."""
         ...  # pragma: no cover
