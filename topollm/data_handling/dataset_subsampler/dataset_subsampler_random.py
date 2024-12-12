@@ -71,7 +71,7 @@ class DatasetSubsamplerRandom:
             seed=self.sampling_seed,
         )
 
-        dataset_shuffled_subsampled = truncate_dataset_with_maximum_the_actual_number_of_samples(
+        dataset_shuffled_subsampled: datasets.Dataset = truncate_dataset_with_maximum_the_actual_number_of_samples(
             dataset=dataset_shuffled,
             number_of_samples=self.number_of_samples,
             logger=self.logger,

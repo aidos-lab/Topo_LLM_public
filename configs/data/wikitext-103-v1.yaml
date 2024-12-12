@@ -1,10 +1,10 @@
 defaults:
-  - data_splitting: do_nothing
+  - data_splitting: proportions
   - data_subsampling: train_split_and_take_first
   - _self_
 
 column_name: text
 context: dataset_entry
-dataset_description_string: wikitext
+dataset_description_string: wikitext-103-v1
 dataset_path: wikitext
 dataset_name: wikitext-103-v1

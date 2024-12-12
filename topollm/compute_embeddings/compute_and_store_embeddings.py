@@ -95,7 +95,10 @@ def compute_and_store_embeddings(
         metadata_dir=embeddings_path_manager.metadata_dir_absolute_path,
     )
 
-    tokenizer, tokenizer_modifier = load_modified_tokenizer(
+    (
+        tokenizer,
+        tokenizer_modifier,
+    ) = load_modified_tokenizer(
         language_model_config=main_config.language_model,
         tokenizer_config=main_config.tokenizer,
         verbosity=verbosity,

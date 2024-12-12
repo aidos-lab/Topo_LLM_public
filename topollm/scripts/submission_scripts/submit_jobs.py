@@ -133,9 +133,9 @@ full_data_list: list[str] = [
     "sgd_test",
     "sgd_train",
     "sgd_validation",
-    "wikitext_test",
-    "wikitext_train",
-    "wikitext_validation",
+    "wikitext-103-v1_test",
+    "wikitext-103-v1_train",
+    "wikitext-103-v1_validation",
 ]
 only_train_data_list: list[str] = [data_name for data_name in full_data_list if "_train" in data_name]
 

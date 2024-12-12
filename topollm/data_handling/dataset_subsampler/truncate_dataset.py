@@ -49,7 +49,7 @@ def truncate_dataset_with_maximum_the_actual_number_of_samples(
     """
     if number_of_samples == -1:
         # Use all samples
-        subsampled_dataset = dataset
+        subsampled_dataset: datasets.Dataset = dataset
     elif number_of_samples > 0:
         if number_of_samples > len(dataset):
             logger.warning(

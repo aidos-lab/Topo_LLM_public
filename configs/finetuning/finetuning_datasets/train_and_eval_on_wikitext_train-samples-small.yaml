@@ -1,6 +1,6 @@
 defaults:
- - ../../data@eval_dataset: wikitext
- - ../../data@train_dataset: wikitext
+ - ../../data@eval_dataset: wikitext-103-v1
+ - ../../data@train_dataset: wikitext-103-v1
  - _self_
 
 # Note: We should override the 'split' key of the datasets separately,

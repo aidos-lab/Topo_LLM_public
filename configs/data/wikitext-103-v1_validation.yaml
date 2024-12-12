@@ -1,7 +1,7 @@
 defaults:
-  - .@_here_: wikitext
+  - .@_here_: wikitext-103-v1
   - _self_
 
 data_subsampling:
   number_of_samples: -1
-  split: train
+  split: validation

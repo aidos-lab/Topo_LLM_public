@@ -67,6 +67,10 @@ def get_dataset_preparer(
         verbosity=verbosity,
         logger=logger,
     )
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Using {dataset_subsampler.__class__.__name__ = } as dataset subsampler.",  # noqa: G004 - low overhead
+        )
 
     if data_config.dataset_type in (DatasetType.HUGGINGFACE_DATASET, DatasetType.HUGGINGFACE_DATASET_NAMED_ENTITY):
         result = dataset_preparer_huggingface.DatasetPreparerHuggingface(
