@@ -97,7 +97,7 @@ def sync_directories(
         ]
 
         # Remove empty strings from the command
-        rsync_command = [arg for arg in rsync_command if arg]
+        rsync_command: list[str] = [arg for arg in rsync_command if arg]
 
         print(  # noqa: T201 - this script should print to stdout
             f"Running command: {rsync_command = }",
