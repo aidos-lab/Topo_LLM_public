@@ -31,7 +31,6 @@ import logging
 import pathlib
 import pprint
 from collections.abc import Generator
-from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 import hydra
@@ -216,6 +215,12 @@ def main(
         logger=logger,
     )
 
+    # Log a warning of concatenated_df is empty
+    if concatenated_df.empty:
+        logger.warning(
+            msg="The concatenated_df is empty. The subsequent analysis steps will not yield any results.",
+        )
+
     # ================================================== #
     # Checkpoint analysis
     # ================================================== #
@@ -251,6 +256,14 @@ def do_data_subsampling_number_of_samples_analysis(
     logger: logging.Logger = default_logger,
 ) -> None:
     """Run the data subsampling number of samples analysis."""
+    if concatenated_df.empty:
+        logger.critical(
+            msg="@@@ The concatenated_df is empty.\n"
+            "@@@ The data subsampling number of samples analysis will not yield any results.\n"
+            "@@@ Exiting the function without creating any analysis files.",
+        )
+        return
+
     data_full_list_to_process = list(concatenated_df["data_full"].unique())
     data_subsampling_split_list_to_process = list(concatenated_df["data_subsampling_split"].unique())
     data_subsampling_sampling_mode_list_to_process: list[str] = [
@@ -281,6 +294,13 @@ def do_checkpoint_analysis(
     logger: logging.Logger = default_logger,
 ) -> None:
     """Run the checkpoint analysis."""
+    if concatenated_df.empty:
+        logger.critical(
+            msg="@@@ The concatenated_df is empty.\n"
+            "@@@ The checkpoint analyiss will not yield useful results.\n"
+            "@@@ We still continue executing the function, so that the model loss extractor can save potential values.",
+        )
+
     # Get optional model loss extractor
     model_loss_extractor: ModelLossExtractor | None = create_model_loss_extractor()
 

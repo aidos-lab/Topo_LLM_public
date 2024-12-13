@@ -56,14 +56,13 @@ default_logger: logging.Logger = logging.getLogger(
 
 def extract_and_prepare_local_estimates_data(
     loaded_data_df: pd.DataFrame,
-    array_truncation_size: int = 5_000,
+    array_truncation_size: int = 60_000,
     array_data_column_name: str = "array_data",
+    array_name_to_match: str = "local_estimates_pointwise_array.npy",
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> pd.DataFrame:
     """Extract and prepare the local estimates data from the loaded DataFrame."""
-    array_name_to_match: str = "local_estimates_pointwise.npy"
-
     # Filter the DataFrame to only contain the local estimates
     local_estimates_df: pd.DataFrame = loaded_data_df[loaded_data_df["array_name"] == array_name_to_match]
     # Make a copy of the DataFrame to avoid SettingWithCopyWarning
@@ -115,11 +114,11 @@ def walk_through_subdirectories_and_load_arrays(
     if filenames_to_match is None:
         filenames_to_match = [
             "global_estimate.npy",
-            "local_estimates_pointwise.npy",
+            "local_estimates_pointwise_array.npy",
         ]
 
     # List to store metadata and loaded arrays
-    data = []
+    data: list = []
 
     # Walk through the directory structure
     for dirpath, _, filenames in os.walk(
@@ -169,7 +168,7 @@ def extract_and_preprocess_and_save_full_local_estimates_df_dataframes(
     search_base_directory: pathlib.Path,
     results_directory: pathlib.Path,
     filenames_to_match: list[str] | None = None,
-    array_truncation_size: int = 2_500,
+    array_truncation_size: int = 60_000,
     array_data_column_name: str = "array_data",
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
@@ -247,7 +246,7 @@ def run_search_on_single_base_directory_and_process_and_save(
     search_base_directory: pathlib.Path,
     results_directory: pathlib.Path,
     array_data_column_name: str = "array_data",
-    array_truncation_size: int = 5000,
+    array_truncation_size: int = 60_000,
     *,
     do_analysis_influence_of_local_estimates_n_neighbors: bool = True,
     do_create_boxplot_of_mean_over_different_sampling_seeds: bool = True,
