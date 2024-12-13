@@ -117,12 +117,23 @@ def sync_only_results_arrays_and_statistics(
     This sync skips the large array_for_estimator.npy files and the metadata files.
     """
     include_pattern_to_iterate_over: list[list[str]] = [
+        # The statistics files are saved as .json files and are very small, so we include all files of this type.
         [
             "--include=*/",
             "--include=*.json",
         ],
-        # TODO: Add the local_estimates_pointwise_array.npy files
-        # TODO: Add the global_estimate.npy files
+        # Note that we cannot restrict to all .npy files,
+        # since the very large array_for_estimator.npy files are also .npy files.
+        # The local estimates files are recognized by their names.
+        [
+            "--include=*/",
+            "--include=local_estimates_pointwise_array.npy",
+        ],
+        # The global estimates files are recognized by their names.
+        [
+            "--include=*/",
+            "--include=global_estimate.npy",
+        ],
     ]
 
     for include_pattern in tqdm(
