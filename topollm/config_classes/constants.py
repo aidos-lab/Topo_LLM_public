@@ -137,6 +137,7 @@ NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS: dict[
     str,
     str,
 ] = {
+    "rm-empty": "data_filtering_remove_empty_sequences",
     "dedup": "local_estimates_deduplication",
     "ckpt": "model_checkpoint",
     # Dropout parameters
