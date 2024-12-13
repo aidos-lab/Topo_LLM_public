@@ -103,6 +103,20 @@
             }
         },
         {
+            "label": "rsync from HHU Hilbert to local repository folder: Only results and statistics from 'analysis/twonn' directory",
+            "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/twonn/' --syncing_mode 'only_results_arrays_and_statistics'",
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": false
+            }
+        },
+        {
             "label": "rsync from HHU Hilbert to local repository folder: language model config directory",
             "command": "./topollm/scripts/hhu_hilbert/sync_data/rsync_language_model_config_dir_from_hhu_hilbert.sh",
             "type": "shell",
