@@ -381,7 +381,7 @@ def do_noise_analysis(
         )
         # TODO: Investigate the problem with duplicate lines in the aggregated data
 
-        # TODO: The size of the plots should be adjusted
+        # TODO: Add the data points for no noise distortion
 
         # Display the updated results to the user
         aggregated_data_path = pathlib.Path(
@@ -452,7 +452,10 @@ def plot_individual(
         parents=True,
         exist_ok=True,
     )
-    fig.savefig(save_path)
+    fig.savefig(
+        fname=save_path,
+        bbox_inches="tight",
+    )
 
 
 def plot_individual_and_combined(
@@ -473,15 +476,33 @@ def plot_individual_and_combined(
     """
     # Add a unique identifier for each combination of sampling seeds
     data["seed_combination"] = (
-        data["data_subsampling_sampling_seed"].astype(str) + "_" + data["data_prep_sampling_seed"].astype(str)
+        "data-sub="
+        + data["data_subsampling_sampling_seed"].astype(dtype=str)
+        + "_"
+        + "data-prep="
+        + data["data_prep_sampling_seed"].astype(dtype=str)
     )
 
     # Ensure numeric columns for plotting
-    data["local_estimates_noise_distortion"] = pd.to_numeric(data["local_estimates_noise_distortion"], errors="coerce")
-    data["array_data_mean"] = pd.to_numeric(data["array_data_mean"], errors="coerce")
+    data["local_estimates_noise_distortion"] = pd.to_numeric(
+        data["local_estimates_noise_distortion"],
+        errors="coerce",
+    )
+    data["array_data_mean"] = pd.to_numeric(
+        data["array_data_mean"],
+        errors="coerce",
+    )
+
+    data["marker_type"] = data["data_subsampling_sampling_seed"].astype(dtype=str)
 
     # Filter data to remove rows with missing values
-    filtered_data = data.dropna(subset=["local_estimates_noise_distortion", "array_data_mean", "seed_combination"])
+    filtered_data: pd.DataFrame = data.dropna(
+        subset=[
+            "local_estimates_noise_distortion",
+            "array_data_mean",
+            "seed_combination",
+        ],
+    )
 
     # Get unique seed combinations
     unique_seeds = filtered_data["seed_combination"].unique()
@@ -490,25 +511,35 @@ def plot_individual_and_combined(
     for seed in unique_seeds:
         subset = filtered_data[filtered_data["seed_combination"] == seed]
         if not subset.empty:
-            plot_individual(subset, seed, output_dir)
+            plot_individual(
+                data=subset,
+                seed_combination=seed,
+                output_dir=output_dir,
+            )
 
     # Combined plot with unique colors for each seed combination
     fig, ax = plt.subplots(
-        figsize=(18, 10),
+        figsize=(26, 10),
     )
     sns.scatterplot(
         data=filtered_data,
         x="local_estimates_noise_distortion",
         y="array_data_mean",
         hue="seed_combination",
-        alpha=0.7,
+        style="marker_type",  # Different marker shapes based on `data_subsampling_sampling_seed`
+        alpha=0.6,
         ax=ax,
     )
-    ax.set_title("Combined Noise Analysis with Seed Combinations")
-    ax.set_xlabel("Local Estimates Noise Distortion")
-    ax.set_ylabel("Array Data Mean")
-    ax.legend(title="Seed Combinations", bbox_to_anchor=(1.05, 1), loc="upper left")
-    ax.grid(True)
+    ax.set_title(label="Combined Noise Analysis with Seed Combinations")
+    ax.set_xlabel(xlabel="local_estimates_noise_distortion")
+    ax.set_ylabel(ylabel="array_data_mean")
+    ax.legend(
+        title="Seed Combinations",
+        bbox_to_anchor=(1.05, 1),
+        loc="upper left",
+        borderaxespad=0,
+    )
+    ax.grid(visible=True)
 
     # Save the combined plot
     save_path = pathlib.Path(
@@ -519,7 +550,10 @@ def plot_individual_and_combined(
         parents=True,
         exist_ok=True,
     )
-    fig.savefig(save_path)
+    fig.savefig(
+        fname=save_path,
+        bbox_inches="tight",
+    )
 
 
 def do_data_subsampling_number_of_samples_analysis(
