@@ -30,6 +30,8 @@ from typing import Generic, TypeVar
 
 import pandas as pd
 
+from topollm.config_classes.constants import NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS
+
 
 @dataclass
 class BaseAnalysisCombination:
@@ -67,6 +69,17 @@ class BaseAnalysisModes(Generic[C]):
     )
     embedding_data_handler_mode_list: list[str] = field(
         default_factory=list,
+    )
+
+    common_filters_dict: dict = field(
+        default_factory=lambda: {
+            "data_subsampling_number_of_samples": 10_000,
+            "data_prep_sampling_method": "random",
+            "data_prep_sampling_samples": 150_000,
+            NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["local_estimates_dedup"]: "array_deduplicator",
+            "local_estimates_samples": 60_000,
+            "n_neighbors": 128,
+        },
     )
 
     def from_concatenated_df(

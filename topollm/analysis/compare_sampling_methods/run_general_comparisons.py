@@ -36,8 +36,10 @@ from typing import TYPE_CHECKING
 import hydra
 import hydra.core.hydra_config
 import joblib
+import matplotlib.pyplot as plt
 import omegaconf
 import pandas as pd
+import seaborn as sns
 from tqdm import tqdm
 
 from topollm.analysis.compare_sampling_methods.analysis_modes.checkpoint_analysis_modes import (
@@ -236,6 +238,8 @@ def main(
         )
 
     # ================================================== #
+
+    # ================================================== #
     # Noise analysis
     # ================================================== #
 
@@ -309,18 +313,13 @@ def do_noise_analysis(
         desc="Processing different combinations of data subsamples and models",
         total=len(product_to_process),
     ):
-        concatenated_filters_dict = {
+        concatenated_filters_dict: dict = {
+            **analysis_modes.common_filters_dict,
             "data_full": comb.data_full,
             "data_subsampling_split": comb.data_subsampling_split,
             "data_subsampling_sampling_mode": comb.data_subsampling_sampling_mode,
-            "data_subsampling_number_of_samples": 10_000,
             "model_full": comb.model_full,
-            "data_prep_sampling_method": "random",
-            "data_prep_sampling_samples": 150_000,
             "embedding_data_handler_mode": comb.embedding_data_handler_mode,
-            NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["local_estimates_dedup"]: "array_deduplicator",
-            "local_estimates_samples": 60_000,
-            "n_neighbors": 128,
         }
 
         common_prefix_path = pathlib.Path(
@@ -370,6 +369,157 @@ def do_noise_analysis(
         filtered_concatenated_df.to_csv(
             path_or_buf=raw_data_path,
         )
+
+        data_df_to_analyze: pd.DataFrame = filtered_concatenated_df.copy()
+        y_column_name = "array_data_truncated_mean"
+
+        # Including the count of values for each noise distortion level
+        grouped_stats: pd.DataFrame = (
+            data_df_to_analyze.groupby(by="local_estimates_noise_distortion")[y_column_name]
+            .agg(func=["mean", "std", "count"])
+            .reset_index()
+        )
+        # TODO: Investigate the problem with duplicate lines in the aggregated data
+
+        # TODO: The size of the plots should be adjusted
+
+        # Display the updated results to the user
+        aggregated_data_path = pathlib.Path(
+            common_prefix_path,
+            "aggregated_data",
+            "aggregated_data.csv",
+        )
+        aggregated_data_path.parent.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+        grouped_stats.to_csv(
+            path_or_buf=aggregated_data_path,
+        )
+
+        # # # #
+        # Create plots
+        plot_individual_and_combined(
+            data=data_df_to_analyze,
+            output_dir=common_prefix_path,
+        )
+
+
+def plot_individual(
+    data: pd.DataFrame,
+    seed_combination: str,
+    output_dir: pathlib.Path,
+) -> None:
+    """Create and save an individual plot for a specific seed combination.
+
+    Parameters
+    ----------
+    - data:
+        The dataframe filtered for the specific seed combination.
+    - seed:
+        The unique seed combination identifier.
+    - output_dir:
+        Directory to save the plot.
+
+    """
+    fig, ax = plt.subplots(figsize=(18, 10))
+    ax.scatter(
+        data["local_estimates_noise_distortion"],
+        data["array_data_mean"],
+        alpha=0.5,
+        label="Data Points",
+    )
+    ax.plot(
+        data.sort_values("local_estimates_noise_distortion")["local_estimates_noise_distortion"],
+        data.sort_values("local_estimates_noise_distortion")["array_data_mean"],
+        color="red",
+        label="Trend Line",
+    )
+
+    # Add labels and title
+    ax.set_xlabel("Local Estimates Noise Distortion")
+    ax.set_ylabel("Array Data Mean")
+    ax.set_title(f"Noise Analysis for Seed Combination: {seed_combination}")
+    ax.legend()
+    ax.grid(visible=True)
+
+    # Save the plot
+    save_path = pathlib.Path(
+        output_dir,
+        f"individual_plot_{seed_combination}.pdf",
+    )
+    save_path.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+    fig.savefig(save_path)
+
+
+def plot_individual_and_combined(
+    data: pd.DataFrame,
+    output_dir: pathlib.Path,
+) -> None:
+    """Create individual plots for each combination of seeds.
+
+    Combinations are taken from `data_subsampling_sampling_seed` and
+    `data_prep_sampling_seed` and a combined plot showing `array_data_mean` vs.
+    `local_estimates_noise_distortion` with unique colors for each seed combination.
+
+    Parameters
+    ----------
+    - data: The dataframe containing relevant columns.
+    - output_dir: Directory to save the plots.
+
+    """
+    # Add a unique identifier for each combination of sampling seeds
+    data["seed_combination"] = (
+        data["data_subsampling_sampling_seed"].astype(str) + "_" + data["data_prep_sampling_seed"].astype(str)
+    )
+
+    # Ensure numeric columns for plotting
+    data["local_estimates_noise_distortion"] = pd.to_numeric(data["local_estimates_noise_distortion"], errors="coerce")
+    data["array_data_mean"] = pd.to_numeric(data["array_data_mean"], errors="coerce")
+
+    # Filter data to remove rows with missing values
+    filtered_data = data.dropna(subset=["local_estimates_noise_distortion", "array_data_mean", "seed_combination"])
+
+    # Get unique seed combinations
+    unique_seeds = filtered_data["seed_combination"].unique()
+
+    # Individual plots for each seed combination
+    for seed in unique_seeds:
+        subset = filtered_data[filtered_data["seed_combination"] == seed]
+        if not subset.empty:
+            plot_individual(subset, seed, output_dir)
+
+    # Combined plot with unique colors for each seed combination
+    fig, ax = plt.subplots(
+        figsize=(18, 10),
+    )
+    sns.scatterplot(
+        data=filtered_data,
+        x="local_estimates_noise_distortion",
+        y="array_data_mean",
+        hue="seed_combination",
+        alpha=0.7,
+        ax=ax,
+    )
+    ax.set_title("Combined Noise Analysis with Seed Combinations")
+    ax.set_xlabel("Local Estimates Noise Distortion")
+    ax.set_ylabel("Array Data Mean")
+    ax.legend(title="Seed Combinations", bbox_to_anchor=(1.05, 1), loc="upper left")
+    ax.grid(True)
+
+    # Save the combined plot
+    save_path = pathlib.Path(
+        output_dir,
+        "combined_plot.pdf",
+    )
+    save_path.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+    fig.savefig(save_path)
 
 
 def do_data_subsampling_number_of_samples_analysis(

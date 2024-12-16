@@ -207,19 +207,14 @@ def run_checkpoint_analysis_over_different_data_and_models(
         desc="Processing different combinations of data subsamples and models",
         total=len(product_to_process),
     ):
-        concatenated_filters_dict = {
+        concatenated_filters_dict: dict = {
+            **checkpoint_analysis_modes.common_filters_dict,
             "data_full": comb.data_full,
             "data_subsampling_split": comb.data_subsampling_split,
             "data_subsampling_sampling_mode": comb.data_subsampling_sampling_mode,
-            "data_subsampling_number_of_samples": 10_000,
             "model_partial_name": comb.model_partial_name,
             "model_seed": comb.language_model_seed,
-            "data_prep_sampling_method": "random",
-            "data_prep_sampling_samples": 150_000,
             "embedding_data_handler_mode": comb.embedding_data_handler_mode,
-            NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["local_estimates_dedup"]: "array_deduplicator",
-            "local_estimates_samples": 60_000,
-            "n_neighbors": 128,
         }
 
         common_prefix_path = pathlib.Path(
