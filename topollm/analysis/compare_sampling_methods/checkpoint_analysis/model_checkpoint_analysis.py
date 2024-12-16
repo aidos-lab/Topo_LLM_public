@@ -90,7 +90,7 @@ def create_histograms_over_model_checkpoints(
         )
 
         # Check that in this special case, the model checkpoint column is filled with empty strings
-        if not filtered_concatenated_df[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["ckpt"]].eq(other="").all():
+        if not filtered_concatenated_df[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["model_ckpt"]].eq(other="").all():
             msg = (
                 "The model checkpoint column is not filled with empty strings for the base model. "
                 "This should not happen. Please check the data."
@@ -100,7 +100,7 @@ def create_histograms_over_model_checkpoints(
             )
 
         # Set all the values in the "model_checkpoint" column (all belonging to the base model) to "-1"
-        filtered_concatenated_df[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["ckpt"]] = -1
+        filtered_concatenated_df[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["model_ckpt"]] = -1
 
         # For this base model case, we use the resulting dataframe as the filtered_for_base_model_concatenated_df
         data_for_checkpoint_analysis_df = filtered_concatenated_df
@@ -119,7 +119,7 @@ def create_histograms_over_model_checkpoints(
         )
 
         # Set all the values in the "model_checkpoint" column belonging to the base model to "-1"
-        filtered_for_base_model_concatenated_df[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["ckpt"]] = -1
+        filtered_for_base_model_concatenated_df[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["model_ckpt"]] = -1
 
         # # # #
         # Create a dataframe by concatenating the two dataframes
@@ -180,7 +180,7 @@ def create_histograms_over_model_checkpoints(
         create_boxplot_of_mean_over_different_sampling_seeds(
             subset_local_estimates_df=data_for_checkpoint_analysis_df,
             plot_save_path_collection=plot_save_path_collection,
-            x_column_name=NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["ckpt"],
+            x_column_name=NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["model_ckpt"],
             y_column_name="array_data_truncated_mean",
             fixed_params_text=fixed_params_text,
             model_losses_df=model_losses_df,

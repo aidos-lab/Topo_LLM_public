@@ -113,7 +113,7 @@ class ModelLossExtractor:
 
         output_table = output_table.rename(
             columns={
-                "train/global_step": NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["ckpt"],
+                "train/global_step": NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["model_ckpt"],
                 loss_column_name: "loss",
             },
         )

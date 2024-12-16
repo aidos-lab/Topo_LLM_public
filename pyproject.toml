@@ -30,6 +30,9 @@ exclude = [
 ignore = ["src/oldstuff"]
 defineConstant = { DEBUG = true }
 
+[tool.coverage.report]
+exclude_lines = ["pragma: no cover", "if TYPE_CHECKING"]
+
 [tool.poetry]
 name = "topollm"
 version = "0.1.0"

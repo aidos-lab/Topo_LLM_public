@@ -125,29 +125,6 @@ def parse_path_info_full(
         sampling_info["data_prep_sampling_seed"] = int(sampling_match.group(2))
         sampling_info["data_prep_sampling_samples"] = int(sampling_match.group(3))
 
-    # Extract local estimates information
-    # Matches description, samples, zerovec, and optional deduplication, e.g.,
-    # "desc-twonn_samples-2500_zerovec-keep_dedup-array_deduplicator"
-    # - (\w+): Match one or more word characters for the description.
-    # - (\d+): Match one or more digits for the number of samples.
-    # - ([a-zA-Z0-9]+): Match one or more alphanumeric characters for the zerovec.
-    # - (?:_dedup-([a-zA-Z0-9_]+))?: Optionally match "_dedup-"
-    #   followed by one or more alphanumeric or underscore characters for deduplication.
-    local_estimates_info: dict = {}
-    desc_match: re.Match[str] | None = re.search(
-        pattern=r"desc=(\w+)_samples=(\d+)_zerovec=([a-zA-Z0-9]+)(?:_dedup=(array_deduplicator|do_nothing))?(?:_noise=([a-zA-Z0-9_]+))?",
-        string=path_str,
-    )
-    if desc_match:
-        local_estimates_info["local_estimates_desc_full"] = desc_match.group(0)  # The full matched description string
-        local_estimates_info["local_estimates_description"] = desc_match.group(1)
-        local_estimates_info["local_estimates_samples"] = int(desc_match.group(2))
-        local_estimates_info["local_estimates_zerovec"] = desc_match.group(3)
-        local_estimates_info[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["dedup"]] = (
-            desc_match.group(4) if desc_match.group(4) else None
-        )
-        local_estimates_info["local_estimates_noise"] = desc_match.group(5) if desc_match.group(5) else None
-
     # Extract neighbors information
     # Matches neighbors mode and number of neighbors, e.g.,
     # "n-neighbors-mode-absolute_size_n-neighbors-256"
@@ -161,6 +138,11 @@ def parse_path_info_full(
     if neighbors_match:
         neighbors_info["n_neighbors_mode"] = neighbors_match.group(1)
         neighbors_info["n_neighbors"] = int(neighbors_match.group(2))
+
+    # Extract local estimates information
+    local_estimates_info: dict = parse_local_estimates_info(
+        path=path_str,
+    )
 
     # Extract model information
     model_info: dict = parse_model_info(
@@ -196,6 +178,61 @@ def parse_path_info_full(
     }
 
     return parsed_info
+
+
+def parse_local_estimates_info(
+    path: str | pathlib.Path,
+) -> dict[str, str | int]:
+    """Parse the local estimates information from the given path."""
+    path_str = str(
+        object=path,
+    )
+
+    # Extract local estimates information
+    # Matches description, samples, zerovec, and optional deduplication, e.g.,
+    # "desc-twonn_samples-2500_zerovec-keep_dedup-array_deduplicator"
+    # - (\w+): Match one or more word characters for the description.
+    # - (\d+): Match one or more digits for the number of samples.
+    # - ([a-zA-Z0-9]+): Match one or more alphanumeric characters for the zerovec.
+    # - (?:_dedup-([a-zA-Z0-9_]+))?: Optionally match "_dedup-"
+    #   followed by one or more alphanumeric or underscore characters for deduplication.
+    local_estimates_info: dict = {}
+
+    local_estimates_info_pattern = (
+        r"desc=(\w+)_samples=(\d+)"
+        r"_zerovec=([a-zA-Z0-9]+)"
+        r"(?:_dedup=(do_nothing|array_deduplicator))?"
+        r"(?:_noise=(do_nothing|gaussian))?"
+        r"(?:_distor=([\d.]+))?"
+        r"(?:_seed=(\d+))?"
+    )
+    desc_match: re.Match[str] | None = re.search(
+        pattern=local_estimates_info_pattern,
+        string=path_str,
+    )
+    if desc_match:
+        local_estimates_info["local_estimates_desc_full"] = desc_match.group(0)  # The full matched description string
+        local_estimates_info[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["local_estimates_desc"]] = desc_match.group(1)
+        local_estimates_info[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["local_estimates_samples"]] = int(
+            desc_match.group(2),
+        )
+        local_estimates_info[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["local_estimates_zerovec"]] = (
+            desc_match.group(3)
+        )
+        local_estimates_info[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["local_estimates_dedup"]] = (
+            desc_match.group(4) if desc_match.group(4) else None
+        )
+        local_estimates_info[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["local_estimates_noise"]] = (
+            desc_match.group(5) if desc_match.group(5) else None
+        )
+        local_estimates_info[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["local_estimates_distor"]] = (
+            float(desc_match.group(6)) if desc_match.group(6) else None
+        )
+        local_estimates_info[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["local_estimates_seed"]] = (
+            int(desc_match.group(7)) if desc_match.group(7) else None
+        )
+
+    return local_estimates_info
 
 
 def parse_data_info(
@@ -384,13 +421,13 @@ def parse_model_info(
         # > Checkpoint number
         ParsingRule(
             pattern=r"_ckpt-(\d+)$",
-            key=NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["ckpt"],
+            key=NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["model_ckpt"],
             cast_fn=int,
         ),
         # > Model seed
         ParsingRule(
             pattern=r"_seed-(\d+)$",
-            key="model_seed",
+            key=NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["model_seed"],
             cast_fn=int,
         ),
     ]

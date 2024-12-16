@@ -297,7 +297,7 @@ def do_checkpoint_analysis(
     if concatenated_df.empty:
         logger.critical(
             msg="@@@ The concatenated_df is empty.\n"
-            "@@@ The checkpoint analyiss will not yield useful results.\n"
+            "@@@ The checkpoint analysis will not yield useful results.\n"
             "@@@ We still continue executing the function, so that the model loss extractor can save potential values.",
         )
 

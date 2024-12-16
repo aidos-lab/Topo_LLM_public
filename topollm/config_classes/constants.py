@@ -137,14 +137,24 @@ NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS: dict[
     str,
     str,
 ] = {
+    # Data parameters
     "rm-empty": "data_filtering_remove_empty_sequences",
-    "dedup": "local_estimates_deduplication",
-    "ckpt": "model_checkpoint",
+    # Model parameters
+    "model_ckpt": "model_checkpoint",
+    "model_seed": "model_seed",
     # Dropout parameters
     "dr": "model_dropout_mode",
     "h-dr": "model_hidden_dropout_prob",
     "attn-dr": "model_attention_probs_dropout_prob",
     "clf-dr": "model_classifier_dropout",
+    # Noise parameters
+    "local_estimates_dedup": "local_estimates_deduplication",
+    "local_estimates_desc": "local_estimates_description",
+    "local_estimates_distor": "local_estimates_noise_distortion",
+    "local_estimates_noise": "local_estimates_noise_artificial_noise_mode",
+    "local_estimates_seed": "local_estimates_noise_seed",
+    "local_estimates_samples": "local_estimates_samples",
+    "local_estimates_zerovec": "local_estimates_zero_vector_handling_mode",
 }
 
 # # # #
