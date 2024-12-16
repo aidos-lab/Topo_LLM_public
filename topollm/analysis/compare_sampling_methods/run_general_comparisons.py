@@ -40,11 +40,13 @@ import omegaconf
 import pandas as pd
 from tqdm import tqdm
 
+from topollm.analysis.compare_sampling_methods.analysis_modes.checkpoint_analysis_modes import (
+    CheckpointAnalysisModes,
+)
 from topollm.analysis.compare_sampling_methods.checkpoint_analysis.model_checkpoint_analysis import (
     run_checkpoint_analysis_over_different_data_and_models,
 )
 from topollm.analysis.compare_sampling_methods.checkpoint_analysis.model_loss_extractor import ModelLossExtractor
-from topollm.analysis.compare_sampling_methods.checkpoint_analysis_modes import CheckpointAnalysisModes
 from topollm.analysis.compare_sampling_methods.extract_results_from_directory_structure import (
     run_search_on_single_base_directory_and_process_and_save,
 )

@@ -33,11 +33,11 @@ import pathlib
 import pandas as pd
 from tqdm import tqdm
 
-from topollm.analysis.compare_sampling_methods.checkpoint_analysis.model_loss_extractor import ModelLossExtractor
-from topollm.analysis.compare_sampling_methods.checkpoint_analysis_modes import (
+from topollm.analysis.compare_sampling_methods.analysis_modes.checkpoint_analysis_modes import (
     CheckpointAnalysisCombination,
     CheckpointAnalysisModes,
 )
+from topollm.analysis.compare_sampling_methods.checkpoint_analysis.model_loss_extractor import ModelLossExtractor
 from topollm.analysis.compare_sampling_methods.filter_dataframe_based_on_filters_dict import (
     filter_dataframe_based_on_filters_dict,
 )
