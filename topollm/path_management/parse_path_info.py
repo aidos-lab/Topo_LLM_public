@@ -135,7 +135,7 @@ def parse_path_info_full(
     #   followed by one or more alphanumeric or underscore characters for deduplication.
     local_estimates_info: dict = {}
     desc_match: re.Match[str] | None = re.search(
-        pattern=r"desc=(\w+)_samples=(\d+)_zerovec=([a-zA-Z0-9]+)(?:_dedup=([a-zA-Z0-9_]+))?",
+        pattern=r"desc=(\w+)_samples=(\d+)_zerovec=([a-zA-Z0-9]+)(?:_dedup=(array_deduplicator|do_nothing))?(?:_noise=([a-zA-Z0-9_]+))?",
         string=path_str,
     )
     if desc_match:
@@ -146,6 +146,7 @@ def parse_path_info_full(
         local_estimates_info[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["dedup"]] = (
             desc_match.group(4) if desc_match.group(4) else None
         )
+        local_estimates_info["local_estimates_noise"] = desc_match.group(5) if desc_match.group(5) else None
 
     # Extract neighbors information
     # Matches neighbors mode and number of neighbors, e.g.,

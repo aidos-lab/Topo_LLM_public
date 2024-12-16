@@ -51,9 +51,10 @@ Y_AXIS_LIMITS: dict[
     tuple[float | None, float | None],
 ] = {
     "None": (None, None),
-    "full": (6.5, 18.0),  # full range
+    "full_low": (6.5, 18.0),  # full range
     "lower": (6.5, 10.0),  # lower range
     "upper": (12.0, 18.0),  # upper range
+    "extended": (6.5, 23.0),  # extended range
 }
 
 Y_AXIS_LIMITS_ONLY_FULL: dict[

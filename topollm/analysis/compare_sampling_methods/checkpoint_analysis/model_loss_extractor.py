@@ -82,16 +82,23 @@ class ModelLossExtractor:
 
         match model_partial_name:
             case "model=model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50":
-                if data_full != "data=multiwoz21_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags":
-                    # We currently only have losses for this data_full for this model
+                if data_full not in [
+                    "data=multiwoz21_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags",
+                    "data=multiwoz21_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags",
+                ]:
+                    # We currently only have losses for this data_full for this model.
+                    # The two different data_full values are due to the fact that we changed the naming scheme,
+                    # but the data is the same.
                     return None
                 loss_column_name = f"fresh-microwave-2 - {column_name_split_descriptor}/loss"
             case "model=model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50":
-                if (
-                    data_full
-                    != "data=one-year-of-tsla-on-reddit_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags"
-                ):
+                if data_full not in [
+                    "data=one-year-of-tsla-on-reddit_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags",
+                    "data=one-year-of-tsla-on-reddit_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags",
+                ]:
                     # We currently only have losses for this data_full for this model
+                    # The two different data_full values are due to the fact that we changed the naming scheme,
+                    # but the data is the same.
                     return None
                 loss_column_name = f"dutiful-snowball-3 - {column_name_split_descriptor}/loss"
             case _:
