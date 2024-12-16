@@ -217,7 +217,7 @@ def run_checkpoint_analysis_over_different_data_and_models(
             "data_prep_sampling_method": "random",
             "data_prep_sampling_samples": 150_000,
             "embedding_data_handler_mode": comb.embedding_data_handler_mode,
-            NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["dedup"]: "array_deduplicator",
+            NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["local_estimates_dedup"]: "array_deduplicator",
             "local_estimates_samples": 60_000,
             "n_neighbors": 128,
         }

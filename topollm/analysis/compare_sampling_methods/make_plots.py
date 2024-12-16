@@ -714,10 +714,11 @@ def analyze_and_plot_influence_of_local_estimates_samples(
     filtered_df = df[
         (df["data_prep_sampling_method"] == updated_selected_subsample_dict["data_prep_sampling_method"])
         & (
-            df[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["dedup"]].isna()
-            if updated_selected_subsample_dict[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["dedup"]] is None
-            else df[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["dedup"]]
-            == updated_selected_subsample_dict[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["dedup"]]
+            df[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["local_estimates_dedup"]].isna()
+            if updated_selected_subsample_dict[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["local_estimates_dedup"]]
+            is None
+            else df[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["local_estimates_dedup"]]
+            == updated_selected_subsample_dict[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["local_estimates_dedup"]]
         )
         & (df["n_neighbors"] == updated_selected_subsample_dict["n_neighbors"])
         & (df["data_prep_sampling_seed"] == updated_selected_subsample_dict["data_prep_sampling_seed"])

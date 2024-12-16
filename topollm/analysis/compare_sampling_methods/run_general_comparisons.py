@@ -108,7 +108,7 @@ def main(
     # # # # # # # # # # # # # # # # # # # # #
     # START Global settings for analysis
 
-    array_truncation_size: int = 5_000
+    array_truncation_size: int = 60_000
 
     # END Global settingsn for analysis
     # # # # # # # # # # # # # # # # # # # # #
