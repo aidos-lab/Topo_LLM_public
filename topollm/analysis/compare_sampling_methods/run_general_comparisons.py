@@ -43,6 +43,10 @@ from tqdm import tqdm
 from topollm.analysis.compare_sampling_methods.analysis_modes.checkpoint_analysis_modes import (
     CheckpointAnalysisModes,
 )
+from topollm.analysis.compare_sampling_methods.analysis_modes.noise_analysis_modes import (
+    NoiseAnalysisCombination,
+    NoiseAnalysisModes,
+)
 from topollm.analysis.compare_sampling_methods.checkpoint_analysis.model_checkpoint_analysis import (
     run_checkpoint_analysis_over_different_data_and_models,
 )
@@ -50,16 +54,24 @@ from topollm.analysis.compare_sampling_methods.checkpoint_analysis.model_loss_ex
 from topollm.analysis.compare_sampling_methods.extract_results_from_directory_structure import (
     run_search_on_single_base_directory_and_process_and_save,
 )
+from topollm.analysis.compare_sampling_methods.filter_dataframe_based_on_filters_dict import (
+    filter_dataframe_based_on_filters_dict,
+)
 from topollm.analysis.compare_sampling_methods.load_and_concatenate_saved_dataframes import (
     load_and_concatenate_saved_dataframes,
 )
+from topollm.analysis.compare_sampling_methods.make_plots import generate_fixed_params_text
 from topollm.analysis.compare_sampling_methods.organize_results_directory_structure import (
     build_results_directory_structure,
 )
 from topollm.analysis.compare_sampling_methods.sensitivity_to_parameter_choices.data_subsampling_number_of_samples_analysis import (
     run_data_subsampling_number_of_samples_analysis,
 )
-from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH, TOPO_LLM_REPOSITORY_BASE_PATH
+from topollm.config_classes.constants import (
+    HYDRA_CONFIGS_BASE_PATH,
+    NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS,
+    TOPO_LLM_REPOSITORY_BASE_PATH,
+)
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.log_list_info import log_list_info
@@ -224,6 +236,16 @@ def main(
         )
 
     # ================================================== #
+    # Noise analysis
+    # ================================================== #
+
+    do_noise_analysis(
+        concatenated_df=concatenated_df,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+    # ================================================== #
     # Checkpoint analysis
     # ================================================== #
 
@@ -250,6 +272,104 @@ def main(
     logger.info(
         msg="Running script DONE",
     )
+
+
+def do_noise_analysis(
+    concatenated_df: pd.DataFrame,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
+    """Run the noise analysis."""
+    if concatenated_df.empty:
+        logger.critical(
+            msg="@@@ The concatenated_df is empty.\n"
+            "@@@ The noise analysis will not yield useful results.\n"
+            "@@@ Exiting the function without creating any analysis files.",
+        )
+        return
+
+    # # # #
+    # Select which analysis to run
+
+    # Create the analysis modes configuration
+    analysis_modes = NoiseAnalysisModes()
+    analysis_modes.from_concatenated_df(
+        concatenated_df=concatenated_df,
+    )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"analysis_modes:\n{pprint.pformat(object=analysis_modes)}",  # noqa: G004 - low overhead
+        )
+
+    product_to_process: list[NoiseAnalysisCombination] = analysis_modes.all_combinations()
+
+    for comb in tqdm(
+        iterable=product_to_process,
+        desc="Processing different combinations of data subsamples and models",
+        total=len(product_to_process),
+    ):
+        concatenated_filters_dict = {
+            "data_full": comb.data_full,
+            "data_subsampling_split": comb.data_subsampling_split,
+            "data_subsampling_sampling_mode": comb.data_subsampling_sampling_mode,
+            "data_subsampling_number_of_samples": 10_000,
+            "model_full": comb.model_full,
+            "data_prep_sampling_method": "random",
+            "data_prep_sampling_samples": 150_000,
+            "embedding_data_handler_mode": comb.embedding_data_handler_mode,
+            NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["local_estimates_dedup"]: "array_deduplicator",
+            "local_estimates_samples": 60_000,
+            "n_neighbors": 128,
+        }
+
+        common_prefix_path = pathlib.Path(
+            TOPO_LLM_REPOSITORY_BASE_PATH,
+            "data",
+            "saved_plots",
+            "artificial_noise_analysis",
+            f"{comb.data_full=}",
+            f"{comb.data_subsampling_split=}",
+            f"{comb.data_subsampling_sampling_mode=}",
+            f"{comb.embedding_data_handler_mode=}",
+            f"{comb.model_full=}",
+        )
+
+        filtered_concatenated_df: pd.DataFrame = filter_dataframe_based_on_filters_dict(
+            df=concatenated_df,
+            filters_dict=concatenated_filters_dict,
+            verbosity=verbosity,
+            logger=logger,
+        )
+
+        if filtered_concatenated_df.empty:
+            logger.info(
+                msg=f"This combination of filters yielded an empty dataframe: {concatenated_filters_dict = }",  # noqa: G004 - low overhead
+            )
+            logger.info(
+                msg="Skipping this combination of filters ...",
+            )
+            continue
+
+        fixed_params_text: str = generate_fixed_params_text(
+            filters_dict=concatenated_filters_dict,
+        )
+
+        # # # #
+        # TODO Placeholder path for saving the analysis results
+        # Save the raw data
+        raw_data_path = pathlib.Path(
+            common_prefix_path,
+            "raw_data",
+            "raw_data.csv",
+        )
+        raw_data_path.parent.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+        filtered_concatenated_df.to_csv(
+            path_or_buf=raw_data_path,
+        )
 
 
 def do_data_subsampling_number_of_samples_analysis(
