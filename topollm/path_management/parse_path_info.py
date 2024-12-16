@@ -96,12 +96,12 @@ def parse_path_info_full(
 
     # Extract data information
     data_info: dict = parse_data_info(
-        path_str=path_str,
+        path=path_str,
     )
 
     # Extract data subsampling information
     data_subsampling_info: dict = parse_data_subsampling_info(
-        path_str=path_str,
+        path=path_str,
     )
 
     # Extract embedding data handler information
@@ -135,7 +135,7 @@ def parse_path_info_full(
     #   followed by one or more alphanumeric or underscore characters for deduplication.
     local_estimates_info: dict = {}
     desc_match: re.Match[str] | None = re.search(
-        pattern=r"desc=(\w+)_samples=(\d+)_zerovec=([a-zA-Z0-9]+)(?:_dedup=([a-zA-Z0-9_]+))?",
+        pattern=r"desc=(\w+)_samples=(\d+)_zerovec=([a-zA-Z0-9]+)(?:_dedup=(array_deduplicator|do_nothing))?(?:_noise=([a-zA-Z0-9_]+))?",
         string=path_str,
     )
     if desc_match:
@@ -146,6 +146,7 @@ def parse_path_info_full(
         local_estimates_info[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["dedup"]] = (
             desc_match.group(4) if desc_match.group(4) else None
         )
+        local_estimates_info["local_estimates_noise"] = desc_match.group(5) if desc_match.group(5) else None
 
     # Extract neighbors information
     # Matches neighbors mode and number of neighbors, e.g.,
@@ -198,10 +199,14 @@ def parse_path_info_full(
 
 
 def parse_data_info(
-    path_str: str,
+    path: str | pathlib.Path,
 ) -> dict[str, str | int]:
     """Parse the data information from the given path."""
-    parsed_info = {}
+    path_str = str(
+        object=path,
+    )
+
+    parsed_info: dict = {}
 
     # Matches and parses data information including dataset name, split, context, number of samples, and feature column,
     # e.g., "data-multiwoz21_split-validation_ctxt-dataset_entry_samples-3000_feat-col-ner_tags"
@@ -211,35 +216,41 @@ def parse_data_info(
     # - feat-col=([a-zA-Z0-9_]+): Match the feature column.
     regex = (
         r"data=([\w-]+)"  # Dataset name
+        r"(?:_rm-empty=([a-zA-Z0-9_]+))?"  # Optional remove empty
         r"_spl-mode=([a-zA-Z0-9_]+)"  # Splitting mode
         r"(?:_spl-[a-zA-Z0-9_=.-]+)*"  # Optional splitting parameters
         r"_ctxt=([a-zA-Z0-9_]+)"  # Context
         r"_feat-col=([a-zA-Z0-9_]+)"  # Feature column
     )
-    data_match = re.search(
+    data_match: re.Match[str] | None = re.search(
         pattern=regex,
         string=path_str,
     )
     if data_match:
         parsed_info["data_full"] = data_match.group(0)  # Full matched string
         parsed_info["data_dataset_name"] = data_match.group(1)
-        parsed_info["data_splitting_mode"] = data_match.group(2)
-        parsed_info["data_context"] = data_match.group(3)
-        parsed_info["data_feature_column"] = data_match.group(4)
+        parsed_info[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["rm-empty"]] = data_match.group(2)
+        parsed_info["data_splitting_mode"] = data_match.group(3)
+        parsed_info["data_context"] = data_match.group(4)
+        parsed_info["data_feature_column"] = data_match.group(5)
     return parsed_info
 
 
 def parse_data_subsampling_info(
-    path_str: str,
+    path: str | pathlib.Path,
 ) -> dict:
     """Parse the data subsampling information from the given path."""
-    parsed_info = {}
+    path_str = str(
+        object=path,
+    )
+
+    parsed_info: dict = {}
 
     # e.g.
     # > "split=test_samples=2000_sampling=take_first"
     # > "split=test_samples=10000_sampling=random_sampling-seed=777"
 
-    subsampling_match = re.search(
+    subsampling_match: re.Match[str] | None = re.search(
         pattern=r"split=(\w+)_samples=(\d+)_sampling=(take_first|random)(?:_sampling-seed=(\d+))?",
         string=path_str,
     )
@@ -295,7 +306,9 @@ def parse_model_info(
 
     """
     # Convert the path to a string
-    path_str = str(object=path)
+    path_str = str(
+        object=path,
+    )
 
     # Initialize an empty dictionary to hold parsed values
     parsed_info: dict[

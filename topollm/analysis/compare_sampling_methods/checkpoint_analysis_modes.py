@@ -48,10 +48,7 @@ class CheckpointAnalysisModes:
     """Configuration for different modes of checkpoint analysis."""
 
     data_full_list: list[str] = field(
-        default_factory=lambda: [
-            "data=multiwoz21_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags",
-            "data=one-year-of-tsla-on-reddit_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags",
-        ],
+        default_factory=list,
     )
     data_subsampling_split_list: list[str] = field(
         default_factory=lambda: [
@@ -82,6 +79,7 @@ class CheckpointAnalysisModes:
         concatenated_df: pd.DataFrame,
     ) -> None:
         """Populate fields that depend on concatenated_df."""
+        self.data_full_list = concatenated_df["data_full"].unique().tolist()
         self.embedding_data_handler_mode_list = concatenated_df["embedding_data_handler_mode"].unique().tolist()
         self.model_partial_name_list = concatenated_df["model_partial_name"].unique().tolist()
         self.language_model_seed_list = concatenated_df["model_seed"].unique().tolist()
