@@ -25,7 +25,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Run script to create embedding vectors from dataset based on config."""
+"""Run script to load computed estimates from disk and run various comparison analysis steps."""
 
 import logging
 import pathlib
@@ -129,7 +129,7 @@ def main(
 
     array_truncation_size: int = 60_000
 
-    # END Global settingsn for analysis
+    # END Global settings for analysis
     # # # # # # # # # # # # # # # # # # # # #
 
     main_config: MainConfig = initialize_configuration(
@@ -523,9 +523,6 @@ def do_noise_analysis(
                     verbosity=verbosity,
                     logger=logger,
                 )
-
-        # TODO: Create analysis of twoNN measure for individual tokens under different noise distortions
-        # TODO: (currently, we plan to create an extra script for the token-level analysis)
 
 
 def do_data_subsampling_number_of_samples_analysis(

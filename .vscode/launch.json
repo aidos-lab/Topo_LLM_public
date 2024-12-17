@@ -423,6 +423,16 @@
             ]
         },
         {
+            "name": "run_compare_hausdorff_distances_and_local_estimates.py; on example data",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/analysis/investigate_distances_and_influence_on_local_estimates/run_compare_hausdorff_distances_and_local_estimates.py",
+            "console": "integratedTerminal",
+            "args": [
+                "feature_flags.analysis.compare_sampling_methods.do_iterate_all_partial_search_base_directories=True",
+            ]
+        },
+        {
             "name": "gsutil_rsync_directory_to_and_from_gc_bucket.py",
             "type": "debugpy",
             "request": "launch",
