@@ -71,19 +71,21 @@ from topollm.analysis.compare_sampling_methods.organize_results_directory_struct
 from topollm.analysis.compare_sampling_methods.sensitivity_to_parameter_choices.data_subsampling_number_of_samples_analysis import (
     run_data_subsampling_number_of_samples_analysis,
 )
+from topollm.analysis.local_estimates_handling.saving.local_estimates_containers import LocalEstimatesContainer
 from topollm.analysis.local_estimates_handling.saving.local_estimates_saving_manager import LocalEstimatesSavingManager
 from topollm.config_classes.constants import (
     HYDRA_CONFIGS_BASE_PATH,
     NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS,
     TOPO_LLM_REPOSITORY_BASE_PATH,
 )
+from topollm.config_classes.main_config import MainConfig
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.logging.log_list_info import log_list_info
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
-from topollm.typing.enums import Verbosity
+from topollm.typing.enums import ArtificialNoiseMode, Verbosity
 
 if TYPE_CHECKING:
     from topollm.config_classes.main_config import MainConfig
@@ -137,24 +139,63 @@ def main(
     )
     verbosity: Verbosity = main_config.verbosity
 
-    embeddings_path_manager: EmbeddingsPathManager = get_embeddings_path_manager(
+    embeddings_path_manager_for_base_data: EmbeddingsPathManager = get_embeddings_path_manager(
         main_config=main_config,
         logger=logger,
     )
-    data_dir: pathlib.Path = embeddings_path_manager.data_dir
+    data_dir: pathlib.Path = embeddings_path_manager_for_base_data.data_dir
 
     # ================================================== #
-    #
+    # Non-noised data
     # ================================================== #
 
-    local_estimates_saving_manager = LocalEstimatesSavingManager(
-        embeddings_path_manager=embeddings_path_manager,
+    local_estimates_saving_manager_for_base_data = LocalEstimatesSavingManager(
+        embeddings_path_manager=embeddings_path_manager_for_base_data,
         verbosity=verbosity,
         logger=logger,
     )
-    # TODO: Use the LocalEstimatesSavingManager to load the computed local estimates
+
+    local_estimates_container_base_data: LocalEstimatesContainer = (
+        local_estimates_saving_manager_for_base_data.load_local_estimates()
+    )
+
+    # ================================================== #
+    # Load artificial noise data
+    # ================================================== #
+
+    artificial_noise_mode = ArtificialNoiseMode.GAUSSIAN
+    artificial_noise_distortion_parameter = 0.01
+    artificial_noise_seed = 4
+
+    main_config_for_noised_data: MainConfig = main_config.model_copy(
+        deep=True,
+    )
+    main_config_for_noised_data.local_estimates.noise.artificial_noise_mode = artificial_noise_mode
+    main_config_for_noised_data.local_estimates.noise.distortion_parameter = artificial_noise_distortion_parameter
+    main_config_for_noised_data.local_estimates.noise.seed = artificial_noise_seed
+
+    embeddings_path_manager_for_noised_data: EmbeddingsPathManager = get_embeddings_path_manager(
+        main_config=main_config_for_noised_data,
+        logger=logger,
+    )
+
+    local_estimates_saving_manager_for_noised_data = LocalEstimatesSavingManager(
+        embeddings_path_manager=embeddings_path_manager_for_noised_data,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+    local_estimates_container_noised_data: LocalEstimatesContainer = (
+        local_estimates_saving_manager_for_noised_data.load_local_estimates()
+    )
+
+    # # # #
+    # Compute differences between the local estimates
 
     # TODO: Implement the analysis here
+
+    # TODO(Ben): Implement iteration over different noise levels and noise seeds,
+    # to make a plot of Hausdorff distances vs. local estimates for each noise level and seed.
 
     # TODO: Create analysis of twoNN measure for individual tokens under different noise distortions
     # TODO: (currently, we plan to create an extra script for the token-level analysis)
