@@ -71,6 +71,7 @@ from topollm.analysis.compare_sampling_methods.organize_results_directory_struct
 from topollm.analysis.compare_sampling_methods.sensitivity_to_parameter_choices.data_subsampling_number_of_samples_analysis import (
     run_data_subsampling_number_of_samples_analysis,
 )
+from topollm.analysis.local_estimates_handling.saving.local_estimates_saving_manager import LocalEstimatesSavingManager
 from topollm.config_classes.constants import (
     HYDRA_CONFIGS_BASE_PATH,
     NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS,
@@ -146,6 +147,11 @@ def main(
     #
     # ================================================== #
 
+    local_estimates_saving_manager = LocalEstimatesSavingManager(
+        embeddings_path_manager=embeddings_path_manager,
+        verbosity=verbosity,
+        logger=logger,
+    )
     # TODO: Use the LocalEstimatesSavingManager to load the computed local estimates
 
     # TODO: Implement the analysis here

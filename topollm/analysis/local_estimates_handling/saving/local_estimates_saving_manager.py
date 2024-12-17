@@ -127,6 +127,18 @@ class LocalEstimatesSavingManager:
                 msg=f"save_path_collection:\n{pprint.pformat(object=self.save_path_collection)}",  # noqa: G004 - low overhead
             )
 
+    def __repr__(
+        self,
+    ) -> str:
+        """Return a string representation of the object."""
+        return f"{self.__class__.__name__}(save_path_collection={pprint.pformat(object=self.save_path_collection)})"
+
+    def __str__(
+        self,
+    ) -> str:
+        """Return a string representation of the object."""
+        return f"{self.__class__.__name__}(save_path_collection={pprint.pformat(object=self.save_path_collection)})"
+
     def save_local_estimates(
         self,
         local_estimates_container: LocalEstimatesContainer,

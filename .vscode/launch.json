@@ -429,7 +429,23 @@
             "program": "topollm/analysis/investigate_distances_and_influence_on_local_estimates/run_compare_hausdorff_distances_and_local_estimates.py",
             "console": "integratedTerminal",
             "args": [
-                "feature_flags.analysis.compare_sampling_methods.do_iterate_all_partial_search_base_directories=True",
+                "data=multiwoz21_test",
+                "data.data_subsampling.sampling_mode=random",
+                "data.data_subsampling.number_of_samples=10000",
+                "data.data_subsampling.sampling_seed=778",
+                "+data.dataset_type=huggingface_dataset_named_entity",
+                "tokenizer.add_prefix_space=True",
+                "language_model=roberta-base",
+                "embeddings.embedding_data_handler.mode=masked_token",
+                "embeddings.embedding_extraction.layer_indices=[-1]",
+                "embeddings_data_prep.sampling.num_samples=150000",
+                "embeddings_data_prep.sampling.sampling_mode=random",
+                "embeddings_data_prep.sampling.seed=42",
+                "local_estimates.pointwise.n_neighbors_mode=absolute_size",
+                "local_estimates.filtering.deduplication_mode=array_deduplicator",
+                "local_estimates.filtering.num_samples=60000",
+                "local_estimates.pointwise.absolute_n_neighbors=128",
+                "feature_flags.analysis.compare_sampling_methods.do_iterate_all_partial_search_base_directories=True", // This is an example for setting the feature flags
             ]
         },
         {

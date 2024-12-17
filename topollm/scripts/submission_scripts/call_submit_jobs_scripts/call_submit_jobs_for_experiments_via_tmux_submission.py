@@ -67,12 +67,12 @@ def submit_jobs(
     # Define job-specific configurations
     data_list_options: list[str] = [
         # "reddit_only",
-        # "multiwoz21_only",
-        "wikitext_only",
+        "multiwoz21_only",
+        # "wikitext_only",
     ]
 
     experiment_selector_options: list[str] = [
-        "regular_token_embeddings",
+        # "regular_token_embeddings",
         "masked_token_embeddings",
         # "tiny_dropout_variations_coarse_checkpoint_resolution",
     ]
