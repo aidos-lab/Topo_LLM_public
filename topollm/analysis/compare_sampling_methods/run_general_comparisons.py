@@ -71,7 +71,6 @@ from topollm.analysis.compare_sampling_methods.sensitivity_to_parameter_choices.
 )
 from topollm.config_classes.constants import (
     HYDRA_CONFIGS_BASE_PATH,
-    NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS,
     TOPO_LLM_REPOSITORY_BASE_PATH,
 )
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
@@ -355,7 +354,6 @@ def do_noise_analysis(
         )
 
         # # # #
-        # TODO Placeholder path for saving the analysis results
         # Save the raw data
         raw_data_path = pathlib.Path(
             common_prefix_path,
@@ -373,7 +371,8 @@ def do_noise_analysis(
         data_df_to_analyze: pd.DataFrame = filtered_concatenated_df.copy()
         y_column_name = "array_data_truncated_mean"
 
-        # Including the count of values for each noise distortion level
+        # # # #
+        # Create aggregated data
         grouped_stats: pd.DataFrame = (
             data_df_to_analyze.groupby(by="local_estimates_noise_distortion")[y_column_name]
             .agg(func=["mean", "std", "count"])
@@ -382,8 +381,11 @@ def do_noise_analysis(
         # TODO: Investigate the problem with duplicate lines in the aggregated data
 
         # TODO: Add the data points for no noise distortion
+        # TODO: Add the fixed parameters description to the plot
+        # TODO: Add fixed scaling for the y-axis
+        # TODO: Create analysis of the standard deviation under different noise distortions
 
-        # Display the updated results to the user
+        # Save the aggregated data
         aggregated_data_path = pathlib.Path(
             common_prefix_path,
             "aggregated_data",
@@ -404,6 +406,9 @@ def do_noise_analysis(
             output_dir=common_prefix_path,
         )
 
+        # TODO: Create analysis of twoNN measure for individual tokens under different noise distortions
+        # TODO(currently, we plan to create an extra script for the token-level analysis)
+
 
 def plot_individual(
     data: pd.DataFrame,
@@ -414,32 +419,34 @@ def plot_individual(
 
     Parameters
     ----------
-    - data:
+    data:
         The dataframe filtered for the specific seed combination.
-    - seed:
+    seed_combination:
         The unique seed combination identifier.
-    - output_dir:
+    output_dir:
         Directory to save the plot.
 
     """
-    fig, ax = plt.subplots(figsize=(18, 10))
+    fig, ax = plt.subplots(
+        figsize=(18, 10),
+    )
     ax.scatter(
         data["local_estimates_noise_distortion"],
         data["array_data_mean"],
         alpha=0.5,
         label="Data Points",
     )
-    ax.plot(
-        data.sort_values("local_estimates_noise_distortion")["local_estimates_noise_distortion"],
-        data.sort_values("local_estimates_noise_distortion")["array_data_mean"],
-        color="red",
-        label="Trend Line",
-    )
 
     # Add labels and title
-    ax.set_xlabel("Local Estimates Noise Distortion")
-    ax.set_ylabel("Array Data Mean")
-    ax.set_title(f"Noise Analysis for Seed Combination: {seed_combination}")
+    ax.set_xlabel(
+        xlabel="Local Estimates Noise Distortion",
+    )
+    ax.set_ylabel(
+        ylabel="Array Data Mean",
+    )
+    ax.set_title(
+        label=f"Noise Analysis for {seed_combination = }",
+    )
     ax.legend()
     ax.grid(visible=True)
 
@@ -470,30 +477,34 @@ def plot_individual_and_combined(
 
     Parameters
     ----------
-    - data: The dataframe containing relevant columns.
-    - output_dir: Directory to save the plots.
+    data:
+        The dataframe containing relevant columns.
+    output_dir:
+        Directory to save the plots.
 
     """
     # Add a unique identifier for each combination of sampling seeds
     data["seed_combination"] = (
-        "data-sub="
+        "data-sub-seed="
         + data["data_subsampling_sampling_seed"].astype(dtype=str)
         + "_"
-        + "data-prep="
+        + "data-prep-seed="
         + data["data_prep_sampling_seed"].astype(dtype=str)
     )
 
     # Ensure numeric columns for plotting
     data["local_estimates_noise_distortion"] = pd.to_numeric(
-        data["local_estimates_noise_distortion"],
+        arg=data["local_estimates_noise_distortion"],
         errors="coerce",
     )
     data["array_data_mean"] = pd.to_numeric(
-        data["array_data_mean"],
+        arg=data["array_data_mean"],
         errors="coerce",
     )
 
-    data["marker_type"] = data["data_subsampling_sampling_seed"].astype(dtype=str)
+    data["marker_type"] = data["data_subsampling_sampling_seed"].astype(
+        dtype=str,
+    )
 
     # Filter data to remove rows with missing values
     filtered_data: pd.DataFrame = data.dropna(
@@ -530,9 +541,15 @@ def plot_individual_and_combined(
         alpha=0.6,
         ax=ax,
     )
-    ax.set_title(label="Combined Noise Analysis with Seed Combinations")
-    ax.set_xlabel(xlabel="local_estimates_noise_distortion")
-    ax.set_ylabel(ylabel="array_data_mean")
+    ax.set_title(
+        label="Combined Noise Analysis with Seed Combinations",
+    )
+    ax.set_xlabel(
+        xlabel="local_estimates_noise_distortion",
+    )
+    ax.set_ylabel(
+        ylabel="array_data_mean",
+    )
     ax.legend(
         title="Seed Combinations",
         bbox_to_anchor=(1.05, 1),
