@@ -388,7 +388,7 @@
             "args": []
         },
         {
-            "name": "run_general_comparisons.py without iteration",
+            "name": "run_general_comparisons.py; without iteration",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/analysis/compare_sampling_methods/run_general_comparisons.py",
@@ -398,7 +398,20 @@
             ]
         },
         {
-            "name": "run_general_comparisons.py with iteration but without expensive plots during iteration",
+            "name": "run_general_comparisons.py; without iteration; only noise analysis",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/analysis/compare_sampling_methods/run_general_comparisons.py",
+            "console": "integratedTerminal",
+            "args": [
+                "feature_flags.analysis.compare_sampling_methods.do_iterate_all_partial_search_base_directories=False",
+                "feature_flags.analysis.compare_sampling_methods.do_noise_analysis=True",
+                "feature_flags.analysis.compare_sampling_methods.do_checkpoint_analysis=False",
+                "feature_flags.analysis.compare_sampling_methods.do_data_subsampling_number_of_samples_analysis=False",
+            ]
+        },
+        {
+            "name": "run_general_comparisons.py; with iteration; but without expensive plots during iteration",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/analysis/compare_sampling_methods/run_general_comparisons.py",

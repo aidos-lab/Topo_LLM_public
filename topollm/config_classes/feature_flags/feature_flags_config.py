@@ -53,6 +53,27 @@ class CompareSamplingMethodsFeatureFlagsConfig(ConfigBaseModel):
         description="Whether to create a boxplot of the mean over different sampling seeds.",
     )
 
+    # # # #
+    # Different types of analysis
+
+    do_noise_analysis: bool = Field(
+        default=True,
+        title="Do noise analysis.",
+        description="Whether to do noise analysis.",
+    )
+
+    do_checkpoint_analysis: bool = Field(
+        default=True,
+        title="Do checkpoint analysis.",
+        description="Whether to do checkpoint analysis.",
+    )
+
+    do_data_subsampling_number_of_samples_analysis: bool = Field(
+        default=True,
+        title="Do data subsampling number of samples analysis.",
+        description="Whether to do data subsampling number of samples analysis.",
+    )
+
 
 class DistanceFunctionsFeatureFlagsConfig(ConfigBaseModel):
     """Feature flags for the distance functions."""

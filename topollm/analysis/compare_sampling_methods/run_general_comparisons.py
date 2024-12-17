@@ -237,36 +237,37 @@ def main(
         )
 
     # ================================================== #
-
-    # ================================================== #
     # Noise analysis
     # ================================================== #
 
-    do_noise_analysis(
-        concatenated_df=concatenated_df,
-        verbosity=verbosity,
-        logger=logger,
-    )
+    if main_config.feature_flags.analysis.compare_sampling_methods.do_noise_analysis:
+        do_noise_analysis(
+            concatenated_df=concatenated_df,
+            verbosity=verbosity,
+            logger=logger,
+        )
 
     # ================================================== #
     # Checkpoint analysis
     # ================================================== #
 
-    do_checkpoint_analysis(
-        concatenated_df=concatenated_df,
-        verbosity=verbosity,
-        logger=logger,
-    )
+    if main_config.feature_flags.analysis.compare_sampling_methods.do_checkpoint_analysis:
+        do_checkpoint_analysis(
+            concatenated_df=concatenated_df,
+            verbosity=verbosity,
+            logger=logger,
+        )
 
     # ================================================== #
     # Data subsampling number of samples analysis
     # ================================================== #
 
-    do_data_subsampling_number_of_samples_analysis(
-        concatenated_df=concatenated_df,
-        verbosity=verbosity,
-        logger=logger,
-    )
+    if main_config.feature_flags.analysis.compare_sampling_methods.do_data_subsampling_number_of_samples_analysis:
+        do_data_subsampling_number_of_samples_analysis(
+            concatenated_df=concatenated_df,
+            verbosity=verbosity,
+            logger=logger,
+        )
 
     # ================================================== #
     # Note: You can add additional analysis steps here
@@ -307,6 +308,9 @@ def do_noise_analysis(
 
     product_to_process: list[NoiseAnalysisCombination] = analysis_modes.all_combinations()
 
+    # This column is used to describe the strength of the artificial noise which was added to the local estimates
+    noise_strength_column_name = "local_estimates_noise_distortion"
+
     for comb in tqdm(
         iterable=product_to_process,
         desc="Processing different combinations of data subsamples and models",
@@ -340,6 +344,11 @@ def do_noise_analysis(
             logger=logger,
         )
 
+        # This string will be used in the plots
+        fixed_params_text: str = generate_fixed_params_text(
+            filters_dict=concatenated_filters_dict,
+        )
+
         if filtered_concatenated_df.empty:
             logger.info(
                 msg=f"This combination of filters yielded an empty dataframe: {concatenated_filters_dict = }",  # noqa: G004 - low overhead
@@ -349,9 +358,14 @@ def do_noise_analysis(
             )
             continue
 
-        fixed_params_text: str = generate_fixed_params_text(
-            filters_dict=concatenated_filters_dict,
-        )
+        # # # #
+        # If the value in the 'local_estimates_noise_artificial_noise_mode' column is 'do_nothing',
+        # the 'noise_strength_column_name' column should be filled with 0.
+
+        filtered_concatenated_df.loc[
+            filtered_concatenated_df["local_estimates_noise_artificial_noise_mode"] == "do_nothing",
+            noise_strength_column_name,
+        ] = 0.0
 
         # # # #
         # Save the raw data
@@ -372,10 +386,16 @@ def do_noise_analysis(
         y_column_name = "array_data_truncated_mean"
 
         # # # #
-        # Create aggregated data
+        # Create aggregated data by grouping the data by the noise strength.
         grouped_stats: pd.DataFrame = (
-            data_df_to_analyze.groupby(by="local_estimates_noise_distortion")[y_column_name]
-            .agg(func=["mean", "std", "count"])
+            data_df_to_analyze.groupby(by=noise_strength_column_name)[y_column_name]
+            .agg(
+                func=[
+                    "mean",
+                    "std",
+                    "count",
+                ],
+            )
             .reset_index()
         )
         # TODO: Investigate the problem with duplicate lines in the aggregated data
@@ -404,6 +424,7 @@ def do_noise_analysis(
         plot_individual_and_combined(
             data=data_df_to_analyze,
             output_dir=common_prefix_path,
+            noise_strength_column_name=noise_strength_column_name,
         )
 
         # TODO: Create analysis of twoNN measure for individual tokens under different noise distortions
@@ -414,6 +435,7 @@ def plot_individual(
     data: pd.DataFrame,
     seed_combination: str,
     output_dir: pathlib.Path,
+    noise_strength_column_name: str = "local_estimates_noise_distortion",
 ) -> None:
     """Create and save an individual plot for a specific seed combination.
 
@@ -431,7 +453,7 @@ def plot_individual(
         figsize=(18, 10),
     )
     ax.scatter(
-        data["local_estimates_noise_distortion"],
+        data[noise_strength_column_name],
         data["array_data_mean"],
         alpha=0.5,
         label="Data Points",
@@ -468,12 +490,13 @@ def plot_individual(
 def plot_individual_and_combined(
     data: pd.DataFrame,
     output_dir: pathlib.Path,
+    noise_strength_column_name: str = "local_estimates_noise_distortion",
 ) -> None:
     """Create individual plots for each combination of seeds.
 
     Combinations are taken from `data_subsampling_sampling_seed` and
     `data_prep_sampling_seed` and a combined plot showing `array_data_mean` vs.
-    `local_estimates_noise_distortion` with unique colors for each seed combination.
+    `noise_strength_column_name` with unique colors for each seed combination.
 
     Parameters
     ----------
@@ -493,8 +516,8 @@ def plot_individual_and_combined(
     )
 
     # Ensure numeric columns for plotting
-    data["local_estimates_noise_distortion"] = pd.to_numeric(
-        arg=data["local_estimates_noise_distortion"],
+    data[noise_strength_column_name] = pd.to_numeric(
+        arg=data[noise_strength_column_name],
         errors="coerce",
     )
     data["array_data_mean"] = pd.to_numeric(
@@ -509,7 +532,7 @@ def plot_individual_and_combined(
     # Filter data to remove rows with missing values
     filtered_data: pd.DataFrame = data.dropna(
         subset=[
-            "local_estimates_noise_distortion",
+            noise_strength_column_name,
             "array_data_mean",
             "seed_combination",
         ],
@@ -526,6 +549,7 @@ def plot_individual_and_combined(
                 data=subset,
                 seed_combination=seed,
                 output_dir=output_dir,
+                noise_strength_column_name=noise_strength_column_name,
             )
 
     # Combined plot with unique colors for each seed combination
@@ -534,7 +558,7 @@ def plot_individual_and_combined(
     )
     sns.scatterplot(
         data=filtered_data,
-        x="local_estimates_noise_distortion",
+        x=noise_strength_column_name,
         y="array_data_mean",
         hue="seed_combination",
         style="marker_type",  # Different marker shapes based on `data_subsampling_sampling_seed`
@@ -545,7 +569,7 @@ def plot_individual_and_combined(
         label="Combined Noise Analysis with Seed Combinations",
     )
     ax.set_xlabel(
-        xlabel="local_estimates_noise_distortion",
+        xlabel=noise_strength_column_name,
     )
     ax.set_ylabel(
         ylabel="array_data_mean",
