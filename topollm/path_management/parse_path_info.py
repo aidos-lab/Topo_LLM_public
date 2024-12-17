@@ -223,7 +223,7 @@ def parse_local_estimates_info(
             desc_match.group(4) if desc_match.group(4) else None
         )
         local_estimates_info[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["local_estimates_noise"]] = (
-            desc_match.group(5) if desc_match.group(5) else None
+            str(desc_match.group(5)) if desc_match.group(5) else None
         )
         local_estimates_info[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["local_estimates_distor"]] = (
             float(desc_match.group(6)) if desc_match.group(6) else None

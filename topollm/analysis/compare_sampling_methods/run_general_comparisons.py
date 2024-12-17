@@ -73,6 +73,7 @@ from topollm.analysis.compare_sampling_methods.sensitivity_to_parameter_choices.
 )
 from topollm.config_classes.constants import (
     HYDRA_CONFIGS_BASE_PATH,
+    NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS,
     TOPO_LLM_REPOSITORY_BASE_PATH,
 )
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
@@ -311,8 +312,9 @@ def do_noise_analysis(
 
     product_to_process: list[NoiseAnalysisCombination] = analysis_modes.all_combinations()
 
-    # This column is used to describe the strength of the artificial noise which was added to the local estimates
-    noise_strength_column_name = "local_estimates_noise_distortion"
+    # This column is used to describe the strength of the artificial noise which was added to the local estimates,
+    # usually, it should be equal to "local_estimates_noise_distortion"
+    noise_strength_column_name = NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["local_estimates_distor"]
 
     for comb in tqdm(
         iterable=product_to_process,
@@ -371,6 +373,31 @@ def do_noise_analysis(
         ] = 0.0
 
         # # # #
+        # Cast columns to the correct data types.
+        # Note that we can only cast columns where all values are set
+        # (so we cannot cast the noise seed column, as it is not set for all rows).
+
+        # Columns that should be of type float
+        columns_with_float_type: list[str] = [
+            # All rows have been assigned a value in the 'local_estimates_noise_distortion' column above,
+            # so we can safely cast it to float.
+            noise_strength_column_name,
+        ]
+
+        for column_name in columns_with_float_type:
+            if column_name in concatenated_df.columns:
+                # Check that there are no missing values in the column
+                if concatenated_df[column_name].isna().sum() != 0:
+                    logger.warning(
+                        msg=f"The column '{column_name}' contains missing values. "  # noqa: G004 - low overhead
+                        f"Casting to float might lead to errors.",
+                    )
+
+                filtered_concatenated_df[column_name] = filtered_concatenated_df[column_name].astype(
+                    dtype=float,
+                )
+
+        # # # #
         # Save the raw data
         raw_data_path = pathlib.Path(
             common_prefix_path,
@@ -407,6 +434,31 @@ def do_noise_analysis(
 
             # # # #
             # Create aggregated data by grouping the data by the noise strength.
+            #
+            # Note: To avoid problems in the grouping by the noise strength column (we encountered duplicate lines),
+            # make sure that the values are cast to float.
+            # Otherwise, 0.01 might erroneously be treated as the string "0.01".
+
+            # Log unique values in the "local_estimates_noise_distortion" column with full precision
+            unique_values = data_df_to_analyze[noise_strength_column_name].unique()
+            unique_values_sorted = sorted(
+                unique_values,
+            )
+            if verbosity >= Verbosity.NORMAL:
+                logger.info(
+                    msg=f"{unique_values_sorted = }",  # noqa: G004 - low overhead
+                )
+                logger.info(
+                    msg=f"{len(unique_values_sorted) = }",  # noqa: G004 - low overhead
+                )
+
+            # Check that the values are all floats, so that we can avoid problems in the grouping
+            if not all(isinstance(value, float) for value in unique_values_sorted):
+                logger.warning(
+                    msg="The values in the 'local_estimates_noise_distortion' column are not all floats. "
+                    "This might lead to problems in the grouping by the noise strength column.",
+                )
+
             grouped_stats: pd.DataFrame = (
                 data_df_to_analyze.groupby(
                     by=noise_strength_column_name,
@@ -427,7 +479,6 @@ def do_noise_analysis(
                     df_name="grouped_stats",
                     logger=logger,
                 )
-            # TODO: Investigate the problem with duplicate lines in the aggregated data
 
             # Save the aggregated data
             aggregated_data_path = pathlib.Path(
@@ -474,7 +525,7 @@ def do_noise_analysis(
                 )
 
         # TODO: Create analysis of twoNN measure for individual tokens under different noise distortions
-        # TODO(currently, we plan to create an extra script for the token-level analysis)
+        # TODO: (currently, we plan to create an extra script for the token-level analysis)
 
 
 def do_data_subsampling_number_of_samples_analysis(
