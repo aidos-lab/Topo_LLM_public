@@ -33,11 +33,11 @@ import pathlib
 import pandas as pd
 from tqdm import tqdm
 
-from topollm.analysis.compare_sampling_methods.checkpoint_analysis.model_loss_extractor import ModelLossExtractor
-from topollm.analysis.compare_sampling_methods.checkpoint_analysis_modes import (
+from topollm.analysis.compare_sampling_methods.analysis_modes.checkpoint_analysis_modes import (
     CheckpointAnalysisCombination,
     CheckpointAnalysisModes,
 )
+from topollm.analysis.compare_sampling_methods.checkpoint_analysis.model_loss_extractor import ModelLossExtractor
 from topollm.analysis.compare_sampling_methods.filter_dataframe_based_on_filters_dict import (
     filter_dataframe_based_on_filters_dict,
 )
@@ -90,7 +90,7 @@ def create_histograms_over_model_checkpoints(
         )
 
         # Check that in this special case, the model checkpoint column is filled with empty strings
-        if not filtered_concatenated_df[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["ckpt"]].eq(other="").all():
+        if not filtered_concatenated_df[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["model_ckpt"]].eq(other="").all():
             msg = (
                 "The model checkpoint column is not filled with empty strings for the base model. "
                 "This should not happen. Please check the data."
@@ -100,7 +100,7 @@ def create_histograms_over_model_checkpoints(
             )
 
         # Set all the values in the "model_checkpoint" column (all belonging to the base model) to "-1"
-        filtered_concatenated_df[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["ckpt"]] = -1
+        filtered_concatenated_df[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["model_ckpt"]] = -1
 
         # For this base model case, we use the resulting dataframe as the filtered_for_base_model_concatenated_df
         data_for_checkpoint_analysis_df = filtered_concatenated_df
@@ -119,7 +119,7 @@ def create_histograms_over_model_checkpoints(
         )
 
         # Set all the values in the "model_checkpoint" column belonging to the base model to "-1"
-        filtered_for_base_model_concatenated_df[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["ckpt"]] = -1
+        filtered_for_base_model_concatenated_df[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["model_ckpt"]] = -1
 
         # # # #
         # Create a dataframe by concatenating the two dataframes
@@ -180,7 +180,7 @@ def create_histograms_over_model_checkpoints(
         create_boxplot_of_mean_over_different_sampling_seeds(
             subset_local_estimates_df=data_for_checkpoint_analysis_df,
             plot_save_path_collection=plot_save_path_collection,
-            x_column_name=NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["ckpt"],
+            x_column_name=NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["model_ckpt"],
             y_column_name="array_data_truncated_mean",
             fixed_params_text=fixed_params_text,
             model_losses_df=model_losses_df,
@@ -207,19 +207,14 @@ def run_checkpoint_analysis_over_different_data_and_models(
         desc="Processing different combinations of data subsamples and models",
         total=len(product_to_process),
     ):
-        concatenated_filters_dict = {
+        concatenated_filters_dict: dict = {
+            **checkpoint_analysis_modes.common_filters_dict,
             "data_full": comb.data_full,
             "data_subsampling_split": comb.data_subsampling_split,
             "data_subsampling_sampling_mode": comb.data_subsampling_sampling_mode,
-            "data_subsampling_number_of_samples": 10_000,
             "model_partial_name": comb.model_partial_name,
             "model_seed": comb.language_model_seed,
-            "data_prep_sampling_method": "random",
-            "data_prep_sampling_samples": 150_000,
             "embedding_data_handler_mode": comb.embedding_data_handler_mode,
-            NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["dedup"]: "array_deduplicator",
-            "local_estimates_samples": 60_000,
-            "n_neighbors": 128,
         }
 
         common_prefix_path = pathlib.Path(

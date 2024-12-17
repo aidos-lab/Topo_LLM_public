@@ -288,25 +288,25 @@ def run_search_on_single_base_directory_and_process_and_save(
         filters_dict_list = [
             {
                 "data_prep_sampling_method": "random",
-                NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["dedup"]: "array_deduplicator",
+                NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["local_estimates_dedup"]: "array_deduplicator",
                 "n_neighbors": 128,
                 "data_prep_sampling_samples": 50_000,
             },
             {
                 "data_prep_sampling_method": "random",
-                NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["dedup"]: "array_deduplicator",
+                NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["local_estimates_dedup"]: "array_deduplicator",
                 "n_neighbors": 128,
                 "data_prep_sampling_samples": 100_000,
             },
             {
                 "data_prep_sampling_method": "random",
-                NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["dedup"]: "array_deduplicator",
+                NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["local_estimates_dedup"]: "array_deduplicator",
                 "n_neighbors": 128,
                 "data_prep_sampling_samples": 150_000,
             },
             {
                 "data_prep_sampling_method": "random",
-                NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["dedup"]: "array_deduplicator",
+                NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["local_estimates_dedup"]: "array_deduplicator",
                 "n_neighbors": 256,
                 "data_prep_sampling_samples": 100_000,
             },

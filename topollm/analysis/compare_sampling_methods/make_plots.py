@@ -65,6 +65,50 @@ Y_AXIS_LIMITS_ONLY_FULL: dict[
 }
 
 
+@dataclass
+class PlotProperties:
+    """Dataclass to store properties for the plots."""
+
+    figsize: tuple[float, float] = (26, 10)
+    y_min: float | None = 6.5
+    y_max: float | None = 15.5
+
+
+@dataclass
+class PlotSavePathCollection:
+    """Dataclass to hold the paths for saving plots and raw data."""
+
+    plot: pathlib.Path | None = None
+    raw_data: pathlib.Path | None = None
+    aggregated_results: pathlib.Path | None = None
+
+    @staticmethod
+    def create_from_common_prefix_path(
+        common_prefix_path: pathlib.Path | None = None,
+        plot_file_name: str = "plot.pdf",
+    ) -> "PlotSavePathCollection":
+        """Create a PlotSavePathCollection from a common prefix path."""
+        if common_prefix_path is not None:
+            return PlotSavePathCollection(
+                plot=pathlib.Path(
+                    common_prefix_path,
+                    "plots",
+                    plot_file_name,
+                ),
+                raw_data=pathlib.Path(
+                    common_prefix_path,
+                    "raw_data",
+                    "raw_data.csv",
+                ),
+                aggregated_results=pathlib.Path(
+                    common_prefix_path,
+                    "raw_data",
+                    "aggregated_results.csv",
+                ),
+            )
+        return PlotSavePathCollection()
+
+
 def make_multiple_line_plots(
     array: np.ndarray,
     sample_sizes: np.ndarray,
@@ -231,41 +275,6 @@ def make_mean_std_plot(
         plt.show()
 
 
-@dataclass
-class PlotSavePathCollection:
-    """Dataclass to hold the paths for saving plots and raw data."""
-
-    plot: pathlib.Path | None = None
-    raw_data: pathlib.Path | None = None
-    aggregated_results: pathlib.Path | None = None
-
-    @staticmethod
-    def create_from_common_prefix_path(
-        common_prefix_path: pathlib.Path | None = None,
-        plot_file_name: str = "plot.pdf",
-    ) -> "PlotSavePathCollection":
-        """Create a PlotSavePathCollection from a common prefix path."""
-        if common_prefix_path is not None:
-            return PlotSavePathCollection(
-                plot=pathlib.Path(
-                    common_prefix_path,
-                    "plots",
-                    plot_file_name,
-                ),
-                raw_data=pathlib.Path(
-                    common_prefix_path,
-                    "raw_data",
-                    "raw_data.csv",
-                ),
-                aggregated_results=pathlib.Path(
-                    common_prefix_path,
-                    "raw_data",
-                    "aggregated_results.csv",
-                ),
-            )
-        return PlotSavePathCollection()
-
-
 def create_boxplot_of_mean_over_different_sampling_seeds(
     subset_local_estimates_df: pd.DataFrame,
     plot_save_path_collection: PlotSavePathCollection | None = None,
@@ -355,7 +364,9 @@ def create_boxplot_of_mean_over_different_sampling_seeds(
 
     # Extract unique x-axis checkpoints from the subset_local_estimates_df and convert to categorical with sorted order
     # Convert the x-axis column to categorical for proper ordering
-    unique_checkpoints = sorted(subset_local_estimates_df[x_column_name].unique())
+    unique_checkpoints: list = sorted(
+        subset_local_estimates_df[x_column_name].unique(),
+    )
     subset_local_estimates_df[x_column_name] = pd.Categorical(
         values=subset_local_estimates_df[x_column_name],
         categories=unique_checkpoints,
@@ -370,7 +381,10 @@ def create_boxplot_of_mean_over_different_sampling_seeds(
     # # # #
     # Plotting
     # Plotting with a secondary y-axis for loss values
-    fig, ax1 = plt.subplots(
+    (
+        fig,
+        ax1,
+    ) = plt.subplots(
         figsize=figsize,
     )
 
@@ -714,10 +728,11 @@ def analyze_and_plot_influence_of_local_estimates_samples(
     filtered_df = df[
         (df["data_prep_sampling_method"] == updated_selected_subsample_dict["data_prep_sampling_method"])
         & (
-            df[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["dedup"]].isna()
-            if updated_selected_subsample_dict[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["dedup"]] is None
-            else df[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["dedup"]]
-            == updated_selected_subsample_dict[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["dedup"]]
+            df[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["local_estimates_dedup"]].isna()
+            if updated_selected_subsample_dict[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["local_estimates_dedup"]]
+            is None
+            else df[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["local_estimates_dedup"]]
+            == updated_selected_subsample_dict[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["local_estimates_dedup"]]
         )
         & (df["n_neighbors"] == updated_selected_subsample_dict["n_neighbors"])
         & (df["data_prep_sampling_seed"] == updated_selected_subsample_dict["data_prep_sampling_seed"])
@@ -862,3 +877,256 @@ def analyze_and_plot_influence_of_local_estimates_samples(
     # Show the plot if requested
     if show_plot:
         plt.show()
+
+
+def scatterplot_individual_seed_combination(
+    data: pd.DataFrame,
+    seed_combination: str,
+    output_dir: pathlib.Path,
+    y_column_name: str,
+    plot_properties: PlotProperties,
+    x_column_name: str = "local_estimates_noise_distortion",
+    fixed_params_text: str | None = None,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
+    """Create and save an individual plot for a specific seed combination.
+
+    Parameters
+    ----------
+    data:
+        The dataframe filtered for the specific seed combination.
+    seed_combination:
+        The unique seed combination identifier.
+    output_dir:
+        Directory to save the plot.
+
+    """
+    (
+        fig,
+        ax,
+    ) = plt.subplots(
+        figsize=(18, 10),
+    )
+    ax.scatter(
+        x=data[x_column_name],
+        y=data[y_column_name],
+        alpha=0.5,
+        label="Data Points",
+    )
+
+    configure_y_limits(
+        ax=ax,
+        plot_properties=plot_properties,
+    )
+
+    # Add labels and title
+    ax.set_xlabel(
+        xlabel="Local Estimates Noise Distortion",
+    )
+    ax.set_ylabel(
+        ylabel="Array Data Mean",
+    )
+    ax.set_title(
+        label=f"Noise Analysis for {seed_combination = }",
+    )
+    ax.legend()
+    ax.grid(
+        visible=True,
+    )
+
+    add_fixed_params_text_to_plot(
+        ax=ax,
+        fixed_params_text=fixed_params_text,
+    )
+
+    # Save the plot
+    save_path = pathlib.Path(
+        output_dir,
+        f"individual_plot_{seed_combination}.pdf",
+    )
+    save_path.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+    fig.savefig(
+        fname=save_path,
+        bbox_inches="tight",
+    )
+
+
+def scatterplot_individual_seed_combinations_and_combined(
+    data: pd.DataFrame,
+    output_dir: pathlib.Path,
+    plot_properties: PlotProperties,
+    y_column_name: str,
+    x_column_name: str = "local_estimates_noise_distortion",
+    fixed_params_text: str | None = None,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
+    """Create individual plots for each combination of seeds.
+
+    Combinations are taken from `data_subsampling_sampling_seed` and
+    `data_prep_sampling_seed` and a combined plot showing `array_data_mean` vs.
+    `x_column_name` with unique colors for each seed combination.
+
+    For the noise analysis, the `x_column_name` is the local estimates noise distortion.
+
+    Parameters
+    ----------
+    data:
+        The dataframe containing relevant columns.
+    output_dir:
+        Directory to save the plots.
+
+    """
+    # Add a unique identifier for each combination of sampling seeds
+    data["seed_combination"] = (
+        "data-sub-seed="
+        + data["data_subsampling_sampling_seed"].astype(dtype=str)
+        + "_"
+        + "data-prep-seed="
+        + data["data_prep_sampling_seed"].astype(dtype=str)
+    )
+
+    # Ensure numeric columns for plotting
+    data[x_column_name] = pd.to_numeric(
+        arg=data[x_column_name],
+        errors="coerce",
+    )
+    data[y_column_name] = pd.to_numeric(
+        arg=data[y_column_name],
+        errors="coerce",
+    )
+
+    data["marker_type"] = data["data_subsampling_sampling_seed"].astype(
+        dtype=str,
+    )
+
+    # Filter data to remove rows with missing values
+    filtered_data: pd.DataFrame = data.dropna(
+        subset=[
+            x_column_name,
+            y_column_name,
+            "seed_combination",
+        ],
+    )
+
+    # Get unique seed combinations
+    unique_seeds = filtered_data["seed_combination"].unique()
+
+    # Individual plots for each seed combination
+    for seed in unique_seeds:
+        subset = filtered_data[filtered_data["seed_combination"] == seed]
+        if not subset.empty:
+            scatterplot_individual_seed_combination(
+                data=subset,
+                seed_combination=seed,
+                output_dir=output_dir,
+                y_column_name=y_column_name,
+                plot_properties=plot_properties,
+                x_column_name=x_column_name,
+                fixed_params_text=fixed_params_text,
+                verbosity=verbosity,
+                logger=logger,
+            )
+
+    # Combined plot with unique colors for each seed combination
+    (
+        fig,
+        ax,
+    ) = plt.subplots(
+        figsize=plot_properties.figsize,
+    )
+    sns.scatterplot(
+        data=filtered_data,
+        x=x_column_name,
+        y=y_column_name,
+        hue="seed_combination",
+        style="marker_type",  # Different marker shapes based on `data_subsampling_sampling_seed`
+        alpha=0.6,
+        ax=ax,
+    )
+
+    configure_y_limits(
+        ax=ax,
+        plot_properties=plot_properties,
+    )
+
+    ax.set_title(
+        label="Combined Noise Analysis with Seed Combinations",
+    )
+    ax.set_xlabel(
+        xlabel=x_column_name,
+    )
+    ax.set_ylabel(
+        ylabel=y_column_name,
+    )
+    ax.legend(
+        title="Seed Combinations",
+        bbox_to_anchor=(1.05, 1),
+        loc="upper left",
+        borderaxespad=0,
+    )
+    ax.grid(
+        visible=True,
+    )
+
+    add_fixed_params_text_to_plot(
+        ax=ax,
+        fixed_params_text=fixed_params_text,
+    )
+
+    # Save the combined plot
+    save_path = pathlib.Path(
+        output_dir,
+        "combined_plot.pdf",
+    )
+    save_path.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+    fig.savefig(
+        fname=save_path,
+        bbox_inches="tight",
+    )
+
+
+def add_fixed_params_text_to_plot(
+    ax: plt.Axes,  # type: ignore - no type checking for matplotlib
+    fixed_params_text: str | None = None,
+) -> None:
+    """Add a text box with fixed parameters to the plot."""
+    if fixed_params_text is not None:
+        ax.text(
+            x=1.05,
+            y=0.25,
+            s=f"Fixed Parameters:\n{fixed_params_text}",
+            transform=plt.gca().transAxes,
+            fontsize=6,
+            verticalalignment="top",
+            bbox={
+                "boxstyle": "round",
+                "facecolor": "wheat",
+                "alpha": 0.3,
+            },
+        )
+
+
+def configure_y_limits(
+    ax: plt.Axes,  # type: ignore - no type checking for matplotlib
+    plot_properties: PlotProperties,
+) -> None:
+    """Configure the y-axis limits for the plot."""
+    if plot_properties.y_min is not None and plot_properties.y_max is not None:
+        # Set the fixed y-axis limits
+        ax.set_ylim(
+            bottom=plot_properties.y_min,
+            top=plot_properties.y_max,
+        )
+    else:
+        # Automatically adjust the y-axis limits
+        ax.autoscale(
+            axis="y",
+        )

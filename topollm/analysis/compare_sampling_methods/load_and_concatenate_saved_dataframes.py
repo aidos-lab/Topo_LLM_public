@@ -33,6 +33,7 @@ import pprint
 
 import pandas as pd
 
+from topollm.config_classes.constants import NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS
 from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.typing.enums import Verbosity
 
@@ -112,6 +113,8 @@ def load_and_concatenate_saved_dataframes(
         logger.info(
             msg="Concatenating dataframes DONE",
         )
+
+    # NOTE: Since some of the columns contain NaN values, we cannot cast the columns to specific types here
 
     # # # #
     # Save the concatenated dataframe

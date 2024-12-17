@@ -40,16 +40,30 @@ import omegaconf
 import pandas as pd
 from tqdm import tqdm
 
+from topollm.analysis.compare_sampling_methods.analysis_modes.checkpoint_analysis_modes import (
+    CheckpointAnalysisModes,
+)
+from topollm.analysis.compare_sampling_methods.analysis_modes.noise_analysis_modes import (
+    NoiseAnalysisCombination,
+    NoiseAnalysisModes,
+)
 from topollm.analysis.compare_sampling_methods.checkpoint_analysis.model_checkpoint_analysis import (
     run_checkpoint_analysis_over_different_data_and_models,
 )
 from topollm.analysis.compare_sampling_methods.checkpoint_analysis.model_loss_extractor import ModelLossExtractor
-from topollm.analysis.compare_sampling_methods.checkpoint_analysis_modes import CheckpointAnalysisModes
 from topollm.analysis.compare_sampling_methods.extract_results_from_directory_structure import (
     run_search_on_single_base_directory_and_process_and_save,
 )
+from topollm.analysis.compare_sampling_methods.filter_dataframe_based_on_filters_dict import (
+    filter_dataframe_based_on_filters_dict,
+)
 from topollm.analysis.compare_sampling_methods.load_and_concatenate_saved_dataframes import (
     load_and_concatenate_saved_dataframes,
+)
+from topollm.analysis.compare_sampling_methods.make_plots import (
+    PlotProperties,
+    generate_fixed_params_text,
+    scatterplot_individual_seed_combinations_and_combined,
 )
 from topollm.analysis.compare_sampling_methods.organize_results_directory_structure import (
     build_results_directory_structure,
@@ -57,9 +71,14 @@ from topollm.analysis.compare_sampling_methods.organize_results_directory_struct
 from topollm.analysis.compare_sampling_methods.sensitivity_to_parameter_choices.data_subsampling_number_of_samples_analysis import (
     run_data_subsampling_number_of_samples_analysis,
 )
-from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH, TOPO_LLM_REPOSITORY_BASE_PATH
+from topollm.config_classes.constants import (
+    HYDRA_CONFIGS_BASE_PATH,
+    NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS,
+    TOPO_LLM_REPOSITORY_BASE_PATH,
+)
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
+from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.logging.log_list_info import log_list_info
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
@@ -108,7 +127,7 @@ def main(
     # # # # # # # # # # # # # # # # # # # # #
     # START Global settings for analysis
 
-    array_truncation_size: int = 5_000
+    array_truncation_size: int = 60_000
 
     # END Global settingsn for analysis
     # # # # # # # # # # # # # # # # # # # # #
@@ -222,24 +241,37 @@ def main(
         )
 
     # ================================================== #
+    # Noise analysis
+    # ================================================== #
+
+    if main_config.feature_flags.analysis.compare_sampling_methods.do_noise_analysis:
+        do_noise_analysis(
+            concatenated_df=concatenated_df,
+            verbosity=verbosity,
+            logger=logger,
+        )
+
+    # ================================================== #
     # Checkpoint analysis
     # ================================================== #
 
-    do_checkpoint_analysis(
-        concatenated_df=concatenated_df,
-        verbosity=verbosity,
-        logger=logger,
-    )
+    if main_config.feature_flags.analysis.compare_sampling_methods.do_checkpoint_analysis:
+        do_checkpoint_analysis(
+            concatenated_df=concatenated_df,
+            verbosity=verbosity,
+            logger=logger,
+        )
 
     # ================================================== #
     # Data subsampling number of samples analysis
     # ================================================== #
 
-    do_data_subsampling_number_of_samples_analysis(
-        concatenated_df=concatenated_df,
-        verbosity=verbosity,
-        logger=logger,
-    )
+    if main_config.feature_flags.analysis.compare_sampling_methods.do_data_subsampling_number_of_samples_analysis:
+        do_data_subsampling_number_of_samples_analysis(
+            concatenated_df=concatenated_df,
+            verbosity=verbosity,
+            logger=logger,
+        )
 
     # ================================================== #
     # Note: You can add additional analysis steps here
@@ -248,6 +280,252 @@ def main(
     logger.info(
         msg="Running script DONE",
     )
+
+
+def do_noise_analysis(
+    concatenated_df: pd.DataFrame,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
+    """Run the noise analysis."""
+    if concatenated_df.empty:
+        logger.critical(
+            msg="@@@ The concatenated_df is empty.\n"
+            "@@@ The noise analysis will not yield useful results.\n"
+            "@@@ Exiting the function without creating any analysis files.",
+        )
+        return
+
+    # # # #
+    # Select which analysis to run
+
+    # Create the analysis modes configuration
+    analysis_modes = NoiseAnalysisModes()
+    analysis_modes.from_concatenated_df(
+        concatenated_df=concatenated_df,
+    )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"analysis_modes:\n{pprint.pformat(object=analysis_modes)}",  # noqa: G004 - low overhead
+        )
+
+    product_to_process: list[NoiseAnalysisCombination] = analysis_modes.all_combinations()
+
+    # This column is used to describe the strength of the artificial noise which was added to the local estimates,
+    # usually, it should be equal to "local_estimates_noise_distortion"
+    noise_strength_column_name = NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["local_estimates_distor"]
+
+    for comb in tqdm(
+        iterable=product_to_process,
+        desc="Processing different combinations of data subsamples and models",
+        total=len(product_to_process),
+    ):
+        concatenated_filters_dict: dict = {
+            **analysis_modes.common_filters_dict,
+            "data_full": comb.data_full,
+            "data_subsampling_split": comb.data_subsampling_split,
+            "data_subsampling_sampling_mode": comb.data_subsampling_sampling_mode,
+            "model_full": comb.model_full,
+            "embedding_data_handler_mode": comb.embedding_data_handler_mode,
+        }
+
+        common_prefix_path = pathlib.Path(
+            TOPO_LLM_REPOSITORY_BASE_PATH,
+            "data",
+            "saved_plots",
+            "artificial_noise_analysis",
+            f"{comb.data_full=}",
+            f"{comb.data_subsampling_split=}",
+            f"{comb.data_subsampling_sampling_mode=}",
+            f"{comb.embedding_data_handler_mode=}",
+            f"{comb.model_full=}",
+        )
+
+        filtered_concatenated_df: pd.DataFrame = filter_dataframe_based_on_filters_dict(
+            df=concatenated_df,
+            filters_dict=concatenated_filters_dict,
+            verbosity=verbosity,
+            logger=logger,
+        )
+
+        # This string will be used in the plots
+        fixed_params_text: str = generate_fixed_params_text(
+            filters_dict=concatenated_filters_dict,
+        )
+
+        if filtered_concatenated_df.empty:
+            logger.info(
+                msg=f"This combination of filters yielded an empty dataframe: {concatenated_filters_dict = }",  # noqa: G004 - low overhead
+            )
+            logger.info(
+                msg="Skipping this combination of filters ...",
+            )
+            continue
+
+        # # # #
+        # If the value in the 'local_estimates_noise_artificial_noise_mode' column is 'do_nothing',
+        # the 'noise_strength_column_name' column should be filled with 0.
+
+        filtered_concatenated_df.loc[
+            filtered_concatenated_df["local_estimates_noise_artificial_noise_mode"] == "do_nothing",
+            noise_strength_column_name,
+        ] = 0.0
+
+        # # # #
+        # Cast columns to the correct data types.
+        # Note that we can only cast columns where all values are set
+        # (so we cannot cast the noise seed column, as it is not set for all rows).
+
+        # Columns that should be of type float
+        columns_with_float_type: list[str] = [
+            # All rows have been assigned a value in the 'local_estimates_noise_distortion' column above,
+            # so we can safely cast it to float.
+            noise_strength_column_name,
+        ]
+
+        for column_name in columns_with_float_type:
+            if column_name in concatenated_df.columns:
+                # Check that there are no missing values in the column
+                if concatenated_df[column_name].isna().sum() != 0:
+                    logger.warning(
+                        msg=f"The column '{column_name}' contains missing values. "  # noqa: G004 - low overhead
+                        f"Casting to float might lead to errors.",
+                    )
+
+                filtered_concatenated_df[column_name] = filtered_concatenated_df[column_name].astype(
+                    dtype=float,
+                )
+
+        # # # #
+        # Save the raw data
+        raw_data_path = pathlib.Path(
+            common_prefix_path,
+            "raw_data",
+            "raw_data.csv",
+        )
+        raw_data_path.parent.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+        filtered_concatenated_df.to_csv(
+            path_or_buf=raw_data_path,
+        )
+
+        data_df_to_analyze: pd.DataFrame = filtered_concatenated_df.copy()
+
+        # Select which values to analyse.
+        # We use the non-truncated array_data_mean and array_data_std values in the noise analysis.
+        y_column_names_to_analyze: list[str] = [
+            "array_data_mean",
+            "array_data_std",
+        ]
+
+        for y_column_name in y_column_names_to_analyze:
+            if verbosity >= Verbosity.NORMAL:
+                logger.info(
+                    msg=f"y_column_name = {y_column_name}",  # noqa: G004 - low overhead
+                )
+
+            selected_analysis_partial_path = pathlib.Path(
+                common_prefix_path,
+                f"{y_column_name=}",
+            )
+
+            # # # #
+            # Create aggregated data by grouping the data by the noise strength.
+            #
+            # Note: To avoid problems in the grouping by the noise strength column (we encountered duplicate lines),
+            # make sure that the values are cast to float.
+            # Otherwise, 0.01 might erroneously be treated as the string "0.01".
+
+            # Log unique values in the "local_estimates_noise_distortion" column with full precision
+            unique_values = data_df_to_analyze[noise_strength_column_name].unique()
+            unique_values_sorted = sorted(
+                unique_values,
+            )
+            if verbosity >= Verbosity.NORMAL:
+                logger.info(
+                    msg=f"{unique_values_sorted = }",  # noqa: G004 - low overhead
+                )
+                logger.info(
+                    msg=f"{len(unique_values_sorted) = }",  # noqa: G004 - low overhead
+                )
+
+            # Check that the values are all floats, so that we can avoid problems in the grouping
+            if not all(isinstance(value, float) for value in unique_values_sorted):
+                logger.warning(
+                    msg="The values in the 'local_estimates_noise_distortion' column are not all floats. "
+                    "This might lead to problems in the grouping by the noise strength column.",
+                )
+
+            grouped_stats: pd.DataFrame = (
+                data_df_to_analyze.groupby(
+                    by=noise_strength_column_name,
+                    observed=True,
+                )[y_column_name]
+                .agg(
+                    func=[
+                        "mean",
+                        "std",
+                        "count",
+                    ],
+                )
+                .reset_index()
+            )
+            if verbosity >= Verbosity.NORMAL:
+                log_dataframe_info(
+                    df=grouped_stats,
+                    df_name="grouped_stats",
+                    logger=logger,
+                )
+
+            # Save the aggregated data
+            aggregated_data_path = pathlib.Path(
+                selected_analysis_partial_path,
+                "aggregated_data",
+                "aggregated_data.csv",
+            )
+            aggregated_data_path.parent.mkdir(
+                parents=True,
+                exist_ok=True,
+            )
+            grouped_stats.to_csv(
+                path_or_buf=aggregated_data_path,
+            )
+
+            # # # #
+            # Create plots
+            plot_properties_list: list[PlotProperties] = [
+                PlotProperties(
+                    y_min=0.0,
+                    y_max=16.0,
+                ),
+                PlotProperties(
+                    y_min=None,
+                    y_max=None,
+                ),
+            ]
+
+            for plot_properties in plot_properties_list:
+                output_dir = pathlib.Path(
+                    selected_analysis_partial_path,
+                    f"{plot_properties.y_min=}_{plot_properties.y_max=}",
+                )
+
+                scatterplot_individual_seed_combinations_and_combined(
+                    data=data_df_to_analyze,
+                    output_dir=output_dir,
+                    plot_properties=plot_properties,
+                    y_column_name=y_column_name,
+                    x_column_name=noise_strength_column_name,
+                    fixed_params_text=fixed_params_text,
+                    verbosity=verbosity,
+                    logger=logger,
+                )
+
+        # TODO: Create analysis of twoNN measure for individual tokens under different noise distortions
+        # TODO: (currently, we plan to create an extra script for the token-level analysis)
 
 
 def do_data_subsampling_number_of_samples_analysis(
@@ -297,7 +575,7 @@ def do_checkpoint_analysis(
     if concatenated_df.empty:
         logger.critical(
             msg="@@@ The concatenated_df is empty.\n"
-            "@@@ The checkpoint analyiss will not yield useful results.\n"
+            "@@@ The checkpoint analysis will not yield useful results.\n"
             "@@@ We still continue executing the function, so that the model loss extractor can save potential values.",
         )
 

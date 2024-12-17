@@ -30,7 +30,7 @@ def retrieve_most_frequent_values(
     most_frequent_values = {}
     for column in [
         "data_prep_sampling_method",
-        NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["dedup"],
+        NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["local_estimates_dedup"],
         "data_prep_sampling_seed",
         "data_prep_sampling_samples",
     ]:
