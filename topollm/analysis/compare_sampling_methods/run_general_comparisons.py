@@ -36,10 +36,8 @@ from typing import TYPE_CHECKING
 import hydra
 import hydra.core.hydra_config
 import joblib
-import matplotlib.pyplot as plt
 import omegaconf
 import pandas as pd
-import seaborn as sns
 from tqdm import tqdm
 
 from topollm.analysis.compare_sampling_methods.analysis_modes.checkpoint_analysis_modes import (
@@ -62,7 +60,11 @@ from topollm.analysis.compare_sampling_methods.filter_dataframe_based_on_filters
 from topollm.analysis.compare_sampling_methods.load_and_concatenate_saved_dataframes import (
     load_and_concatenate_saved_dataframes,
 )
-from topollm.analysis.compare_sampling_methods.make_plots import generate_fixed_params_text
+from topollm.analysis.compare_sampling_methods.make_plots import (
+    PlotProperties,
+    generate_fixed_params_text,
+    scatterplot_individual_seed_combinations_and_combined,
+)
 from topollm.analysis.compare_sampling_methods.organize_results_directory_structure import (
     build_results_directory_structure,
 )
@@ -75,6 +77,7 @@ from topollm.config_classes.constants import (
 )
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
+from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.logging.log_list_info import log_list_info
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
@@ -383,218 +386,95 @@ def do_noise_analysis(
         )
 
         data_df_to_analyze: pd.DataFrame = filtered_concatenated_df.copy()
-        y_column_name = "array_data_truncated_mean"
 
-        # # # #
-        # Create aggregated data by grouping the data by the noise strength.
-        grouped_stats: pd.DataFrame = (
-            data_df_to_analyze.groupby(by=noise_strength_column_name)[y_column_name]
-            .agg(
-                func=[
-                    "mean",
-                    "std",
-                    "count",
-                ],
+        # Select which values to analyse.
+        # We use the non-truncated array_data_mean and array_data_std values in the noise analysis.
+        y_column_names_to_analyze: list[str] = [
+            "array_data_mean",
+            "array_data_std",
+        ]
+
+        for y_column_name in y_column_names_to_analyze:
+            if verbosity >= Verbosity.NORMAL:
+                logger.info(
+                    msg=f"y_column_name = {y_column_name}",  # noqa: G004 - low overhead
+                )
+
+            selected_analysis_partial_path = pathlib.Path(
+                common_prefix_path,
+                f"{y_column_name=}",
             )
-            .reset_index()
-        )
-        # TODO: Investigate the problem with duplicate lines in the aggregated data
 
-        # TODO: Add the data points for no noise distortion
-        # TODO: Add the fixed parameters description to the plot
-        # TODO: Add fixed scaling for the y-axis
-        # TODO: Create analysis of the standard deviation under different noise distortions
+            # # # #
+            # Create aggregated data by grouping the data by the noise strength.
+            grouped_stats: pd.DataFrame = (
+                data_df_to_analyze.groupby(
+                    by=noise_strength_column_name,
+                    observed=True,
+                )[y_column_name]
+                .agg(
+                    func=[
+                        "mean",
+                        "std",
+                        "count",
+                    ],
+                )
+                .reset_index()
+            )
+            if verbosity >= Verbosity.NORMAL:
+                log_dataframe_info(
+                    df=grouped_stats,
+                    df_name="grouped_stats",
+                    logger=logger,
+                )
+            # TODO: Investigate the problem with duplicate lines in the aggregated data
 
-        # Save the aggregated data
-        aggregated_data_path = pathlib.Path(
-            common_prefix_path,
-            "aggregated_data",
-            "aggregated_data.csv",
-        )
-        aggregated_data_path.parent.mkdir(
-            parents=True,
-            exist_ok=True,
-        )
-        grouped_stats.to_csv(
-            path_or_buf=aggregated_data_path,
-        )
+            # Save the aggregated data
+            aggregated_data_path = pathlib.Path(
+                selected_analysis_partial_path,
+                "aggregated_data",
+                "aggregated_data.csv",
+            )
+            aggregated_data_path.parent.mkdir(
+                parents=True,
+                exist_ok=True,
+            )
+            grouped_stats.to_csv(
+                path_or_buf=aggregated_data_path,
+            )
 
-        # # # #
-        # Create plots
-        plot_individual_and_combined(
-            data=data_df_to_analyze,
-            output_dir=common_prefix_path,
-            noise_strength_column_name=noise_strength_column_name,
-        )
+            # # # #
+            # Create plots
+            plot_properties_list: list[PlotProperties] = [
+                PlotProperties(
+                    y_min=0.0,
+                    y_max=16.0,
+                ),
+                PlotProperties(
+                    y_min=None,
+                    y_max=None,
+                ),
+            ]
+
+            for plot_properties in plot_properties_list:
+                output_dir = pathlib.Path(
+                    selected_analysis_partial_path,
+                    f"{plot_properties.y_min=}_{plot_properties.y_max=}",
+                )
+
+                scatterplot_individual_seed_combinations_and_combined(
+                    data=data_df_to_analyze,
+                    output_dir=output_dir,
+                    plot_properties=plot_properties,
+                    y_column_name=y_column_name,
+                    x_column_name=noise_strength_column_name,
+                    fixed_params_text=fixed_params_text,
+                    verbosity=verbosity,
+                    logger=logger,
+                )
 
         # TODO: Create analysis of twoNN measure for individual tokens under different noise distortions
         # TODO(currently, we plan to create an extra script for the token-level analysis)
-
-
-def plot_individual(
-    data: pd.DataFrame,
-    seed_combination: str,
-    output_dir: pathlib.Path,
-    noise_strength_column_name: str = "local_estimates_noise_distortion",
-) -> None:
-    """Create and save an individual plot for a specific seed combination.
-
-    Parameters
-    ----------
-    data:
-        The dataframe filtered for the specific seed combination.
-    seed_combination:
-        The unique seed combination identifier.
-    output_dir:
-        Directory to save the plot.
-
-    """
-    fig, ax = plt.subplots(
-        figsize=(18, 10),
-    )
-    ax.scatter(
-        data[noise_strength_column_name],
-        data["array_data_mean"],
-        alpha=0.5,
-        label="Data Points",
-    )
-
-    # Add labels and title
-    ax.set_xlabel(
-        xlabel="Local Estimates Noise Distortion",
-    )
-    ax.set_ylabel(
-        ylabel="Array Data Mean",
-    )
-    ax.set_title(
-        label=f"Noise Analysis for {seed_combination = }",
-    )
-    ax.legend()
-    ax.grid(visible=True)
-
-    # Save the plot
-    save_path = pathlib.Path(
-        output_dir,
-        f"individual_plot_{seed_combination}.pdf",
-    )
-    save_path.parent.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
-    fig.savefig(
-        fname=save_path,
-        bbox_inches="tight",
-    )
-
-
-def plot_individual_and_combined(
-    data: pd.DataFrame,
-    output_dir: pathlib.Path,
-    noise_strength_column_name: str = "local_estimates_noise_distortion",
-) -> None:
-    """Create individual plots for each combination of seeds.
-
-    Combinations are taken from `data_subsampling_sampling_seed` and
-    `data_prep_sampling_seed` and a combined plot showing `array_data_mean` vs.
-    `noise_strength_column_name` with unique colors for each seed combination.
-
-    Parameters
-    ----------
-    data:
-        The dataframe containing relevant columns.
-    output_dir:
-        Directory to save the plots.
-
-    """
-    # Add a unique identifier for each combination of sampling seeds
-    data["seed_combination"] = (
-        "data-sub-seed="
-        + data["data_subsampling_sampling_seed"].astype(dtype=str)
-        + "_"
-        + "data-prep-seed="
-        + data["data_prep_sampling_seed"].astype(dtype=str)
-    )
-
-    # Ensure numeric columns for plotting
-    data[noise_strength_column_name] = pd.to_numeric(
-        arg=data[noise_strength_column_name],
-        errors="coerce",
-    )
-    data["array_data_mean"] = pd.to_numeric(
-        arg=data["array_data_mean"],
-        errors="coerce",
-    )
-
-    data["marker_type"] = data["data_subsampling_sampling_seed"].astype(
-        dtype=str,
-    )
-
-    # Filter data to remove rows with missing values
-    filtered_data: pd.DataFrame = data.dropna(
-        subset=[
-            noise_strength_column_name,
-            "array_data_mean",
-            "seed_combination",
-        ],
-    )
-
-    # Get unique seed combinations
-    unique_seeds = filtered_data["seed_combination"].unique()
-
-    # Individual plots for each seed combination
-    for seed in unique_seeds:
-        subset = filtered_data[filtered_data["seed_combination"] == seed]
-        if not subset.empty:
-            plot_individual(
-                data=subset,
-                seed_combination=seed,
-                output_dir=output_dir,
-                noise_strength_column_name=noise_strength_column_name,
-            )
-
-    # Combined plot with unique colors for each seed combination
-    fig, ax = plt.subplots(
-        figsize=(26, 10),
-    )
-    sns.scatterplot(
-        data=filtered_data,
-        x=noise_strength_column_name,
-        y="array_data_mean",
-        hue="seed_combination",
-        style="marker_type",  # Different marker shapes based on `data_subsampling_sampling_seed`
-        alpha=0.6,
-        ax=ax,
-    )
-    ax.set_title(
-        label="Combined Noise Analysis with Seed Combinations",
-    )
-    ax.set_xlabel(
-        xlabel=noise_strength_column_name,
-    )
-    ax.set_ylabel(
-        ylabel="array_data_mean",
-    )
-    ax.legend(
-        title="Seed Combinations",
-        bbox_to_anchor=(1.05, 1),
-        loc="upper left",
-        borderaxespad=0,
-    )
-    ax.grid(visible=True)
-
-    # Save the combined plot
-    save_path = pathlib.Path(
-        output_dir,
-        "combined_plot.pdf",
-    )
-    save_path.parent.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
-    fig.savefig(
-        fname=save_path,
-        bbox_inches="tight",
-    )
 
 
 def do_data_subsampling_number_of_samples_analysis(
