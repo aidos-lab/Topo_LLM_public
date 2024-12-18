@@ -169,11 +169,10 @@ def main(
     # # # #
     # Compute differences between the local estimates
 
-    # TODO(Ben): Implement iteration over different noise levels and noise seeds,
-    # to make a plot of Hausdorff distances vs. local estimates for each noise level and seed.
+    # TODO(Ben): Implement iteration over different noise levels and noise seeds, to make a plot of Hausdorff distances vs. local estimates for each noise level and seed.
+    # TODO(Ben): Plot of Hausdorff distances vs. global estimates.
 
     # TODO: Create analysis of twoNN measure for individual tokens under different noise distortions
-    # TODO: (currently, we plan to create an extra script for the token-level analysis)
 
     array_base_data = local_estimates_container_base_data.array_for_estimator_np
     if array_base_data is None:
@@ -181,8 +180,6 @@ def main(
         raise ValueError(
             msg,
         )
-
-    # TODO: Implement the analysis here
 
     # ================================================== #
     # Comparing model predictions
@@ -197,7 +194,6 @@ def main(
     tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast = loaded_model_container.tokenizer
     model: PreTrainedModel = loaded_model_container.model
 
-    vector_index = 1
     array_to_analyze = array_base_data
     corresponding_metadata = local_estimates_container_base_data.pointwise_results_meta_frame
     if corresponding_metadata is None:
@@ -206,23 +202,59 @@ def main(
             msg,
         )
 
-    # Extract the embedding vector for the vector_index and the corresponding metadata
-    extracted_vector = array_to_analyze[vector_index]
-    extracted_metadata = corresponding_metadata.iloc[vector_index]
-    top_k = 5
+    for vector_index in tqdm(
+        iterable=range(100),
+        desc="Iterating over vectors",
+    ):
+        # Extract the embedding vector for the vector_index and the corresponding metadata
+        extracted_vector = array_to_analyze[vector_index]
+        extracted_metadata = corresponding_metadata.iloc[vector_index]
 
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            msg=f"extracted_metadata:\n{extracted_metadata}",  # noqa: G004 - low overhead
-        )
-        if "tokens_list" in extracted_metadata:
+        extracted_local_estimate = local_estimates_container_base_data.pointwise_results_array_np[vector_index]
+
+        if verbosity >= Verbosity.NORMAL:
             logger.info(
-                msg=f"tokens_list:\n{extracted_metadata["tokens_list"]}",  # noqa: G004 - low overhead
+                msg=f"extracted_metadata:\n{extracted_metadata}",  # noqa: G004 - low overhead
             )
+            logger.info(
+                msg=f"extracted_local_estimate:\n{extracted_local_estimate}",  # noqa: G004 - low overhead
+            )
+            if "tokens_list" in extracted_metadata:
+                logger.info(
+                    msg=f"tokens_list:\n{extracted_metadata["tokens_list"]}",  # noqa: G004 - low overhead
+                )
 
-    # # # #
-    # Forward pass through the model
+        # # # #
+        # Forward pass through the model and compute predictions and loss
+        compute_model_lm_head_predictions_on_vector(
+            tokenizer=tokenizer,
+            model=model,
+            extracted_vector=extracted_vector,
+            extracted_metadata=extracted_metadata,
+            top_k=10,
+            verbosity=verbosity,
+            logger=logger,
+        )
 
+    # ================================================== #
+    # Note: You can add additional analysis steps here
+    # ================================================== #
+
+    logger.info(
+        msg="Running script DONE",
+    )
+
+
+def compute_model_lm_head_predictions_on_vector(
+    tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast,
+    model: PreTrainedModel,
+    extracted_vector: np.ndarray,
+    extracted_metadata: pd.Series | None,
+    top_k: int = 10,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
+    """Compute the model predictions for the given vector and metadata."""
     # Convert the NumPy array to a PyTorch tensor with shape [batch_size, sequence_length, hidden_size]
     # In this case, batch_size=1, sequence_length=1
     extracted_tensor: torch.Tensor = (
@@ -240,7 +272,9 @@ def main(
 
     # Forward pass through the language model head
     # Shape: [batch_size=1, sequence_length=1, vocab_size]
-    output_logits = model.lm_head(extracted_tensor)
+    output_logits = model.lm_head(
+        extracted_tensor,
+    )
 
     # Configurable top-K
     (
@@ -257,37 +291,67 @@ def main(
 
     # Decode the top-K predictions
     top_k_tokens_wrapped: list = [tokenizer.convert_ids_to_tokens([idx]) for idx in top_k_indices[0, 0].tolist()]
-    top_k_tokens: list = [token_in_list[0] for token_in_list in top_k_tokens_wrapped]
+    top_k_tokens: list[str] = [token_in_list[0] for token_in_list in top_k_tokens_wrapped]
+    top_k_probabilities: list[float] = top_k_probs[0, 0].tolist()
 
-    # Print the top-K predictions and their probabilities
+    # Log the top-K predictions and their probabilities
     if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            msg=f"token_id:\n{extracted_metadata['token_id']}",  # noqa: G004 - low overhead
-        )
-        logger.info(
-            msg=f"token_name:\n{extracted_metadata['token_name']}",  # noqa: G004 - low overhead
-        )
+        if extracted_metadata is not None:
+            logger.info(
+                msg=f"token_id:\n{extracted_metadata['token_id']}",  # noqa: G004 - low overhead
+            )
+            logger.info(
+                msg=f"token_name:\n{extracted_metadata['token_name']}",  # noqa: G004 - low overhead
+            )
         logger.info(
             msg=f"Top-K predicted tokens:\n{top_k_tokens}",  # noqa: G004 - low overhead
         )
         logger.info(
-            msg=f"Top-K probabilities:\n{top_k_probs[0, 0].tolist()}",  # noqa: G004 - low overhead
+            msg=f"Top-K probabilities:\n{top_k_probabilities}",  # noqa: G004 - low overhead
         )
 
     # # # #
-    # Compute the model loss, i.e., the token pseudo-perplexity
+    # Compute the masked language model loss if the metadata is available
+    if extracted_metadata is not None and "token_id" in extracted_metadata:
+        actual_token_id = extracted_metadata["token_id"]
 
+        # Reshape prediction_scores and actual_token_id for the loss computation
+        loss = compute_masked_language_model_loss(
+            actual_token_id=actual_token_id,
+            output_logits=output_logits,
+            model=model,
+            verbosity=verbosity,
+            logger=logger,
+        )
+    else:
+        loss = None
+
+    # TODO: Collect the results in a container and return them
+
+
+def compute_masked_language_model_loss(
+    actual_token_id: int,
+    output_logits: torch.Tensor,
+    model: PreTrainedModel,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> torch.Tensor:
+    """Compute the model loss, i.e., the token pseudo-perplexity."""
     loss_fct = CrossEntropyLoss()
 
-    # Reshape prediction_scores and actual_token_id for the loss computation
-    actual_token_id: torch.Tensor = torch.tensor(
-        data=extracted_metadata["token_id"],
+    actual_token_id_tensor: torch.Tensor = torch.tensor(
+        data=actual_token_id,
         dtype=torch.long,
     ).to(
         device=output_logits.device,
     )
-    output_logits_reshaped = output_logits.view(-1, model.config.vocab_size)  # Shape: [1, vocab_size]
-    actual_token_id_reshaped: torch.Tensor = actual_token_id.view(-1)  # Shape: [1]
+    output_logits_reshaped = output_logits.view(
+        -1,
+        model.config.vocab_size,
+    )  # Shape: [1, vocab_size]
+    actual_token_id_reshaped: torch.Tensor = actual_token_id_tensor.view(
+        -1,
+    )  # Shape: [1]
 
     # Compute masked language modeling loss
     masked_lm_loss = loss_fct(
@@ -295,18 +359,16 @@ def main(
         actual_token_id_reshaped,
     )
 
+    masked_lm_loss.to(
+        device="cpu",
+    )
+
     if verbosity >= Verbosity.NORMAL:
         logger.info(
             msg=f"masked_lm_loss:\n{masked_lm_loss.item()}",  # noqa: G004 - low overhead
         )
 
-    # ================================================== #
-    # Note: You can add additional analysis steps here
-    # ================================================== #
-
-    logger.info(
-        msg="Running script DONE",
-    )
+    return masked_lm_loss.item()
 
 
 def pairwise_distances(
