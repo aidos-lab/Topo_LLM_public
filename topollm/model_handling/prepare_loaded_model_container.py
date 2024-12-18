@@ -1,10 +1,10 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -42,7 +42,9 @@ from topollm.typing.enums import LMmode, Verbosity
 if TYPE_CHECKING:
     import torch
 
-default_logger = logging.getLogger(__name__)
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 def prepare_device_and_tokenizer_and_model(
@@ -57,7 +59,10 @@ def prepare_device_and_tokenizer_and_model(
         logger=logger,
     )
 
-    tokenizer, tokenizer_modifier = load_modified_tokenizer(
+    (
+        tokenizer,
+        tokenizer_modifier,
+    ) = load_modified_tokenizer(
         language_model_config=main_config.language_model,
         tokenizer_config=main_config.tokenizer,
         verbosity=verbosity,
@@ -74,8 +79,6 @@ def prepare_device_and_tokenizer_and_model(
     # Note: The `AutoModelForPreTraining` class appears to work for the
     # "roberta"-models, but not for the "bert"-models.
 
-    # TODO: Update this so that it supports the same model loading classes as the finetuning code.
-
     # Case distinction for different language model modes
     # (Masked Language Modeling, Causal Language Modeling).
     lm_mode: LMmode = main_config.language_model.lm_mode
@@ -86,7 +89,9 @@ def prepare_device_and_tokenizer_and_model(
         model_loading_class = transformers.AutoModelForCausalLM
     else:
         msg = f"Invalid lm_mode: {lm_mode = }"
-        raise ValueError(msg)
+        raise ValueError(
+            msg,
+        )
 
     model: transformers.PreTrainedModel = load_model(
         pretrained_model_name_or_path=main_config.language_model.pretrained_model_name_or_path,

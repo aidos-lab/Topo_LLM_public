@@ -53,6 +53,8 @@ from topollm.logging.initialize_configuration_and_log import initialize_configur
 from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.logging.log_list_info import log_list_info
 from topollm.logging.setup_exception_logging import setup_exception_logging
+from topollm.model_handling.loaded_model_container import LoadedModelContainer
+from topollm.model_handling.prepare_loaded_model_container import prepare_device_and_tokenizer_and_model
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
 from topollm.typing.enums import ArtificialNoiseMode, Verbosity
 
@@ -162,8 +164,6 @@ def main(
     # # # #
     # Compute differences between the local estimates
 
-    # TODO: Implement the analysis here
-
     # TODO(Ben): Implement iteration over different noise levels and noise seeds,
     # to make a plot of Hausdorff distances vs. local estimates for each noise level and seed.
 
@@ -176,6 +176,45 @@ def main(
         raise ValueError(
             msg,
         )
+
+    # TODO: Implement the analysis here
+
+    # ================================================== #
+    # Comparing model predictions
+    # ================================================== #
+
+    loaded_model_container: LoadedModelContainer = prepare_device_and_tokenizer_and_model(
+        main_config=main_config,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+    model = loaded_model_container.model
+
+    vector_index = 1
+    array_to_analyze = array_base_data
+    corresponding_metadata = local_estimates_container_base_data.pointwise_results_meta_frame
+    if corresponding_metadata is None:
+        msg = "The corresponding metadata is None."
+        raise ValueError(
+            msg,
+        )
+
+    # Extract the embedding vector for the vector_index and the corresponding metadata
+    extracted_vector = array_to_analyze[vector_index]
+    extracted_metadata = corresponding_metadata.iloc[vector_index]
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg="Extracted metadata:",
+        )
+        logger.info(
+            msg=extracted_metadata,
+        )
+        if "tokens_list" in extracted_metadata:
+            logger.info(
+                msg=f"tokens_list:\n{extracted_metadata["tokens_list"]}",  # noqa: G004 - low overhead
+            )
 
     # ================================================== #
     # Note: You can add additional analysis steps here

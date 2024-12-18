@@ -36,8 +36,10 @@ import transformers
 from topollm.logging.log_model_info import log_model_info
 from topollm.typing.enums import Verbosity
 
-default_device = torch.device("cpu")
-default_logger = logging.getLogger(__name__)
+default_device = torch.device(device="cpu")
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 def load_model(
