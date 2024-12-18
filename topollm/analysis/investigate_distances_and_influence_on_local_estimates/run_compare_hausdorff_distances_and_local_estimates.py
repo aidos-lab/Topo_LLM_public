@@ -39,7 +39,11 @@ import joblib
 import numpy as np
 import omegaconf
 import pandas as pd
+import torch
 from tqdm import tqdm
+from transformers.modeling_utils import PreTrainedModel
+from transformers.tokenization_utils import PreTrainedTokenizer
+from transformers.tokenization_utils_fast import PreTrainedTokenizerFast
 
 from topollm.analysis.local_estimates_handling.saving.local_estimates_saving_manager import LocalEstimatesSavingManager
 from topollm.config_classes.constants import (
@@ -189,7 +193,8 @@ def main(
         logger=logger,
     )
 
-    model = loaded_model_container.model
+    tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast = loaded_model_container.tokenizer
+    model: PreTrainedModel = loaded_model_container.model
 
     vector_index = 1
     array_to_analyze = array_base_data
@@ -215,6 +220,54 @@ def main(
             logger.info(
                 msg=f"tokens_list:\n{extracted_metadata["tokens_list"]}",  # noqa: G004 - low overhead
             )
+
+    # # # #
+    # Forward pass through the model
+
+    # Convert the NumPy array to a PyTorch tensor with shape [batch_size, sequence_length, hidden_size]
+    # In this case, batch_size=1, sequence_length=1
+    extracted_tensor: torch.Tensor = (
+        torch.tensor(
+            extracted_vector,
+            dtype=torch.float32,
+        )
+        .unsqueeze(0)
+        .unsqueeze(0)
+    )
+    # Move to the device
+    extracted_tensor = extracted_tensor.to(
+        device=model.device,
+    )
+
+    # Forward pass through the language model head
+    # Shape: [batch_size=1, sequence_length=1, vocab_size]
+    output_logits = model.lm_head(extracted_tensor)
+
+    # Configurable top-K
+    top_k = 5
+    (
+        top_k_probs,
+        top_k_indices,
+    ) = torch.topk(
+        input=torch.softmax(
+            input=output_logits,
+            dim=-1,
+        ),
+        k=top_k,
+        dim=-1,
+    )
+
+    # Decode the top-K predictions
+    top_k_tokens: list[str] = [tokenizer.decode(token_ids=[idx]) for idx in top_k_indices[0, 0].tolist()]
+
+    # Print the top-K predictions and their probabilities
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Top-K predicted tokens:\n{top_k_tokens}",  # noqa: G004 - low overhead
+        )
+        logger.info(
+            msg=f"Top-K probabilities:\n{top_k_probs[0, 0].tolist()}",  # noqa: G004 - low overhead
+        )
 
     # ================================================== #
     # Note: You can add additional analysis steps here
