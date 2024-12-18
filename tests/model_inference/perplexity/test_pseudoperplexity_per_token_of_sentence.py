@@ -47,10 +47,10 @@ def test_pseudoperplexity_per_token_of_sentence(
     """Test the pseudoperplexity_per_token_of_sentence function."""
     model_name = "roberta-base"
     model = AutoModelForMaskedLM.from_pretrained(
-        model_name,
+        pretrained_model_name_or_path=model_name,
     )
     tokenizer = AutoTokenizer.from_pretrained(
-        model_name,
+        pretrained_model_name_or_path=model_name,
     )
 
     model.to(
