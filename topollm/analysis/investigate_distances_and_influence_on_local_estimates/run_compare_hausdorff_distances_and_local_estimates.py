@@ -40,6 +40,7 @@ import numpy as np
 import omegaconf
 import pandas as pd
 import torch
+from torch.nn import CrossEntropyLoss
 from tqdm import tqdm
 from transformers.modeling_utils import PreTrainedModel
 from transformers.tokenization_utils import PreTrainedTokenizer
@@ -208,13 +209,11 @@ def main(
     # Extract the embedding vector for the vector_index and the corresponding metadata
     extracted_vector = array_to_analyze[vector_index]
     extracted_metadata = corresponding_metadata.iloc[vector_index]
+    top_k = 5
 
     if verbosity >= Verbosity.NORMAL:
         logger.info(
-            msg="Extracted metadata:",
-        )
-        logger.info(
-            msg=extracted_metadata,
+            msg=f"extracted_metadata:\n{extracted_metadata}",  # noqa: G004 - low overhead
         )
         if "tokens_list" in extracted_metadata:
             logger.info(
@@ -228,11 +227,11 @@ def main(
     # In this case, batch_size=1, sequence_length=1
     extracted_tensor: torch.Tensor = (
         torch.tensor(
-            extracted_vector,
+            data=extracted_vector,
             dtype=torch.float32,
         )
-        .unsqueeze(0)
-        .unsqueeze(0)
+        .unsqueeze(dim=0)
+        .unsqueeze(dim=0)
     )
     # Move to the device
     extracted_tensor = extracted_tensor.to(
@@ -244,7 +243,6 @@ def main(
     output_logits = model.lm_head(extracted_tensor)
 
     # Configurable top-K
-    top_k = 5
     (
         top_k_probs,
         top_k_indices,
@@ -258,15 +256,48 @@ def main(
     )
 
     # Decode the top-K predictions
-    top_k_tokens: list[str] = [tokenizer.decode(token_ids=[idx]) for idx in top_k_indices[0, 0].tolist()]
+    top_k_tokens_wrapped: list = [tokenizer.convert_ids_to_tokens([idx]) for idx in top_k_indices[0, 0].tolist()]
+    top_k_tokens: list = [token_in_list[0] for token_in_list in top_k_tokens_wrapped]
 
     # Print the top-K predictions and their probabilities
     if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"token_id:\n{extracted_metadata['token_id']}",  # noqa: G004 - low overhead
+        )
+        logger.info(
+            msg=f"token_name:\n{extracted_metadata['token_name']}",  # noqa: G004 - low overhead
+        )
         logger.info(
             msg=f"Top-K predicted tokens:\n{top_k_tokens}",  # noqa: G004 - low overhead
         )
         logger.info(
             msg=f"Top-K probabilities:\n{top_k_probs[0, 0].tolist()}",  # noqa: G004 - low overhead
+        )
+
+    # # # #
+    # Compute the model loss, i.e., the token pseudo-perplexity
+
+    loss_fct = CrossEntropyLoss()
+
+    # Reshape prediction_scores and actual_token_id for the loss computation
+    actual_token_id: torch.Tensor = torch.tensor(
+        data=extracted_metadata["token_id"],
+        dtype=torch.long,
+    ).to(
+        device=output_logits.device,
+    )
+    output_logits_reshaped = output_logits.view(-1, model.config.vocab_size)  # Shape: [1, vocab_size]
+    actual_token_id_reshaped: torch.Tensor = actual_token_id.view(-1)  # Shape: [1]
+
+    # Compute masked language modeling loss
+    masked_lm_loss = loss_fct(
+        output_logits_reshaped,
+        actual_token_id_reshaped,
+    )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"masked_lm_loss:\n{masked_lm_loss.item()}",  # noqa: G004 - low overhead
         )
 
     # ================================================== #

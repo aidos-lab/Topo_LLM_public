@@ -1109,7 +1109,7 @@ def orchestrate_job_submission(
         ### With POS tags for finetuned models and three checkpoints ###
         language_model_list_option = LanguageModelListOption.SELECTED_FINETUNED_MANY_EPOCHS_FROM_ROBERTA_BASE
         finetuning_regime_option = FinetuningRegimeOption.MANY_EPOCHS_WITH_OVERFITTING_RISK
-        language_model_seed_list_option = SeedListOption.FIXED_SEEDS_1234_1235_1236
+        language_model_seed_list_option = SeedListOption.FIXED_SEED_1234
         checkpoint_no_list_option = CheckpointNoListOption.ONLY_BEGINNING_AND_MIDDLE_AND_END
     else:
         raise click.UsageError(
@@ -1323,6 +1323,15 @@ def orchestrate_job_submission(
         ngpus=ngpus,
         walltime=walltime,
     )
+
+    ########################################
+    ### Additional logic,
+    ### for example to remove unnecessary configurations and thus avoid unnecessary computations
+    ########################################
+
+    if data_subsampling_sampling_mode == DataSamplingMode.TAKE_FIRST:
+        # We do not need sampling seeds for the TAKE_FIRST mode
+        data_subsampling_sampling_seed_list_option = DataSubsamplingSamplingSeedListOption.NONE
 
     additional_overrides_parameter = list(additional_overrides) if additional_overrides else None
     print(  # noqa: T201 - We want this script to print this output

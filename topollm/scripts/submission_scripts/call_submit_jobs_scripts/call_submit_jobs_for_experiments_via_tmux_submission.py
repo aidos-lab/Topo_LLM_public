@@ -71,6 +71,9 @@ def submit_jobs(
         # "wikitext_only",
     ]
 
+    # data_subsampling_sampling_mode_option = "random"
+    data_subsampling_sampling_mode_option = "take_first"
+
     experiment_selector_options: list[str] = [
         # "coarse_checkpoint_resolution",
         # "regular_token_embeddings",
@@ -81,8 +84,8 @@ def submit_jobs(
     # We do not make the experiment_stage into a list option, because the embedding computation jobs
     # need to be run before the additional pipeline runs (they depend on the embeddings).
     #
-    experiment_stage = "compute_embeddings_plus_single_pipeline_run"
-    # experiment_stage = "skip_compute_embeddings_and_multiple_pipeline_runs"
+    # experiment_stage = "compute_embeddings_plus_single_pipeline_run"
+    experiment_stage = "skip_compute_embeddings_and_multiple_pipeline_runs"
 
     model_selection_option_list: list[str] = [
         # "--use-roberta-base",
@@ -143,6 +146,7 @@ def submit_jobs(
             session_name=session_name,
             log_file=str(object=log_file),
             data_option=data_option,
+            data_subsampling_sampling_mode_option=data_subsampling_sampling_mode_option,
             experiment_selector=experiment_selector,
             experiment_stage=experiment_stage,
             model_selection_option=model_selection_option,
@@ -219,6 +223,7 @@ def run_tmux_session(
     session_name: str,
     log_file: str,
     data_option: str,
+    data_subsampling_sampling_mode_option: str,
     experiment_selector: str,
     experiment_stage: str,
     model_selection_option: str,
@@ -236,6 +241,7 @@ def run_tmux_session(
     command_for_tmux_session: str = (
         f"poetry run submit_jobs "
         f"--data-list-option {data_option} "
+        f"--data-subsampling-sampling-mode {data_subsampling_sampling_mode_option} "
         f"--experiment-selector {experiment_selector} "
         f"--experiment-stage {experiment_stage} "
         f"{model_selection_option} "
