@@ -36,41 +36,14 @@ from typing import TYPE_CHECKING
 import hydra
 import hydra.core.hydra_config
 import joblib
+import numpy as np
 import omegaconf
 import pandas as pd
+from scipy import stats
+from scipy.stats import norm
+from sklearn.neighbors import KernelDensity
 from tqdm import tqdm
 
-from topollm.analysis.compare_sampling_methods.analysis_modes.checkpoint_analysis_modes import (
-    CheckpointAnalysisModes,
-)
-from topollm.analysis.compare_sampling_methods.analysis_modes.noise_analysis_modes import (
-    NoiseAnalysisCombination,
-    NoiseAnalysisModes,
-)
-from topollm.analysis.compare_sampling_methods.checkpoint_analysis.model_checkpoint_analysis import (
-    run_checkpoint_analysis_over_different_data_and_models,
-)
-from topollm.analysis.compare_sampling_methods.checkpoint_analysis.model_loss_extractor import ModelLossExtractor
-from topollm.analysis.compare_sampling_methods.extract_results_from_directory_structure import (
-    run_search_on_single_base_directory_and_process_and_save,
-)
-from topollm.analysis.compare_sampling_methods.filter_dataframe_based_on_filters_dict import (
-    filter_dataframe_based_on_filters_dict,
-)
-from topollm.analysis.compare_sampling_methods.load_and_concatenate_saved_dataframes import (
-    load_and_concatenate_saved_dataframes,
-)
-from topollm.analysis.compare_sampling_methods.make_plots import (
-    PlotProperties,
-    generate_fixed_params_text,
-    scatterplot_individual_seed_combinations_and_combined,
-)
-from topollm.analysis.compare_sampling_methods.organize_results_directory_structure import (
-    build_results_directory_structure,
-)
-from topollm.analysis.compare_sampling_methods.sensitivity_to_parameter_choices.data_subsampling_number_of_samples_analysis import (
-    run_data_subsampling_number_of_samples_analysis,
-)
 from topollm.analysis.local_estimates_handling.saving.local_estimates_containers import LocalEstimatesContainer
 from topollm.analysis.local_estimates_handling.saving.local_estimates_saving_manager import LocalEstimatesSavingManager
 from topollm.config_classes.constants import (
@@ -200,6 +173,62 @@ def main(
     # TODO: Create analysis of twoNN measure for individual tokens under different noise distortions
     # TODO: (currently, we plan to create an extra script for the token-level analysis)
 
+    array_base_data = local_estimates_container_base_data.array_for_estimator_np
+    if array_base_data is None:
+        msg = "The array for the estimator is None."
+        raise ValueError(
+            msg,
+        )
+
+    # Generate toy data of size (2000, 768), random normal distribution
+    toy_data = np.random.randn(2000, 768)
+
+    # data_to_analyze: np.ndarray = toy_data
+    data_to_analyze: np.ndarray = array_base_data
+
+    # # # # # # # #
+    # Version 1:
+    #
+    # Implementation via scipy.stats
+
+    kernel = stats.gaussian_kde(
+        dataset=data_to_analyze.T,  # Transpose to match the expected shape for multivariate KDE
+        # bw_method=1.0,
+    )
+    result = kernel(
+        data_to_analyze[:100].T,
+    )
+    logger.info(
+        msg=f"result:\n{result}",  # noqa: G004 - low overhead
+    )
+
+    # # # # # # # #
+    # Version 2:
+    #
+    # Implementation via sklearn.neighbors
+
+    # Initialize and fit the KDE model
+    kde = KernelDensity(
+        kernel="gaussian",
+        bandwidth="scott",
+    )
+    kde.fit(
+        X=data_to_analyze,
+    )
+
+    # Evaluate the density on the dataset
+    log_density: np.ndarray = kde.score_samples(
+        X=data_to_analyze[:100],
+    )  # Log density values
+    density: np.ndarray = np.exp(log_density)  # Convert to actual density values
+
+    logger.info(
+        msg=f"log_density:\n{log_density}",  # noqa: G004 - low overhead
+    )
+    logger.info(
+        msg=f"density:\n{density}",  # noqa: G004 - low overhead
+    )
+
     # ================================================== #
     # Note: You can add additional analysis steps here
     # ================================================== #
@@ -207,6 +236,69 @@ def main(
     logger.info(
         msg="Running script DONE",
     )
+
+
+def pairwise_distances(
+    X,
+) -> np.ndarray:
+    """Calculate pairwise distance matrix of a given data matrix and return said matrix."""
+    D = np.sum((X[None, :] - X[:, None]) ** 2, -1) ** 0.5
+    return D
+
+
+def get_neighbours_and_ranks(
+    X,
+    k,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Calculate the neighbourhoods and the ranks of a given space `X`, and return the corresponding tuple.
+
+    An additional parameter $k$,
+    the size of the neighbourhood, is required.
+    """
+    X = pairwise_distances(X)
+
+    # Warning: this is only the ordering of neighbours that we need to
+    # extract neighbourhoods below. The ranking comes later!
+    X_ranks = np.argsort(X, axis=-1, kind="stable")
+
+    # Extract neighbourhoods.
+    X_neighbourhood = X_ranks[:, 1 : k + 1]
+
+    # Convert this into ranks (finally)
+    X_ranks = X_ranks.argsort(axis=-1, kind="stable")
+
+    return X_neighbourhood, X_ranks
+
+
+def MRRE_pointwise(
+    X,
+    Z,
+    k,
+) -> np.ndarray:
+    """Calculate the pointwise mean rank distortion for each data point in the data space `X` with respect to the latent space `Z`.
+
+    Inputs:
+        - X: array of shape (m, n) (data space)
+        - Z: array of shape (m, l) (latent space)
+        - k: number of nearest neighbors to consider
+    Output:
+        - mean_rank_distortions: array of length m
+    """
+    X_neighbourhood, X_ranks = get_neighbours_and_ranks(X, k)
+    Z_neighbourhood, Z_ranks = get_neighbours_and_ranks(Z, k)
+
+    n = X.shape[0]
+    mean_rank_distortions = np.zeros(n)
+
+    for row in range(n):
+        rank_differences = []
+        for neighbour in Z_neighbourhood[row]:
+            rx = X_ranks[row, neighbour]
+            rz = Z_ranks[row, neighbour]
+            rank_differences.append(abs(rx - rz) / rz)
+        mean_rank_distortions[row] = np.mean(rank_differences)
+
+    return mean_rank_distortions
 
 
 if __name__ == "__main__":

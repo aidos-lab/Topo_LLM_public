@@ -72,6 +72,7 @@ def submit_jobs(
     ]
 
     experiment_selector_options: list[str] = [
+        # "coarse_checkpoint_resolution",
         # "regular_token_embeddings",
         "masked_token_embeddings",
         # "tiny_dropout_variations_coarse_checkpoint_resolution",
