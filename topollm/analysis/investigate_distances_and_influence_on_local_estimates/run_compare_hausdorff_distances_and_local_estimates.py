@@ -107,6 +107,13 @@ def main(
 
     # # # # # # # # # # # # # # # # # # # # #
     # START Global settings
+    # TODO: Check that the global settings are correct for the current analysis
+
+    array_truncation_size: int = 5_000
+
+    # NOTE: We will probably implement the following two analysis steps in a separate script which iterates over the directory structure
+    # TODO(Ben): Implement iteration over different noise levels and noise seeds, to make a plot of Hausdorff distances vs. local estimates for each noise level and seed.
+    # TODO(Ben): Plot of Hausdorff distances vs. global estimates.
 
     # END Global settings
     # # # # # # # # # # # # # # # # # # # # #
@@ -124,7 +131,7 @@ def main(
     data_dir: pathlib.Path = embeddings_path_manager_for_base_data.data_dir
 
     # ================================================== #
-    # Non-noised data
+    # Base data (for example, non-noised data)
     # ================================================== #
 
     local_estimates_saving_manager_for_base_data = LocalEstimatesSavingManager(
@@ -138,88 +145,88 @@ def main(
     )
 
     # ================================================== #
-    # Load artificial noise data
+    # Comparison data (for example, noise data)
     # ================================================== #
 
+    # TODO: We currently set the comparison data manually in this script
     artificial_noise_mode = ArtificialNoiseMode.GAUSSIAN
     artificial_noise_distortion_parameter = 0.01
     artificial_noise_seed = 4
 
-    main_config_for_noised_data: MainConfig = main_config.model_copy(
+    main_config_for_comparison_data: MainConfig = main_config.model_copy(
         deep=True,
     )
-    main_config_for_noised_data.local_estimates.noise.artificial_noise_mode = artificial_noise_mode
-    main_config_for_noised_data.local_estimates.noise.distortion_parameter = artificial_noise_distortion_parameter
-    main_config_for_noised_data.local_estimates.noise.seed = artificial_noise_seed
+    main_config_for_comparison_data.local_estimates.noise.artificial_noise_mode = artificial_noise_mode
+    main_config_for_comparison_data.local_estimates.noise.distortion_parameter = artificial_noise_distortion_parameter
+    main_config_for_comparison_data.local_estimates.noise.seed = artificial_noise_seed
 
-    embeddings_path_manager_for_noised_data: EmbeddingsPathManager = get_embeddings_path_manager(
-        main_config=main_config_for_noised_data,
+    embeddings_path_manager_for_comparison_data: EmbeddingsPathManager = get_embeddings_path_manager(
+        main_config=main_config_for_comparison_data,
         logger=logger,
     )
 
-    local_estimates_saving_manager_for_noised_data = LocalEstimatesSavingManager(
-        embeddings_path_manager=embeddings_path_manager_for_noised_data,
+    local_estimates_saving_manager_for_comparison_data = LocalEstimatesSavingManager(
+        embeddings_path_manager=embeddings_path_manager_for_comparison_data,
         verbosity=verbosity,
         logger=logger,
     )
 
-    local_estimates_container_noised_data: LocalEstimatesContainer = (
-        local_estimates_saving_manager_for_noised_data.load_local_estimates()
+    local_estimates_container_for_comparison_data: LocalEstimatesContainer = (
+        local_estimates_saving_manager_for_comparison_data.load_local_estimates()
     )
 
     # # # #
     # Compute differences between the local estimates
 
-    # TODO(Ben): Implement iteration over different noise levels and noise seeds, to make a plot of Hausdorff distances vs. local estimates for each noise level and seed.
-    # TODO(Ben): Plot of Hausdorff distances vs. global estimates.
-
-    # TODO: Create analysis of twoNN measure for individual tokens under different noise distortions
-
-    array_base_data = local_estimates_container_base_data.array_for_estimator_np
-    if array_base_data is None:
+    array_for_base_data = local_estimates_container_base_data.array_for_estimator_np
+    if array_for_base_data is None:
         msg = "The array for the estimator is None."
         raise ValueError(
             msg,
         )
 
-    array_noised_data = local_estimates_container_noised_data.array_for_estimator_np
-    if array_noised_data is None:
+    array_for_comparison_data = local_estimates_container_for_comparison_data.array_for_estimator_np
+    if array_for_comparison_data is None:
         msg = "The array for the estimator is None."
         raise ValueError(
             msg,
         )
 
     # ================================================== #
-    # Comparing model predictions
+    # Computing model predictions
     # ================================================== #
 
-    loaded_model_container: LoadedModelContainer = prepare_device_and_tokenizer_and_model(
+    loaded_model_container_for_base_data: LoadedModelContainer = prepare_device_and_tokenizer_and_model(
         main_config=main_config,
         verbosity=verbosity,
         logger=logger,
     )
 
-    tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast = loaded_model_container.tokenizer
-    model: PreTrainedModel = loaded_model_container.model
+    tokenizer_for_base_data: PreTrainedTokenizer | PreTrainedTokenizerFast = (
+        loaded_model_container_for_base_data.tokenizer
+    )
+    model_for_base_data: PreTrainedModel = loaded_model_container_for_base_data.model
 
-    array_to_analyze: np.ndarray = array_base_data
-    # array_to_analyze: np.ndarray = array_noised_data
+    # TODO: Check that the container to analyze is correctly set. (Once we abstracted the analysis into a function, we will do it for both the base data and the comparison data.)
+    local_estimates_container_to_analyze: LocalEstimatesContainer = local_estimates_container_base_data
+    # local_estimates_container_to_analyze: LocalEstimatesContainer = local_estimates_container_for_comparison_data
+    analysis_verbosity_level: Verbosity = Verbosity.DEBUG  # type: ignore - typing problem with IntEnum
 
-    corresponding_metadata: pd.DataFrame | None = local_estimates_container_base_data.pointwise_results_meta_frame
+    array_to_analyze = local_estimates_container_to_analyze.array_for_estimator_np
+    if array_to_analyze is None:
+        msg = "The array_to_analyze is None."
+        raise ValueError(
+            msg,
+        )
+
+    corresponding_metadata: pd.DataFrame | None = local_estimates_container_to_analyze.pointwise_results_meta_frame
     if corresponding_metadata is None:
         msg = "The corresponding metadata is None."
         raise ValueError(
             msg,
         )
 
-    # # # # # # # # # # # # # # # # # # # # #
-    # START Debug settings
-
-    array_truncation_size: int = 5_000
-    # array_truncation_size: int = array_to_analyze.shape[0]
-
-    # END Debug settings
-    # # # # # # # # # # # # # # # # # # # # #
+    pointwise_local_estimates_to_analyze = local_estimates_container_to_analyze.pointwise_results_array_np
 
     for vector_index in tqdm(
         iterable=range(array_truncation_size),
@@ -229,9 +236,9 @@ def main(
         extracted_vector = array_to_analyze[vector_index]
         extracted_metadata = corresponding_metadata.iloc[vector_index]
 
-        extracted_local_estimate = local_estimates_container_base_data.pointwise_results_array_np[vector_index]
+        extracted_local_estimate = pointwise_local_estimates_to_analyze[vector_index]
 
-        if verbosity >= Verbosity.DEBUG:
+        if analysis_verbosity_level >= Verbosity.DEBUG:
             logger.info(
                 msg=f"extracted_metadata:\n{extracted_metadata}",  # noqa: G004 - low overhead
             )
@@ -246,14 +253,23 @@ def main(
         # # # #
         # Forward pass through the model and compute predictions and loss
         lm_head_prediction_results: LMHeadPredictionResults = compute_model_lm_head_predictions_on_vector(
-            tokenizer=tokenizer,
-            model=model,
+            tokenizer=tokenizer_for_base_data,
+            model=model_for_base_data,
             extracted_vector=extracted_vector,
             extracted_metadata=extracted_metadata,
             top_k=10,
-            verbosity=verbosity,
+            verbosity=analysis_verbosity_level,
             logger=logger,
         )
+
+        # TODO: Collect the results in a list for further analysis
+
+    # TODO: Optionally save the results list in a human readable format to disk
+
+    # TODO: Encapsolate the prediction computation in a function and call it for the comparison data as well
+    # TODO: Compare the results for the base data and the comparison data
+
+    # TODO: Create analysis of twoNN measure for individual tokens under different noise distortions
 
     # ================================================== #
     # Note: You can add additional analysis steps here
@@ -268,6 +284,7 @@ def main(
 class LMHeadPredictionResults:
     """Container for the results of the LM head predictions."""
 
+    output_logits_softmax_np: np.ndarray | None
     top_k_tokens: list[str]
     top_k_probabilities: list[float]
     loss: float | None
@@ -307,15 +324,19 @@ def compute_model_lm_head_predictions_on_vector(
         extracted_tensor,
     )
 
-    # Configurable top-K
+    output_logits_softmax: torch.Tensor = torch.softmax(
+        input=output_logits,
+        dim=-1,
+    ).to(
+        device="cpu",
+    )
+
+    # top-K predictions
     (
         top_k_probs,
         top_k_indices,
     ) = torch.topk(
-        input=torch.softmax(
-            input=output_logits,
-            dim=-1,
-        ),
+        input=output_logits_softmax,
         k=top_k,
         dim=-1,
     )
@@ -343,7 +364,7 @@ def compute_model_lm_head_predictions_on_vector(
 
     # # # #
     # Compute the masked language model loss if the metadata is available
-    if extracted_metadata is not None and "token_id" in extracted_metadata:
+    if extracted_metadata is not None and "token_id" in extracted_metadata and "token_name" in extracted_metadata:
         actual_token_id = extracted_metadata["token_id"]
         actual_token_name = extracted_metadata["token_name"]
 
@@ -362,6 +383,7 @@ def compute_model_lm_head_predictions_on_vector(
         loss_value = None
 
     lm_head_prediction_results: LMHeadPredictionResults = LMHeadPredictionResults(
+        output_logits_softmax_np=output_logits_softmax.detach().cpu().numpy(),
         top_k_tokens=top_k_tokens,
         top_k_probabilities=top_k_probabilities,
         loss=loss_value,
