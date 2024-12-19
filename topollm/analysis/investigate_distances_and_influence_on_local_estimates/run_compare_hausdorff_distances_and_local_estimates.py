@@ -177,7 +177,7 @@ def main(
     )
 
     # # # #
-    # Compute differences between the local estimates
+    # Example: Accessing the arrays used for the local estimates
 
     array_for_base_data = local_estimates_container_base_data.array_for_estimator_np
     if array_for_base_data is None:
@@ -217,10 +217,8 @@ def main(
         logger=logger,
     )
 
-    # TODO: Encapsolate the prediction computation in a function and call it for the comparison data as well
+    # TODO: Encapsulate the prediction computation in a function and call it for the comparison data as well
     # TODO: Compare the results for the base data and the comparison data
-
-    # TODO: Optionally save the results list in a human readable format to disk
 
     # TODO: Create analysis of twoNN measure for individual tokens under different noise distortions
 
@@ -262,13 +260,106 @@ class LocalEstimatesAndPredictionsContainer:
     def __init__(
         self,
         local_estimates_and_predictions_results_list: list[LocalEstimateAndPrediction],
+        verbosity: Verbosity = Verbosity.NORMAL,
+        logger: logging.Logger = default_logger,
     ) -> None:
         """Initialize the container."""
         self.local_estimates_and_predictions_results_list: list[LocalEstimateAndPrediction] = (
             local_estimates_and_predictions_results_list
         )
 
-    # TODO: Implement method for extracting an array of local estimates and an array of loss values
+        self.verbosity: Verbosity = verbosity
+        self.logger: logging.Logger = logger
+
+    def get_loss_vector(
+        self,
+    ) -> np.ndarray:
+        """Extract the loss values from the container.
+
+        I.e., this returns a vector of the loss/pseudo-perplexity values for each token.
+        """
+        loss_vector: np.ndarray = np.array(
+            object=[
+                local_estimate_and_prediction.lm_head_prediction_results.loss
+                for local_estimate_and_prediction in self.local_estimates_and_predictions_results_list
+            ],
+        )
+
+        return loss_vector
+
+    def get_local_estimates_vector(
+        self,
+    ) -> np.ndarray:
+        """Extract the local estimates from the container.
+
+        I.e., this returns a vector of the local estimates for each token.
+        """
+        local_estimates_vector: np.ndarray = np.array(
+            object=[
+                local_estimate_and_prediction.extracted_local_estimate
+                for local_estimate_and_prediction in self.local_estimates_and_predictions_results_list
+            ],
+        )
+
+        return local_estimates_vector
+
+    def create_descriptive_statistics(
+        self,
+    ) -> dict:
+        """Create descriptive statistics for the local estimates and the loss values."""
+        local_estimates_vector: np.ndarray = self.get_local_estimates_vector()
+        loss_vector: np.ndarray = self.get_loss_vector()
+
+        local_estimates_series: pd.Series = pd.Series(
+            data=local_estimates_vector,
+        )
+        loss_series: pd.Series = pd.Series(
+            data=loss_vector,
+        )
+
+        local_estimates_descriptive_statistics: pd.Series = local_estimates_series.describe()
+        loss_descriptive_statistics: pd.Series = loss_series.describe()
+
+        descriptive_statistics_dict: dict = {
+            "local_estimates": local_estimates_descriptive_statistics,
+            "loss": loss_descriptive_statistics,
+        }
+
+        return descriptive_statistics_dict
+
+    def compute_correlation_between_local_estimates_and_loss_values(
+        self,
+    ):
+        """Compute the correlation between the local estimates and the loss values."""
+        local_estimates_vector: np.ndarray = self.get_local_estimates_vector()
+        loss_vector: np.ndarray = self.get_loss_vector()
+
+        # Convert the local estimates and loss values to a DataFrame
+        local_estimates_and_loss_df: pd.DataFrame = pd.DataFrame(
+            data={
+                "local_estimate": local_estimates_vector,
+                "loss": loss_vector,
+            },
+        )
+
+        # Compute the pearson and kendall rank correlation between the local estimates and the loss values
+        correlation_pearson: float = local_estimates_and_loss_df["local_estimate"].corr(
+            other=local_estimates_and_loss_df["loss"],
+            method="pearson",
+        )
+        correlation_kendall: float = local_estimates_and_loss_df["local_estimate"].corr(
+            other=local_estimates_and_loss_df["loss"],
+            method="kendall",
+        )
+
+        return correlation_pearson, correlation_kendall
+
+        # TODO: Compute the p-values for the correlation coefficients
+
+    # TODO: Implement method for computing correlation between local estimates and loss values
+    # TODO: Implement methods to compare local estimates and loss values between two containers
+
+    # TODO: Implement saving the results list in a human readable format to disk
 
 
 def compute_predictions_on_hidden_states(
