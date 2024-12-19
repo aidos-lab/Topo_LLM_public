@@ -31,6 +31,7 @@ import logging
 import pathlib
 import pprint
 from collections.abc import Generator
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 import hydra
@@ -181,6 +182,13 @@ def main(
             msg,
         )
 
+    array_noised_data = local_estimates_container_noised_data.array_for_estimator_np
+    if array_noised_data is None:
+        msg = "The array for the estimator is None."
+        raise ValueError(
+            msg,
+        )
+
     # ================================================== #
     # Comparing model predictions
     # ================================================== #
@@ -194,16 +202,27 @@ def main(
     tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast = loaded_model_container.tokenizer
     model: PreTrainedModel = loaded_model_container.model
 
-    array_to_analyze = array_base_data
-    corresponding_metadata = local_estimates_container_base_data.pointwise_results_meta_frame
+    array_to_analyze: np.ndarray = array_base_data
+    # array_to_analyze: np.ndarray = array_noised_data
+
+    corresponding_metadata: pd.DataFrame | None = local_estimates_container_base_data.pointwise_results_meta_frame
     if corresponding_metadata is None:
         msg = "The corresponding metadata is None."
         raise ValueError(
             msg,
         )
 
+    # # # # # # # # # # # # # # # # # # # # #
+    # START Debug settings
+
+    array_truncation_size: int = 5_000
+    # array_truncation_size: int = array_to_analyze.shape[0]
+
+    # END Debug settings
+    # # # # # # # # # # # # # # # # # # # # #
+
     for vector_index in tqdm(
-        iterable=range(100),
+        iterable=range(array_truncation_size),
         desc="Iterating over vectors",
     ):
         # Extract the embedding vector for the vector_index and the corresponding metadata
@@ -212,7 +231,7 @@ def main(
 
         extracted_local_estimate = local_estimates_container_base_data.pointwise_results_array_np[vector_index]
 
-        if verbosity >= Verbosity.NORMAL:
+        if verbosity >= Verbosity.DEBUG:
             logger.info(
                 msg=f"extracted_metadata:\n{extracted_metadata}",  # noqa: G004 - low overhead
             )
@@ -226,7 +245,7 @@ def main(
 
         # # # #
         # Forward pass through the model and compute predictions and loss
-        compute_model_lm_head_predictions_on_vector(
+        lm_head_prediction_results: LMHeadPredictionResults = compute_model_lm_head_predictions_on_vector(
             tokenizer=tokenizer,
             model=model,
             extracted_vector=extracted_vector,
@@ -245,6 +264,18 @@ def main(
     )
 
 
+@dataclass
+class LMHeadPredictionResults:
+    """Container for the results of the LM head predictions."""
+
+    top_k_tokens: list[str]
+    top_k_probabilities: list[float]
+    loss: float | None
+
+    actual_token_id: int | None = None
+    actual_token_name: str | None = None
+
+
 def compute_model_lm_head_predictions_on_vector(
     tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast,
     model: PreTrainedModel,
@@ -253,7 +284,7 @@ def compute_model_lm_head_predictions_on_vector(
     top_k: int = 10,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
-) -> None:
+) -> LMHeadPredictionResults:
     """Compute the model predictions for the given vector and metadata."""
     # Convert the NumPy array to a PyTorch tensor with shape [batch_size, sequence_length, hidden_size]
     # In this case, batch_size=1, sequence_length=1
@@ -295,7 +326,7 @@ def compute_model_lm_head_predictions_on_vector(
     top_k_probabilities: list[float] = top_k_probs[0, 0].tolist()
 
     # Log the top-K predictions and their probabilities
-    if verbosity >= Verbosity.NORMAL:
+    if verbosity >= Verbosity.DEBUG:
         if extracted_metadata is not None:
             logger.info(
                 msg=f"token_id:\n{extracted_metadata['token_id']}",  # noqa: G004 - low overhead
@@ -314,6 +345,7 @@ def compute_model_lm_head_predictions_on_vector(
     # Compute the masked language model loss if the metadata is available
     if extracted_metadata is not None and "token_id" in extracted_metadata:
         actual_token_id = extracted_metadata["token_id"]
+        actual_token_name = extracted_metadata["token_name"]
 
         # Reshape prediction_scores and actual_token_id for the loss computation
         loss = compute_masked_language_model_loss(
@@ -323,10 +355,21 @@ def compute_model_lm_head_predictions_on_vector(
             verbosity=verbosity,
             logger=logger,
         )
+        loss_value = float(loss.item())
     else:
-        loss = None
+        actual_token_id = None
+        actual_token_name = None
+        loss_value = None
 
-    # TODO: Collect the results in a container and return them
+    lm_head_prediction_results: LMHeadPredictionResults = LMHeadPredictionResults(
+        top_k_tokens=top_k_tokens,
+        top_k_probabilities=top_k_probabilities,
+        loss=loss_value,
+        actual_token_id=actual_token_id,
+        actual_token_name=actual_token_name,
+    )
+
+    return lm_head_prediction_results
 
 
 def compute_masked_language_model_loss(
@@ -363,12 +406,12 @@ def compute_masked_language_model_loss(
         device="cpu",
     )
 
-    if verbosity >= Verbosity.NORMAL:
+    if verbosity >= Verbosity.DEBUG:
         logger.info(
             msg=f"masked_lm_loss:\n{masked_lm_loss.item()}",  # noqa: G004 - low overhead
         )
 
-    return masked_lm_loss.item()
+    return masked_lm_loss
 
 
 def pairwise_distances(
