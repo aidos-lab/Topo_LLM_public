@@ -47,6 +47,7 @@ from transformers.modeling_utils import PreTrainedModel
 from transformers.tokenization_utils import PreTrainedTokenizer
 from transformers.tokenization_utils_fast import PreTrainedTokenizerFast
 
+from topollm.analysis.local_estimates_handling.saving.local_estimates_containers import LocalEstimatesContainer
 from topollm.analysis.local_estimates_handling.saving.local_estimates_saving_manager import LocalEstimatesSavingManager
 from topollm.config_classes.constants import (
     HYDRA_CONFIGS_BASE_PATH,
@@ -65,7 +66,6 @@ from topollm.path_management.embeddings.factory import get_embeddings_path_manag
 from topollm.typing.enums import ArtificialNoiseMode, Verbosity
 
 if TYPE_CHECKING:
-    from topollm.analysis.local_estimates_handling.saving.local_estimates_containers import LocalEstimatesContainer
     from topollm.config_classes.main_config import MainConfig
     from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 
@@ -109,7 +109,8 @@ def main(
     # START Global settings
     # TODO: Check that the global settings are correct for the current analysis
 
-    array_truncation_size: int = 5_000
+    # array_truncation_size: int = 5_000
+    array_truncation_size: int = 500
 
     # NOTE: We will probably implement the following two analysis steps in a separate script which iterates over the directory structure
     # TODO(Ben): Implement iteration over different noise levels and noise seeds, to make a plot of Hausdorff distances vs. local estimates for each noise level and seed.
@@ -207,11 +208,78 @@ def main(
     )
     model_for_base_data: PreTrainedModel = loaded_model_container_for_base_data.model
 
-    # TODO: Check that the container to analyze is correctly set. (Once we abstracted the analysis into a function, we will do it for both the base data and the comparison data.)
-    local_estimates_container_to_analyze: LocalEstimatesContainer = local_estimates_container_base_data
-    # local_estimates_container_to_analyze: LocalEstimatesContainer = local_estimates_container_for_comparison_data
-    analysis_verbosity_level: Verbosity = Verbosity.DEBUG  # type: ignore - typing problem with IntEnum
+    results_container_for_base_data: LocalEstimatesAndPredictionsContainer = compute_predictions_on_hidden_states(
+        local_estimates_container_to_analyze=local_estimates_container_base_data,
+        array_truncation_size=array_truncation_size,
+        tokenizer_for_base_data=tokenizer_for_base_data,
+        model_for_base_data=model_for_base_data,
+        analysis_verbosity_level=verbosity,
+        logger=logger,
+    )
 
+    # TODO: Encapsolate the prediction computation in a function and call it for the comparison data as well
+    # TODO: Compare the results for the base data and the comparison data
+
+    # TODO: Optionally save the results list in a human readable format to disk
+
+    # TODO: Create analysis of twoNN measure for individual tokens under different noise distortions
+
+    # ================================================== #
+    # Note: You can add additional analysis steps here
+    # ================================================== #
+
+    logger.info(
+        msg="Running script DONE",
+    )
+
+
+@dataclass
+class LMHeadPredictionResults:
+    """Container for the results of the LM head predictions."""
+
+    output_logits_softmax_np: np.ndarray | None
+    top_k_tokens: list[str]
+    top_k_probabilities: list[float]
+    loss: float | None
+
+    actual_token_id: int | None = None
+    actual_token_name: str | None = None
+
+
+@dataclass
+class LocalEstimateAndPrediction:
+    """Container for the local estimate and the corresponding prediction results."""
+
+    vector_index: int
+
+    extracted_local_estimate: float
+    lm_head_prediction_results: LMHeadPredictionResults
+
+
+class LocalEstimatesAndPredictionsContainer:
+    """Container for the results of a predictions computation."""
+
+    def __init__(
+        self,
+        local_estimates_and_predictions_results_list: list[LocalEstimateAndPrediction],
+    ) -> None:
+        """Initialize the container."""
+        self.local_estimates_and_predictions_results_list: list[LocalEstimateAndPrediction] = (
+            local_estimates_and_predictions_results_list
+        )
+
+    # TODO: Implement method for extracting an array of local estimates and an array of loss values
+
+
+def compute_predictions_on_hidden_states(
+    local_estimates_container_to_analyze: LocalEstimatesContainer,
+    array_truncation_size: int,
+    tokenizer_for_base_data: PreTrainedTokenizer | PreTrainedTokenizerFast,
+    model_for_base_data: PreTrainedModel,
+    analysis_verbosity_level: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> LocalEstimatesAndPredictionsContainer:
+    """Compute and collect the model predictions for the given hidden states."""
     array_to_analyze = local_estimates_container_to_analyze.array_for_estimator_np
     if array_to_analyze is None:
         msg = "The array_to_analyze is None."
@@ -226,7 +294,9 @@ def main(
             msg,
         )
 
-    pointwise_local_estimates_to_analyze = local_estimates_container_to_analyze.pointwise_results_array_np
+    pointwise_local_estimates_to_analyze: np.ndarray = local_estimates_container_to_analyze.pointwise_results_array_np
+
+    results_list: list[LocalEstimateAndPrediction] = []
 
     for vector_index in tqdm(
         iterable=range(array_truncation_size),
@@ -262,35 +332,23 @@ def main(
             logger=logger,
         )
 
-        # TODO: Collect the results in a list for further analysis
+        local_estimate_and_prediction: LocalEstimateAndPrediction = LocalEstimateAndPrediction(
+            vector_index=vector_index,
+            extracted_local_estimate=extracted_local_estimate,
+            lm_head_prediction_results=lm_head_prediction_results,
+        )
 
-    # TODO: Optionally save the results list in a human readable format to disk
+        results_list.append(
+            local_estimate_and_prediction,
+        )
 
-    # TODO: Encapsolate the prediction computation in a function and call it for the comparison data as well
-    # TODO: Compare the results for the base data and the comparison data
-
-    # TODO: Create analysis of twoNN measure for individual tokens under different noise distortions
-
-    # ================================================== #
-    # Note: You can add additional analysis steps here
-    # ================================================== #
-
-    logger.info(
-        msg="Running script DONE",
+    local_estimates_and_predictions_container: LocalEstimatesAndPredictionsContainer = (
+        LocalEstimatesAndPredictionsContainer(
+            local_estimates_and_predictions_results_list=results_list,
+        )
     )
 
-
-@dataclass
-class LMHeadPredictionResults:
-    """Container for the results of the LM head predictions."""
-
-    output_logits_softmax_np: np.ndarray | None
-    top_k_tokens: list[str]
-    top_k_probabilities: list[float]
-    loss: float | None
-
-    actual_token_id: int | None = None
-    actual_token_name: str | None = None
+    return local_estimates_and_predictions_container
 
 
 def compute_model_lm_head_predictions_on_vector(
