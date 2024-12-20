@@ -63,6 +63,7 @@ NAME_PREFIXES: dict[
     str,
     str,
 ] = {
+    "array_truncation_size": "a-tr-s",
     "add_prefix_space": "add-prefix-space",
     "aggregation": "agg",
     "attention_probs_dropout_prob": "attn-dr",

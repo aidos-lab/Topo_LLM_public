@@ -420,6 +420,7 @@ class EmbeddingsPathManagerSeparateDirectories:
             self.data_dir,
             "analysis",
             "distances_and_influence_on_local_estimates",
+            self.main_config.analysis.investigate_distances.get_config_description(),
             self.get_local_estimates_subfolder_path(),
         )
 

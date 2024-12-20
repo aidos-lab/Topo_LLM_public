@@ -29,6 +29,7 @@
 
 from pydantic import Field
 
+from topollm.config_classes.analysis.analysis_config import AnalysisConfig
 from topollm.config_classes.config_base_model import ConfigBaseModel
 from topollm.config_classes.data.data_config import DataConfig
 from topollm.config_classes.data_processing_column_names.data_processing_column_names import DataProcessingColumnNames
@@ -51,6 +52,12 @@ from topollm.typing.enums import PreferredTorchBackend, Verbosity
 
 class MainConfig(ConfigBaseModel):
     """Main configuration for all scripts."""
+
+    analysis: AnalysisConfig = Field(
+        default_factory=AnalysisConfig,
+        title="Analysis configuration.",
+        description="The configuration for specifying analysis parameters.",
+    )
 
     data: DataConfig = Field(
         default=...,

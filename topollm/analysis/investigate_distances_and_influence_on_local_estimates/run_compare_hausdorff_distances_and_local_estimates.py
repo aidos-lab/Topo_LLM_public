@@ -315,7 +315,6 @@ class ComputationData:
     """Dataclass to hold the data for the computation."""
 
     main_config: MainConfig
-    array_truncation_size: int
 
     embeddings_path_manager: EmbeddingsPathManager
     local_estimates_saving_manager: LocalEstimatesSavingManager
@@ -329,7 +328,6 @@ class ComputationData:
     @staticmethod
     def from_main_config(
         main_config: MainConfig,
-        array_truncation_size: int,
         verbosity: Verbosity = Verbosity.NORMAL,
         logger: logging.Logger = default_logger,
     ) -> "ComputationData":
@@ -355,7 +353,7 @@ class ComputationData:
         local_estimates_and_predictions_container: LocalEstimatesAndPredictionsContainer = (
             compute_predictions_on_hidden_states(
                 local_estimates_container_to_analyze=local_estimates_container,
-                array_truncation_size=array_truncation_size,
+                array_truncation_size=main_config.analysis.investigate_distances.array_truncation_size,
                 tokenizer=loaded_model_container.tokenizer,
                 model=loaded_model_container.model,
                 analysis_verbosity_level=verbosity,
@@ -378,7 +376,6 @@ class ComputationData:
 
         result: ComputationData = ComputationData(
             main_config=main_config,
-            array_truncation_size=array_truncation_size,
             embeddings_path_manager=embeddings_path_manager,
             local_estimates_saving_manager=local_estimates_saving_manager,
             local_estimates_container=local_estimates_container,
@@ -397,20 +394,17 @@ class ComparisonManager:
         self,
         main_config_for_base_data: MainConfig,
         main_config_for_comparison_data: MainConfig,
-        array_truncation_size: int,
         verbosity: Verbosity = Verbosity.NORMAL,
         logger: logging.Logger = default_logger,
     ) -> None:
         """Initialize the manager."""
         self.computation_data_for_base_data: ComputationData = ComputationData.from_main_config(
             main_config=main_config_for_base_data,
-            array_truncation_size=array_truncation_size,
             verbosity=verbosity,
             logger=logger,
         )
         self.computation_data_for_comparison_data: ComputationData = ComputationData.from_main_config(
             main_config=main_config_for_comparison_data,
-            array_truncation_size=array_truncation_size,
             verbosity=verbosity,
             logger=logger,
         )
@@ -745,19 +739,9 @@ def main(
         msg="Running script ...",
     )
 
-    # # # # # # # # # # # # # # # # # # # # #
-    # START Global settings
-    # TODO: Check that the global settings are correct for the current analysis
-
-    # array_truncation_size: int = 5_000
-    array_truncation_size: int = 500
-
     # NOTE: We will probably implement the following two analysis steps in a separate script which iterates over the directory structure
     # TODO(Ben): Implement iteration over different noise levels and noise seeds, to make a plot of Hausdorff distances vs. local estimates for each noise level and seed.
     # TODO(Ben): Plot of Hausdorff distances vs. global estimates.
-
-    # END Global settings
-    # # # # # # # # # # # # # # # # # # # # #
 
     # ================================================== #
     # Base data (for example, non-noised data)
@@ -792,7 +776,6 @@ def main(
     comparison_manager = ComparisonManager(
         main_config_for_base_data=main_config,
         main_config_for_comparison_data=main_config_for_comparison_data,
-        array_truncation_size=array_truncation_size,
         verbosity=verbosity,
         logger=logger,
     )

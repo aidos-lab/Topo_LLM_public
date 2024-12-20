@@ -1,4 +1,5 @@
 defaults:
+  - analysis: default
   - data: one-year-of-tsla-on-reddit
   - embeddings_data_prep: default
   - embeddings: basic_embeddings

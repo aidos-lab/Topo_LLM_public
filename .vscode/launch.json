@@ -445,6 +445,8 @@
                 "local_estimates.filtering.deduplication_mode=array_deduplicator",
                 "local_estimates.filtering.num_samples=60000",
                 "local_estimates.pointwise.absolute_n_neighbors=128",
+                // "analysis.investigate_distances.array_truncation_size=500", // The value '500' can be used for quick testing
+                "analysis.investigate_distances.array_truncation_size=5000",
                 "feature_flags.analysis.compare_sampling_methods.do_iterate_all_partial_search_base_directories=True", // This is an example for setting the feature flags
             ]
         },
