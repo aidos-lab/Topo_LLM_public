@@ -327,6 +327,10 @@ class LocalEstimatesAndPredictionsContainer:
 
         return descriptive_statistics_dict
 
+    def save_statistics():
+        # TODO: Implement saving the descriptive statistics to disk
+        pass
+
     def compute_correlation_between_local_estimates_and_loss_values(
         self,
     ):
