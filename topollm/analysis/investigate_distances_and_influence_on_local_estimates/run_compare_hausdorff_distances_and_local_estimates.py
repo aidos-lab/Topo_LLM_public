@@ -68,8 +68,7 @@ from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 from topollm.typing.enums import ArtificialNoiseMode, Verbosity
 
 if TYPE_CHECKING:
-    from topollm.config_classes.main_config import MainConfig
-    from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
+    pass
 
 try:
     from hydra_plugins import hpc_submission_launcher
@@ -93,173 +92,42 @@ setup_exception_logging(
 setup_omega_conf()
 
 
-@hydra.main(
-    config_path=f"{HYDRA_CONFIGS_BASE_PATH}",
-    config_name="main_config",
-    version_base="1.3",
-)
-def main(
-    config: omegaconf.DictConfig,
-) -> None:
-    """Run the script."""
-    logger: logging.Logger = global_logger
-    logger.info(
-        msg="Running script ...",
-    )
-
-    # # # # # # # # # # # # # # # # # # # # #
-    # START Global settings
-    # TODO: Check that the global settings are correct for the current analysis
-
-    # array_truncation_size: int = 5_000
-    array_truncation_size: int = 500
-
-    # NOTE: We will probably implement the following two analysis steps in a separate script which iterates over the directory structure
-    # TODO(Ben): Implement iteration over different noise levels and noise seeds, to make a plot of Hausdorff distances vs. local estimates for each noise level and seed.
-    # TODO(Ben): Plot of Hausdorff distances vs. global estimates.
-
-    # END Global settings
-    # # # # # # # # # # # # # # # # # # # # #
-
-    main_config: MainConfig = initialize_configuration(
-        config=config,
-        logger=logger,
-    )
-    verbosity: Verbosity = main_config.verbosity
-
-    embeddings_path_manager_for_base_data: EmbeddingsPathManager = get_embeddings_path_manager(
-        main_config=main_config,
-        logger=logger,
-    )
-    data_dir: pathlib.Path = embeddings_path_manager_for_base_data.data_dir
-
-    # ================================================== #
-    # Base data (for example, non-noised data)
-    # ================================================== #
-
-    local_estimates_saving_manager_for_base_data = LocalEstimatesSavingManager(
-        embeddings_path_manager=embeddings_path_manager_for_base_data,
-        verbosity=verbosity,
-        logger=logger,
-    )
-
-    local_estimates_container_base_data: LocalEstimatesContainer = (
-        local_estimates_saving_manager_for_base_data.load_local_estimates()
-    )
-
-    # ================================================== #
-    # Comparison data (for example, noise data)
-    # ================================================== #
-
-    # TODO: We currently set the comparison data manually in this script
-    artificial_noise_mode = ArtificialNoiseMode.GAUSSIAN
-    artificial_noise_distortion_parameter = 0.01
-    artificial_noise_seed = 4
-
-    main_config_for_comparison_data: MainConfig = main_config.model_copy(
-        deep=True,
-    )
-    main_config_for_comparison_data.local_estimates.noise.artificial_noise_mode = artificial_noise_mode
-    main_config_for_comparison_data.local_estimates.noise.distortion_parameter = artificial_noise_distortion_parameter
-    main_config_for_comparison_data.local_estimates.noise.seed = artificial_noise_seed
-
-    embeddings_path_manager_for_comparison_data: EmbeddingsPathManager = get_embeddings_path_manager(
-        main_config=main_config_for_comparison_data,
-        logger=logger,
-    )
-
-    local_estimates_saving_manager_for_comparison_data = LocalEstimatesSavingManager(
-        embeddings_path_manager=embeddings_path_manager_for_comparison_data,
-        verbosity=verbosity,
-        logger=logger,
-    )
-
-    local_estimates_container_for_comparison_data: LocalEstimatesContainer = (
-        local_estimates_saving_manager_for_comparison_data.load_local_estimates()
-    )
-
-    # # # #
-    # Example: Accessing the arrays used for the local estimates
-
-    array_for_base_data: np.ndarray | None = local_estimates_container_base_data.array_for_estimator_np
-    if array_for_base_data is None:
-        msg = "The array for the estimator is None."
-        raise ValueError(
-            msg,
-        )
-
-    array_for_comparison_data: np.ndarray | None = local_estimates_container_for_comparison_data.array_for_estimator_np
-    if array_for_comparison_data is None:
-        msg = "The array for the estimator is None."
-        raise ValueError(
-            msg,
-        )
-
-    # ================================================== #
-    # Computing model predictions
-    # ================================================== #
-
-    loaded_model_container_for_base_data: LoadedModelContainer = prepare_device_and_tokenizer_and_model(
-        main_config=main_config,
-        verbosity=verbosity,
-        logger=logger,
-    )
-
-    tokenizer_for_base_data: PreTrainedTokenizer | PreTrainedTokenizerFast = (
-        loaded_model_container_for_base_data.tokenizer
-    )
-    model_for_base_data: PreTrainedModel = loaded_model_container_for_base_data.model
-
-    results_container_for_base_data: LocalEstimatesAndPredictionsContainer = compute_predictions_on_hidden_states(
-        local_estimates_container_to_analyze=local_estimates_container_base_data,
-        array_truncation_size=array_truncation_size,
-        tokenizer_for_base_data=tokenizer_for_base_data,
-        model_for_base_data=model_for_base_data,
-        analysis_verbosity_level=verbosity,
-        logger=logger,
-    )
-
-    distances_and_influence_on_local_estimates_dir_absolute_path = (
-        embeddings_path_manager_for_base_data.get_distances_and_influence_on_local_estimates_dir_absolute_path()
-    )
-
-    results_container_for_base_data.run_full_analysis_and_save_results()
-
-    # Note that we use the same tokenizer and model for inference on the comparison data
-    results_container_for_comparison_data: LocalEstimatesAndPredictionsContainer = compute_predictions_on_hidden_states(
-        local_estimates_container_to_analyze=local_estimates_container_for_comparison_data,
-        array_truncation_size=array_truncation_size,
-        tokenizer_for_base_data=tokenizer_for_base_data,
-        model_for_base_data=model_for_base_data,
-        analysis_verbosity_level=verbosity,
-        logger=logger,
-    )
-
-    results_container_for_comparison_data.run_full_analysis_and_save_results()
-
-    # TODO: Compare the results for the base data and the comparison data
-
-    # TODO: Create analysis of twoNN measure for individual tokens under different noise distortions
-
-    # ================================================== #
-    # Note: You can add additional analysis steps here
-    # ================================================== #
-
-    logger.info(
-        msg="Running script DONE",
-    )
-
-
 @dataclass
 class LocalEstimatesAndPredictionsSavePathCollection:
     """Dataclass to hold the paths for saving and loading the results."""
 
+    # This is the base directory under which all the other files will be placed
+    distances_and_influence_on_local_estimates_dir_absolute_path: pathlib.Path
+
     descriptive_statistics_dict_save_path: pathlib.Path
+    correlations_df_save_path: pathlib.Path
+
+    @staticmethod
+    def from_base_directory(
+        distances_and_influence_on_local_estimates_dir_absolute_path: pathlib.Path,
+    ) -> "LocalEstimatesAndPredictionsSavePathCollection":
+        """Create a new instance of the dataclass from the base directory."""
+        descriptive_statistics_dict_save_path: pathlib.Path = pathlib.Path(
+            distances_and_influence_on_local_estimates_dir_absolute_path,
+            "descriptive_statistics_dict.json",
+        )
+
+        correlations_df_save_path: pathlib.Path = pathlib.Path(
+            distances_and_influence_on_local_estimates_dir_absolute_path,
+            "correlations_df.csv",
+        )
+
+        return LocalEstimatesAndPredictionsSavePathCollection(
+            distances_and_influence_on_local_estimates_dir_absolute_path=distances_and_influence_on_local_estimates_dir_absolute_path,
+            correlations_df_save_path=correlations_df_save_path,
+            descriptive_statistics_dict_save_path=descriptive_statistics_dict_save_path,
+        )
 
     def setup_directories(
         self,
     ) -> None:
         for path in [
+            self.distances_and_influence_on_local_estimates_dir_absolute_path,
             self.descriptive_statistics_dict_save_path,
         ]:
             # Create the directories if they do not exist
@@ -388,7 +256,10 @@ class LocalEstimatesAndPredictionsContainer:
 
         correlations_df: pd.DataFrame = compute_correlations_with_count(
             df=local_estimates_and_loss_df,
-            cols=["local_estimate", "loss"],
+            cols=[
+                "local_estimate",
+                "loss",
+            ],
             methods=None,  # default correlation methods are used
             significance_level=0.05,
         )
@@ -411,19 +282,121 @@ class LocalEstimatesAndPredictionsContainer:
         correlations_df: pd.DataFrame = self.compute_correlation_between_local_estimates_and_loss_values()
 
         # TODO: Save the correlations to disk
-        # TODO: Save descriptive statistics
+        # TODO: Save descriptive statistics to disk
 
-    # TODO: Implement method for computing correlation between local estimates and loss values
     # TODO: Implement methods to compare local estimates and loss values between two containers
+    # TODO: Implement methods to save the comparison results to disk
 
     # TODO: Implement saving the results list in a human readable format to disk
+
+
+@dataclass
+class ComputationData:
+    """Dataclass to hold the data for the computation."""
+
+    main_config: MainConfig
+    embeddings_path_manager: EmbeddingsPathManager
+    local_estimates_saving_manager: LocalEstimatesSavingManager
+    local_estimates_container: LocalEstimatesContainer
+    loaded_model_container: LoadedModelContainer
+
+    local_estimates_and_predictions_container: LocalEstimatesAndPredictionsContainer
+
+    array_truncation_size: int
+
+    @staticmethod
+    def from_main_config(
+        main_config: MainConfig,
+        array_truncation_size: int,
+        verbosity: Verbosity = Verbosity.NORMAL,
+        logger: logging.Logger = default_logger,
+    ) -> "ComputationData":
+        embeddings_path_manager: EmbeddingsPathManager = get_embeddings_path_manager(
+            main_config=main_config,
+            logger=logger,
+        )
+
+        local_estimates_saving_manager = LocalEstimatesSavingManager(
+            embeddings_path_manager=embeddings_path_manager,
+            verbosity=verbosity,
+            logger=logger,
+        )
+
+        local_estimates_container: LocalEstimatesContainer = local_estimates_saving_manager.load_local_estimates()
+
+        loaded_model_container: LoadedModelContainer = prepare_device_and_tokenizer_and_model(
+            main_config=main_config,
+            verbosity=verbosity,
+            logger=logger,
+        )
+
+        local_estimates_and_predictions_container: LocalEstimatesAndPredictionsContainer = (
+            compute_predictions_on_hidden_states(
+                local_estimates_container_to_analyze=local_estimates_container,
+                array_truncation_size=array_truncation_size,
+                tokenizer=loaded_model_container.tokenizer,
+                model=loaded_model_container.model,
+                analysis_verbosity_level=verbosity,
+                logger=logger,
+            )
+        )
+
+        distances_and_influence_on_local_estimates_dir_absolute_path = (
+            embeddings_path_manager.get_distances_and_influence_on_local_estimates_dir_absolute_path()
+        )
+
+        local_estimates_and_predictions_container.run_full_analysis_and_save_results()
+
+        result: ComputationData = ComputationData(
+            main_config=main_config,
+            embeddings_path_manager=embeddings_path_manager,
+            local_estimates_saving_manager=local_estimates_saving_manager,
+            local_estimates_container=local_estimates_container,
+            loaded_model_container=loaded_model_container,
+            array_truncation_size=array_truncation_size,
+            local_estimates_and_predictions_container=local_estimates_and_predictions_container,
+        )
+
+        return result
+
+
+class ComparisonManager:
+    """Manager to compare the results of the computations."""
+
+    def __init__(
+        self,
+        main_config_for_base_data: MainConfig,
+        main_config_for_comparison_data: MainConfig,
+        array_truncation_size: int,
+        verbosity: Verbosity = Verbosity.NORMAL,
+        logger: logging.Logger = default_logger,
+    ) -> None:
+        """Initialize the manager."""
+        self.computation_data_for_base_data: ComputationData = ComputationData.from_main_config(
+            main_config=main_config_for_base_data,
+            array_truncation_size=array_truncation_size,
+            verbosity=verbosity,
+            logger=logger,
+        )
+        self.computation_data_for_comparison_data: ComputationData = ComputationData.from_main_config(
+            main_config=main_config_for_comparison_data,
+            array_truncation_size=array_truncation_size,
+            verbosity=verbosity,
+            logger=logger,
+        )
+
+        # TODO: Implement calls to the comparisons
+
+
+# # # # # # # # # # # # # # # # # # # # #
+# Model inference and predictions
 
 
 def compute_predictions_on_hidden_states(
     local_estimates_container_to_analyze: LocalEstimatesContainer,
     array_truncation_size: int,
-    tokenizer_for_base_data: PreTrainedTokenizer | PreTrainedTokenizerFast,
-    model_for_base_data: PreTrainedModel,
+    tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast,
+    model: PreTrainedModel,
     analysis_verbosity_level: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> LocalEstimatesAndPredictionsContainer:
@@ -471,8 +444,8 @@ def compute_predictions_on_hidden_states(
         # # # #
         # Forward pass through the model and compute predictions and loss
         lm_head_prediction_results: LMHeadPredictionResults = compute_model_lm_head_predictions_on_vector(
-            tokenizer=tokenizer_for_base_data,
-            model=model_for_base_data,
+            tokenizer=tokenizer,
+            model=model,
             extracted_vector=extracted_vector,
             extracted_metadata=extracted_metadata,
             top_k=10,
@@ -642,8 +615,12 @@ def compute_masked_language_model_loss(
     return masked_lm_loss
 
 
+# # # # # # # # # # # #
+# Neighborhood ranks
+
+
 def pairwise_distances(
-    X,
+    X: np.ndarray,
 ) -> np.ndarray:
     """Calculate pairwise distance matrix of a given data matrix and return said matrix."""
     D = np.sum((X[None, :] - X[:, None]) ** 2, -1) ** 0.5
@@ -651,8 +628,8 @@ def pairwise_distances(
 
 
 def get_neighbours_and_ranks(
-    X,
-    k,
+    X: np.ndarray,
+    k: int,
 ) -> tuple[np.ndarray, np.ndarray]:
     """Calculate the neighbourhoods and the ranks of a given space `X`, and return the corresponding tuple.
 
@@ -663,21 +640,28 @@ def get_neighbours_and_ranks(
 
     # Warning: this is only the ordering of neighbours that we need to
     # extract neighbourhoods below. The ranking comes later!
-    X_ranks = np.argsort(X, axis=-1, kind="stable")
+    X_ranks = np.argsort(
+        X,
+        axis=-1,
+        kind="stable",
+    )
 
     # Extract neighbourhoods.
     X_neighbourhood = X_ranks[:, 1 : k + 1]
 
     # Convert this into ranks (finally)
-    X_ranks = X_ranks.argsort(axis=-1, kind="stable")
+    X_ranks = X_ranks.argsort(
+        axis=-1,
+        kind="stable",
+    )
 
     return X_neighbourhood, X_ranks
 
 
 def MRRE_pointwise(
-    X,
-    Z,
-    k,
+    X: np.ndarray,
+    Z: np.ndarray,
+    k: int,
 ) -> np.ndarray:
     """Calculate the pointwise mean rank distortion for each data point in the data space `X` with respect to the latent space `Z`.
 
@@ -688,8 +672,20 @@ def MRRE_pointwise(
     Output:
         - mean_rank_distortions: array of length m
     """
-    X_neighbourhood, X_ranks = get_neighbours_and_ranks(X, k)
-    Z_neighbourhood, Z_ranks = get_neighbours_and_ranks(Z, k)
+    (
+        X_neighbourhood,
+        X_ranks,
+    ) = get_neighbours_and_ranks(
+        X,
+        k,
+    )
+    (
+        Z_neighbourhood,
+        Z_ranks,
+    ) = get_neighbours_and_ranks(
+        Z,
+        k,
+    )
 
     n = X.shape[0]
     mean_rank_distortions = np.zeros(n)
@@ -703,6 +699,85 @@ def MRRE_pointwise(
         mean_rank_distortions[row] = np.mean(rank_differences)
 
     return mean_rank_distortions
+
+
+@hydra.main(
+    config_path=f"{HYDRA_CONFIGS_BASE_PATH}",
+    config_name="main_config",
+    version_base="1.3",
+)
+def main(
+    config: omegaconf.DictConfig,
+) -> None:
+    """Run the script."""
+    logger: logging.Logger = global_logger
+    logger.info(
+        msg="Running script ...",
+    )
+
+    # # # # # # # # # # # # # # # # # # # # #
+    # START Global settings
+    # TODO: Check that the global settings are correct for the current analysis
+
+    # array_truncation_size: int = 5_000
+    array_truncation_size: int = 500
+
+    # NOTE: We will probably implement the following two analysis steps in a separate script which iterates over the directory structure
+    # TODO(Ben): Implement iteration over different noise levels and noise seeds, to make a plot of Hausdorff distances vs. local estimates for each noise level and seed.
+    # TODO(Ben): Plot of Hausdorff distances vs. global estimates.
+
+    # END Global settings
+    # # # # # # # # # # # # # # # # # # # # #
+
+    # ================================================== #
+    # Base data (for example, non-noised data)
+    # ================================================== #
+
+    main_config: MainConfig = initialize_configuration(
+        config=config,
+        logger=logger,
+    )
+    verbosity: Verbosity = main_config.verbosity
+
+    # ================================================== #
+    # Comparison data (for example, noise data)
+    # ================================================== #
+
+    # TODO: We currently set the comparison data manually in this script
+    artificial_noise_mode = ArtificialNoiseMode.GAUSSIAN
+    artificial_noise_distortion_parameter = 0.01
+    artificial_noise_seed = 4
+
+    main_config_for_comparison_data: MainConfig = main_config.model_copy(
+        deep=True,
+    )
+    main_config_for_comparison_data.local_estimates.noise.artificial_noise_mode = artificial_noise_mode
+    main_config_for_comparison_data.local_estimates.noise.distortion_parameter = artificial_noise_distortion_parameter
+    main_config_for_comparison_data.local_estimates.noise.seed = artificial_noise_seed
+
+    # ================================================== #
+    # Computing data based on the configs
+    # ================================================== #
+
+    comparison_manager = ComparisonManager(
+        main_config_for_base_data=main_config,
+        main_config_for_comparison_data=main_config_for_comparison_data,
+        array_truncation_size=array_truncation_size,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+    # TODO: Compare the results for the base data and the comparison data
+
+    # TODO: Create analysis of twoNN measure for individual tokens under different noise distortions
+
+    # ================================================== #
+    # Note: You can add additional analysis steps here
+    # ================================================== #
+
+    logger.info(
+        msg="Running script DONE",
+    )
 
 
 if __name__ == "__main__":
