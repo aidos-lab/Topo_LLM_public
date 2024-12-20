@@ -69,7 +69,7 @@ from topollm.storage.saving_and_loading_functions.saving_and_loading import (
     save_dataframe_as_csv,
     save_python_dict_as_json,
 )
-from topollm.typing.enums import ArtificialNoiseMode, Verbosity
+from topollm.typing.enums import ArtificialNoiseMode, EmbeddingDataHandlerMode, Verbosity
 
 if TYPE_CHECKING:
     pass
@@ -451,6 +451,13 @@ def compute_predictions_on_hidden_states(
         extracted_vector = array_to_analyze[vector_index]
         extracted_metadata = corresponding_metadata.iloc[vector_index]
 
+        # Note: You need to be careful that because of the potential vector de-duplication step
+        # in the PreparedData creation, that the `vector_index` does not necessarily agree with the original index
+        # of the token in the prepared data.
+        # In particular, this might lead to issues when trying to compare embedding vectors and losses
+        # between spaces that came from different embedding models or token embedding modes.
+        # To help with the comparison, we will save the original token index from the embeddings data preparation script.
+
         extracted_local_estimate = pointwise_local_estimates_to_analyze[vector_index]
 
         if analysis_verbosity_level >= Verbosity.DEBUG:
@@ -757,17 +764,25 @@ def main(
     # Comparison data (for example, noise data)
     # ================================================== #
 
-    # TODO: We currently set the comparison data manually in this script
-    artificial_noise_mode = ArtificialNoiseMode.GAUSSIAN
-    artificial_noise_distortion_parameter = 0.01
-    artificial_noise_seed = 4
-
     main_config_for_comparison_data: MainConfig = main_config.model_copy(
         deep=True,
     )
-    main_config_for_comparison_data.local_estimates.noise.artificial_noise_mode = artificial_noise_mode
-    main_config_for_comparison_data.local_estimates.noise.distortion_parameter = artificial_noise_distortion_parameter
-    main_config_for_comparison_data.local_estimates.noise.seed = artificial_noise_seed
+
+    # TODO: We currently set the comparison data manually in this script
+    #
+    # Option 1: Take noisy version of the data for comparison
+    #
+    # artificial_noise_mode = ArtificialNoiseMode.GAUSSIAN
+    # artificial_noise_distortion_parameter = 0.01
+    # artificial_noise_seed = 4
+
+    # main_config_for_comparison_data.local_estimates.noise.artificial_noise_mode = artificial_noise_mode
+    # main_config_for_comparison_data.local_estimates.noise.distortion_parameter = artificial_noise_distortion_parameter
+    # main_config_for_comparison_data.local_estimates.noise.seed = artificial_noise_seed
+
+    # Option 2: Take a different token mode for comparison
+    #
+    main_config_for_comparison_data.embeddings.embedding_data_handler.mode = EmbeddingDataHandlerMode.REGULAR
 
     # ================================================== #
     # Computing data based on the configs

@@ -47,7 +47,8 @@ echo ">>> ZIM_TOPO_LLM_REPOSITORY_BASE_PATH=$ZIM_TOPO_LLM_REPOSITORY_BASE_PATH"
 
 SELECTED_SUBFOLDERS_LIST=(
   # "data/analysis/prepared/data-multiwoz21_split-validation_ctxt-dataset_entry_samples-3000_feat-col-ner_tags/lvl-token/add-prefix-space-True_max-len-512/model-roberta-base_task-masked_lm/"
-  "data/analysis/twonn/data=wikitext-103-v1_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags/split=train_samples=10000_sampling=random_sampling-seed=778"
+  # "data/analysis/twonn/data=wikitext-103-v1_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags/split=train_samples=10000_sampling=random_sampling-seed=778"
+  "data/analysis/twonn/data=wikitext-103-v1_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags/split=test_samples=10000_sampling=random_sampling-seed=778/edh-mode=masked_token_lvl=token/add-prefix-space=True_max-len=512/model=roberta-base_task=masked_lm_dr=defaults/layer=-1_agg=mean/norm=None/sampling=random_seed=42_samples=150000/desc=twonn_samples=60000_zerovec=keep_dedup=array_deduplicator_noise=do_nothing/"
 )
 
 for SELECTED_SUBFOLDER in "${SELECTED_SUBFOLDERS_LIST[@]}"; do
