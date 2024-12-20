@@ -64,6 +64,7 @@ from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.model_handling.loaded_model_container import LoadedModelContainer
 from topollm.model_handling.prepare_loaded_model_container import prepare_device_and_tokenizer_and_model
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
+from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 from topollm.typing.enums import ArtificialNoiseMode, Verbosity
 
 if TYPE_CHECKING:
@@ -110,8 +111,8 @@ def main(
     # START Global settings
     # TODO: Check that the global settings are correct for the current analysis
 
-    array_truncation_size: int = 5_000
-    # array_truncation_size: int = 500
+    # array_truncation_size: int = 5_000
+    array_truncation_size: int = 500
 
     # NOTE: We will probably implement the following two analysis steps in a separate script which iterates over the directory structure
     # TODO(Ben): Implement iteration over different noise levels and noise seeds, to make a plot of Hausdorff distances vs. local estimates for each noise level and seed.
@@ -218,7 +219,9 @@ def main(
         logger=logger,
     )
 
-    results_container_for_base_data.run_full_analysis()
+    results_container_for_base_data.run_full_analysis_and_save_results(
+        embeddings_path_manager=embeddings_path_manager_for_base_data,
+    )
 
     # Note that we use the same tokenizer and model for inference on the comparison data
     results_container_for_comparison_data: LocalEstimatesAndPredictionsContainer = compute_predictions_on_hidden_states(
@@ -230,7 +233,9 @@ def main(
         logger=logger,
     )
 
-    # TODO: Call the analysis of the individual results containers
+    results_container_for_comparison_data.run_full_analysis_and_save_results(
+        embeddings_path_manager=embeddings_path_manager_for_comparison_data,
+    )
 
     # TODO: Compare the results for the base data and the comparison data
 
@@ -339,11 +344,12 @@ class LocalEstimatesAndPredictionsContainer:
             "loss": loss_descriptive_statistics,
         }
 
-        return descriptive_statistics_dict
+        if self.verbosity >= Verbosity.NORMAL:
+            self.logger.info(
+                msg=f"descriptive_statistics_dict:\n{pprint.pformat(object=descriptive_statistics_dict)}",  # noqa: G004 - low overhead
+            )
 
-    def save_statistics():
-        # TODO: Implement saving the descriptive statistics to disk
-        pass
+        return descriptive_statistics_dict
 
     def compute_correlation_between_local_estimates_and_loss_values(
         self,
@@ -367,25 +373,25 @@ class LocalEstimatesAndPredictionsContainer:
             significance_level=0.05,
         )
 
-        return correlations_df
-
-        # TODO: Compute the p-values for the correlation coefficients
-
-    def run_full_analysis(
-        self,
-    ):
-        """Run function to call the different analysis steps."""
-        correlations_df: pd.DataFrame = self.compute_correlation_between_local_estimates_and_loss_values()
-
         if self.verbosity >= Verbosity.NORMAL:
             log_dataframe_info(
                 df=correlations_df,
                 df_name="correlations_df",
                 logger=self.logger,
             )
-        # TODO: Save the correlations to disk
 
-        # TODO: Make descriptive statistics
+        return correlations_df
+
+    def run_full_analysis_and_save_results(
+        self,
+        embeddings_path_manager: EmbeddingsPathManager | None = None,
+    ) -> None:
+        """Run function to call the different analysis steps."""
+        descriptive_statistics_dict: dict = self.create_descriptive_statistics()
+
+        correlations_df: pd.DataFrame = self.compute_correlation_between_local_estimates_and_loss_values()
+
+        # TODO: Save the correlations to disk
         # TODO: Save descriptive statistics
 
     # TODO: Implement method for computing correlation between local estimates and loss values
@@ -403,7 +409,7 @@ def compute_predictions_on_hidden_states(
     logger: logging.Logger = default_logger,
 ) -> LocalEstimatesAndPredictionsContainer:
     """Compute and collect the model predictions for the given hidden states."""
-    array_to_analyze = local_estimates_container_to_analyze.array_for_estimator_np
+    array_to_analyze: np.ndarray | None = local_estimates_container_to_analyze.array_for_estimator_np
     if array_to_analyze is None:
         msg = "The array_to_analyze is None."
         raise ValueError(
