@@ -134,6 +134,46 @@ def load_python_dict_from_json(
 # Saving and loading functions for pandas dataframes
 
 
+def save_dataframe_as_csv(
+    dataframe: pd.DataFrame | None,
+    save_path: pathlib.Path,
+    dataframe_name_for_logging: str = "dataframe",
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
+    """Save a pandas dataframe as a csv file."""
+    if dataframe is not None:
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"Saving {dataframe_name_for_logging} to "  # noqa: G004 - low overhead
+                f"{save_path = } ...",
+            )
+
+        if not isinstance(
+            dataframe,
+            pd.DataFrame,
+        ):
+            msg = f"Expected {dataframe_name_for_logging} to be of type pd.DataFrame, but got {type(dataframe) = }."
+            raise ValueError(
+                msg,
+            )
+
+        dataframe.to_csv(
+            path_or_buf=save_path,
+            index=False,
+        )
+
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"Saving {dataframe_name_for_logging} to "  # noqa: G004 - low overhead
+                f"{save_path = } DONE",
+            )
+    else:
+        logger.info(
+            msg=f"No {dataframe_name_for_logging} to save.",  # noqa: G004 - low overhead
+        )
+
+
 def load_dataframe_from_pickle(
     save_path: pathlib.Path,
     dataframe_name_for_logging: str = "dataframe",

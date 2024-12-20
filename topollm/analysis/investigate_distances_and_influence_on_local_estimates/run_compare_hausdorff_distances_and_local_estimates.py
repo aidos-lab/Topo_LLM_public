@@ -65,6 +65,10 @@ from topollm.model_handling.loaded_model_container import LoadedModelContainer
 from topollm.model_handling.prepare_loaded_model_container import prepare_device_and_tokenizer_and_model
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
 from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
+from topollm.storage.saving_and_loading_functions.saving_and_loading import (
+    save_dataframe_as_csv,
+    save_python_dict_as_json,
+)
 from topollm.typing.enums import ArtificialNoiseMode, Verbosity
 
 if TYPE_CHECKING:
@@ -227,9 +231,11 @@ class LocalEstimatesAndPredictionsContainer:
         local_estimates_descriptive_sttistics: pd.Series = local_estimates_series.describe()
         loss_descriptive_statistics: pd.Series = loss_series.describe()
 
-        descriptive_statistics_dict: dict = {
-            "local_estimates": local_estimates_descriptive_sttistics,
-            "loss": loss_descriptive_statistics,
+        # Note: The conversion of the pd.Series to dicts is necessary to be able to save the results as JSON.
+        # Otherwise, we run into the error that the pd.Series is not JSON serializable.
+        descriptive_statistics_dict: dict[str, dict] = {
+            "local_estimates": local_estimates_descriptive_sttistics.to_dict(),
+            "loss": loss_descriptive_statistics.to_dict(),
         }
 
         if self.verbosity >= Verbosity.NORMAL:
@@ -275,14 +281,28 @@ class LocalEstimatesAndPredictionsContainer:
 
     def run_full_analysis_and_save_results(
         self,
+        local_estimates_and_predictions_save_path_collection: LocalEstimatesAndPredictionsSavePathCollection,
     ) -> None:
         """Run function to call the different analysis steps."""
         descriptive_statistics_dict: dict = self.create_descriptive_statistics()
 
+        save_python_dict_as_json(
+            python_dict=descriptive_statistics_dict,
+            save_path=local_estimates_and_predictions_save_path_collection.descriptive_statistics_dict_save_path,
+            python_dict_name_for_logging="descriptive_statistics_dict",
+            verbosity=self.verbosity,
+            logger=self.logger,
+        )
+
         correlations_df: pd.DataFrame = self.compute_correlation_between_local_estimates_and_loss_values()
 
-        # TODO: Save the correlations to disk
-        # TODO: Save descriptive statistics to disk
+        save_dataframe_as_csv(
+            dataframe=correlations_df,
+            save_path=local_estimates_and_predictions_save_path_collection.correlations_df_save_path,
+            dataframe_name_for_logging="correlations_df",
+            verbosity=self.verbosity,
+            logger=self.logger,
+        )
 
     # TODO: Implement methods to compare local estimates and loss values between two containers
     # TODO: Implement methods to save the comparison results to disk
@@ -295,6 +315,8 @@ class ComputationData:
     """Dataclass to hold the data for the computation."""
 
     main_config: MainConfig
+    array_truncation_size: int
+
     embeddings_path_manager: EmbeddingsPathManager
     local_estimates_saving_manager: LocalEstimatesSavingManager
     local_estimates_container: LocalEstimatesContainer
@@ -302,7 +324,7 @@ class ComputationData:
 
     local_estimates_and_predictions_container: LocalEstimatesAndPredictionsContainer
 
-    array_truncation_size: int
+    local_estimates_and_predictions_save_path_collection: LocalEstimatesAndPredictionsSavePathCollection
 
     @staticmethod
     def from_main_config(
@@ -341,20 +363,28 @@ class ComputationData:
             )
         )
 
-        distances_and_influence_on_local_estimates_dir_absolute_path = (
+        distances_and_influence_on_local_estimates_dir_absolute_path: pathlib.Path = (
             embeddings_path_manager.get_distances_and_influence_on_local_estimates_dir_absolute_path()
         )
 
-        local_estimates_and_predictions_container.run_full_analysis_and_save_results()
+        local_estimates_and_predictions_save_path_collection: LocalEstimatesAndPredictionsSavePathCollection = LocalEstimatesAndPredictionsSavePathCollection.from_base_directory(
+            distances_and_influence_on_local_estimates_dir_absolute_path=distances_and_influence_on_local_estimates_dir_absolute_path,
+        )
+        local_estimates_and_predictions_save_path_collection.setup_directories()
+
+        local_estimates_and_predictions_container.run_full_analysis_and_save_results(
+            local_estimates_and_predictions_save_path_collection=local_estimates_and_predictions_save_path_collection,
+        )
 
         result: ComputationData = ComputationData(
             main_config=main_config,
+            array_truncation_size=array_truncation_size,
             embeddings_path_manager=embeddings_path_manager,
             local_estimates_saving_manager=local_estimates_saving_manager,
             local_estimates_container=local_estimates_container,
             loaded_model_container=loaded_model_container,
-            array_truncation_size=array_truncation_size,
             local_estimates_and_predictions_container=local_estimates_and_predictions_container,
+            local_estimates_and_predictions_save_path_collection=local_estimates_and_predictions_save_path_collection,
         )
 
         return result
@@ -766,8 +796,6 @@ def main(
         verbosity=verbosity,
         logger=logger,
     )
-
-    # TODO: Compare the results for the base data and the comparison data
 
     # TODO: Create analysis of twoNN measure for individual tokens under different noise distortions
 
