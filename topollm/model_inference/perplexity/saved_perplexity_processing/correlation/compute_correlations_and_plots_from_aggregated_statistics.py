@@ -32,49 +32,18 @@ from collections.abc import Callable
 import pandas as pd
 from scipy.stats import kendalltau, pearsonr, spearmanr
 
+from topollm.analysis.correlation.compute_correlations_with_count import (
+    IS_SIGNIFICANT_COLUMN_NAME,
+    P_VALUE_COLUMN_NAME,
+    compute_correlations_with_count,
+)
 from topollm.typing.enums import Verbosity
 
-P_VALUE_COLUMN_NAME = "p_value"
-IS_SIGNIFICANT_COLUMN_NAME = "is_significant"
-
-default_logger = logging.getLogger(__name__)
-
-
-# Function to compute correlations with significance and count of data points
-def compute_correlations_with_count(
-    df: pd.DataFrame,
-    cols: list[str],
-    methods: dict[str, Callable],
-    significance_level: float = 0.05,
-) -> pd.DataFrame:
-    """Compute correlations and include the count of data points used."""
-    results = []
-    for method_name, method_func in methods.items():
-        for i in range(len(cols)):
-            for j in range(i + 1, len(cols)):
-                col1, col2 = cols[i], cols[j]
-                valid_data = df[[col1, col2]].dropna()
-                n = len(valid_data)
-                if n >= 2:  # Ensure sufficient data points  # noqa: PLR2004 - This is a valid check
-                    correlation, p_value = method_func(
-                        valid_data[col1],
-                        valid_data[col2],
-                    )
-                    results.append(
-                        {
-                            "method": method_name,
-                            "column_1": col1,
-                            "column_2": col2,
-                            "correlation": correlation,
-                            P_VALUE_COLUMN_NAME: p_value,
-                            IS_SIGNIFICANT_COLUMN_NAME: p_value < significance_level,
-                            "n": n,
-                        },
-                    )
-    return pd.DataFrame(results)
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
-# Function to compute correlations for each dataset
 def compute_correlations_by_dataset(
     df: pd.DataFrame,
     columns_to_correlate: list[str],
@@ -101,7 +70,6 @@ def compute_correlations_by_dataset(
     )
 
 
-# Function to compute correlations by dataset and model (excluding checkpoints)
 def compute_correlations_by_dataset_and_model(
     df: pd.DataFrame,
     columns_to_correlate: list[str],
@@ -173,7 +141,7 @@ def compute_and_save_correlations_from_aggregated_statistics_df(
         ]
 
     # Correlation methods to use
-    correlation_methods = {
+    correlation_methods: dict[str, Callable] = {
         "pearson": pearsonr,
         "spearman": spearmanr,
         "kendall": kendalltau,
@@ -194,8 +162,8 @@ def compute_and_save_correlations_from_aggregated_statistics_df(
     )
 
     # Combine both results
-    combined_results_df = pd.concat(
-        [
+    combined_results_df: pd.DataFrame = pd.concat(
+        objs=[
             dataset_level_correlations,
             model_level_correlations,
         ],

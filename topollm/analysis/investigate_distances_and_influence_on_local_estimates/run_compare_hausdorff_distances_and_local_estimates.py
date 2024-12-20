@@ -47,6 +47,7 @@ from transformers.modeling_utils import PreTrainedModel
 from transformers.tokenization_utils import PreTrainedTokenizer
 from transformers.tokenization_utils_fast import PreTrainedTokenizerFast
 
+from topollm.analysis.correlation.compute_correlations_with_count import compute_correlations_with_count
 from topollm.analysis.local_estimates_handling.saving.local_estimates_containers import LocalEstimatesContainer
 from topollm.analysis.local_estimates_handling.saving.local_estimates_saving_manager import LocalEstimatesSavingManager
 from topollm.config_classes.constants import (
@@ -109,8 +110,8 @@ def main(
     # START Global settings
     # TODO: Check that the global settings are correct for the current analysis
 
-    # array_truncation_size: int = 5_000
-    array_truncation_size: int = 500
+    array_truncation_size: int = 5_000
+    # array_truncation_size: int = 500
 
     # NOTE: We will probably implement the following two analysis steps in a separate script which iterates over the directory structure
     # TODO(Ben): Implement iteration over different noise levels and noise seeds, to make a plot of Hausdorff distances vs. local estimates for each noise level and seed.
@@ -179,14 +180,14 @@ def main(
     # # # #
     # Example: Accessing the arrays used for the local estimates
 
-    array_for_base_data = local_estimates_container_base_data.array_for_estimator_np
+    array_for_base_data: np.ndarray | None = local_estimates_container_base_data.array_for_estimator_np
     if array_for_base_data is None:
         msg = "The array for the estimator is None."
         raise ValueError(
             msg,
         )
 
-    array_for_comparison_data = local_estimates_container_for_comparison_data.array_for_estimator_np
+    array_for_comparison_data: np.ndarray | None = local_estimates_container_for_comparison_data.array_for_estimator_np
     if array_for_comparison_data is None:
         msg = "The array for the estimator is None."
         raise ValueError(
@@ -217,7 +218,20 @@ def main(
         logger=logger,
     )
 
-    # TODO: Encapsulate the prediction computation in a function and call it for the comparison data as well
+    results_container_for_base_data.run_full_analysis()
+
+    # Note that we use the same tokenizer and model for inference on the comparison data
+    results_container_for_comparison_data: LocalEstimatesAndPredictionsContainer = compute_predictions_on_hidden_states(
+        local_estimates_container_to_analyze=local_estimates_container_for_comparison_data,
+        array_truncation_size=array_truncation_size,
+        tokenizer_for_base_data=tokenizer_for_base_data,
+        model_for_base_data=model_for_base_data,
+        analysis_verbosity_level=verbosity,
+        logger=logger,
+    )
+
+    # TODO: Call the analysis of the individual results containers
+
     # TODO: Compare the results for the base data and the comparison data
 
     # TODO: Create analysis of twoNN measure for individual tokens under different noise distortions
@@ -317,11 +331,11 @@ class LocalEstimatesAndPredictionsContainer:
             data=loss_vector,
         )
 
-        local_estimates_descriptive_statistics: pd.Series = local_estimates_series.describe()
+        local_estimates_descriptive_sttistics: pd.Series = local_estimates_series.describe()
         loss_descriptive_statistics: pd.Series = loss_series.describe()
 
         descriptive_statistics_dict: dict = {
-            "local_estimates": local_estimates_descriptive_statistics,
+            "local_estimates": local_estimates_descriptive_sttistics,
             "loss": loss_descriptive_statistics,
         }
 
@@ -333,7 +347,7 @@ class LocalEstimatesAndPredictionsContainer:
 
     def compute_correlation_between_local_estimates_and_loss_values(
         self,
-    ):
+    ) -> pd.DataFrame:
         """Compute the correlation between the local estimates and the loss values."""
         local_estimates_vector: np.ndarray = self.get_local_estimates_vector()
         loss_vector: np.ndarray = self.get_loss_vector()
@@ -346,19 +360,33 @@ class LocalEstimatesAndPredictionsContainer:
             },
         )
 
-        # Compute the pearson and kendall rank correlation between the local estimates and the loss values
-        correlation_pearson: float = local_estimates_and_loss_df["local_estimate"].corr(
-            other=local_estimates_and_loss_df["loss"],
-            method="pearson",
-        )
-        correlation_kendall: float = local_estimates_and_loss_df["local_estimate"].corr(
-            other=local_estimates_and_loss_df["loss"],
-            method="kendall",
+        correlations_df: pd.DataFrame = compute_correlations_with_count(
+            df=local_estimates_and_loss_df,
+            cols=["local_estimate", "loss"],
+            methods=None,  # default correlation methods are used
+            significance_level=0.05,
         )
 
-        return correlation_pearson, correlation_kendall
+        return correlations_df
 
         # TODO: Compute the p-values for the correlation coefficients
+
+    def run_full_analysis(
+        self,
+    ):
+        """Run function to call the different analysis steps."""
+        correlations_df: pd.DataFrame = self.compute_correlation_between_local_estimates_and_loss_values()
+
+        if self.verbosity >= Verbosity.NORMAL:
+            log_dataframe_info(
+                df=correlations_df,
+                df_name="correlations_df",
+                logger=self.logger,
+            )
+        # TODO: Save the correlations to disk
+
+        # TODO: Make descriptive statistics
+        # TODO: Save descriptive statistics
 
     # TODO: Implement method for computing correlation between local estimates and loss values
     # TODO: Implement methods to compare local estimates and loss values between two containers
