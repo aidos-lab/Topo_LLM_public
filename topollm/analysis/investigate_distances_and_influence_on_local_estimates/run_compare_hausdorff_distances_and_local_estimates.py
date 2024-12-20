@@ -164,6 +164,9 @@ class LocalEstimateAndPrediction:
     extracted_local_estimate: float
     lm_head_prediction_results: LMHeadPredictionResults
 
+    extracted_metadata_reduced: dict | None = None
+    original_prepared_data_index: int | None = None
+
 
 class LocalEstimatesAndPredictionsContainer:
     """Container for the results of a predictions computation."""
@@ -456,8 +459,27 @@ def compute_predictions_on_hidden_states(
         # of the token in the prepared data.
         # In particular, this might lead to issues when trying to compare embedding vectors and losses
         # between spaces that came from different embedding models or token embedding modes.
-        # To help with the comparison, we will save the original token index from the embeddings data preparation script.
+        # To help with the comparison,
+        # we will save the original token index from the embeddings data preparation script.
 
+        # Make a copy of the metadata to avoid modifying the original DataFrame
+        extracted_metadata_reduced = extracted_metadata.copy()
+        # Remove the "tokens_list" and "concatenated_tokens" columns from the metadata,
+        # so that we do not save too much data to disk
+        if "tokens_list" in extracted_metadata_reduced:
+            extracted_metadata_reduced = extracted_metadata_reduced.drop(
+                labels="tokens_list",
+                axis=0,
+            )
+        if "concatenated_tokens" in extracted_metadata_reduced:
+            extracted_metadata_reduced = extracted_metadata_reduced.drop(
+                labels="concatenated_tokens",
+                axis=0,
+            )
+
+        original_prepared_data_index = None  # TODO: .index does not give the right thing here
+
+        # # # #
         extracted_local_estimate = pointwise_local_estimates_to_analyze[vector_index]
 
         if analysis_verbosity_level >= Verbosity.DEBUG:
@@ -488,6 +510,8 @@ def compute_predictions_on_hidden_states(
             vector_index=vector_index,
             extracted_local_estimate=extracted_local_estimate,
             lm_head_prediction_results=lm_head_prediction_results,
+            extracted_metadata_reduced=extracted_metadata_reduced.to_dict(),
+            original_prepared_data_index=None,  # TODO: Add the original index in the prepared data to the results
         )
 
         results_list.append(
