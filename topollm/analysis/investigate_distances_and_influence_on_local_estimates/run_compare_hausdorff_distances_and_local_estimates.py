@@ -219,9 +219,11 @@ def main(
         logger=logger,
     )
 
-    results_container_for_base_data.run_full_analysis_and_save_results(
-        embeddings_path_manager=embeddings_path_manager_for_base_data,
+    distances_and_influence_on_local_estimates_dir_absolute_path = (
+        embeddings_path_manager_for_base_data.get_distances_and_influence_on_local_estimates_dir_absolute_path()
     )
+
+    results_container_for_base_data.run_full_analysis_and_save_results()
 
     # Note that we use the same tokenizer and model for inference on the comparison data
     results_container_for_comparison_data: LocalEstimatesAndPredictionsContainer = compute_predictions_on_hidden_states(
@@ -233,9 +235,7 @@ def main(
         logger=logger,
     )
 
-    results_container_for_comparison_data.run_full_analysis_and_save_results(
-        embeddings_path_manager=embeddings_path_manager_for_comparison_data,
-    )
+    results_container_for_comparison_data.run_full_analysis_and_save_results()
 
     # TODO: Compare the results for the base data and the comparison data
 
@@ -248,6 +248,26 @@ def main(
     logger.info(
         msg="Running script DONE",
     )
+
+
+@dataclass
+class LocalEstimatesAndPredictionsSavePathCollection:
+    """Dataclass to hold the paths for saving and loading the results."""
+
+    descriptive_statistics_dict_save_path: pathlib.Path
+
+    def setup_directories(
+        self,
+    ) -> None:
+        for path in [
+            self.descriptive_statistics_dict_save_path,
+        ]:
+            # Create the directories if they do not exist
+            if not path.parent.exists():
+                path.parent.mkdir(
+                    parents=True,
+                    exist_ok=True,
+                )
 
 
 @dataclass
@@ -384,7 +404,6 @@ class LocalEstimatesAndPredictionsContainer:
 
     def run_full_analysis_and_save_results(
         self,
-        embeddings_path_manager: EmbeddingsPathManager | None = None,
     ) -> None:
         """Run function to call the different analysis steps."""
         descriptive_statistics_dict: dict = self.create_descriptive_statistics()

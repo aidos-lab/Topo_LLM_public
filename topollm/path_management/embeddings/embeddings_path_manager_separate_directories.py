@@ -408,8 +408,24 @@ class EmbeddingsPathManagerSeparateDirectories:
 
         return path
 
-    # # # #
-    # analyzed data directories
+    # # # # # # # # # # # # # # # #
+    # Analyzed data directories
+
+    ### Distances and influence on local estimates
+
+    def get_distances_and_influence_on_local_estimates_dir_absolute_path(
+        self,
+    ) -> pathlib.Path:
+        path = pathlib.Path(
+            self.data_dir,
+            "analysis",
+            "distances_and_influence_on_local_estimates",
+            self.get_local_estimates_subfolder_path(),
+        )
+
+        return path
+
+    ### Correlation analysis
 
     def get_analyzed_data_dir_absolute_path(
         self,

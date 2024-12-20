@@ -27,18 +27,28 @@
 
 """Save and load local estimates to and from disk."""
 
-import json
 import logging
 import pathlib
 import pprint
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 import numpy as np
-import pandas as pd
 
 from topollm.analysis.local_estimates_handling.saving.local_estimates_containers import LocalEstimatesContainer
 from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
+from topollm.storage.saving_and_loading_functions.saving_and_loading import (
+    load_dataframe_from_pickle,
+    load_numpy_array_from_npy,
+    load_python_dict_from_json,
+    save_numpy_array_as_npy,
+    save_python_dict_as_json,
+    save_python_object_as_pickle,
+)
 from topollm.typing.enums import Verbosity
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 default_logger: logging.Logger = logging.getLogger(
     name=__name__,
@@ -158,50 +168,62 @@ class LocalEstimatesSavingManager:
 
         # # # #
         # Save the local estimates
-        self.save_numpy_array_as_npy(
+        save_numpy_array_as_npy(
             array_np=local_estimates_container.pointwise_results_array_np,
             save_path=self.save_path_collection.local_estimates_pointwise_array_save_path,
             array_name_for_logging="pointwise_results_array_np",
+            verbosity=self.verbosity,
+            logger=self.logger,
         )
 
         # # # #
         # Save the meta data
-        self.save_python_object_as_pickle(
+        save_python_object_as_pickle(
             python_object=local_estimates_container.pointwise_results_meta_frame,
             save_path=self.save_path_collection.local_estimates_pointwise_meta_save_path,
             python_object_name_for_logging="pointwise_results_meta_frame",
+            verbosity=self.verbosity,
+            logger=self.logger,
         )
 
         # # # #
         # Save the global estimate
-        self.save_numpy_array_as_npy(
+        save_numpy_array_as_npy(
             array_np=local_estimates_container.global_estimate_array_np,
             save_path=self.save_path_collection.global_estimates_save_path,
             array_name_for_logging="global_estimate_array_np",
+            verbosity=self.verbosity,
+            logger=self.logger,
         )
 
         # # # #
         # Save the additional additional_distance_computations_results dictionary as json file
-        self.save_python_dict_as_json(
+        save_python_dict_as_json(
             python_dict=local_estimates_container.additional_distance_computations_results,
             save_path=self.save_path_collection.additional_distance_computations_results_save_path,
             python_dict_name_for_logging="additional_distance_computations_results",
+            verbosity=self.verbosity,
+            logger=self.logger,
         )
 
         # # # #
         # Save the additional statistics dictionary as json file
-        self.save_python_dict_as_json(
+        save_python_dict_as_json(
             python_dict=local_estimates_container.additional_pointwise_results_statistics,
             save_path=self.save_path_collection.additional_pointwise_results_statistics_save_path,
             python_dict_name_for_logging="additional_pointwise_results_statistics",
+            verbosity=self.verbosity,
+            logger=self.logger,
         )
 
         # # # #
         # Save the array for the estimator
-        self.save_numpy_array_as_npy(
+        save_numpy_array_as_npy(
             array_np=local_estimates_container.array_for_estimator_np,
             save_path=self.save_path_collection.array_for_estimator_save_path,
             array_name_for_logging="array_for_estimator",
+            verbosity=self.verbosity,
+            logger=self.logger,
         )
 
         if self.verbosity >= Verbosity.NORMAL:
@@ -209,273 +231,18 @@ class LocalEstimatesSavingManager:
                 msg="Calling save_local_estimates DONE",
             )
 
-    def save_numpy_array_as_npy(
-        self,
-        array_np: np.ndarray | None,
-        save_path: pathlib.Path,
-        array_name_for_logging: str = "array_np",
-    ) -> None:
-        if array_np is not None:
-            if self.verbosity >= Verbosity.NORMAL:
-                self.logger.info(
-                    msg=f"Saving {array_name_for_logging} array to "  # noqa: G004 - low overhead
-                    f"{save_path = } ...",
-                )
-
-            if not isinstance(
-                array_np,
-                np.ndarray,
-            ):
-                msg = f"Expected {array_name_for_logging} to be of type np.ndarray, but got {type(array_np)}."
-                raise ValueError(
-                    msg,
-                )
-
-            np.save(
-                file=save_path,
-                arr=array_np,
-            )
-
-            if self.verbosity >= Verbosity.NORMAL:
-                self.logger.info(
-                    msg=f"Saving {array_name_for_logging} array to "  # noqa: G004 - low overhead
-                    f"{save_path = } DONE",
-                )
-        else:
-            self.logger.info(
-                msg=f"No {array_name_for_logging} to save.",  # noqa: G004 - low overhead
-            )
-
-    def load_numpy_array_from_npy(
-        self,
-        save_path: pathlib.Path,
-        array_name_for_logging: str = "array_np",
-        *,
-        required: bool = True,
-    ) -> np.ndarray | None:
-        if save_path.exists():
-            if self.verbosity >= Verbosity.NORMAL:
-                self.logger.info(
-                    msg=f"Loading array {array_name_for_logging} from "  # noqa: G004 - low overhead
-                    f"{save_path = } ...",
-                )
-
-            try:
-                array_np = np.load(
-                    file=save_path,
-                )
-            except FileNotFoundError as e:
-                msg: str = f"FileNotFoundError: {e}"
-                self.logger.exception(
-                    msg=msg,
-                )
-                raise
-
-            if not isinstance(
-                array_np,
-                np.ndarray,
-            ):
-                msg = f"Expected array {array_name_for_logging} to be of type np.ndarray, but got {type(array_np) = }."
-                raise ValueError(
-                    msg,
-                )
-
-            if self.verbosity >= Verbosity.NORMAL:
-                self.logger.info(
-                    msg=f"Loading array {array_name_for_logging} from "  # noqa: G004 - low overhead
-                    f"{save_path = } DONE",
-                )
-        elif required:
-            msg: str = f"Required file for {array_name_for_logging} not found: {save_path = }."
-            raise FileNotFoundError(
-                msg,
-            )
-        else:
-            array_np = None
-
-        return array_np
-
-    def save_python_object_as_pickle(
-        self,
-        python_object: object | None,
-        save_path: pathlib.Path,
-        python_object_name_for_logging: str = "python_object",
-    ) -> None:
-        """Save a python object as pickle file.
-
-        Note:
-        This function only supports pandas DataFrames.
-
-        """
-        if python_object is not None:
-            if self.verbosity >= Verbosity.NORMAL:
-                self.logger.info(
-                    msg=f"Saving {python_object_name_for_logging} to "  # noqa: G004 - low overhead
-                    f"{save_path = } ...",
-                )
-
-            # Save object as pickle file
-            if isinstance(
-                python_object,
-                pd.DataFrame,
-            ):
-                python_object.to_pickle(
-                    path=save_path,
-                )
-            else:
-                msg: str = f"Unsupported type for {python_object_name_for_logging}: {type(python_object) = }."
-                raise ValueError(
-                    msg,
-                )
-
-            if self.verbosity >= Verbosity.NORMAL:
-                self.logger.info(
-                    msg=f"Saving {python_object_name_for_logging} to "  # noqa: G004 - low overhead
-                    f"{save_path = } DONE",
-                )
-        else:
-            self.logger.info(
-                msg=f"No {python_object_name_for_logging} to save.",  # noqa: G004 - low overhead
-            )
-
-    def load_dataframe_from_pickle(
-        self,
-        save_path: pathlib.Path,
-        dataframe_name_for_logging: str = "dataframe",
-        *,
-        required: bool = True,
-    ) -> pd.DataFrame | None:
-        if save_path.exists():
-            if self.verbosity >= Verbosity.NORMAL:
-                self.logger.info(
-                    msg=f"Loading {dataframe_name_for_logging} from "  # noqa: G004 - low overhead
-                    f"{save_path = } ...",
-                )
-
-            try:
-                dataframe = pd.read_pickle(  # noqa: S301 - we trust our own data
-                    filepath_or_buffer=save_path,
-                )
-            except FileNotFoundError as e:
-                msg: str = f"FileNotFoundError: {e}"
-                self.logger.exception(
-                    msg=msg,
-                )
-                raise
-
-            if not isinstance(
-                dataframe,
-                pd.DataFrame,
-            ):
-                msg = f"Expected {dataframe_name_for_logging} to be of type pd.DataFrame, but got {type(dataframe) = }."
-                raise ValueError(
-                    msg,
-                )
-
-            if self.verbosity >= Verbosity.NORMAL:
-                self.logger.info(
-                    msg=f"Loading {dataframe_name_for_logging} from "  # noqa: G004 - low overhead
-                    f"{save_path = } DONE",
-                )
-        elif required:
-            msg: str = f"Required file for {dataframe_name_for_logging} not found: {save_path = }."
-            raise FileNotFoundError(
-                msg,
-            )
-        else:
-            dataframe = None
-
-        return dataframe
-
-    def save_python_dict_as_json(
-        self,
-        python_dict: dict | None,
-        save_path: pathlib.Path,
-        python_dict_name_for_logging: str = "python_dict",
-    ) -> None:
-        if python_dict is not None:
-            if self.verbosity >= Verbosity.NORMAL:
-                self.logger.info(
-                    msg=f"Saving {python_dict_name_for_logging} to "  # noqa: G004 - low overhead
-                    f"{save_path = } ...",
-                )
-
-            # Save dictionary as json file
-            with save_path.open(
-                mode="w",
-            ) as fp:
-                json.dump(
-                    obj=python_dict,
-                    fp=fp,
-                    sort_keys=True,
-                    indent=4,
-                )
-
-            if self.verbosity >= Verbosity.NORMAL:
-                self.logger.info(
-                    msg=f"Saving {python_dict_name_for_logging} to "  # noqa: G004 - low overhead
-                    f"{save_path = } DONE",
-                )
-        else:
-            self.logger.info(
-                msg=f"No {python_dict} to save.",  # noqa: G004 - low overhead
-            )
-
-    def load_python_dict_from_json(
-        self,
-        save_path: pathlib.Path,
-        python_dict_name_for_logging: str = "python_dict",
-        *,
-        required: bool = True,
-    ) -> dict | None:
-        if save_path.exists():
-            if self.verbosity >= Verbosity.NORMAL:
-                self.logger.info(
-                    msg=f"Loading {python_dict_name_for_logging} from "  # noqa: G004 - low overhead
-                    f"{save_path = } ...",
-                )
-
-            with save_path.open(
-                mode="r",
-            ) as fp:
-                python_dict = json.load(
-                    fp=fp,
-                )
-
-            if not isinstance(
-                python_dict,
-                dict,
-            ):
-                msg = f"Expected {python_dict_name_for_logging} to be of type dict, but got {type(python_dict) = }."
-                raise ValueError(
-                    msg,
-                )
-
-            if self.verbosity >= Verbosity.NORMAL:
-                self.logger.info(
-                    msg=f"Loading {python_dict_name_for_logging} from "  # noqa: G004 - low overhead
-                    f"{save_path = } DONE",
-                )
-        elif required:
-            msg: str = f"Required file for {python_dict_name_for_logging} not found: {save_path = }."
-            raise FileNotFoundError(
-                msg,
-            )
-        else:
-            python_dict = None
-
-        return python_dict
-
     def load_local_estimates(
         self,
     ) -> LocalEstimatesContainer:
         """Load the local estimates from disk."""
         # # # #
         # Local estimates array, which is required
-        pointwise_results_array_np = self.load_numpy_array_from_npy(
+        pointwise_results_array_np: np.ndarray | None = load_numpy_array_from_npy(
             save_path=self.save_path_collection.local_estimates_pointwise_array_save_path,
             array_name_for_logging="pointwise_results_array_np",
             required=True,
+            verbosity=self.verbosity,
+            logger=self.logger,
         )
         if not isinstance(
             pointwise_results_array_np,
@@ -491,40 +258,50 @@ class LocalEstimatesSavingManager:
 
         # # # #
         # Check if the meta data exists
-        pointwise_results_meta_frame: pd.DataFrame | None = self.load_dataframe_from_pickle(
+        pointwise_results_meta_frame: pd.DataFrame | None = load_dataframe_from_pickle(
             save_path=self.save_path_collection.local_estimates_pointwise_meta_save_path,
             dataframe_name_for_logging="pointwise_results_meta_frame",
             required=True,
+            verbosity=self.verbosity,
+            logger=self.logger,
         )
 
         # # # #
         # Check if the global estimate exists
-        global_estimate_array_np: np.ndarray | None = self.load_numpy_array_from_npy(
+        global_estimate_array_np: np.ndarray | None = load_numpy_array_from_npy(
             save_path=self.save_path_collection.global_estimates_save_path,
             array_name_for_logging="global_estimate_array_np",
             required=False,
+            verbosity=self.verbosity,
+            logger=self.logger,
         )
 
         # # # #
         # Load the additional dictionaries
-        additional_distance_computations_results: dict | None = self.load_python_dict_from_json(
+        additional_distance_computations_results: dict | None = load_python_dict_from_json(
             save_path=self.save_path_collection.additional_distance_computations_results_save_path,
             python_dict_name_for_logging="additional_distance_computations_results",
             required=False,
+            verbosity=self.verbosity,
+            logger=self.logger,
         )
 
-        additional_pointwise_results_statistics: dict | None = self.load_python_dict_from_json(
+        additional_pointwise_results_statistics: dict | None = load_python_dict_from_json(
             save_path=self.save_path_collection.additional_pointwise_results_statistics_save_path,
             python_dict_name_for_logging="additional_pointwise_results_statistics",
             required=False,
+            verbosity=self.verbosity,
+            logger=self.logger,
         )
 
         # # # #
         # Load the array for the estimator
-        array_for_estimator_np: np.ndarray | None = self.load_numpy_array_from_npy(
+        array_for_estimator_np: np.ndarray | None = load_numpy_array_from_npy(
             save_path=self.save_path_collection.array_for_estimator_save_path,
             array_name_for_logging="array_for_estimator_np",
             required=False,
+            verbosity=self.verbosity,
+            logger=self.logger,
         )
 
         # # # #
