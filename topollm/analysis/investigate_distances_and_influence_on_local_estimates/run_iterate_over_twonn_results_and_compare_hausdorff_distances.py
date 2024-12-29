@@ -51,6 +51,7 @@ from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
+from topollm.path_management.parse_path_info import parse_local_estimates_info
 from topollm.typing.enums import Verbosity
 
 if TYPE_CHECKING:
@@ -80,30 +81,6 @@ setup_exception_logging(
 )
 
 setup_omega_conf()
-
-
-def parse_noise_info(
-    folder_name: str,
-) -> dict:
-    """Extract noise magnitude and seed information from the folder name.
-
-    Args:
-        folder_name: Name of the folder containing noise information.
-
-    Returns:
-        A dictionary with extracted noise details.
-    """
-    parts = folder_name.split("_")
-    noise_info: dict = {
-        "noise_magnitude": None,
-        "seed": None,
-    }
-    for part in parts:
-        if part.startswith("gaussian_distor="):
-            noise_info["noise_magnitude"] = float(part.split("=")[1])
-        elif part.startswith("seed="):
-            noise_info["seed"] = int(part.split("=")[1])
-    return noise_info
 
 
 def load_experiment_data(
@@ -161,17 +138,11 @@ def load_experiment_data(
 
         # TODO: Load the local estimates information
 
-        # # # #
-        # Parse noise information
-        noise_info = parse_noise_info(
-            folder_name=experiment_dir.name,
-        )
-
         output = {
             "experiment": experiment_dir.name,
             "distance": distance,
             "global_estimate": global_estimate,
-            **noise_info,
+            # **noise_info,
         }
     except Exception as e:
         logger.warning(
@@ -198,6 +169,8 @@ def iterate_and_collect_data(
         A pandas DataFrame with the collected data.
 
     """
+    base_path_iterdir_list = list(base_path.iterdir())
+
     if verbosity >= Verbosity.NORMAL:
         logger.info(
             msg=f"Iterating over experiments in {base_path = } ...",  # noqa: G004 - low overhead
@@ -206,7 +179,6 @@ def iterate_and_collect_data(
             msg=f"Matching {subdirectory_to_match = }",  # noqa: G004 - low overhead
         )
 
-        base_path_iterdir_list = list(base_path.iterdir())
         logger.info(
             msg=f"{len(base_path_iterdir_list) = }",  # noqa: G004 - low overhead
         )
@@ -224,6 +196,7 @@ def iterate_and_collect_data(
     for experiment_dir in tqdm(
         iterable=base_path.iterdir(),
         desc="Iterating over experiments ...",
+        total=len(base_path_iterdir_list),
     ):
         if experiment_dir.is_dir():
             experiment_dir_count += 1
@@ -251,20 +224,16 @@ def iterate_and_collect_data(
                         local_estimates_saving_manager.load_local_estimates()
                     )
 
+                    local_estimates_info = parse_local_estimates_info(
+                        path=subdirectory,
+                    )
+
                     pass  # TODO: This is here for setting breakpoints
 
-                    # TODO: This is the old code
-                    #
-                    # experiment_data = load_experiment_data(
-                    #     experiment_dir=subdirectory,
-                    #     verbosity=verbosity,
-                    #     logger=logger,
-                    # )
+                    # TODO: Extract the relevant values into a dict, so that we can append it to the data list
 
                     # if experiment_data:
                     #     data.append(experiment_data)
-
-                    # TODO: Separate the loading and the extraction of the relevant values
 
     if verbosity >= Verbosity.NORMAL:
         logger.info(
