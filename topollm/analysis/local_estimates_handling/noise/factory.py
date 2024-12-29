@@ -33,7 +33,7 @@ import pprint
 from topollm.analysis.local_estimates_handling.noise.gaussian_noiser import GaussianNoiser
 from topollm.analysis.local_estimates_handling.noise.identity_noiser import IdentityNoiser
 from topollm.analysis.local_estimates_handling.noise.protocol import PreparedDataNoiser
-from topollm.config_classes.local_estimates.local_estimates_config import LocalEstimatesNoiseConfig
+from topollm.config_classes.local_estimates.noise_config import LocalEstimatesNoiseConfig
 from topollm.typing.enums import ArtificialNoiseMode, Verbosity
 
 default_logger: logging.Logger = logging.getLogger(

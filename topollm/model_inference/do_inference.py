@@ -41,17 +41,20 @@ from topollm.model_inference.default_prompts import (
     get_default_mlm_prompts,
 )
 from topollm.model_inference.masked_language_modeling.do_fill_mask import do_fill_mask
-from topollm.typing.enums import LMmode
+from topollm.typing.enums import LMmode, Verbosity
 
 if TYPE_CHECKING:
     from topollm.model_handling.loaded_model_container import LoadedModelContainer
 
-default_logger = logging.getLogger(__name__)
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 def do_inference(
     main_config: MainConfig,
     prompts: list[str] | None = None,
+    verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> list[list]:
     """Run inference with a language model.
@@ -61,6 +64,7 @@ def do_inference(
     """
     loaded_model_container: LoadedModelContainer = prepare_device_and_tokenizer_and_model(
         main_config=main_config,
+        verbosity=verbosity,
         logger=logger,
     )
     device = loaded_model_container.device

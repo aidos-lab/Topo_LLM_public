@@ -134,7 +134,15 @@ class EmbeddingsPathManager(Protocol):
     ) -> pathlib.Path: ...  # pragma: no cover
 
     # # # #
-    # analyzed data directories
+    # Analyzed data directories
+
+    ### Distances and influence on local estimates
+
+    def get_distances_and_influence_on_local_estimates_dir_absolute_path(
+        self,
+    ) -> pathlib.Path: ...
+
+    ### Correlation analysis
 
     def get_analyzed_data_dir_absolute_path(
         self,
