@@ -289,12 +289,17 @@ class EmbeddingsPathManagerSeparateDirectories:
 
         return path
 
+    def get_local_estimates_pointwise_config_description(
+        self,
+    ) -> str:
+        return self.main_config.local_estimates.pointwise.config_description
+
     def get_local_estimates_pointwise_dir_absolute_path(
         self,
     ) -> pathlib.Path:
         path = pathlib.Path(
             self.get_local_estimates_dir_absolute_path(),
-            self.main_config.local_estimates.pointwise.config_description,
+            self.get_local_estimates_pointwise_config_description(),
         )
 
         return path

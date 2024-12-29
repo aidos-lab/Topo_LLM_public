@@ -180,22 +180,30 @@ def load_experiment_data(
 
 
 def iterate_and_collect_data(
-    base_dir: pathlib.Path,
+    base_path: pathlib.Path,
+    subdirectory_to_match: str = "n-neighbors-mode=absolute_size_n-neighbors=128",
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> pd.DataFrame:
     """Iterate over experiment directories and collect data into a DataFrame.
 
     Args:
-        base_dir: Path to the directory containing experiment subfolders.
+        base_path:
+            Path to the directory containing experiment subfolders.
 
     Returns:
         A pandas DataFrame with the collected data.
 
     """
-    base_path = pathlib.Path(
-        base_dir,
-    )
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Iterating over experiments in {base_path = } ...",  # noqa: G004 - low overhead
+        )
+        logger.info(
+            msg=f"Matching {subdirectory_to_match = }",  # noqa: G004 - low overhead
+        )
+
+    # Container for the collected data
     data: list = []
 
     for experiment_dir in tqdm(
@@ -204,13 +212,22 @@ def iterate_and_collect_data(
     ):
         if experiment_dir.is_dir():
             # TODO: Separate the loading and the extraction of the relevant values
-            experiment_data: dict | None = load_experiment_data(
-                experiment_dir=experiment_dir,
-                verbosity=verbosity,
-                logger=logger,
-            )
-            if experiment_data:
-                data.append(experiment_data)
+
+            # Iterate over the subdirectories
+            for subdirectory in experiment_dir.iterdir():
+                if subdirectory.is_dir() and subdirectory.name == subdirectory_to_match:
+                    # TODO: This is the old code
+                    #
+                    # experiment_data = load_experiment_data(
+                    #     experiment_dir=subdirectory,
+                    #     verbosity=verbosity,
+                    #     logger=logger,
+                    # )
+
+                    # if experiment_data:
+                    #     data.append(experiment_data)
+
+                    logger.info(msg=f"{subdirectory = }")
 
     collected_data_df = pd.DataFrame(
         data=data,
@@ -314,6 +331,7 @@ def create_scatter_plot(
 def iterate_over_different_local_estimates_directories(
     base_dir: os.PathLike,
     output_directory: os.PathLike,
+    subdirectory_to_match: str = "n-neighbors-mode=absolute_size_n-neighbors=128",
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> None:
@@ -330,7 +348,8 @@ def iterate_over_different_local_estimates_directories(
 
     # Collect data
     df: pd.DataFrame = iterate_and_collect_data(
-        base_dir=base_dir,
+        base_path=base_dir,
+        subdirectory_to_match=subdirectory_to_match,
         verbosity=verbosity,
         logger=logger,
     )
@@ -410,6 +429,12 @@ def main(
         msg=f"{root_iteration_dir = }",  # noqa: G004 - low overhead
     )
 
+    # Get the local estimates config description,
+    # our directory iteration will match only these directories.
+    local_estimates_pointwise_config_description: str = (
+        embeddings_path_manager.get_local_estimates_pointwise_config_description()
+    )
+
     # TODO: Create the output directory based on the input configuration
     output_directory = pathlib.Path(
         embeddings_path_manager.data_dir,
@@ -420,6 +445,7 @@ def main(
     iterate_over_different_local_estimates_directories(
         base_dir=root_iteration_dir,
         output_directory=output_directory,
+        subdirectory_to_match=local_estimates_pointwise_config_description,
         verbosity=verbosity,
         logger=logger,
     )

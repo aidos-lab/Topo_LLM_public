@@ -1,10 +1,11 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
+# Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
 # First versions of this code were potentially generated
@@ -86,7 +87,7 @@ class EmbeddingsPathManager(Protocol):
     ) -> pathlib.Path: ...  # pragma: no cover
 
     # # # #
-    # local estimates directories
+    # Local estimates directories
 
     def get_local_estimates_dir_absolute_path(
         self,
@@ -95,6 +96,10 @@ class EmbeddingsPathManager(Protocol):
     def get_global_estimate_save_path(
         self,
     ) -> pathlib.Path: ...  # pragma: no cover
+
+    def get_local_estimates_pointwise_config_description(
+        self,
+    ) -> str: ...  # pragma: no cover
 
     def get_local_estimates_pointwise_array_save_path(
         self,
