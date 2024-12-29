@@ -471,11 +471,11 @@ def main(
         embeddings_path_manager.get_local_estimates_pointwise_config_description()
     )
 
-    # TODO: Create the output directory based on the input configuration
     output_directory = pathlib.Path(
-        embeddings_path_manager.data_dir,
-        "analysis",
-        "debug_output_data",
+        embeddings_path_manager.analysis_dir,
+        "debug_output_data",  # TODO: Find a good name for the output path
+        f"subdirectory_to_match={local_estimates_pointwise_config_description}",
+        embeddings_path_manager.get_local_estimates_subfolder_path().parent,
     )
 
     iterate_over_different_local_estimates_directories(

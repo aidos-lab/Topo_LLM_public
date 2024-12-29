@@ -59,6 +59,17 @@ class EmbeddingsPathManagerSeparateDirectories:
     ) -> pathlib.Path:
         return self.main_config.paths.data_dir
 
+    @property
+    def analysis_dir(
+        self,
+    ) -> pathlib.Path:
+        path = pathlib.Path(
+            self.data_dir,
+            "analysis",
+        )
+
+        return path
+
     def get_nested_subfolder_path(
         self,
     ) -> pathlib.Path:
@@ -203,7 +214,7 @@ class EmbeddingsPathManagerSeparateDirectories:
         self,
         perplexity_container_save_format: PerplexityContainerSaveFormat = PerplexityContainerSaveFormat.LIST_AS_JSONL,
     ) -> pathlib.Path:
-        file_name = get_perplexity_container_save_file_name(
+        file_name: str = get_perplexity_container_save_file_name(
             perplexity_container_save_format=perplexity_container_save_format,
         )
 
@@ -222,8 +233,7 @@ class EmbeddingsPathManagerSeparateDirectories:
         self,
     ) -> pathlib.Path:
         path = pathlib.Path(
-            self.data_dir,
-            "analysis",
+            self.analysis_dir,
             "prepared",
             self.get_nested_subfolder_path(),
             self.main_config.embeddings_data_prep.config_description,
@@ -260,7 +270,7 @@ class EmbeddingsPathManagerSeparateDirectories:
         return path
 
     # # # #
-    # local estimates directories
+    # Local estimates directories
 
     def get_local_estimates_subfolder_path(
         self,
@@ -282,8 +292,7 @@ class EmbeddingsPathManagerSeparateDirectories:
         self,
     ) -> pathlib.Path:
         path = pathlib.Path(
-            self.data_dir,
-            "analysis",
+            self.analysis_dir,
             self.get_local_estimates_subfolder_path(),
         )
 
@@ -422,8 +431,7 @@ class EmbeddingsPathManagerSeparateDirectories:
         self,
     ) -> pathlib.Path:
         path = pathlib.Path(
-            self.data_dir,
-            "analysis",
+            self.analysis_dir,
             "distances_and_influence_on_local_estimates",
             self.main_config.analysis.investigate_distances.get_config_description(),
             self.get_local_estimates_subfolder_path(),
@@ -433,12 +441,11 @@ class EmbeddingsPathManagerSeparateDirectories:
 
     ### Correlation analysis
 
-    def get_analyzed_data_dir_absolute_path(
+    def get_aligned_and_analyzed_data_dir_absolute_path(
         self,
     ) -> pathlib.Path:
         path: pathlib.Path = pathlib.Path(
-            self.data_dir,
-            "analysis",
+            self.analysis_dir,
             "aligned_and_analyzed",
             self.get_local_estimates_subfolder_path(),
         )
@@ -450,7 +457,7 @@ class EmbeddingsPathManagerSeparateDirectories:
         file_name: str = "aligned_df.csv",
     ) -> pathlib.Path:
         path = pathlib.Path(
-            self.get_analyzed_data_dir_absolute_path(),
+            self.get_aligned_and_analyzed_data_dir_absolute_path(),
             file_name,
         )
 
@@ -460,7 +467,7 @@ class EmbeddingsPathManagerSeparateDirectories:
         self,
     ) -> pathlib.Path:
         path = pathlib.Path(
-            self.get_analyzed_data_dir_absolute_path(),
+            self.get_aligned_and_analyzed_data_dir_absolute_path(),
             "correlation_results",
         )
 
@@ -481,7 +488,7 @@ class EmbeddingsPathManagerSeparateDirectories:
         self,
     ) -> pathlib.Path:
         path = pathlib.Path(
-            self.get_analyzed_data_dir_absolute_path(),
+            self.get_aligned_and_analyzed_data_dir_absolute_path(),
             "histograms",
         )
 
@@ -502,7 +509,7 @@ class EmbeddingsPathManagerSeparateDirectories:
         self,
     ) -> pathlib.Path:
         path = pathlib.Path(
-            self.get_analyzed_data_dir_absolute_path(),
+            self.get_aligned_and_analyzed_data_dir_absolute_path(),
             "scatter_plots",
         )
 

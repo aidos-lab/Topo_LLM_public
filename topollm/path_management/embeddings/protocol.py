@@ -41,6 +41,11 @@ class EmbeddingsPathManager(Protocol):
         self,
     ) -> pathlib.Path: ...  # pragma: no cover
 
+    @property
+    def analysis_dir(
+        self,
+    ) -> pathlib.Path: ...  # pragma: no cover
+
     # # # #
     # array directory
 
@@ -89,6 +94,10 @@ class EmbeddingsPathManager(Protocol):
     # # # #
     # Local estimates directories
 
+    def get_local_estimates_subfolder_path(
+        self,
+    ) -> pathlib.Path: ...  # pragma: no cover
+
     def get_local_estimates_dir_absolute_path(
         self,
     ) -> pathlib.Path: ...  # pragma: no cover
@@ -122,7 +131,7 @@ class EmbeddingsPathManager(Protocol):
     ) -> pathlib.Path: ...  # pragma: no cover
 
     # # # #
-    # saved plots directories
+    # Saved plots directories
 
     @property
     def saved_plots_dir_absolute_path(
@@ -149,7 +158,7 @@ class EmbeddingsPathManager(Protocol):
 
     ### Correlation analysis
 
-    def get_analyzed_data_dir_absolute_path(
+    def get_aligned_and_analyzed_data_dir_absolute_path(
         self,
     ) -> pathlib.Path: ...  # pragma: no cover
 
