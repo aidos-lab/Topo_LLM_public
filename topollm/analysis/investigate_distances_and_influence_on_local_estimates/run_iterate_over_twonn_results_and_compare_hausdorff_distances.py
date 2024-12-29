@@ -51,6 +51,8 @@ from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.log_list_info import log_list_info
 from topollm.logging.setup_exception_logging import setup_exception_logging
+from topollm.path_management.embeddings.factory import get_embeddings_path_manager
+from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 from topollm.typing.enums import Verbosity
 
 if TYPE_CHECKING:
@@ -102,12 +104,31 @@ def main(
     )
     verbosity: Verbosity = main_config.verbosity
 
+    embeddings_path_manager: EmbeddingsPathManager = get_embeddings_path_manager(
+        main_config=main_config,
+        logger=logger,
+    )
+
     # ================================================== #
     #
     # ================================================== #
 
+    local_estimates_dir_absolute_path: pathlib.Path = embeddings_path_manager.get_local_estimates_dir_absolute_path()
+    root_iteration_dir: pathlib.Path = local_estimates_dir_absolute_path.parent
+
+    logger.info(
+        msg=f"{local_estimates_dir_absolute_path = }",  # noqa: G004 - low overhead
+    )
+    logger.info(
+        msg=f"{root_iteration_dir = }",  # noqa: G004 - low overhead
+    )
+
     # TODO(Ben): Implement iteration over different noise levels and noise seeds, to make a plot of Hausdorff distances vs. local estimates for each noise level and seed.
     # TODO(Ben): Plot of Hausdorff distances vs. global estimates.
+
+    # ================================================== #
+    #
+    # ================================================== #
 
     logger.info(
         msg="Running script DONE",
