@@ -117,6 +117,8 @@ def load_experiment_data(
         A dictionary containing the data, or None if an error occurs.
 
     """
+
+    # TODO: Load this via the local estimates saving manager
     try:
         # # # #
         # Load JSON with distances
@@ -134,7 +136,7 @@ def load_experiment_data(
 
         # Extract specific distance value (replace 'some_distance_key' with actual key)
         distance = distances_data.get(
-            "some_distance_key",
+            "approximate_hausdorff_via_kdtree",
             None,
         )
         if distance is None:
@@ -201,6 +203,7 @@ def iterate_and_collect_data(
         desc="Iterating over experiments ...",
     ):
         if experiment_dir.is_dir():
+            # TODO: Separate the loading and the extraction of the relevant values
             experiment_data: dict | None = load_experiment_data(
                 experiment_dir=experiment_dir,
                 verbosity=verbosity,

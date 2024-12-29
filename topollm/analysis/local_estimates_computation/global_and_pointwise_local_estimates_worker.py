@@ -180,10 +180,12 @@ def global_and_pointwise_local_estimates_worker(
         additional_pointwise_results_statistics=additional_pointwise_results_statistics,
     )
 
-    local_estimates_save_manager = LocalEstimatesSavingManager(
-        embeddings_path_manager=embeddings_path_manager,
-        verbosity=verbosity,
-        logger=logger,
+    local_estimates_save_manager: LocalEstimatesSavingManager = (
+        LocalEstimatesSavingManager.from_embeddings_path_manager(
+            embeddings_path_manager=embeddings_path_manager,
+            verbosity=verbosity,
+            logger=logger,
+        )
     )
 
     local_estimates_save_manager.save_local_estimates(
