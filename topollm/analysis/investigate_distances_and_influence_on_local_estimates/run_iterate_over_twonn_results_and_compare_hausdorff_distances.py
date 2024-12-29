@@ -42,6 +42,8 @@ import pandas as pd
 import plotly.express as px
 from tqdm import tqdm
 
+from topollm.analysis.local_estimates_handling.saving.local_estimates_containers import LocalEstimatesContainer
+from topollm.analysis.local_estimates_handling.saving.local_estimates_saving_manager import LocalEstimatesSavingManager
 from topollm.config_classes.constants import (
     HYDRA_CONFIGS_BASE_PATH,
 )
@@ -238,6 +240,19 @@ def iterate_and_collect_data(
                 if subdirectory.is_dir() and subdirectory.name == subdirectory_to_match:
                     matched_subdirectory_count += 1
 
+                    local_estimates_saving_manager: LocalEstimatesSavingManager = (
+                        LocalEstimatesSavingManager.from_local_estimates_pointwise_dir_absolute_path(
+                            local_estimates_pointwise_dir_absolute_path=subdirectory,
+                            verbosity=verbosity,
+                            logger=logger,
+                        )
+                    )
+                    local_estimates_container: LocalEstimatesContainer = (
+                        local_estimates_saving_manager.load_local_estimates()
+                    )
+
+                    pass  # TODO: This is here for setting breakpoints
+
                     # TODO: This is the old code
                     #
                     # experiment_data = load_experiment_data(
@@ -287,6 +302,7 @@ def save_dataframe(
     Args:
         df: The DataFrame to save.
         output_path: Path to save the DataFrame.
+
     """
     output_file = pathlib.Path(output_path)
     output_file.parent.mkdir(
@@ -294,13 +310,13 @@ def save_dataframe(
         exist_ok=True,
     )
     df.to_csv(
-        output_file,
+        path_or_buf=output_file,
         index=False,
     )
 
     if verbosity >= Verbosity.NORMAL:
         logger.info(
-            f"DataFrame saved to {output_file}",
+            msg=f"DataFrame saved to {output_file = }",  # noqa: G004 - low overhead
         )
 
 
