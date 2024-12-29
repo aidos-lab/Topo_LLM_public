@@ -31,6 +31,7 @@ import json
 import logging
 import os
 import pathlib
+import pprint
 from typing import TYPE_CHECKING
 
 import hydra
@@ -203,19 +204,40 @@ def iterate_and_collect_data(
             msg=f"Matching {subdirectory_to_match = }",  # noqa: G004 - low overhead
         )
 
+        base_path_iterdir_list = list(base_path.iterdir())
+        logger.info(
+            msg=f"{len(base_path_iterdir_list) = }",  # noqa: G004 - low overhead
+        )
+        logger.info(
+            msg=f"base_path_iterdir_list:\n{pprint.pformat(base_path_iterdir_list)}",  # noqa: G004 - low overhead
+        )
+
     # Container for the collected data
     data: list = []
+
+    experiment_dir_count = 0
+    subdirectory_count = 0
+    matched_subdirectory_count = 0
 
     for experiment_dir in tqdm(
         iterable=base_path.iterdir(),
         desc="Iterating over experiments ...",
     ):
         if experiment_dir.is_dir():
-            # TODO: Separate the loading and the extraction of the relevant values
+            experiment_dir_count += 1
 
             # Iterate over the subdirectories
             for subdirectory in experiment_dir.iterdir():
+                if subdirectory.is_dir():
+                    subdirectory_count += 1
+                    if verbosity >= Verbosity.NORMAL:
+                        logger.info(
+                            msg=f"{subdirectory = }",  # noqa: G004 - low overhead
+                        )
+
                 if subdirectory.is_dir() and subdirectory.name == subdirectory_to_match:
+                    matched_subdirectory_count += 1
+
                     # TODO: This is the old code
                     #
                     # experiment_data = load_experiment_data(
@@ -227,7 +249,21 @@ def iterate_and_collect_data(
                     # if experiment_data:
                     #     data.append(experiment_data)
 
-                    logger.info(msg=f"{subdirectory = }")
+                    # TODO: Separate the loading and the extraction of the relevant values
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg="Finished iterating over experiments.",
+        )
+        logger.info(
+            msg=f"{experiment_dir_count = }",  # noqa: G004 - low overhead
+        )
+        logger.info(
+            msg=f"{subdirectory_count = }",  # noqa: G004 - low overhead
+        )
+        logger.info(
+            msg=f"{matched_subdirectory_count = }",  # noqa: G004 - low overhead
+        )
 
     collected_data_df = pd.DataFrame(
         data=data,

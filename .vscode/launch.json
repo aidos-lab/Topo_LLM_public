@@ -485,7 +485,7 @@
             "program": "topollm/analysis/investigate_distances_and_influence_on_local_estimates/run_iterate_over_twonn_results_and_compare_hausdorff_distances.py",
             "console": "integratedTerminal",
             "args": [
-                "data=wikitext-103-v1_test",
+                "data=multiwoz21_test",
                 "data.data_subsampling.sampling_mode=random",
                 "data.data_subsampling.number_of_samples=10000",
                 "data.data_subsampling.sampling_seed=778",
@@ -501,7 +501,7 @@
                 "local_estimates.filtering.deduplication_mode=array_deduplicator",
                 "local_estimates.filtering.num_samples=60000",
                 "local_estimates.pointwise.absolute_n_neighbors=128",
-                "analysis.investigate_distances.array_truncation_size=500", // The value '500' can be used for quick testing
+                "analysis.investigate_distances.array_truncation_size=5000",
                 "feature_flags.analysis.compare_sampling_methods.do_iterate_all_partial_search_base_directories=True", // This is an example for setting the feature flags
             ]
         },
