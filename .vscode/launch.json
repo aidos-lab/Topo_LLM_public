@@ -423,10 +423,10 @@
             ]
         },
         {
-            "name": "run_compare_hausdorff_distances_and_local_estimates.py; on example multiwoz21 test data",
+            "name": "run_compare_losses_and_local_estimates.py; on example multiwoz21 test data",
             "type": "debugpy",
             "request": "launch",
-            "program": "topollm/analysis/investigate_distances_and_influence_on_local_estimates/run_compare_hausdorff_distances_and_local_estimates.py",
+            "program": "topollm/analysis/investigate_distances_and_influence_on_local_estimates/run_compare_losses_and_local_estimates.py",
             "console": "integratedTerminal",
             "args": [
                 "data=multiwoz21_test",
@@ -451,10 +451,10 @@
             ]
         },
         {
-            "name": "run_compare_hausdorff_distances_and_local_estimates.py; on example wikitext test data",
+            "name": "run_compare_losses_and_local_estimates.py; on example wikitext test data",
             "type": "debugpy",
             "request": "launch",
-            "program": "topollm/analysis/investigate_distances_and_influence_on_local_estimates/run_compare_hausdorff_distances_and_local_estimates.py",
+            "program": "topollm/analysis/investigate_distances_and_influence_on_local_estimates/run_compare_losses_and_local_estimates.py",
             "console": "integratedTerminal",
             "args": [
                 "data=wikitext-103-v1_test",
