@@ -27,36 +27,35 @@
 
 """Run script to compare computed Hausdorff distances with the local estimates."""
 
+import json
 import logging
+import os
 import pathlib
-import pprint
-from collections.abc import Generator
-from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 import hydra
 import hydra.core.hydra_config
-import joblib
 import numpy as np
 import omegaconf
 import pandas as pd
+import plotly.express as px
+from tqdm import tqdm
 
 from topollm.config_classes.constants import (
     HYDRA_CONFIGS_BASE_PATH,
-    NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS,
-    TOPO_LLM_REPOSITORY_BASE_PATH,
 )
-from topollm.config_classes.main_config import MainConfig
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
-from topollm.logging.log_list_info import log_list_info
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
-from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 from topollm.typing.enums import Verbosity
 
 if TYPE_CHECKING:
-    pass
+    from plotly.graph_objs._figure import Figure
+
+    from topollm.config_classes.main_config import MainConfig
+    from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
+
 
 try:
     from hydra_plugins import hpc_submission_launcher
@@ -78,6 +77,291 @@ setup_exception_logging(
 )
 
 setup_omega_conf()
+
+
+def parse_noise_info(
+    folder_name: str,
+) -> dict:
+    """Extract noise magnitude and seed information from the folder name.
+
+    Args:
+        folder_name: Name of the folder containing noise information.
+
+    Returns:
+        A dictionary with extracted noise details.
+    """
+    parts = folder_name.split("_")
+    noise_info: dict = {
+        "noise_magnitude": None,
+        "seed": None,
+    }
+    for part in parts:
+        if part.startswith("gaussian_distor="):
+            noise_info["noise_magnitude"] = float(part.split("=")[1])
+        elif part.startswith("seed="):
+            noise_info["seed"] = int(part.split("=")[1])
+    return noise_info
+
+
+def load_experiment_data(
+    experiment_dir: pathlib.Path,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> dict | None:
+    """Load experiment data from a given directory.
+
+    Args:
+        experiment_dir: Path to the experiment directory.
+
+    Returns:
+        A dictionary containing the data, or None if an error occurs.
+
+    """
+    try:
+        # # # #
+        # Load JSON with distances
+        distances_data_path = pathlib.Path(
+            experiment_dir,
+            "additional_distance_computations_results.json",
+        )
+
+        with distances_data_path.open(
+            mode="r",
+        ) as f:
+            distances_data = json.load(
+                fp=f,
+            )
+
+        # Extract specific distance value (replace 'some_distance_key' with actual key)
+        distance = distances_data.get(
+            "some_distance_key",
+            None,
+        )
+        if distance is None:
+            msg = "Distance key not found in JSON."
+            raise ValueError(msg)
+
+        # # # #
+        # Load global estimate
+        global_estimates_path = pathlib.Path(
+            experiment_dir,
+            "global_estimate.npy",
+        )
+        global_estimate = np.load(
+            file=global_estimates_path,
+        ).item()
+
+        # # # #
+        # Load local estimates
+
+        # TODO: Load the local estimates information
+
+        # # # #
+        # Parse noise information
+        noise_info = parse_noise_info(
+            folder_name=experiment_dir.name,
+        )
+
+        output = {
+            "experiment": experiment_dir.name,
+            "distance": distance,
+            "global_estimate": global_estimate,
+            **noise_info,
+        }
+    except Exception as e:
+        logger.warning(
+            msg=f"Error loading data from {experiment_dir}: {e}",
+        )
+        return None
+
+    return output
+
+
+def iterate_and_collect_data(
+    base_dir: pathlib.Path,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> pd.DataFrame:
+    """Iterate over experiment directories and collect data into a DataFrame.
+
+    Args:
+        base_dir: Path to the directory containing experiment subfolders.
+
+    Returns:
+        A pandas DataFrame with the collected data.
+
+    """
+    base_path = pathlib.Path(
+        base_dir,
+    )
+    data: list = []
+
+    for experiment_dir in tqdm(
+        iterable=base_path.iterdir(),
+        desc="Iterating over experiments ...",
+    ):
+        if experiment_dir.is_dir():
+            experiment_data: dict | None = load_experiment_data(
+                experiment_dir=experiment_dir,
+                verbosity=verbosity,
+                logger=logger,
+            )
+            if experiment_data:
+                data.append(experiment_data)
+
+    collected_data_df = pd.DataFrame(
+        data=data,
+    )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Collected data for {len(collected_data_df)} experiments.",  # noqa: G004 - low overhead
+        )
+    return collected_data_df
+
+
+def save_dataframe(
+    df: pd.DataFrame,
+    output_path: pathlib.Path,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
+    """Save a DataFrame to disk in CSV format.
+
+    Args:
+        df: The DataFrame to save.
+        output_path: Path to save the DataFrame.
+    """
+    output_file = pathlib.Path(output_path)
+    output_file.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+    df.to_csv(
+        output_file,
+        index=False,
+    )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            f"DataFrame saved to {output_file}",
+        )
+
+
+def create_scatter_plot(
+    df: pd.DataFrame,
+    output_file: pathlib.Path | None = None,
+    *,
+    show_plot: bool = False,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
+    """Create an interactive scatter plot using Plotly.
+
+    Args:
+        df: DataFrame containing the data to plot.
+        output_file: Optional; path to save the HTML plot.
+
+    """
+    fig: Figure = px.scatter(
+        data_frame=df,
+        x="distance",
+        y="global_estimate",
+        color="noise_magnitude",
+        hover_data=["experiment", "seed", "noise_magnitude"],
+        title="Distance vs Global Estimate (Interactive)",
+        labels={
+            "distance": "Distance",
+            "global_estimate": "Global Estimate",
+            "noise_magnitude": "Noise Magnitude",
+        },
+    )
+    fig.update_traces(
+        marker={
+            "size": 10,
+            "opacity": 0.7,
+        },
+    )
+
+    if show_plot:
+        fig.show()
+
+    if output_file:
+        output_file = pathlib.Path(
+            output_file,
+        )
+        output_file.parent.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"Saving plot to {output_file} ...",  # noqa: G004 - low overhead
+            )
+        fig.write_html(
+            output_file,
+        )
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"Saving plot to {output_file} DONE",  # noqa: G004 - low overhead
+            )
+
+
+def iterate_over_different_local_estimates_directories(
+    base_dir: os.PathLike,
+    output_directory: os.PathLike,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
+    """Iterate over experiments, save collected data, and create a scatter plot.
+
+    Args:
+        base_dir: Path to the directory containing experiment subfolders.
+        output_directory: Root path to save data.
+
+    """
+    # Convert to pathlib.Path
+    base_dir = pathlib.Path(base_dir)
+    output_directory = pathlib.Path(output_directory)
+
+    # Collect data
+    df: pd.DataFrame = iterate_and_collect_data(
+        base_dir=base_dir,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+    # Save raw data
+    dataframe_output_path = pathlib.Path(
+        output_directory,
+        "raw_data.csv",
+    )
+    save_dataframe(
+        df=df,
+        output_path=dataframe_output_path,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+    # Check if the DataFrame is empty
+    if df.empty:
+        logger.warning(
+            msg="No data collected. Skipping scatter plot creation.",
+        )
+        return
+
+    # Create scatter plot
+    plot_output_path = pathlib.Path(
+        output_directory,
+        "scatter_plot.html",
+    )
+    create_scatter_plot(
+        df=df,
+        output_file=plot_output_path,
+        verbosity=verbosity,
+        logger=logger,
+    )
 
 
 @hydra.main(
@@ -121,6 +405,20 @@ def main(
     )
     logger.info(
         msg=f"{root_iteration_dir = }",  # noqa: G004 - low overhead
+    )
+
+    # TODO: Create the output directory based on the input configuration
+    output_directory = pathlib.Path(
+        embeddings_path_manager.data_dir,
+        "analysis",
+        "debug_output_data",
+    )
+
+    iterate_over_different_local_estimates_directories(
+        base_dir=root_iteration_dir,
+        output_directory=output_directory,
+        verbosity=verbosity,
+        logger=logger,
     )
 
     # TODO(Ben): Implement iteration over different noise levels and noise seeds, to make a plot of Hausdorff distances vs. local estimates for each noise level and seed.
