@@ -25,6 +25,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Container for the local estimates data."""
+
 from dataclasses import dataclass
 
 import numpy as np
@@ -45,3 +47,16 @@ class LocalEstimatesContainer:
     # Optional additional results
     additional_distance_computations_results: dict | None = None
     additional_pointwise_results_statistics: dict | None = None
+
+    def get_global_estimate(
+        self,
+    ) -> float:
+        if self.global_estimate_array_np is None:
+            msg = "No global estimate available."
+            raise ValueError(
+                msg,
+            )
+
+        output = self.global_estimate_array_np[0]
+
+        return output

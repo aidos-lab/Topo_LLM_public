@@ -27,7 +27,6 @@
 
 """Run script to compare computed Hausdorff distances with the local estimates."""
 
-import json
 import logging
 import os
 import pathlib
@@ -36,13 +35,11 @@ from typing import TYPE_CHECKING
 
 import hydra
 import hydra.core.hydra_config
-import numpy as np
 import omegaconf
 import pandas as pd
 import plotly.express as px
 from tqdm import tqdm
 
-from topollm.analysis.local_estimates_handling.saving.local_estimates_containers import LocalEstimatesContainer
 from topollm.analysis.local_estimates_handling.saving.local_estimates_saving_manager import LocalEstimatesSavingManager
 from topollm.config_classes.constants import (
     HYDRA_CONFIGS_BASE_PATH,
@@ -57,6 +54,7 @@ from topollm.typing.enums import Verbosity
 if TYPE_CHECKING:
     from plotly.graph_objs._figure import Figure
 
+    from topollm.analysis.local_estimates_handling.saving.local_estimates_containers import LocalEstimatesContainer
     from topollm.config_classes.main_config import MainConfig
     from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 
@@ -83,76 +81,6 @@ setup_exception_logging(
 setup_omega_conf()
 
 
-def load_experiment_data(
-    experiment_dir: pathlib.Path,
-    verbosity: Verbosity = Verbosity.NORMAL,
-    logger: logging.Logger = default_logger,
-) -> dict | None:
-    """Load experiment data from a given directory.
-
-    Args:
-        experiment_dir: Path to the experiment directory.
-
-    Returns:
-        A dictionary containing the data, or None if an error occurs.
-
-    """
-
-    # TODO: Load this via the local estimates saving manager
-    try:
-        # # # #
-        # Load JSON with distances
-        distances_data_path = pathlib.Path(
-            experiment_dir,
-            "additional_distance_computations_results.json",
-        )
-
-        with distances_data_path.open(
-            mode="r",
-        ) as f:
-            distances_data = json.load(
-                fp=f,
-            )
-
-        # Extract specific distance value (replace 'some_distance_key' with actual key)
-        distance = distances_data.get(
-            "approximate_hausdorff_via_kdtree",
-            None,
-        )
-        if distance is None:
-            msg = "Distance key not found in JSON."
-            raise ValueError(msg)
-
-        # # # #
-        # Load global estimate
-        global_estimates_path = pathlib.Path(
-            experiment_dir,
-            "global_estimate.npy",
-        )
-        global_estimate = np.load(
-            file=global_estimates_path,
-        ).item()
-
-        # # # #
-        # Load local estimates
-
-        # TODO: Load the local estimates information
-
-        output = {
-            "experiment": experiment_dir.name,
-            "distance": distance,
-            "global_estimate": global_estimate,
-            # **noise_info,
-        }
-    except Exception as e:
-        logger.warning(
-            msg=f"Error loading data from {experiment_dir}: {e}",
-        )
-        return None
-
-    return output
-
-
 def iterate_and_collect_data(
     base_path: pathlib.Path,
     subdirectory_to_match: str = "n-neighbors-mode=absolute_size_n-neighbors=128",
@@ -164,6 +92,12 @@ def iterate_and_collect_data(
     Args:
         base_path:
             Path to the directory containing experiment subfolders.
+        subdirectory_to_match:
+            Subdirectory name to match.
+        verbosity:
+            Verbosity level.
+        logger:
+            Logger instance.
 
     Returns:
         A pandas DataFrame with the collected data.
@@ -224,16 +158,21 @@ def iterate_and_collect_data(
                         local_estimates_saving_manager.load_local_estimates()
                     )
 
-                    local_estimates_info = parse_local_estimates_info(
+                    local_estimates_info: dict = parse_local_estimates_info(
                         path=subdirectory,
                     )
 
-                    pass  # TODO: This is here for setting breakpoints
-
                     # TODO: Extract the relevant values into a dict, so that we can append it to the data list
 
-                    # if experiment_data:
-                    #     data.append(experiment_data)
+                    experiment_data: dict = {
+                        "experiment_dir_name": experiment_dir.name,
+                        # "distance": distance,
+                        "global_estimate": local_estimates_container.get_global_estimate(),
+                        **local_estimates_info,
+                    }
+
+                    if experiment_data:
+                        data.append(experiment_data)
 
     if verbosity >= Verbosity.NORMAL:
         logger.info(
@@ -269,23 +208,35 @@ def save_dataframe(
     """Save a DataFrame to disk in CSV format.
 
     Args:
-        df: The DataFrame to save.
-        output_path: Path to save the DataFrame.
+        df:
+            The DataFrame to save.
+        output_path:
+            Path to save the DataFrame.
+        verbosity:
+            Verbosity level.
+        logger:
+            Logger instance.
 
     """
-    output_file = pathlib.Path(output_path)
+    output_file = pathlib.Path(
+        output_path,
+    )
     output_file.parent.mkdir(
         parents=True,
         exist_ok=True,
     )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Saving DataFrame to {output_file = } ...",  # noqa: G004 - low overhead
+        )
     df.to_csv(
         path_or_buf=output_file,
         index=False,
     )
-
     if verbosity >= Verbosity.NORMAL:
         logger.info(
-            msg=f"DataFrame saved to {output_file = }",  # noqa: G004 - low overhead
+            msg=f"Saving DataFrame to {output_file = } DONE",  # noqa: G004 - low overhead
         )
 
 
@@ -300,8 +251,16 @@ def create_scatter_plot(
     """Create an interactive scatter plot using Plotly.
 
     Args:
-        df: DataFrame containing the data to plot.
-        output_file: Optional; path to save the HTML plot.
+        df:
+            DataFrame containing the data to plot.
+        output_file:
+            Path to save the HTML plot.
+        show_plot:
+            Whether to show the plot.
+        verbosity:
+            Verbosity level.
+        logger:
+            Logger instance.
 
     """
     fig: Figure = px.scatter(
@@ -359,13 +318,25 @@ def iterate_over_different_local_estimates_directories(
     """Iterate over experiments, save collected data, and create a scatter plot.
 
     Args:
-        base_dir: Path to the directory containing experiment subfolders.
-        output_directory: Root path to save data.
+        base_dir:
+            Path to the directory containing experiment subfolders.
+        output_directory:
+            Root path to save data.
+        subdirectory_to_match:
+            Subdirectory name to match.
+        verbosity:
+            Verbosity level.
+        logger:
+            Logger instance.
 
     """
     # Convert to pathlib.Path
-    base_dir = pathlib.Path(base_dir)
-    output_directory = pathlib.Path(output_directory)
+    base_dir = pathlib.Path(
+        base_dir,
+    )
+    output_directory = pathlib.Path(
+        output_directory,
+    )
 
     # Collect data
     df: pd.DataFrame = iterate_and_collect_data(
