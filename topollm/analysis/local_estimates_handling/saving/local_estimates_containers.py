@@ -32,6 +32,10 @@ from dataclasses import dataclass
 import numpy as np
 import pandas as pd
 
+from topollm.analysis.local_estimates_computation.global_and_pointwise_local_estimates_worker import (
+    APPROXIMATE_HAUSDORFF_VIA_KDTREE_DICT_KEY,
+)
+
 
 @dataclass
 class LocalEstimatesContainer:
@@ -58,5 +62,24 @@ class LocalEstimatesContainer:
             )
 
         output = self.global_estimate_array_np[0]
+
+        return output
+
+    def get_approximate_hausdorff_via_kd_tree(
+        self,
+    ) -> float:
+        if self.additional_distance_computations_results is None:
+            msg = "No additional distance computations results available."
+            raise ValueError(
+                msg,
+            )
+
+        if APPROXIMATE_HAUSDORFF_VIA_KDTREE_DICT_KEY not in self.additional_distance_computations_results:
+            msg = "No approximate Hausdorff via KDTree distance available."
+            raise ValueError(
+                msg,
+            )
+
+        output = self.additional_distance_computations_results[APPROXIMATE_HAUSDORFF_VIA_KDTREE_DICT_KEY]
 
         return output

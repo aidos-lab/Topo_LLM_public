@@ -76,6 +76,9 @@ default_logger: logging.Logger = logging.getLogger(
     name=__name__,
 )
 
+APPROXIMATE_HAUSDORFF_VIA_KDTREE_DICT_KEY = "approximate_hausdorff_via_kdtree"
+EXACT_HAUSDORFF_DICT_KEY = "exact_hausdorff"
+
 
 def global_and_pointwise_local_estimates_worker(
     main_config: MainConfig,
@@ -298,7 +301,9 @@ def compute_distance_metrics(
             array_2=noisy_array,
         )
 
-        additional_distance_computations_results["approximate_hausdorff_via_kdtree"] = approximate_hausdorff_distance
+        additional_distance_computations_results[APPROXIMATE_HAUSDORFF_VIA_KDTREE_DICT_KEY] = (
+            approximate_hausdorff_distance
+        )
 
         if verbosity >= Verbosity.NORMAL:
             logger.info(
@@ -316,7 +321,7 @@ def compute_distance_metrics(
             array_2=noisy_array,
         )
 
-        additional_distance_computations_results["exact_hausdorff"] = exact_hausdorff_distance
+        additional_distance_computations_results[EXACT_HAUSDORFF_DICT_KEY] = exact_hausdorff_distance
 
         if verbosity >= Verbosity.NORMAL:
             logger.info(

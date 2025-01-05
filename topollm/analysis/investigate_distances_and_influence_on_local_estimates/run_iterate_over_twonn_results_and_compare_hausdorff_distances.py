@@ -162,7 +162,8 @@ def iterate_and_collect_data(
                         path=subdirectory,
                     )
 
-                    # TODO: Extract the relevant values into a dict, so that we can append it to the data list
+                    # TODO: Flatten additional distances into this top-level dict
+                    # TODO: Extract the local estimates that we want for the comparison
 
                     experiment_data: dict = {
                         "experiment_dir_name": experiment_dir.name,
@@ -339,7 +340,7 @@ def iterate_over_different_local_estimates_directories(
     )
 
     # Collect data
-    df: pd.DataFrame = iterate_and_collect_data(
+    collected_data_df: pd.DataFrame = iterate_and_collect_data(
         base_path=base_dir,
         subdirectory_to_match=subdirectory_to_match,
         verbosity=verbosity,
@@ -352,14 +353,14 @@ def iterate_over_different_local_estimates_directories(
         "raw_data.csv",
     )
     save_dataframe(
-        df=df,
+        df=collected_data_df,
         output_path=dataframe_output_path,
         verbosity=verbosity,
         logger=logger,
     )
 
     # Check if the DataFrame is empty
-    if df.empty:
+    if collected_data_df.empty:
         logger.warning(
             msg="No data collected. Skipping scatter plot creation.",
         )
@@ -371,7 +372,7 @@ def iterate_over_different_local_estimates_directories(
         "scatter_plot.html",
     )
     create_scatter_plot(
-        df=df,
+        df=collected_data_df,
         output_file=plot_output_path,
         verbosity=verbosity,
         logger=logger,
