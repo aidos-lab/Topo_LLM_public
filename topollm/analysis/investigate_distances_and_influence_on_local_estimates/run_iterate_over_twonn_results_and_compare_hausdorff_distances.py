@@ -263,6 +263,8 @@ def create_scatter_plot(
     x_column_name: str = "additional_distance_approximate_hausdorff_via_kdtree",
     y_column_name: str = "pointwise_results_np_mean",
     color_column_name: str = "local_estimates_noise_distortion",
+    y_min: float | None = None,
+    y_max: float | None = None,
     show_plot: bool = False,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
@@ -306,6 +308,11 @@ def create_scatter_plot(
             "opacity": 0.7,
         },
     )
+
+    if y_min is not None and y_max is not None:
+        fig.update_yaxes(
+            range=[y_min, y_max],
+        )
 
     if show_plot:
         fig.show()
@@ -424,37 +431,62 @@ def iterate_over_different_local_estimates_directories(
 
     # # # #
     # Create scatter plots
-
-    # TODO: Iterate over the different comparisons we want (extract from the df colum names, and save these to different folders)
     # TODO(Ben): Plot of Hausdorff distances vs. global estimates.
 
-    x_column_names_for_iteration: list[str] = [
-        "additional_distance_approximate_hausdorff_via_kdtree",
+    additional_distance_column_names: list[str] = [
+        column_name for column_name in collected_data_df.columns if column_name.startswith("additional_distance_")
     ]
+
+    x_column_names_for_iteration: list[str] = [
+        *additional_distance_column_names,
+        "local_estimates_noise_distortion",
+    ]
+    # We also want to plot the additional distances against each other and the noise distortion,
+    # this is why we add the additional distances to the y_column_names_for_iteration.
     y_column_names_for_iteration: list[str] = [
         "pointwise_results_np_mean",
         "pointwise_results_np_std",
+        "global_estimate",
+        *additional_distance_column_names,
     ]
 
-    for x_column_name, y_column_name in product(
-        x_column_names_for_iteration,
-        y_column_names_for_iteration,
-    ):
-        plot_output_path = pathlib.Path(
-            output_directory,
-            "scatter_plots",
-            f"{x_column_name=}_vs_{y_column_name=}",
-        )
+    y_axes_limits: dict[
+        str,
+        tuple[
+            float | None,
+            float | None,
+        ],
+    ] = {
+        "auto": (None, None),
+        "multiwoz": (8.5, 11.5),
+    }
 
-        create_scatter_plot(
-            df=collected_data_df,
-            output_folder=plot_output_path,
-            x_column_name=x_column_name,
-            y_column_name=y_column_name,
-            show_plot=False,
-            verbosity=verbosity,
-            logger=logger,
-        )
+    for y_min, y_max in y_axes_limits.values():
+        for x_column_name, y_column_name in tqdm(
+            iterable=product(
+                x_column_names_for_iteration,
+                y_column_names_for_iteration,
+            ),
+            desc="Creating scatter plots ...",
+        ):
+            plot_output_path = pathlib.Path(
+                output_directory,
+                "scatter_plots",
+                f"{y_min=}_{y_max=}",
+                f"{x_column_name=}_vs_{y_column_name=}",
+            )
+
+            create_scatter_plot(
+                df=collected_data_df,
+                output_folder=plot_output_path,
+                x_column_name=x_column_name,
+                y_column_name=y_column_name,
+                y_min=y_min,
+                y_max=y_max,
+                show_plot=False,
+                verbosity=verbosity,
+                logger=logger,
+            )
 
 
 @hydra.main(
