@@ -31,6 +31,7 @@ import logging
 import os
 import pathlib
 import pprint
+from itertools import product
 from typing import TYPE_CHECKING
 
 import hydra
@@ -421,21 +422,39 @@ def iterate_over_different_local_estimates_directories(
         )
         return
 
-    # Create scatter plot
-    # TODO: Iterate over different comparisons (save these to different folders)
+    # # # #
+    # Create scatter plots
 
-    plot_output_path = pathlib.Path(
-        output_directory,
-        "scatter_plots",
-    )
+    # TODO: Iterate over the different comparisons we want (extract from the df colum names, and save these to different folders)
+    # TODO(Ben): Plot of Hausdorff distances vs. global estimates.
 
-    create_scatter_plot(
-        df=collected_data_df,
-        output_folder=plot_output_path,
-        show_plot=False,
-        verbosity=verbosity,
-        logger=logger,
-    )
+    x_column_names_for_iteration: list[str] = [
+        "additional_distance_approximate_hausdorff_via_kdtree",
+    ]
+    y_column_names_for_iteration: list[str] = [
+        "pointwise_results_np_mean",
+        "pointwise_results_np_std",
+    ]
+
+    for x_column_name, y_column_name in product(
+        x_column_names_for_iteration,
+        y_column_names_for_iteration,
+    ):
+        plot_output_path = pathlib.Path(
+            output_directory,
+            "scatter_plots",
+            f"{x_column_name=}_vs_{y_column_name=}",
+        )
+
+        create_scatter_plot(
+            df=collected_data_df,
+            output_folder=plot_output_path,
+            x_column_name=x_column_name,
+            y_column_name=y_column_name,
+            show_plot=False,
+            verbosity=verbosity,
+            logger=logger,
+        )
 
 
 @hydra.main(
@@ -501,8 +520,6 @@ def main(
         verbosity=verbosity,
         logger=logger,
     )
-
-    # TODO(Ben): Plot of Hausdorff distances vs. global estimates.
 
     # ================================================== #
     #
