@@ -163,11 +163,12 @@ def iterate_and_collect_data(
                     )
 
                     # TODO: Flatten additional distances into this top-level dict
-                    # TODO: Extract the local estimates that we want for the comparison
 
                     experiment_data: dict = {
                         "experiment_dir_name": experiment_dir.name,
                         # "distance": distance,
+                        "pointwise_results_np_mean": local_estimates_container.get_pointwise_results_np_mean(),
+                        "pointwise_results_np_std": local_estimates_container.get_pointwise_results_np_std(),
                         "global_estimate": local_estimates_container.get_global_estimate(),
                         **local_estimates_info,
                     }

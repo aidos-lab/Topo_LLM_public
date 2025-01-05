@@ -37,6 +37,10 @@ import pandas as pd
 import torch
 from tqdm import tqdm
 
+from topollm.analysis.local_estimates_computation.constants import (
+    APPROXIMATE_HAUSDORFF_VIA_KDTREE_DICT_KEY,
+    EXACT_HAUSDORFF_DICT_KEY,
+)
 from topollm.analysis.local_estimates_computation.global_and_pointwise_local_estimates_computation import (
     global_and_pointwise_local_estimates_computation,
 )
@@ -75,9 +79,6 @@ default_device = torch.device(
 default_logger: logging.Logger = logging.getLogger(
     name=__name__,
 )
-
-APPROXIMATE_HAUSDORFF_VIA_KDTREE_DICT_KEY = "approximate_hausdorff_via_kdtree"
-EXACT_HAUSDORFF_DICT_KEY = "exact_hausdorff"
 
 
 def global_and_pointwise_local_estimates_worker(

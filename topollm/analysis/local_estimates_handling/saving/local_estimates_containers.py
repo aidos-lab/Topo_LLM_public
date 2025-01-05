@@ -32,7 +32,7 @@ from dataclasses import dataclass
 import numpy as np
 import pandas as pd
 
-from topollm.analysis.local_estimates_computation.global_and_pointwise_local_estimates_worker import (
+from topollm.analysis.local_estimates_computation.constants import (
     APPROXIMATE_HAUSDORFF_VIA_KDTREE_DICT_KEY,
 )
 
@@ -62,6 +62,38 @@ class LocalEstimatesContainer:
             )
 
         output = self.global_estimate_array_np[0]
+
+        return output
+
+    def get_pointwise_results_np_mean(
+        self,
+    ) -> float:
+        if self.pointwise_results_array_np is None:
+            msg = "No pointwise results available."
+            raise ValueError(
+                msg,
+            )
+
+        output = np.mean(
+            a=self.pointwise_results_array_np,
+            axis=0,
+        )
+
+        return output
+
+    def get_pointwise_results_np_std(
+        self,
+    ) -> float:
+        if self.pointwise_results_array_np is None:
+            msg = "No pointwise results available."
+            raise ValueError(
+                msg,
+            )
+
+        output = np.std(
+            a=self.pointwise_results_array_np,
+            axis=0,
+        )
 
         return output
 
