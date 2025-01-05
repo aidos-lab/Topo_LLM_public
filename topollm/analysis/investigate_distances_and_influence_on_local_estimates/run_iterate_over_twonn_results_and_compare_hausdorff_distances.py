@@ -162,14 +162,26 @@ def iterate_and_collect_data(
                         path=subdirectory,
                     )
 
-                    # TODO: Flatten additional distances into this top-level dict
+                    additional_distance_computations_dict: dict | None = (
+                        local_estimates_container.additional_distance_computations_results
+                    )
+                    if additional_distance_computations_dict is None:
+                        additional_distance_computations_dict = {}
+
+                    # Add the prefix "additional_distance_" to the keys
+                    # of the additional distance computations results
+                    # so that it is easier to pick them out later for the comparison scatter plots.
+                    modified_keys_additional_distance_computations_dict: dict = {
+                        f"additional_distance_{key}": value
+                        for key, value in additional_distance_computations_dict.items()
+                    }
 
                     experiment_data: dict = {
                         "experiment_dir_name": experiment_dir.name,
-                        # "distance": distance,
                         "pointwise_results_np_mean": local_estimates_container.get_pointwise_results_np_mean(),
                         "pointwise_results_np_std": local_estimates_container.get_pointwise_results_np_std(),
                         "global_estimate": local_estimates_container.get_global_estimate(),
+                        **modified_keys_additional_distance_computations_dict,
                         **local_estimates_info,
                     }
 
@@ -198,6 +210,7 @@ def iterate_and_collect_data(
         logger.info(
             msg=f"Collected data for {len(collected_data_df)} experiments.",  # noqa: G004 - low overhead
         )
+
     return collected_data_df
 
 
@@ -244,8 +257,11 @@ def save_dataframe(
 
 def create_scatter_plot(
     df: pd.DataFrame,
-    output_file: pathlib.Path | None = None,
+    output_folder: pathlib.Path | None = None,
     *,
+    x_column_name: str = "additional_distance_approximate_hausdorff_via_kdtree",
+    y_column_name: str = "pointwise_results_np_mean",
+    color_column_name: str = "local_estimates_noise_distortion",
     show_plot: bool = False,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
@@ -255,8 +271,8 @@ def create_scatter_plot(
     Args:
         df:
             DataFrame containing the data to plot.
-        output_file:
-            Path to save the HTML plot.
+        output_folder:
+            Folder for saving the plot.
         show_plot:
             Whether to show the plot.
         verbosity:
@@ -267,15 +283,20 @@ def create_scatter_plot(
     """
     fig: Figure = px.scatter(
         data_frame=df,
-        x="distance",
-        y="global_estimate",
-        color="noise_magnitude",
-        hover_data=["experiment", "seed", "noise_magnitude"],
-        title="Distance vs Global Estimate (Interactive)",
+        x=x_column_name,
+        y=y_column_name,
+        color=color_column_name,
+        hover_data=[
+            "experiment_dir_name",
+            "local_estimates_noise_seed",
+            "local_estimates_noise_distortion",
+        ],
+        title=f"{x_column_name=} vs {y_column_name=}",
         labels={
-            "distance": "Distance",
-            "global_estimate": "Global Estimate",
-            "noise_magnitude": "Noise Magnitude",
+            x_column_name: x_column_name,
+            y_column_name: y_column_name,
+            "global_estimate": "global_estimate",
+            color_column_name: color_column_name,
         },
     )
     fig.update_traces(
@@ -288,25 +309,58 @@ def create_scatter_plot(
     if show_plot:
         fig.show()
 
-    if output_file:
-        output_file = pathlib.Path(
-            output_file,
+    if output_folder is not None:
+        output_folder = pathlib.Path(
+            output_folder,
         )
-        output_file.parent.mkdir(
+        output_folder.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+
+        # Save plot as HTML
+        output_file_html = pathlib.Path(
+            output_folder,
+            "scatter_plot.html",
+        )
+        output_file_html.parent.mkdir(
             parents=True,
             exist_ok=True,
         )
 
         if verbosity >= Verbosity.NORMAL:
             logger.info(
-                msg=f"Saving plot to {output_file} ...",  # noqa: G004 - low overhead
+                msg=f"Saving plot to {output_file_html} ...",  # noqa: G004 - low overhead
             )
         fig.write_html(
-            output_file,
+            output_file_html,
         )
         if verbosity >= Verbosity.NORMAL:
             logger.info(
-                msg=f"Saving plot to {output_file} DONE",  # noqa: G004 - low overhead
+                msg=f"Saving plot to {output_file_html} DONE",  # noqa: G004 - low overhead
+            )
+
+        # Save plot as PDF
+        output_file_pdf = pathlib.Path(
+            output_folder,
+            "scatter_plot.pdf",
+        )
+        output_file_html.parent.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"Saving plot to {output_file_pdf} ...",  # noqa: G004 - low overhead
+            )
+        fig.write_image(
+            file=output_file_pdf,
+            format="pdf",
+        )
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"Saving plot to {output_file_pdf} DONE",  # noqa: G004 - low overhead
             )
 
 
@@ -368,13 +422,17 @@ def iterate_over_different_local_estimates_directories(
         return
 
     # Create scatter plot
+    # TODO: Iterate over different comparisons (save these to different folders)
+
     plot_output_path = pathlib.Path(
         output_directory,
-        "scatter_plot.html",
+        "scatter_plots",
     )
+
     create_scatter_plot(
         df=collected_data_df,
-        output_file=plot_output_path,
+        output_folder=plot_output_path,
+        show_plot=False,
         verbosity=verbosity,
         logger=logger,
     )
@@ -431,7 +489,7 @@ def main(
 
     output_directory = pathlib.Path(
         embeddings_path_manager.analysis_dir,
-        "debug_output_data",  # TODO: Find a good name for the output path
+        "noise_distances_versus_estimates",
         f"subdirectory_to_match={local_estimates_pointwise_config_description}",
         embeddings_path_manager.get_local_estimates_subfolder_path().parent,
     )
@@ -444,7 +502,6 @@ def main(
         logger=logger,
     )
 
-    # TODO(Ben): Implement iteration over different noise levels and noise seeds, to make a plot of Hausdorff distances vs. local estimates for each noise level and seed.
     # TODO(Ben): Plot of Hausdorff distances vs. global estimates.
 
     # ================================================== #
