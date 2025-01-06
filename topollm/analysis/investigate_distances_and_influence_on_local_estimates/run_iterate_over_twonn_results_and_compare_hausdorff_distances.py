@@ -289,6 +289,7 @@ def create_scatter_plot(
         x=x_column_name,
         y=y_column_name,
         color=color_column_name,
+        color_continuous_scale="bluered",
         hover_data=[
             "experiment_dir_name",
             "local_estimates_noise_seed",
@@ -365,6 +366,8 @@ def create_scatter_plot(
         fig.write_image(
             file=output_file_pdf,
             format="pdf",
+            width=1920,
+            height=1080,
         )
         if verbosity >= Verbosity.NORMAL:
             logger.info(
@@ -372,7 +375,7 @@ def create_scatter_plot(
             )
 
 
-def iterate_over_different_local_estimates_directories(
+def iterate_over_different_local_estimates_directories_for_given_base_directory(
     base_dir: os.PathLike,
     output_directory: os.PathLike,
     subdirectory_to_match: str = "n-neighbors-mode=absolute_size_n-neighbors=128",
@@ -431,8 +434,21 @@ def iterate_over_different_local_estimates_directories(
 
     # # # #
     # Create scatter plots
-    # TODO(Ben): Plot of Hausdorff distances vs. global estimates.
+    create_multiple_scatter_plots(
+        collected_data_df=collected_data_df,
+        output_directory=output_directory,
+        verbosity=verbosity,
+        logger=logger,
+    )
 
+
+def create_multiple_scatter_plots(
+    collected_data_df: pd.DataFrame,
+    output_directory: os.PathLike,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
+    """Create multiple scatter plots for the collected data."""
     additional_distance_column_names: list[str] = [
         column_name for column_name in collected_data_df.columns if column_name.startswith("additional_distance_")
     ]
@@ -545,7 +561,7 @@ def main(
         embeddings_path_manager.get_local_estimates_subfolder_path().parent,
     )
 
-    iterate_over_different_local_estimates_directories(
+    iterate_over_different_local_estimates_directories_for_given_base_directory(
         base_dir=root_iteration_dir,
         output_directory=output_directory,
         subdirectory_to_match=local_estimates_pointwise_config_description,
