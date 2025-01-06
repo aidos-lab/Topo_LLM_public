@@ -150,10 +150,12 @@ def load_perplexity_and_local_estimates_and_align(
     )
 
     try:
-        local_estimates_saving_manager = LocalEstimatesSavingManager(
-            embeddings_path_manager=local_estimates_embeddings_path_manager,
-            verbosity=verbosity,
-            logger=logger,
+        local_estimates_saving_manager: LocalEstimatesSavingManager = (
+            LocalEstimatesSavingManager.from_embeddings_path_manager(
+                embeddings_path_manager=local_estimates_embeddings_path_manager,
+                verbosity=verbosity,
+                logger=logger,
+            )
         )
 
         local_estimates_container: LocalEstimatesContainer = local_estimates_saving_manager.load_local_estimates()

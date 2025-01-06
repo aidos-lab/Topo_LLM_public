@@ -25,10 +25,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Container for the local estimates data."""
+
 from dataclasses import dataclass
 
 import numpy as np
 import pandas as pd
+
+from topollm.analysis.local_estimates_computation.constants import (
+    APPROXIMATE_HAUSDORFF_VIA_KDTREE_DICT_KEY,
+)
 
 
 @dataclass
@@ -45,3 +51,67 @@ class LocalEstimatesContainer:
     # Optional additional results
     additional_distance_computations_results: dict | None = None
     additional_pointwise_results_statistics: dict | None = None
+
+    def get_global_estimate(
+        self,
+    ) -> float:
+        if self.global_estimate_array_np is None:
+            msg = "No global estimate available."
+            raise ValueError(
+                msg,
+            )
+
+        output = self.global_estimate_array_np[0]
+
+        return output
+
+    def get_pointwise_results_np_mean(
+        self,
+    ) -> float:
+        if self.pointwise_results_array_np is None:
+            msg = "No pointwise results available."
+            raise ValueError(
+                msg,
+            )
+
+        output = np.mean(
+            a=self.pointwise_results_array_np,
+            axis=0,
+        )
+
+        return output
+
+    def get_pointwise_results_np_std(
+        self,
+    ) -> float:
+        if self.pointwise_results_array_np is None:
+            msg = "No pointwise results available."
+            raise ValueError(
+                msg,
+            )
+
+        output = np.std(
+            a=self.pointwise_results_array_np,
+            axis=0,
+        )
+
+        return output
+
+    def get_approximate_hausdorff_via_kd_tree(
+        self,
+    ) -> float:
+        if self.additional_distance_computations_results is None:
+            msg = "No additional distance computations results available."
+            raise ValueError(
+                msg,
+            )
+
+        if APPROXIMATE_HAUSDORFF_VIA_KDTREE_DICT_KEY not in self.additional_distance_computations_results:
+            msg = "No approximate Hausdorff via KDTree distance available."
+            raise ValueError(
+                msg,
+            )
+
+        output = self.additional_distance_computations_results[APPROXIMATE_HAUSDORFF_VIA_KDTREE_DICT_KEY]
+
+        return output

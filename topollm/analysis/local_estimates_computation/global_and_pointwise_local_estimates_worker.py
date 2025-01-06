@@ -37,6 +37,10 @@ import pandas as pd
 import torch
 from tqdm import tqdm
 
+from topollm.analysis.local_estimates_computation.constants import (
+    APPROXIMATE_HAUSDORFF_VIA_KDTREE_DICT_KEY,
+    EXACT_HAUSDORFF_DICT_KEY,
+)
 from topollm.analysis.local_estimates_computation.global_and_pointwise_local_estimates_computation import (
     global_and_pointwise_local_estimates_computation,
 )
@@ -180,10 +184,12 @@ def global_and_pointwise_local_estimates_worker(
         additional_pointwise_results_statistics=additional_pointwise_results_statistics,
     )
 
-    local_estimates_save_manager = LocalEstimatesSavingManager(
-        embeddings_path_manager=embeddings_path_manager,
-        verbosity=verbosity,
-        logger=logger,
+    local_estimates_save_manager: LocalEstimatesSavingManager = (
+        LocalEstimatesSavingManager.from_embeddings_path_manager(
+            embeddings_path_manager=embeddings_path_manager,
+            verbosity=verbosity,
+            logger=logger,
+        )
     )
 
     local_estimates_save_manager.save_local_estimates(
@@ -296,7 +302,9 @@ def compute_distance_metrics(
             array_2=noisy_array,
         )
 
-        additional_distance_computations_results["approximate_hausdorff_via_kdtree"] = approximate_hausdorff_distance
+        additional_distance_computations_results[APPROXIMATE_HAUSDORFF_VIA_KDTREE_DICT_KEY] = (
+            approximate_hausdorff_distance
+        )
 
         if verbosity >= Verbosity.NORMAL:
             logger.info(
@@ -314,7 +322,7 @@ def compute_distance_metrics(
             array_2=noisy_array,
         )
 
-        additional_distance_computations_results["exact_hausdorff"] = exact_hausdorff_distance
+        additional_distance_computations_results[EXACT_HAUSDORFF_DICT_KEY] = exact_hausdorff_distance
 
         if verbosity >= Verbosity.NORMAL:
             logger.info(

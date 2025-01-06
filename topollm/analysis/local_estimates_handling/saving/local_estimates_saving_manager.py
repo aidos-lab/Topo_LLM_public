@@ -96,7 +96,7 @@ class LocalEstimatesSavingManager:
 
     def __init__(
         self,
-        embeddings_path_manager: EmbeddingsPathManager,
+        save_path_collection: LocalEstimatesSavePathCollection,
         verbosity: Verbosity = Verbosity.NORMAL,
         logger: logging.Logger = default_logger,
     ) -> None:
@@ -104,6 +104,20 @@ class LocalEstimatesSavingManager:
         self.verbosity: Verbosity = verbosity
         self.logger: logging.Logger = logger
 
+        self.save_path_collection: LocalEstimatesSavePathCollection = save_path_collection
+
+        if self.verbosity >= Verbosity.NORMAL:
+            self.logger.info(
+                msg=f"save_path_collection:\n{pprint.pformat(object=self.save_path_collection)}",  # noqa: G004 - low overhead
+            )
+
+    @staticmethod
+    def from_embeddings_path_manager(
+        embeddings_path_manager: EmbeddingsPathManager,
+        verbosity: Verbosity = Verbosity.NORMAL,
+        logger: logging.Logger = default_logger,
+    ) -> "LocalEstimatesSavingManager":
+        """Initialize the local estimates saving manager from an embeddings path manager."""
         local_estimates_dir_absolute_path: pathlib.Path = (
             embeddings_path_manager.get_local_estimates_dir_absolute_path()
         )
@@ -122,7 +136,8 @@ class LocalEstimatesSavingManager:
         )
         array_for_estimator_save_path: pathlib.Path = embeddings_path_manager.get_array_for_estimator_save_path()
 
-        self.save_path_collection = LocalEstimatesSavePathCollection(
+        # Note: Logging of the save_path_collection is done in the __init__ method
+        save_path_collection = LocalEstimatesSavePathCollection(
             local_estimates_dir_absolute_path=local_estimates_dir_absolute_path,
             global_estimates_save_path=global_estimates_save_path,
             local_estimates_pointwise_array_save_path=local_estimates_pointwise_array_save_path,
@@ -132,10 +147,70 @@ class LocalEstimatesSavingManager:
             array_for_estimator_save_path=array_for_estimator_save_path,
         )
 
-        if self.verbosity >= Verbosity.NORMAL:
-            self.logger.info(
-                msg=f"save_path_collection:\n{pprint.pformat(object=self.save_path_collection)}",  # noqa: G004 - low overhead
-            )
+        instance = LocalEstimatesSavingManager(
+            save_path_collection=save_path_collection,
+            verbosity=verbosity,
+            logger=logger,
+        )
+
+        return instance
+
+    @staticmethod
+    def from_local_estimates_pointwise_dir_absolute_path(
+        local_estimates_pointwise_dir_absolute_path: pathlib.Path,
+        verbosity: Verbosity = Verbosity.NORMAL,
+        logger: logging.Logger = default_logger,
+    ) -> "LocalEstimatesSavingManager":
+        """Initialize the local estimates saving manager from a local estimates pointwise directory."""
+        # Parent directory of the local estimates pointwise directory
+        local_estimates_dir_absolute_path: pathlib.Path = local_estimates_pointwise_dir_absolute_path.parent
+
+        # Files located in the parent directory
+        global_estimates_save_path: pathlib.Path = pathlib.Path(
+            local_estimates_dir_absolute_path,
+            "global_estimate.npy",
+        )
+        additional_distance_computations_results_save_path: pathlib.Path = pathlib.Path(
+            local_estimates_dir_absolute_path,
+            "additional_distance_computations_results.json",
+        )
+        array_for_estimator_save_path: pathlib.Path = pathlib.Path(
+            local_estimates_dir_absolute_path,
+            "array_for_estimator.npy",
+        )
+
+        # Files located in the local estimates pointwise directory
+        local_estimates_pointwise_array_save_path: pathlib.Path = pathlib.Path(
+            local_estimates_pointwise_dir_absolute_path,
+            "local_estimates_pointwise_array.npy",
+        )
+        local_estimates_pointwise_meta_save_path: pathlib.Path = pathlib.Path(
+            local_estimates_pointwise_dir_absolute_path,
+            "local_estimates_pointwise_meta.pkl",
+        )
+        additional_pointwise_results_statistics_save_path: pathlib.Path = pathlib.Path(
+            local_estimates_pointwise_dir_absolute_path,
+            "additional_pointwise_results_statistics.json",
+        )
+
+        # Note: Logging of the save_path_collection is done in the __init__ method
+        save_path_collection = LocalEstimatesSavePathCollection(
+            local_estimates_dir_absolute_path=local_estimates_dir_absolute_path,
+            global_estimates_save_path=global_estimates_save_path,
+            local_estimates_pointwise_array_save_path=local_estimates_pointwise_array_save_path,
+            local_estimates_pointwise_meta_save_path=local_estimates_pointwise_meta_save_path,
+            additional_distance_computations_results_save_path=additional_distance_computations_results_save_path,
+            additional_pointwise_results_statistics_save_path=additional_pointwise_results_statistics_save_path,
+            array_for_estimator_save_path=array_for_estimator_save_path,
+        )
+
+        instance = LocalEstimatesSavingManager(
+            save_path_collection=save_path_collection,
+            verbosity=verbosity,
+            logger=logger,
+        )
+
+        return instance
 
     def __repr__(
         self,
