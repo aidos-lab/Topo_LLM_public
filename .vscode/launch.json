@@ -523,5 +523,45 @@
                 "--dry_run",
             ]
         },
+        {
+            "name": "call_submit_jobs_for_experiments_via_tmux_submission; local; multiple data lists",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/scripts/submission_scripts/call_submit_jobs_scripts/call_submit_jobs_for_experiments_via_tmux_submission.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--run-configs-option",
+                "run_all",
+                "--submission-mode",
+                "local",
+                // >> Concrete experiment configurations
+                // "--data-list-options",
+                // "reddit_only",
+                // "--data-list-options",
+                // "multiwoz21_only",
+                // "--data-list-options",
+                // "wikitext_only"
+            ]
+        },
+        {
+            "name": "call_submit_jobs_for_experiments_via_tmux_submission; local; validation only and multiple layers",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/scripts/submission_scripts/call_submit_jobs_scripts/call_submit_jobs_for_experiments_via_tmux_submission.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--run-configs-option",
+                "run_all",
+                // "run_single_random",
+                "--submission-mode",
+                "local",
+                // "--do-submission",
+                // >> Concrete experiment configurations
+                "--data-list-options",
+                "validation_split_only",
+                "--experiment-selector-options",
+                "regular_token_embeddings_multiple_layers_single_sample",
+            ]
+        },
     ]
 }

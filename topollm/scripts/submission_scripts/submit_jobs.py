@@ -920,6 +920,7 @@ def make_config_and_run_task(
             "fixed_parameters_high_checkpoint_resolution",
             "regular_token_embeddings",
             "masked_token_embeddings",
+            "regular_token_embeddings_multiple_layers_single_sample",
         ],
         case_sensitive=False,
     ),
@@ -1184,7 +1185,7 @@ def orchestrate_job_submission(
         case "coarse_checkpoint_resolution":
             # ++++ Experiment > Coarse checkpoint resolution
             #
-            # Note:
+            # Notes:
             # - You need to set the data_list_option via the command line arguments.
             data_subsampling_number_of_samples_list_option = DataSubsamplingNumberOfSamplesListOption.FIXED_10000
 
@@ -1192,7 +1193,7 @@ def orchestrate_job_submission(
         case "exploratory_dropout_analysis_coarse_checkpoint_resolution":
             # ++++ Experiment > Coarse checkpoint resolution for first exploratory dropout analysis
             #
-            # Note:
+            # Notes:
             # - You need to set the data_list_option via the command line arguments.
             data_subsampling_number_of_samples_list_option = DataSubsamplingNumberOfSamplesListOption.FIXED_10000
 
@@ -1206,7 +1207,7 @@ def orchestrate_job_submission(
         case "tiny_dropout_variations_coarse_checkpoint_resolution":
             # ++++ Experiment > Coarse checkpoint resolution for first dropout with small variations analysis
             #
-            # Note:
+            # Notes:
             # - You need to set the data_list_option via the command line arguments.
             data_subsampling_number_of_samples_list_option = DataSubsamplingNumberOfSamplesListOption.FIXED_10000
 
@@ -1223,7 +1224,7 @@ def orchestrate_job_submission(
             # ++++ Experiment > Fixing many of the parameters so that we can run the
             #      checkpoint comparison experiment with high checkpoint resolution
             #
-            # Note:
+            # Notes:
             # - You need to set the data_list_option via the command line arguments.
             data_subsampling_number_of_samples_list_option = DataSubsamplingNumberOfSamplesListOption.FIXED_10000
 
@@ -1239,7 +1240,7 @@ def orchestrate_job_submission(
             # Select all checkpoints for which we have evaluation results
             checkpoint_no_list_option = CheckpointNoListOption.FULL
         case "regular_token_embeddings":
-            # Note:
+            # Notes:
             # - You need to set the data_list_option via the command line arguments.
 
             data_subsampling_number_of_samples_list_option = DataSubsamplingNumberOfSamplesListOption.FIXED_10000
@@ -1251,7 +1252,7 @@ def orchestrate_job_submission(
             # Select only a single training seed
             language_model_seed_list_option = SeedListOption.FIXED_SEED_1234
         case "masked_token_embeddings":
-            # Note:
+            # Notes:
             # - You need to set the data_list_option via the command line arguments.
 
             data_subsampling_number_of_samples_list_option = DataSubsamplingNumberOfSamplesListOption.FIXED_10000
@@ -1262,6 +1263,18 @@ def orchestrate_job_submission(
 
             # Select only a single training seed
             language_model_seed_list_option = SeedListOption.FIXED_SEED_1234
+        case "regular_token_embeddings_multiple_layers_single_sample":
+            # Notes:
+            # - You need to set the data_list_option via the command line arguments.
+
+            data_subsampling_number_of_samples_list_option = DataSubsamplingNumberOfSamplesListOption.FIXED_10000
+            data_subsampling_sampling_seed_list_option = DataSubsamplingSamplingSeedListOption.FIXED_777
+
+            embedding_data_handler_mode = EmbeddingDataHandlerMode.MASKED_TOKEN
+
+            checkpoint_no_list_option = CheckpointNoListOption.SELECTED
+
+            # TODO: Implement this experiment
         # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
         # NOTE: You can add more experiment configurations here.
         case _:

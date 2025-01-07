@@ -66,30 +66,51 @@ from topollm.typing.enums import SubmissionMode
     default=SubmissionMode.HPC_SUBMISSION,
     help="Whether to run the job on the HPC or locally.",
 )
+# Note: To use multiple options in click, you need to repeat the option multiple times:
+# `--data-list-options "reddit_only" --data-list-options "multiwoz21_only" --data-list-options "wikitext_only"`
+# will result in `data_list_options = ["reddit_only", "multiwoz21_only", "wikitext_only"]`
+# https://click.palletsprojects.com/en/stable/options/#multiple-options
+@click.option(
+    "--data-list-options",
+    type=str,  # The type has to be a string, otherwise the list will be interpreted as a list of characters.
+    multiple=True,
+    default=[
+        # "reddit_only",
+        # "multiwoz21_only",
+        # "wikitext_only",
+        "validation_split_only",
+    ],
+    help="List of data options to use.",
+)
+@click.option(
+    "--experiment-selector-options",
+    type=str,
+    multiple=True,
+    default=[
+        # "coarse_checkpoint_resolution",
+        "regular_token_embeddings",
+        # "masked_token_embeddings",
+        # "tiny_dropout_variations_coarse_checkpoint_resolution",
+    ],
+    help="List of experiment selector options to use.",
+)
 def submit_jobs(
     run_configs_option: str,
     *,
     do_submission: bool,
     submission_mode: SubmissionMode,
+    data_list_options: list[str],
+    experiment_selector_options: list[str],
 ) -> None:
     """Submit jobs in tmux sessions with logging and resource management."""
+    # Cast arguments to list to convert the tuple type returned by click to a list.
+    data_list_options = list(data_list_options)
+    experiment_selector_options = list(experiment_selector_options)
+
     # Define job-specific configurations
-    data_list_options: list[str] = [
-        # "reddit_only",
-        # "multiwoz21_only",
-        # "wikitext_only",
-        "validation_split_only",
-    ]
 
     data_subsampling_sampling_mode_option = "random"
     # data_subsampling_sampling_mode_option = "take_first"
-
-    experiment_selector_options: list[str] = [
-        # "coarse_checkpoint_resolution",
-        "regular_token_embeddings",
-        # "masked_token_embeddings",
-        # "tiny_dropout_variations_coarse_checkpoint_resolution",
-    ]
 
     # We do not make the experiment_stage into a list option, because the embedding computation jobs
     # need to be run before the additional pipeline runs (they depend on the embeddings).
