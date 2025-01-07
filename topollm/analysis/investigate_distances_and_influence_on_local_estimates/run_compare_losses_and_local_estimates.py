@@ -257,9 +257,14 @@ class ComputationData:
 
     local_estimates_and_predictions_save_path_collection: LocalEstimatesAndPredictionsSavePathCollection
 
+    # The descriptive string is used for logging to identify the computation data
+    # (for example, to distinguish the base data from the comparison data)
+    descriptive_string: str = ""
+
     @staticmethod
     def from_main_config(
         main_config: MainConfig,
+        descriptive_string: str = "",
         verbosity: Verbosity = Verbosity.NORMAL,
         logger: logging.Logger = default_logger,
     ) -> "ComputationData":
@@ -290,6 +295,7 @@ class ComputationData:
                 array_truncation_size=main_config.analysis.investigate_distances.array_truncation_size,
                 tokenizer=loaded_model_container.tokenizer,
                 model=loaded_model_container.model,
+                descriptive_string=descriptive_string,
                 analysis_verbosity_level=verbosity,
                 logger=logger,
             )
@@ -316,6 +322,7 @@ class ComputationData:
             loaded_model_container=loaded_model_container,
             local_estimates_and_predictions_container=local_estimates_and_predictions_container,
             local_estimates_and_predictions_save_path_collection=local_estimates_and_predictions_save_path_collection,
+            descriptive_string=descriptive_string,
         )
 
         return result
@@ -334,11 +341,13 @@ class ComparisonManager:
         """Initialize the manager."""
         self.computation_data_for_base_data: ComputationData = ComputationData.from_main_config(
             main_config=main_config_for_base_data,
+            descriptive_string="base_data",
             verbosity=verbosity,
             logger=logger,
         )
         self.computation_data_for_comparison_data: ComputationData = ComputationData.from_main_config(
             main_config=main_config_for_comparison_data,
+            descriptive_string="comparison_data",
             verbosity=verbosity,
             logger=logger,
         )
@@ -355,10 +364,14 @@ def compute_predictions_on_hidden_states(
     array_truncation_size: int,
     tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast,
     model: PreTrainedModel,
+    descriptive_string: str = "",
     analysis_verbosity_level: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> LocalEstimatesAndPredictionsContainer:
-    """Compute and collect the model predictions for the given hidden states."""
+    """Compute and collect the model predictions for the given hidden states.
+
+    The descriptive string is used for logging to identify the computation data.
+    """
     array_to_analyze: np.ndarray | None = local_estimates_container_to_analyze.array_for_estimator_np
     if array_to_analyze is None:
         msg = "The array_to_analyze is None."
@@ -379,7 +392,7 @@ def compute_predictions_on_hidden_states(
 
     for vector_index in tqdm(
         iterable=range(array_truncation_size),
-        desc="Iterating over vectors",
+        desc=f"Iterating over vectors for {descriptive_string = }",
     ):
         # Extract the embedding vector for the vector_index and the corresponding metadata
         extracted_vector = array_to_analyze[vector_index]

@@ -215,6 +215,20 @@
             }
         },
         {
+            "label": "GC - Sync from GC Bucket to Local - only 'data/analysis/twonn' directory ",
+            "command": "poetry run sync_gc_data --source bucket --target local --subdirectory 'data/analysis/twonn'",
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": false
+            }
+        },
+        {
             "label": "GC - Sync from GC Bucket to Local - logs and only 'data/analysis/twonn' directory ",
             "command": "poetry run sync_gc_data --source bucket --target local --subdirectory 'data/analysis/twonn' 'hydra_output_dir' 'wandb_output_dir'",
             "type": "shell",
