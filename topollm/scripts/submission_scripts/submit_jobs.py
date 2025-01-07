@@ -1270,7 +1270,7 @@ def orchestrate_job_submission(
             data_subsampling_number_of_samples_list_option = DataSubsamplingNumberOfSamplesListOption.FIXED_10000
             data_subsampling_sampling_seed_list_option = DataSubsamplingSamplingSeedListOption.FIXED_777
 
-            embedding_data_handler_mode = EmbeddingDataHandlerMode.MASKED_TOKEN
+            embedding_data_handler_mode = EmbeddingDataHandlerMode.REGULAR
 
             checkpoint_no_list_option = CheckpointNoListOption.SELECTED
 
