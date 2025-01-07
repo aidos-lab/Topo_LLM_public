@@ -503,21 +503,13 @@ def main(
         deep=True,
     )
 
-    # TODO: We currently set the comparison data manually in this script
-    #
-    # Option 1: Take noisy version of the data for comparison
-    #
-    # artificial_noise_mode = ArtificialNoiseMode.GAUSSIAN
-    # artificial_noise_distortion_parameter = 0.01
-    # artificial_noise_seed = 4
-
-    # main_config_for_comparison_data.local_estimates.noise.artificial_noise_mode = artificial_noise_mode
-    # main_config_for_comparison_data.local_estimates.noise.distortion_parameter = artificial_noise_distortion_parameter
-    # main_config_for_comparison_data.local_estimates.noise.seed = artificial_noise_seed
-
-    # Option 2: Take a different token mode for comparison
-    #
-    main_config_for_comparison_data.embeddings.embedding_data_handler.mode = EmbeddingDataHandlerMode.REGULAR
+    # TODO: Check our current decision: We do not necesarily want to initialize the comparisons configs with the defaults.
+    main_config_for_comparison_data.local_estimates = main_config.comparison_data.local_estimates.model_copy(
+        deep=True,
+    )
+    main_config_for_comparison_data.embeddings = main_config.comparison_data.embeddings.model_copy(
+        deep=True,
+    )
 
     # ================================================== #
     # Computing data based on the configs

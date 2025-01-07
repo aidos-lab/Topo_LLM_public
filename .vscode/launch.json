@@ -445,8 +445,26 @@
                 "local_estimates.filtering.deduplication_mode=array_deduplicator",
                 "local_estimates.filtering.num_samples=60000",
                 "local_estimates.pointwise.absolute_n_neighbors=128",
+                // START: Comparison data.
+                //
+                // Note: We need to also set all the parameters we overwrote in the main data configuration,
+                // since otherwise the comparison data configs will be initialized with the default values.
+                //
+                // << This is the same as in the main data configuration
+                "+comparison_data.embeddings.embedding_data_handler.mode=masked_token",
+                "+comparison_data.local_estimates.pointwise.n_neighbors_mode=absolute_size",
+                "+comparison_data.local_estimates.filtering.deduplication_mode=array_deduplicator",
+                "+comparison_data.local_estimates.filtering.num_samples=60000",
+                "+comparison_data.local_estimates.pointwise.absolute_n_neighbors=128",
+                // << This is different from the main data configuration
+                "+comparison_data.local_estimates.noise.artificial_noise_mode=gaussian",
+                "+comparison_data.local_estimates.noise.distortion_parameter=0.01",
+                "+comparison_data.local_estimates.noise.seed=4",
+                // END: Comparison data.
                 // "analysis.investigate_distances.array_truncation_size=500", // The value '500' can be used for quick testing
-                "analysis.investigate_distances.array_truncation_size=5000",
+                // "analysis.investigate_distances.array_truncation_size=600",
+                // "analysis.investigate_distances.array_truncation_size=5000",
+                "analysis.investigate_distances.array_truncation_size=20000",
                 "feature_flags.analysis.compare_sampling_methods.do_iterate_all_partial_search_base_directories=True", // This is an example for setting the feature flags
             ]
         },
@@ -465,6 +483,8 @@
                 "tokenizer.add_prefix_space=True",
                 "language_model=roberta-base",
                 "embeddings.embedding_data_handler.mode=masked_token",
+                // Option: Take a different token mode for comparison
+                "+comparison_data.embeddings.embedding_data_handler.mode=regular",
                 "embeddings.embedding_extraction.layer_indices=[-1]",
                 "embeddings_data_prep.sampling.num_samples=150000",
                 "embeddings_data_prep.sampling.sampling_mode=random",
