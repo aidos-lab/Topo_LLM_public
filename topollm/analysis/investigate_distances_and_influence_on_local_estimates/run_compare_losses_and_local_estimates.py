@@ -30,13 +30,11 @@
 import logging
 import pathlib
 import pprint
-from collections.abc import Generator
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 import hydra
 import hydra.core.hydra_config
-import joblib
 import numpy as np
 import omegaconf
 import pandas as pd
@@ -58,14 +56,11 @@ from topollm.analysis.local_estimates_handling.saving.local_estimates_containers
 from topollm.analysis.local_estimates_handling.saving.local_estimates_saving_manager import LocalEstimatesSavingManager
 from topollm.config_classes.constants import (
     HYDRA_CONFIGS_BASE_PATH,
-    NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS,
-    TOPO_LLM_REPOSITORY_BASE_PATH,
 )
 from topollm.config_classes.main_config import MainConfig
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.log_dataframe_info import log_dataframe_info
-from topollm.logging.log_list_info import log_list_info
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.model_handling.loaded_model_container import LoadedModelContainer
 from topollm.model_handling.prepare_loaded_model_container import prepare_device_and_tokenizer_and_model
@@ -75,7 +70,7 @@ from topollm.storage.saving_and_loading_functions.saving_and_loading import (
     save_dataframe_as_csv,
     save_python_dict_as_json,
 )
-from topollm.typing.enums import ArtificialNoiseMode, EmbeddingDataHandlerMode, Verbosity
+from topollm.typing.enums import EmbeddingDataHandlerMode, Verbosity
 
 if TYPE_CHECKING:
     pass
@@ -461,92 +456,6 @@ def compute_predictions_on_hidden_states(
     )
 
     return local_estimates_and_predictions_container
-
-
-# # # # # # # # # # # #
-# Neighborhood ranks
-
-
-def pairwise_distances(
-    X: np.ndarray,
-) -> np.ndarray:
-    """Calculate pairwise distance matrix of a given data matrix and return said matrix."""
-    D = np.sum((X[None, :] - X[:, None]) ** 2, -1) ** 0.5
-    return D
-
-
-def get_neighbours_and_ranks(
-    X: np.ndarray,
-    k: int,
-) -> tuple[np.ndarray, np.ndarray]:
-    """Calculate the neighbourhoods and the ranks of a given space `X`, and return the corresponding tuple.
-
-    An additional parameter $k$,
-    the size of the neighbourhood, is required.
-    """
-    X = pairwise_distances(X)
-
-    # Warning: this is only the ordering of neighbours that we need to
-    # extract neighbourhoods below. The ranking comes later!
-    X_ranks = np.argsort(
-        X,
-        axis=-1,
-        kind="stable",
-    )
-
-    # Extract neighbourhoods.
-    X_neighbourhood = X_ranks[:, 1 : k + 1]
-
-    # Convert this into ranks (finally)
-    X_ranks = X_ranks.argsort(
-        axis=-1,
-        kind="stable",
-    )
-
-    return X_neighbourhood, X_ranks
-
-
-def MRRE_pointwise(
-    X: np.ndarray,
-    Z: np.ndarray,
-    k: int,
-) -> np.ndarray:
-    """Calculate the pointwise mean rank distortion for each data point in the data space `X` with respect to the latent space `Z`.
-
-    Inputs:
-        - X: array of shape (m, n) (data space)
-        - Z: array of shape (m, l) (latent space)
-        - k: number of nearest neighbors to consider
-    Output:
-        - mean_rank_distortions: array of length m
-    """
-    (
-        X_neighbourhood,
-        X_ranks,
-    ) = get_neighbours_and_ranks(
-        X,
-        k,
-    )
-    (
-        Z_neighbourhood,
-        Z_ranks,
-    ) = get_neighbours_and_ranks(
-        Z,
-        k,
-    )
-
-    n = X.shape[0]
-    mean_rank_distortions = np.zeros(n)
-
-    for row in range(n):
-        rank_differences = []
-        for neighbour in Z_neighbourhood[row]:
-            rx = X_ranks[row, neighbour]
-            rz = Z_ranks[row, neighbour]
-            rank_differences.append(abs(rx - rz) / rz)
-        mean_rank_distortions[row] = np.mean(rank_differences)
-
-    return mean_rank_distortions
 
 
 @hydra.main(
