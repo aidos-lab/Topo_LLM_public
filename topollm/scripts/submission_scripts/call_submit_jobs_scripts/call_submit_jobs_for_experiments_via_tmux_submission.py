@@ -38,15 +38,17 @@ from itertools import product
 
 import click
 
+from topollm.typing.enums import SubmissionMode
+
 
 @click.command()
 @click.option(
-    "--do_submission",
+    "--do-submission",
     is_flag=True,
     help="Skip the dry-run option and run the actual submission.",
 )
 @click.option(
-    "--run_configs_option",
+    "--run-configs-option",
     type=click.Choice(
         choices=[
             "run_all",
@@ -58,38 +60,46 @@ import click
     required=True,
     help="Run configuration option.",
 )
+@click.option(
+    "--submission-mode",
+    type=SubmissionMode,
+    default=SubmissionMode.HPC_SUBMISSION,
+    help="Whether to run the job on the HPC or locally.",
+)
 def submit_jobs(
     run_configs_option: str,
     *,
     do_submission: bool,
+    submission_mode: SubmissionMode,
 ) -> None:
     """Submit jobs in tmux sessions with logging and resource management."""
     # Define job-specific configurations
     data_list_options: list[str] = [
         # "reddit_only",
-        "multiwoz21_only",
+        # "multiwoz21_only",
         # "wikitext_only",
+        "validation_split_only",
     ]
 
-    # data_subsampling_sampling_mode_option = "random"
-    data_subsampling_sampling_mode_option = "take_first"
+    data_subsampling_sampling_mode_option = "random"
+    # data_subsampling_sampling_mode_option = "take_first"
 
     experiment_selector_options: list[str] = [
         # "coarse_checkpoint_resolution",
-        # "regular_token_embeddings",
-        "masked_token_embeddings",
+        "regular_token_embeddings",
+        # "masked_token_embeddings",
         # "tiny_dropout_variations_coarse_checkpoint_resolution",
     ]
 
     # We do not make the experiment_stage into a list option, because the embedding computation jobs
     # need to be run before the additional pipeline runs (they depend on the embeddings).
     #
-    # experiment_stage = "compute_embeddings_plus_single_pipeline_run"
-    experiment_stage = "skip_compute_embeddings_and_multiple_pipeline_runs"
+    experiment_stage = "compute_embeddings_plus_single_pipeline_run"
+    # experiment_stage = "skip_compute_embeddings_and_multiple_pipeline_runs"
 
     model_selection_option_list: list[str] = [
-        # "--use-roberta-base",
-        "--use-finetuned-model",
+        "--use-roberta-base",
+        # "--use-finetuned-model",
     ]
 
     log_dir: pathlib.Path = create_log_directory()
@@ -151,6 +161,7 @@ def submit_jobs(
             experiment_stage=experiment_stage,
             model_selection_option=model_selection_option,
             run_configs_option=run_configs_option,
+            submission_mode=submission_mode,
             dry_run_option=dry_run_option,
         )
 
@@ -229,6 +240,7 @@ def run_tmux_session(
     model_selection_option: str,
     run_configs_option: str,
     dry_run_option: str,
+    submission_mode: SubmissionMode,
     session_timeout: int = 6,
 ) -> None:
     """Start a tmux session to run the job and log the output."""
@@ -238,6 +250,8 @@ def run_tmux_session(
         else ">>> Session will terminate immediately after job completion."
     )
 
+    dry_run_section: str = "" if not dry_run_option else f"{dry_run_option} "
+
     command_for_tmux_session: str = (
         f"poetry run submit_jobs "
         f"--data-list-option {data_option} "
@@ -245,9 +259,8 @@ def run_tmux_session(
         f"--experiment-selector {experiment_selector} "
         f"--experiment-stage {experiment_stage} "
         f"{model_selection_option} "
-        f"--task=pipeline "
-        f"{dry_run_option} "
-        f"--run-only-selected-configs-option {run_configs_option} "
+        f"--task=pipeline " + dry_run_section + f"--run-only-selected-configs-option {run_configs_option} "
+        f"--submission-mode {submission_mode} "
         f"2>&1 | tee -a {log_file}; "
         f'echo ">>> All jobs in this tmux session submitted." | tee -a {log_file}; '  # Note: The "..." quotes are necessary for the echo command.
         f'echo "{timeout_message}" | tee -a {log_file}; '  # Note: The "..." quotes are necessary for the echo command.

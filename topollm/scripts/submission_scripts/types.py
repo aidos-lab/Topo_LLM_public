@@ -42,12 +42,14 @@ class DataListOption(StrEnum):
     DEBUG = auto()
     FULL = auto()
     MANUAL_IN_PYTHON_SCRIPT = auto()
-    TRAIN_ONLY = auto()
     MULTIWOZ21_AND_REDDIT = auto()
     MULTIWOZ21_TRAIN_AND_REDDIT_TRAIN = auto()
     MULTIWOZ21_ONLY = auto()
     REDDIT_ONLY = auto()
     WIKITEXT_ONLY = auto()
+    # Select certain data splits
+    TRAIN_SPLIT_ONLY = auto()
+    VALIDATION_SPLIT_ONLY = auto()
 
 
 class DataSubsamplingNumberOfSamplesListOption(StrEnum):

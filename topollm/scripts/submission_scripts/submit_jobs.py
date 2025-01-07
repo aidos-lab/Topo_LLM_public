@@ -137,7 +137,8 @@ full_data_list: list[str] = [
     "wikitext-103-v1_train",
     "wikitext-103-v1_validation",
 ]
-only_train_data_list: list[str] = [data_name for data_name in full_data_list if "_train" in data_name]
+train_split_only_data_list: list[str] = [data_name for data_name in full_data_list if "_train" in data_name]
+validation_split_only_data_list: list[str] = [data_name for data_name in full_data_list if "_validation" in data_name]
 
 only_roberta_base_language_model_list: list[str] = [
     "roberta-base",
@@ -185,8 +186,6 @@ def retrieve_data_list(
     match data_list_option:
         case DataListOption.FULL:
             data_list = full_data_list
-        case DataListOption.TRAIN_ONLY:
-            data_list = only_train_data_list
         case DataListOption.DEBUG:
             data_list: list[str] = [
                 "multiwoz21_test",
@@ -232,6 +231,10 @@ def retrieve_data_list(
                 "wikitext-103-v1_train",
                 "wikitext-103-v1_validation",
             ]
+        case DataListOption.TRAIN_SPLIT_ONLY:
+            data_list = train_split_only_data_list
+        case DataListOption.VALIDATION_SPLIT_ONLY:
+            data_list = validation_split_only_data_list
         case _:
             msg = f"Unknown {data_list = }"
             raise ValueError(
@@ -1001,10 +1004,10 @@ def make_config_and_run_task(
     multiple=True,
 )
 @click.option(
-    "--local",
-    is_flag=True,
-    default=False,
-    help="Run locally instead of on HPC.",
+    "--submission-mode",
+    type=SubmissionMode,
+    default=SubmissionMode.HPC_SUBMISSION,
+    help="Whether to run the job on the HPC or locally.",
 )
 @click.option(
     "--dry-run",
@@ -1068,7 +1071,7 @@ def orchestrate_job_submission(
     ngpus: str,
     queue: str,
     template: Template,
-    local: bool,
+    submission_mode: SubmissionMode,
     dry_run: bool,
     run_only_selected_configs_option: RunOnlySelectedConfigsOption,
     use_roberta_base: bool,
@@ -1092,9 +1095,6 @@ def orchestrate_job_submission(
         raise click.UsageError(
             message="You cannot specify both --use-roberta-base and --use-finetuned-model.",
         )
-
-    # Set submission mode
-    submission_mode: SubmissionMode = SubmissionMode.LOCAL if local else SubmissionMode.HPC_SUBMISSION
 
     # Model-specific configurations
     if use_roberta_base:
