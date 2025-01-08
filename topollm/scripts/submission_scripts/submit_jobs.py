@@ -748,6 +748,7 @@ def make_config_and_run_task(
     language_model_list_option: LanguageModelListOption,
     language_model_seed_list_option: SeedListOption,
     checkpoint_no_list_option: CheckpointNoListOption,
+    layer_indices: str,
     embeddings_data_prep_sampling_mode: EmbeddingsDataPrepSamplingMode,
     embeddings_data_prep_sampling_seed_list_option: EmbeddingsDataPrepSamplingSeedListOption,
     embeddings_data_prep_num_samples_list_option: EmbeddingsDataPrepNumSamplesListOption,
@@ -861,6 +862,7 @@ def make_config_and_run_task(
         language_model_list=language_model_list,
         language_model_seed_list=language_model_seed_list,
         checkpoint_no_list=checkpoint_no_list,
+        layer_indices=layer_indices,
         fp16=fp16,
         embeddings_data_prep_sampling_mode=embeddings_data_prep_sampling_mode,
         embeddings_data_prep_sampling_seed_list=embeddings_data_prep_sampling_seed_list,
@@ -1140,6 +1142,8 @@ def orchestrate_job_submission(
 
     embeddings_data_prep_num_samples_list_option = EmbeddingsDataPrepNumSamplesListOption.SINGLE_CHOICE_150000
 
+    layer_indices = "[-1]"
+
     local_estimates_filtering_num_samples_list_option = LocalEstimatesFilteringNumSamplesListOption.SINGLE_CHOICE_60000
 
     # Notes on memory size:
@@ -1338,11 +1342,11 @@ def orchestrate_job_submission(
             data_subsampling_number_of_samples_list_option = DataSubsamplingNumberOfSamplesListOption.FIXED_10000
             data_subsampling_sampling_seed_list_option = DataSubsamplingSamplingSeedListOption.FIXED_777
 
+            layer_indices = "[-1],[-2],[-3],[-4],[-5],[-6],[-7],[-8],[-9],[-10],[-11],[-12]"
+
             embedding_data_handler_mode = EmbeddingDataHandlerMode.REGULAR
 
             checkpoint_no_list_option = CheckpointNoListOption.SELECTED
-
-            # TODO: Implement this experiment
         case "regular_token_embeddings_multiple_local_estimates_pointwise_absolute_n_neighbors":
             # Notes:
             # - You need to set the data_list_option via the command line arguments.
@@ -1403,6 +1407,7 @@ def orchestrate_job_submission(
         language_model_list_option=language_model_list_option,
         language_model_seed_list_option=language_model_seed_list_option,
         checkpoint_no_list_option=checkpoint_no_list_option,
+        layer_indices=layer_indices,
         local_estimates_filtering_num_samples_list_option=local_estimates_filtering_num_samples_list_option,
         local_estimates_pointwise_absolute_n_neighbors_list_option=local_estimates_pointwise_absolute_n_neighbors_list_option,
         machine_config=machine_config,

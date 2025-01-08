@@ -570,7 +570,7 @@
             ]
         },
         {
-            "name": "call_submit_jobs_for_experiments_via_tmux_submission; local; validation only and multiple layers",
+            "name": "call_submit_jobs_for_experiments_via_tmux_submission; local; multiple layers for validation splits",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/scripts/submission_scripts/call_submit_jobs_scripts/call_submit_jobs_for_experiments_via_tmux_submission.py",
@@ -578,20 +578,20 @@
             "args": [
                 // >>>> BEGIN: Select the run option
                 // >>>> Use the following to dry run with all configurations
-                "--run-option",
-                "dry_run",
-                "--run-only-selected-configs-option",
-                "run_all",
+                // "--run-option",
+                // "dry_run",
+                // "--run-only-selected-configs-option",
+                // "run_all",
                 // >>>> Use the following to dry run a random configuration
                 // "--run-option",
                 // "dry_run",
                 // "--run-only-selected-configs-option",
                 // "run_single_random",
                 // >>> Use the following to run a random configuration
-                // "--run-option",
-                // "do_submission",
-                // "--run-only-selected-configs-option",
-                // "run_single_random",
+                "--run-option",
+                "do_submission",
+                "--run-only-selected-configs-option",
+                "run_single_random",
                 // >>>> Use the following to run with all configurations
                 // "--run-option",
                 // "do_submission",
@@ -609,7 +609,7 @@
             ]
         },
         {
-            "name": "call_submit_jobs_for_experiments_via_tmux_submission; local; single data split and multiple local neighborhood sizes",
+            "name": "call_submit_jobs_for_experiments_via_tmux_submission; local; multiple local neighborhood sizes for single data split",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/scripts/submission_scripts/call_submit_jobs_scripts/call_submit_jobs_for_experiments_via_tmux_submission.py",
