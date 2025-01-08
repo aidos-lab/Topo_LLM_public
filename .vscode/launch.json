@@ -553,8 +553,11 @@
             "program": "topollm/scripts/submission_scripts/call_submit_jobs_scripts/call_submit_jobs_for_experiments_via_tmux_submission.py",
             "console": "integratedTerminal",
             "args": [
-                "--run-configs-option",
+                "--run-option",
+                "dry_run",
+                "--run-only-selected-configs-option",
                 "run_all",
+                // "run_single_random",
                 "--submission-mode",
                 "local",
                 // >> Concrete experiment configurations
@@ -573,17 +576,41 @@
             "program": "topollm/scripts/submission_scripts/call_submit_jobs_scripts/call_submit_jobs_for_experiments_via_tmux_submission.py",
             "console": "integratedTerminal",
             "args": [
-                "--run-configs-option",
+                "--run-option",
+                "dry_run",
+                "--run-only-selected-configs-option",
                 "run_all",
                 // "run_single_random",
                 "--submission-mode",
                 "local",
-                // "--do-submission",
                 // >> Concrete experiment configurations
                 "--data-list-options",
                 "validation_split_only",
                 "--experiment-selector-options",
                 "regular_token_embeddings_multiple_layers_single_sample",
+            ]
+        },
+        {
+            "name": "call_submit_jobs_for_experiments_via_tmux_submission; local; single data split and multiple local neighborhood sizes",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/scripts/submission_scripts/call_submit_jobs_scripts/call_submit_jobs_for_experiments_via_tmux_submission.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--run-option",
+                "dry_run",
+                "--run-only-selected-configs-option",
+                "run_all",
+                // "run_single_random",
+                "--submission-mode",
+                "local",
+                // >> Concrete experiment configurations
+                "--experiment-stage",
+                "skip_compute_embeddings_but_do_multiple_pipeline_runs",
+                "--data-list-options",
+                "multiwoz21_train_and_reddit_train",
+                "--experiment-selector-options",
+                "regular_token_embeddings_multiple_local_estimates_pointwise_absolute_n_neighbors",
             ]
         },
     ]

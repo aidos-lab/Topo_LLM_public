@@ -136,7 +136,7 @@ pipeline_local_estimates = "topollm.pipeline_scripts.run_pipeline_compute_embedd
 # Submit multiple jobs using one of the launchers
 submit_jobs = "topollm.scripts.submission_scripts.submit_jobs:main"
 # Submit multiple jobs using one of the launchers and tmux
-submit_jobs_via_tmux = "topollm.scripts.submission_scripts.call_submit_jobs_scripts.call_submit_jobs_for_experiments_via_tmux_submission:submit_jobs"
+submit_jobs_via_tmux = "topollm.scripts.submission_scripts.call_submit_jobs_scripts.call_submit_jobs_for_experiments_via_tmux_submission:submit_jobs_in_separate_tmux_sessions"
 # Data copying and syncing
 sync_gc_data = "topollm.scripts.google_cloud.gsutil_rsync_directory_to_and_from_gc_bucket:main"
 # Run analysis of data

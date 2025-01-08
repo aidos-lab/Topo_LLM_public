@@ -46,12 +46,14 @@ from topollm.scripts.submission_scripts.types import (
     DataSubsamplingSamplingSeedListOption,
     EmbeddingsDataPrepNumSamplesListOption,
     EmbeddingsDataPrepSamplingSeedListOption,
+    ExperimentStage,
     FinetuningDatasetsListOption,
     FinetuningRegimeOption,
     LanguageModelListOption,
     LocalEstimatesFilteringNumSamplesListOption,
     LocalEstimatesPointwiseAbsoluteNNeighborsListOption,
     RunOnlySelectedConfigsOption,
+    RunOption,
     SeedListOption,
 )
 from topollm.typing.enums import (
@@ -67,7 +69,7 @@ def run_task(
     submission_config: SubmissionConfig,
     task: Task,
     *,
-    dry_run: bool = False,
+    run_option: RunOption = RunOption.DO_SUBMISSION,
 ) -> None:
     """Run a task with the given configuration."""
     match task:
@@ -109,7 +111,7 @@ def run_task(
         " ".join(command),
     )
 
-    if dry_run:
+    if run_option == RunOption.DRY_RUN:
         print(  # noqa: T201 - We want this submission script to print this output
             "@@@@ Dry run, not actually running the command. @@@@",
         )
@@ -750,8 +752,8 @@ def make_config_and_run_task(
     add_prefix_space: bool,
     create_pos_tags: bool,
     skip_compute_and_store_embeddings: bool,
+    run_option: RunOption = RunOption.DO_SUBMISSION,
     run_only_selected_configs_option: RunOnlySelectedConfigsOption = RunOnlySelectedConfigsOption.RUN_ALL,
-    dry_run: bool = False,
 ) -> None:
     """Make a submission configuration and run the task."""
     data_list: list[str] = retrieve_data_list(
@@ -832,7 +834,9 @@ def make_config_and_run_task(
             "+data.dataset_type=huggingface_dataset_named_entity",
         ]
 
-    print(f"{additional_overrides = }")
+    print(  # noqa: T201 - we want this function to print
+        f"{additional_overrides = }",
+    )
 
     submission_config = SubmissionConfig(
         add_prefix_space=add_prefix_space,
@@ -891,20 +895,14 @@ def make_config_and_run_task(
     run_task(
         submission_config=submissions_config_to_run,
         task=task,
-        dry_run=dry_run,
+        run_option=run_option,
     )
 
 
 @click.command()
 @click.option(
     "--experiment-stage",
-    type=click.Choice(
-        choices=[
-            "compute_embeddings_plus_single_pipeline_run",
-            "skip_compute_embeddings_and_multiple_pipeline_runs",
-        ],
-        case_sensitive=False,
-    ),
+    type=ExperimentStage,
     default=None,
     help="Specify the experiment stage to run.",
 )
@@ -921,6 +919,7 @@ def make_config_and_run_task(
             "regular_token_embeddings",
             "masked_token_embeddings",
             "regular_token_embeddings_multiple_layers_single_sample",
+            "regular_token_embeddings_multiple_local_estimates_pointwise_absolute_n_neighbors",
         ],
         case_sensitive=False,
     ),
@@ -1011,10 +1010,10 @@ def make_config_and_run_task(
     help="Whether to run the job on the HPC or locally.",
 )
 @click.option(
-    "--dry-run",
-    is_flag=True,
-    default=False,
-    help="Only print the commands without executing them.",
+    "--run-option",
+    type=RunOption,
+    default=RunOption.DO_SUBMISSION,
+    help="Whether to do the submission or start a dry run.",
 )
 @click.option(
     "--run-only-selected-configs-option",
@@ -1053,7 +1052,7 @@ def make_config_and_run_task(
     help="Template to use for the job submission.",
 )
 def orchestrate_job_submission(
-    experiment_stage: str | None,
+    experiment_stage: ExperimentStage | None,
     experiment_selector: str,
     task: Task,
     additional_overrides: list[str] | None,
@@ -1073,7 +1072,7 @@ def orchestrate_job_submission(
     queue: str,
     template: Template,
     submission_mode: SubmissionMode,
-    dry_run: bool,
+    run_option: RunOption,
     run_only_selected_configs_option: RunOnlySelectedConfigsOption,
     use_roberta_base: bool,
     use_finetuned_model: bool,
@@ -1149,7 +1148,67 @@ def orchestrate_job_submission(
     finetuning_seed_list_option = SeedListOption.ONE_SEED
 
     ########################################
+    ### Experiment stage configurations
+    ###
+    ### Note that this might be overridden by the experiment selector configurations below.
+    ########################################
+    if experiment_stage == ExperimentStage.COMPUTE_EMBEDDINGS_PLUS_SINGLE_PIPELINE_RUN:
+        # Only run for a single embeddings data prep sampling seed
+        embeddings_data_prep_sampling_seed_list_option = EmbeddingsDataPrepSamplingSeedListOption.DEFAULT
+        skip_compute_and_store_embeddings = False  # do the embeddings computation
+
+        # queue, template = "CUDA", Template.GTX1080
+        queue, template = "CUDA", Template.RTX6000
+        # queue, template = "DSML", Template.DSML
+
+        ncpus = "4"
+        ngpus = "1"
+
+        # For the datasets with 10_000 samples, one pipeline run with regular embeddings usually takes about 30 min.
+        # We set the walltime to 2 hours to be on the safe side.
+        #
+        # > walltime = "02:00:00"
+
+        # For the masked embeddings on datasets with long sequences, the walltime can be significantly longer.
+        walltime = "06:00:00"  # Longer walltime to make sure it is long enough for the masked embeddings
+    elif experiment_stage == ExperimentStage.SKIP_COMPUTE_EMBEDDINGS_BUT_DO_MULTIPLE_PIPELINE_RUNS:
+        ncpus = "6"
+        ngpus = "0"
+        queue = "DEFAULT"
+        template = Template.CPU
+
+        # Assume embeddings are already computed and run for different embeddings data prep sampling seeds
+        embeddings_data_prep_sampling_seed_list_option = EmbeddingsDataPrepSamplingSeedListOption.FIVE_SEEDS
+        skip_compute_and_store_embeddings = True  # skip the embeddings computation
+
+    # Overwrite the machine configuration based on the task
+    match task:
+        case Task.PERPLEXITY:
+            queue = "CUDA"
+            template = Template.RTX6000
+
+            walltime = "12:00:00"  # Use slightly longer walltime for perplexity
+        case Task.FINETUNING:
+            queue = "CUDA"
+            template = Template.RTX6000
+
+            ncpus = "4"
+            ngpus = "1"
+            walltime = "48:00:00"  # Use significantly longer walltime for finetuning
+
+    machine_config = MachineConfig(
+        queue=queue,
+        template=template,
+        memory=memory,
+        ncpus=ncpus,
+        ngpus=ngpus,
+        walltime=walltime,
+    )
+
+    ########################################
     ### Experiment selector configurations
+    ###
+    ### Note: You can use the experiment selector to override the default configurations above.
     ########################################
     match experiment_selector:
         case "multiwoz21_different_data_subsampling_number_of_samples":
@@ -1275,67 +1334,32 @@ def orchestrate_job_submission(
             checkpoint_no_list_option = CheckpointNoListOption.SELECTED
 
             # TODO: Implement this experiment
+        case "regular_token_embeddings_multiple_local_estimates_pointwise_absolute_n_neighbors":
+            # Notes:
+            # - You need to set the data_list_option via the command line arguments.
+
+            data_subsampling_number_of_samples_list_option = DataSubsamplingNumberOfSamplesListOption.FIXED_10000
+            data_subsampling_sampling_seed_list_option = DataSubsamplingSamplingSeedListOption.FIXED_777
+
+            embedding_data_handler_mode = EmbeddingDataHandlerMode.REGULAR
+
+            checkpoint_no_list_option = CheckpointNoListOption.SELECTED
+
+            # Select only a single training seed
+            language_model_seed_list_option = SeedListOption.FIXED_SEED_1234
+
+            # Note: We currently run this for a single token sampling seed,
+            # to reduce the number of runs.
+            embeddings_data_prep_sampling_seed_list_option = EmbeddingsDataPrepSamplingSeedListOption.DEFAULT
+
+            local_estimates_pointwise_absolute_n_neighbors_list_option = (
+                LocalEstimatesPointwiseAbsoluteNNeighborsListOption.POWERS_OF_TWO_UP_TO_1024
+            )
         # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
         # NOTE: You can add more experiment configurations here.
         case _:
             msg: str = f"Unknown {experiment_selector = }"
             raise click.UsageError(message=msg)
-
-    ########################################
-    ### Experiment stage configurations
-    ########################################
-    if experiment_stage == "compute_embeddings_plus_single_pipeline_run":
-        # Only run for a single embeddings data prep sampling seed
-        embeddings_data_prep_sampling_seed_list_option = EmbeddingsDataPrepSamplingSeedListOption.DEFAULT
-        skip_compute_and_store_embeddings = False  # do the embeddings computation
-
-        # queue, template = "CUDA", Template.GTX1080
-        queue, template = "CUDA", Template.RTX6000
-        # queue, template = "DSML", Template.DSML
-
-        ncpus = "4"
-        ngpus = "1"
-
-        # For the datasets with 10_000 samples, one pipeline run with regular embeddings usually takes about 30 min.
-        # We set the walltime to 2 hours to be on the safe side.
-        #
-        # > walltime = "02:00:00"
-
-        # For the masked embeddings on datasets with long sequences, the walltime can be significantly longer.
-        walltime = "06:00:00"  # Longer walltime to make sure it is long enough for the masked embeddings
-    elif experiment_stage == "skip_compute_embeddings_and_multiple_pipeline_runs":
-        ncpus = "6"
-        ngpus = "0"
-        queue = "DEFAULT"
-        template = Template.CPU
-
-        # Assume embeddings are already computed and run for different embeddings data prep sampling seeds
-        embeddings_data_prep_sampling_seed_list_option = EmbeddingsDataPrepSamplingSeedListOption.FIVE_SEEDS
-        skip_compute_and_store_embeddings = True  # skip the embeddings computation
-
-    # Overwrite the machine configuration based on the task
-    match task:
-        case Task.PERPLEXITY:
-            queue = "CUDA"
-            template = Template.RTX6000
-
-            walltime = "12:00:00"  # Use slightly longer walltime for perplexity
-        case Task.FINETUNING:
-            queue = "CUDA"
-            template = Template.RTX6000
-
-            ncpus = "4"
-            ngpus = "1"
-            walltime = "48:00:00"  # Use significantly longer walltime for finetuning
-
-    machine_config = MachineConfig(
-        queue=queue,
-        template=template,
-        memory=memory,
-        ncpus=ncpus,
-        ngpus=ngpus,
-        walltime=walltime,
-    )
 
     ########################################
     ### Additional logic,
@@ -1346,7 +1370,7 @@ def orchestrate_job_submission(
         # We do not need sampling seeds for the TAKE_FIRST mode
         data_subsampling_sampling_seed_list_option = DataSubsamplingSamplingSeedListOption.NONE
 
-    additional_overrides_parameter = list(additional_overrides) if additional_overrides else None
+    additional_overrides_parameter: list[str] | None = list(additional_overrides) if additional_overrides else None
     print(  # noqa: T201 - We want this script to print this output
         f"{additional_overrides_parameter = }",
     )
@@ -1379,8 +1403,8 @@ def orchestrate_job_submission(
         add_prefix_space=add_prefix_space,
         create_pos_tags=create_pos_tags,
         skip_compute_and_store_embeddings=skip_compute_and_store_embeddings,
+        run_option=run_option,
         run_only_selected_configs_option=run_only_selected_configs_option,
-        dry_run=dry_run,
     )
 
 

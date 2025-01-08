@@ -28,6 +28,20 @@
 from enum import StrEnum, auto
 
 
+class RunOption(StrEnum):
+    """Options for selecting a dry run."""
+
+    DO_SUBMISSION = auto()
+    DRY_RUN = auto()
+
+
+class ExperimentStage(StrEnum):
+    """Options for the experiment stage."""
+
+    COMPUTE_EMBEDDINGS_PLUS_SINGLE_PIPELINE_RUN = auto()
+    SKIP_COMPUTE_EMBEDDINGS_BUT_DO_MULTIPLE_PIPELINE_RUNS = auto()
+
+
 class CheckpointNoListOption(StrEnum):
     """Options for the checkpoint number list."""
 

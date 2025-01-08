@@ -38,27 +38,26 @@ from itertools import product
 
 import click
 
-from topollm.typing.enums import SubmissionMode
+from topollm.scripts.submission_scripts.types import ExperimentStage, RunOnlySelectedConfigsOption, RunOption
+from topollm.typing.enums import DataSamplingMode, SubmissionMode
 
 
 @click.command()
 @click.option(
-    "--do-submission",
-    is_flag=True,
-    help="Skip the dry-run option and run the actual submission.",
+    "--run-option",
+    type=RunOption,
+    # This is a required option, so that you have to actively set
+    # `--run-option do_submission` to submit the jobs.
+    required=True,
+    help="Whether to do the submission or start a dry run.",
 )
 @click.option(
-    "--run-configs-option",
-    type=click.Choice(
-        choices=[
-            "run_all",
-            "run_single_random",
-            "run_only_first",
-        ],
-        case_sensitive=False,
-    ),
+    "--run-only-selected-configs-option",
+    type=RunOnlySelectedConfigsOption,
+    # We want to make this a mandatory argument,
+    # so that when submitting you consciously decide which configurations to run.
     required=True,
-    help="Run configuration option.",
+    help="Run only a selected set of configurations.",
 )
 @click.option(
     "--submission-mode",
@@ -94,13 +93,29 @@ from topollm.typing.enums import SubmissionMode
     ],
     help="List of experiment selector options to use.",
 )
-def submit_jobs(
-    run_configs_option: str,
+@click.option(
+    "--data-subsampling-sampling-mode",
+    type=DataSamplingMode,
+    default=DataSamplingMode.RANDOM,
+    help="Data subsampling sampling mode to use.",
+)
+# We do not make the experiment_stage into a list option, because the embedding computation jobs
+# need to be run before the additional pipeline runs (they depend on the embeddings).
+@click.option(
+    "--experiment-stage",
+    type=ExperimentStage,
+    default=ExperimentStage.COMPUTE_EMBEDDINGS_PLUS_SINGLE_PIPELINE_RUN,
+    help="Specify the experiment stage to run.",
+)
+def submit_jobs_in_separate_tmux_sessions(
+    run_only_selected_configs_option: str,
     *,
-    do_submission: bool,
+    run_option: RunOption,
     submission_mode: SubmissionMode,
     data_list_options: list[str],
     experiment_selector_options: list[str],
+    data_subsampling_sampling_mode: DataSamplingMode,
+    experiment_stage: ExperimentStage,
 ) -> None:
     """Submit jobs in tmux sessions with logging and resource management."""
     # Cast arguments to list to convert the tuple type returned by click to a list.
@@ -109,14 +124,7 @@ def submit_jobs(
 
     # Define job-specific configurations
 
-    data_subsampling_sampling_mode_option = "random"
-    # data_subsampling_sampling_mode_option = "take_first"
-
-    # We do not make the experiment_stage into a list option, because the embedding computation jobs
-    # need to be run before the additional pipeline runs (they depend on the embeddings).
-    #
-    experiment_stage = "compute_embeddings_plus_single_pipeline_run"
-    # experiment_stage = "skip_compute_embeddings_and_multiple_pipeline_runs"
+    # TODO: Make these into click command line options
 
     model_selection_option_list: list[str] = [
         "--use-roberta-base",
@@ -125,11 +133,7 @@ def submit_jobs(
 
     log_dir: pathlib.Path = create_log_directory()
 
-    # Convert the do_submission flag to a dry_run_option.
-    # Note:
-    # - By default, the script will run in dry-run mode.
-    #   To actually submit the jobs, the --do_submission flag must be set.
-    if not do_submission:
+    if run_option == RunOption.DRY_RUN:
         print(  # noqa: T201 - we want this script to print"
             70 * "@",
         )
@@ -139,7 +143,6 @@ def submit_jobs(
         print(  # noqa: T201 - we want this script to print"
             70 * "@",
         )
-    dry_run_option: str = "" if do_submission else "--dry-run"
 
     # Generator combinations to call submissions for
     combinations_to_call = product(
@@ -177,13 +180,13 @@ def submit_jobs(
             session_name=session_name,
             log_file=str(object=log_file),
             data_option=data_option,
-            data_subsampling_sampling_mode_option=data_subsampling_sampling_mode_option,
+            data_subsampling_sampling_mode_option=str(object=data_subsampling_sampling_mode),
             experiment_selector=experiment_selector,
             experiment_stage=experiment_stage,
             model_selection_option=model_selection_option,
-            run_configs_option=run_configs_option,
+            run_only_selected_configs_option=run_only_selected_configs_option,
             submission_mode=submission_mode,
-            dry_run_option=dry_run_option,
+            run_option=run_option,
         )
 
     # Automatically attach to the first session
@@ -222,7 +225,7 @@ def submit_jobs(
 
             time.sleep(1)
 
-    if not do_submission:
+    if run_option == RunOption.DRY_RUN:
         print(  # noqa: T201 - we want this script to print"
             70 * "@",
         )
@@ -259,8 +262,8 @@ def run_tmux_session(
     experiment_selector: str,
     experiment_stage: str,
     model_selection_option: str,
-    run_configs_option: str,
-    dry_run_option: str,
+    run_only_selected_configs_option: str,
+    run_option: RunOption,
     submission_mode: SubmissionMode,
     session_timeout: int = 6,
 ) -> None:
@@ -271,8 +274,6 @@ def run_tmux_session(
         else ">>> Session will terminate immediately after job completion."
     )
 
-    dry_run_section: str = "" if not dry_run_option else f"{dry_run_option} "
-
     command_for_tmux_session: str = (
         f"poetry run submit_jobs "
         f"--data-list-option {data_option} "
@@ -280,7 +281,9 @@ def run_tmux_session(
         f"--experiment-selector {experiment_selector} "
         f"--experiment-stage {experiment_stage} "
         f"{model_selection_option} "
-        f"--task=pipeline " + dry_run_section + f"--run-only-selected-configs-option {run_configs_option} "
+        f"--task=pipeline "
+        f"--run-option {str(object=run_option)} "
+        f"--run-only-selected-configs-option {run_only_selected_configs_option} "
         f"--submission-mode {submission_mode} "
         f"2>&1 | tee -a {log_file}; "
         f'echo ">>> All jobs in this tmux session submitted." | tee -a {log_file}; '  # Note: The "..." quotes are necessary for the echo command.
@@ -331,4 +334,4 @@ def attach_tmux_session(
 
 
 if __name__ == "__main__":
-    submit_jobs()
+    submit_jobs_in_separate_tmux_sessions()
