@@ -30,13 +30,11 @@
 import logging
 import pathlib
 import pprint
-from collections.abc import Generator
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 import hydra
 import hydra.core.hydra_config
-import joblib
 import numpy as np
 import omegaconf
 import pandas as pd
@@ -58,14 +56,11 @@ from topollm.analysis.local_estimates_handling.saving.local_estimates_containers
 from topollm.analysis.local_estimates_handling.saving.local_estimates_saving_manager import LocalEstimatesSavingManager
 from topollm.config_classes.constants import (
     HYDRA_CONFIGS_BASE_PATH,
-    NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS,
-    TOPO_LLM_REPOSITORY_BASE_PATH,
 )
 from topollm.config_classes.main_config import MainConfig
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.log_dataframe_info import log_dataframe_info
-from topollm.logging.log_list_info import log_list_info
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.model_handling.loaded_model_container import LoadedModelContainer
 from topollm.model_handling.prepare_loaded_model_container import prepare_device_and_tokenizer_and_model
@@ -75,7 +70,7 @@ from topollm.storage.saving_and_loading_functions.saving_and_loading import (
     save_dataframe_as_csv,
     save_python_dict_as_json,
 )
-from topollm.typing.enums import ArtificialNoiseMode, EmbeddingDataHandlerMode, Verbosity
+from topollm.typing.enums import EmbeddingDataHandlerMode, Verbosity
 
 if TYPE_CHECKING:
     pass
@@ -262,9 +257,14 @@ class ComputationData:
 
     local_estimates_and_predictions_save_path_collection: LocalEstimatesAndPredictionsSavePathCollection
 
+    # The descriptive string is used for logging to identify the computation data
+    # (for example, to distinguish the base data from the comparison data)
+    descriptive_string: str = ""
+
     @staticmethod
     def from_main_config(
         main_config: MainConfig,
+        descriptive_string: str = "",
         verbosity: Verbosity = Verbosity.NORMAL,
         logger: logging.Logger = default_logger,
     ) -> "ComputationData":
@@ -295,6 +295,7 @@ class ComputationData:
                 array_truncation_size=main_config.analysis.investigate_distances.array_truncation_size,
                 tokenizer=loaded_model_container.tokenizer,
                 model=loaded_model_container.model,
+                descriptive_string=descriptive_string,
                 analysis_verbosity_level=verbosity,
                 logger=logger,
             )
@@ -321,6 +322,7 @@ class ComputationData:
             loaded_model_container=loaded_model_container,
             local_estimates_and_predictions_container=local_estimates_and_predictions_container,
             local_estimates_and_predictions_save_path_collection=local_estimates_and_predictions_save_path_collection,
+            descriptive_string=descriptive_string,
         )
 
         return result
@@ -339,11 +341,13 @@ class ComparisonManager:
         """Initialize the manager."""
         self.computation_data_for_base_data: ComputationData = ComputationData.from_main_config(
             main_config=main_config_for_base_data,
+            descriptive_string="base_data",
             verbosity=verbosity,
             logger=logger,
         )
         self.computation_data_for_comparison_data: ComputationData = ComputationData.from_main_config(
             main_config=main_config_for_comparison_data,
+            descriptive_string="comparison_data",
             verbosity=verbosity,
             logger=logger,
         )
@@ -360,10 +364,14 @@ def compute_predictions_on_hidden_states(
     array_truncation_size: int,
     tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast,
     model: PreTrainedModel,
+    descriptive_string: str = "",
     analysis_verbosity_level: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> LocalEstimatesAndPredictionsContainer:
-    """Compute and collect the model predictions for the given hidden states."""
+    """Compute and collect the model predictions for the given hidden states.
+
+    The descriptive string is used for logging to identify the computation data.
+    """
     array_to_analyze: np.ndarray | None = local_estimates_container_to_analyze.array_for_estimator_np
     if array_to_analyze is None:
         msg = "The array_to_analyze is None."
@@ -384,7 +392,7 @@ def compute_predictions_on_hidden_states(
 
     for vector_index in tqdm(
         iterable=range(array_truncation_size),
-        desc="Iterating over vectors",
+        desc=f"Iterating over vectors for {descriptive_string = }",
     ):
         # Extract the embedding vector for the vector_index and the corresponding metadata
         extracted_vector = array_to_analyze[vector_index]
@@ -463,92 +471,6 @@ def compute_predictions_on_hidden_states(
     return local_estimates_and_predictions_container
 
 
-# # # # # # # # # # # #
-# Neighborhood ranks
-
-
-def pairwise_distances(
-    X: np.ndarray,
-) -> np.ndarray:
-    """Calculate pairwise distance matrix of a given data matrix and return said matrix."""
-    D = np.sum((X[None, :] - X[:, None]) ** 2, -1) ** 0.5
-    return D
-
-
-def get_neighbours_and_ranks(
-    X: np.ndarray,
-    k: int,
-) -> tuple[np.ndarray, np.ndarray]:
-    """Calculate the neighbourhoods and the ranks of a given space `X`, and return the corresponding tuple.
-
-    An additional parameter $k$,
-    the size of the neighbourhood, is required.
-    """
-    X = pairwise_distances(X)
-
-    # Warning: this is only the ordering of neighbours that we need to
-    # extract neighbourhoods below. The ranking comes later!
-    X_ranks = np.argsort(
-        X,
-        axis=-1,
-        kind="stable",
-    )
-
-    # Extract neighbourhoods.
-    X_neighbourhood = X_ranks[:, 1 : k + 1]
-
-    # Convert this into ranks (finally)
-    X_ranks = X_ranks.argsort(
-        axis=-1,
-        kind="stable",
-    )
-
-    return X_neighbourhood, X_ranks
-
-
-def MRRE_pointwise(
-    X: np.ndarray,
-    Z: np.ndarray,
-    k: int,
-) -> np.ndarray:
-    """Calculate the pointwise mean rank distortion for each data point in the data space `X` with respect to the latent space `Z`.
-
-    Inputs:
-        - X: array of shape (m, n) (data space)
-        - Z: array of shape (m, l) (latent space)
-        - k: number of nearest neighbors to consider
-    Output:
-        - mean_rank_distortions: array of length m
-    """
-    (
-        X_neighbourhood,
-        X_ranks,
-    ) = get_neighbours_and_ranks(
-        X,
-        k,
-    )
-    (
-        Z_neighbourhood,
-        Z_ranks,
-    ) = get_neighbours_and_ranks(
-        Z,
-        k,
-    )
-
-    n = X.shape[0]
-    mean_rank_distortions = np.zeros(n)
-
-    for row in range(n):
-        rank_differences = []
-        for neighbour in Z_neighbourhood[row]:
-            rx = X_ranks[row, neighbour]
-            rz = Z_ranks[row, neighbour]
-            rank_differences.append(abs(rx - rz) / rz)
-        mean_rank_distortions[row] = np.mean(rank_differences)
-
-    return mean_rank_distortions
-
-
 @hydra.main(
     config_path=f"{HYDRA_CONFIGS_BASE_PATH}",
     config_name="main_config",
@@ -581,21 +503,13 @@ def main(
         deep=True,
     )
 
-    # TODO: We currently set the comparison data manually in this script
-    #
-    # Option 1: Take noisy version of the data for comparison
-    #
-    # artificial_noise_mode = ArtificialNoiseMode.GAUSSIAN
-    # artificial_noise_distortion_parameter = 0.01
-    # artificial_noise_seed = 4
-
-    # main_config_for_comparison_data.local_estimates.noise.artificial_noise_mode = artificial_noise_mode
-    # main_config_for_comparison_data.local_estimates.noise.distortion_parameter = artificial_noise_distortion_parameter
-    # main_config_for_comparison_data.local_estimates.noise.seed = artificial_noise_seed
-
-    # Option 2: Take a different token mode for comparison
-    #
-    main_config_for_comparison_data.embeddings.embedding_data_handler.mode = EmbeddingDataHandlerMode.REGULAR
+    # TODO: Check our current decision: We do not necesarily want to initialize the comparisons configs with the defaults.
+    main_config_for_comparison_data.local_estimates = main_config.comparison_data.local_estimates.model_copy(
+        deep=True,
+    )
+    main_config_for_comparison_data.embeddings = main_config.comparison_data.embeddings.model_copy(
+        deep=True,
+    )
 
     # ================================================== #
     # Computing data based on the configs

@@ -98,7 +98,9 @@ class SubmissionConfig(BaseModel):
     language_model_seed_list: list[str] | None = None
     checkpoint_no_list: list[str] | None = None
 
-    layer_indices: str | None = "[-1]"
+    layer_indices_list: list[str] | None = [
+        "[-1]",
+    ]
     embedding_data_handler_mode: EmbeddingDataHandlerMode | None = EmbeddingDataHandlerMode.REGULAR
     embeddings_data_prep_num_samples_list: list[str] | None = [
         "60000",
@@ -402,9 +404,9 @@ class SubmissionConfig(BaseModel):
                 f"embeddings.embedding_data_handler.mode={self.embedding_data_handler_mode}",
             )
 
-        if self.layer_indices:
+        if self.layer_indices_list:
             task_specific_command.append(
-                f"embeddings.embedding_extraction.layer_indices={self.layer_indices}",
+                "embeddings.embedding_extraction.layer_indices=" + ",".join(self.layer_indices_list),
             )
 
         if self.embeddings_data_prep_num_samples_list:

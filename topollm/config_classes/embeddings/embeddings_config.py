@@ -91,7 +91,7 @@ class EmbeddingsConfig(ConfigBaseModel):
     )
 
     embedding_extraction: EmbeddingExtractionConfig = Field(
-        default=...,
+        default_factory=EmbeddingExtractionConfig,
         title="Embedding extraction configuration.",
         description="The configuration for specifying embedding extraction.",
     )

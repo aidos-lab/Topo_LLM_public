@@ -50,6 +50,22 @@ from topollm.config_classes.wandb.wandb_config import WandBConfig
 from topollm.typing.enums import PreferredTorchBackend, Verbosity
 
 
+class ComparisonDataConfig(ConfigBaseModel):
+    """Config to specify what needs to be modified to pick out the comparison data."""
+
+    embeddings: EmbeddingsConfig = Field(
+        default_factory=EmbeddingsConfig,
+        title="Embeddings configuration.",
+        description="The configuration for specifying embeddings.",
+    )
+
+    local_estimates: LocalEstimatesConfig = Field(
+        default=LocalEstimatesConfig(),
+        title="Local estimates configuration.",
+        description="The configuration for specifying local estimates.",
+    )
+
+
 class MainConfig(ConfigBaseModel):
     """Main configuration for all scripts."""
 
@@ -57,6 +73,12 @@ class MainConfig(ConfigBaseModel):
         default_factory=AnalysisConfig,
         title="Analysis configuration.",
         description="The configuration for specifying analysis parameters.",
+    )
+
+    comparison_data: ComparisonDataConfig = Field(
+        default_factory=ComparisonDataConfig,
+        title="Comparison data configuration.",
+        description="The configuration for specifying comparison data.",
     )
 
     data: DataConfig = Field(
@@ -78,7 +100,7 @@ class MainConfig(ConfigBaseModel):
     )
 
     embeddings: EmbeddingsConfig = Field(
-        default=...,
+        default_factory=EmbeddingsConfig,
         title="Embeddings configuration.",
         description="The configuration for specifying embeddings.",
     )
