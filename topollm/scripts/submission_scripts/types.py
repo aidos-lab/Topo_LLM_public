@@ -56,9 +56,13 @@ class DataListOption(StrEnum):
     DEBUG = auto()
     FULL = auto()
     MANUAL_IN_PYTHON_SCRIPT = auto()
+    # Mixing two datasets
     MULTIWOZ21_AND_REDDIT = auto()
     MULTIWOZ21_TRAIN_AND_REDDIT_TRAIN = auto()
+    MULTIWOZ21_VALIDATION_AND_REDDIT_VALIDATION = auto()
+    # Selecting only one dataset
     MULTIWOZ21_ONLY = auto()
+    MULTIWOZ21_VALIDATION_ONLY = auto()
     REDDIT_ONLY = auto()
     WIKITEXT_ONLY = auto()
     # Select certain data splits

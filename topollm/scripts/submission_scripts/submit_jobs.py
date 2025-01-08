@@ -215,10 +215,19 @@ def retrieve_data_list(
                 "multiwoz21_train",
                 "one-year-of-tsla-on-reddit_train",
             ]
+        case DataListOption.MULTIWOZ21_VALIDATION_AND_REDDIT_VALIDATION:
+            data_list: list[str] = [
+                "multiwoz21_validation",
+                "one-year-of-tsla-on-reddit_validation",
+            ]
         case DataListOption.MULTIWOZ21_ONLY:
             data_list: list[str] = [
                 "multiwoz21_test",
                 "multiwoz21_train",
+                "multiwoz21_validation",
+            ]
+        case DataListOption.MULTIWOZ21_VALIDATION_ONLY:
+            data_list: list[str] = [
                 "multiwoz21_validation",
             ]
         case DataListOption.REDDIT_ONLY:
@@ -238,7 +247,7 @@ def retrieve_data_list(
         case DataListOption.VALIDATION_SPLIT_ONLY:
             data_list = validation_split_only_data_list
         case _:
-            msg = f"Unknown {data_list = }"
+            msg = f"Unknown {data_list_option = }"
             raise ValueError(
                 msg,
             )
