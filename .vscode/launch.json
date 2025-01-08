@@ -578,10 +578,10 @@
             "args": [
                 // >>>> BEGIN: Select the run option
                 // >>>> Use the following to dry run with all configurations
-                // "--run-option",
-                // "dry_run",
-                // "--run-only-selected-configs-option",
-                // "run_all",
+                "--run-option",
+                "dry_run",
+                "--run-only-selected-configs-option",
+                "run_all",
                 // >>>> Use the following to dry run a random configuration
                 // "--run-option",
                 // "dry_run",
@@ -593,17 +593,19 @@
                 // "--run-only-selected-configs-option",
                 // "run_single_random",
                 // >>>> Use the following to run with all configurations
-                "--run-option",
-                "do_submission",
-                "--run-only-selected-configs-option",
-                "run_all",
+                // "--run-option",
+                // "do_submission",
+                // "--run-only-selected-configs-option",
+                // "run_all",
                 // >>>> END: Select the run option
                 "--submission-mode",
                 "local",
                 // >> Concrete experiment configurations
                 "--data-list-options",
-                "multiwoz21_validation_and_reddit_validation",
-                // "validation_split_only", // TODO: Run this for all validation splits
+                // "validation_split_only",
+                // "multiwoz21_validation_and_reddit_validation",
+                // TODO: Run this for all remaining validation splits
+                "iclr_validation_and_sgd_validation_and_wikitext_validation",
                 "--experiment-selector-options",
                 "regular_token_embeddings_multiple_layers_single_sample",
             ]
@@ -627,15 +629,15 @@
                 // "--run-only-selected-configs-option",
                 // "run_single_random",
                 // >>> Use the following to run a random configuration
-                "--run-option",
-                "do_submission",
-                "--run-only-selected-configs-option",
-                "run_single_random",
-                // >>>> Use the following to run with all configurations
                 // "--run-option",
                 // "do_submission",
                 // "--run-only-selected-configs-option",
-                // "run_all",
+                // "run_single_random",
+                // >>>> Use the following to run with all configurations
+                "--run-option",
+                "do_submission",
+                "--run-only-selected-configs-option",
+                "run_all",
                 // >>>> END: Select the run option
                 "--submission-mode",
                 "local",

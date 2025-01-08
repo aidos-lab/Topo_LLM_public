@@ -46,6 +46,7 @@ from topollm.scripts.submission_scripts.types import (
     DataSubsamplingSamplingSeedListOption,
     EmbeddingsDataPrepNumSamplesListOption,
     EmbeddingsDataPrepSamplingSeedListOption,
+    ExperimentSelector,
     ExperimentStage,
     FinetuningDatasetsListOption,
     FinetuningRegimeOption,
@@ -201,25 +202,7 @@ def retrieve_data_list(
                 "sgd_test",
                 "wikitext_test",
             ]
-        case DataListOption.MULTIWOZ21_AND_REDDIT:
-            data_list: list[str] = [
-                "multiwoz21_test",
-                "multiwoz21_train",
-                "multiwoz21_validation",
-                "one-year-of-tsla-on-reddit_test",
-                "one-year-of-tsla-on-reddit_train",
-                "one-year-of-tsla-on-reddit_validation",
-            ]
-        case DataListOption.MULTIWOZ21_TRAIN_AND_REDDIT_TRAIN:
-            data_list: list[str] = [
-                "multiwoz21_train",
-                "one-year-of-tsla-on-reddit_train",
-            ]
-        case DataListOption.MULTIWOZ21_VALIDATION_AND_REDDIT_VALIDATION:
-            data_list: list[str] = [
-                "multiwoz21_validation",
-                "one-year-of-tsla-on-reddit_validation",
-            ]
+        # Selecting only one dataset
         case DataListOption.MULTIWOZ21_ONLY:
             data_list: list[str] = [
                 "multiwoz21_test",
@@ -242,10 +225,38 @@ def retrieve_data_list(
                 "wikitext-103-v1_train",
                 "wikitext-103-v1_validation",
             ]
+        # Select certain data splits
         case DataListOption.TRAIN_SPLIT_ONLY:
             data_list = train_split_only_data_list
         case DataListOption.VALIDATION_SPLIT_ONLY:
             data_list = validation_split_only_data_list
+        # Mixing two datasets
+        case DataListOption.MULTIWOZ21_AND_REDDIT:
+            data_list: list[str] = [
+                "multiwoz21_test",
+                "multiwoz21_train",
+                "multiwoz21_validation",
+                "one-year-of-tsla-on-reddit_test",
+                "one-year-of-tsla-on-reddit_train",
+                "one-year-of-tsla-on-reddit_validation",
+            ]
+        case DataListOption.MULTIWOZ21_TRAIN_AND_REDDIT_TRAIN:
+            data_list: list[str] = [
+                "multiwoz21_train",
+                "one-year-of-tsla-on-reddit_train",
+            ]
+        case DataListOption.MULTIWOZ21_VALIDATION_AND_REDDIT_VALIDATION:
+            data_list: list[str] = [
+                "multiwoz21_validation",
+                "one-year-of-tsla-on-reddit_validation",
+            ]
+        # Mixing three datasets
+        case DataListOption.ICLR_VALIDATION_AND_SGD_VALIDATION_AND_WIKITEXT_VALIDATION:
+            data_list: list[str] = [
+                "iclr_2024_submissions_validation",
+                "sgd_validation",
+                "wikitext-103-v1_validation",
+            ]
         case _:
             msg = f"Unknown {data_list_option = }"
             raise ValueError(
@@ -919,21 +930,7 @@ def make_config_and_run_task(
 )
 @click.option(
     "--experiment-selector",
-    type=click.Choice(
-        choices=[
-            "multiwoz21_different_data_subsampling_number_of_samples",
-            "reddit_different_data_subsampling_number_of_samples",
-            "coarse_checkpoint_resolution",
-            "exploratory_dropout_analysis_coarse_checkpoint_resolution",
-            "tiny_dropout_variations_coarse_checkpoint_resolution",
-            "fixed_parameters_high_checkpoint_resolution",
-            "regular_token_embeddings",
-            "masked_token_embeddings",
-            "regular_token_embeddings_multiple_layers_single_sample",
-            "regular_token_embeddings_multiple_local_estimates_pointwise_absolute_n_neighbors",
-        ],
-        case_sensitive=False,
-    ),
+    type=ExperimentSelector,
     required=True,
     help="Select the experiment type.",
 )
@@ -1064,7 +1061,7 @@ def make_config_and_run_task(
 )
 def orchestrate_job_submission(
     experiment_stage: ExperimentStage | None,
-    experiment_selector: str,
+    experiment_selector: ExperimentSelector,
     task: Task,
     additional_overrides: list[str] | None,
     finetuning_datasets_list_option: FinetuningDatasetsListOption,
@@ -1226,7 +1223,7 @@ def orchestrate_job_submission(
     ### Note: You can use the experiment selector to override the default configurations above.
     ########################################
     match experiment_selector:
-        case "multiwoz21_different_data_subsampling_number_of_samples":
+        case ExperimentSelector.MULTIWOZ21_DIFFERENT_DATA_SUBSAMPLING_NUMBER_OF_SAMPLES:
             # ++++ Experiment > different subsampling number of samples for multiwoz21 dataset
             #
             # Note:
@@ -1241,7 +1238,7 @@ def orchestrate_job_submission(
             # since for the embeddings data prep step on 12_000 and more data subsamlping samples,
             # the embeddings data prep step requires more memory.
             memory = "64"
-        case "reddit_different_data_subsampling_number_of_samples":
+        case ExperimentSelector.REDDIT_DIFFERENT_DATA_SUBSAMPLING_NUMBER_OF_SAMPLES:
             # ++++ Experiment > different subsampling number of samples for reddit dataset
             #
             # Note:
@@ -1256,7 +1253,7 @@ def orchestrate_job_submission(
             )
 
             memory = "80"
-        case "coarse_checkpoint_resolution":
+        case ExperimentSelector.COARSE_CHECKPOINT_RESOLUTION:
             # ++++ Experiment > Coarse checkpoint resolution
             #
             # Notes:
@@ -1264,7 +1261,7 @@ def orchestrate_job_submission(
             data_subsampling_number_of_samples_list_option = DataSubsamplingNumberOfSamplesListOption.FIXED_10000
 
             checkpoint_no_list_option = CheckpointNoListOption.SELECTED
-        case "exploratory_dropout_analysis_coarse_checkpoint_resolution":
+        case ExperimentSelector.EXPLORATORY_DROPOUT_ANALYSIS_COARSE_CHECKPOINT_RESOLUTION:
             # ++++ Experiment > Coarse checkpoint resolution for first exploratory dropout analysis
             #
             # Notes:
@@ -1278,7 +1275,7 @@ def orchestrate_job_submission(
             language_model_seed_list_option = SeedListOption.FIXED_SEED_1234
 
             checkpoint_no_list_option = CheckpointNoListOption.SELECTED
-        case "tiny_dropout_variations_coarse_checkpoint_resolution":
+        case ExperimentSelector.TINY_DROPOUT_VARIATIONS_COARSE_CHECKPOINT_RESOLUTION:
             # ++++ Experiment > Coarse checkpoint resolution for first dropout with small variations analysis
             #
             # Notes:
@@ -1294,7 +1291,7 @@ def orchestrate_job_submission(
             language_model_seed_list_option = SeedListOption.FIXED_SEED_1234
 
             checkpoint_no_list_option = CheckpointNoListOption.SELECTED
-        case "fixed_parameters_high_checkpoint_resolution":
+        case ExperimentSelector.FIXED_PARAMETERS_HIGH_CHECKPOINT_RESOLUTION:
             # ++++ Experiment > Fixing many of the parameters so that we can run the
             #      checkpoint comparison experiment with high checkpoint resolution
             #
@@ -1313,7 +1310,7 @@ def orchestrate_job_submission(
 
             # Select all checkpoints for which we have evaluation results
             checkpoint_no_list_option = CheckpointNoListOption.FULL
-        case "regular_token_embeddings":
+        case ExperimentSelector.REGULAR_TOKEN_EMBEDDINGS:
             # Notes:
             # - You need to set the data_list_option via the command line arguments.
 
@@ -1325,7 +1322,7 @@ def orchestrate_job_submission(
 
             # Select only a single training seed
             language_model_seed_list_option = SeedListOption.FIXED_SEED_1234
-        case "masked_token_embeddings":
+        case ExperimentSelector.MASKED_TOKEN_EMBEDDINGS:
             # Notes:
             # - You need to set the data_list_option via the command line arguments.
 
@@ -1337,7 +1334,7 @@ def orchestrate_job_submission(
 
             # Select only a single training seed
             language_model_seed_list_option = SeedListOption.FIXED_SEED_1234
-        case "regular_token_embeddings_multiple_layers_single_sample":
+        case ExperimentSelector.REGULAR_TOKEN_EMBEDDINGS_MULTIPLE_LAYERS_SINGLE_SAMPLE:
             # Notes:
             # - You need to set the data_list_option via the command line arguments.
 
@@ -1362,7 +1359,7 @@ def orchestrate_job_submission(
             embedding_data_handler_mode = EmbeddingDataHandlerMode.REGULAR
 
             checkpoint_no_list_option = CheckpointNoListOption.SELECTED
-        case "regular_token_embeddings_multiple_local_estimates_pointwise_absolute_n_neighbors":
+        case ExperimentSelector.REGULAR_TOKEN_EMBEDDINGS_MULTIPLE_LOCAL_ESTIMATES_POINTWISE_ABSOLUTE_N_NEIGHBORS:
             # Notes:
             # - You need to set the data_list_option via the command line arguments.
 

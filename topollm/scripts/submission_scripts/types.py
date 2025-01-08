@@ -42,6 +42,21 @@ class ExperimentStage(StrEnum):
     SKIP_COMPUTE_EMBEDDINGS_BUT_DO_MULTIPLE_PIPELINE_RUNS = auto()
 
 
+class ExperimentSelector(StrEnum):
+    """Options for the experiment selector."""
+
+    MULTIWOZ21_DIFFERENT_DATA_SUBSAMPLING_NUMBER_OF_SAMPLES = auto()
+    REDDIT_DIFFERENT_DATA_SUBSAMPLING_NUMBER_OF_SAMPLES = auto()
+    COARSE_CHECKPOINT_RESOLUTION = auto()
+    EXPLORATORY_DROPOUT_ANALYSIS_COARSE_CHECKPOINT_RESOLUTION = auto()
+    TINY_DROPOUT_VARIATIONS_COARSE_CHECKPOINT_RESOLUTION = auto()
+    FIXED_PARAMETERS_HIGH_CHECKPOINT_RESOLUTION = auto()
+    REGULAR_TOKEN_EMBEDDINGS = auto()
+    MASKED_TOKEN_EMBEDDINGS = auto()
+    REGULAR_TOKEN_EMBEDDINGS_MULTIPLE_LAYERS_SINGLE_SAMPLE = auto()
+    REGULAR_TOKEN_EMBEDDINGS_MULTIPLE_LOCAL_ESTIMATES_POINTWISE_ABSOLUTE_N_NEIGHBORS = auto()
+
+
 class CheckpointNoListOption(StrEnum):
     """Options for the checkpoint number list."""
 
@@ -56,10 +71,6 @@ class DataListOption(StrEnum):
     DEBUG = auto()
     FULL = auto()
     MANUAL_IN_PYTHON_SCRIPT = auto()
-    # Mixing two datasets
-    MULTIWOZ21_AND_REDDIT = auto()
-    MULTIWOZ21_TRAIN_AND_REDDIT_TRAIN = auto()
-    MULTIWOZ21_VALIDATION_AND_REDDIT_VALIDATION = auto()
     # Selecting only one dataset
     MULTIWOZ21_ONLY = auto()
     MULTIWOZ21_VALIDATION_ONLY = auto()
@@ -68,6 +79,12 @@ class DataListOption(StrEnum):
     # Select certain data splits
     TRAIN_SPLIT_ONLY = auto()
     VALIDATION_SPLIT_ONLY = auto()
+    # Mixing two datasets
+    MULTIWOZ21_AND_REDDIT = auto()
+    MULTIWOZ21_TRAIN_AND_REDDIT_TRAIN = auto()
+    MULTIWOZ21_VALIDATION_AND_REDDIT_VALIDATION = auto()
+    # Mixing three datasets
+    ICLR_VALIDATION_AND_SGD_VALIDATION_AND_WIKITEXT_VALIDATION = auto()
 
 
 class DataSubsamplingNumberOfSamplesListOption(StrEnum):
