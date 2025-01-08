@@ -645,7 +645,10 @@
                 "--experiment-stage",
                 "skip_compute_embeddings_but_do_multiple_pipeline_runs",
                 "--data-list-options",
-                "multiwoz21_validation_and_reddit_validation",
+                // "multiwoz21_validation_and_reddit_validation",
+                // TODO: Run this for the reddit validation data as well
+                "reddit_validation_only",
+                // TODO: Potentially run this for another token subsample
                 "--experiment-selector-options",
                 "regular_token_embeddings_multiple_local_estimates_pointwise_absolute_n_neighbors",
             ]

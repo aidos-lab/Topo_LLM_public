@@ -219,6 +219,10 @@ def retrieve_data_list(
                 "one-year-of-tsla-on-reddit_train",
                 "one-year-of-tsla-on-reddit_validation",
             ]
+        case DataListOption.REDDIT_VALIDATION_ONLY:
+            data_list: list[str] = [
+                "one-year-of-tsla-on-reddit_validation",
+            ]
         case DataListOption.WIKITEXT_ONLY:
             data_list: list[str] = [
                 "wikitext-103-v1_test",

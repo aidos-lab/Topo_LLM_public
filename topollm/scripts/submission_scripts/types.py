@@ -75,6 +75,7 @@ class DataListOption(StrEnum):
     MULTIWOZ21_ONLY = auto()
     MULTIWOZ21_VALIDATION_ONLY = auto()
     REDDIT_ONLY = auto()
+    REDDIT_VALIDATION_ONLY = auto()
     WIKITEXT_ONLY = auto()
     # Select certain data splits
     TRAIN_SPLIT_ONLY = auto()
