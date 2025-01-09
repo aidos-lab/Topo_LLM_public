@@ -579,10 +579,10 @@
                 // >>>> BEGIN: Select the run option
                 // >>>> Use the following to dry run with all configurations
                 //
-                "--run-option",
-                "dry_run",
-                "--run-only-selected-configs-option",
-                "run_all",
+                // "--run-option",
+                // "dry_run",
+                // "--run-only-selected-configs-option",
+                // "run_all",
                 //
                 // >>>> Use the following to dry run a random configuration
                 //
@@ -593,10 +593,10 @@
                 //
                 // >>> Use the following to run a random configuration
                 //
-                // "--run-option",
-                // "do_submission",
-                // "--run-only-selected-configs-option",
-                // "run_single_random",
+                "--run-option",
+                "do_submission",
+                "--run-only-selected-configs-option",
+                "run_single_random",
                 //
                 // >>>> Use the following to run with all configurations
                 //

@@ -488,10 +488,8 @@ def retrieve_model_and_checkpoint_list(
             checkpoint_no_list = None
         case LanguageModelListOption.FINETUNED_ON_OLD_AND_NEW_DATA_FEW_EPOCHS_FROM_ROBERTA_BASE:
             language_model_list: list[str] = [
-                # TODO: Fill this list with the model names:
-                # TODO: - finetuned on wikitext
-                # TODO: - finetuned on reddit
-                "TODO_DEBUG_INPUT_REMOVE_THIS",
+                "roberta-base-masked_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+                "roberta-base-masked_lm-defaults_wikitext-103-v1-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
             ]
 
             checkpoint_no_list = get_checkpoint_no_list(
@@ -500,9 +498,8 @@ def retrieve_model_and_checkpoint_list(
             )
         case LanguageModelListOption.SELECTED_FINETUNED_FEW_EPOCHS_FROM_ROBERTA_BASE:
             language_model_list: list[str] = [
-                # TODO: These lists of model names for the few epochs might need to be updated
-                "model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",  # TODO: OLD
-                "model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",  # TODO: OLD
+                "roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+                "roberta-base-masked_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
             ]
 
             checkpoint_no_list = get_checkpoint_no_list(
@@ -512,10 +509,9 @@ def retrieve_model_and_checkpoint_list(
         case LanguageModelListOption.FULL_FINETUNED_FEW_EPOCHS_FROM_ROBERTA_BASE:
             language_model_list: list[str] = [
                 "roberta-base-masked_lm-defaults_iclr_2024_submissions-rm-empty-True-do_nothing-ner_tags_train-5000-take_first-111_standard-None_5e-05-linear-0.01-5"
-                # TODO: These lists of model names for the few epochs might need to be updated
-                "model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",  # TODO: OLD
-                "model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",  # TODO: OLD
-                "model-roberta-base_task-masked_lm_wikitext-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",  # TODO: OLD
+                "roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+                "roberta-base-masked_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+                "roberta-base-masked_lm-defaults_wikitext-103-v1-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
             ]
 
             checkpoint_no_list = get_checkpoint_no_list(
