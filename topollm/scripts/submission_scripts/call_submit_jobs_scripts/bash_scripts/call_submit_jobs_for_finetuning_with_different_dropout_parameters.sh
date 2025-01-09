@@ -12,7 +12,7 @@ echo ">>> Submission script started."
 # # # #
 # Leave DRY_RUN_OPTION empty to run without the dry-run option, i.e., to actually submit the jobs
 #
-# DRY_RUN_OPTION="--dry-run"
+DRY_RUN_OPTION="--dry-run"
 
 RUN_ONLY_SELECTED_CONFIGS_OPTION="run_all"
 # RUN_ONLY_SELECTED_CONFIGS_OPTION="run_single_random"
@@ -47,6 +47,11 @@ echo ">>> FP16_OPTION: ${FP16_OPTION}"
 #
 
 for DROPOUT_PARAMETER in "${DROPOUT_PARAMETER_LIST[@]}"; do
+  # Notes:
+  # - For finetuning, the following arguments are just placeholders which have no effect on the actual finetuning process:
+  #   --experiment-selector
+  #   --experiment-stage
+  
   poetry run submit_jobs \
     --experiment-selector multiwoz21_different_data_subsampling_number_of_samples \
     --experiment-stage skip_compute_embeddings_and_multiple_pipeline_runs \
