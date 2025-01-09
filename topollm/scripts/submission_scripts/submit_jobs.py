@@ -1109,6 +1109,9 @@ def orchestrate_job_submission(
         )
 
     # Model-specific configurations
+    #
+    # Note:
+    # - For the finetuning task, the finetuning_regime_option might get overwritten at a later stage.
     if use_roberta_base:
         ####################################
         ### With POS tags for base model ###
@@ -1127,6 +1130,8 @@ def orchestrate_job_submission(
         raise click.UsageError(
             message="Unknown model configuration.",
         )
+
+    # TODO: In finetuning mode, override the `finetuning_regime_option` based on an input argument.
 
     ########################################
     ### Default configurations

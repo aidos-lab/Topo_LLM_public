@@ -230,7 +230,7 @@
         },
         {
             "label": "GC - Sync from GC Bucket to Local - only selected subdirectories from 'data/analysis/twonn'",
-            "command": "poetry run sync_gc_data --source bucket --target local --subdirectory 'data/analysis/twonn/data=iclr_2024_submissions_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags' 'data/analysis/twonn/data=multiwoz21_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags' 'data/analysis/twonn/data=one-year-of-tsla-on-reddit_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags' 'data/analysis/twonn/data=sgd_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags'",
+            "command": "poetry run sync_gc_data --source bucket --target local --subdirectory 'data/analysis/twonn/data=iclr_2024_submissions_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags' 'data/analysis/twonn/data=multiwoz21_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags' 'data/analysis/twonn/data=one-year-of-tsla-on-reddit_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags' 'data/analysis/twonn/data=sgd_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags' 'data/analysis/twonn/data=wikitext-103-v1_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags'",
             // Note: You can add more subdirectories by adding more arguments to the command
             "type": "shell",
             "group": {
