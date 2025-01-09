@@ -156,11 +156,21 @@ class LanguageModelListOption(StrEnum):
     """Options for the language model list."""
 
     ONLY_ROBERTA_BASE = auto()
+
+    # Models fine-tuned on "old data" (i.e., data which was part of the pretraining data)
+    # and models fine-tuned on "new data" (i.e., data which was created after the model was pre-trained)
+    FINETUNED_ON_OLD_AND_NEW_DATA_FEW_EPOCHS_FROM_ROBERTA_BASE = auto()
+
+    # Selected models
     SELECTED_FINETUNED_FEW_EPOCHS_FROM_ROBERTA_BASE = auto()
     SELECTED_FINETUNED_MANY_EPOCHS_FROM_ROBERTA_BASE = auto()
+
     FULL_FINETUNED_FEW_EPOCHS_FROM_ROBERTA_BASE = auto()
+
+    # Models finetuned with different dropout rates
     WITH_005_015_02_DROPOUT_FINETUNED_ON_MULTIWOZ_SMALL_MANY_EPOCHS_FROM_ROBERTA_BASE = auto()
     WITH_006_007_DROPOUT_FINETUNED_ON_MULTIWOZ_SMALL_MANY_EPOCHS_FROM_ROBERTA_BASE = auto()
+
     SETSUMBT_SELECTED = auto()
 
 

@@ -148,10 +148,6 @@ only_roberta_base_language_model_list: list[str] = [
     "roberta-base",
 ]
 
-selected_finetuned_many_epochs_from_roberta_base_language_model_list = [
-    "model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50",
-    "model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50",
-]
 
 setsumbt_model_list = [
     "model-roberta-base_task-setsumbt_multiwoz21",
@@ -490,6 +486,17 @@ def retrieve_model_and_checkpoint_list(
             language_model_list: list[str] = only_roberta_base_language_model_list
             # No checkpoints for the base model
             checkpoint_no_list = None
+        case LanguageModelListOption.FINETUNED_ON_OLD_AND_NEW_DATA_FEW_EPOCHS_FROM_ROBERTA_BASE:
+            language_model_list: list[str] = [
+                # TODO: Fill this list with the model names:
+                # TODO: - finetuned on wikitext
+                # TODO: - finetuned on reddit
+            ]
+
+            checkpoint_no_list = get_checkpoint_no_list(
+                checkpoint_no_list_option=checkpoint_no_list_option,
+                num_train_epochs=int(num_train_epochs),
+            )
         case LanguageModelListOption.SELECTED_FINETUNED_FEW_EPOCHS_FROM_ROBERTA_BASE:
             language_model_list: list[str] = [
                 # TODO: These lists of model names for the few epochs might need to be updated
@@ -515,7 +522,10 @@ def retrieve_model_and_checkpoint_list(
                 num_train_epochs=int(num_train_epochs),
             )
         case LanguageModelListOption.SELECTED_FINETUNED_MANY_EPOCHS_FROM_ROBERTA_BASE:
-            language_model_list: list[str] = selected_finetuned_many_epochs_from_roberta_base_language_model_list
+            language_model_list: list[str] = [
+                "model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50",
+                "model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50",
+            ]
 
             checkpoint_no_list = get_checkpoint_no_list(
                 checkpoint_no_list_option=checkpoint_no_list_option,
