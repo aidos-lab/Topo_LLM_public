@@ -578,35 +578,46 @@
             "args": [
                 // >>>> BEGIN: Select the run option
                 // >>>> Use the following to dry run with all configurations
-                // "--run-option",
-                // "dry_run",
-                // "--run-only-selected-configs-option",
-                // "run_all",
+                //
+                "--run-option",
+                "dry_run",
+                "--run-only-selected-configs-option",
+                "run_all",
+                //
                 // >>>> Use the following to dry run a random configuration
+                //
                 // "--run-option",
                 // "dry_run",
                 // "--run-only-selected-configs-option",
                 // "run_single_random",
+                //
                 // >>> Use the following to run a random configuration
+                //
                 // "--run-option",
                 // "do_submission",
                 // "--run-only-selected-configs-option",
                 // "run_single_random",
+                //
                 // >>>> Use the following to run with all configurations
-                "--run-option",
-                "do_submission",
-                "--run-only-selected-configs-option",
-                "run_all",
+                //
+                // "--run-option",
+                // "do_submission",
+                // "--run-only-selected-configs-option",
+                // "run_all",
+                //
                 // >>>> END: Select the run option
                 "--submission-mode",
                 "local",
                 // >> Concrete experiment configurations
                 "--data-list-options",
-                // "validation_split_only",
+                "validation_split_only",
                 // "multiwoz21_validation_and_reddit_validation",
-                "iclr_validation_and_sgd_validation_and_wikitext_validation",
+                // "iclr_validation_and_sgd_validation_and_wikitext_validation",
                 "--experiment-selector-options",
                 "regular_token_embeddings_multiple_layers_single_sample",
+                "--model-group-options",
+                // "roberta_base_without_modifications",
+                "roberta_base_finetuned_for_few_epochs_old_and_new_data_single_seed_last_checkpoint",
             ]
         },
         {

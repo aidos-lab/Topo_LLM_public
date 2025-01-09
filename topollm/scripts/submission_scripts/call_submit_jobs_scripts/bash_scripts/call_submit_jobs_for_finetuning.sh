@@ -82,7 +82,7 @@ for FINETUNING_DATASETS_LIST_OPTION in "${FINETUNING_DATASETS_LIST_OPTION_LIST[@
       --finetuning-datasets-list-option "${FINETUNING_DATASETS_LIST_OPTION}" \
       --wandb-project "Topo_LLM_finetuning_from_submission_script_for_5_epochs_and_linear_lr_schedule" \
       --fp16 "${FP16}" \
-      --model-group-option "roberta_base_finetuned_for_few_epochs" \
+      --model-group-option "roberta_base_finetuned_for_few_epochs_old_and_new_data_single_seed_last_checkpoint" \
       $SKIP_FINETUNING_OPTION \
       $USE_WANDB_FALSE_OPTION \
       --task=finetuning \

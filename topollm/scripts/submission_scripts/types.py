@@ -141,7 +141,7 @@ class ModelGroupOption(StrEnum):
     """Options for specifying the model and finetuning regime."""
 
     ROBERTA_BASE_WITHOUT_MODIFICATIONS = auto()
-    ROBERTA_BASE_FINETUNED_FOR_FEW_EPOCHS = auto()
+    ROBERTA_BASE_FINETUNED_FOR_FEW_EPOCHS_OLD_AND_NEW_DATA_SINGLE_SEED_LAST_CHECKPOINT = auto()
     ROBERTA_BASE_FINETUNED_FOR_MANY_EPOCHS = auto()
 
 

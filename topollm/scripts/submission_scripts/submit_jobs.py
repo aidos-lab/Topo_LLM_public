@@ -491,6 +491,7 @@ def retrieve_model_and_checkpoint_list(
                 # TODO: Fill this list with the model names:
                 # TODO: - finetuned on wikitext
                 # TODO: - finetuned on reddit
+                "TODO_DEBUG_INPUT_REMOVE_THIS",
             ]
 
             checkpoint_no_list = get_checkpoint_no_list(
@@ -1138,14 +1139,16 @@ def orchestrate_job_submission(
             finetuning_regime_option = FinetuningRegimeOption.FEW_EPOCHS  # Ignored for the base model
             language_model_seed_list_option = SeedListOption.DO_NOT_SET
             checkpoint_no_list_option = CheckpointNoListOption.SELECTED  # Ignored for the base model
-        case ModelGroupOption.ROBERTA_BASE_FINETUNED_FOR_FEW_EPOCHS:
+        case ModelGroupOption.ROBERTA_BASE_FINETUNED_FOR_FEW_EPOCHS_OLD_AND_NEW_DATA_SINGLE_SEED_LAST_CHECKPOINT:
             ################################################################
-            language_model_list_option = LanguageModelListOption.SELECTED_FINETUNED_FEW_EPOCHS_FROM_ROBERTA_BASE
+            language_model_list_option = (
+                LanguageModelListOption.FINETUNED_ON_OLD_AND_NEW_DATA_FEW_EPOCHS_FROM_ROBERTA_BASE
+            )
             finetuning_regime_option = FinetuningRegimeOption.FEW_EPOCHS
             language_model_seed_list_option = SeedListOption.FIXED_SEED_1234
-            checkpoint_no_list_option = CheckpointNoListOption.ONLY_BEGINNING_AND_MIDDLE_AND_END
-
-            # TODO: Add potential finetuning seeds here
+            checkpoint_no_list_option = (
+                CheckpointNoListOption.ONLY_BEGINNING_AND_MIDDLE_AND_END
+            )  # TODO: Edit this for single checkpoint
         case ModelGroupOption.ROBERTA_BASE_FINETUNED_FOR_MANY_EPOCHS:
             ################################################################
             ### With POS tags for finetuned models and three checkpoints ###

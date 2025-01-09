@@ -42,6 +42,7 @@ from topollm.scripts.submission_scripts.types import (
     DataListOption,
     ExperimentSelector,
     ExperimentStage,
+    ModelGroupOption,
     RunOnlySelectedConfigsOption,
     RunOption,
 )
@@ -99,6 +100,16 @@ from topollm.typing.enums import DataSamplingMode, SubmissionMode
     help="List of experiment selector options to use.",
 )
 @click.option(
+    "--model-group-options",
+    type=ModelGroupOption,
+    multiple=True,
+    default=[
+        ModelGroupOption.ROBERTA_BASE_WITHOUT_MODIFICATIONS,
+        # ModelGroupOption.ROBERTA_BASE_FINETUNED_FOR_FEW_EPOCHS_OLD_AND_NEW_DATA_SINGLE_SEED_LAST_CHECKPOINT,
+    ],
+    help="List of model group options to use.",
+)
+@click.option(
     "--data-subsampling-sampling-mode",
     type=DataSamplingMode,
     default=DataSamplingMode.RANDOM,
@@ -119,6 +130,7 @@ def submit_jobs_in_separate_tmux_sessions(
     submission_mode: SubmissionMode,
     data_list_options: list[DataListOption],
     experiment_selector_options: list[ExperimentSelector],
+    model_group_options: list[ModelGroupOption],
     data_subsampling_sampling_mode: DataSamplingMode,
     experiment_stage: ExperimentStage,
 ) -> None:
@@ -126,15 +138,7 @@ def submit_jobs_in_separate_tmux_sessions(
     # Cast arguments to list to convert the tuple type returned by click to a list.
     data_list_options = list(data_list_options)
     experiment_selector_options = list(experiment_selector_options)
-
-    # Define job-specific configurations
-
-    # TODO: Make these into click command line options
-
-    model_selection_option_list: list[str] = [
-        "--use-roberta-base",
-        # "--use-finetuned-model",
-    ]
+    model_group_options = list(model_group_options)
 
     log_dir: pathlib.Path = create_log_directory()
 
@@ -153,7 +157,7 @@ def submit_jobs_in_separate_tmux_sessions(
     combinations_to_call = product(
         data_list_options,
         experiment_selector_options,
-        model_selection_option_list,
+        model_group_options,
     )
 
     # Track tmux session names and logs
@@ -162,14 +166,25 @@ def submit_jobs_in_separate_tmux_sessions(
     for session_counter, (
         data_list_option,
         experiment_selector,
-        model_selection_option,
+        model_group_option,
     ) in enumerate(
         iterable=combinations_to_call,
     ):
-        session_name: str = (
-            f"job_session_{session_counter=}_{data_list_option=!s}"
-            f"_{experiment_selector=!s}_{model_selection_option=!s}"
+        print(  # noqa: T201 - we want this script to print
+            f">>> Current choices:\n"
+            f"\t{data_list_option = }\n"
+            f"\t{experiment_selector = }\n"
+            f"\t{model_group_option= }",
         )
+
+        # Note: We shorten the segments of the session name to avoid a too long file name.
+        session_name: str = (
+            f"job_{session_counter}_{str(object=data_list_option)[:30]}"
+            f"_{str(object=experiment_selector)[:30]}_{str(object=model_group_option)[:30]}"
+        )
+        # Truncate the session name to 200 characters
+        session_name = session_name[:200]
+
         log_file = pathlib.Path(
             log_dir,
             f"output_{session_name}.log",
@@ -189,7 +204,7 @@ def submit_jobs_in_separate_tmux_sessions(
             data_subsampling_sampling_mode_option=data_subsampling_sampling_mode,
             experiment_selector=experiment_selector,
             experiment_stage=experiment_stage,
-            model_selection_option=model_selection_option,
+            model_group_option=model_group_option,
             run_only_selected_configs_option=run_only_selected_configs_option,
             submission_mode=submission_mode,
             run_option=run_option,
@@ -267,7 +282,7 @@ def run_tmux_session(
     data_subsampling_sampling_mode_option: DataSamplingMode,
     experiment_selector: ExperimentSelector,
     experiment_stage: ExperimentStage,
-    model_selection_option: str,
+    model_group_option: ModelGroupOption,
     run_only_selected_configs_option: RunOnlySelectedConfigsOption,
     run_option: RunOption,
     submission_mode: SubmissionMode,
@@ -286,7 +301,7 @@ def run_tmux_session(
         f"--data-subsampling-sampling-mode {str(object=data_subsampling_sampling_mode_option)} "
         f"--experiment-selector {str(object=experiment_selector)} "
         f"--experiment-stage {str(object=experiment_stage)} "
-        f"{model_selection_option} "
+        f"--model-group-option {str(object=model_group_option)} "
         f"--task=pipeline "
         f"--run-option {str(object=run_option)} "
         f"--run-only-selected-configs-option {str(object=run_only_selected_configs_option)} "
@@ -298,7 +313,7 @@ def run_tmux_session(
         f"tmux kill-session -t {session_name}"
     )
 
-    command_to_run = [
+    command_to_run: list[str] = [
         "tmux",
         "new-session",
         "-d",
