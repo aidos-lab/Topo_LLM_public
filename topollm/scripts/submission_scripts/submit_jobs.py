@@ -53,6 +53,7 @@ from topollm.scripts.submission_scripts.types import (
     LanguageModelListOption,
     LocalEstimatesFilteringNumSamplesListOption,
     LocalEstimatesPointwiseAbsoluteNNeighborsListOption,
+    ModelGroupOption,
     RunOnlySelectedConfigsOption,
     RunOption,
     SeedListOption,
@@ -420,6 +421,10 @@ def retrieve_finetuning_datasets_list(
         case FinetuningDatasetsListOption.REDDIT_FULL:
             finetuning_datasets_list: list[str] = [
                 "train_and_eval_on_one-year-of-tsla-on-reddit_train-samples-full",
+            ]
+        case FinetuningDatasetsListOption.WIKITEXT_SMALL:
+            finetuning_datasets_list: list[str] = [
+                "train_and_eval_on_wikitext_train-samples-small",
             ]
         case FinetuningDatasetsListOption.MULTIWOZ21_AND_REDDIT_SMALL:
             finetuning_datasets_list: list[str] = [
@@ -975,6 +980,12 @@ def make_config_and_run_task(
     help="Embeddings data prep sampling mode to use.",
 )
 @click.option(
+    "--model-group-option",
+    type=ModelGroupOption,
+    default=ModelGroupOption.ROBERTA_BASE_WITHOUT_MODIFICATIONS,
+    help="The model group and finetuning regime to use.",
+)
+@click.option(
     "--finetuning-datasets-list-option",
     type=FinetuningDatasetsListOption,
     default=FinetuningDatasetsListOption.MULTIWOZ21_SMALL,
@@ -997,18 +1008,6 @@ def make_config_and_run_task(
     type=str,
     default="Topo_LLM_finetuning_from_submission_script",
     help="Wandb project to use.",
-)
-@click.option(
-    "--use-roberta-base",
-    is_flag=True,
-    default=False,
-    help="Use the base Roberta model.",
-)
-@click.option(
-    "--use-finetuned-model",
-    is_flag=True,
-    default=False,
-    help="Use a fine-tuned Roberta model.",
 )
 @click.option(
     "--additional-overrides",
@@ -1061,13 +1060,19 @@ def make_config_and_run_task(
     "--template",
     type=Template,
     default=Template.DSML,
-    help="Template to use for the job submission.",
+    help="Template to use for the job submission. Might get overwritten by the experiment stage configurations.",
+)
+@click.option(
+    "--template-to-use-for-compute-embeddings",
+    type=Template,
+    default=Template.RTX6000,
+    help="Template to use for the compute embeddings job submission.",
 )
 def orchestrate_job_submission(
     experiment_stage: ExperimentStage | None,
     experiment_selector: ExperimentSelector,
     task: Task,
-    additional_overrides: list[str] | None,
+    model_group_option: ModelGroupOption,
     finetuning_datasets_list_option: FinetuningDatasetsListOption,
     fp16: str,
     data_list_option: DataListOption,
@@ -1083,11 +1088,11 @@ def orchestrate_job_submission(
     ngpus: str,
     queue: str,
     template: Template,
+    template_to_use_for_compute_embeddings: Template,
+    additional_overrides: list[str] | None,
     submission_mode: SubmissionMode,
     run_option: RunOption,
     run_only_selected_configs_option: RunOnlySelectedConfigsOption,
-    use_roberta_base: bool,
-    use_finetuned_model: bool,
 ) -> None:
     """Submit jobs based on the specified options.
 
@@ -1098,40 +1103,39 @@ def orchestrate_job_submission(
     - 32GB of memory is enough for the embeddings data prep step
       for dataset subsampling sample size 12_000 on the multiwoz21_train and reddit_train datasets.
     """
-    # Validate the model flags
-    if not (use_roberta_base or use_finetuned_model):
-        raise click.UsageError(
-            message="You must specify either --use-roberta-base or --use-finetuned-model.",
-        )
-    if use_roberta_base and use_finetuned_model:
-        raise click.UsageError(
-            message="You cannot specify both --use-roberta-base and --use-finetuned-model.",
-        )
-
+    ########################################
     # Model-specific configurations
     #
     # Note:
     # - For the finetuning task, the finetuning_regime_option might get overwritten at a later stage.
-    if use_roberta_base:
-        ####################################
-        ### With POS tags for base model ###
-        language_model_list_option = LanguageModelListOption.ONLY_ROBERTA_BASE
-        finetuning_regime_option = FinetuningRegimeOption.FEW_EPOCHS  # Ignored for the base model
-        language_model_seed_list_option = SeedListOption.DO_NOT_SET
-        checkpoint_no_list_option = CheckpointNoListOption.SELECTED  # Ignored for the base model
-    elif use_finetuned_model:
-        ################################################################
-        ### With POS tags for finetuned models and three checkpoints ###
-        language_model_list_option = LanguageModelListOption.SELECTED_FINETUNED_MANY_EPOCHS_FROM_ROBERTA_BASE
-        finetuning_regime_option = FinetuningRegimeOption.MANY_EPOCHS_WITH_OVERFITTING_RISK
-        language_model_seed_list_option = SeedListOption.FIXED_SEED_1234
-        checkpoint_no_list_option = CheckpointNoListOption.ONLY_BEGINNING_AND_MIDDLE_AND_END
-    else:
-        raise click.UsageError(
-            message="Unknown model configuration.",
-        )
+    match model_group_option:
+        case ModelGroupOption.ROBERTA_BASE_WITHOUT_MODIFICATIONS:
+            ####################################
+            ### With POS tags for base model ###
+            language_model_list_option = LanguageModelListOption.ONLY_ROBERTA_BASE
+            finetuning_regime_option = FinetuningRegimeOption.FEW_EPOCHS  # Ignored for the base model
+            language_model_seed_list_option = SeedListOption.DO_NOT_SET
+            checkpoint_no_list_option = CheckpointNoListOption.SELECTED  # Ignored for the base model
+        case ModelGroupOption.ROBERTA_BASE_FINETUNED_FOR_FEW_EPOCHS:
+            ################################################################
+            language_model_list_option = LanguageModelListOption.SELECTED_FINETUNED_FEW_EPOCHS_FROM_ROBERTA_BASE
+            finetuning_regime_option = FinetuningRegimeOption.FEW_EPOCHS
+            language_model_seed_list_option = SeedListOption.FIXED_SEED_1234
+            checkpoint_no_list_option = CheckpointNoListOption.ONLY_BEGINNING_AND_MIDDLE_AND_END
 
-    # TODO: In finetuning mode, override the `finetuning_regime_option` based on an input argument.
+            # TODO: Add potential finetuning seeds here
+        case ModelGroupOption.ROBERTA_BASE_FINETUNED_FOR_MANY_EPOCHS:
+            ################################################################
+            ### With POS tags for finetuned models and three checkpoints ###
+            language_model_list_option = LanguageModelListOption.SELECTED_FINETUNED_MANY_EPOCHS_FROM_ROBERTA_BASE
+            finetuning_regime_option = FinetuningRegimeOption.MANY_EPOCHS_WITH_OVERFITTING_RISK
+            language_model_seed_list_option = SeedListOption.FIXED_SEED_1234
+            checkpoint_no_list_option = CheckpointNoListOption.ONLY_BEGINNING_AND_MIDDLE_AND_END
+        case _:
+            msg: str = f"Unknown {model_group_option = }"
+            raise ValueError(
+                msg,
+            )
 
     ########################################
     ### Default configurations
@@ -1178,9 +1182,18 @@ def orchestrate_job_submission(
         embeddings_data_prep_sampling_seed_list_option = EmbeddingsDataPrepSamplingSeedListOption.DEFAULT
         skip_compute_and_store_embeddings = False  # do the embeddings computation
 
-        # queue, template = "CUDA", Template.GTX1080
-        queue, template = "CUDA", Template.RTX6000
-        # queue, template = "DSML", Template.DSML
+        match template_to_use_for_compute_embeddings:
+            case Template.RTX6000:
+                queue, template = "CUDA", Template.RTX6000
+            case Template.GTX1080:
+                queue, template = "CUDA", Template.GTX1080
+            case Template.DSML:
+                queue, template = "DSML", Template.DSML
+            case _:
+                msg: str = f"{template_to_use_for_compute_embeddings = } requires a GPU template."
+                raise ValueError(
+                    msg,
+                )
 
         ncpus = "4"
         ngpus = "1"

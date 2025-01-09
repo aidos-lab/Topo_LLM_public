@@ -124,12 +124,23 @@ class FinetuningDatasetsListOption(StrEnum):
 
     DEBUG = auto()
     MANUAL_IN_PYTHON_SCRIPT = auto()
-    MULTIWOZ21_AND_REDDIT_FULL = auto()
-    MULTIWOZ21_AND_REDDIT_SMALL = auto()
+    # Single datasets
     MULTIWOZ21_SMALL = auto()
     MULTIWOZ21_FULL = auto()
     REDDIT_SMALL = auto()
     REDDIT_FULL = auto()
+    WIKITEXT_SMALL = auto()
+    # Multiple datasets in separate runs
+    MULTIWOZ21_AND_REDDIT_FULL = auto()
+    MULTIWOZ21_AND_REDDIT_SMALL = auto()
+
+
+class ModelGroupOption(StrEnum):
+    """Options for specifying the model and finetuning regime."""
+
+    ROBERTA_BASE_WITHOUT_MODIFICATIONS = auto()
+    ROBERTA_BASE_FINETUNED_FOR_FEW_EPOCHS = auto()
+    ROBERTA_BASE_FINETUNED_FOR_MANY_EPOCHS = auto()
 
 
 class FinetuningRegimeOption(StrEnum):
