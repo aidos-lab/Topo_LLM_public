@@ -491,10 +491,10 @@ def retrieve_model_and_checkpoint_list(
             # No checkpoints for the base model
             checkpoint_no_list = None
         case LanguageModelListOption.SELECTED_FINETUNED_FEW_EPOCHS_FROM_ROBERTA_BASE:
-            # TODO: These lists of model names for the few epochs might need to be updated
             language_model_list: list[str] = [
-                "model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
-                "model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
+                # TODO: These lists of model names for the few epochs might need to be updated
+                "model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",  # TODO: OLD
+                "model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",  # TODO: OLD
             ]
 
             checkpoint_no_list = get_checkpoint_no_list(
@@ -502,12 +502,12 @@ def retrieve_model_and_checkpoint_list(
                 num_train_epochs=int(num_train_epochs),
             )
         case LanguageModelListOption.FULL_FINETUNED_FEW_EPOCHS_FROM_ROBERTA_BASE:
-            # TODO: These lists of model names for the few epochs might need to be updated
             language_model_list: list[str] = [
-                "model-roberta-base_task-masked_lm_iclr_2024_submissions-train-5000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
-                "model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
-                "model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
-                "model-roberta-base_task-masked_lm_wikitext-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
+                "roberta-base-masked_lm-defaults_iclr_2024_submissions-rm-empty-True-do_nothing-ner_tags_train-5000-take_first-111_standard-None_5e-05-linear-0.01-5"
+                # TODO: These lists of model names for the few epochs might need to be updated
+                "model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",  # TODO: OLD
+                "model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",  # TODO: OLD
+                "model-roberta-base_task-masked_lm_wikitext-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",  # TODO: OLD
             ]
 
             checkpoint_no_list = get_checkpoint_no_list(
