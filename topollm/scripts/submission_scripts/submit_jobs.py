@@ -1146,9 +1146,7 @@ def orchestrate_job_submission(
             )
             finetuning_regime_option = FinetuningRegimeOption.FEW_EPOCHS
             language_model_seed_list_option = SeedListOption.FIXED_SEED_1234
-            checkpoint_no_list_option = (
-                CheckpointNoListOption.ONLY_BEGINNING_AND_MIDDLE_AND_END
-            )  # TODO: Edit this for single checkpoint
+            checkpoint_no_list_option = CheckpointNoListOption.FIXED_2800
         case ModelGroupOption.ROBERTA_BASE_FINETUNED_FOR_MANY_EPOCHS:
             ################################################################
             ### With POS tags for finetuned models and three checkpoints ###
@@ -1360,30 +1358,29 @@ def orchestrate_job_submission(
         case ExperimentSelector.REGULAR_TOKEN_EMBEDDINGS:
             # Notes:
             # - You need to set the data_list_option via the command line arguments.
+            # - Do not set the checkpoint_no_list_option here, since we want to take it from the model group option.
 
             data_subsampling_number_of_samples_list_option = DataSubsamplingNumberOfSamplesListOption.FIXED_10000
 
             embedding_data_handler_mode = EmbeddingDataHandlerMode.REGULAR
-
-            checkpoint_no_list_option = CheckpointNoListOption.SELECTED
 
             # Select only a single training seed
             language_model_seed_list_option = SeedListOption.FIXED_SEED_1234
         case ExperimentSelector.MASKED_TOKEN_EMBEDDINGS:
             # Notes:
             # - You need to set the data_list_option via the command line arguments.
+            # - Do not set the checkpoint_no_list_option here, since we want to take it from the model group option.
 
             data_subsampling_number_of_samples_list_option = DataSubsamplingNumberOfSamplesListOption.FIXED_10000
 
             embedding_data_handler_mode = EmbeddingDataHandlerMode.MASKED_TOKEN
-
-            checkpoint_no_list_option = CheckpointNoListOption.SELECTED
 
             # Select only a single training seed
             language_model_seed_list_option = SeedListOption.FIXED_SEED_1234
         case ExperimentSelector.REGULAR_TOKEN_EMBEDDINGS_MULTIPLE_LAYERS_SINGLE_SAMPLE:
             # Notes:
             # - You need to set the data_list_option via the command line arguments.
+            # - Do not set the checkpoint_no_list_option here, since we want to take it from the model group option.
 
             data_subsampling_number_of_samples_list_option = DataSubsamplingNumberOfSamplesListOption.FIXED_10000
             data_subsampling_sampling_seed_list_option = DataSubsamplingSamplingSeedListOption.FIXED_777
@@ -1404,18 +1401,15 @@ def orchestrate_job_submission(
             ]
 
             embedding_data_handler_mode = EmbeddingDataHandlerMode.REGULAR
-
-            checkpoint_no_list_option = CheckpointNoListOption.SELECTED
         case ExperimentSelector.REGULAR_TOKEN_EMBEDDINGS_MULTIPLE_LOCAL_ESTIMATES_POINTWISE_ABSOLUTE_N_NEIGHBORS:
             # Notes:
             # - You need to set the data_list_option via the command line arguments.
+            # - Do not set the checkpoint_no_list_option here, since we want to take it from the model group option.
 
             data_subsampling_number_of_samples_list_option = DataSubsamplingNumberOfSamplesListOption.FIXED_10000
             data_subsampling_sampling_seed_list_option = DataSubsamplingSamplingSeedListOption.FIXED_777
 
             embedding_data_handler_mode = EmbeddingDataHandlerMode.REGULAR
-
-            checkpoint_no_list_option = CheckpointNoListOption.SELECTED
 
             # Select only a single training seed
             language_model_seed_list_option = SeedListOption.FIXED_SEED_1234

@@ -105,6 +105,10 @@ def get_checkpoint_no_list(
             else:
                 msg: str = f"Unknown {num_train_epochs = }"
                 raise ValueError(msg)
+        case CheckpointNoListOption.FIXED_2800:
+            checkpoint_no_list = [
+                "2800",
+            ]
         case _:
             msg = f"Unknown {checkpoint_no_list_option = }"
             raise ValueError(msg)

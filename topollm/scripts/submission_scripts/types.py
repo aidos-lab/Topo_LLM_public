@@ -64,6 +64,9 @@ class CheckpointNoListOption(StrEnum):
     ONLY_BEGINNING_AND_MIDDLE_AND_END = auto()
     SELECTED = auto()
 
+    # Fixed checkpoints
+    FIXED_2800 = auto()
+
 
 class DataListOption(StrEnum):
     """Options for the data list."""

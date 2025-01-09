@@ -607,7 +607,11 @@
                 //
                 // >>>> END: Select the run option
                 "--submission-mode",
-                "local",
+                // "local",
+                "hpc_submission",
+                "--template-to-use-for-compute-embeddings",
+                "DSML",
+                // "RTX6000",
                 // >> Concrete experiment configurations
                 "--data-list-options",
                 "validation_split_only",

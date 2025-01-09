@@ -38,6 +38,7 @@ from itertools import product
 
 import click
 
+from topollm.scripts.submission_scripts.submission_config import Template
 from topollm.scripts.submission_scripts.types import (
     DataListOption,
     ExperimentSelector,
@@ -123,6 +124,12 @@ from topollm.typing.enums import DataSamplingMode, SubmissionMode
     default=ExperimentStage.COMPUTE_EMBEDDINGS_PLUS_SINGLE_PIPELINE_RUN,
     help="Specify the experiment stage to run.",
 )
+@click.option(
+    "--template-to-use-for-compute-embeddings",
+    type=Template,
+    default=Template.RTX6000,
+    help="Template to use for the compute embeddings job submission.",
+)
 def submit_jobs_in_separate_tmux_sessions(
     *,
     run_option: RunOption,
@@ -133,6 +140,7 @@ def submit_jobs_in_separate_tmux_sessions(
     model_group_options: list[ModelGroupOption],
     data_subsampling_sampling_mode: DataSamplingMode,
     experiment_stage: ExperimentStage,
+    template_to_use_for_compute_embeddings: Template,
 ) -> None:
     """Submit jobs in tmux sessions with logging and resource management."""
     # Cast arguments to list to convert the tuple type returned by click to a list.
@@ -208,6 +216,7 @@ def submit_jobs_in_separate_tmux_sessions(
             run_only_selected_configs_option=run_only_selected_configs_option,
             submission_mode=submission_mode,
             run_option=run_option,
+            template_to_use_for_compute_embeddings=template_to_use_for_compute_embeddings,
         )
 
     # Automatically attach to the first session
@@ -286,6 +295,7 @@ def run_tmux_session(
     run_only_selected_configs_option: RunOnlySelectedConfigsOption,
     run_option: RunOption,
     submission_mode: SubmissionMode,
+    template_to_use_for_compute_embeddings: Template,
     session_timeout: int = 6,
 ) -> None:
     """Start a tmux session to run the job and log the output."""
@@ -306,6 +316,7 @@ def run_tmux_session(
         f"--run-option {str(object=run_option)} "
         f"--run-only-selected-configs-option {str(object=run_only_selected_configs_option)} "
         f"--submission-mode {str(object=submission_mode)} "
+        f"--template-to-use-for-compute-embeddings {str(object=template_to_use_for_compute_embeddings)} "
         f"2>&1 | tee -a {log_file}; "
         f'echo ">>> All jobs in this tmux session submitted." | tee -a {log_file}; '  # Note: The "..." quotes are necessary for the echo command.
         f'echo "{timeout_message}" | tee -a {log_file}; '  # Note: The "..." quotes are necessary for the echo command.
