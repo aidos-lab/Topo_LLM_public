@@ -33,12 +33,13 @@ from typing import Any, TypeAlias
 
 import numpy as np
 import zarr
-import zarr.core
 
-ArrayLike: TypeAlias = np.ndarray | zarr.core.Array
+ArrayLike: TypeAlias = np.ndarray | zarr.Array
 DType = Any
 
-default_logger = logging.getLogger(__name__)
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 def log_array_info(
@@ -53,46 +54,46 @@ def log_array_info(
 ) -> None:
     """Log information about the array."""
     logger.info(
-        f"type({array_name}):\n{type(array_)}",  # noqa: G004 - low overhead
+        msg=f"type({array_name}):\n{type(array_)}",  # noqa: G004 - low overhead
     )
 
     logger.info(
-        f"{array_name}.shape:\n{array_.shape}",  # noqa: G004 - low overhead
+        msg=f"{array_name}.shape:\n{array_.shape}",  # noqa: G004 - low overhead
     )
     logger.info(
-        f"{array_name}.dtype:\n{array_.dtype}",  # noqa: G004 - low overhead
+        msg=f"{array_name}.dtype:\n{array_.dtype}",  # noqa: G004 - low overhead
     )
     logger.info(
-        f"{array_name}[:{slice_size_to_log}]:\n{pprint.pformat(array_[:slice_size_to_log])}",  # noqa: G004 - low overhead
+        msg=f"{array_name}[:{slice_size_to_log}]:\n{pprint.pformat(array_[:slice_size_to_log])}",  # noqa: G004 - low overhead
     )
     logger.info(
-        f"{array_name}[-{slice_size_to_log}:]:\n{pprint.pformat(array_[-slice_size_to_log:])}",  # noqa: G004 - low overhead
+        msg=f"{array_name}[-{slice_size_to_log}:]:\n{pprint.pformat(array_[-slice_size_to_log:])}",  # noqa: G004 - low overhead
     )
 
     if log_array_size:
         # Estimate the size of the .npy file in MB
         logger.info(
-            f"{array_name}.nbytes:\n{array_.nbytes}",  # noqa: G004 - low overhead
+            msg=f"{array_name}.nbytes:\n{array_.nbytes}",  # noqa: G004 - low overhead
         )
         array_file_size_in_mb = array_.nbytes / 1024**2
         logger.info(
-            f"{array_name} size in MB:\n{array_file_size_in_mb:.3f} MB",  # noqa: G004 - low overhead
+            msg=f"{array_name} size in MB:\n{array_file_size_in_mb:.3f} MB",  # noqa: G004 - low overhead
         )
 
     if log_chunks:
         # If array_ has a chunks attribute,
-        # for instance if it is a zarr.core.Array,
+        # for instance if it is a zarr.Array,
         # log the chunks attribute
         if hasattr(
             array_,
             "chunks",
         ):
             logger.info(
-                f"{array_name}.chunks:\n{array_.chunks}",  # type: ignore - problem with zarr.core.Array; # noqa: G004 - low overhead
+                msg=f"{array_name}.chunks:\n{array_.chunks}",  # type: ignore - problem with zarr.Array; # noqa: G004 - low overhead
             )
         else:
             logger.info(
-                f"{array_name} has no chunks attribute.",  # noqa: G004 - low overhead
+                msg=f"{array_name} has no chunks attribute.",  # noqa: G004 - low overhead
             )
 
     if log_row_l2_norms:
@@ -112,10 +113,10 @@ def log_array_info(
                     axis=1,
                 ),
             )
-        except np.AxisError as e:
+        except np.exceptions.AxisError as e:
             # For example, we get
             # `numpy.exceptions.AxisError: axis 1 is out of bounds for array of dimension 1`
             # if we try to calculate the L2-norms of a 1D array.
             logger.exception(
-                f"Error when trying to calculate L2-norms of {array_name}: {e}",  # noqa: G004 , TRY401- low overhead
+                msg=f"Error when trying to calculate L2-norms of {array_name}: {e}",  # noqa: G004 , TRY401- low overhead
             )

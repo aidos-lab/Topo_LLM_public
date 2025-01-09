@@ -593,28 +593,41 @@
                 //
                 // >>> Use the following to run a random configuration
                 //
-                "--run-option",
-                "do_submission",
-                "--run-only-selected-configs-option",
-                "run_single_random",
-                //
-                // >>>> Use the following to run with all configurations
-                //
                 // "--run-option",
                 // "do_submission",
                 // "--run-only-selected-configs-option",
-                // "run_all",
+                // "run_single_random",
+                //
+                // >>>> Use the following to run with all configurations
+                //
+                "--run-option",
+                "do_submission",
+                "--run-only-selected-configs-option",
+                "run_all",
                 //
                 // >>>> END: Select the run option
                 "--submission-mode",
                 // "local",
                 "hpc_submission",
                 "--template-to-use-for-compute-embeddings",
-                "DSML",
-                // "RTX6000",
-                // >> Concrete experiment configurations
+                // "DSML",
+                "RTX6000",
+                // >>>> Concrete experiment configurations
+                //    >> Data list options.
+                //    >> Note that for multiple options, you need to specify the `--data-list-options` multiple times.
+                // "--data-list-options",
+                // "validation_split_only",
+                //    >> Individual dataset and splits, so that you can submit them in separate tmux sessions
                 "--data-list-options",
-                "validation_split_only",
+                "iclr_validation_only",
+                "--data-list-options",
+                "multiwoz21_validation_only",
+                "--data-list-options",
+                "reddit_validation_only",
+                "--data-list-options",
+                "sgd_validation_only",
+                "--data-list-options",
+                "wikitext_validation_only",
                 // "multiwoz21_validation_and_reddit_validation",
                 // "iclr_validation_and_sgd_validation_and_wikitext_validation",
                 "--experiment-selector-options",

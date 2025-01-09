@@ -191,6 +191,10 @@ def retrieve_data_list(
                 "wikitext_test",
             ]
         # Selecting only one dataset
+        case DataListOption.ICLR_VALIDATION_ONLY:
+            data_list: list[str] = [
+                "iclr_2024_submissions_validation",
+            ]
         case DataListOption.MULTIWOZ21_ONLY:
             data_list: list[str] = [
                 "multiwoz21_test",
@@ -211,10 +215,18 @@ def retrieve_data_list(
             data_list: list[str] = [
                 "one-year-of-tsla-on-reddit_validation",
             ]
+        case DataListOption.SGD_VALIDATION_ONLY:
+            data_list: list[str] = [
+                "sgd_validation",
+            ]
         case DataListOption.WIKITEXT_ONLY:
             data_list: list[str] = [
                 "wikitext-103-v1_test",
                 "wikitext-103-v1_train",
+                "wikitext-103-v1_validation",
+            ]
+        case DataListOption.WIKITEXT_VALIDATION_ONLY:
+            data_list: list[str] = [
                 "wikitext-103-v1_validation",
             ]
         # Select certain data splits
