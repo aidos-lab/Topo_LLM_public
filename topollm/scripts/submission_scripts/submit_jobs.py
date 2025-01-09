@@ -147,19 +147,10 @@ validation_split_only_data_list: list[str] = [data_name for data_name in full_da
 only_roberta_base_language_model_list: list[str] = [
     "roberta-base",
 ]
-selected_finetuned_few_epochs_from_roberta_base_language_model_list = [
-    "model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
-    "model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
-]
+
 selected_finetuned_many_epochs_from_roberta_base_language_model_list = [
     "model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50",
     "model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50",
-]
-full_finetuned_few_epochs_from_roberta_base_language_model_list = [
-    "model-roberta-base_task-masked_lm_iclr_2024_submissions-train-5000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
-    "model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
-    "model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
-    "model-roberta-base_task-masked_lm_wikitext-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
 ]
 
 setsumbt_model_list = [
@@ -406,6 +397,10 @@ def retrieve_finetuning_datasets_list(
                 "train_and_eval_on_multiwoz21_train-samples-small",
                 "train_and_eval_on_one-year-of-tsla-on-reddit_train-samples-small",
             ]
+        case FinetuningDatasetsListOption.ICLR_SMALL:
+            finetuning_datasets_list: list[str] = [
+                "train_and_eval_on_iclr_2024_submissions_train-samples-5000",
+            ]
         case FinetuningDatasetsListOption.MULTIWOZ21_SMALL:
             finetuning_datasets_list: list[str] = [
                 "train_and_eval_on_multiwoz21_train-samples-small",
@@ -421,6 +416,10 @@ def retrieve_finetuning_datasets_list(
         case FinetuningDatasetsListOption.REDDIT_FULL:
             finetuning_datasets_list: list[str] = [
                 "train_and_eval_on_one-year-of-tsla-on-reddit_train-samples-full",
+            ]
+        case FinetuningDatasetsListOption.SGD_SMALL:
+            finetuning_datasets_list: list[str] = [
+                "train_and_eval_on_sgd_train-samples-small",
             ]
         case FinetuningDatasetsListOption.WIKITEXT_SMALL:
             finetuning_datasets_list: list[str] = [
@@ -492,14 +491,24 @@ def retrieve_model_and_checkpoint_list(
             # No checkpoints for the base model
             checkpoint_no_list = None
         case LanguageModelListOption.SELECTED_FINETUNED_FEW_EPOCHS_FROM_ROBERTA_BASE:
-            language_model_list: list[str] = selected_finetuned_few_epochs_from_roberta_base_language_model_list
+            # TODO: These lists of model names for the few epochs might need to be updated
+            language_model_list: list[str] = [
+                "model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
+                "model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
+            ]
 
             checkpoint_no_list = get_checkpoint_no_list(
                 checkpoint_no_list_option=checkpoint_no_list_option,
                 num_train_epochs=int(num_train_epochs),
             )
         case LanguageModelListOption.FULL_FINETUNED_FEW_EPOCHS_FROM_ROBERTA_BASE:
-            language_model_list: list[str] = full_finetuned_few_epochs_from_roberta_base_language_model_list
+            # TODO: These lists of model names for the few epochs might need to be updated
+            language_model_list: list[str] = [
+                "model-roberta-base_task-masked_lm_iclr_2024_submissions-train-5000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
+                "model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
+                "model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
+                "model-roberta-base_task-masked_lm_wikitext-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
+            ]
 
             checkpoint_no_list = get_checkpoint_no_list(
                 checkpoint_no_list_option=checkpoint_no_list_option,
@@ -811,7 +820,10 @@ def make_config_and_run_task(
                 msg,
             )
 
-    language_model_list, checkpoint_no_list = retrieve_model_and_checkpoint_list(
+    (
+        language_model_list,
+        checkpoint_no_list,
+    ) = retrieve_model_and_checkpoint_list(
         language_model_list_option=language_model_list_option,
         checkpoint_no_list_option=checkpoint_no_list_option,
         num_train_epochs=num_train_epochs,

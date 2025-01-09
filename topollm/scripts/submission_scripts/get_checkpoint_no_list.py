@@ -38,7 +38,7 @@ def get_checkpoint_no_list(
     match checkpoint_no_list_option:
         case CheckpointNoListOption.SELECTED:
             if num_train_epochs == 5:
-                checkpoint_no_list = [
+                checkpoint_no_list: list[str] = [
                     "400",
                     "1200",
                     "2000",
@@ -78,7 +78,14 @@ def get_checkpoint_no_list(
             elif num_train_epochs == 50:
                 # All checkpoints from 400 to 31200
                 # (for ep-50 and batch size 8)
-                checkpoint_no_list = [str(i) for i in range(400, 31201, 400)]
+                checkpoint_no_list = [
+                    str(i)
+                    for i in range(
+                        400,
+                        31201,
+                        400,
+                    )
+                ]
             else:
                 msg = f"Unknown {num_train_epochs = }"
                 raise ValueError(msg)
@@ -96,7 +103,7 @@ def get_checkpoint_no_list(
                     "31200",
                 ]
             else:
-                msg = f"Unknown {num_train_epochs = }"
+                msg: str = f"Unknown {num_train_epochs = }"
                 raise ValueError(msg)
         case _:
             msg = f"Unknown {checkpoint_no_list_option = }"
