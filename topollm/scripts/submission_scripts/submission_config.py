@@ -172,7 +172,8 @@ class SubmissionConfig(BaseModel):
 
     # # # #
     # Feature flags
-    skip_compute_and_store_embeddings: bool = False
+    skip_compute_and_store_embeddings_in_pipeline: bool = False
+    skip_embeddings_data_prep_in_pipeline: bool = False
     feature_flags_wandb_use_wandb: str | None = "true"
 
     python_script_name: str = Field(
@@ -244,9 +245,13 @@ class SubmissionConfig(BaseModel):
     ) -> list[str]:
         feature_flags_command: list[str] = []
 
-        if self.skip_compute_and_store_embeddings:
+        if self.skip_compute_and_store_embeddings_in_pipeline:
             feature_flags_command.append(
-                "feature_flags.compute_and_store_embeddings.skip_compute_and_store_embeddings=true",
+                "feature_flags.compute_and_store_embeddings.skip_compute_and_store_embeddings_in_pipeline=true",
+            )
+        if self.skip_embeddings_data_prep_in_pipeline:
+            feature_flags_command.append(
+                "feature_flags.embeddings_data_prep.skip_embeddings_data_prep_in_pipeline=true",
             )
         if self.feature_flags_wandb_use_wandb:
             feature_flags_command.append(

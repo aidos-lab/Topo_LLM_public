@@ -613,9 +613,13 @@
                 // "DSML",
                 "RTX6000",
                 // >>>> Concrete experiment configurations
+                "--experiment-selector-options",
+                "regular_token_embeddings_multiple_layers_single_sample",
+                "--experiment-stage",
+                "compute_embeddings_plus_single_pipeline_run",
+                //    >> START Data list options.
                 //    >> Data list options.
                 //    >> Note that for multiple options, you need to specify the `--data-list-options` multiple times.
-                // >> START Data list options.
                 // "--data-list-options",
                 // "validation_split_only",
                 //    >> Individual dataset and splits, so that you can submit them in separate tmux sessions
@@ -629,11 +633,9 @@
                 // "sgd_validation_only",
                 // "--data-list-options",
                 // "wikitext_validation_only",
-                // >> END Data list options.
-                "--experiment-selector-options",
-                "regular_token_embeddings_multiple_layers_single_sample",
-                "--experiment-stage",
-                "compute_embeddings_plus_single_pipeline_run",
+                //    >> END Data list options.
+                //    >> Model group options.
+                //    >> Note that for multiple options, you need to specify the `--model-group-options` multiple times.
                 // "--model-group-options",
                 // "roberta_base_without_modifications",
                 // "--model-group-options",
@@ -686,17 +688,22 @@
                 // "DSML",
                 "RTX6000",
                 // >>>> Concrete experiment configurations
+                "--experiment-selector-options",
+                "masked_token_embeddings_last_layer_single_sample",
+                "--experiment-stage",
+                "compute_embeddings_plus_single_pipeline_run",
                 //    >> Data list options.
                 //    >> Note that for multiple options, you need to specify the `--data-list-options` multiple times.
                 "--data-list-options",
                 "validation_split_only",
-                "--experiment-selector-options",
-                "masked_token_embeddings_last_layer_single_sample",
+                //    >> Model group options.
                 //    >> Note that for multiple options, you need to specify the `--model-group-options` multiple times.
+                // "--model-group-options",
+                // "roberta_base_without_modifications",
+                // "--model-group-options",
+                // "roberta_base_finetuned_for_few_epochs_old_and_new_data_single_seed_last_checkpoint",
                 "--model-group-options",
-                "roberta_base_without_modifications",
-                "--model-group-options",
-                "roberta_base_finetuned_for_few_epochs_old_and_new_data_single_seed_last_checkpoint",
+                "roberta_base_finetuned_for_few_epochs_multiwoz_data_single_seed_last_checkpoint",
             ]
         },
         {
@@ -738,10 +745,14 @@
                 // >>>> END: Select the run option
                 "--submission-mode",
                 "hpc_submission",
-                // >> Concrete experiment configurations
+                // >>>> Concrete experiment configurations
+                "--experiment-selector-options",
+                "sensitivity_analysis_different_local_estimates_filtering_number_of_samples",
                 "--experiment-stage",
                 // "compute_embeddings_plus_single_pipeline_run", // Note: You need to make sure the embedding arrays exist before you can call the skip_compute_embeddings_but_do_multiple_pipeline_runs stage
                 "skip_compute_embeddings_but_do_multiple_pipeline_runs",
+                //    >> Data list options.
+                //    >> Note that for multiple options, you need to specify the `--data-list-options` multiple times.
                 // "--data-list-options",
                 // "multiwoz_only",
                 // "--data-list-options",
@@ -752,8 +763,6 @@
                 "reddit_train_only",
                 "--data-list-options",
                 "reddit_validation_only",
-                "--experiment-selector-options",
-                "sensitivity_analysis_different_local_estimates_filtering_number_of_samples"
             ]
         },
         {
@@ -795,16 +804,20 @@
                 // >>>> END: Select the run option
                 "--submission-mode",
                 "local",
-                // >> Concrete experiment configurations
+                // >>>> Concrete experiment configurations
+                "--experiment-selector-options",
+                "sensitivity_analysis_different_local_estimates_pointwise_absolute_n_neighbors",
                 "--experiment-stage",
                 "skip_compute_embeddings_but_do_multiple_pipeline_runs",
+                //    >> Data list options.
+                //    >> Note that for multiple options, you need to specify the `--data-list-options` multiple times.
                 "--data-list-options",
                 // "multiwoz21_validation_and_reddit_validation",
                 "reddit_validation_only",
+                //    >> Model group options.
+                //    >> Note that for multiple options, you need to specify the `--model-group-options` multiple times.
                 "--model-group-options",
                 "roberta_base_without_modifications",
-                "--experiment-selector-options",
-                "sensitivity_analysis_different_local_estimates_pointwise_absolute_n_neighbors"
             ]
         },
     ]

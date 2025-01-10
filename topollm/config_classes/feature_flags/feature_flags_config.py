@@ -138,7 +138,7 @@ class AnalysisFeatureFlagsConfig(ConfigBaseModel):
 class ComputeAndStoreEmbeddingsFeatureFlagsConfig(ConfigBaseModel):
     """Feature flags for the compute and store embeddings process."""
 
-    skip_compute_and_store_embeddings: bool = Field(
+    skip_compute_and_store_embeddings_in_pipeline: bool = Field(
         default=False,
         title="Skip compute and store embeddings in the pipeline.",
         description="Whether to skip the compute and store embeddings process in the pipeline.",
@@ -147,6 +147,12 @@ class ComputeAndStoreEmbeddingsFeatureFlagsConfig(ConfigBaseModel):
 
 class EmbeddingsDataPrepFeatureFlagsConfig(ConfigBaseModel):
     """Feature flags for the embeddings data preparation process."""
+
+    skip_embeddings_data_prep_in_pipeline: bool = Field(
+        default=False,
+        title="Skip embeddings data preparation in the pipeline.",
+        description="Whether to skip the embeddings data preparation in the pipeline.",
+    )
 
     add_additional_metadata: bool = Field(
         default=True,
