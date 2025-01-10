@@ -780,7 +780,7 @@ def retrieve_local_estimates_filtering_num_samples_list(
     return local_estimates_filtering_num_samples_list
 
 
-def make_config_and_run_task(
+def make_submission_config_and_run_task(
     data_list_option: DataListOption,
     data_subsampling_sampling_mode: DataSamplingMode,
     data_subsampling_number_of_samples_list_option: DataSubsamplingNumberOfSamplesListOption,
@@ -1199,8 +1199,6 @@ def orchestrate_job_submission(
     batch_size_train = common_batch_size
     batch_size_eval = common_batch_size
 
-    walltime = "08:00:00"  # Default walltime
-
     finetuning_seed_list_option = SeedListOption.ONE_SEED
 
     ########################################
@@ -1213,36 +1211,7 @@ def orchestrate_job_submission(
             # Only run for a single embeddings data prep sampling seed
             embeddings_data_prep_sampling_seed_list_option = EmbeddingsDataPrepSamplingSeedListOption.DEFAULT
             skip_compute_and_store_embeddings = False  # do the embeddings computation
-
-            match template_to_use_for_compute_embeddings:
-                case Template.RTX6000:
-                    queue, template = "CUDA", Template.RTX6000
-                case Template.GTX1080:
-                    queue, template = "CUDA", Template.GTX1080
-                case Template.DSML:
-                    queue, template = "DSML", Template.DSML
-                case _:
-                    msg: str = f"{template_to_use_for_compute_embeddings = } requires a GPU template."
-                    raise ValueError(
-                        msg,
-                    )
-
-            ncpus = "4"
-            ngpus = "1"
-
-            # For the datasets with 10_000 samples, one pipeline run with regular embeddings usually takes about 30 min.
-            # We set the walltime to 2 hours to be on the safe side.
-            #
-            # > walltime = "02:00:00"
-
-            # For the masked embeddings on datasets with long sequences, the walltime can be significantly longer.
-            walltime = "06:00:00"  # Longer walltime to make sure it is long enough for the masked embeddings
         case ExperimentStage.SKIP_COMPUTE_EMBEDDINGS_BUT_DO_MULTIPLE_PIPELINE_RUNS:
-            ncpus = "6"
-            ngpus = "0"
-            queue = "DEFAULT"
-            template = Template.CPU
-
             # Assume embeddings are already computed and run for different embeddings data prep sampling seeds
             embeddings_data_prep_sampling_seed_list_option = EmbeddingsDataPrepSamplingSeedListOption.FIVE_SEEDS
             skip_compute_and_store_embeddings = True  # skip the embeddings computation
@@ -1251,30 +1220,6 @@ def orchestrate_job_submission(
             raise ValueError(
                 msg,
             )
-
-    # Overwrite the machine configuration based on the task
-    match task:
-        case Task.PERPLEXITY:
-            queue = "CUDA"
-            template = Template.RTX6000
-
-            walltime = "12:00:00"  # Use slightly longer walltime for perplexity
-        case Task.FINETUNING:
-            queue = "CUDA"
-            template = Template.RTX6000
-
-            ncpus = "4"
-            ngpus = "1"
-            walltime = "48:00:00"  # Use significantly longer walltime for finetuning
-
-    machine_config = MachineConfig(
-        queue=queue,
-        template=template,
-        memory=memory,
-        ncpus=ncpus,
-        ngpus=ngpus,
-        walltime=walltime,
-    )
 
     ########################################
     ### Experiment selector configurations
@@ -1297,11 +1242,6 @@ def orchestrate_job_submission(
             )
 
             data_subsampling_sampling_seed_list_option = DataSubsamplingSamplingSeedListOption.THREE_SEEDS
-
-            # Note: We explicitly increase the memory size here,
-            # since for the embeddings data prep step on 12_000 and more data subsamlping samples,
-            # the embeddings data prep step requires more memory.
-            memory = "64"
         case ExperimentSelector.SENSITIVITY_ANALYSIS_REDDIT_DIFFERENT_DATA_SUBSAMPLING_NUMBER_OF_SAMPLES:
             # ++++ Experiment > different subsampling number of samples for reddit dataset
             #
@@ -1317,8 +1257,6 @@ def orchestrate_job_submission(
             )
 
             data_subsampling_sampling_seed_list_option = DataSubsamplingSamplingSeedListOption.THREE_SEEDS
-
-            memory = "80"
         # TODO: Add experiment for the sensitivity to token subsample size
         case ExperimentSelector.REGULAR_TOKEN_EMBEDDINGS_MULTIPLE_LOCAL_ESTIMATES_POINTWISE_ABSOLUTE_N_NEIGHBORS:
             # Notes:
@@ -1470,6 +1408,19 @@ def orchestrate_job_submission(
     ### for example to remove unnecessary configurations and thus avoid unnecessary computations
     ########################################
 
+    machine_config: MachineConfig = make_machine_config(
+        task=task,
+        experiment_stage=experiment_stage,
+        experiment_selector=experiment_selector,
+        template_to_use_for_compute_embeddings=template_to_use_for_compute_embeddings,
+        embedding_data_handler_mode=embedding_data_handler_mode,
+        memory=memory,
+        ncpus=ncpus,
+        ngpus=ngpus,
+        queue=queue,
+        template=template,
+    )
+
     if data_subsampling_sampling_mode == DataSamplingMode.TAKE_FIRST:
         # We do not need sampling seeds for the TAKE_FIRST mode
         data_subsampling_sampling_seed_list_option = DataSubsamplingSamplingSeedListOption.NONE
@@ -1479,7 +1430,7 @@ def orchestrate_job_submission(
         f"{additional_overrides_parameter = }",
     )
 
-    make_config_and_run_task(
+    make_submission_config_and_run_task(
         data_list_option=data_list_option,
         data_subsampling_sampling_mode=data_subsampling_sampling_mode,
         data_subsampling_number_of_samples_list_option=data_subsampling_number_of_samples_list_option,
@@ -1511,6 +1462,110 @@ def orchestrate_job_submission(
         run_option=run_option,
         run_only_selected_configs_option=run_only_selected_configs_option,
     )
+
+
+def make_machine_config(
+    task: Task,
+    experiment_stage: ExperimentStage,
+    experiment_selector: ExperimentSelector,
+    template_to_use_for_compute_embeddings: Template,
+    embedding_data_handler_mode: EmbeddingDataHandlerMode,
+    memory: str,
+    ncpus: str,
+    ngpus: str,
+    queue: str,
+    template: Template,
+) -> MachineConfig:
+    """Make a machine configuration for the experiment.
+
+    This function encapsulates all the logic for selecting the correct machine configuration for the experiment.
+    """
+    # Default walltime
+    walltime = "08:00:00"
+
+    match experiment_stage:
+        case ExperimentStage.COMPUTE_EMBEDDINGS_PLUS_SINGLE_PIPELINE_RUN:
+            match template_to_use_for_compute_embeddings:
+                case Template.RTX6000:
+                    queue, template = "CUDA", Template.RTX6000
+                case Template.GTX1080:
+                    queue, template = "CUDA", Template.GTX1080
+                case Template.DSML:
+                    queue, template = "DSML", Template.DSML
+                case _:
+                    msg: str = f"{template_to_use_for_compute_embeddings = } requires a GPU template."
+                    raise ValueError(
+                        msg,
+                    )
+
+            ncpus = "4"
+            ngpus = "1"
+
+            match embedding_data_handler_mode:
+                case EmbeddingDataHandlerMode.REGULAR:
+                    # For the datasets with 10_000 samples,
+                    # one pipeline run with regular embeddings usually takes about 30 min.
+                    # We set the walltime to 2 hours to be on the safe side.
+                    walltime = "02:00:00"
+                case EmbeddingDataHandlerMode.MASKED_TOKEN:
+                    # For the masked embeddings on datasets with long sequences,
+                    # the walltime can be significantly longer.
+                    walltime = "06:00:00"  # Longer walltime to make sure it is long enough for the masked embeddings
+                case _:
+                    msg: str = f"Unknown {embedding_data_handler_mode = }"
+                    raise ValueError(
+                        msg,
+                    )
+
+        case ExperimentStage.SKIP_COMPUTE_EMBEDDINGS_BUT_DO_MULTIPLE_PIPELINE_RUNS:
+            ncpus = "6"
+            ngpus = "0"
+            queue = "DEFAULT"
+            template = Template.CPU
+        case _:
+            msg: str = f"Unknown {experiment_stage = }"
+            raise ValueError(
+                msg,
+            )
+
+    # Override the machine configuration based on the experiment selector
+    match experiment_selector:
+        case ExperimentSelector.SENSITIVITY_ANALYIS_MULTIWOZ21_DIFFERENT_DATA_SUBSAMPLING_NUMBER_OF_SAMPLES:
+            # Note: We explicitly increase the memory size here,
+            # since for the embeddings data prep step on 12_000 and more data subsamlping samples,
+            # the embeddings data prep step requires more memory.
+            memory = "64"
+        case ExperimentSelector.SENSITIVITY_ANALYSIS_REDDIT_DIFFERENT_DATA_SUBSAMPLING_NUMBER_OF_SAMPLES:
+            # Note: We explicitly increase the memory size here,
+            # since for the embeddings data prep step on 12_000 and more data subsamlping samples,
+            # the embeddings data prep step requires more memory.
+            memory = "80"
+
+    # Override the machine configuration based on the task
+    match task:
+        case Task.PERPLEXITY:
+            queue = "CUDA"
+            template = Template.RTX6000
+
+            walltime = "12:00:00"  # Use slightly longer walltime for perplexity
+        case Task.FINETUNING:
+            queue = "CUDA"
+            template = Template.RTX6000
+
+            ncpus = "4"
+            ngpus = "1"
+            walltime = "48:00:00"  # Use significantly longer walltime for finetuning
+
+    machine_config = MachineConfig(
+        queue=queue,
+        template=template,
+        memory=memory,
+        ncpus=ncpus,
+        ngpus=ngpus,
+        walltime=walltime,
+    )
+
+    return machine_config
 
 
 def main() -> None:
