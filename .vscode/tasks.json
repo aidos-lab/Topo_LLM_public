@@ -46,6 +46,21 @@
             }
         },
         {
+            "label": "Create small version of 'data/analysis/twonn' directory",
+            "detail": "Create a copy of the 'data/analysis/twonn' directory but exclude large arrays and metadata files.",
+            "command": "topollm/scripts/data_handling/copy_folder_but_exclude_large_arrays_and_metadata.sh /Users/ruppik/git-source/Topo_LLM/data/analysis/twonn /Users/ruppik/git-source/Topo_LLM/data/analysis/twonn.only_small_files",
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": false
+            }
+        },
+        {
             "label": "rsync from HHU Hilbert to local repository folder: 'hydra_output_dir' directory",
             "command": "./topollm/scripts/hhu_hilbert/sync_data/rsync_hydra_output_dir_from_hhu_hilbert.sh",
             "type": "shell",
