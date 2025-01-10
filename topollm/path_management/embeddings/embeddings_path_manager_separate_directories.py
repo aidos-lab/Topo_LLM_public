@@ -432,7 +432,7 @@ class EmbeddingsPathManagerSeparateDirectories:
     ) -> pathlib.Path:
         path = pathlib.Path(
             self.analysis_dir,
-            "distances_and_influence_on_local_estimates",
+            "distances_and_influence_on_losses_and_local_estimates",
             self.main_config.analysis.investigate_distances.get_config_description(),
             self.get_local_estimates_subfolder_path(),
         )

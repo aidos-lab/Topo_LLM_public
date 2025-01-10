@@ -56,7 +56,7 @@ from topollm.model_handling.loaded_model_container import LoadedModelContainer
 from topollm.model_handling.prepare_loaded_model_container import prepare_device_and_tokenizer_and_model
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
 from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
-from topollm.typing.enums import EmbeddingDataHandlerMode, Verbosity
+from topollm.typing.enums import Verbosity
 
 if TYPE_CHECKING:
     pass
@@ -102,13 +102,21 @@ class ComputationData:
     # (for example, to distinguish the base data from the comparison data)
     descriptive_string: str = ""
 
-    @staticmethod
-    def from_main_config(
+
+class ComputationManager:
+    """Class to manage the computations."""
+
+    def __init__(
+        self,
         main_config: MainConfig,
         descriptive_string: str = "",
         verbosity: Verbosity = Verbosity.NORMAL,
         logger: logging.Logger = default_logger,
-    ) -> "ComputationData":
+    ) -> None:
+        """Initialize the manager."""
+        self.verbosity: Verbosity = verbosity
+        self.logger: logging.Logger = logger
+
         embeddings_path_manager: EmbeddingsPathManager = get_embeddings_path_manager(
             main_config=main_config,
             logger=logger,
@@ -155,7 +163,7 @@ class ComputationData:
             local_estimates_and_predictions_save_path_collection=local_estimates_and_predictions_save_path_collection,
         )
 
-        result: ComputationData = ComputationData(
+        self.computation_data: ComputationData = ComputationData(
             main_config=main_config,
             embeddings_path_manager=embeddings_path_manager,
             local_estimates_saving_manager=local_estimates_saving_manager,
@@ -166,8 +174,6 @@ class ComputationData:
             descriptive_string=descriptive_string,
         )
 
-        return result
-
 
 class ComparisonManager:
     """Manager to compare the results of the computations."""
@@ -175,25 +181,33 @@ class ComparisonManager:
     def __init__(
         self,
         main_config_for_base_data: MainConfig,
-        main_config_for_comparison_data: MainConfig,
+        main_config_for_comparison_data: MainConfig | None = None,
         verbosity: Verbosity = Verbosity.NORMAL,
         logger: logging.Logger = default_logger,
     ) -> None:
-        """Initialize the manager."""
-        self.computation_data_for_base_data: ComputationData = ComputationData.from_main_config(
+        """Initialize the manager.
+
+        If no comparison data is provided, the comparison data will be set to None.
+        This mode can be used to only compute the base data.
+        """
+        self.computation_data_for_base_data: ComputationManager = ComputationManager(
             main_config=main_config_for_base_data,
             descriptive_string="base_data",
             verbosity=verbosity,
             logger=logger,
         )
-        self.computation_data_for_comparison_data: ComputationData = ComputationData.from_main_config(
-            main_config=main_config_for_comparison_data,
-            descriptive_string="comparison_data",
-            verbosity=verbosity,
-            logger=logger,
-        )
 
-        # TODO: Implement calls to the comparisons
+        if main_config_for_comparison_data is not None:
+            self.computation_data_for_comparison_data: ComputationManager | None = ComputationManager(
+                main_config=main_config_for_comparison_data,
+                descriptive_string="comparison_data",
+                verbosity=verbosity,
+                logger=logger,
+            )
+        else:
+            self.computation_data_for_comparison_data = None
+
+        # TODO: Implement calls to the comparisons if the comparison data is available
 
 
 @hydra.main(
@@ -224,17 +238,25 @@ def main(
     # Comparison data (for example, noise data)
     # ================================================== #
 
-    main_config_for_comparison_data: MainConfig = main_config.model_copy(
-        deep=True,
-    )
+    if main_config.feature_flags.comparison.do_comparison_of_local_estimates:
+        # We initialize a new main config for the comparison data
+        main_config_for_comparison_data: MainConfig | None = main_config.model_copy(
+            deep=True,
+        )
 
-    # TODO: Check our current decision: We do not necesarily want to initialize the comparisons configs with the defaults.
-    main_config_for_comparison_data.local_estimates = main_config.comparison_data.local_estimates.model_copy(
-        deep=True,
-    )
-    main_config_for_comparison_data.embeddings = main_config.comparison_data.embeddings.model_copy(
-        deep=True,
-    )
+        # Note:
+        # The comparison data configs will be initialized with the default values in the config classes.
+        # Make sure that you set all necessary values for the comparison data in the config file.
+        main_config_for_comparison_data.local_estimates = main_config.comparison_data.local_estimates.model_copy(
+            deep=True,
+        )
+        main_config_for_comparison_data.embeddings = main_config.comparison_data.embeddings.model_copy(
+            deep=True,
+        )
+    else:
+        # We set the comparison data to None if no comparison is requested.
+        # The ComparisonManager will handle this case by not computing the comparison data and only the base data.
+        main_config_for_comparison_data = None
 
     # ================================================== #
     # Computing data based on the configs
@@ -246,6 +268,12 @@ def main(
         verbosity=verbosity,
         logger=logger,
     )
+
+    if main_config.feature_flags.comparison.do_comparison_of_local_estimates:
+        logger.warning(
+            msg="TODO: Comparisons calls are not implemented yet.",
+        )
+        # TODO: Add a call to the comparison methods (if applicable)
 
     # ================================================== #
     # Note: You can add additional analysis steps here
