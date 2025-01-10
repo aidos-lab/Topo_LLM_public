@@ -1208,43 +1208,49 @@ def orchestrate_job_submission(
     ###
     ### Note that this might be overridden by the experiment selector configurations below.
     ########################################
-    if experiment_stage == ExperimentStage.COMPUTE_EMBEDDINGS_PLUS_SINGLE_PIPELINE_RUN:
-        # Only run for a single embeddings data prep sampling seed
-        embeddings_data_prep_sampling_seed_list_option = EmbeddingsDataPrepSamplingSeedListOption.DEFAULT
-        skip_compute_and_store_embeddings = False  # do the embeddings computation
+    match experiment_stage:
+        case ExperimentStage.COMPUTE_EMBEDDINGS_PLUS_SINGLE_PIPELINE_RUN:
+            # Only run for a single embeddings data prep sampling seed
+            embeddings_data_prep_sampling_seed_list_option = EmbeddingsDataPrepSamplingSeedListOption.DEFAULT
+            skip_compute_and_store_embeddings = False  # do the embeddings computation
 
-        match template_to_use_for_compute_embeddings:
-            case Template.RTX6000:
-                queue, template = "CUDA", Template.RTX6000
-            case Template.GTX1080:
-                queue, template = "CUDA", Template.GTX1080
-            case Template.DSML:
-                queue, template = "DSML", Template.DSML
-            case _:
-                msg: str = f"{template_to_use_for_compute_embeddings = } requires a GPU template."
-                raise ValueError(
-                    msg,
-                )
+            match template_to_use_for_compute_embeddings:
+                case Template.RTX6000:
+                    queue, template = "CUDA", Template.RTX6000
+                case Template.GTX1080:
+                    queue, template = "CUDA", Template.GTX1080
+                case Template.DSML:
+                    queue, template = "DSML", Template.DSML
+                case _:
+                    msg: str = f"{template_to_use_for_compute_embeddings = } requires a GPU template."
+                    raise ValueError(
+                        msg,
+                    )
 
-        ncpus = "4"
-        ngpus = "1"
+            ncpus = "4"
+            ngpus = "1"
 
-        # For the datasets with 10_000 samples, one pipeline run with regular embeddings usually takes about 30 min.
-        # We set the walltime to 2 hours to be on the safe side.
-        #
-        # > walltime = "02:00:00"
+            # For the datasets with 10_000 samples, one pipeline run with regular embeddings usually takes about 30 min.
+            # We set the walltime to 2 hours to be on the safe side.
+            #
+            # > walltime = "02:00:00"
 
-        # For the masked embeddings on datasets with long sequences, the walltime can be significantly longer.
-        walltime = "06:00:00"  # Longer walltime to make sure it is long enough for the masked embeddings
-    elif experiment_stage == ExperimentStage.SKIP_COMPUTE_EMBEDDINGS_BUT_DO_MULTIPLE_PIPELINE_RUNS:
-        ncpus = "6"
-        ngpus = "0"
-        queue = "DEFAULT"
-        template = Template.CPU
+            # For the masked embeddings on datasets with long sequences, the walltime can be significantly longer.
+            walltime = "06:00:00"  # Longer walltime to make sure it is long enough for the masked embeddings
+        case ExperimentStage.SKIP_COMPUTE_EMBEDDINGS_BUT_DO_MULTIPLE_PIPELINE_RUNS:
+            ncpus = "6"
+            ngpus = "0"
+            queue = "DEFAULT"
+            template = Template.CPU
 
-        # Assume embeddings are already computed and run for different embeddings data prep sampling seeds
-        embeddings_data_prep_sampling_seed_list_option = EmbeddingsDataPrepSamplingSeedListOption.FIVE_SEEDS
-        skip_compute_and_store_embeddings = True  # skip the embeddings computation
+            # Assume embeddings are already computed and run for different embeddings data prep sampling seeds
+            embeddings_data_prep_sampling_seed_list_option = EmbeddingsDataPrepSamplingSeedListOption.FIVE_SEEDS
+            skip_compute_and_store_embeddings = True  # skip the embeddings computation
+        case _:
+            msg: str = f"Unknown {experiment_stage = }"
+            raise ValueError(
+                msg,
+            )
 
     # Overwrite the machine configuration based on the task
     match task:
@@ -1276,7 +1282,10 @@ def orchestrate_job_submission(
     ### Note: You can use the experiment selector to override the default configurations above.
     ########################################
     match experiment_selector:
-        case ExperimentSelector.MULTIWOZ21_DIFFERENT_DATA_SUBSAMPLING_NUMBER_OF_SAMPLES:
+        #
+        # >>> START Sensitivity analysis experiments
+        #
+        case ExperimentSelector.SENSITIVITY_ANALYIS_MULTIWOZ21_DIFFERENT_DATA_SUBSAMPLING_NUMBER_OF_SAMPLES:
             # ++++ Experiment > different subsampling number of samples for multiwoz21 dataset
             #
             # Note:
@@ -1287,11 +1296,13 @@ def orchestrate_job_submission(
                 DataSubsamplingNumberOfSamplesListOption.RANGE_START_2000_STOP_18000_STEP_2000
             )
 
+            data_subsampling_sampling_seed_list_option = DataSubsamplingSamplingSeedListOption.THREE_SEEDS
+
             # Note: We explicitly increase the memory size here,
             # since for the embeddings data prep step on 12_000 and more data subsamlping samples,
             # the embeddings data prep step requires more memory.
             memory = "64"
-        case ExperimentSelector.REDDIT_DIFFERENT_DATA_SUBSAMPLING_NUMBER_OF_SAMPLES:
+        case ExperimentSelector.SENSITIVITY_ANALYSIS_REDDIT_DIFFERENT_DATA_SUBSAMPLING_NUMBER_OF_SAMPLES:
             # ++++ Experiment > different subsampling number of samples for reddit dataset
             #
             # Note:
@@ -1305,7 +1316,33 @@ def orchestrate_job_submission(
                 DataSubsamplingNumberOfSamplesListOption.RANGE_START_2000_STOP_24000_STEP_2000
             )
 
+            data_subsampling_sampling_seed_list_option = DataSubsamplingSamplingSeedListOption.THREE_SEEDS
+
             memory = "80"
+        # TODO: Add experiment for the sensitivity to token subsample size
+        case ExperimentSelector.REGULAR_TOKEN_EMBEDDINGS_MULTIPLE_LOCAL_ESTIMATES_POINTWISE_ABSOLUTE_N_NEIGHBORS:
+            # Notes:
+            # - You need to set the data_list_option via the command line arguments.
+            # - Do not set the checkpoint_no_list_option here, since we want to take it from the model group option.
+
+            data_subsampling_number_of_samples_list_option = DataSubsamplingNumberOfSamplesListOption.FIXED_10000
+            data_subsampling_sampling_seed_list_option = DataSubsamplingSamplingSeedListOption.FIXED_777
+
+            embedding_data_handler_mode = EmbeddingDataHandlerMode.REGULAR
+
+            # Select only a single training seed
+            language_model_seed_list_option = SeedListOption.FIXED_SEED_1234
+
+            # Note: We currently run this for a single token sampling seed,
+            # to reduce the number of runs.
+            embeddings_data_prep_sampling_seed_list_option = EmbeddingsDataPrepSamplingSeedListOption.DEFAULT
+
+            local_estimates_pointwise_absolute_n_neighbors_list_option = (
+                LocalEstimatesPointwiseAbsoluteNNeighborsListOption.POWERS_OF_TWO_UP_TO_1024
+            )
+        #
+        # >>> END Sensitivity analysis experiments
+        #
         case ExperimentSelector.COARSE_CHECKPOINT_RESOLUTION:
             # ++++ Experiment > Coarse checkpoint resolution
             #
@@ -1422,26 +1459,6 @@ def orchestrate_job_submission(
             ]
 
             embedding_data_handler_mode = EmbeddingDataHandlerMode.MASKED_TOKEN
-        case ExperimentSelector.REGULAR_TOKEN_EMBEDDINGS_MULTIPLE_LOCAL_ESTIMATES_POINTWISE_ABSOLUTE_N_NEIGHBORS:
-            # Notes:
-            # - You need to set the data_list_option via the command line arguments.
-            # - Do not set the checkpoint_no_list_option here, since we want to take it from the model group option.
-
-            data_subsampling_number_of_samples_list_option = DataSubsamplingNumberOfSamplesListOption.FIXED_10000
-            data_subsampling_sampling_seed_list_option = DataSubsamplingSamplingSeedListOption.FIXED_777
-
-            embedding_data_handler_mode = EmbeddingDataHandlerMode.REGULAR
-
-            # Select only a single training seed
-            language_model_seed_list_option = SeedListOption.FIXED_SEED_1234
-
-            # Note: We currently run this for a single token sampling seed,
-            # to reduce the number of runs.
-            embeddings_data_prep_sampling_seed_list_option = EmbeddingsDataPrepSamplingSeedListOption.DEFAULT
-
-            local_estimates_pointwise_absolute_n_neighbors_list_option = (
-                LocalEstimatesPointwiseAbsoluteNNeighborsListOption.POWERS_OF_TWO_UP_TO_1024
-            )
         # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
         # NOTE: You can add more experiment configurations here.
         case _:
