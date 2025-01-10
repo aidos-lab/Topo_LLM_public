@@ -695,7 +695,65 @@
             ]
         },
         {
-            "name": "call_submit_jobs_for_experiments_via_tmux_submission; multiple local neighborhood sizes for single data split",
+            // TODO: Edit and run this configuration
+            "name": "call_submit_jobs_for_experiments_via_tmux_submission; sensitivity_analysis_different_local_estimates_filtering_number_of_samples",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/scripts/submission_scripts/call_submit_jobs_scripts/call_submit_jobs_for_experiments_via_tmux_submission.py",
+            "console": "integratedTerminal",
+            "args": [
+                // >>>> BEGIN: Select the run option
+                // >>>> Use the following to dry run with all configurations
+                //
+                // "--run-option",
+                // "dry_run",
+                // "--run-only-selected-configs-option",
+                // "run_all",
+                //
+                // >>>> Use the following to dry run a random configuration
+                //
+                // "--run-option",
+                // "dry_run",
+                // "--run-only-selected-configs-option",
+                // "run_single_random",
+                //
+                // >>> Use the following to run a random configuration
+                //
+                "--run-option",
+                "do_submission",
+                "--run-only-selected-configs-option",
+                "run_single_random",
+                //
+                // >>>> Use the following to run with all configurations
+                //
+                // "--run-option",
+                // "do_submission",
+                // "--run-only-selected-configs-option",
+                // "run_all",
+                //
+                // >>>> END: Select the run option
+                "--submission-mode",
+                "hpc_submission",
+                // >> Concrete experiment configurations
+                "--experiment-stage",
+                // "compute_embeddings_plus_single_pipeline_run", // Note: You need to make sure the embedding arrays exist before you can call the skip_compute_embeddings_but_do_multiple_pipeline_runs stage
+                "skip_compute_embeddings_but_do_multiple_pipeline_runs",
+                // "--data-list-options",
+                // "multiwoz_only",
+                // "--data-list-options",
+                // "reddit_only",
+                "--data-list-options",
+                "reddit_test_only",
+                "--data-list-options",
+                "reddit_train_only",
+                "--data-list-options",
+                "reddit_validation_only",
+                "--experiment-selector-options",
+                "sensitivity_analysis_different_local_estimates_filtering_number_of_samples"
+            ]
+        },
+        {
+            "name": "call_submit_jobs_for_experiments_via_tmux_submission; sensitivity_analysis_different_local_estimates_pointwise_absolute_n_neighbors for single data split",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/scripts/submission_scripts/call_submit_jobs_scripts/call_submit_jobs_for_experiments_via_tmux_submission.py",
@@ -739,8 +797,10 @@
                 "--data-list-options",
                 // "multiwoz21_validation_and_reddit_validation",
                 "reddit_validation_only",
+                "--model-group-options",
+                "roberta_base_without_modifications",
                 "--experiment-selector-options",
-                "regular_token_embeddings_multiple_local_estimates_pointwise_absolute_n_neighbors",
+                "sensitivity_analysis_different_local_estimates_pointwise_absolute_n_neighbors"
             ]
         },
     ]

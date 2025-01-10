@@ -191,6 +191,20 @@ def retrieve_data_list(
                 "wikitext_test",
             ]
         # Selecting only one dataset
+        case DataListOption.ICLR_ONLY:
+            data_list: list[str] = [
+                "iclr_2024_submissions_test",
+                "iclr_2024_submissions_train",
+                "iclr_2024_submissions_validation",
+            ]
+        case DataListOption.ICLR_TEST_ONLY:
+            data_list: list[str] = [
+                "iclr_2024_submissions_test",
+            ]
+        case DataListOption.ICLR_TRAIN_ONLY:
+            data_list: list[str] = [
+                "iclr_2024_submissions_train",
+            ]
         case DataListOption.ICLR_VALIDATION_ONLY:
             data_list: list[str] = [
                 "iclr_2024_submissions_validation",
@@ -200,6 +214,14 @@ def retrieve_data_list(
                 "multiwoz21_test",
                 "multiwoz21_train",
                 "multiwoz21_validation",
+            ]
+        case DataListOption.MULTIWOZ21_TEST_ONLY:
+            data_list: list[str] = [
+                "multiwoz21_test",
+            ]
+        case DataListOption.MULTIWOZ21_TRAIN_ONLY:
+            data_list: list[str] = [
+                "multiwoz21_train",
             ]
         case DataListOption.MULTIWOZ21_VALIDATION_ONLY:
             data_list: list[str] = [
@@ -211,9 +233,31 @@ def retrieve_data_list(
                 "one-year-of-tsla-on-reddit_train",
                 "one-year-of-tsla-on-reddit_validation",
             ]
+        case DataListOption.REDDIT_TEST_ONLY:
+            data_list: list[str] = [
+                "one-year-of-tsla-on-reddit_test",
+            ]
+        case DataListOption.REDDIT_TRAIN_ONLY:
+            data_list: list[str] = [
+                "one-year-of-tsla-on-reddit_train",
+            ]
         case DataListOption.REDDIT_VALIDATION_ONLY:
             data_list: list[str] = [
                 "one-year-of-tsla-on-reddit_validation",
+            ]
+        case DataListOption.SGD_ONLY:
+            data_list: list[str] = [
+                "sgd_test",
+                "sgd_train",
+                "sgd_validation",
+            ]
+        case DataListOption.SGD_TEST_ONLY:
+            data_list: list[str] = [
+                "sgd_test",
+            ]
+        case DataListOption.SGD_TRAIN_ONLY:
+            data_list: list[str] = [
+                "sgd_train",
             ]
         case DataListOption.SGD_VALIDATION_ONLY:
             data_list: list[str] = [
@@ -224,6 +268,14 @@ def retrieve_data_list(
                 "wikitext-103-v1_test",
                 "wikitext-103-v1_train",
                 "wikitext-103-v1_validation",
+            ]
+        case DataListOption.WIKITEXT_TEST_ONLY:
+            data_list: list[str] = [
+                "wikitext-103-v1_test",
+            ]
+        case DataListOption.WIKITEXT_TRAIN_ONLY:
+            data_list: list[str] = [
+                "wikitext-103-v1_train",
             ]
         case DataListOption.WIKITEXT_VALIDATION_ONLY:
             data_list: list[str] = [
@@ -270,7 +322,7 @@ def retrieve_data_list(
     return data_list
 
 
-def retrieve_subsampling_number_list(
+def retrieve_data_subsampling_number_of_samples_list(
     data_subsampling_number_of_samples_list_option: DataSubsamplingNumberOfSamplesListOption,
 ) -> list[str] | None:
     """Retrieve the data subsampling number of samples list based on the option."""
@@ -740,7 +792,7 @@ def retrieve_local_estimates_filtering_num_samples_list(
             LocalEstimatesFilteringNumSamplesListOption.DEFAULT
             | LocalEstimatesFilteringNumSamplesListOption.SINGLE_CHOICE_60000
         ):
-            local_estimates_filtering_num_samples_list = [
+            local_estimates_filtering_num_samples_list: list[str] = [
                 "60000",
             ]
         case LocalEstimatesFilteringNumSamplesListOption.FEW_SMALL_STEPS_NUM_SAMPLES:
@@ -759,18 +811,24 @@ def retrieve_local_estimates_filtering_num_samples_list(
                 "12500",
                 "15000",
             ]
-        case LocalEstimatesFilteringNumSamplesListOption.UP_TO_30000_WITH_STEP_SIZE_2500_NUM_SAMPLES:
-            local_estimates_filtering_num_samples_list = [str(i * 2500) for i in range(1, 13)]
-        case LocalEstimatesFilteringNumSamplesListOption.UP_TO_30000_WITH_STEP_SIZE_5000_NUM_SAMPLES:
-            local_estimates_filtering_num_samples_list = [str(i * 5000) for i in range(1, 7)]
-        case LocalEstimatesFilteringNumSamplesListOption.UP_TO_50000_WITH_STEP_SIZE_5000_NUM_SAMPLES:
-            local_estimates_filtering_num_samples_list = [str(i * 5000) for i in range(1, 11)]
-        case LocalEstimatesFilteringNumSamplesListOption.UP_TO_90000_WITH_STEP_SIZE_5000_NUM_SAMPLES:
-            local_estimates_filtering_num_samples_list = [str(i * 5000) for i in range(1, 19)]
-        case LocalEstimatesFilteringNumSamplesListOption.UP_TO_90000_WITH_STEP_SIZE_10000_NUM_SAMPLES:
-            local_estimates_filtering_num_samples_list = [str(i * 10000) for i in range(1, 10)]
-        case LocalEstimatesFilteringNumSamplesListOption.UP_TO_100000_WITH_STEP_SIZE_20000_NUM_SAMPLES:
-            local_estimates_filtering_num_samples_list = [str(i * 20000) for i in range(1, 6)]
+        case LocalEstimatesFilteringNumSamplesListOption.RANGE_START_20000_STOP_110000_STEP_20000:
+            local_estimates_filtering_num_samples_list = [
+                str(object=i)
+                for i in range(
+                    20_000,
+                    110_000,
+                    20_000,
+                )
+            ]
+        case LocalEstimatesFilteringNumSamplesListOption.RANGE_START_10000_STOP_110000_STEP_10000:
+            local_estimates_filtering_num_samples_list = [
+                str(object=i)
+                for i in range(
+                    10_000,
+                    110_000,
+                    10_000,
+                )
+            ]
         case _:
             msg: str = f"Unknown {local_estimates_filtering_num_samples_list_option = }"
             raise ValueError(
@@ -818,7 +876,7 @@ def make_submission_config_and_run_task(
         data_list_option=data_list_option,
     )
 
-    data_subsampling_number_of_samples_list: list[str] | None = retrieve_subsampling_number_list(
+    data_subsampling_number_of_samples_list: list[str] | None = retrieve_data_subsampling_number_of_samples_list(
         data_subsampling_number_of_samples_list_option=data_subsampling_number_of_samples_list_option,
     )
 
@@ -1230,7 +1288,7 @@ def orchestrate_job_submission(
         #
         # >>> START Sensitivity analysis experiments
         #
-        case ExperimentSelector.SENSITIVITY_ANALYIS_MULTIWOZ21_DIFFERENT_DATA_SUBSAMPLING_NUMBER_OF_SAMPLES:
+        case ExperimentSelector.SENSITIVITY_ANALYSIS_MULTIWOZ21_DIFFERENT_DATA_SUBSAMPLING_NUMBER_OF_SAMPLES:
             # ++++ Experiment > different subsampling number of samples for multiwoz21 dataset
             #
             # Note:
@@ -1257,8 +1315,25 @@ def orchestrate_job_submission(
             )
 
             data_subsampling_sampling_seed_list_option = DataSubsamplingSamplingSeedListOption.THREE_SEEDS
-        # TODO: Add experiment for the sensitivity to token subsample size
-        case ExperimentSelector.REGULAR_TOKEN_EMBEDDINGS_MULTIPLE_LOCAL_ESTIMATES_POINTWISE_ABSOLUTE_N_NEIGHBORS:
+        case ExperimentSelector.SENSITIVITY_ANALYSIS_DIFFERENT_LOCAL_ESTIMATES_FILTERING_NUMBER_OF_SAMPLES:
+            # Notes:
+            # - You need to set the data_list_option via the command line arguments.
+            # - Do not set the checkpoint_no_list_option here, since we want to take it from the model group option.
+
+            # Sequence subsampling: Fixed
+            data_subsampling_number_of_samples_list_option = DataSubsamplingNumberOfSamplesListOption.FIXED_10000
+            data_subsampling_sampling_seed_list_option = DataSubsamplingSamplingSeedListOption.FIXED_777
+
+            # Token subsampling:
+            # - Different sampling seeds
+            # - Different local estimates number of samples
+            embeddings_data_prep_sampling_seed_list_option = EmbeddingsDataPrepSamplingSeedListOption.FIVE_SEEDS
+            local_estimates_filtering_num_samples_list_option = (
+                LocalEstimatesFilteringNumSamplesListOption.RANGE_START_10000_STOP_110000_STEP_10000
+            )
+
+            embedding_data_handler_mode = EmbeddingDataHandlerMode.REGULAR
+        case ExperimentSelector.SENSITIVITY_ANALYSIS_DIFFERENT_LOCAL_ESTIMATES_POINTWISE_ABSOLUTE_N_NEIGHBORS:
             # Notes:
             # - You need to set the data_list_option via the command line arguments.
             # - Do not set the checkpoint_no_list_option here, since we want to take it from the model group option.
@@ -1266,14 +1341,11 @@ def orchestrate_job_submission(
             data_subsampling_number_of_samples_list_option = DataSubsamplingNumberOfSamplesListOption.FIXED_10000
             data_subsampling_sampling_seed_list_option = DataSubsamplingSamplingSeedListOption.FIXED_777
 
-            embedding_data_handler_mode = EmbeddingDataHandlerMode.REGULAR
-
-            # Select only a single training seed
-            language_model_seed_list_option = SeedListOption.FIXED_SEED_1234
-
             # Note: We currently run this for a single token sampling seed,
             # to reduce the number of runs.
             embeddings_data_prep_sampling_seed_list_option = EmbeddingsDataPrepSamplingSeedListOption.DEFAULT
+
+            embedding_data_handler_mode = EmbeddingDataHandlerMode.REGULAR
 
             local_estimates_pointwise_absolute_n_neighbors_list_option = (
                 LocalEstimatesPointwiseAbsoluteNNeighborsListOption.POWERS_OF_TWO_UP_TO_1024
@@ -1422,7 +1494,7 @@ def orchestrate_job_submission(
     )
 
     if data_subsampling_sampling_mode == DataSamplingMode.TAKE_FIRST:
-        # We do not need sampling seeds for the TAKE_FIRST mode
+        # We do not need sampling seeds for the take first subsampling mode
         data_subsampling_sampling_seed_list_option = DataSubsamplingSamplingSeedListOption.NONE
 
     additional_overrides_parameter: list[str] | None = list(additional_overrides) if additional_overrides else None
@@ -1522,6 +1594,9 @@ def make_machine_config(
             ngpus = "0"
             queue = "DEFAULT"
             template = Template.CPU
+
+            # We set a shorter walltime for the runs which do not compute the embeddings
+            walltime = "03:00:00"
         case _:
             msg: str = f"Unknown {experiment_stage = }"
             raise ValueError(
@@ -1530,7 +1605,7 @@ def make_machine_config(
 
     # Override the machine configuration based on the experiment selector
     match experiment_selector:
-        case ExperimentSelector.SENSITIVITY_ANALYIS_MULTIWOZ21_DIFFERENT_DATA_SUBSAMPLING_NUMBER_OF_SAMPLES:
+        case ExperimentSelector.SENSITIVITY_ANALYSIS_MULTIWOZ21_DIFFERENT_DATA_SUBSAMPLING_NUMBER_OF_SAMPLES:
             # Note: We explicitly increase the memory size here,
             # since for the embeddings data prep step on 12_000 and more data subsamlping samples,
             # the embeddings data prep step requires more memory.

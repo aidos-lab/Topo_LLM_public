@@ -82,10 +82,8 @@ from topollm.typing.enums import DataSamplingMode, SubmissionMode
     type=DataListOption,  # The type has to be a string, otherwise the list will be interpreted as a list of characters.
     multiple=True,
     default=[
-        # DataListOption.MULTIWOZ21_ONLY,
-        # DataListOption.REDDIT_ONLY,
-        # DataListOption.WIKITEXT_ONLY,
-        DataListOption.VALIDATION_SPLIT_ONLY,
+        DataListOption.MULTIWOZ21_ONLY,
+        DataListOption.REDDIT_ONLY,
     ],
     help="List of data options to use.",
 )
@@ -95,8 +93,6 @@ from topollm.typing.enums import DataSamplingMode, SubmissionMode
     multiple=True,
     default=[
         ExperimentSelector.REGULAR_TOKEN_EMBEDDINGS,
-        # ExperimentSelector.MASKED_TOKEN_EMBEDDINGS,
-        # ExperimentSelector.TINY_DROPOUT_VARIATIONS_COARSE_CHECKPOINT_RESOLUTION,
     ],
     help="List of experiment selector options to use.",
 )
