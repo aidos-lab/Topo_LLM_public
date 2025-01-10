@@ -45,16 +45,24 @@ class ExperimentStage(StrEnum):
 class ExperimentSelector(StrEnum):
     """Options for the experiment selector."""
 
-    MULTIWOZ21_DIFFERENT_DATA_SUBSAMPLING_NUMBER_OF_SAMPLES = auto()
-    REDDIT_DIFFERENT_DATA_SUBSAMPLING_NUMBER_OF_SAMPLES = auto()
+    # >>> Sensitivity analysis
+
+    # Influence of data subsampling number of samples
+    SENSITIVITY_ANALYSIS_MULTIWOZ21_DIFFERENT_DATA_SUBSAMPLING_NUMBER_OF_SAMPLES = auto()
+    SENSITIVITY_ANALYSIS_REDDIT_DIFFERENT_DATA_SUBSAMPLING_NUMBER_OF_SAMPLES = auto()
+    SENSITIVITY_ANALYSIS_DIFFERENT_LOCAL_ESTIMATES_FILTERING_NUMBER_OF_SAMPLES = auto()
+    SENSITIVITY_ANALYSIS_DIFFERENT_LOCAL_ESTIMATES_POINTWISE_ABSOLUTE_N_NEIGHBORS = auto()
+
     COARSE_CHECKPOINT_RESOLUTION = auto()
     EXPLORATORY_DROPOUT_ANALYSIS_COARSE_CHECKPOINT_RESOLUTION = auto()
     TINY_DROPOUT_VARIATIONS_COARSE_CHECKPOINT_RESOLUTION = auto()
     FIXED_PARAMETERS_HIGH_CHECKPOINT_RESOLUTION = auto()
+
     REGULAR_TOKEN_EMBEDDINGS = auto()
     MASKED_TOKEN_EMBEDDINGS = auto()
+
     REGULAR_TOKEN_EMBEDDINGS_MULTIPLE_LAYERS_SINGLE_SAMPLE = auto()
-    REGULAR_TOKEN_EMBEDDINGS_MULTIPLE_LOCAL_ESTIMATES_POINTWISE_ABSOLUTE_N_NEIGHBORS = auto()
+    MASKED_TOKEN_EMBEDDINGS_LAST_LAYER_SINGLE_SAMPLE = auto()
 
 
 class CheckpointNoListOption(StrEnum):
@@ -64,6 +72,9 @@ class CheckpointNoListOption(StrEnum):
     ONLY_BEGINNING_AND_MIDDLE_AND_END = auto()
     SELECTED = auto()
 
+    # Fixed checkpoints
+    FIXED_2800 = auto()
+
 
 class DataListOption(StrEnum):
     """Options for the data list."""
@@ -71,19 +82,38 @@ class DataListOption(StrEnum):
     DEBUG = auto()
     FULL = auto()
     MANUAL_IN_PYTHON_SCRIPT = auto()
+
     # Selecting only one dataset
+    ICLR_ONLY = auto()
+    ICLR_TEST_ONLY = auto()
+    ICLR_TRAIN_ONLY = auto()
+    ICLR_VALIDATION_ONLY = auto()
     MULTIWOZ21_ONLY = auto()
+    MULTIWOZ21_TEST_ONLY = auto()
+    MULTIWOZ21_TRAIN_ONLY = auto()
     MULTIWOZ21_VALIDATION_ONLY = auto()
     REDDIT_ONLY = auto()
+    REDDIT_TEST_ONLY = auto()
+    REDDIT_TRAIN_ONLY = auto()
     REDDIT_VALIDATION_ONLY = auto()
+    SGD_ONLY = auto()
+    SGD_TEST_ONLY = auto()
+    SGD_TRAIN_ONLY = auto()
+    SGD_VALIDATION_ONLY = auto()
     WIKITEXT_ONLY = auto()
+    WIKITEXT_TEST_ONLY = auto()
+    WIKITEXT_TRAIN_ONLY = auto()
+    WIKITEXT_VALIDATION_ONLY = auto()
+
     # Select certain data splits
     TRAIN_SPLIT_ONLY = auto()
     VALIDATION_SPLIT_ONLY = auto()
+
     # Mixing two datasets
     MULTIWOZ21_AND_REDDIT = auto()
     MULTIWOZ21_TRAIN_AND_REDDIT_TRAIN = auto()
     MULTIWOZ21_VALIDATION_AND_REDDIT_VALIDATION = auto()
+
     # Mixing three datasets
     ICLR_VALIDATION_AND_SGD_VALIDATION_AND_WIKITEXT_VALIDATION = auto()
 
@@ -124,12 +154,25 @@ class FinetuningDatasetsListOption(StrEnum):
 
     DEBUG = auto()
     MANUAL_IN_PYTHON_SCRIPT = auto()
-    MULTIWOZ21_AND_REDDIT_FULL = auto()
-    MULTIWOZ21_AND_REDDIT_SMALL = auto()
+    # Single datasets
+    ICLR_SMALL = auto()
     MULTIWOZ21_SMALL = auto()
     MULTIWOZ21_FULL = auto()
     REDDIT_SMALL = auto()
     REDDIT_FULL = auto()
+    SGD_SMALL = auto()
+    WIKITEXT_SMALL = auto()
+    # Multiple datasets in separate runs
+    MULTIWOZ21_AND_REDDIT_FULL = auto()
+    MULTIWOZ21_AND_REDDIT_SMALL = auto()
+
+
+class ModelGroupOption(StrEnum):
+    """Options for specifying the model and finetuning regime."""
+
+    ROBERTA_BASE_WITHOUT_MODIFICATIONS = auto()
+    ROBERTA_BASE_FINETUNED_FOR_FEW_EPOCHS_OLD_AND_NEW_DATA_SINGLE_SEED_LAST_CHECKPOINT = auto()
+    ROBERTA_BASE_FINETUNED_FOR_MANY_EPOCHS = auto()
 
 
 class FinetuningRegimeOption(StrEnum):
@@ -143,11 +186,21 @@ class LanguageModelListOption(StrEnum):
     """Options for the language model list."""
 
     ONLY_ROBERTA_BASE = auto()
+
+    # Models fine-tuned on "old data" (i.e., data which was part of the pretraining data)
+    # and models fine-tuned on "new data" (i.e., data which was created after the model was pre-trained)
+    FINETUNED_ON_OLD_AND_NEW_DATA_FEW_EPOCHS_FROM_ROBERTA_BASE = auto()
+
+    # Selected models
     SELECTED_FINETUNED_FEW_EPOCHS_FROM_ROBERTA_BASE = auto()
     SELECTED_FINETUNED_MANY_EPOCHS_FROM_ROBERTA_BASE = auto()
+
     FULL_FINETUNED_FEW_EPOCHS_FROM_ROBERTA_BASE = auto()
+
+    # Models finetuned with different dropout rates
     WITH_005_015_02_DROPOUT_FINETUNED_ON_MULTIWOZ_SMALL_MANY_EPOCHS_FROM_ROBERTA_BASE = auto()
     WITH_006_007_DROPOUT_FINETUNED_ON_MULTIWOZ_SMALL_MANY_EPOCHS_FROM_ROBERTA_BASE = auto()
+
     SETSUMBT_SELECTED = auto()
 
 
@@ -191,12 +244,9 @@ class LocalEstimatesFilteringNumSamplesListOption(StrEnum):
     SINGLE_CHOICE_60000 = auto()
     FEW_SMALL_STEPS_NUM_SAMPLES = auto()
     MEDIUM_SMALL_STEPS_NUM_SAMPLES = auto()
-    UP_TO_30000_WITH_STEP_SIZE_2500_NUM_SAMPLES = auto()
-    UP_TO_30000_WITH_STEP_SIZE_5000_NUM_SAMPLES = auto()
-    UP_TO_50000_WITH_STEP_SIZE_5000_NUM_SAMPLES = auto()
-    UP_TO_90000_WITH_STEP_SIZE_5000_NUM_SAMPLES = auto()
-    UP_TO_90000_WITH_STEP_SIZE_10000_NUM_SAMPLES = auto()
-    UP_TO_100000_WITH_STEP_SIZE_20000_NUM_SAMPLES = auto()
+
+    RANGE_START_20000_STOP_110000_STEP_20000 = auto()
+    RANGE_START_10000_STOP_110000_STEP_10000 = auto()
 
 
 class LocalEstimatesPointwiseAbsoluteNNeighborsListOption(StrEnum):

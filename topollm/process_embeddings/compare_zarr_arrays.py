@@ -30,19 +30,21 @@ import pathlib
 
 import numpy as np
 import zarr
-import zarr.core
 
+# Note: In zarr 3, one should not import zarr.core since it is part of the private API
 from topollm.logging.log_array_info import log_array_info
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
+logger.setLevel(level=logging.INFO)
 # Add stdout handler
-logger.addHandler(logging.StreamHandler())
+logger.addHandler(hdlr=logging.StreamHandler())
 
 
 def compare_zarr_arrays(
-    zarr1: zarr.core.Array,
-    zarr2: zarr.core.Array,
+    zarr1: zarr.Array,
+    zarr2: zarr.Array,
     rtol: float = 1e-05,
     atol: float = 1e-08,
 ) -> bool:
@@ -112,10 +114,12 @@ def main() -> None:
     ):
         if not isinstance(
             array,
-            zarr.core.Array,
+            zarr.Array,
         ):
-            msg = f"{array_name = } is not a zarr.core.Array"
-            raise TypeError(msg)
+            msg: str = f"{array_name = } is not a zarr.Array"
+            raise TypeError(
+                msg,
+            )
 
         log_array_info(
             array_=array,
@@ -132,14 +136,14 @@ def main() -> None:
 
     if array_1.shape != array_2.shape:
         logger.error(
-            f"{array_1.shape = } != {array_2.shape = }",  # noqa: G004 - low overhead
+            msg=f"{array_1.shape = } != {array_2.shape = }",  # noqa: G004 - low overhead
         )
         return
 
     # # # #
     # Check if the zarr arrays contain the same values
 
-    result = compare_zarr_arrays(
+    result: bool = compare_zarr_arrays(
         zarr1=array_1,  # type: ignore - problem with zarr typing
         zarr2=array_2,  # type: ignore - problem with zarr typing
     )

@@ -7,7 +7,8 @@ DRY_RUN=false
 WANDB_PROJECT_DIR_NAME=""
 # WANDB_PROJECT_DIR_NAME="Topo_LLM_finetuning_from_submission_script_DEBUG_large_batch_size"
 # WANDB_PROJECT_DIR_NAME="Topo_LLM_finetuning_from_submission_script_dropout_different_choices"
-WANDB_PROJECT_DIR_NAME="Topo_LLM_finetuning_from_submission_script_dropout_different_choices_with_parameter_and_gradient_logging"
+# WANDB_PROJECT_DIR_NAME="Topo_LLM_finetuning_from_submission_script_dropout_different_choices_with_parameter_and_gradient_logging"
+WANDB_PROJECT_DIR_NAME="Topo_LLM_finetuning_from_submission_script_for_5_epochs_and_linear_lr_schedule"
 
 # Parse command line arguments
 while [[ "$#" -gt 0 ]]; do

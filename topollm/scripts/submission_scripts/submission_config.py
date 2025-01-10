@@ -472,7 +472,7 @@ class SubmissionConfig(BaseModel):
         )
         if self.checkpoint_no_list:
             language_model_command.append(
-                "language_model.checkpoint_no=" + ",".join(self.checkpoint_no_list),
+                "++language_model.checkpoint_no=" + ",".join(self.checkpoint_no_list),
             )
         if self.language_model_seed_list:
             language_model_command.append(

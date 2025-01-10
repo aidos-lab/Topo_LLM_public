@@ -59,7 +59,7 @@ StrEnum = { version = "^0.4", markers = "python_version < '3.11'" }
 torch = "2.3.*"
 tqdm = "*"
 transformers = "*"
-zarr = "*"
+zarr = ">=2,<3" # Our code has not been migrated to zarr v3 yet, we will follow https://zarr.readthedocs.io/en/latest/user-guide/v3_migration.html
 tensorboard = "*"
 seaborn = "*"
 giotto-tda = "^0.6.2"                                               # need to pin this version because otherwise installation fails on MacBook
@@ -115,10 +115,10 @@ gpustat = "*"
 # Note: You need to uncomment this section if you do not have access to the Hilbert PyPI mirror.
 # This should be commented out before releasing the package.
 #
-# [[tool.poetry.source]]
-# name = "hhu"
-# url = "http://pypi.repo.test.hhu.de/simple/"
-# priority = "primary"
+[[tool.poetry.source]]
+name = "hhu"
+url = "http://pypi.repo.test.hhu.de/simple/"
+priority = "primary"
 
 
 [build-system]

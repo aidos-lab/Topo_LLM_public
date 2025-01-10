@@ -53,6 +53,7 @@ from topollm.scripts.submission_scripts.types import (
     LanguageModelListOption,
     LocalEstimatesFilteringNumSamplesListOption,
     LocalEstimatesPointwiseAbsoluteNNeighborsListOption,
+    ModelGroupOption,
     RunOnlySelectedConfigsOption,
     RunOption,
     SeedListOption,
@@ -146,20 +147,7 @@ validation_split_only_data_list: list[str] = [data_name for data_name in full_da
 only_roberta_base_language_model_list: list[str] = [
     "roberta-base",
 ]
-selected_finetuned_few_epochs_from_roberta_base_language_model_list = [
-    "model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
-    "model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
-]
-selected_finetuned_many_epochs_from_roberta_base_language_model_list = [
-    "model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50",
-    "model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50",
-]
-full_finetuned_few_epochs_from_roberta_base_language_model_list = [
-    "model-roberta-base_task-masked_lm_iclr_2024_submissions-train-5000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
-    "model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
-    "model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
-    "model-roberta-base_task-masked_lm_wikitext-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
-]
+
 
 setsumbt_model_list = [
     "model-roberta-base_task-setsumbt_multiwoz21",
@@ -203,11 +191,37 @@ def retrieve_data_list(
                 "wikitext_test",
             ]
         # Selecting only one dataset
+        case DataListOption.ICLR_ONLY:
+            data_list: list[str] = [
+                "iclr_2024_submissions_test",
+                "iclr_2024_submissions_train",
+                "iclr_2024_submissions_validation",
+            ]
+        case DataListOption.ICLR_TEST_ONLY:
+            data_list: list[str] = [
+                "iclr_2024_submissions_test",
+            ]
+        case DataListOption.ICLR_TRAIN_ONLY:
+            data_list: list[str] = [
+                "iclr_2024_submissions_train",
+            ]
+        case DataListOption.ICLR_VALIDATION_ONLY:
+            data_list: list[str] = [
+                "iclr_2024_submissions_validation",
+            ]
         case DataListOption.MULTIWOZ21_ONLY:
             data_list: list[str] = [
                 "multiwoz21_test",
                 "multiwoz21_train",
                 "multiwoz21_validation",
+            ]
+        case DataListOption.MULTIWOZ21_TEST_ONLY:
+            data_list: list[str] = [
+                "multiwoz21_test",
+            ]
+        case DataListOption.MULTIWOZ21_TRAIN_ONLY:
+            data_list: list[str] = [
+                "multiwoz21_train",
             ]
         case DataListOption.MULTIWOZ21_VALIDATION_ONLY:
             data_list: list[str] = [
@@ -219,14 +233,52 @@ def retrieve_data_list(
                 "one-year-of-tsla-on-reddit_train",
                 "one-year-of-tsla-on-reddit_validation",
             ]
+        case DataListOption.REDDIT_TEST_ONLY:
+            data_list: list[str] = [
+                "one-year-of-tsla-on-reddit_test",
+            ]
+        case DataListOption.REDDIT_TRAIN_ONLY:
+            data_list: list[str] = [
+                "one-year-of-tsla-on-reddit_train",
+            ]
         case DataListOption.REDDIT_VALIDATION_ONLY:
             data_list: list[str] = [
                 "one-year-of-tsla-on-reddit_validation",
+            ]
+        case DataListOption.SGD_ONLY:
+            data_list: list[str] = [
+                "sgd_test",
+                "sgd_train",
+                "sgd_validation",
+            ]
+        case DataListOption.SGD_TEST_ONLY:
+            data_list: list[str] = [
+                "sgd_test",
+            ]
+        case DataListOption.SGD_TRAIN_ONLY:
+            data_list: list[str] = [
+                "sgd_train",
+            ]
+        case DataListOption.SGD_VALIDATION_ONLY:
+            data_list: list[str] = [
+                "sgd_validation",
             ]
         case DataListOption.WIKITEXT_ONLY:
             data_list: list[str] = [
                 "wikitext-103-v1_test",
                 "wikitext-103-v1_train",
+                "wikitext-103-v1_validation",
+            ]
+        case DataListOption.WIKITEXT_TEST_ONLY:
+            data_list: list[str] = [
+                "wikitext-103-v1_test",
+            ]
+        case DataListOption.WIKITEXT_TRAIN_ONLY:
+            data_list: list[str] = [
+                "wikitext-103-v1_train",
+            ]
+        case DataListOption.WIKITEXT_VALIDATION_ONLY:
+            data_list: list[str] = [
                 "wikitext-103-v1_validation",
             ]
         # Select certain data splits
@@ -270,7 +322,7 @@ def retrieve_data_list(
     return data_list
 
 
-def retrieve_subsampling_number_list(
+def retrieve_data_subsampling_number_of_samples_list(
     data_subsampling_number_of_samples_list_option: DataSubsamplingNumberOfSamplesListOption,
 ) -> list[str] | None:
     """Retrieve the data subsampling number of samples list based on the option."""
@@ -405,6 +457,10 @@ def retrieve_finetuning_datasets_list(
                 "train_and_eval_on_multiwoz21_train-samples-small",
                 "train_and_eval_on_one-year-of-tsla-on-reddit_train-samples-small",
             ]
+        case FinetuningDatasetsListOption.ICLR_SMALL:
+            finetuning_datasets_list: list[str] = [
+                "train_and_eval_on_iclr_2024_submissions_train-samples-5000",
+            ]
         case FinetuningDatasetsListOption.MULTIWOZ21_SMALL:
             finetuning_datasets_list: list[str] = [
                 "train_and_eval_on_multiwoz21_train-samples-small",
@@ -420,6 +476,14 @@ def retrieve_finetuning_datasets_list(
         case FinetuningDatasetsListOption.REDDIT_FULL:
             finetuning_datasets_list: list[str] = [
                 "train_and_eval_on_one-year-of-tsla-on-reddit_train-samples-full",
+            ]
+        case FinetuningDatasetsListOption.SGD_SMALL:
+            finetuning_datasets_list: list[str] = [
+                "train_and_eval_on_sgd_train-samples-small",
+            ]
+        case FinetuningDatasetsListOption.WIKITEXT_SMALL:
+            finetuning_datasets_list: list[str] = [
+                "train_and_eval_on_wikitext_train-samples-small",
             ]
         case FinetuningDatasetsListOption.MULTIWOZ21_AND_REDDIT_SMALL:
             finetuning_datasets_list: list[str] = [
@@ -486,22 +550,43 @@ def retrieve_model_and_checkpoint_list(
             language_model_list: list[str] = only_roberta_base_language_model_list
             # No checkpoints for the base model
             checkpoint_no_list = None
+        case LanguageModelListOption.FINETUNED_ON_OLD_AND_NEW_DATA_FEW_EPOCHS_FROM_ROBERTA_BASE:
+            language_model_list: list[str] = [
+                "roberta-base-masked_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+                "roberta-base-masked_lm-defaults_wikitext-103-v1-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+            ]
+
+            checkpoint_no_list = get_checkpoint_no_list(
+                checkpoint_no_list_option=checkpoint_no_list_option,
+                num_train_epochs=int(num_train_epochs),
+            )
         case LanguageModelListOption.SELECTED_FINETUNED_FEW_EPOCHS_FROM_ROBERTA_BASE:
-            language_model_list: list[str] = selected_finetuned_few_epochs_from_roberta_base_language_model_list
+            language_model_list: list[str] = [
+                "roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+                "roberta-base-masked_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+            ]
 
             checkpoint_no_list = get_checkpoint_no_list(
                 checkpoint_no_list_option=checkpoint_no_list_option,
                 num_train_epochs=int(num_train_epochs),
             )
         case LanguageModelListOption.FULL_FINETUNED_FEW_EPOCHS_FROM_ROBERTA_BASE:
-            language_model_list: list[str] = full_finetuned_few_epochs_from_roberta_base_language_model_list
+            language_model_list: list[str] = [
+                "roberta-base-masked_lm-defaults_iclr_2024_submissions-rm-empty-True-do_nothing-ner_tags_train-5000-take_first-111_standard-None_5e-05-linear-0.01-5"
+                "roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+                "roberta-base-masked_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+                "roberta-base-masked_lm-defaults_wikitext-103-v1-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+            ]
 
             checkpoint_no_list = get_checkpoint_no_list(
                 checkpoint_no_list_option=checkpoint_no_list_option,
                 num_train_epochs=int(num_train_epochs),
             )
         case LanguageModelListOption.SELECTED_FINETUNED_MANY_EPOCHS_FROM_ROBERTA_BASE:
-            language_model_list: list[str] = selected_finetuned_many_epochs_from_roberta_base_language_model_list
+            language_model_list: list[str] = [
+                "model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50",
+                "model-roberta-base_task-masked_lm_one-year-of-tsla-on-reddit-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50",
+            ]
 
             checkpoint_no_list = get_checkpoint_no_list(
                 checkpoint_no_list_option=checkpoint_no_list_option,
@@ -707,7 +792,7 @@ def retrieve_local_estimates_filtering_num_samples_list(
             LocalEstimatesFilteringNumSamplesListOption.DEFAULT
             | LocalEstimatesFilteringNumSamplesListOption.SINGLE_CHOICE_60000
         ):
-            local_estimates_filtering_num_samples_list = [
+            local_estimates_filtering_num_samples_list: list[str] = [
                 "60000",
             ]
         case LocalEstimatesFilteringNumSamplesListOption.FEW_SMALL_STEPS_NUM_SAMPLES:
@@ -726,18 +811,24 @@ def retrieve_local_estimates_filtering_num_samples_list(
                 "12500",
                 "15000",
             ]
-        case LocalEstimatesFilteringNumSamplesListOption.UP_TO_30000_WITH_STEP_SIZE_2500_NUM_SAMPLES:
-            local_estimates_filtering_num_samples_list = [str(i * 2500) for i in range(1, 13)]
-        case LocalEstimatesFilteringNumSamplesListOption.UP_TO_30000_WITH_STEP_SIZE_5000_NUM_SAMPLES:
-            local_estimates_filtering_num_samples_list = [str(i * 5000) for i in range(1, 7)]
-        case LocalEstimatesFilteringNumSamplesListOption.UP_TO_50000_WITH_STEP_SIZE_5000_NUM_SAMPLES:
-            local_estimates_filtering_num_samples_list = [str(i * 5000) for i in range(1, 11)]
-        case LocalEstimatesFilteringNumSamplesListOption.UP_TO_90000_WITH_STEP_SIZE_5000_NUM_SAMPLES:
-            local_estimates_filtering_num_samples_list = [str(i * 5000) for i in range(1, 19)]
-        case LocalEstimatesFilteringNumSamplesListOption.UP_TO_90000_WITH_STEP_SIZE_10000_NUM_SAMPLES:
-            local_estimates_filtering_num_samples_list = [str(i * 10000) for i in range(1, 10)]
-        case LocalEstimatesFilteringNumSamplesListOption.UP_TO_100000_WITH_STEP_SIZE_20000_NUM_SAMPLES:
-            local_estimates_filtering_num_samples_list = [str(i * 20000) for i in range(1, 6)]
+        case LocalEstimatesFilteringNumSamplesListOption.RANGE_START_20000_STOP_110000_STEP_20000:
+            local_estimates_filtering_num_samples_list = [
+                str(object=i)
+                for i in range(
+                    20_000,
+                    110_000,
+                    20_000,
+                )
+            ]
+        case LocalEstimatesFilteringNumSamplesListOption.RANGE_START_10000_STOP_110000_STEP_10000:
+            local_estimates_filtering_num_samples_list = [
+                str(object=i)
+                for i in range(
+                    10_000,
+                    110_000,
+                    10_000,
+                )
+            ]
         case _:
             msg: str = f"Unknown {local_estimates_filtering_num_samples_list_option = }"
             raise ValueError(
@@ -747,7 +838,7 @@ def retrieve_local_estimates_filtering_num_samples_list(
     return local_estimates_filtering_num_samples_list
 
 
-def make_config_and_run_task(
+def make_submission_config_and_run_task(
     data_list_option: DataListOption,
     data_subsampling_sampling_mode: DataSamplingMode,
     data_subsampling_number_of_samples_list_option: DataSubsamplingNumberOfSamplesListOption,
@@ -785,7 +876,7 @@ def make_config_and_run_task(
         data_list_option=data_list_option,
     )
 
-    data_subsampling_number_of_samples_list: list[str] | None = retrieve_subsampling_number_list(
+    data_subsampling_number_of_samples_list: list[str] | None = retrieve_data_subsampling_number_of_samples_list(
         data_subsampling_number_of_samples_list_option=data_subsampling_number_of_samples_list_option,
     )
 
@@ -806,7 +897,10 @@ def make_config_and_run_task(
                 msg,
             )
 
-    language_model_list, checkpoint_no_list = retrieve_model_and_checkpoint_list(
+    (
+        language_model_list,
+        checkpoint_no_list,
+    ) = retrieve_model_and_checkpoint_list(
         language_model_list_option=language_model_list_option,
         checkpoint_no_list_option=checkpoint_no_list_option,
         num_train_epochs=num_train_epochs,
@@ -975,6 +1069,12 @@ def make_config_and_run_task(
     help="Embeddings data prep sampling mode to use.",
 )
 @click.option(
+    "--model-group-option",
+    type=ModelGroupOption,
+    default=ModelGroupOption.ROBERTA_BASE_WITHOUT_MODIFICATIONS,
+    help="The model group and finetuning regime to use.",
+)
+@click.option(
     "--finetuning-datasets-list-option",
     type=FinetuningDatasetsListOption,
     default=FinetuningDatasetsListOption.MULTIWOZ21_SMALL,
@@ -997,18 +1097,6 @@ def make_config_and_run_task(
     type=str,
     default="Topo_LLM_finetuning_from_submission_script",
     help="Wandb project to use.",
-)
-@click.option(
-    "--use-roberta-base",
-    is_flag=True,
-    default=False,
-    help="Use the base Roberta model.",
-)
-@click.option(
-    "--use-finetuned-model",
-    is_flag=True,
-    default=False,
-    help="Use a fine-tuned Roberta model.",
 )
 @click.option(
     "--additional-overrides",
@@ -1061,13 +1149,19 @@ def make_config_and_run_task(
     "--template",
     type=Template,
     default=Template.DSML,
-    help="Template to use for the job submission.",
+    help="Template to use for the job submission. Might get overwritten by the experiment stage configurations.",
+)
+@click.option(
+    "--template-to-use-for-compute-embeddings",
+    type=Template,
+    default=Template.RTX6000,
+    help="Template to use for the compute embeddings job submission.",
 )
 def orchestrate_job_submission(
     experiment_stage: ExperimentStage | None,
     experiment_selector: ExperimentSelector,
     task: Task,
-    additional_overrides: list[str] | None,
+    model_group_option: ModelGroupOption,
     finetuning_datasets_list_option: FinetuningDatasetsListOption,
     fp16: str,
     data_list_option: DataListOption,
@@ -1083,11 +1177,11 @@ def orchestrate_job_submission(
     ngpus: str,
     queue: str,
     template: Template,
+    template_to_use_for_compute_embeddings: Template,
+    additional_overrides: list[str] | None,
     submission_mode: SubmissionMode,
     run_option: RunOption,
     run_only_selected_configs_option: RunOnlySelectedConfigsOption,
-    use_roberta_base: bool,
-    use_finetuned_model: bool,
 ) -> None:
     """Submit jobs based on the specified options.
 
@@ -1098,35 +1192,39 @@ def orchestrate_job_submission(
     - 32GB of memory is enough for the embeddings data prep step
       for dataset subsampling sample size 12_000 on the multiwoz21_train and reddit_train datasets.
     """
-    # Validate the model flags
-    if not (use_roberta_base or use_finetuned_model):
-        raise click.UsageError(
-            message="You must specify either --use-roberta-base or --use-finetuned-model.",
-        )
-    if use_roberta_base and use_finetuned_model:
-        raise click.UsageError(
-            message="You cannot specify both --use-roberta-base and --use-finetuned-model.",
-        )
-
+    ########################################
     # Model-specific configurations
-    if use_roberta_base:
-        ####################################
-        ### With POS tags for base model ###
-        language_model_list_option = LanguageModelListOption.ONLY_ROBERTA_BASE
-        finetuning_regime_option = FinetuningRegimeOption.FEW_EPOCHS  # Ignored for the base model
-        language_model_seed_list_option = SeedListOption.DO_NOT_SET
-        checkpoint_no_list_option = CheckpointNoListOption.SELECTED  # Ignored for the base model
-    elif use_finetuned_model:
-        ################################################################
-        ### With POS tags for finetuned models and three checkpoints ###
-        language_model_list_option = LanguageModelListOption.SELECTED_FINETUNED_MANY_EPOCHS_FROM_ROBERTA_BASE
-        finetuning_regime_option = FinetuningRegimeOption.MANY_EPOCHS_WITH_OVERFITTING_RISK
-        language_model_seed_list_option = SeedListOption.FIXED_SEED_1234
-        checkpoint_no_list_option = CheckpointNoListOption.ONLY_BEGINNING_AND_MIDDLE_AND_END
-    else:
-        raise click.UsageError(
-            message="Unknown model configuration.",
-        )
+    #
+    # Note:
+    # - For the finetuning task, the finetuning_regime_option might get overwritten at a later stage.
+    match model_group_option:
+        case ModelGroupOption.ROBERTA_BASE_WITHOUT_MODIFICATIONS:
+            ####################################
+            ### With POS tags for base model ###
+            language_model_list_option = LanguageModelListOption.ONLY_ROBERTA_BASE
+            finetuning_regime_option = FinetuningRegimeOption.FEW_EPOCHS  # Ignored for the base model
+            language_model_seed_list_option = SeedListOption.DO_NOT_SET
+            checkpoint_no_list_option = CheckpointNoListOption.SELECTED  # Ignored for the base model
+        case ModelGroupOption.ROBERTA_BASE_FINETUNED_FOR_FEW_EPOCHS_OLD_AND_NEW_DATA_SINGLE_SEED_LAST_CHECKPOINT:
+            ################################################################
+            language_model_list_option = (
+                LanguageModelListOption.FINETUNED_ON_OLD_AND_NEW_DATA_FEW_EPOCHS_FROM_ROBERTA_BASE
+            )
+            finetuning_regime_option = FinetuningRegimeOption.FEW_EPOCHS
+            language_model_seed_list_option = SeedListOption.FIXED_SEED_1234
+            checkpoint_no_list_option = CheckpointNoListOption.FIXED_2800
+        case ModelGroupOption.ROBERTA_BASE_FINETUNED_FOR_MANY_EPOCHS:
+            ################################################################
+            ### With POS tags for finetuned models and three checkpoints ###
+            language_model_list_option = LanguageModelListOption.SELECTED_FINETUNED_MANY_EPOCHS_FROM_ROBERTA_BASE
+            finetuning_regime_option = FinetuningRegimeOption.MANY_EPOCHS_WITH_OVERFITTING_RISK
+            language_model_seed_list_option = SeedListOption.FIXED_SEED_1234
+            checkpoint_no_list_option = CheckpointNoListOption.ONLY_BEGINNING_AND_MIDDLE_AND_END
+        case _:
+            msg: str = f"Unknown {model_group_option = }"
+            raise ValueError(
+                msg,
+            )
 
     ########################################
     ### Default configurations
@@ -1159,8 +1257,6 @@ def orchestrate_job_submission(
     batch_size_train = common_batch_size
     batch_size_eval = common_batch_size
 
-    walltime = "08:00:00"  # Default walltime
-
     finetuning_seed_list_option = SeedListOption.ONE_SEED
 
     ########################################
@@ -1168,58 +1264,20 @@ def orchestrate_job_submission(
     ###
     ### Note that this might be overridden by the experiment selector configurations below.
     ########################################
-    if experiment_stage == ExperimentStage.COMPUTE_EMBEDDINGS_PLUS_SINGLE_PIPELINE_RUN:
-        # Only run for a single embeddings data prep sampling seed
-        embeddings_data_prep_sampling_seed_list_option = EmbeddingsDataPrepSamplingSeedListOption.DEFAULT
-        skip_compute_and_store_embeddings = False  # do the embeddings computation
-
-        # queue, template = "CUDA", Template.GTX1080
-        queue, template = "CUDA", Template.RTX6000
-        # queue, template = "DSML", Template.DSML
-
-        ncpus = "4"
-        ngpus = "1"
-
-        # For the datasets with 10_000 samples, one pipeline run with regular embeddings usually takes about 30 min.
-        # We set the walltime to 2 hours to be on the safe side.
-        #
-        # > walltime = "02:00:00"
-
-        # For the masked embeddings on datasets with long sequences, the walltime can be significantly longer.
-        walltime = "06:00:00"  # Longer walltime to make sure it is long enough for the masked embeddings
-    elif experiment_stage == ExperimentStage.SKIP_COMPUTE_EMBEDDINGS_BUT_DO_MULTIPLE_PIPELINE_RUNS:
-        ncpus = "6"
-        ngpus = "0"
-        queue = "DEFAULT"
-        template = Template.CPU
-
-        # Assume embeddings are already computed and run for different embeddings data prep sampling seeds
-        embeddings_data_prep_sampling_seed_list_option = EmbeddingsDataPrepSamplingSeedListOption.FIVE_SEEDS
-        skip_compute_and_store_embeddings = True  # skip the embeddings computation
-
-    # Overwrite the machine configuration based on the task
-    match task:
-        case Task.PERPLEXITY:
-            queue = "CUDA"
-            template = Template.RTX6000
-
-            walltime = "12:00:00"  # Use slightly longer walltime for perplexity
-        case Task.FINETUNING:
-            queue = "CUDA"
-            template = Template.RTX6000
-
-            ncpus = "4"
-            ngpus = "1"
-            walltime = "48:00:00"  # Use significantly longer walltime for finetuning
-
-    machine_config = MachineConfig(
-        queue=queue,
-        template=template,
-        memory=memory,
-        ncpus=ncpus,
-        ngpus=ngpus,
-        walltime=walltime,
-    )
+    match experiment_stage:
+        case ExperimentStage.COMPUTE_EMBEDDINGS_PLUS_SINGLE_PIPELINE_RUN:
+            # Only run for a single embeddings data prep sampling seed
+            embeddings_data_prep_sampling_seed_list_option = EmbeddingsDataPrepSamplingSeedListOption.DEFAULT
+            skip_compute_and_store_embeddings = False  # do the embeddings computation
+        case ExperimentStage.SKIP_COMPUTE_EMBEDDINGS_BUT_DO_MULTIPLE_PIPELINE_RUNS:
+            # Assume embeddings are already computed and run for different embeddings data prep sampling seeds
+            embeddings_data_prep_sampling_seed_list_option = EmbeddingsDataPrepSamplingSeedListOption.FIVE_SEEDS
+            skip_compute_and_store_embeddings = True  # skip the embeddings computation
+        case _:
+            msg: str = f"Unknown {experiment_stage = }"
+            raise ValueError(
+                msg,
+            )
 
     ########################################
     ### Experiment selector configurations
@@ -1227,7 +1285,10 @@ def orchestrate_job_submission(
     ### Note: You can use the experiment selector to override the default configurations above.
     ########################################
     match experiment_selector:
-        case ExperimentSelector.MULTIWOZ21_DIFFERENT_DATA_SUBSAMPLING_NUMBER_OF_SAMPLES:
+        #
+        # >>> START Sensitivity analysis experiments
+        #
+        case ExperimentSelector.SENSITIVITY_ANALYSIS_MULTIWOZ21_DIFFERENT_DATA_SUBSAMPLING_NUMBER_OF_SAMPLES:
             # ++++ Experiment > different subsampling number of samples for multiwoz21 dataset
             #
             # Note:
@@ -1238,11 +1299,8 @@ def orchestrate_job_submission(
                 DataSubsamplingNumberOfSamplesListOption.RANGE_START_2000_STOP_18000_STEP_2000
             )
 
-            # Note: We explicitly increase the memory size here,
-            # since for the embeddings data prep step on 12_000 and more data subsamlping samples,
-            # the embeddings data prep step requires more memory.
-            memory = "64"
-        case ExperimentSelector.REDDIT_DIFFERENT_DATA_SUBSAMPLING_NUMBER_OF_SAMPLES:
+            data_subsampling_sampling_seed_list_option = DataSubsamplingSamplingSeedListOption.THREE_SEEDS
+        case ExperimentSelector.SENSITIVITY_ANALYSIS_REDDIT_DIFFERENT_DATA_SUBSAMPLING_NUMBER_OF_SAMPLES:
             # ++++ Experiment > different subsampling number of samples for reddit dataset
             #
             # Note:
@@ -1256,7 +1314,45 @@ def orchestrate_job_submission(
                 DataSubsamplingNumberOfSamplesListOption.RANGE_START_2000_STOP_24000_STEP_2000
             )
 
-            memory = "80"
+            data_subsampling_sampling_seed_list_option = DataSubsamplingSamplingSeedListOption.THREE_SEEDS
+        case ExperimentSelector.SENSITIVITY_ANALYSIS_DIFFERENT_LOCAL_ESTIMATES_FILTERING_NUMBER_OF_SAMPLES:
+            # Notes:
+            # - You need to set the data_list_option via the command line arguments.
+            # - Do not set the checkpoint_no_list_option here, since we want to take it from the model group option.
+
+            # Sequence subsampling: Fixed
+            data_subsampling_number_of_samples_list_option = DataSubsamplingNumberOfSamplesListOption.FIXED_10000
+            data_subsampling_sampling_seed_list_option = DataSubsamplingSamplingSeedListOption.FIXED_777
+
+            # Token subsampling:
+            # - Different sampling seeds
+            # - Different local estimates number of samples
+            embeddings_data_prep_sampling_seed_list_option = EmbeddingsDataPrepSamplingSeedListOption.FIVE_SEEDS
+            local_estimates_filtering_num_samples_list_option = (
+                LocalEstimatesFilteringNumSamplesListOption.RANGE_START_10000_STOP_110000_STEP_10000
+            )
+
+            embedding_data_handler_mode = EmbeddingDataHandlerMode.REGULAR
+        case ExperimentSelector.SENSITIVITY_ANALYSIS_DIFFERENT_LOCAL_ESTIMATES_POINTWISE_ABSOLUTE_N_NEIGHBORS:
+            # Notes:
+            # - You need to set the data_list_option via the command line arguments.
+            # - Do not set the checkpoint_no_list_option here, since we want to take it from the model group option.
+
+            data_subsampling_number_of_samples_list_option = DataSubsamplingNumberOfSamplesListOption.FIXED_10000
+            data_subsampling_sampling_seed_list_option = DataSubsamplingSamplingSeedListOption.FIXED_777
+
+            # Note: We currently run this for a single token sampling seed,
+            # to reduce the number of runs.
+            embeddings_data_prep_sampling_seed_list_option = EmbeddingsDataPrepSamplingSeedListOption.DEFAULT
+
+            embedding_data_handler_mode = EmbeddingDataHandlerMode.REGULAR
+
+            local_estimates_pointwise_absolute_n_neighbors_list_option = (
+                LocalEstimatesPointwiseAbsoluteNNeighborsListOption.POWERS_OF_TWO_UP_TO_1024
+            )
+        #
+        # >>> END Sensitivity analysis experiments
+        #
         case ExperimentSelector.COARSE_CHECKPOINT_RESOLUTION:
             # ++++ Experiment > Coarse checkpoint resolution
             #
@@ -1317,30 +1413,29 @@ def orchestrate_job_submission(
         case ExperimentSelector.REGULAR_TOKEN_EMBEDDINGS:
             # Notes:
             # - You need to set the data_list_option via the command line arguments.
+            # - Do not set the checkpoint_no_list_option here, since we want to take it from the model group option.
 
             data_subsampling_number_of_samples_list_option = DataSubsamplingNumberOfSamplesListOption.FIXED_10000
 
             embedding_data_handler_mode = EmbeddingDataHandlerMode.REGULAR
-
-            checkpoint_no_list_option = CheckpointNoListOption.SELECTED
 
             # Select only a single training seed
             language_model_seed_list_option = SeedListOption.FIXED_SEED_1234
         case ExperimentSelector.MASKED_TOKEN_EMBEDDINGS:
             # Notes:
             # - You need to set the data_list_option via the command line arguments.
+            # - Do not set the checkpoint_no_list_option here, since we want to take it from the model group option.
 
             data_subsampling_number_of_samples_list_option = DataSubsamplingNumberOfSamplesListOption.FIXED_10000
 
             embedding_data_handler_mode = EmbeddingDataHandlerMode.MASKED_TOKEN
-
-            checkpoint_no_list_option = CheckpointNoListOption.SELECTED
 
             # Select only a single training seed
             language_model_seed_list_option = SeedListOption.FIXED_SEED_1234
         case ExperimentSelector.REGULAR_TOKEN_EMBEDDINGS_MULTIPLE_LAYERS_SINGLE_SAMPLE:
             # Notes:
             # - You need to set the data_list_option via the command line arguments.
+            # - Do not set the checkpoint_no_list_option here, since we want to take it from the model group option.
 
             data_subsampling_number_of_samples_list_option = DataSubsamplingNumberOfSamplesListOption.FIXED_10000
             data_subsampling_sampling_seed_list_option = DataSubsamplingSamplingSeedListOption.FIXED_777
@@ -1361,29 +1456,19 @@ def orchestrate_job_submission(
             ]
 
             embedding_data_handler_mode = EmbeddingDataHandlerMode.REGULAR
-
-            checkpoint_no_list_option = CheckpointNoListOption.SELECTED
-        case ExperimentSelector.REGULAR_TOKEN_EMBEDDINGS_MULTIPLE_LOCAL_ESTIMATES_POINTWISE_ABSOLUTE_N_NEIGHBORS:
+        case ExperimentSelector.MASKED_TOKEN_EMBEDDINGS_LAST_LAYER_SINGLE_SAMPLE:
             # Notes:
             # - You need to set the data_list_option via the command line arguments.
+            # - Do not set the checkpoint_no_list_option here, since we want to take it from the model group option.
 
             data_subsampling_number_of_samples_list_option = DataSubsamplingNumberOfSamplesListOption.FIXED_10000
             data_subsampling_sampling_seed_list_option = DataSubsamplingSamplingSeedListOption.FIXED_777
 
-            embedding_data_handler_mode = EmbeddingDataHandlerMode.REGULAR
+            layer_indices_list = [
+                "[-1]",
+            ]
 
-            checkpoint_no_list_option = CheckpointNoListOption.SELECTED
-
-            # Select only a single training seed
-            language_model_seed_list_option = SeedListOption.FIXED_SEED_1234
-
-            # Note: We currently run this for a single token sampling seed,
-            # to reduce the number of runs.
-            embeddings_data_prep_sampling_seed_list_option = EmbeddingsDataPrepSamplingSeedListOption.DEFAULT
-
-            local_estimates_pointwise_absolute_n_neighbors_list_option = (
-                LocalEstimatesPointwiseAbsoluteNNeighborsListOption.POWERS_OF_TWO_UP_TO_1024
-            )
+            embedding_data_handler_mode = EmbeddingDataHandlerMode.MASKED_TOKEN
         # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
         # NOTE: You can add more experiment configurations here.
         case _:
@@ -1395,8 +1480,21 @@ def orchestrate_job_submission(
     ### for example to remove unnecessary configurations and thus avoid unnecessary computations
     ########################################
 
+    machine_config: MachineConfig = make_machine_config(
+        task=task,
+        experiment_stage=experiment_stage,
+        experiment_selector=experiment_selector,
+        template_to_use_for_compute_embeddings=template_to_use_for_compute_embeddings,
+        embedding_data_handler_mode=embedding_data_handler_mode,
+        memory=memory,
+        ncpus=ncpus,
+        ngpus=ngpus,
+        queue=queue,
+        template=template,
+    )
+
     if data_subsampling_sampling_mode == DataSamplingMode.TAKE_FIRST:
-        # We do not need sampling seeds for the TAKE_FIRST mode
+        # We do not need sampling seeds for the take first subsampling mode
         data_subsampling_sampling_seed_list_option = DataSubsamplingSamplingSeedListOption.NONE
 
     additional_overrides_parameter: list[str] | None = list(additional_overrides) if additional_overrides else None
@@ -1404,7 +1502,7 @@ def orchestrate_job_submission(
         f"{additional_overrides_parameter = }",
     )
 
-    make_config_and_run_task(
+    make_submission_config_and_run_task(
         data_list_option=data_list_option,
         data_subsampling_sampling_mode=data_subsampling_sampling_mode,
         data_subsampling_number_of_samples_list_option=data_subsampling_number_of_samples_list_option,
@@ -1436,6 +1534,113 @@ def orchestrate_job_submission(
         run_option=run_option,
         run_only_selected_configs_option=run_only_selected_configs_option,
     )
+
+
+def make_machine_config(
+    task: Task,
+    experiment_stage: ExperimentStage,
+    experiment_selector: ExperimentSelector,
+    template_to_use_for_compute_embeddings: Template,
+    embedding_data_handler_mode: EmbeddingDataHandlerMode,
+    memory: str,
+    ncpus: str,
+    ngpus: str,
+    queue: str,
+    template: Template,
+) -> MachineConfig:
+    """Make a machine configuration for the experiment.
+
+    This function encapsulates all the logic for selecting the correct machine configuration for the experiment.
+    """
+    # Default walltime
+    walltime = "08:00:00"
+
+    match experiment_stage:
+        case ExperimentStage.COMPUTE_EMBEDDINGS_PLUS_SINGLE_PIPELINE_RUN:
+            match template_to_use_for_compute_embeddings:
+                case Template.RTX6000:
+                    queue, template = "CUDA", Template.RTX6000
+                case Template.GTX1080:
+                    queue, template = "CUDA", Template.GTX1080
+                case Template.DSML:
+                    queue, template = "DSML", Template.DSML
+                case _:
+                    msg: str = f"{template_to_use_for_compute_embeddings = } requires a GPU template."
+                    raise ValueError(
+                        msg,
+                    )
+
+            ncpus = "4"
+            ngpus = "1"
+
+            match embedding_data_handler_mode:
+                case EmbeddingDataHandlerMode.REGULAR:
+                    # For the datasets with 10_000 samples,
+                    # one pipeline run with regular embeddings usually takes about 30 min.
+                    # We set the walltime to 2 hours to be on the safe side.
+                    walltime = "02:00:00"
+                case EmbeddingDataHandlerMode.MASKED_TOKEN:
+                    # For the masked embeddings on datasets with long sequences,
+                    # the walltime can be significantly longer.
+                    walltime = "06:00:00"  # Longer walltime to make sure it is long enough for the masked embeddings
+                case _:
+                    msg: str = f"Unknown {embedding_data_handler_mode = }"
+                    raise ValueError(
+                        msg,
+                    )
+
+        case ExperimentStage.SKIP_COMPUTE_EMBEDDINGS_BUT_DO_MULTIPLE_PIPELINE_RUNS:
+            ncpus = "6"
+            ngpus = "0"
+            queue = "DEFAULT"
+            template = Template.CPU
+
+            # We set a shorter walltime for the runs which do not compute the embeddings
+            walltime = "03:00:00"
+        case _:
+            msg: str = f"Unknown {experiment_stage = }"
+            raise ValueError(
+                msg,
+            )
+
+    # Override the machine configuration based on the experiment selector
+    match experiment_selector:
+        case ExperimentSelector.SENSITIVITY_ANALYSIS_MULTIWOZ21_DIFFERENT_DATA_SUBSAMPLING_NUMBER_OF_SAMPLES:
+            # Note: We explicitly increase the memory size here,
+            # since for the embeddings data prep step on 12_000 and more data subsamlping samples,
+            # the embeddings data prep step requires more memory.
+            memory = "64"
+        case ExperimentSelector.SENSITIVITY_ANALYSIS_REDDIT_DIFFERENT_DATA_SUBSAMPLING_NUMBER_OF_SAMPLES:
+            # Note: We explicitly increase the memory size here,
+            # since for the embeddings data prep step on 12_000 and more data subsamlping samples,
+            # the embeddings data prep step requires more memory.
+            memory = "80"
+
+    # Override the machine configuration based on the task
+    match task:
+        case Task.PERPLEXITY:
+            queue = "CUDA"
+            template = Template.RTX6000
+
+            walltime = "12:00:00"  # Use slightly longer walltime for perplexity
+        case Task.FINETUNING:
+            queue = "CUDA"
+            template = Template.RTX6000
+
+            ncpus = "4"
+            ngpus = "1"
+            walltime = "48:00:00"  # Use significantly longer walltime for finetuning
+
+    machine_config = MachineConfig(
+        queue=queue,
+        template=template,
+        memory=memory,
+        ncpus=ncpus,
+        ngpus=ngpus,
+        walltime=walltime,
+    )
+
+    return machine_config
 
 
 def main() -> None:

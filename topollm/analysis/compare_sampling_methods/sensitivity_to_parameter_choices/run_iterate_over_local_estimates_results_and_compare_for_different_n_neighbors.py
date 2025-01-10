@@ -1,3 +1,5 @@
+# TODO: This script is under development
+
 # Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
@@ -81,6 +83,8 @@ setup_exception_logging(
 )
 
 setup_omega_conf()
+
+# TODO: This script needs to be updated for the task of creating the plots for different local neighborhood sizes
 
 
 def iterate_and_collect_data(
