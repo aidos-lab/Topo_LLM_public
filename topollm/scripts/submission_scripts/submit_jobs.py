@@ -560,6 +560,15 @@ def retrieve_model_and_checkpoint_list(
                 checkpoint_no_list_option=checkpoint_no_list_option,
                 num_train_epochs=int(num_train_epochs),
             )
+        case LanguageModelListOption.FINETUNED_ON_MULTIWOZ_DATA_FEW_EPOCHS_FROM_ROBERTA_BASE:
+            language_model_list: list[str] = [
+                "roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+            ]
+
+            checkpoint_no_list = get_checkpoint_no_list(
+                checkpoint_no_list_option=checkpoint_no_list_option,
+                num_train_epochs=int(num_train_epochs),
+            )
         case LanguageModelListOption.SELECTED_FINETUNED_FEW_EPOCHS_FROM_ROBERTA_BASE:
             language_model_list: list[str] = [
                 "roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
@@ -1210,6 +1219,11 @@ def orchestrate_job_submission(
             language_model_list_option = (
                 LanguageModelListOption.FINETUNED_ON_OLD_AND_NEW_DATA_FEW_EPOCHS_FROM_ROBERTA_BASE
             )
+            finetuning_regime_option = FinetuningRegimeOption.FEW_EPOCHS
+            language_model_seed_list_option = SeedListOption.FIXED_SEED_1234
+            checkpoint_no_list_option = CheckpointNoListOption.FIXED_2800
+        case ModelGroupOption.ROBERTA_BASE_FINETUNED_FOR_FEW_EPOCHS_MULTIWOZ_DATA_SINGLE_SEED_LAST_CHECKPOINT:
+            language_model_list_option = LanguageModelListOption.FINETUNED_ON_MULTIWOZ_DATA_FEW_EPOCHS_FROM_ROBERTA_BASE
             finetuning_regime_option = FinetuningRegimeOption.FEW_EPOCHS
             language_model_seed_list_option = SeedListOption.FIXED_SEED_1234
             checkpoint_no_list_option = CheckpointNoListOption.FIXED_2800

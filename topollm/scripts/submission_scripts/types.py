@@ -171,7 +171,10 @@ class ModelGroupOption(StrEnum):
     """Options for specifying the model and finetuning regime."""
 
     ROBERTA_BASE_WITHOUT_MODIFICATIONS = auto()
+
     ROBERTA_BASE_FINETUNED_FOR_FEW_EPOCHS_OLD_AND_NEW_DATA_SINGLE_SEED_LAST_CHECKPOINT = auto()
+    ROBERTA_BASE_FINETUNED_FOR_FEW_EPOCHS_MULTIWOZ_DATA_SINGLE_SEED_LAST_CHECKPOINT = auto()
+
     ROBERTA_BASE_FINETUNED_FOR_MANY_EPOCHS = auto()
 
 
@@ -190,6 +193,8 @@ class LanguageModelListOption(StrEnum):
     # Models fine-tuned on "old data" (i.e., data which was part of the pretraining data)
     # and models fine-tuned on "new data" (i.e., data which was created after the model was pre-trained)
     FINETUNED_ON_OLD_AND_NEW_DATA_FEW_EPOCHS_FROM_ROBERTA_BASE = auto()
+
+    FINETUNED_ON_MULTIWOZ_DATA_FEW_EPOCHS_FROM_ROBERTA_BASE = auto()
 
     # Selected models
     SELECTED_FINETUNED_FEW_EPOCHS_FROM_ROBERTA_BASE = auto()

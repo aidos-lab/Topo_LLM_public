@@ -615,26 +615,31 @@
                 // >>>> Concrete experiment configurations
                 //    >> Data list options.
                 //    >> Note that for multiple options, you need to specify the `--data-list-options` multiple times.
+                // >> START Data list options.
                 // "--data-list-options",
                 // "validation_split_only",
                 //    >> Individual dataset and splits, so that you can submit them in separate tmux sessions
-                "--data-list-options",
-                "iclr_validation_only",
+                // "--data-list-options",
+                // "iclr_validation_only",
                 "--data-list-options",
                 "multiwoz21_validation_only",
-                "--data-list-options",
-                "reddit_validation_only",
-                "--data-list-options",
-                "sgd_validation_only",
-                "--data-list-options",
-                "wikitext_validation_only",
-                // "multiwoz21_validation_and_reddit_validation",
-                // "iclr_validation_and_sgd_validation_and_wikitext_validation",
+                // "--data-list-options",
+                // "reddit_validation_only",
+                // "--data-list-options",
+                // "sgd_validation_only",
+                // "--data-list-options",
+                // "wikitext_validation_only",
+                // >> END Data list options.
                 "--experiment-selector-options",
                 "regular_token_embeddings_multiple_layers_single_sample",
-                "--model-group-options",
+                "--experiment-stage",
+                "compute_embeddings_plus_single_pipeline_run",
+                // "--model-group-options",
                 // "roberta_base_without_modifications",
-                "roberta_base_finetuned_for_few_epochs_old_and_new_data_single_seed_last_checkpoint",
+                // "--model-group-options",
+                // "roberta_base_finetuned_for_few_epochs_old_and_new_data_single_seed_last_checkpoint",
+                "--model-group-options",
+                "roberta_base_finetuned_for_few_epochs_multiwoz_data_single_seed_last_checkpoint",
             ]
         },
         {
@@ -695,7 +700,6 @@
             ]
         },
         {
-            // TODO: Edit and run this configuration
             "name": "call_submit_jobs_for_experiments_via_tmux_submission; sensitivity_analysis_different_local_estimates_filtering_number_of_samples",
             "type": "debugpy",
             "request": "launch",
@@ -719,17 +723,17 @@
                 //
                 // >>> Use the following to run a random configuration
                 //
-                "--run-option",
-                "do_submission",
-                "--run-only-selected-configs-option",
-                "run_single_random",
-                //
-                // >>>> Use the following to run with all configurations
-                //
                 // "--run-option",
                 // "do_submission",
                 // "--run-only-selected-configs-option",
-                // "run_all",
+                // "run_single_random",
+                //
+                // >>>> Use the following to run with all configurations
+                //
+                "--run-option",
+                "do_submission",
+                "--run-only-selected-configs-option",
+                "run_all",
                 //
                 // >>>> END: Select the run option
                 "--submission-mode",
