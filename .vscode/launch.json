@@ -524,7 +524,7 @@
                 "hydra.launcher.walltime=06:00:00",
                 // >>>> END: Hydra options
                 // "data=multiwoz21_validation",
-                "data=multiwoz21_validation",
+                "data=iclr_2024_submissions_validation,multiwoz21_validation,one-year-of-tsla-on-reddit_validation,sgd_validation,wikitext-103-v1_validation",
                 "data.data_subsampling.sampling_mode=random",
                 "data.data_subsampling.number_of_samples=10000",
                 "data.data_subsampling.sampling_seed=777",
