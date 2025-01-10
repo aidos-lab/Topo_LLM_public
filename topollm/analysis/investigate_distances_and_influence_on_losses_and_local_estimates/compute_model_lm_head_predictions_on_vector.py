@@ -25,6 +25,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Compute the model predictions for the given vector and metadata."""
+
 import logging
 
 import numpy as np
@@ -35,7 +37,7 @@ from transformers.modeling_utils import PreTrainedModel
 from transformers.tokenization_utils import PreTrainedTokenizer
 from transformers.tokenization_utils_fast import PreTrainedTokenizerFast
 
-from topollm.analysis.investigate_distances_and_influence_on_local_estimates.prediction_data_containers import (
+from topollm.analysis.investigate_distances_and_influence_on_losses_and_local_estimates.prediction_data_containers import (
     LMHeadPredictionResults,
 )
 from topollm.typing.enums import Verbosity
