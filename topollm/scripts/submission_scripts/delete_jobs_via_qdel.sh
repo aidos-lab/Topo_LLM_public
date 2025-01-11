@@ -7,3 +7,9 @@ done
 # One-liner for copy-pasting:
 #
 # for i in {12171420..12171476}; do qdel $i; done
+#
+
+# # # #
+# You can prewrite qdel commands here:
+#
+# for i in {12658033..12658052}; do qdel $i; done
