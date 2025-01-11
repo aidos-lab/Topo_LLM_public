@@ -37,6 +37,7 @@ from topollm.analysis.correlation.compute_correlations_with_count import compute
 from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.storage.saving_and_loading_functions.saving_and_loading import (
     save_dataframe_as_csv,
+    save_numpy_array_as_npy,
     save_python_dict_as_json,
 )
 from topollm.typing.enums import Verbosity
@@ -64,9 +65,15 @@ class LocalEstimatesAndPredictionsSavePathCollection:
     """Dataclass to hold the paths for saving and loading the results."""
 
     # This is the base directory under which all the other files will be placed
-    distances_and_influence_on_local_estimates_dir_absolute_path: pathlib.Path
+    distances_and_influence_on_losses_and_local_estimates_dir_absolute_path: pathlib.Path
 
+    # Statistics
     descriptive_statistics_dict_save_path: pathlib.Path
+
+    # Arrays
+    loss_vector_save_path: pathlib.Path
+
+    # Correlation
     correlations_df_save_path: pathlib.Path
 
     @staticmethod
@@ -79,23 +86,31 @@ class LocalEstimatesAndPredictionsSavePathCollection:
             "descriptive_statistics_dict.json",
         )
 
+        loss_vector_save_path: pathlib.Path = pathlib.Path(
+            distances_and_influence_on_local_estimates_dir_absolute_path,
+            "arrays",
+            "loss_vector.np",
+        )
+
         correlations_df_save_path: pathlib.Path = pathlib.Path(
             distances_and_influence_on_local_estimates_dir_absolute_path,
             "correlations_df.csv",
         )
 
         return LocalEstimatesAndPredictionsSavePathCollection(
-            distances_and_influence_on_local_estimates_dir_absolute_path=distances_and_influence_on_local_estimates_dir_absolute_path,
-            correlations_df_save_path=correlations_df_save_path,
+            distances_and_influence_on_losses_and_local_estimates_dir_absolute_path=distances_and_influence_on_local_estimates_dir_absolute_path,
+            loss_vector_save_path=loss_vector_save_path,
             descriptive_statistics_dict_save_path=descriptive_statistics_dict_save_path,
+            correlations_df_save_path=correlations_df_save_path,
         )
 
     def setup_directories(
         self,
     ) -> None:
         for path in [
-            self.distances_and_influence_on_local_estimates_dir_absolute_path,
             self.descriptive_statistics_dict_save_path,
+            self.loss_vector_save_path,
+            self.distances_and_influence_on_losses_and_local_estimates_dir_absolute_path,
         ]:
             # Create the directories if they do not exist
             if not path.parent.exists():
@@ -114,7 +129,7 @@ class LocalEstimateAndPrediction:
     extracted_local_estimate: float
     lm_head_prediction_results: LMHeadPredictionResults
 
-    extracted_metadata_reduced: dict | None = None
+    extracted_metadata_selected_keys: dict | None = None
     original_prepared_data_index: int | None = None
 
 
@@ -237,6 +252,9 @@ class LocalEstimatesAndPredictionsContainer:
         local_estimates_and_predictions_save_path_collection: LocalEstimatesAndPredictionsSavePathCollection,
     ) -> None:
         """Run function to call the different analysis steps."""
+        # # # #
+        # Statistics
+
         descriptive_statistics_dict: dict = self.create_descriptive_statistics()
 
         save_python_dict_as_json(
@@ -246,6 +264,22 @@ class LocalEstimatesAndPredictionsContainer:
             verbosity=self.verbosity,
             logger=self.logger,
         )
+
+        # # # #
+        # Arrays
+
+        loss_vector: np.ndarray = self.get_loss_vector()
+
+        save_numpy_array_as_npy(
+            array_np=loss_vector,
+            save_path=local_estimates_and_predictions_save_path_collection.loss_vector_save_path,
+            array_name_for_logging="loss_vector",
+            verbosity=self.verbosity,
+            logger=self.logger,
+        )
+
+        # # # #
+        # Correlation analysis
 
         correlations_df: pd.DataFrame = self.compute_correlation_between_local_estimates_and_loss_values()
 
@@ -257,7 +291,7 @@ class LocalEstimatesAndPredictionsContainer:
             logger=self.logger,
         )
 
+        # TODO: Implement saving the results list in a human readable format to disk
+
     # TODO: Implement methods to compare local estimates and loss values between two containers
     # TODO: Implement methods to save the comparison results to disk
-
-    # TODO: Implement saving the results list in a human readable format to disk

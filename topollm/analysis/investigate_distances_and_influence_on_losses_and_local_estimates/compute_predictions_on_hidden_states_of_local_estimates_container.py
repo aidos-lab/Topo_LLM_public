@@ -32,6 +32,8 @@ def compute_predictions_on_hidden_states_of_local_estimates_container(
     tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast,
     model: PreTrainedModel,
     descriptive_string: str = "",
+    *,
+    drop_keys_from_metadata: list[str] | None = None,
     analysis_verbosity_level: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> LocalEstimatesAndPredictionsContainer:
@@ -39,6 +41,16 @@ def compute_predictions_on_hidden_states_of_local_estimates_container(
 
     The descriptive string is used for logging to identify the computation data.
     """
+    if drop_keys_from_metadata is None:
+        # Default keys to drop from the metadata
+        drop_keys_from_metadata = [
+            "tokens_list",
+        ]
+        # Note:
+        # You might want to drop other keys from the metadata,
+        # such as "concatenated_tokens",
+        # to avoid saving too much data to disk.
+
     array_to_analyze: np.ndarray | None = local_estimates_container_to_analyze.array_for_estimator_np
     if array_to_analyze is None:
         msg = "The array_to_analyze is None."
@@ -74,19 +86,15 @@ def compute_predictions_on_hidden_states_of_local_estimates_container(
         # we will save the original token index from the embeddings data preparation script.
 
         # Make a copy of the metadata to avoid modifying the original DataFrame
-        extracted_metadata_reduced = extracted_metadata.copy()
-        # Remove the "tokens_list" and "concatenated_tokens" columns from the metadata,
+        extracted_metadata_selected_keys = extracted_metadata.copy()
+        # Remove certain columns from the metadata,
         # so that we do not save too much data to disk
-        if "tokens_list" in extracted_metadata_reduced:
-            extracted_metadata_reduced = extracted_metadata_reduced.drop(
-                labels="tokens_list",
-                axis=0,
-            )
-        if "concatenated_tokens" in extracted_metadata_reduced:
-            extracted_metadata_reduced = extracted_metadata_reduced.drop(
-                labels="concatenated_tokens",
-                axis=0,
-            )
+        for key_to_drop in drop_keys_from_metadata:
+            if key_to_drop in extracted_metadata_selected_keys:
+                extracted_metadata_selected_keys = extracted_metadata_selected_keys.drop(
+                    labels=key_to_drop,
+                    axis=0,
+                )
 
         original_prepared_data_index = None  # TODO: .index does not give the right thing here
 
@@ -121,7 +129,7 @@ def compute_predictions_on_hidden_states_of_local_estimates_container(
             vector_index=vector_index,
             extracted_local_estimate=extracted_local_estimate,
             lm_head_prediction_results=lm_head_prediction_results,
-            extracted_metadata_reduced=extracted_metadata_reduced.to_dict(),
+            extracted_metadata_selected_keys=extracted_metadata_selected_keys.to_dict(),
             original_prepared_data_index=None,  # TODO: Add the original index in the prepared data to the results
         )
 
