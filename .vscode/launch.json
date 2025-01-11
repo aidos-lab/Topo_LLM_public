@@ -796,16 +796,28 @@
                 "compute_embeddings_plus_single_pipeline_run",
                 //    >> Data list options.
                 //    >> Note that for multiple options, you need to specify the `--data-list-options` multiple times.
+                // "--data-list-options",
+                // "validation_split_only",
                 "--data-list-options",
-                "validation_split_only",
+                "iclr_validation_only",
+                "--data-list-options",
+                "multiwoz21_validation_only",
+                "--data-list-options",
+                "reddit_validation_only",
+                "--data-list-options",
+                "sgd_validation_only",
+                "--data-list-options",
+                "wikitext_validation_only",
                 //    >> Model group options.
                 //    >> Note that for multiple options, you need to specify the `--model-group-options` multiple times.
                 // "--model-group-options",
                 // "roberta_base_without_modifications",
                 // "--model-group-options",
                 // "roberta_base_finetuned_for_few_epochs_old_and_new_data_single_seed_last_checkpoint",
+                // "--model-group-options",
+                // "roberta_base_finetuned_for_few_epochs_multiwoz_data_single_seed_last_checkpoint",
                 "--model-group-options",
-                "roberta_base_finetuned_for_few_epochs_multiwoz_data_single_seed_last_checkpoint",
+                "roberta_base_finetuned_for_few_epochs_multiwoz_and_reddit_and_wikitext_data_single_seed_all_checkpoints",
             ]
         },
         {

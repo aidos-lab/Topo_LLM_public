@@ -58,7 +58,7 @@ scikit-dimension = "*"
 StrEnum = { version = "^0.4", markers = "python_version < '3.11'" }
 torch = "2.3.*"
 tqdm = "*"
-transformers = "*"
+transformers = ">=4,<4.48"
 zarr = ">=2,<3" # Our code has not been migrated to zarr v3 yet, we will follow https://zarr.readthedocs.io/en/latest/user-guide/v3_migration.html
 tensorboard = "*"
 seaborn = "*"
@@ -84,8 +84,7 @@ hydra-zen = "*"
 hydra-joblib-launcher = "*"
 pypdf = "*"
 reportlab = "*"
-geomloss = "^0.2.6"
-pykeops = "^2.2.3"
+markupsafe = "^3.0.2"
 
 [tool.poetry.group.dev.dependencies]
 hypothesis = "*"
