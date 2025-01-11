@@ -11,10 +11,14 @@ analysis:
     do_checkpoint_analysis: true
     do_data_subsampling_number_of_samples_analysis: true
 
+comparison:
+  do_comparison_of_local_estimates: true
+
 compute_and_store_embeddings:
-  skip_compute_and_store_embeddings: false
+  skip_compute_and_store_embeddings_in_pipeline: false
 
 embeddings_data_prep:
+  skip_embeddings_data_prep_in_pipeline: false
   add_additional_metadata: true
 
 finetuning:

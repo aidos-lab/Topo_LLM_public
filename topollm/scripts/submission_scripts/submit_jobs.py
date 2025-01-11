@@ -560,6 +560,26 @@ def retrieve_model_and_checkpoint_list(
                 checkpoint_no_list_option=checkpoint_no_list_option,
                 num_train_epochs=int(num_train_epochs),
             )
+        case LanguageModelListOption.FINETUNED_ON_MULTIWOZ_DATA_FEW_EPOCHS_FROM_ROBERTA_BASE:
+            language_model_list: list[str] = [
+                "roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+            ]
+
+            checkpoint_no_list = get_checkpoint_no_list(
+                checkpoint_no_list_option=checkpoint_no_list_option,
+                num_train_epochs=int(num_train_epochs),
+            )
+        case LanguageModelListOption.FINETUNED_ON_MULTIWOZ_AND_REDDIT_AND_WIKITEXT_DATA_FEW_EPOCHS_FROM_ROBERTA_BASE:
+            language_model_list: list[str] = [
+                "roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+                "roberta-base-masked_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+                "roberta-base-masked_lm-defaults_wikitext-103-v1-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+            ]
+
+            checkpoint_no_list = get_checkpoint_no_list(
+                checkpoint_no_list_option=checkpoint_no_list_option,
+                num_train_epochs=int(num_train_epochs),
+            )
         case LanguageModelListOption.SELECTED_FINETUNED_FEW_EPOCHS_FROM_ROBERTA_BASE:
             language_model_list: list[str] = [
                 "roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
@@ -867,7 +887,8 @@ def make_submission_config_and_run_task(
     *,
     add_prefix_space: bool,
     create_pos_tags: bool,
-    skip_compute_and_store_embeddings: bool,
+    skip_compute_and_store_embeddings_in_pipeline: bool,
+    skip_embeddings_data_prep_in_pipeline: bool,
     run_option: RunOption = RunOption.DO_SUBMISSION,
     run_only_selected_configs_option: RunOnlySelectedConfigsOption = RunOnlySelectedConfigsOption.RUN_ALL,
 ) -> None:
@@ -985,7 +1006,8 @@ def make_submission_config_and_run_task(
         num_train_epochs=num_train_epochs,
         lr_scheduler_type=lr_scheduler_type,
         wandb_project=wandb_project,
-        skip_compute_and_store_embeddings=skip_compute_and_store_embeddings,
+        skip_compute_and_store_embeddings_in_pipeline=skip_compute_and_store_embeddings_in_pipeline,
+        skip_embeddings_data_prep_in_pipeline=skip_embeddings_data_prep_in_pipeline,
     )
 
     match run_only_selected_configs_option:
@@ -1213,6 +1235,18 @@ def orchestrate_job_submission(
             finetuning_regime_option = FinetuningRegimeOption.FEW_EPOCHS
             language_model_seed_list_option = SeedListOption.FIXED_SEED_1234
             checkpoint_no_list_option = CheckpointNoListOption.FIXED_2800
+        case ModelGroupOption.ROBERTA_BASE_FINETUNED_FOR_FEW_EPOCHS_MULTIWOZ_DATA_SINGLE_SEED_LAST_CHECKPOINT:
+            language_model_list_option = LanguageModelListOption.FINETUNED_ON_MULTIWOZ_DATA_FEW_EPOCHS_FROM_ROBERTA_BASE
+            finetuning_regime_option = FinetuningRegimeOption.FEW_EPOCHS
+            language_model_seed_list_option = SeedListOption.FIXED_SEED_1234
+            checkpoint_no_list_option = CheckpointNoListOption.FIXED_2800
+        case ModelGroupOption.ROBERTA_BASE_FINETUNED_FOR_FEW_EPOCHS_MULTIWOZ_AND_REDDIT_AND_WIKITEXT_DATA_SINGLE_SEED_ALL_CHECKPOINTS:
+            language_model_list_option = (
+                LanguageModelListOption.FINETUNED_ON_MULTIWOZ_AND_REDDIT_AND_WIKITEXT_DATA_FEW_EPOCHS_FROM_ROBERTA_BASE
+            )
+            finetuning_regime_option = FinetuningRegimeOption.FEW_EPOCHS
+            language_model_seed_list_option = SeedListOption.FIXED_SEED_1234
+            checkpoint_no_list_option = CheckpointNoListOption.RANGE_START_400_STOP_3200_STEP_400
         case ModelGroupOption.ROBERTA_BASE_FINETUNED_FOR_MANY_EPOCHS:
             ################################################################
             ### With POS tags for finetuned models and three checkpoints ###
@@ -1233,7 +1267,8 @@ def orchestrate_job_submission(
 
     add_prefix_space = True
     create_pos_tags = True
-    skip_compute_and_store_embeddings = False
+    skip_compute_and_store_embeddings_in_pipeline = False
+    skip_embeddings_data_prep_in_pipeline = False
 
     # `embeddings_data_prep_sampling_seed_list_option` is set here and will be overwritten
     # in the experiment stage configurations below.
@@ -1268,11 +1303,15 @@ def orchestrate_job_submission(
         case ExperimentStage.COMPUTE_EMBEDDINGS_PLUS_SINGLE_PIPELINE_RUN:
             # Only run for a single embeddings data prep sampling seed
             embeddings_data_prep_sampling_seed_list_option = EmbeddingsDataPrepSamplingSeedListOption.DEFAULT
-            skip_compute_and_store_embeddings = False  # do the embeddings computation
+            skip_compute_and_store_embeddings_in_pipeline = False  # do the embeddings computation
         case ExperimentStage.SKIP_COMPUTE_EMBEDDINGS_BUT_DO_MULTIPLE_PIPELINE_RUNS:
             # Assume embeddings are already computed and run for different embeddings data prep sampling seeds
             embeddings_data_prep_sampling_seed_list_option = EmbeddingsDataPrepSamplingSeedListOption.FIVE_SEEDS
-            skip_compute_and_store_embeddings = True  # skip the embeddings computation
+            skip_compute_and_store_embeddings_in_pipeline = True  # skip the embeddings computation
+        case ExperimentStage.SKIP_COMPUTE_EMBEDDINGS_AND_SKIP_EMBEDDINGS_DATA_PREP:
+            # Assume embeddings are already computed and skip the embeddings data prep step
+            skip_compute_and_store_embeddings_in_pipeline = True  # skip the embeddings computation
+            skip_embeddings_data_prep_in_pipeline = True  # skip the embeddings data prep step
         case _:
             msg: str = f"Unknown {experiment_stage = }"
             raise ValueError(
@@ -1530,7 +1569,8 @@ def orchestrate_job_submission(
         additional_overrides=additional_overrides_parameter,
         add_prefix_space=add_prefix_space,
         create_pos_tags=create_pos_tags,
-        skip_compute_and_store_embeddings=skip_compute_and_store_embeddings,
+        skip_compute_and_store_embeddings_in_pipeline=skip_compute_and_store_embeddings_in_pipeline,
+        skip_embeddings_data_prep_in_pipeline=skip_embeddings_data_prep_in_pipeline,
         run_option=run_option,
         run_only_selected_configs_option=run_only_selected_configs_option,
     )

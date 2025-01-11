@@ -42,7 +42,7 @@ import omegaconf
 import pandas as pd
 from tqdm import tqdm
 
-from topollm.analysis.investigate_distances_and_influence_on_local_estimates.create_scatter_plot import (
+from topollm.analysis.investigate_distances_and_influence_on_losses_and_local_estimates.create_scatter_plot import (
     create_scatter_plot,
 )
 from topollm.analysis.local_estimates_handling.saving.local_estimates_saving_manager import LocalEstimatesSavingManager

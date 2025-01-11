@@ -51,7 +51,6 @@ from topollm.analysis.local_estimates_handling.deduplicator.factory import (
 from topollm.analysis.local_estimates_handling.distances.distance_functions import (
     approximate_hausdorff_via_kdtree,
     compute_exact_hausdorff,
-    geomloss_sinkhorn_wasserstein,
 )
 from topollm.analysis.local_estimates_handling.filter.factory import get_local_estimates_filter
 from topollm.analysis.local_estimates_handling.noise.factory import get_prepared_data_noiser
@@ -330,22 +329,14 @@ def compute_distance_metrics(
             )
 
     if main_config.feature_flags.analysis.distance_functions.use_sinkhorn_wasserstein:
-        if verbosity >= Verbosity.NORMAL:
-            logger.info(
-                msg="Computing Sinkhorn Wasserstein distance ...",
-            )
-
-        sinkhorn_wasserstein = geomloss_sinkhorn_wasserstein(
-            P_np=clean_array,
-            Q_np=noisy_array,
+        # Note: We removed the call to `geomloss_sinkhorn_wasserstein` here,
+        # since this module lead to problems with the current environment on the HPC.
+        logger.warning(
+            msg="The geomloss library lead to problems with the current environment on the HPC.",
         )
-
-        additional_distance_computations_results["sinkhorn_wasserstein"] = sinkhorn_wasserstein
-
-        if verbosity >= Verbosity.NORMAL:
-            logger.info(
-                msg=f"{sinkhorn_wasserstein = }",  # noqa: G004 - low overhead
-            )
+        logger.warning(
+            msg="The computation of the Sinkhorn Wasserstein distance is currently disabled.",
+        )
 
     if verbosity >= Verbosity.NORMAL:
         logger.info(

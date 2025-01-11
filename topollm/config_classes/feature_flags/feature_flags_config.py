@@ -135,10 +135,20 @@ class AnalysisFeatureFlagsConfig(ConfigBaseModel):
     )
 
 
+class ComparisonFeatureFlagsConfig(ConfigBaseModel):
+    """Feature flags for the comparison process."""
+
+    do_comparison_of_local_estimates: bool = Field(
+        default=True,
+        title="Do comparison of local estimates.",
+        description="Whether to do the comparison of local estimates.",
+    )
+
+
 class ComputeAndStoreEmbeddingsFeatureFlagsConfig(ConfigBaseModel):
     """Feature flags for the compute and store embeddings process."""
 
-    skip_compute_and_store_embeddings: bool = Field(
+    skip_compute_and_store_embeddings_in_pipeline: bool = Field(
         default=False,
         title="Skip compute and store embeddings in the pipeline.",
         description="Whether to skip the compute and store embeddings process in the pipeline.",
@@ -147,6 +157,12 @@ class ComputeAndStoreEmbeddingsFeatureFlagsConfig(ConfigBaseModel):
 
 class EmbeddingsDataPrepFeatureFlagsConfig(ConfigBaseModel):
     """Feature flags for the embeddings data preparation process."""
+
+    skip_embeddings_data_prep_in_pipeline: bool = Field(
+        default=False,
+        title="Skip embeddings data preparation in the pipeline.",
+        description="Whether to skip the embeddings data preparation in the pipeline.",
+    )
 
     add_additional_metadata: bool = Field(
         default=True,
@@ -210,6 +226,12 @@ class FeatureFlagsConfig(ConfigBaseModel):
         default_factory=AnalysisFeatureFlagsConfig,
         title="Analysis feature flags.",
         description="Feature flags for the analysis process.",
+    )
+
+    comparison: ComparisonFeatureFlagsConfig = Field(
+        default_factory=ComparisonFeatureFlagsConfig,
+        title="Comparison feature flags.",
+        description="Feature flags for the comparison process.",
     )
 
     compute_and_store_embeddings: ComputeAndStoreEmbeddingsFeatureFlagsConfig = Field(

@@ -59,26 +59,34 @@ def worker_for_pipeline(
 
     # # # # # # # # # # # # # # # #
     # Compute embeddings worker
-    if not main_config.feature_flags.compute_and_store_embeddings.skip_compute_and_store_embeddings:
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=logger_section_separation_line,
+        )
+    if not main_config.feature_flags.compute_and_store_embeddings.skip_compute_and_store_embeddings_in_pipeline:
         if verbosity >= Verbosity.NORMAL:
-            logger.info(
-                msg=logger_section_separation_line,
-            )
             logger.info(
                 msg="Calling compute embeddings worker ...",
             )
+
         compute_and_store_embeddings(
             main_config=main_config,
             device=device,
             logger=logger,
         )
+
         if verbosity >= Verbosity.NORMAL:
             logger.info(
                 msg="Calling compute embeddings worker DONE",
             )
-            logger.info(
-                msg=logger_section_separation_line,
-            )
+    elif verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg="Skipping compute embeddings worker because of feature flag.",
+        )
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=logger_section_separation_line,
+        )
 
     # # # # # # # # # # # # # # # #
     # Data prep worker
@@ -86,21 +94,28 @@ def worker_for_pipeline(
         logger.info(
             msg=logger_section_separation_line,
         )
-        logger.info(
-            msg="Calling data prep worker ...",
+    if not main_config.feature_flags.embeddings_data_prep.skip_embeddings_data_prep_in_pipeline:
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg="Calling data prep worker ...",
+            )
+
+        embeddings_data_prep_worker(
+            main_config=main_config,
+            device=device,
+            verbosity=main_config.verbosity,
+            logger=logger,
         )
 
-    embeddings_data_prep_worker(
-        main_config=main_config,
-        device=device,
-        verbosity=main_config.verbosity,
-        logger=logger,
-    )
-
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg="Calling data prep worker DONE",
+            )
+    elif verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg="Skipping data prep worker because of feature flag.",
+        )
     if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            msg="Calling data prep worker DONE",
-        )
         logger.info(
             msg=logger_section_separation_line,
         )

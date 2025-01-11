@@ -40,6 +40,7 @@ class ExperimentStage(StrEnum):
 
     COMPUTE_EMBEDDINGS_PLUS_SINGLE_PIPELINE_RUN = auto()
     SKIP_COMPUTE_EMBEDDINGS_BUT_DO_MULTIPLE_PIPELINE_RUNS = auto()
+    SKIP_COMPUTE_EMBEDDINGS_AND_SKIP_EMBEDDINGS_DATA_PREP = auto()
 
 
 class ExperimentSelector(StrEnum):
@@ -74,6 +75,8 @@ class CheckpointNoListOption(StrEnum):
 
     # Fixed checkpoints
     FIXED_2800 = auto()
+
+    RANGE_START_400_STOP_3200_STEP_400 = auto()
 
 
 class DataListOption(StrEnum):
@@ -171,7 +174,11 @@ class ModelGroupOption(StrEnum):
     """Options for specifying the model and finetuning regime."""
 
     ROBERTA_BASE_WITHOUT_MODIFICATIONS = auto()
+
     ROBERTA_BASE_FINETUNED_FOR_FEW_EPOCHS_OLD_AND_NEW_DATA_SINGLE_SEED_LAST_CHECKPOINT = auto()
+    ROBERTA_BASE_FINETUNED_FOR_FEW_EPOCHS_MULTIWOZ_DATA_SINGLE_SEED_LAST_CHECKPOINT = auto()
+    ROBERTA_BASE_FINETUNED_FOR_FEW_EPOCHS_MULTIWOZ_AND_REDDIT_AND_WIKITEXT_DATA_SINGLE_SEED_ALL_CHECKPOINTS = auto()
+
     ROBERTA_BASE_FINETUNED_FOR_MANY_EPOCHS = auto()
 
 
@@ -190,6 +197,9 @@ class LanguageModelListOption(StrEnum):
     # Models fine-tuned on "old data" (i.e., data which was part of the pretraining data)
     # and models fine-tuned on "new data" (i.e., data which was created after the model was pre-trained)
     FINETUNED_ON_OLD_AND_NEW_DATA_FEW_EPOCHS_FROM_ROBERTA_BASE = auto()
+
+    FINETUNED_ON_MULTIWOZ_DATA_FEW_EPOCHS_FROM_ROBERTA_BASE = auto()
+    FINETUNED_ON_MULTIWOZ_AND_REDDIT_AND_WIKITEXT_DATA_FEW_EPOCHS_FROM_ROBERTA_BASE = auto()
 
     # Selected models
     SELECTED_FINETUNED_FEW_EPOCHS_FROM_ROBERTA_BASE = auto()
