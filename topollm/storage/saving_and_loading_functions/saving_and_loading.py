@@ -206,7 +206,7 @@ def save_list_of_python_dicts_as_indented_text(
                 indent=4,  # Indentation to make it human-readable
             )
             fp.write(
-                "\n" + ",",  # Add a comma to separate the dictionaries
+                "," + "\n",  # Add a comma brefore the line break to separate the dictionaries
             )
 
     if verbosity >= Verbosity.NORMAL:

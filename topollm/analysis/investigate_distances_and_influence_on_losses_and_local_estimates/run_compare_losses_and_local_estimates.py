@@ -28,7 +28,6 @@
 """Run script to compare computed Hausdorff distances with the local estimates."""
 
 import logging
-import pathlib
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -59,6 +58,8 @@ from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 from topollm.typing.enums import Verbosity
 
 if TYPE_CHECKING:
+    import pathlib
+
     pass
 
 try:

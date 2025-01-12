@@ -1,7 +1,35 @@
-import logging
+# Copyright 2024-2025
+# Heinrich Heine University Dusseldorf,
+# Faculty of Mathematics and Natural Sciences,
+# Computer Science Department
+#
+# Authors:
+# Benjamin Ruppik (mail@ruppik.net)
+# Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
+#
+# Code generation tools and workflows:
+# First versions of this code were potentially generated
+# with the help of AI writing assistants including
+# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
+# Afterwards, the generated segments were manually reviewed and edited.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-import numpy as np
-import pandas as pd
+"""Compute predictions on hidden states of a local estimates container."""
+
+import logging
+from typing import TYPE_CHECKING
+
 from tqdm import tqdm
 from transformers.modeling_utils import PreTrainedModel
 from transformers.tokenization_utils import PreTrainedTokenizer
@@ -17,6 +45,10 @@ from topollm.analysis.investigate_distances_and_influence_on_losses_and_local_es
 )
 from topollm.analysis.local_estimates_handling.saving.local_estimates_containers import LocalEstimatesContainer
 from topollm.typing.enums import Verbosity
+
+if TYPE_CHECKING:
+    import numpy as np
+    import pandas as pd
 
 default_logger: logging.Logger = logging.getLogger(
     name=__name__,
@@ -75,7 +107,7 @@ def compute_predictions_on_hidden_states_of_local_estimates_container(
     ):
         # Extract the embedding vector for the vector_index and the corresponding metadata
         extracted_vector = array_to_analyze[vector_index]
-        extracted_metadata = corresponding_metadata.iloc[vector_index]
+        extracted_metadata: pd.Series = corresponding_metadata.iloc[vector_index]
 
         # Note: You need to be careful that because of the potential vector de-duplication step
         # in the PreparedData creation, that the `vector_index` does not necessarily agree with the original index
@@ -84,9 +116,11 @@ def compute_predictions_on_hidden_states_of_local_estimates_container(
         # between spaces that came from different embedding models or token embedding modes.
         # To help with the comparison,
         # we will save the original token index from the embeddings data preparation script.
+        #
+        original_prepared_data_index = corresponding_metadata.index[vector_index]
 
         # Make a copy of the metadata to avoid modifying the original DataFrame
-        extracted_metadata_selected_keys = extracted_metadata.copy()
+        extracted_metadata_selected_keys: pd.Series = extracted_metadata.copy()
         # Remove certain columns from the metadata,
         # so that we do not save too much data to disk
         for key_to_drop in drop_keys_from_metadata:
@@ -95,8 +129,6 @@ def compute_predictions_on_hidden_states_of_local_estimates_container(
                     labels=key_to_drop,
                     axis=0,
                 )
-
-        original_prepared_data_index = None  # TODO: .index does not give the right thing here
 
         # # # #
         extracted_local_estimate = pointwise_local_estimates_to_analyze[vector_index]
@@ -130,7 +162,7 @@ def compute_predictions_on_hidden_states_of_local_estimates_container(
             extracted_local_estimate=extracted_local_estimate,
             lm_head_prediction_results=lm_head_prediction_results,
             extracted_metadata_selected_keys=extracted_metadata_selected_keys.to_dict(),
-            original_prepared_data_index=None,  # TODO: Add the original index in the prepared data to the results
+            original_prepared_data_index=original_prepared_data_index,
         )
 
         results_list.append(
