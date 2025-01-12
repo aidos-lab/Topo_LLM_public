@@ -567,7 +567,7 @@
                 "hydra.launcher.memory=32",
                 "hydra.launcher.ncpus=4",
                 "hydra.launcher.ngpus=1",
-                "hydra.launcher.walltime=06:00:00",
+                "hydra.launcher.walltime=02:00:00", // For 60000 samples and one dataset and model, a forward pass takes only a few minutes on an RTX 6000
                 // >>>> END: Hydra options
                 // "data=multiwoz21_validation",
                 "data=iclr_2024_submissions_validation,multiwoz21_validation,one-year-of-tsla-on-reddit_validation,sgd_validation,wikitext-103-v1_validation",
@@ -576,14 +576,15 @@
                 "data.data_subsampling.sampling_seed=777",
                 "+data.dataset_type=huggingface_dataset_named_entity",
                 "tokenizer.add_prefix_space=True",
+                // Note: We have not computed the masked token embeddings for the ICLR-finetuned models yet, so we will skip the loss computation for now.
+                // Note: You need to have the masked embeddings precomputed for the given checkpoints before you can call this loss computation.
                 // "language_model=roberta-base",
                 // "language_model=roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
-                "language_model=roberta-base,roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,roberta-base-masked_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,roberta-base-masked_lm-defaults_wikitext-103-v1-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
-                // Note: We have not computed the masked token embeddings for the ICLR-finetuned models yet, so we will skip the loss computation for now.
+                "language_model=roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,roberta-base-masked_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,roberta-base-masked_lm-defaults_wikitext-103-v1-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+                // "language_model=roberta-base,roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,roberta-base-masked_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,roberta-base-masked_lm-defaults_wikitext-103-v1-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
                 // "language_model=roberta-base-masked_lm-defaults_iclr_2024_submissions-rm-empty-True-do_nothing-ner_tags_train-5000-take_first-111_standard-None_5e-05-linear-0.01-5",
-                // Note: You need to have the masked embeddings precomputed for the given checkpoints before you can call this loss computation.
-                // "++language_model.checkpoint_no=400,800,1200,1600,2000",
-                "++language_model.checkpoint_no=2800",
+                "++language_model.checkpoint_no=400,800,1200,1600,2000,2400,2800",
+                // "++language_model.checkpoint_no=2800",
                 "embeddings.embedding_data_handler.mode=masked_token",
                 "embeddings.embedding_extraction.layer_indices=[-1]",
                 "embeddings_data_prep.sampling.num_samples=150000",
