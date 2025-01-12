@@ -81,6 +81,7 @@ class LocalEstimatesAndPredictionsSavePathCollection:
 
     # Predictions and metadata
     local_estimates_and_predictions_results_list_save_path: pathlib.Path
+    human_readable_predictions_logging_save_path: pathlib.Path
 
     @staticmethod
     def from_base_directory(
@@ -108,6 +109,11 @@ class LocalEstimatesAndPredictionsSavePathCollection:
             "predictions_and_metadata",
             "local_estimates_and_predictions_results_list.jsonl",
         )
+        human_readable_predictions_logging_save_path: pathlib.Path = pathlib.Path(
+            distances_and_influence_on_local_estimates_dir_absolute_path,
+            "predictions_and_metadata",
+            "human_readable_predictions_logging.log",
+        )
 
         return LocalEstimatesAndPredictionsSavePathCollection(
             distances_and_influence_on_losses_and_local_estimates_dir_absolute_path=distances_and_influence_on_local_estimates_dir_absolute_path,
@@ -115,6 +121,7 @@ class LocalEstimatesAndPredictionsSavePathCollection:
             descriptive_statistics_dict_save_path=descriptive_statistics_dict_save_path,
             correlations_df_save_path=correlations_df_save_path,
             local_estimates_and_predictions_results_list_save_path=local_estimates_and_predictions_results_list_save_path,
+            human_readable_predictions_logging_save_path=human_readable_predictions_logging_save_path,
         )
 
     def setup_directories(
@@ -126,6 +133,7 @@ class LocalEstimatesAndPredictionsSavePathCollection:
             self.loss_vector_save_path,
             self.correlations_df_save_path,
             self.local_estimates_and_predictions_results_list_save_path,
+            self.human_readable_predictions_logging_save_path,
         ]:
             # Create the directories if they do not exist
             if not path.parent.exists():
@@ -147,10 +155,30 @@ class LocalEstimateAndPrediction:
     extracted_metadata_selected_keys: dict | None = None
     original_prepared_data_index: int | None = None
 
-    def dict(
+    def to_dict(
         self,
     ) -> dict:
         return {k: str(object=v) for k, v in asdict(obj=self).items()}
+
+    def get_dict_for_human_readable_logging(
+        self,
+    ) -> dict:
+        """Get a dictionary representation of the object for human-readable logging."""
+        dict_for_human_readable_logging: dict = {
+            "extracted_local_estimate": self.extracted_local_estimate,
+            "loss": self.lm_head_prediction_results.loss,
+            "actual_token_name": self.lm_head_prediction_results.actual_token_name,
+            "top_k_tokens": self.lm_head_prediction_results.top_k_tokens,
+            "top_k_probabilities": self.lm_head_prediction_results.top_k_probabilities,
+        }
+
+        if self.extracted_metadata_selected_keys is not None:
+            dict_for_human_readable_logging["concatenated_tokens"] = self.extracted_metadata_selected_keys.get(
+                "concatenated_tokens",
+                None,
+            )
+
+        return dict_for_human_readable_logging
 
 
 class LocalEstimatesAndPredictionsContainer:
@@ -207,11 +235,22 @@ class LocalEstimatesAndPredictionsContainer:
     ) -> list[dict]:
         """Return the local estimates and predictions results list as a list of dictionaries."""
         local_estimates_and_predictions_results_list_as_dicts: list[dict] = [
-            local_estimate_and_prediction.dict()
+            local_estimate_and_prediction.to_dict()
             for local_estimate_and_prediction in self.local_estimates_and_predictions_results_list
         ]
 
         return local_estimates_and_predictions_results_list_as_dicts
+
+    def get_human_readable_predictions_logging_dicts(
+        self,
+    ) -> list[dict]:
+        """Return the human-readable logging dictionaries for the local estimates and predictions."""
+        human_readable_predictions_logging_dicts: list[dict] = [
+            local_estimate_and_prediction.get_dict_for_human_readable_logging()
+            for local_estimate_and_prediction in self.local_estimates_and_predictions_results_list
+        ]
+
+        return human_readable_predictions_logging_dicts
 
     def create_descriptive_statistics(
         self,
@@ -341,6 +380,16 @@ class LocalEstimatesAndPredictionsContainer:
             verbosity=self.verbosity,
             logger=self.logger,
         )
+
+    def save_human_readable_predictions_logging(
+        self,
+        local_estimates_and_predictions_save_path_collection: LocalEstimatesAndPredictionsSavePathCollection,
+    ) -> None:
+        """Save human-readable predictions and metadata for logging purposes."""
+        human_readable_predictions_logging_dicts: list[dict] = self.get_human_readable_predictions_logging_dicts()
+
+        pass
+        # TODO: Save the data to disk
 
     # TODO: Implement methods to compare local estimates and loss values between two containers
     # TODO: Implement methods to save the comparison results to disk

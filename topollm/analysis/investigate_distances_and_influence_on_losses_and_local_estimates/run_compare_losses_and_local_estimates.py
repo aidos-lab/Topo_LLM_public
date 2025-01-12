@@ -162,6 +162,9 @@ class ComputationManager:
         local_estimates_and_predictions_container.save_computation_data(
             local_estimates_and_predictions_save_path_collection=local_estimates_and_predictions_save_path_collection,
         )
+        local_estimates_and_predictions_container.save_human_readable_predictions_logging(
+            local_estimates_and_predictions_save_path_collection=local_estimates_and_predictions_save_path_collection,
+        )
         local_estimates_and_predictions_container.run_full_analysis_and_save_results(
             local_estimates_and_predictions_save_path_collection=local_estimates_and_predictions_save_path_collection,
         )
