@@ -135,7 +135,7 @@ def load_python_dict_from_json(
 def save_list_of_python_dicts_as_jsonl(
     list_of_python_dicts: list[dict] | None,
     save_path: pathlib.Path,
-    python_object_name_for_logging: str = "python_dict",
+    python_object_name_for_logging: str = "list_of_python_dicts",
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> None:
@@ -156,13 +156,58 @@ def save_list_of_python_dicts_as_jsonl(
         mode="w",
     ) as fp:
         for python_dict in list_of_python_dicts:
+            # Indendation is set to None, so that each dictionary is written on a single line.
+            # `indent=0` would print the dictionaries on multiple lines, but with no indentation.
             json.dump(
                 obj=python_dict,
                 fp=fp,
                 sort_keys=True,
-                # indent=4,
+                indent=None,  # No indentation for jsonl
             )
             fp.write("\n")
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Saving {python_object_name_for_logging} to "  # noqa: G004 - low overhead
+            f"{save_path = } DONE",
+        )
+
+
+def save_list_of_python_dicts_as_indented_text(
+    list_of_python_dicts: list[dict] | None,
+    save_path: pathlib.Path,
+    python_object_name_for_logging: str = "list_of_python_dicts",
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
+    """Save a list of python dictionaries as a jsonl file."""
+    if list_of_python_dicts is None:
+        logger.info(
+            msg=f"No {python_object_name_for_logging} to save.",  # noqa: G004 - low overhead
+        )
+        return  # Early return if no data to save
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Saving {python_object_name_for_logging} to "  # noqa: G004 - low overhead
+            f"{save_path = } ...",
+        )
+
+    with save_path.open(
+        mode="w",
+    ) as fp:
+        for python_dict in list_of_python_dicts:
+            # Note that the indentation is set to 4 spaces,
+            # thus each dictionary will be written on multiple lines
+            json.dump(
+                obj=python_dict,
+                fp=fp,
+                sort_keys=True,
+                indent=4,  # Indentation to make it human-readable
+            )
+            fp.write(
+                "\n" + ",",  # Add a comma to separate the dictionaries
+            )
 
     if verbosity >= Verbosity.NORMAL:
         logger.info(

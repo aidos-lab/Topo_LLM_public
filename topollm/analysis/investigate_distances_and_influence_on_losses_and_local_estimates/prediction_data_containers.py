@@ -39,6 +39,7 @@ from topollm.analysis.correlation.compute_correlations_with_count import compute
 from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.storage.saving_and_loading_functions.saving_and_loading import (
     save_dataframe_as_csv,
+    save_list_of_python_dicts_as_indented_text,
     save_list_of_python_dicts_as_jsonl,
     save_numpy_array_as_npy,
     save_python_dict_as_json,
@@ -388,8 +389,13 @@ class LocalEstimatesAndPredictionsContainer:
         """Save human-readable predictions and metadata for logging purposes."""
         human_readable_predictions_logging_dicts: list[dict] = self.get_human_readable_predictions_logging_dicts()
 
-        pass
-        # TODO: Save the data to disk
+        save_list_of_python_dicts_as_indented_text(
+            list_of_python_dicts=human_readable_predictions_logging_dicts,
+            save_path=local_estimates_and_predictions_save_path_collection.human_readable_predictions_logging_save_path,
+            python_object_name_for_logging="human_readable_predictions_logging_dicts",
+            verbosity=self.verbosity,
+            logger=self.logger,
+        )
 
     # TODO: Implement methods to compare local estimates and loss values between two containers
     # TODO: Implement methods to save the comparison results to disk
