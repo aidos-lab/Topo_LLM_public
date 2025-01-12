@@ -43,6 +43,7 @@ default_logger: logging.Logger = logging.getLogger(
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # Saving and loading functions for python dictionaries
+# and lists of python dictionaries
 
 
 def save_python_dict_as_json(
@@ -53,32 +54,33 @@ def save_python_dict_as_json(
     logger: logging.Logger = default_logger,
 ) -> None:
     """Save a python dictionary as a json file."""
-    if python_dict is not None:
-        if verbosity >= Verbosity.NORMAL:
-            logger.info(
-                msg=f"Saving {python_dict_name_for_logging} to "  # noqa: G004 - low overhead
-                f"{save_path = } ...",
-            )
-
-        # Save dictionary as json file
-        with save_path.open(
-            mode="w",
-        ) as fp:
-            json.dump(
-                obj=python_dict,
-                fp=fp,
-                sort_keys=True,
-                indent=4,
-            )
-
-        if verbosity >= Verbosity.NORMAL:
-            logger.info(
-                msg=f"Saving {python_dict_name_for_logging} to "  # noqa: G004 - low overhead
-                f"{save_path = } DONE",
-            )
-    else:
+    if python_dict is None:
         logger.info(
-            msg=f"No {python_dict} to save.",  # noqa: G004 - low overhead
+            msg=f"No {python_dict_name_for_logging} to save.",  # noqa: G004 - low overhead
+        )
+        return  # Early return if no data to save
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Saving {python_dict_name_for_logging} to "  # noqa: G004 - low overhead
+            f"{save_path = } ...",
+        )
+
+    # Save dictionary as json file
+    with save_path.open(
+        mode="w",
+    ) as fp:
+        json.dump(
+            obj=python_dict,
+            fp=fp,
+            sort_keys=True,
+            indent=4,
+        )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Saving {python_dict_name_for_logging} to "  # noqa: G004 - low overhead
+            f"{save_path = } DONE",
         )
 
 
@@ -130,6 +132,45 @@ def load_python_dict_from_json(
     return python_dict
 
 
+def save_list_of_python_dicts_as_jsonl(
+    list_of_python_dicts: list[dict] | None,
+    save_path: pathlib.Path,
+    python_object_name_for_logging: str = "python_dict",
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
+    """Save a list of python dictionaries as a jsonl file."""
+    if list_of_python_dicts is None:
+        logger.info(
+            msg=f"No {python_object_name_for_logging} to save.",  # noqa: G004 - low overhead
+        )
+        return  # Early return if no data to save
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Saving {python_object_name_for_logging} to "  # noqa: G004 - low overhead
+            f"{save_path = } ...",
+        )
+
+    with save_path.open(
+        mode="w",
+    ) as fp:
+        for python_dict in list_of_python_dicts:
+            json.dump(
+                obj=python_dict,
+                fp=fp,
+                sort_keys=True,
+                # indent=4,
+            )
+            fp.write("\n")
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Saving {python_object_name_for_logging} to "  # noqa: G004 - low overhead
+            f"{save_path = } DONE",
+        )
+
+
 # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # Saving and loading functions for pandas dataframes
 
@@ -142,35 +183,36 @@ def save_dataframe_as_csv(
     logger: logging.Logger = default_logger,
 ) -> None:
     """Save a pandas dataframe as a csv file."""
-    if dataframe is not None:
-        if verbosity >= Verbosity.NORMAL:
-            logger.info(
-                msg=f"Saving {dataframe_name_for_logging} to "  # noqa: G004 - low overhead
-                f"{save_path = } ...",
-            )
-
-        if not isinstance(
-            dataframe,
-            pd.DataFrame,
-        ):
-            msg = f"Expected {dataframe_name_for_logging} to be of type pd.DataFrame, but got {type(dataframe) = }."
-            raise ValueError(
-                msg,
-            )
-
-        dataframe.to_csv(
-            path_or_buf=save_path,
-            index=False,
-        )
-
-        if verbosity >= Verbosity.NORMAL:
-            logger.info(
-                msg=f"Saving {dataframe_name_for_logging} to "  # noqa: G004 - low overhead
-                f"{save_path = } DONE",
-            )
-    else:
+    if dataframe is None:
         logger.info(
             msg=f"No {dataframe_name_for_logging} to save.",  # noqa: G004 - low overhead
+        )
+        return  # Early return if no data to save
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Saving {dataframe_name_for_logging} to "  # noqa: G004 - low overhead
+            f"{save_path = } ...",
+        )
+
+    if not isinstance(
+        dataframe,
+        pd.DataFrame,
+    ):
+        msg: str = f"Expected {dataframe_name_for_logging} to be of type pd.DataFrame, but got {type(dataframe) = }."
+        raise TypeError(
+            msg,
+        )
+
+    dataframe.to_csv(
+        path_or_buf=save_path,
+        index=False,
+    )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Saving {dataframe_name_for_logging} to "  # noqa: G004 - low overhead
+            f"{save_path = } DONE",
         )
 
 
@@ -238,35 +280,36 @@ def save_numpy_array_as_npy(
     logger: logging.Logger = default_logger,
 ) -> None:
     """Save a numpy array as a npy file."""
-    if array_np is not None:
-        if verbosity >= Verbosity.NORMAL:
-            logger.info(
-                msg=f"Saving {array_name_for_logging} array to "  # noqa: G004 - low overhead
-                f"{save_path = } ...",
-            )
-
-        if not isinstance(
-            array_np,
-            np.ndarray,
-        ):
-            msg = f"Expected {array_name_for_logging} to be of type np.ndarray, but got {type(array_np)}."
-            raise ValueError(
-                msg,
-            )
-
-        np.save(
-            file=save_path,
-            arr=array_np,
-        )
-
-        if verbosity >= Verbosity.NORMAL:
-            logger.info(
-                msg=f"Saving {array_name_for_logging} array to "  # noqa: G004 - low overhead
-                f"{save_path = } DONE",
-            )
-    else:
+    if array_np is None:
         logger.info(
             msg=f"No {array_name_for_logging} to save.",  # noqa: G004 - low overhead
+        )
+        return  # Early return if no data to save
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Saving {array_name_for_logging} array to "  # noqa: G004 - low overhead
+            f"{save_path = } ...",
+        )
+
+    if not isinstance(
+        array_np,
+        np.ndarray,
+    ):
+        msg: str = f"Expected {array_name_for_logging} to be of type np.ndarray, but got {type(array_np)}."
+        raise TypeError(
+            msg,
+        )
+
+    np.save(
+        file=save_path,
+        arr=array_np,
+    )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Saving {array_name_for_logging} array to "  # noqa: G004 - low overhead
+            f"{save_path = } DONE",
         )
 
 
@@ -339,33 +382,34 @@ def save_python_object_as_pickle(
     This function only supports pandas DataFrames.
 
     """
-    if python_object is not None:
-        if verbosity >= Verbosity.NORMAL:
-            logger.info(
-                msg=f"Saving {python_object_name_for_logging} to "  # noqa: G004 - low overhead
-                f"{save_path = } ...",
-            )
-
-        # Save object as pickle file
-        if isinstance(
-            python_object,
-            pd.DataFrame,
-        ):
-            python_object.to_pickle(
-                path=save_path,
-            )
-        else:
-            msg: str = f"Unsupported type for {python_object_name_for_logging}: {type(python_object) = }."
-            raise ValueError(
-                msg,
-            )
-
-        if verbosity >= Verbosity.NORMAL:
-            logger.info(
-                msg=f"Saving {python_object_name_for_logging} to "  # noqa: G004 - low overhead
-                f"{save_path = } DONE",
-            )
-    else:
+    if python_object is None:
         logger.info(
             msg=f"No {python_object_name_for_logging} to save.",  # noqa: G004 - low overhead
+        )
+        return  # Early return if no data to save
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Saving {python_object_name_for_logging} to "  # noqa: G004 - low overhead
+            f"{save_path = } ...",
+        )
+
+    # Save object as pickle file
+    if isinstance(
+        python_object,
+        pd.DataFrame,
+    ):
+        python_object.to_pickle(
+            path=save_path,
+        )
+    else:
+        msg: str = f"Unsupported type for {python_object_name_for_logging}: {type(python_object) = }."
+        raise TypeError(
+            msg,
+        )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Saving {python_object_name_for_logging} to "  # noqa: G004 - low overhead
+            f"{save_path = } DONE",
         )

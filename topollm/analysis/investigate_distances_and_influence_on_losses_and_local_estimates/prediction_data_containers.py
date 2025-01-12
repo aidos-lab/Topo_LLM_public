@@ -25,10 +25,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Container classes for the results of the predictions on the local estimates."""
+
 import logging
 import pathlib
 import pprint
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 
 import numpy as np
 import pandas as pd
@@ -37,6 +39,7 @@ from topollm.analysis.correlation.compute_correlations_with_count import compute
 from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.storage.saving_and_loading_functions.saving_and_loading import (
     save_dataframe_as_csv,
+    save_list_of_python_dicts_as_jsonl,
     save_numpy_array_as_npy,
     save_python_dict_as_json,
 )
@@ -76,6 +79,9 @@ class LocalEstimatesAndPredictionsSavePathCollection:
     # Correlation
     correlations_df_save_path: pathlib.Path
 
+    # Predictions and metadata
+    local_estimates_and_predictions_results_list_save_path: pathlib.Path
+
     @staticmethod
     def from_base_directory(
         distances_and_influence_on_local_estimates_dir_absolute_path: pathlib.Path,
@@ -89,7 +95,7 @@ class LocalEstimatesAndPredictionsSavePathCollection:
         loss_vector_save_path: pathlib.Path = pathlib.Path(
             distances_and_influence_on_local_estimates_dir_absolute_path,
             "arrays",
-            "loss_vector.np",
+            "loss_vector.npy",
         )
 
         correlations_df_save_path: pathlib.Path = pathlib.Path(
@@ -97,20 +103,29 @@ class LocalEstimatesAndPredictionsSavePathCollection:
             "correlations_df.csv",
         )
 
+        local_estimates_and_predictions_results_list_save_path: pathlib.Path = pathlib.Path(
+            distances_and_influence_on_local_estimates_dir_absolute_path,
+            "predictions_and_metadata",
+            "local_estimates_and_predictions_results_list.jsonl",
+        )
+
         return LocalEstimatesAndPredictionsSavePathCollection(
             distances_and_influence_on_losses_and_local_estimates_dir_absolute_path=distances_and_influence_on_local_estimates_dir_absolute_path,
             loss_vector_save_path=loss_vector_save_path,
             descriptive_statistics_dict_save_path=descriptive_statistics_dict_save_path,
             correlations_df_save_path=correlations_df_save_path,
+            local_estimates_and_predictions_results_list_save_path=local_estimates_and_predictions_results_list_save_path,
         )
 
     def setup_directories(
         self,
     ) -> None:
         for path in [
+            self.distances_and_influence_on_losses_and_local_estimates_dir_absolute_path,
             self.descriptive_statistics_dict_save_path,
             self.loss_vector_save_path,
-            self.distances_and_influence_on_losses_and_local_estimates_dir_absolute_path,
+            self.correlations_df_save_path,
+            self.local_estimates_and_predictions_results_list_save_path,
         ]:
             # Create the directories if they do not exist
             if not path.parent.exists():
@@ -131,6 +146,11 @@ class LocalEstimateAndPrediction:
 
     extracted_metadata_selected_keys: dict | None = None
     original_prepared_data_index: int | None = None
+
+    def dict(
+        self,
+    ) -> dict:
+        return {k: str(object=v) for k, v in asdict(obj=self).items()}
 
 
 class LocalEstimatesAndPredictionsContainer:
@@ -181,6 +201,17 @@ class LocalEstimatesAndPredictionsContainer:
         )
 
         return local_estimates_vector
+
+    def get_local_estimates_and_predictions_results_list_as_dicts(
+        self,
+    ) -> list[dict]:
+        """Return the local estimates and predictions results list as a list of dictionaries."""
+        local_estimates_and_predictions_results_list_as_dicts: list[dict] = [
+            local_estimate_and_prediction.dict()
+            for local_estimate_and_prediction in self.local_estimates_and_predictions_results_list
+        ]
+
+        return local_estimates_and_predictions_results_list_as_dicts
 
     def create_descriptive_statistics(
         self,
@@ -253,6 +284,24 @@ class LocalEstimatesAndPredictionsContainer:
     ) -> None:
         """Run function to call the different analysis steps."""
         # # # #
+        # Correlation analysis
+        correlations_df: pd.DataFrame = self.compute_correlation_between_local_estimates_and_loss_values()
+
+        save_dataframe_as_csv(
+            dataframe=correlations_df,
+            save_path=local_estimates_and_predictions_save_path_collection.correlations_df_save_path,
+            dataframe_name_for_logging="correlations_df",
+            verbosity=self.verbosity,
+            logger=self.logger,
+        )
+
+        # Note: You can add additional analysis steps here
+
+    def save_computation_data(
+        self,
+        local_estimates_and_predictions_save_path_collection: LocalEstimatesAndPredictionsSavePathCollection,
+    ) -> None:
+        # # # #
         # Statistics
 
         descriptive_statistics_dict: dict = self.create_descriptive_statistics()
@@ -279,19 +328,19 @@ class LocalEstimatesAndPredictionsContainer:
         )
 
         # # # #
-        # Correlation analysis
+        # Predictions and metadata
 
-        correlations_df: pd.DataFrame = self.compute_correlation_between_local_estimates_and_loss_values()
+        local_estimates_and_predictions_results_list_as_dicts: list[dict] = (
+            self.get_local_estimates_and_predictions_results_list_as_dicts()
+        )
 
-        save_dataframe_as_csv(
-            dataframe=correlations_df,
-            save_path=local_estimates_and_predictions_save_path_collection.correlations_df_save_path,
-            dataframe_name_for_logging="correlations_df",
+        save_list_of_python_dicts_as_jsonl(
+            list_of_python_dicts=local_estimates_and_predictions_results_list_as_dicts,
+            save_path=local_estimates_and_predictions_save_path_collection.local_estimates_and_predictions_results_list_save_path,
+            python_object_name_for_logging="local_estimates_and_predictions_results_list",
             verbosity=self.verbosity,
             logger=self.logger,
         )
-
-        # TODO: Implement saving the results list in a human readable format to disk
 
     # TODO: Implement methods to compare local estimates and loss values between two containers
     # TODO: Implement methods to save the comparison results to disk
