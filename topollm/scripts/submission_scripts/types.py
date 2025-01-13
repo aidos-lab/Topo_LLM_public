@@ -164,6 +164,7 @@ class FinetuningDatasetsListOption(StrEnum):
 
     DEBUG = auto()
     MANUAL_IN_PYTHON_SCRIPT = auto()
+
     # Single datasets
     ICLR_SMALL = auto()
     MULTIWOZ21_SMALL = auto()
@@ -172,6 +173,7 @@ class FinetuningDatasetsListOption(StrEnum):
     REDDIT_FULL = auto()
     SGD_SMALL = auto()
     WIKITEXT_SMALL = auto()
+
     # Multiple datasets in separate runs
     MULTIWOZ21_AND_REDDIT_FULL = auto()
     MULTIWOZ21_AND_REDDIT_SMALL = auto()
