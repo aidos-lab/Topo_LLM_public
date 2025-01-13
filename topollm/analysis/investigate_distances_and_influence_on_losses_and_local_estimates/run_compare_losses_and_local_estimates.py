@@ -28,7 +28,7 @@
 """Run script to compare computed Hausdorff distances with the local estimates."""
 
 import logging
-import pathlib
+import pathlib  # noqa: TCH003 - `pathlib` is used for more than type checking
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -159,6 +159,12 @@ class ComputationManager:
         )
         local_estimates_and_predictions_save_path_collection.setup_directories()
 
+        local_estimates_and_predictions_container.save_computation_data(
+            local_estimates_and_predictions_save_path_collection=local_estimates_and_predictions_save_path_collection,
+        )
+        local_estimates_and_predictions_container.save_human_readable_predictions_logging(
+            local_estimates_and_predictions_save_path_collection=local_estimates_and_predictions_save_path_collection,
+        )
         local_estimates_and_predictions_container.run_full_analysis_and_save_results(
             local_estimates_and_predictions_save_path_collection=local_estimates_and_predictions_save_path_collection,
         )
