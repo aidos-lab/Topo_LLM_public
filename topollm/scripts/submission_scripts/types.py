@@ -173,6 +173,8 @@ class FinetuningDatasetsListOption(StrEnum):
 class ModelGroupOption(StrEnum):
     """Options for specifying the model and finetuning regime."""
 
+    # # # #
+    # RoBERTa-base models
     ROBERTA_BASE_WITHOUT_MODIFICATIONS = auto()
 
     ROBERTA_BASE_FINETUNED_FOR_FEW_EPOCHS_OLD_AND_NEW_DATA_SINGLE_SEED_LAST_CHECKPOINT = auto()
@@ -180,6 +182,11 @@ class ModelGroupOption(StrEnum):
     ROBERTA_BASE_FINETUNED_FOR_FEW_EPOCHS_MULTIWOZ_AND_REDDIT_AND_WIKITEXT_DATA_SINGLE_SEED_ALL_CHECKPOINTS = auto()
 
     ROBERTA_BASE_FINETUNED_FOR_MANY_EPOCHS = auto()
+
+    # # # #
+    # GPT-2 models
+
+    GPT2_MEDIUM_WITHOUT_MODIFICATIONS = auto()
 
 
 class FinetuningRegimeOption(StrEnum):
@@ -192,7 +199,10 @@ class FinetuningRegimeOption(StrEnum):
 class LanguageModelListOption(StrEnum):
     """Options for the language model list."""
 
-    ONLY_ROBERTA_BASE = auto()
+    # # # #
+    # RoBERTa-base models
+
+    ROBERTA_BASE = auto()
 
     # Models fine-tuned on "old data" (i.e., data which was part of the pretraining data)
     # and models fine-tuned on "new data" (i.e., data which was created after the model was pre-trained)
@@ -211,6 +221,12 @@ class LanguageModelListOption(StrEnum):
     WITH_005_015_02_DROPOUT_FINETUNED_ON_MULTIWOZ_SMALL_MANY_EPOCHS_FROM_ROBERTA_BASE = auto()
     WITH_006_007_DROPOUT_FINETUNED_ON_MULTIWOZ_SMALL_MANY_EPOCHS_FROM_ROBERTA_BASE = auto()
 
+    # # # #
+    # GPT-2 models
+    GPT2_MEDIUM = auto()
+
+    # # # #
+    # Other models
     SETSUMBT_SELECTED = auto()
 
 

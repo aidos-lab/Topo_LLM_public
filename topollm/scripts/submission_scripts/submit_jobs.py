@@ -144,10 +144,6 @@ full_data_list: list[str] = [
 train_split_only_data_list: list[str] = [data_name for data_name in full_data_list if "_train" in data_name]
 validation_split_only_data_list: list[str] = [data_name for data_name in full_data_list if "_validation" in data_name]
 
-only_roberta_base_language_model_list: list[str] = [
-    "roberta-base",
-]
-
 
 setsumbt_model_list = [
     "model-roberta-base_task-setsumbt_multiwoz21",
@@ -546,9 +542,13 @@ def retrieve_model_and_checkpoint_list(
 ]:
     """Retrieve the language model list and checkpoint number list based on the option."""
     match language_model_list_option:
-        case LanguageModelListOption.ONLY_ROBERTA_BASE:
-            language_model_list: list[str] = only_roberta_base_language_model_list
-            # No checkpoints for the base model
+        # # # #
+        # RoBERTa-base models
+        case LanguageModelListOption.ROBERTA_BASE:
+            language_model_list: list[str] = [
+                "roberta-base",
+            ]
+            # No checkpoints for the unmodified model
             checkpoint_no_list = None
         case LanguageModelListOption.FINETUNED_ON_OLD_AND_NEW_DATA_FEW_EPOCHS_FROM_ROBERTA_BASE:
             language_model_list: list[str] = [
@@ -633,6 +633,16 @@ def retrieve_model_and_checkpoint_list(
                 checkpoint_no_list_option=checkpoint_no_list_option,
                 num_train_epochs=int(num_train_epochs),
             )
+        # # # #
+        # GPT-2 models
+        case LanguageModelListOption.GPT2_MEDIUM:
+            language_model_list: list[str] = [
+                "gpt2-medium",
+            ]
+            # No checkpoints for the unmodified model
+            checkpoint_no_list = None
+        # # # #
+        # Other models
         case LanguageModelListOption.SETSUMBT_SELECTED:
             setsumbt_seed: int = 0
             language_model_list: list[str] = setsumbt_model_list
@@ -1223,7 +1233,7 @@ def orchestrate_job_submission(
         case ModelGroupOption.ROBERTA_BASE_WITHOUT_MODIFICATIONS:
             ####################################
             ### With POS tags for base model ###
-            language_model_list_option = LanguageModelListOption.ONLY_ROBERTA_BASE
+            language_model_list_option = LanguageModelListOption.ROBERTA_BASE
             finetuning_regime_option = FinetuningRegimeOption.FEW_EPOCHS  # Ignored for the base model
             language_model_seed_list_option = SeedListOption.DO_NOT_SET
             checkpoint_no_list_option = CheckpointNoListOption.SELECTED  # Ignored for the base model
@@ -1254,6 +1264,12 @@ def orchestrate_job_submission(
             finetuning_regime_option = FinetuningRegimeOption.MANY_EPOCHS_WITH_OVERFITTING_RISK
             language_model_seed_list_option = SeedListOption.FIXED_SEED_1234
             checkpoint_no_list_option = CheckpointNoListOption.ONLY_BEGINNING_AND_MIDDLE_AND_END
+        case ModelGroupOption.GPT2_MEDIUM_WITHOUT_MODIFICATIONS:
+            # TODO: Test that this is working as expected
+            language_model_list_option = LanguageModelListOption.GPT2_MEDIUM
+            finetuning_regime_option = FinetuningRegimeOption.FEW_EPOCHS  # Ignored for the base model
+            language_model_seed_list_option = SeedListOption.DO_NOT_SET
+            checkpoint_no_list_option = CheckpointNoListOption.SELECTED  # Ignored for the base model
         case _:
             msg: str = f"Unknown {model_group_option = }"
             raise ValueError(
@@ -1479,22 +1495,57 @@ def orchestrate_job_submission(
             data_subsampling_number_of_samples_list_option = DataSubsamplingNumberOfSamplesListOption.FIXED_10000
             data_subsampling_sampling_seed_list_option = DataSubsamplingSamplingSeedListOption.FIXED_777
 
-            layer_indices_list = [
-                "[-1]",
-                "[-2]",
-                "[-3]",
-                "[-4]",
-                "[-5]",
-                "[-6]",
-                "[-7]",
-                "[-8]",
-                "[-9]",
-                "[-10]",
-                "[-11]",
-                "[-12]",
-            ]
-
             embedding_data_handler_mode = EmbeddingDataHandlerMode.REGULAR
+
+            if language_model_list_option in [
+                LanguageModelListOption.ROBERTA_BASE,
+                LanguageModelListOption.FINETUNED_ON_OLD_AND_NEW_DATA_FEW_EPOCHS_FROM_ROBERTA_BASE,
+                LanguageModelListOption.FINETUNED_ON_MULTIWOZ_DATA_FEW_EPOCHS_FROM_ROBERTA_BASE,
+                LanguageModelListOption.FINETUNED_ON_MULTIWOZ_AND_REDDIT_AND_WIKITEXT_DATA_FEW_EPOCHS_FROM_ROBERTA_BASE,
+                LanguageModelListOption.SELECTED_FINETUNED_FEW_EPOCHS_FROM_ROBERTA_BASE,
+                LanguageModelListOption.SELECTED_FINETUNED_MANY_EPOCHS_FROM_ROBERTA_BASE,
+                LanguageModelListOption.FULL_FINETUNED_FEW_EPOCHS_FROM_ROBERTA_BASE,
+                LanguageModelListOption.WITH_005_015_02_DROPOUT_FINETUNED_ON_MULTIWOZ_SMALL_MANY_EPOCHS_FROM_ROBERTA_BASE,
+                LanguageModelListOption.WITH_006_007_DROPOUT_FINETUNED_ON_MULTIWOZ_SMALL_MANY_EPOCHS_FROM_ROBERTA_BASE,
+            ]:
+                # Use the last 12 layers for models with roberta-base architecture
+                layer_indices_list = [
+                    "[-1]",
+                    "[-2]",
+                    "[-3]",
+                    "[-4]",
+                    "[-5]",
+                    "[-6]",
+                    "[-7]",
+                    "[-8]",
+                    "[-9]",
+                    "[-10]",
+                    "[-11]",
+                    "[-12]",
+                ]
+            elif language_model_list_option in [
+                LanguageModelListOption.GPT2_MEDIUM,
+            ]:
+                # Use every second layer for models with gpt2-medium architecture
+                layer_indices_list = [
+                    "[-1]",
+                    "[-3]",
+                    "[-5]",
+                    "[-7]",
+                    "[-9]",
+                    "[-11]",
+                    "[-13]",
+                    "[-15]",
+                    "[-17]",
+                    "[-19]",
+                    "[-21]",
+                    "[-23]",
+                ]
+            else:
+                msg: str = f"Unsupported {language_model_list_option = } for the layerwise experiments."
+                raise ValueError(
+                    msg,
+                )
         case ExperimentSelector.MASKED_TOKEN_EMBEDDINGS_LAST_LAYER_SINGLE_SAMPLE:
             # Notes:
             # - You need to set the data_list_option via the command line arguments.
