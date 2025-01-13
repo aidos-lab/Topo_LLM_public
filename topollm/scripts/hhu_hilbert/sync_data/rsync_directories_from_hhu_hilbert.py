@@ -31,6 +31,7 @@ import argparse
 import pprint
 import subprocess
 import sys
+from enum import Enum, StrEnum, auto, unique
 
 from tqdm import tqdm
 
@@ -90,7 +91,7 @@ def sync_directories(
             "===========================================================",
         )
         print(  # noqa: T201 - this script should print to stdout
-            f"{directory = }",
+            f">>> {directory = }",
         )
 
         execute_single_directory_sync(
@@ -98,7 +99,7 @@ def sync_directories(
             zim_topo_llm_repository_base_path=zim_topo_llm_repository_base_path,
             target_base_path=target_base_path,
             dry_run_option=dry_run_option,
-            include_pattern=include_pattern,
+            include_and_exclude_pattern=include_pattern,
         )
 
         print(  # noqa: T201 - this script should print to stdout
@@ -136,9 +137,53 @@ def sync_only_results_arrays_and_statistics(
         ],
     ]
 
-    for include_pattern in tqdm(
-        iterable=include_pattern_to_iterate_over,
-        desc="Iterating over include patterns",
+    iterate_over_patterns_and_directories(
+        directories=directories,
+        zim_topo_llm_repository_base_path=zim_topo_llm_repository_base_path,
+        target_base_path=target_base_path,
+        patterns_to_iterate_over=include_pattern_to_iterate_over,
+        dry_run_option=dry_run_option,
+    )
+
+
+def sync_losses_and_exclude_large_predictions_files(
+    directories: list[str],
+    zim_topo_llm_repository_base_path: str,
+    target_base_path: str,
+    dry_run_option: str,
+) -> None:
+    """Specific sync which is meant for the losses directory."""
+    include_pattern_to_iterate_over: list[list[str]] = [
+        # The statistics files are saved as .json files and are very small, so we include all files of this type.
+        [
+            "--include=*/",  # Start by including all directories
+            "--include=*.csv",
+            "--include=*.json",
+            "--include=*.npy",
+            "--exclude=predictions_and_metadata",  # Exclude the predictions_and_metadata directories
+        ],
+    ]
+
+    iterate_over_patterns_and_directories(
+        directories=directories,
+        zim_topo_llm_repository_base_path=zim_topo_llm_repository_base_path,
+        target_base_path=target_base_path,
+        patterns_to_iterate_over=include_pattern_to_iterate_over,
+        dry_run_option=dry_run_option,
+    )
+
+
+def iterate_over_patterns_and_directories(
+    directories: list[str],
+    zim_topo_llm_repository_base_path: str,
+    target_base_path: str,
+    patterns_to_iterate_over: list[list[str]],
+    dry_run_option: str,
+) -> None:
+    """Iterate over include and exclude patterns and directories."""
+    for pattern in tqdm(
+        iterable=patterns_to_iterate_over,
+        desc="Iterating over patterns",
     ):
         for directory in tqdm(
             iterable=directories,
@@ -148,10 +193,10 @@ def sync_only_results_arrays_and_statistics(
                 "===========================================================",
             )
             print(  # noqa: T201 - this script should print to stdout
-                f"{include_pattern = }",
+                f">>> {pattern = }",
             )
             print(  # noqa: T201 - this script should print to stdout
-                f"{directory = }",
+                f">>> {directory = }",
             )
 
             execute_single_directory_sync(
@@ -159,7 +204,7 @@ def sync_only_results_arrays_and_statistics(
                 zim_topo_llm_repository_base_path=zim_topo_llm_repository_base_path,
                 target_base_path=target_base_path,
                 dry_run_option=dry_run_option,
-                include_pattern=include_pattern,
+                include_and_exclude_pattern=pattern,
             )
 
             print(  # noqa: T201 - this script should print to stdout
@@ -172,11 +217,11 @@ def execute_single_directory_sync(
     zim_topo_llm_repository_base_path: str,
     target_base_path: str,
     dry_run_option: str = "",
-    include_pattern: list[str] | None = None,
+    include_and_exclude_pattern: list[str] | None = None,
 ) -> None:
     """Execute a single directory sync."""
-    if include_pattern is None:
-        include_pattern = []
+    if include_and_exclude_pattern is None:
+        include_and_exclude_pattern = []
 
     src: str = f"Hilbert-Storage:{zim_topo_llm_repository_base_path}/{directory}"
     dest: str = f"{target_base_path}/{directory}"
@@ -186,7 +231,7 @@ def execute_single_directory_sync(
         "-zarv",
         "--progress",
         dry_run_option,
-        *include_pattern,
+        *include_and_exclude_pattern,
         "--exclude=*",  # exclude everything that has not been matched by include patterns; Note: no quotes in pattern
         src,
         dest,
@@ -196,7 +241,7 @@ def execute_single_directory_sync(
     rsync_command: list[str] = [arg for arg in rsync_command if arg]
 
     print(  # noqa: T201 - this script should print to stdout
-        f"Running command: {rsync_command = }",
+        f">>> Running command: {rsync_command = }",
     )
 
     try:
@@ -210,7 +255,7 @@ def execute_single_directory_sync(
         print(result.stdout)  # noqa: T201 - this script should print to stdout
     except subprocess.CalledProcessError as e:
         print(  # noqa: T201 - this script should print to stdout
-            f"Error syncing {directory = }:",
+            f">>> Error syncing {directory = }:",
         )
         print(  # noqa: T201 - this script should print to stdout
             e.stderr,
@@ -221,13 +266,22 @@ def execute_single_directory_sync(
 
     if result.returncode != 0:
         print(  # noqa: T201 - this script should print to stdout
-            f"Error syncing {directory = }:",
+            f">>> Error syncing {directory = }:",
             result.stderr,
             file=sys.stderr,
         )
         sys.exit(
             result.returncode,
         )
+
+
+@unique
+class SyncingMode(StrEnum):
+    """Different syncing modes depending on the directory."""
+
+    ALL = auto()
+    ONLY_RESULTS_ARRAYS_AND_STATISTICS = auto()
+    EXCLUDE_LARGE_PREDICTIONS_AND_METADATA = auto()
 
 
 def parse_arguments() -> argparse.Namespace:
@@ -256,11 +310,9 @@ def parse_arguments() -> argparse.Namespace:
     )
     parser.add_argument(
         "--syncing_mode",
-        choices=[
-            "all",
-            "only_results_arrays_and_statistics",
-        ],
-        default="all",
+        type=SyncingMode,
+        choices=SyncingMode,
+        default=SyncingMode.ALL,
         help="Syncing mode: Everything or only results arrays and statistics (specifically for twonn directory).",
     )
     parser.add_argument(
@@ -274,7 +326,7 @@ def parse_arguments() -> argparse.Namespace:
         help="File type to sync: 'all' for all files, 'pkl' for .pkl files, 'npy' for .npy files.",
     )
 
-    args = parser.parse_args()
+    args: argparse.Namespace = parser.parse_args()
     return args
 
 
@@ -296,11 +348,11 @@ def main() -> None:
 
     directories_to_sync = args.directories
     print(  # noqa: T201 - this script should print to stdout
-        f"directories_to_sync:\n{pprint.pformat(object=directories_to_sync)}",
+        f">>> directories_to_sync:\n{pprint.pformat(object=directories_to_sync)}",
     )
 
     match args.syncing_mode:
-        case "all":
+        case SyncingMode.ALL:
             sync_directories(
                 directories=directories_to_sync,
                 zim_topo_llm_repository_base_path=ZIM_TOPO_LLM_REPOSITORY_BASE_PATH,
@@ -308,16 +360,32 @@ def main() -> None:
                 dry_run_option=dry_run_option,
                 file_type=args.file_type,
             )
-        case "only_results_arrays_and_statistics":
+        case SyncingMode.ONLY_RESULTS_ARRAYS_AND_STATISTICS:
             print(  # noqa: T201 - this script should print to stdout
-                "Syncing only results arrays and statistics. "
-                "Note that the file type argument is ignored in this mode.",
+                ">>> Syncing only results arrays and statistics.\n"
+                ">>> Note that the file type argument is ignored in this mode.",
             )
             sync_only_results_arrays_and_statistics(
                 directories=directories_to_sync,
                 zim_topo_llm_repository_base_path=ZIM_TOPO_LLM_REPOSITORY_BASE_PATH,
                 target_base_path=target_base_path,
                 dry_run_option=dry_run_option,
+            )
+        case SyncingMode.EXCLUDE_LARGE_PREDICTIONS_AND_METADATA:
+            print(  # noqa: T201 - this script should print to stdout
+                ">>> Syncing only small files from the model predictions directory.\n"
+                ">>> Note that the file type argument is ignored in this mode.",
+            )
+            sync_losses_and_exclude_large_predictions_files(
+                directories=directories_to_sync,
+                zim_topo_llm_repository_base_path=ZIM_TOPO_LLM_REPOSITORY_BASE_PATH,
+                target_base_path=target_base_path,
+                dry_run_option=dry_run_option,
+            )
+        case _:
+            msg: str = f"Invalid syncing mode: {args.syncing_mode = }"
+            raise ValueError(
+                msg,
             )
 
 

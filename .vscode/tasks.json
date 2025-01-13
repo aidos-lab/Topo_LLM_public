@@ -18,7 +18,7 @@
             }
         },
         {
-            "label": "rsync from HHU Hilbert to local repository folder: 'wandb' directory",
+            "label": "rsync from HHU Hilbert to local - 'wandb' directory",
             "command": "./topollm/scripts/hhu_hilbert/sync_data/rsync_wandb_output_dir_from_hhu_hilbert.sh",
             "type": "shell",
             "group": {
@@ -61,7 +61,7 @@
             }
         },
         {
-            "label": "rsync from HHU Hilbert to local repository folder: 'hydra_output_dir' directory",
+            "label": "rsync from HHU Hilbert to local - 'hydra_output_dir' directory",
             "command": "./topollm/scripts/hhu_hilbert/sync_data/rsync_hydra_output_dir_from_hhu_hilbert.sh",
             "type": "shell",
             "group": {
@@ -76,35 +76,7 @@
             "problemMatcher": []
         },
         {
-            "label": "rsync from HHU Hilbert to external drive: 'analysis/prepared' and 'analysis/twonn' directories",
-            "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/twonn/' 'data/analysis/prepared/' --file-type all --sync_to_external_drive ",
-            "type": "shell",
-            "group": {
-                "kind": "build",
-                "isDefault": false
-            },
-            "presentation": {
-                "reveal": "always",
-                "panel": "new",
-                "focus": false
-            }
-        },
-        {
-            "label": "rsync from HHU Hilbert to local repository folder: ALL file types 'analysis/twonn' directory",
-            "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/twonn/' --file-type all",
-            "type": "shell",
-            "group": {
-                "kind": "build",
-                "isDefault": false
-            },
-            "presentation": {
-                "reveal": "always",
-                "panel": "new",
-                "focus": false
-            }
-        },
-        {
-            "label": "rsync from HHU Hilbert to local repository folder: 'analysis/distances_and_influence_on_losses_and_local_estimates' directory",
+            "label": "rsync from HHU Hilbert to local - (LARGE DIRECTORIES) - 'analysis/distances_and_influence_on_losses_and_local_estimates' directory",
             "detail": "Sync from HHU Hilbert: 'analysis/distances_and_influence_on_losses_and_local_estimates'.",
             "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/distances_and_influence_on_losses_and_local_estimates/' --file-type all",
             "type": "shell",
@@ -119,7 +91,64 @@
             }
         },
         {
-            "label": "rsync from HHU Hilbert to local repository folder: ONLY .npy file types 'analysis/twonn' directory",
+            "label": "rsync from HHU Hilbert to local - Small files from 'analysis/distances_and_influence_on_losses_and_local_estimates' directory",
+            "detail": "Sync from HHU Hilbert: Small files from 'analysis/distances_and_influence_on_losses_and_local_estimates'.",
+            "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/distances_and_influence_on_losses_and_local_estimates/' --syncing_mode 'exclude_large_predictions_and_metadata'",
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": false
+            }
+        },
+        {
+            "label": "rsync from HHU Hilbert to external drive - (LARGE DIRECTORIES) - 'analysis/distances_and_influence_on_losses_and_local_estimates' directory",
+            "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/distances_and_influence_on_losses_and_local_estimates/' --syncing_mode 'all' --file-type 'all' --sync_to_external_drive",
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": false
+            }
+        },
+        {
+            "label": "rsync from HHU Hilbert to external drive - (LARGE DIRECTORIES) - 'analysis/prepared' and 'analysis/twonn' directories",
+            "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/twonn/' 'data/analysis/prepared/' --file-type all --sync_to_external_drive",
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": false
+            }
+        },
+        {
+            "label": "rsync from HHU Hilbert to local - (LARGE DIRECTORIES) - ALL file types 'analysis/twonn' directory",
+            "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/twonn/' --file-type all",
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": false
+            }
+        },
+        {
+            "label": "rsync from HHU Hilbert to local - ONLY .npy file types 'analysis/twonn' directory",
             "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/twonn/' --file-type npy",
             "type": "shell",
             "group": {
@@ -133,7 +162,7 @@
             }
         },
         {
-            "label": "rsync from HHU Hilbert to local repository folder: Only results and statistics from 'analysis/twonn' directory",
+            "label": "rsync from HHU Hilbert to local - Only results and statistics from 'analysis/twonn' directory",
             "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/twonn/' --syncing_mode 'only_results_arrays_and_statistics'",
             "type": "shell",
             "group": {
@@ -147,7 +176,7 @@
             }
         },
         {
-            "label": "rsync from HHU Hilbert to local repository folder: language model config directory",
+            "label": "rsync from HHU Hilbert to local - language model config directory",
             "command": "./topollm/scripts/hhu_hilbert/sync_data/rsync_language_model_config_dir_from_hhu_hilbert.sh",
             "type": "shell",
             "group": {
@@ -161,7 +190,7 @@
             }
         },
         {
-            "label": "rsync from HHU Hilbert to local repository folder: 'data/embeddings/perplexity' directory",
+            "label": "rsync from HHU Hilbert to local - 'data/embeddings/perplexity' directory",
             "command": "./topollm/scripts/hhu_hilbert/sync_data/rsync_perplexity_dir_from_hhu_hilbert.sh",
             "type": "shell",
             "group": {
@@ -212,20 +241,6 @@
             },
             "presentation": {
                 "reveal": "always",
-                "panel": "new",
-                "focus": false
-            }
-        },
-        {
-            "label": "Generate Email",
-            "command": "/Users/carel17/Projects/SeminarEmailGenerator/.venv/bin/python /Users/carel17/Projects/SeminarEmailGenerator/generate_email.py && code /Users/carel17/Projects/SeminarEmailGenerator/templates/email.json",
-            "type": "shell",
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
-            "presentation": {
-                "reveal": "never",
                 "panel": "new",
                 "focus": false
             }
