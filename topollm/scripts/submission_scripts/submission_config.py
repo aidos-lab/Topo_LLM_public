@@ -123,12 +123,12 @@ class SubmissionConfig(BaseModel):
     local_estimates_pointwise_absolute_n_neighbors_list: list[str] | None = None
 
     # Finetuning-specific parameters
-    base_model_list: list[str] = Field(
+    finetuning_base_model_list: list[str] = Field(
         default_factory=lambda: [
             "roberta-base_for_masked_lm",
         ],
     )
-    fp16: str = Field(
+    finetuning_fp16: str = Field(
         default="true",
         examples=[
             "true",
@@ -338,12 +338,12 @@ class SubmissionConfig(BaseModel):
         self,
     ) -> list[str]:
         task_specific_command: list[str] = [
-            f"finetuning/base_model={','.join(self.base_model_list)}",
+            f"finetuning/base_model={','.join(self.finetuning_base_model_list)}",
             f"finetuning.num_train_epochs={self.num_train_epochs}",
             f"finetuning.lr_scheduler_type={self.lr_scheduler_type}",
             f"finetuning.save_steps={self.save_steps}",
             f"finetuning.eval_steps={self.eval_steps}",
-            f"finetuning.fp16={self.fp16}",
+            f"finetuning.fp16={self.finetuning_fp16}",
             f"finetuning.batch_sizes.train={self.batch_size_train}",
             f"finetuning.batch_sizes.eval={self.batch_size_eval}",
             f"finetuning/finetuning_datasets={','.join(self.finetuning_datasets_list)}",

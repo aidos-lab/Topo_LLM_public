@@ -48,6 +48,7 @@ from topollm.scripts.submission_scripts.types import (
     EmbeddingsDataPrepSamplingSeedListOption,
     ExperimentSelector,
     ExperimentStage,
+    FinetuningBaseModelListOption,
     FinetuningDatasetsListOption,
     FinetuningRegimeOption,
     LanguageModelListOption,
@@ -437,6 +438,28 @@ def retrieve_data_subsampling_sampling_seed_list(
             )
 
     return data_subsampling_sampling_seed_list
+
+
+def retrieve_finetuning_base_model_list(
+    finetuning_base_model_list_option: FinetuningBaseModelListOption,
+) -> list[str]:
+    """Retrieve the finetuning base model list based on the option."""
+    match finetuning_base_model_list_option:
+        case FinetuningBaseModelListOption.ROBERTA_BASE:
+            finetuning_base_model_list: list[str] = [
+                "roberta-base_for_masked_lm",
+            ]
+        case FinetuningBaseModelListOption.GPT2_MEDIUM:
+            finetuning_base_model_list: list[str] = [
+                "gpt2-medium_for_causal_lm",
+            ]
+        case _:
+            msg = f"Unknown {finetuning_base_model_list_option = }"
+            raise ValueError(
+                msg,
+            )
+
+    return finetuning_base_model_list
 
 
 def retrieve_finetuning_datasets_list(
@@ -874,6 +897,7 @@ def make_submission_config_and_run_task(
     data_subsampling_number_of_samples_list_option: DataSubsamplingNumberOfSamplesListOption,
     data_subsampling_sampling_seed_list_option: DataSubsamplingSamplingSeedListOption,
     fp16: str,
+    finetuning_base_model_list_option: FinetuningBaseModelListOption,
     finetuning_datasets_list_option: FinetuningDatasetsListOption,
     finetuning_regime_option: FinetuningRegimeOption,
     finetuning_seed_list_option: SeedListOption,
@@ -941,6 +965,10 @@ def make_submission_config_and_run_task(
         language_model_seed_list_option=language_model_seed_list_option,
     )
 
+    finetuning_base_model_list: list[str] = retrieve_finetuning_base_model_list(
+        finetuning_base_model_list_option=finetuning_base_model_list_option,
+    )
+
     finetuning_datasets_list: list[str] = retrieve_finetuning_datasets_list(
         finetuning_datasets_list_option=finetuning_datasets_list_option,
     )
@@ -1003,14 +1031,15 @@ def make_submission_config_and_run_task(
         language_model_seed_list=language_model_seed_list,
         checkpoint_no_list=checkpoint_no_list,
         layer_indices_list=layer_indices_list,
-        fp16=fp16,
+        finetuning_base_model_list=finetuning_base_model_list,
+        finetuning_fp16=fp16,
+        finetuning_datasets_list=finetuning_datasets_list,
+        finetuning_seed_list=finetuning_seed_list,
         embeddings_data_prep_sampling_mode=embeddings_data_prep_sampling_mode,
         embeddings_data_prep_sampling_seed_list=embeddings_data_prep_sampling_seed_list,
         embeddings_data_prep_num_samples_list=embeddings_data_prep_num_samples_list,
         local_estimates_filtering_num_samples_list=local_estimates_filtering_num_samples_list,
         local_estimates_pointwise_absolute_n_neighbors_list=local_estimates_pointwise_absolute_n_neighbors_list,
-        finetuning_datasets_list=finetuning_datasets_list,
-        finetuning_seed_list=finetuning_seed_list,
         batch_size_train=batch_size_train,
         batch_size_eval=batch_size_eval,
         num_train_epochs=num_train_epochs,
@@ -1107,6 +1136,12 @@ def make_submission_config_and_run_task(
     help="The model group and finetuning regime to use.",
 )
 @click.option(
+    "--finetuning-base-model-list-option",
+    type=FinetuningBaseModelListOption,
+    default=FinetuningBaseModelListOption.GPT2_MEDIUM,
+    help="Finetuning base model list option to use.",
+)
+@click.option(
     "--finetuning-datasets-list-option",
     type=FinetuningDatasetsListOption,
     default=FinetuningDatasetsListOption.MULTIWOZ21_SMALL,
@@ -1194,6 +1229,7 @@ def orchestrate_job_submission(
     experiment_selector: ExperimentSelector,
     task: Task,
     model_group_option: ModelGroupOption,
+    finetuning_base_model_list_option: FinetuningBaseModelListOption,
     finetuning_datasets_list_option: FinetuningDatasetsListOption,
     fp16: str,
     data_list_option: DataListOption,
@@ -1265,7 +1301,6 @@ def orchestrate_job_submission(
             language_model_seed_list_option = SeedListOption.FIXED_SEED_1234
             checkpoint_no_list_option = CheckpointNoListOption.ONLY_BEGINNING_AND_MIDDLE_AND_END
         case ModelGroupOption.GPT2_MEDIUM_WITHOUT_MODIFICATIONS:
-            # TODO: Test that this is working as expected
             language_model_list_option = LanguageModelListOption.GPT2_MEDIUM
             finetuning_regime_option = FinetuningRegimeOption.FEW_EPOCHS  # Ignored for the base model
             language_model_seed_list_option = SeedListOption.DO_NOT_SET
@@ -1572,6 +1607,7 @@ def orchestrate_job_submission(
 
     machine_config: MachineConfig = make_machine_config(
         task=task,
+        model_group_option=model_group_option,
         experiment_stage=experiment_stage,
         experiment_selector=experiment_selector,
         template_to_use_for_compute_embeddings=template_to_use_for_compute_embeddings,
@@ -1600,6 +1636,7 @@ def orchestrate_job_submission(
         embeddings_data_prep_sampling_mode=embeddings_data_prep_sampling_mode,
         embeddings_data_prep_sampling_seed_list_option=embeddings_data_prep_sampling_seed_list_option,
         embeddings_data_prep_num_samples_list_option=embeddings_data_prep_num_samples_list_option,
+        finetuning_base_model_list_option=finetuning_base_model_list_option,
         finetuning_datasets_list_option=finetuning_datasets_list_option,
         finetuning_seed_list_option=finetuning_seed_list_option,
         finetuning_regime_option=finetuning_regime_option,
@@ -1629,6 +1666,7 @@ def orchestrate_job_submission(
 
 def make_machine_config(
     task: Task,
+    model_group_option: ModelGroupOption,
     experiment_stage: ExperimentStage,
     experiment_selector: ExperimentSelector,
     template_to_use_for_compute_embeddings: Template,
@@ -1679,6 +1717,12 @@ def make_machine_config(
                     raise ValueError(
                         msg,
                     )
+
+            match model_group_option:
+                case ModelGroupOption.GPT2_MEDIUM_WITHOUT_MODIFICATIONS:
+                    # For the GPT2 medium model, we need more memory since the embeddings have higher dimensionality.
+                    # The embeddings data prep step failed with 32GB of memory for the GPT2 medium model.
+                    memory = "64"
 
         case ExperimentStage.SKIP_COMPUTE_EMBEDDINGS_BUT_DO_MULTIPLE_PIPELINE_RUNS:
             ncpus = "6"

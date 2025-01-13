@@ -152,6 +152,13 @@ class DataSubsamplingSamplingSeedListOption(StrEnum):
     TWENTY_SEEDS = auto()
 
 
+class FinetuningBaseModelListOption(StrEnum):
+    """Options for the finetuning base model list."""
+
+    ROBERTA_BASE = auto()
+    GPT2_MEDIUM = auto()
+
+
 class FinetuningDatasetsListOption(StrEnum):
     """Options for the finetuning dataset list."""
 

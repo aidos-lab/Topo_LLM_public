@@ -1,7 +1,7 @@
 lm_mode: clm
 pretrained_model_name_or_path: gpt2
 short_model_name: ${finetuning.base_model.pretrained_model_name_or_path}
-lm_mode: causal_lm
+task_type: causal_lm
 tokenizer_modifier:
   mode: add_padding_token
   padding_token: "<|pad|>"
