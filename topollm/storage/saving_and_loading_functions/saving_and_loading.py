@@ -180,7 +180,7 @@ def save_list_of_python_dicts_as_indented_text(
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> None:
-    """Save a list of python dictionaries as a jsonl file."""
+    """Save a list of python dictionaries as indented text."""
     if list_of_python_dicts is None:
         logger.info(
             msg=f"No {python_object_name_for_logging} to save.",  # noqa: G004 - low overhead

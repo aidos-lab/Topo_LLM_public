@@ -28,6 +28,7 @@
 """Run script to compare computed Hausdorff distances with the local estimates."""
 
 import logging
+import pathlib  # noqa: TCH003 - `pathlib` is used for more than type checking
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -58,8 +59,6 @@ from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 from topollm.typing.enums import Verbosity
 
 if TYPE_CHECKING:
-    import pathlib
-
     pass
 
 try:
