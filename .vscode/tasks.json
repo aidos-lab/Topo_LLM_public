@@ -18,8 +18,8 @@
             }
         },
         {
-            "label": "rsync from HHU Hilbert to local - 'wandb' directory",
-            "command": "./topollm/scripts/hhu_hilbert/sync_data/rsync_wandb_output_dir_from_hhu_hilbert.sh",
+            "label": "rsync from HHU Hilbert to local - Full 'wandb' directory",
+            "command": "./topollm/scripts/hhu_hilbert/sync_data/sync_wandb/rsync_full_wandb_output_dir_from_hhu_hilbert.sh",
             "type": "shell",
             "group": {
                 "kind": "build",
@@ -76,8 +76,8 @@
             "problemMatcher": []
         },
         {
-            "label": "rsync from HHU Hilbert to local - (LARGE DIRECTORIES) - 'analysis/distances_and_influence_on_losses_and_local_estimates' directory",
-            "detail": "Sync from HHU Hilbert: 'analysis/distances_and_influence_on_losses_and_local_estimates'.",
+            "label": "rsync from HHU Hilbert to local - (LARGE) - 'analysis/distances_and_influence_on_losses_and_local_estimates' directory",
+            "detail": "rsync from HHU Hilbert: 'analysis/distances_and_influence_on_losses_and_local_estimates'.",
             "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/distances_and_influence_on_losses_and_local_estimates/' --file-type all",
             "type": "shell",
             "group": {
@@ -92,7 +92,7 @@
         },
         {
             "label": "rsync from HHU Hilbert to local - Small files from 'analysis/distances_and_influence_on_losses_and_local_estimates' directory",
-            "detail": "Sync from HHU Hilbert: Small files from 'analysis/distances_and_influence_on_losses_and_local_estimates'.",
+            "detail": "rsync from HHU Hilbert: Small files from 'analysis/distances_and_influence_on_losses_and_local_estimates'.",
             "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/distances_and_influence_on_losses_and_local_estimates/' --syncing_mode 'exclude_large_predictions_and_metadata'",
             "type": "shell",
             "group": {
@@ -106,7 +106,7 @@
             }
         },
         {
-            "label": "rsync from HHU Hilbert to external drive - (LARGE DIRECTORIES) - 'analysis/distances_and_influence_on_losses_and_local_estimates' directory",
+            "label": "rsync from HHU Hilbert to external drive - (LARGE) - 'analysis/distances_and_influence_on_losses_and_local_estimates' directory",
             "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/distances_and_influence_on_losses_and_local_estimates/' --syncing_mode 'all' --file-type 'all' --sync_to_external_drive",
             "type": "shell",
             "group": {
@@ -120,7 +120,7 @@
             }
         },
         {
-            "label": "rsync from HHU Hilbert to external drive - (LARGE DIRECTORIES) - 'analysis/prepared' and 'analysis/twonn' directories",
+            "label": "rsync from HHU Hilbert to external drive - (LARGE) - 'analysis/prepared' and 'analysis/twonn' directories",
             "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/twonn/' 'data/analysis/prepared/' --file-type all --sync_to_external_drive",
             "type": "shell",
             "group": {
@@ -134,7 +134,8 @@
             }
         },
         {
-            "label": "rsync from HHU Hilbert to local - (LARGE DIRECTORIES) - ALL file types 'analysis/twonn' directory",
+            "label": "rsync from HHU Hilbert to local - (LARGE) - ALL file types 'analysis/twonn' directory",
+            "detail": "rsync from HHU Hilbert: 'analysis/twonn'.",
             "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/twonn/' --file-type all",
             "type": "shell",
             "group": {
