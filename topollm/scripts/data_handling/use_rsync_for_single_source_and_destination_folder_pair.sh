@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Define source and destination directories
-SOURCE="/Users/ruppik/git-source/Topo_LLM/data/analysis/twonn"
-DESTINATION="/Volumes/ruppik_external/research_data/Topo_LLM/data/analysis/twonn"
+SOURCE="/Users/ruppik/git-source/Topo_LLM/data/analysis/twonn/"
+DESTINATION="/Volumes/ruppik_external/research_data/Topo_LLM/data/analysis/twonn/"
 
 # Parse arguments to optionally include --delete
 DELETE_FLAG=""
@@ -17,8 +17,8 @@ fi
 # Run rsync with optional delete flag
 rsync -avh \
     $DELETE_FLAG \
-    "$SOURCE/" \
-    "$DESTINATION/"
+    "$SOURCE" \
+    "$DESTINATION"
 
 RSYNC_EXIT_CODE=$?
 if [[ ${RSYNC_EXIT_CODE} -ne 0 ]]; then
