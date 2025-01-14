@@ -27,7 +27,150 @@
 
 # TODO: This script is under development.
 
+import logging
+import pathlib
+import pprint
 
-# TODO: Iterate over 'data/analysis/distances_and_influence_on_losses_and_local_estimates' directory
-# TODO: Load mean estimates and losses, and parse the corresponding model and dataset names
-# TODO: Make a scatter plot with mean estimates on the x-axis and mean losses on the y-axis
+import hydra
+import omegaconf
+import pandas as pd
+
+from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
+from topollm.config_classes.main_config import MainConfig
+from topollm.config_classes.setup_OmegaConf import setup_omega_conf
+from topollm.logging.initialize_configuration_and_log import initialize_configuration
+from topollm.logging.setup_exception_logging import setup_exception_logging
+from topollm.path_management.embeddings.factory import get_embeddings_path_manager
+from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
+from topollm.typing.enums import Verbosity
+
+# Logger for this file
+global_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
+
+setup_exception_logging(
+    logger=global_logger,
+)
+
+setup_omega_conf()
+
+
+@hydra.main(
+    config_path=f"{HYDRA_CONFIGS_BASE_PATH}",
+    config_name="main_config",
+    version_base="1.3",
+)
+def main(
+    config: omegaconf.DictConfig,
+) -> None:
+    """Run main function."""
+    logger: logging.Logger = global_logger
+    logger.info(
+        msg="Running script ...",
+    )
+
+    # ================================================== #
+    #
+    # ================================================== #
+
+    main_config: MainConfig = initialize_configuration(
+        config=config,
+        logger=logger,
+    )
+    verbosity: Verbosity = main_config.verbosity
+
+    embeddings_path_manager: EmbeddingsPathManager = get_embeddings_path_manager(
+        main_config=main_config,
+        logger=logger,
+    )
+
+    # The following directory contains the different dataset folders.
+    # Logging of the directory is done in the 'load_descriptive_statistics_from_folder_structure' function.
+    iteration_root_dir = pathlib.Path(
+        embeddings_path_manager.analysis_dir,
+        "distances_and_influence_on_losses_and_local_estimates",
+        main_config.analysis.investigate_distances.get_config_description(),
+        "twonn",
+    )
+
+    descriptive_statistics_df: pd.DataFrame = load_descriptive_statistics_from_folder_structure(
+        iteration_root_dir=iteration_root_dir,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+    compare_mean_local_estimates_with_mean_losses_for_different_models(
+        descriptive_statistics_df=descriptive_statistics_df,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+    logger.info(
+        msg="Script finished.",
+    )
+
+
+def load_descriptive_statistics_from_folder_structure(
+    iteration_root_dir: pathlib.Path,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> pd.DataFrame:
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"{iteration_root_dir = }",  # noqa: G004 - low overhead
+        )
+
+    # Iterate over the different dataset folders in the 'iteration_root_dir' directory
+    rootdir: pathlib.Path = iteration_root_dir
+    file_list: list[pathlib.Path] = [f for f in rootdir.resolve().glob(pattern="**/*") if f.is_file()]
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"{len(file_list) = }",  # noqa: G004 - low overhead
+        )
+        logger.info(
+            msg=f"file_list:\n{pprint.pformat(file_list)}",  # noqa: G004 - low overhead
+        )
+
+    # Full path example:
+    # data/analysis/distances_and_influence_on_losses_and_local_estimates/a-tr-s=60000/twonn/
+    # data=iclr_2024_submissions_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/
+    # split=validation_samples=10000_sampling=random_sampling-seed=777/edh-mode=masked_token_lvl=token/add-prefix-space=True_max-len=512/
+    # model=roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5_seed-1234_ckpt-800_task=masked_lm_dr=defaults/
+    # layer=-1_agg=mean/norm=None/sampling=random_seed=42_samples=150000/
+    # desc=twonn_samples=60000_zerovec=keep_dedup=array_deduplicator_noise=do_nothing/
+    # descriptive_statistics_dict.json
+
+    example_dataset_folder = "data=one-year-of-tsla-on-reddit_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags"
+
+    # TODO: Load mean estimates and losses, and parse the corresponding model and dataset names
+
+    result_df = pd.DataFrame()
+
+    logger.warning(
+        msg="TODO: This function is not yet implemented.",
+    )
+
+    return result_df
+
+
+def compare_mean_local_estimates_with_mean_losses_for_different_models(
+    descriptive_statistics_df: pd.DataFrame,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
+    """Compare mean local estimates with mean losses for different models."""
+
+    # TODO: Make a scatter plot with mean estimates on the x-axis and mean losses on the y-axis
+
+    logger.warning(
+        msg="TODO: This function is not yet implemented.",
+    )
+
+
+if __name__ == "__main__":
+    main()

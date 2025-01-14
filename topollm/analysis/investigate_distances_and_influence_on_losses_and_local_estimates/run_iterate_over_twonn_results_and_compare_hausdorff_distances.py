@@ -68,7 +68,7 @@ try:
 except ImportError:
     pass
 
-# logger for this file
+# Logger for this file
 global_logger: logging.Logger = logging.getLogger(
     name=__name__,
 )
