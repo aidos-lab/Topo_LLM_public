@@ -198,6 +198,8 @@ class ModelGroupOption(StrEnum):
 
     GPT2_MEDIUM_WITHOUT_MODIFICATIONS = auto()
 
+    GPT2_MEDIUM_FINETUNED_FOR_FEW_EPOCHS_MULTIWOZ_AND_REDDIT_AND_WIKITEXT_DATA_SINGLE_SEED_LAST_CHECKPOINT = auto()
+
 
 class FinetuningRegimeOption(StrEnum):
     """Options for the finetuning regime."""
@@ -234,6 +236,10 @@ class LanguageModelListOption(StrEnum):
     # # # #
     # GPT-2 models
     GPT2_MEDIUM = auto()
+
+    FINETUNED_ON_OLD_AND_NEW_DATA_FEW_EPOCHS_FROM_GPT2_MEDIUM = auto()
+    FINETUNED_ON_MULTIWOZ_DATA_FEW_EPOCHS_FROM_GPT2_MEDIUM = auto()
+    FINETUNED_ON_MULTIWOZ_AND_REDDIT_AND_WIKITEXT_DATA_FEW_EPOCHS_FROM_GPT2_MEDIUM = auto()
 
     # # # #
     # Other models

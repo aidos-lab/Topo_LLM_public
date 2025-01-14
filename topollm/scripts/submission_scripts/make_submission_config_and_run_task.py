@@ -523,9 +523,28 @@ def retrieve_model_and_checkpoint_list(
                 checkpoint_no_list_option=checkpoint_no_list_option,
                 num_train_epochs=int(num_train_epochs),
             )
+        case LanguageModelListOption.FINETUNED_ON_OLD_AND_NEW_DATA_FEW_EPOCHS_FROM_GPT2_MEDIUM:
+            language_model_list: list[str] = [
+                "gpt2-medium-causal_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+                "gpt2-medium-causal_lm-defaults_wikitext-103-v1-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+            ]
+
+            checkpoint_no_list = get_checkpoint_no_list(
+                checkpoint_no_list_option=checkpoint_no_list_option,
+                num_train_epochs=int(num_train_epochs),
+            )
         case LanguageModelListOption.FINETUNED_ON_MULTIWOZ_DATA_FEW_EPOCHS_FROM_ROBERTA_BASE:
             language_model_list: list[str] = [
                 "roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+            ]
+
+            checkpoint_no_list = get_checkpoint_no_list(
+                checkpoint_no_list_option=checkpoint_no_list_option,
+                num_train_epochs=int(num_train_epochs),
+            )
+        case LanguageModelListOption.FINETUNED_ON_MULTIWOZ_DATA_FEW_EPOCHS_FROM_GPT2_MEDIUM:
+            language_model_list: list[str] = [
+                "gpt2-medium-causal_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
             ]
 
             checkpoint_no_list = get_checkpoint_no_list(
@@ -537,6 +556,17 @@ def retrieve_model_and_checkpoint_list(
                 "roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
                 "roberta-base-masked_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
                 "roberta-base-masked_lm-defaults_wikitext-103-v1-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+            ]
+
+            checkpoint_no_list = get_checkpoint_no_list(
+                checkpoint_no_list_option=checkpoint_no_list_option,
+                num_train_epochs=int(num_train_epochs),
+            )
+        case LanguageModelListOption.FINETUNED_ON_MULTIWOZ_AND_REDDIT_AND_WIKITEXT_DATA_FEW_EPOCHS_FROM_GPT2_MEDIUM:
+            language_model_list: list[str] = [
+                "gpt2-medium-causal_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+                "gpt2-medium-causal_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+                "gpt2-medium-causal_lm-defaults_wikitext-103-v1-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
             ]
 
             checkpoint_no_list = get_checkpoint_no_list(

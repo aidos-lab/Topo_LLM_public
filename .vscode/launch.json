@@ -733,17 +733,17 @@
                 //
                 // >>> Use the following to run a random configuration
                 //
-                // "--run-option",
-                // "do_submission",
-                // "--run-only-selected-configs-option",
-                // "run_single_random",
-                //
-                // >>>> Use the following to run with all configurations
-                //
                 "--run-option",
                 "do_submission",
                 "--run-only-selected-configs-option",
-                "run_all",
+                "run_single_random",
+                //
+                // >>>> Use the following to run with all configurations
+                //
+                // "--run-option",
+                // "do_submission",
+                // "--run-only-selected-configs-option",
+                // "run_all",
                 //
                 // >>>> END: Select the run option
                 "--submission-mode",
@@ -774,7 +774,7 @@
                 "--data-list-options",
                 "wikitext_validation_only",
                 //    >> END Data list options.
-                //    >> Model group options.
+                //    >> START Model group options.
                 //    >> Note that for multiple options, you need to specify the `--model-group-options` multiple times.
                 // "--model-group-options",
                 // "roberta_base_without_modifications",
@@ -782,8 +782,11 @@
                 // "roberta_base_finetuned_for_few_epochs_old_and_new_data_single_seed_last_checkpoint",
                 // "--model-group-options",
                 // "roberta_base_finetuned_for_few_epochs_multiwoz_data_single_seed_last_checkpoint",
+                //"--model-group-options",
+                // "gpt2_medium_without_modifications",
                 "--model-group-options",
-                "gpt2_medium_without_modifications",
+                "gpt2_medium_finetuned_for_few_epochs_multiwoz_and_reddit_and_wikitext_data_single_seed_last_checkpoint",
+                //    >> END Model group options.
             ]
         },
         {
@@ -847,7 +850,7 @@
                 "--data-list-options",
                 "multiwoz21_validation_only",
                 //    >> END Data list options.
-                //    >> Model group options.
+                //    >> START Model group options.
                 //    >> Note that for multiple options, you need to specify the `--model-group-options` multiple times.
                 "--model-group-options",
                 "roberta_base_without_modifications",
@@ -857,6 +860,7 @@
                 // "roberta_base_finetuned_for_few_epochs_multiwoz_data_single_seed_last_checkpoint",
                 // "--model-group-options",
                 // "gpt2_medium_without_modifications",
+                //    >> END Model group options.
             ]
         },
         {
@@ -921,7 +925,7 @@
                 // "sgd_validation_only",
                 "--data-list-options",
                 "wikitext_validation_only",
-                //    >> Model group options.
+                //    >> START Model group options.
                 //    >> Note that for multiple options, you need to specify the `--model-group-options` multiple times.
                 // "--model-group-options",
                 // "roberta_base_without_modifications",
@@ -931,6 +935,7 @@
                 // "roberta_base_finetuned_for_few_epochs_multiwoz_data_single_seed_last_checkpoint",
                 "--model-group-options",
                 "roberta_base_finetuned_for_few_epochs_multiwoz_and_reddit_and_wikitext_data_single_seed_all_checkpoints",
+                //    >> END Model group options.
             ]
         },
         {
@@ -1048,10 +1053,11 @@
                 "--data-list-options",
                 // "multiwoz21_validation_and_reddit_validation",
                 "reddit_validation_only",
-                //    >> Model group options.
+                //    >> START Model group options.
                 //    >> Note that for multiple options, you need to specify the `--model-group-options` multiple times.
                 "--model-group-options",
                 "roberta_base_without_modifications",
+                //    >> END Model group options.
             ]
         },
     ]
