@@ -35,8 +35,8 @@ RUN_ONLY_SELECTED_CONFIGS_OPTION="run_all"
 
 FINETUNING_DATASETS_LIST_OPTION_LIST=(
   # "iclr_small"
-  "multiwoz21_small",
-  "reddit_small",
+  "multiwoz21_small"
+  "reddit_small"
   # "sgd_small"
   # "wikitext_small"
   # "multiwoz21_and_reddit_small"

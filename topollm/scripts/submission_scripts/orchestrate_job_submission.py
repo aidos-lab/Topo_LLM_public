@@ -66,49 +66,65 @@ from topollm.typing.enums import (
 @click.command()
 @click.option(
     "--experiment-stage",
-    type=ExperimentStage,
+    type=click.Choice(
+        choices=list(ExperimentStage),
+    ),
+    required=False,
     default=None,
     help="Specify the experiment stage to run.",
 )
 @click.option(
     "--experiment-selector",
-    type=ExperimentSelector,
-    required=True,
+    type=click.Choice(
+        choices=list(ExperimentSelector),
+    ),
     help="Select the experiment type.",
 )
 @click.option(
     "--task",
-    type=Task,
+    type=click.Choice(
+        choices=list(Task),
+    ),
     required=True,
     help="Specify the task to run.",
 )
 @click.option(
     "--data-list-option",
-    type=DataListOption,
+    type=click.Choice(
+        choices=list(DataListOption),
+    ),
     default=DataListOption.MULTIWOZ21_ONLY,
     help="Data list option to use.",
 )
 @click.option(
     "--data-subsampling-sampling-seed-list-option",
-    type=DataSubsamplingSamplingSeedListOption,
+    type=click.Choice(
+        choices=list(DataSubsamplingSamplingSeedListOption),
+    ),
     default=DataSubsamplingSamplingSeedListOption.THREE_SEEDS,
     help="Data subsampling sampling seed list option to use.",
 )
 @click.option(
     "--data-subsampling-sampling-mode",
-    type=DataSamplingMode,
+    type=click.Choice(
+        choices=list(DataSamplingMode),
+    ),
     default=DataSamplingMode.RANDOM,
     help="Data subsampling sampling mode to use.",
 )
 @click.option(
     "--embedding-data-handler-mode",
-    type=EmbeddingDataHandlerMode,
+    type=click.Choice(
+        choices=list(EmbeddingDataHandlerMode),
+    ),
     default=EmbeddingDataHandlerMode.REGULAR,
     help="Embedding data handler mode to use.",
 )
 @click.option(
     "--embeddings-data-prep-sampling-mode",
-    type=EmbeddingsDataPrepSamplingMode,
+    type=click.Choice(
+        choices=list(EmbeddingsDataPrepSamplingMode),
+    ),
     default=EmbeddingsDataPrepSamplingMode.RANDOM,
     help="Embeddings data prep sampling mode to use.",
 )
@@ -122,13 +138,17 @@ from topollm.typing.enums import (
 )
 @click.option(
     "--finetuning-base-model-list-option",
-    type=FinetuningBaseModelListOption,
-    default=FinetuningBaseModelListOption.GPT2_MEDIUM,
+    type=click.Choice(
+        choices=list(FinetuningBaseModelListOption),
+    ),
+    default=FinetuningBaseModelListOption.ROBERTA_BASE,
     help="Finetuning base model list option to use.",
 )
 @click.option(
     "--finetuning-datasets-list-option",
-    type=FinetuningDatasetsListOption,
+    type=click.Choice(
+        choices=list(FinetuningDatasetsListOption),
+    ),
     default=FinetuningDatasetsListOption.MULTIWOZ21_SMALL,
     help="Finetuning datasets list option to use.",
 )
@@ -140,7 +160,9 @@ from topollm.typing.enums import (
 )
 @click.option(
     "--local-estimates-pointwise-absolute-n-neighbors-list-option",
-    type=LocalEstimatesPointwiseAbsoluteNNeighborsListOption,
+    type=click.Choice(
+        choices=list(LocalEstimatesPointwiseAbsoluteNNeighborsListOption),
+    ),
     default=LocalEstimatesPointwiseAbsoluteNNeighborsListOption.SINGLE_CHOICE_128,
     help="Local estimates pointwise absolute n neighbors list option to use.",
 )
@@ -157,19 +179,25 @@ from topollm.typing.enums import (
 )
 @click.option(
     "--submission-mode",
-    type=SubmissionMode,
+    type=click.Choice(
+        choices=list(SubmissionMode),
+    ),
     default=SubmissionMode.HPC_SUBMISSION,
     help="Whether to run the job on the HPC or locally.",
 )
 @click.option(
     "--run-option",
-    type=RunOption,
+    type=click.Choice(
+        choices=list(RunOption),
+    ),
     default=RunOption.DO_SUBMISSION,
     help="Whether to do the submission or start a dry run.",
 )
 @click.option(
     "--run-only-selected-configs-option",
-    type=RunOnlySelectedConfigsOption,
+    type=click.Choice(
+        choices=list(RunOnlySelectedConfigsOption),
+    ),
     default=RunOnlySelectedConfigsOption.RUN_ALL,
     help="Run only a selected set of configurations.",
 )
@@ -199,13 +227,17 @@ from topollm.typing.enums import (
 )
 @click.option(
     "--template",
-    type=Template,
+    type=click.Choice(
+        choices=list(Template),
+    ),
     default=Template.DSML,
     help="Template to use for the job submission. Might get overwritten by the experiment stage configurations.",
 )
 @click.option(
     "--template-to-use-for-compute-embeddings",
-    type=Template,
+    type=click.Choice(
+        choices=list(Template),
+    ),
     default=Template.RTX6000,
     help="Template to use for the compute embeddings job submission.",
 )
