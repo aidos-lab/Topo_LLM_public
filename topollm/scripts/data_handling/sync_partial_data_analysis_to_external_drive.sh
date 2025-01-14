@@ -9,9 +9,9 @@ DELETE_FLAG=""
 
 if [[ "$1" == "--delete" ]]; then
   DELETE_FLAG="--delete"
-  echo "Delete flag is enabled. Files at destination not present in source will be deleted."
+  echo ">>> Delete flag is enabled. Files at destination not present in source will be deleted."
 else
-  echo "Delete flag not enabled. Files at destination will not be deleted."
+  echo ">>> Delete flag not enabled. Files at destination will not be deleted."
 fi
 
 # Run rsync with optional delete flag
@@ -20,5 +20,12 @@ rsync -avh \
     "$SOURCE/" \
     "$DESTINATION/"
 
+RSYNC_EXIT_CODE=$?
+if [[ ${RSYNC_EXIT_CODE} -ne 0 ]]; then
+    echo "@@@ Error: rsync failed with exit code ${RSYNC_EXIT_CODE}"
+    exit ${RSYNC_EXIT_CODE}
+fi
+
 # Output success message
-echo "Synchronization from $SOURCE to $DESTINATION completed."
+echo ">>> Synchronization from $SOURCE to $DESTINATION completed."
+exit 0
