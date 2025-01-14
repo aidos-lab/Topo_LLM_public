@@ -109,7 +109,7 @@
         {
             "label": "rsync from HHU Hilbert to local - Small files from 'analysis/distances_and_influence_on_losses_and_local_estimates' directory",
             "detail": "rsync from HHU Hilbert: Small files from 'analysis/distances_and_influence_on_losses_and_local_estimates'.",
-            "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/distances_and_influence_on_losses_and_local_estimates/' --syncing_mode 'exclude_large_predictions_and_metadata'",
+            "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/distances_and_influence_on_losses_and_local_estimates/' --syncing-mode 'exclude_large_predictions_and_metadata'",
             "type": "shell",
             "group": {
                 "kind": "build",
@@ -123,7 +123,7 @@
         },
         {
             "label": "rsync from HHU Hilbert to external drive - (LARGE) - 'analysis/distances_and_influence_on_losses_and_local_estimates' directory",
-            "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/distances_and_influence_on_losses_and_local_estimates/' --syncing_mode 'all' --file-type 'all' --sync_to_external_drive",
+            "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/distances_and_influence_on_losses_and_local_estimates/' --syncing-mode 'all' --file-type 'all' --sync-to-external-drive",
             "type": "shell",
             "group": {
                 "kind": "build",
@@ -179,8 +179,22 @@
             }
         },
         {
-            "label": "rsync from HHU Hilbert to local - Only results and statistics from 'analysis/twonn' directory",
-            "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/twonn/' --syncing_mode 'only_results_arrays_and_statistics'",
+            "label": "rsync from HHU Hilbert to local - results_arrays, statistics from 'analysis/twonn' directory",
+            "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/twonn/' --syncing-mode 'results_arrays_and_statistics'",
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": false
+            }
+        },
+        {
+            "label": "rsync from HHU Hilbert to local - (LARGE) - results_arrays, statistics, metadata from 'analysis/twonn' directory",
+            "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/twonn/' --syncing-mode 'results_array_and_statistics_and_metadata'",
             "type": "shell",
             "group": {
                 "kind": "build",

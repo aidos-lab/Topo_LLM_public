@@ -133,7 +133,7 @@ compute_perplexity = "topollm.model_inference.perplexity.run_compute_perplexity:
 pipeline_inference = "topollm.model_inference.run_inference_pipeline:main"
 pipeline_local_estimates = "topollm.pipeline_scripts.run_pipeline_compute_embeddings_and_data_prep_and_local_estimate:main"
 # Submit multiple jobs using one of the launchers
-submit_jobs = "topollm.scripts.submission_scripts.submit_jobs:main"
+submit_jobs = "topollm.scripts.submission_scripts.orchestrate_job_submission:main"
 # Submit multiple jobs using one of the launchers and tmux
 submit_jobs_via_tmux = "topollm.scripts.submission_scripts.call_submit_jobs_scripts.call_submit_jobs_for_experiments_via_tmux_submission:submit_jobs_in_separate_tmux_sessions"
 # Data copying and syncing

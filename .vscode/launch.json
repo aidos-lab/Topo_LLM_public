@@ -920,18 +920,17 @@
                 //
                 // >>> Use the following to run a random configuration
                 //
-                "--run-option",
-                "do_submission",
-                "--run-only-selected-configs-option",
-                "run_single_random",
-                // TODO: Change this to run_all
-                //
-                // >>>> Use the following to run with all configurations
-                //
                 // "--run-option",
                 // "do_submission",
                 // "--run-only-selected-configs-option",
-                // "run_all",
+                // "run_single_random",
+                //
+                // >>>> Use the following to run with all configurations
+                //
+                "--run-option",
+                "do_submission",
+                "--run-only-selected-configs-option",
+                "run_all",
                 //
                 // >>>> END: Select the run option
                 "--submission-mode",
@@ -940,8 +939,9 @@
                 "--experiment-selector-options",
                 "sensitivity_analysis_different_local_estimates_filtering_number_of_samples",
                 "--experiment-stage",
-                // "compute_embeddings_plus_single_pipeline_run", // Note: You need to make sure the embedding arrays exist before you can call the skip_compute_embeddings_but_do_multiple_pipeline_runs stage
-                "skip_compute_embeddings_but_do_multiple_pipeline_runs",
+                // "compute_embeddings_plus_single_pipeline_run", // Note: You need to make sure the embedding arrays exist before you can call the skip_compute_embeddings_but_do_multiple_pipeline_runs stage.
+                // "skip_compute_embeddings_but_do_multiple_pipeline_runs", // Note: If some results are not available, this might have been caused by conflicts in writing the results from parallel data_prep steps.
+                "skip_compute_embeddings_and_skip_embeddings_data_prep", // Note: Make sure the prepared data exists before you run this stage.
                 //    >> Data list options.
                 //    >> Note that for multiple options, you need to specify the `--data-list-options` multiple times.
                 // "--data-list-options",
