@@ -17,8 +17,9 @@
                 "focus": false
             }
         },
+        // START Weights and Biases related tasks (wandb)
         {
-            "label": "rsync from HHU Hilbert to local - Full 'wandb' directory",
+            "label": "rsync from HHU Hilbert to local - (LARGE) - Full 'wandb' directory",
             "command": "./topollm/scripts/hhu_hilbert/sync_data/sync_wandb/rsync_full_wandb_output_dir_from_hhu_hilbert.sh",
             "type": "shell",
             "group": {
@@ -32,8 +33,8 @@
             }
         },
         {
-            "label": "sync wandb runs to cloud",
-            "command": "./wandb_output_dir/sync_wandb_runs.sh",
+            "label": "rsync from HHU Hilbert to local - Selected 'wandb' directories",
+            "command": "./topollm/scripts/hhu_hilbert/sync_data/sync_wandb/rsync_selected_wandb_output_dirs_from_hhu_hilbert.sh",
             "type": "shell",
             "group": {
                 "kind": "build",
@@ -45,6 +46,21 @@
                 "focus": false
             }
         },
+        {
+            "label": "sync wandb runs to cloud",
+            "command": "./wandb_output_dir/sync_wandb_runs.sh --wandb_project_dir_name 'Topo_LLM_gpt2_finetuning_from_submission_script_for_5_epochs_and_linear_lr_schedule'",
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": false
+            }
+        },
+        // END Weights and Biases related tasks (wandb)
         {
             "label": "Create small version of 'data/analysis/twonn' directory",
             "detail": "Create a copy of the 'data/analysis/twonn' directory but exclude large arrays and metadata files.",

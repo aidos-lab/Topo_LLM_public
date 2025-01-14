@@ -1581,6 +1581,19 @@ def orchestrate_job_submission(
                 raise ValueError(
                     msg,
                 )
+        case ExperimentSelector.REGULAR_TOKEN_EMBEDDINGS_LAST_LAYER_SINGLE_SAMPLE:
+            # Notes:
+            # - You need to set the data_list_option via the command line arguments.
+            # - Do not set the checkpoint_no_list_option here, since we want to take it from the model group option.
+
+            data_subsampling_number_of_samples_list_option = DataSubsamplingNumberOfSamplesListOption.FIXED_10000
+            data_subsampling_sampling_seed_list_option = DataSubsamplingSamplingSeedListOption.FIXED_777
+
+            layer_indices_list = [
+                "[-1]",
+            ]
+
+            embedding_data_handler_mode = EmbeddingDataHandlerMode.REGULAR
         case ExperimentSelector.MASKED_TOKEN_EMBEDDINGS_LAST_LAYER_SINGLE_SAMPLE:
             # Notes:
             # - You need to set the data_list_option via the command line arguments.
