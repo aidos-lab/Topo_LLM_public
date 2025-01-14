@@ -923,10 +923,27 @@ def make_machine_config(
                     )
 
             match model_group_option:
-                case ModelGroupOption.GPT2_MEDIUM_WITHOUT_MODIFICATIONS:
+                case (
+                    ModelGroupOption.ROBERTA_BASE_WITHOUT_MODIFICATIONS
+                    | ModelGroupOption.ROBERTA_BASE_FINETUNED_FOR_FEW_EPOCHS_OLD_AND_NEW_DATA_SINGLE_SEED_LAST_CHECKPOINT
+                    | ModelGroupOption.ROBERTA_BASE_FINETUNED_FOR_FEW_EPOCHS_MULTIWOZ_DATA_SINGLE_SEED_LAST_CHECKPOINT
+                    | ModelGroupOption.ROBERTA_BASE_FINETUNED_FOR_FEW_EPOCHS_MULTIWOZ_AND_REDDIT_AND_WIKITEXT_DATA_SINGLE_SEED_ALL_CHECKPOINTS
+                    | ModelGroupOption.ROBERTA_BASE_FINETUNED_FOR_MANY_EPOCHS
+                ):
+                    # For the RoBERTa base model, we need less memory since the embeddings have lower dimensionality.
+                    memory = "32"
+                case (
+                    ModelGroupOption.GPT2_MEDIUM_WITHOUT_MODIFICATIONS
+                    | ModelGroupOption.GPT2_MEDIUM_FINETUNED_FOR_FEW_EPOCHS_MULTIWOZ_AND_REDDIT_AND_WIKITEXT_DATA_SINGLE_SEED_LAST_CHECKPOINT
+                ):
                     # For the GPT2 medium model, we need more memory since the embeddings have higher dimensionality.
                     # The embeddings data prep step failed with 32GB of memory for the GPT2 medium model.
                     memory = "64"
+                case _:
+                    msg: str = f"The {model_group_option = } is not yet handled in the machine configuration selection."
+                    raise ValueError(
+                        msg,
+                    )
 
         case (
             ExperimentStage.SKIP_COMPUTE_EMBEDDINGS_BUT_DO_MULTIPLE_PIPELINE_RUNS

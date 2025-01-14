@@ -275,6 +275,8 @@ def orchestrate_job_submission(
     # Note:
     # - For the finetuning task, the finetuning_regime_option might get overwritten at a later stage.
     match model_group_option:
+        # # # # # # # # # # # #
+        # RoBERTa-base models
         case ModelGroupOption.ROBERTA_BASE_WITHOUT_MODIFICATIONS:
             ####################################
             ### With POS tags for base model ###
@@ -309,6 +311,12 @@ def orchestrate_job_submission(
             finetuning_regime_option = FinetuningRegimeOption.MANY_EPOCHS_WITH_OVERFITTING_RISK
             language_model_seed_list_option = SeedListOption.FIXED_SEED_1234
             checkpoint_no_list_option = CheckpointNoListOption.ONLY_BEGINNING_AND_MIDDLE_AND_END
+        # # # # # # # # # # # #
+        # GPT-2 models
+        #
+        # Notes:
+        # - Remember to add new model in the case distinctions in the `make_machine_config` function,
+        #   if they require different memory sizes.
         case ModelGroupOption.GPT2_MEDIUM_WITHOUT_MODIFICATIONS:
             language_model_list_option = LanguageModelListOption.GPT2_MEDIUM
             finetuning_regime_option = FinetuningRegimeOption.FEW_EPOCHS  # Ignored for the base model

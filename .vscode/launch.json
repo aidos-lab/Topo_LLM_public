@@ -733,17 +733,17 @@
                 //
                 // >>> Use the following to run a random configuration
                 //
-                "--run-option",
-                "do_submission",
-                "--run-only-selected-configs-option",
-                "run_single_random",
-                //
-                // >>>> Use the following to run with all configurations
-                //
                 // "--run-option",
                 // "do_submission",
                 // "--run-only-selected-configs-option",
-                // "run_all",
+                // "run_single_random",
+                //
+                // >>>> Use the following to run with all configurations
+                //
+                "--run-option",
+                "do_submission",
+                "--run-only-selected-configs-option",
+                "run_all",
                 //
                 // >>>> END: Select the run option
                 "--submission-mode",

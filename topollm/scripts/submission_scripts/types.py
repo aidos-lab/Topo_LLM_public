@@ -183,7 +183,7 @@ class FinetuningDatasetsListOption(StrEnum):
 class ModelGroupOption(StrEnum):
     """Options for specifying the model and finetuning regime."""
 
-    # # # #
+    # # # # # # # # # # # #
     # RoBERTa-base models
     ROBERTA_BASE_WITHOUT_MODIFICATIONS = auto()
 
@@ -193,7 +193,7 @@ class ModelGroupOption(StrEnum):
 
     ROBERTA_BASE_FINETUNED_FOR_MANY_EPOCHS = auto()
 
-    # # # #
+    # # # # # # # # # # # #
     # GPT-2 models
 
     GPT2_MEDIUM_WITHOUT_MODIFICATIONS = auto()
