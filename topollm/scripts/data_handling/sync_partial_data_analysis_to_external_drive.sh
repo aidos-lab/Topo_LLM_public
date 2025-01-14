@@ -8,10 +8,10 @@ DESTINATION="/Volumes/ruppik_external/research_data/Topo_LLM/data/analysis/twonn
 DELETE_FLAG=""
 
 if [[ "$1" == "--delete" ]]; then
-  DELETE_FLAG="--delete"
-  echo ">>> Delete flag is enabled. Files at destination not present in source will be deleted."
+    DELETE_FLAG="--delete"
+    echo ">>> Delete flag is enabled. Files at destination not present in source will be deleted."
 else
-  echo ">>> Delete flag not enabled. Files at destination will not be deleted."
+    echo ">>> Delete flag not enabled. Files at destination will not be deleted."
 fi
 
 # Run rsync with optional delete flag
