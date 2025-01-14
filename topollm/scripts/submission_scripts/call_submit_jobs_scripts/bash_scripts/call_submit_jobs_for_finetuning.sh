@@ -96,28 +96,6 @@ for FINETUNING_DATASETS_LIST_OPTION in "${FINETUNING_DATASETS_LIST_OPTION_LIST[@
   
 done
 
-# TODO
-# TODO: Find out why the following error occurs when running the script
-#
-# >>> FINETUNING_DATASETS_LIST_OPTION: multiwoz21_small,
-# >>> PARAMETER: PLACEHOLDER_0
-# Warning: In a future version of Poetry, PyPI will be disabled automatically if at least one custom primary source is configured. In order to avoid a breaking change and make your pyproject.toml forward compatible, add PyPI explicitly via 'poetry source add pypi'. By the way, this has the advantage that you can set the priority of PyPI as with any other source.
-# Usage: submit_jobs [OPTIONS]
-# Try 'submit_jobs --help' for help.
-
-# Error: Invalid value for '--finetuning-datasets-list-option': multiwoz21_small,
-# >>> FINETUNING_DATASETS_LIST_OPTION: reddit_small,
-# >>> PARAMETER: PLACEHOLDER_0
-# Warning: In a future version of Poetry, PyPI will be disabled automatically if at least one custom primary source is configured. In order to avoid a breaking change and make your pyproject.toml forward compatible, add PyPI explicitly via 'poetry source add pypi'. By the way, this has the advantage that you can set the priority of PyPI as with any other source.
-# Usage: submit_jobs [OPTIONS]
-# Try 'submit_jobs --help' for help.
-
-# Error: Invalid value for '--finetuning-datasets-list-option': reddit_small,
-# >>> Submission script finished.
-# >>> Exiting ...
-
-
-
 # ================================================================== #
 # Exit submission script
 echo ">>> Submission script finished."

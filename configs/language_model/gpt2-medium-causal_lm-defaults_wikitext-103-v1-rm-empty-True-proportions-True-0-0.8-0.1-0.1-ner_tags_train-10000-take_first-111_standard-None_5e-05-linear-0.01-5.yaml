@@ -13,4 +13,4 @@ dropout:
     classifier_dropout: null
 tokenizer_modifier:
   mode: add_padding_token
-  padding_token: <|pad|>
+  padding_token: "<|pad|>"
