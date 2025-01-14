@@ -1,0 +1,29 @@
+>>> model = transformers.AutoModelForCausalLM.from_pretrained("gpt2-medium")
+>>> model
+GPT2LMHeadModel(
+  (transformer): GPT2Model(
+    (wte): Embedding(50257, 1024)
+    (wpe): Embedding(1024, 1024)
+    (drop): Dropout(p=0.1, inplace=False)
+    (h): ModuleList(
+      (0-23): 24 x GPT2Block(
+        (ln_1): LayerNorm((1024,), eps=1e-05, elementwise_affine=True)
+        (attn): GPT2SdpaAttention(
+          (c_attn): Conv1D(nf=3072, nx=1024)
+          (c_proj): Conv1D(nf=1024, nx=1024)
+          (attn_dropout): Dropout(p=0.1, inplace=False)
+          (resid_dropout): Dropout(p=0.1, inplace=False)
+        )
+        (ln_2): LayerNorm((1024,), eps=1e-05, elementwise_affine=True)
+        (mlp): GPT2MLP(
+          (c_fc): Conv1D(nf=4096, nx=1024)
+          (c_proj): Conv1D(nf=1024, nx=4096)
+          (act): NewGELUActivation()
+          (dropout): Dropout(p=0.1, inplace=False)
+        )
+      )
+    )
+    (ln_f): LayerNorm((1024,), eps=1e-05, elementwise_affine=True)
+  )
+  (lm_head): Linear(in_features=1024, out_features=50257, bias=False)
+)

@@ -13,3 +13,4 @@ done
 # You can prewrite qdel commands here:
 #
 # for i in {12658033..12658052}; do qdel $i; done
+# for i in {12664170..12664224}; do qdel $i; done

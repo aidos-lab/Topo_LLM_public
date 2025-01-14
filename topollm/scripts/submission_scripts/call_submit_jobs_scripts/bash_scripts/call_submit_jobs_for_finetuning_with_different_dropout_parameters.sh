@@ -13,8 +13,8 @@ SUBMISSION_MODE="hpc_submission"
 # >>>> BEGIN: Select the run option
 # >>>> Use the following to dry run with all configurations
 #
-RUN_OPTION="dry_run"
-RUN_ONLY_SELECTED_CONFIGS_OPTION="run_all"
+# RUN_OPTION="dry_run"
+# RUN_ONLY_SELECTED_CONFIGS_OPTION="run_all"
 #
 # >>>> Use the following to dry run a random configuration
 #
@@ -28,8 +28,8 @@ RUN_ONLY_SELECTED_CONFIGS_OPTION="run_all"
 #
 # >>>> Use the following to run with all configurations
 #
-# RUN_OPTION="do_submission"
-# RUN_ONLY_SELECTED_CONFIGS_OPTION="run_all"
+RUN_OPTION="do_submission"
+RUN_ONLY_SELECTED_CONFIGS_OPTION="run_all"
 #
 # >>>> END: Select the run option
 

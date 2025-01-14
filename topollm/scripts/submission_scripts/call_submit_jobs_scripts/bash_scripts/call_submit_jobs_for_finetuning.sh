@@ -34,9 +34,11 @@ RUN_ONLY_SELECTED_CONFIGS_OPTION="run_all"
 # >>>> END: Select the run option
 
 FINETUNING_DATASETS_LIST_OPTION_LIST=(
-  "iclr_small"
+  # "iclr_small"
+  "multiwoz21_small"
+  "reddit_small"
+  # "sgd_small"
   # "wikitext_small"
-  "sgd_small"
   # "multiwoz21_and_reddit_small"
 )
 
@@ -77,10 +79,11 @@ for FINETUNING_DATASETS_LIST_OPTION in "${FINETUNING_DATASETS_LIST_OPTION_LIST[@
     # - Do not place quotation marks around the variables in the arguments which can be empty
     #   (e.g., $SKIP_FINETUNING_OPTION, $USE_WANDB_FALSE_OPTION)
     poetry run submit_jobs \
-      --experiment-selector "multiwoz21_different_data_subsampling_number_of_samples" \
+      --experiment-selector "sensitivity_analysis_multiwoz21_different_data_subsampling_number_of_samples" \
       --experiment-stage "skip_compute_embeddings_but_do_multiple_pipeline_runs" \
+      --finetuning-base-model-list-option "gpt2_medium" \
       --finetuning-datasets-list-option "${FINETUNING_DATASETS_LIST_OPTION}" \
-      --wandb-project "Topo_LLM_finetuning_from_submission_script_for_5_epochs_and_linear_lr_schedule" \
+      --wandb-project "Topo_LLM_gpt2_finetuning_from_submission_script_for_5_epochs_and_linear_lr_schedule" \
       --fp16 "${FP16}" \
       --model-group-option "roberta_base_finetuned_for_few_epochs_old_and_new_data_single_seed_last_checkpoint" \
       $SKIP_FINETUNING_OPTION \
@@ -92,9 +95,6 @@ for FINETUNING_DATASETS_LIST_OPTION in "${FINETUNING_DATASETS_LIST_OPTION_LIST[@
   done
   
 done
-
-
-
 
 # ================================================================== #
 # Exit submission script

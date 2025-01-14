@@ -107,17 +107,21 @@ def sync_directories(
         )
 
 
-def sync_only_results_arrays_and_statistics(
+def sync_selected_files_from_local_estimates_directory(
     directories: list[str],
     zim_topo_llm_repository_base_path: str,
     target_base_path: str,
     dry_run_option: str,
+    *,
+    include_metadata_files: bool = False,
 ) -> None:
     """Specific sync which is meant for the twonn directory.
 
-    This sync skips the large array_for_estimator.npy files and the metadata files.
+    If requested, this sync skips:
+    - the large array_for_estimator.npy files
+    - the large metadata files.
     """
-    include_pattern_to_iterate_over: list[list[str]] = [
+    patterns_to_iterate_over: list[list[str]] = [
         # The statistics files are saved as .json files and are very small, so we include all files of this type.
         [
             "--include=*/",
@@ -137,11 +141,20 @@ def sync_only_results_arrays_and_statistics(
         ],
     ]
 
+    if include_metadata_files:
+        # Include the metadata files.
+        patterns_to_iterate_over.append(
+            [
+                "--include=*/",
+                "--include=local_estimates_pointwise_meta.pkl",
+            ],
+        )
+
     iterate_over_patterns_and_directories(
         directories=directories,
         zim_topo_llm_repository_base_path=zim_topo_llm_repository_base_path,
         target_base_path=target_base_path,
-        patterns_to_iterate_over=include_pattern_to_iterate_over,
+        patterns_to_iterate_over=patterns_to_iterate_over,
         dry_run_option=dry_run_option,
     )
 
@@ -280,7 +293,10 @@ class SyncingMode(StrEnum):
     """Different syncing modes depending on the directory."""
 
     ALL = auto()
-    ONLY_RESULTS_ARRAYS_AND_STATISTICS = auto()
+
+    RESULTS_ARRAYS_AND_STATISTICS = auto()
+    RESULTS_ARRAY_AND_STATISTICS_AND_METADATA = auto()
+
     EXCLUDE_LARGE_PREDICTIONS_AND_METADATA = auto()
 
 
@@ -290,12 +306,12 @@ def parse_arguments() -> argparse.Namespace:
         description="Sync experiment results to the local directory.",
     )
     parser.add_argument(
-        "--sync_to_external_drive",
+        "--sync-to-external-drive",
         action="store_true",
         help="Sync to external hard drive.",
     )
     parser.add_argument(
-        "--dry_run",
+        "--dry-run",
         action="store_true",
         help="Perform a dry run.",
     )
@@ -309,7 +325,7 @@ def parse_arguments() -> argparse.Namespace:
         help="List of directories to sync.",
     )
     parser.add_argument(
-        "--syncing_mode",
+        "--syncing-mode",
         type=SyncingMode,
         choices=SyncingMode,
         default=SyncingMode.ALL,
@@ -360,16 +376,29 @@ def main() -> None:
                 dry_run_option=dry_run_option,
                 file_type=args.file_type,
             )
-        case SyncingMode.ONLY_RESULTS_ARRAYS_AND_STATISTICS:
+        case SyncingMode.RESULTS_ARRAYS_AND_STATISTICS:
             print(  # noqa: T201 - this script should print to stdout
-                ">>> Syncing only results arrays and statistics.\n"
+                ">>> Syncing results arrays, and statistics.\n"
                 ">>> Note that the file type argument is ignored in this mode.",
             )
-            sync_only_results_arrays_and_statistics(
+            sync_selected_files_from_local_estimates_directory(
                 directories=directories_to_sync,
                 zim_topo_llm_repository_base_path=ZIM_TOPO_LLM_REPOSITORY_BASE_PATH,
                 target_base_path=target_base_path,
                 dry_run_option=dry_run_option,
+                include_metadata_files=False,
+            )
+        case SyncingMode.RESULTS_ARRAY_AND_STATISTICS_AND_METADATA:
+            print(  # noqa: T201 - this script should print to stdout
+                ">>> Syncing results arrays, statistics, and metadata.\n"
+                ">>> Note that the file type argument is ignored in this mode.",
+            )
+            sync_selected_files_from_local_estimates_directory(
+                directories=directories_to_sync,
+                zim_topo_llm_repository_base_path=ZIM_TOPO_LLM_REPOSITORY_BASE_PATH,
+                target_base_path=target_base_path,
+                dry_run_option=dry_run_option,
+                include_metadata_files=True,
             )
         case SyncingMode.EXCLUDE_LARGE_PREDICTIONS_AND_METADATA:
             print(  # noqa: T201 - this script should print to stdout

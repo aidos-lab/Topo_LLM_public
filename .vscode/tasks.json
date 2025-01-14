@@ -17,9 +17,24 @@
                 "focus": false
             }
         },
+        // START Weights and Biases related tasks (wandb)
         {
-            "label": "rsync from HHU Hilbert to local - 'wandb' directory",
-            "command": "./topollm/scripts/hhu_hilbert/sync_data/rsync_wandb_output_dir_from_hhu_hilbert.sh",
+            "label": "rsync from HHU Hilbert to local - (LARGE) - Full 'wandb' directory",
+            "command": "./topollm/scripts/hhu_hilbert/sync_data/sync_wandb/rsync_full_wandb_output_dir_from_hhu_hilbert.sh",
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": false
+            }
+        },
+        {
+            "label": "rsync from HHU Hilbert to local - Selected 'wandb' directories",
+            "command": "./topollm/scripts/hhu_hilbert/sync_data/sync_wandb/rsync_selected_wandb_output_dirs_from_hhu_hilbert.sh",
             "type": "shell",
             "group": {
                 "kind": "build",
@@ -33,7 +48,7 @@
         },
         {
             "label": "sync wandb runs to cloud",
-            "command": "./wandb_output_dir/sync_wandb_runs.sh",
+            "command": "./wandb_output_dir/sync_wandb_runs.sh --wandb_project_dir_name 'Topo_LLM_gpt2_finetuning_from_submission_script_for_5_epochs_and_linear_lr_schedule'",
             "type": "shell",
             "group": {
                 "kind": "build",
@@ -45,6 +60,7 @@
                 "focus": false
             }
         },
+        // END Weights and Biases related tasks (wandb)
         {
             "label": "Create small version of 'data/analysis/twonn' directory",
             "detail": "Create a copy of the 'data/analysis/twonn' directory but exclude large arrays and metadata files.",
@@ -59,6 +75,21 @@
                 "panel": "new",
                 "focus": false
             }
+        },
+        {
+            "label": "rsync from local to Dropbox - 'data/analysis/twonn.only_small_files' directory",
+            "command": "./topollm/scripts/data_handling/sync_folders_script.sh ./topollm/scripts/data_handling/pairs_files/sync_small_files_data_analysis_to_dropbox.txt",
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": false
+            },
+            "problemMatcher": []
         },
         {
             "label": "rsync from HHU Hilbert to local - 'hydra_output_dir' directory",
@@ -76,8 +107,8 @@
             "problemMatcher": []
         },
         {
-            "label": "rsync from HHU Hilbert to local - (LARGE DIRECTORIES) - 'analysis/distances_and_influence_on_losses_and_local_estimates' directory",
-            "detail": "Sync from HHU Hilbert: 'analysis/distances_and_influence_on_losses_and_local_estimates'.",
+            "label": "rsync from HHU Hilbert to local - (LARGE) - 'analysis/distances_and_influence_on_losses_and_local_estimates' directory",
+            "detail": "rsync from HHU Hilbert: 'analysis/distances_and_influence_on_losses_and_local_estimates'.",
             "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/distances_and_influence_on_losses_and_local_estimates/' --file-type all",
             "type": "shell",
             "group": {
@@ -92,8 +123,8 @@
         },
         {
             "label": "rsync from HHU Hilbert to local - Small files from 'analysis/distances_and_influence_on_losses_and_local_estimates' directory",
-            "detail": "Sync from HHU Hilbert: Small files from 'analysis/distances_and_influence_on_losses_and_local_estimates'.",
-            "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/distances_and_influence_on_losses_and_local_estimates/' --syncing_mode 'exclude_large_predictions_and_metadata'",
+            "detail": "rsync from HHU Hilbert: Small files from 'analysis/distances_and_influence_on_losses_and_local_estimates'.",
+            "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/distances_and_influence_on_losses_and_local_estimates/' --syncing-mode 'exclude_large_predictions_and_metadata'",
             "type": "shell",
             "group": {
                 "kind": "build",
@@ -106,8 +137,8 @@
             }
         },
         {
-            "label": "rsync from HHU Hilbert to external drive - (LARGE DIRECTORIES) - 'analysis/distances_and_influence_on_losses_and_local_estimates' directory",
-            "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/distances_and_influence_on_losses_and_local_estimates/' --syncing_mode 'all' --file-type 'all' --sync_to_external_drive",
+            "label": "rsync from HHU Hilbert to external drive - (LARGE) - 'analysis/distances_and_influence_on_losses_and_local_estimates' directory",
+            "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/distances_and_influence_on_losses_and_local_estimates/' --syncing-mode 'all' --file-type 'all' --sync-to-external-drive",
             "type": "shell",
             "group": {
                 "kind": "build",
@@ -120,7 +151,7 @@
             }
         },
         {
-            "label": "rsync from HHU Hilbert to external drive - (LARGE DIRECTORIES) - 'analysis/prepared' and 'analysis/twonn' directories",
+            "label": "rsync from HHU Hilbert to external drive - (LARGE) - 'analysis/prepared' and 'analysis/twonn' directories",
             "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/twonn/' 'data/analysis/prepared/' --file-type all --sync_to_external_drive",
             "type": "shell",
             "group": {
@@ -134,7 +165,8 @@
             }
         },
         {
-            "label": "rsync from HHU Hilbert to local - (LARGE DIRECTORIES) - ALL file types 'analysis/twonn' directory",
+            "label": "rsync from HHU Hilbert to local - (LARGE) - ALL file types 'analysis/twonn' directory",
+            "detail": "rsync from HHU Hilbert: 'analysis/twonn'.",
             "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/twonn/' --file-type all",
             "type": "shell",
             "group": {
@@ -162,8 +194,22 @@
             }
         },
         {
-            "label": "rsync from HHU Hilbert to local - Only results and statistics from 'analysis/twonn' directory",
-            "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/twonn/' --syncing_mode 'only_results_arrays_and_statistics'",
+            "label": "rsync from HHU Hilbert to local - results_arrays, statistics from 'analysis/twonn' directory",
+            "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/twonn/' --syncing-mode 'results_arrays_and_statistics'",
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": false
+            }
+        },
+        {
+            "label": "rsync from HHU Hilbert to local - (LARGE) - results_arrays, statistics, metadata from 'analysis/twonn' directory",
+            "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/twonn/' --syncing-mode 'results_array_and_statistics_and_metadata'",
             "type": "shell",
             "group": {
                 "kind": "build",

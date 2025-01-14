@@ -1,37 +1,72 @@
 #!/bin/bash
 
+# # # # # # # # # # # # # # # # # # # # # # # # #
+# This is a general script for syncing data from HHU Hilbert server to local machine.
+#
+# You can specify the list of subfolders to sync using the --folders option.
+# You can also specify a file containing the list of subfolders to sync using the --file option.
+# # # # # # # # # # # # # # # # # # # # # # # # #
+
+# # # # # # # # # # # # # # # # # # # # # # # # #
 # Function to print usage
 usage() {
-  echo "@@@ Usage: $0 [--dry-run]"
-  exit 1
+    echo "Usage: $0 [--dry-run] [--folders <folder1 folder2 ...>] [--file <file_with_folders>]"
+    exit 1
 }
 
 # Default value for dry_run option
 DRY_RUN_FLAG=""
+SELECTED_SUBFOLDERS_LIST=()
 
+# # # # # # # # # # # # # # # # # # # # # # # # #
 # Parse command-line options
-if [[ $# -gt 1 ]]; then
-  echo "@@@ Error: Too many arguments."
-  usage
-fi
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --dry-run)
+        DRY_RUN_FLAG="--dry-run"
+        shift
+        ;;
+        --folders)
+        shift
+        while [[ $# -gt 0 && $1 != --* ]]; do
+            SELECTED_SUBFOLDERS_LIST+=("$1")
+            shift
+        done
+        ;;
+        --file)
+        shift
+        if [[ $# -gt 0 ]]; then
+            if [[ -f $1 ]]; then
+            while IFS= read -r line; do
+                SELECTED_SUBFOLDERS_LIST+=("$line")
+            done < "$1"
+            else
+            echo "@@@ Error: File $1 not found."
+            exit 1
+            fi
+            shift
+        else
+            echo "@@@ Error: Missing file argument for --file."
+            usage
+        fi
+        ;;
+        *)
+        echo "@@@ Error: Invalid option $1"
+        usage
+        ;;
+    esac
+done
 
-if [[ $# -eq 1 ]]; then
-  case "$1" in
-    --dry-run)
-      DRY_RUN_FLAG="--dry-run"
-      ;;
-    *)
-      echo "Error: Invalid option $1"
-      usage
-      ;;
-  esac
+# Ensure at least one folder is provided
+if [[ ${#SELECTED_SUBFOLDERS_LIST[@]} -eq 0 ]]; then
+    echo "@@@ Error: No folders specified."
+    usage
 fi
-
 
 # Check if TOPO_LLM_REPOSITORY_BASE_PATH is set
 if [[ -z "${TOPO_LLM_REPOSITORY_BASE_PATH}" ]]; then
-  echo "@@@ Error: TOPO_LLM_REPOSITORY_BASE_PATH is not set."
-  exit 1
+    echo "@@@ Error: TOPO_LLM_REPOSITORY_BASE_PATH is not set."
+    exit 1
 fi
 
 source "${TOPO_LLM_REPOSITORY_BASE_PATH}/.env"
@@ -40,47 +75,49 @@ source "${TOPO_LLM_REPOSITORY_BASE_PATH}/.env"
 echo ">>> TOPO_LLM_REPOSITORY_BASE_PATH=$TOPO_LLM_REPOSITORY_BASE_PATH"
 echo ">>> ZIM_TOPO_LLM_REPOSITORY_BASE_PATH=$ZIM_TOPO_LLM_REPOSITORY_BASE_PATH"
 
-# # # #
-# NOTE: 
-# This script is only syncing a selected subdirectory to the local machine.
+# Print the list of selected subfolders
+echo ">>> Selected subfolders:"
+for SELECTED_SUBFOLDER in "${SELECTED_SUBFOLDERS_LIST[@]}"; do
+    echo "<-----> $SELECTED_SUBFOLDER"
+done
 
+# ========================
 
-SELECTED_SUBFOLDERS_LIST=(
-  # "data/analysis/prepared/data-multiwoz21_split-validation_ctxt-dataset_entry_samples-3000_feat-col-ner_tags/lvl-token/add-prefix-space-True_max-len-512/model-roberta-base_task-masked_lm/"
-  # "data/analysis/twonn/data=wikitext-103-v1_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags/split=train_samples=10000_sampling=random_sampling-seed=778"
-  "data/analysis/twonn/data=wikitext-103-v1_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags/split=test_samples=10000_sampling=random_sampling-seed=778/edh-mode=masked_token_lvl=token/add-prefix-space=True_max-len=512/model=roberta-base_task=masked_lm_dr=defaults/layer=-1_agg=mean/norm=None/sampling=random_seed=42_samples=150000/desc=twonn_samples=60000_zerovec=keep_dedup=array_deduplicator_noise=do_nothing/"
-)
+SELECTED_SUBFOLDER_INDEX=0
 
 for SELECTED_SUBFOLDER in "${SELECTED_SUBFOLDERS_LIST[@]}"; do
-  echo ">>> Selected subfolder: $SELECTED_SUBFOLDER"
+    echo "--------------------------------------------------------------------------------"
+    echo ">>> Processing subfolder with index $SELECTED_SUBFOLDER_INDEX"
+    echo ">>> Selected subfolder: $SELECTED_SUBFOLDER"
 
-  SOURCE_DIR="Hilbert-Storage:${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}/$SELECTED_SUBFOLDER"
-  TARGET_DIR="${TOPO_LLM_REPOSITORY_BASE_PATH}/$SELECTED_SUBFOLDER"
+    SOURCE_DIR="Hilbert-Storage:${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}/$SELECTED_SUBFOLDER"
+    TARGET_DIR="${TOPO_LLM_REPOSITORY_BASE_PATH}/$SELECTED_SUBFOLDER"
 
-  # Create the target directory if it does not exist
-  mkdir -p "$TARGET_DIR"
+    # Create the target directory if it does not exist
+    mkdir -p "$TARGET_DIR"
 
-  # ========================
+    # ========================
 
-  echo ">>> Syncing data from HHU Hilbert server to local machine ..."
-  echo ">>> SOURCE_DIR=$SOURCE_DIR"
-  echo ">>> TARGET_DIR=$TARGET_DIR"
+    echo ">>> Syncing data from HHU Hilbert server to local machine ..."
+    echo ">>> SOURCE_DIR=$SOURCE_DIR"
+    echo ">>> TARGET_DIR=$TARGET_DIR"
 
-  # Following rsync instructions from:
-  # https://wiki.hhu.de/pages/viewpage.action?pageId=55725648
-  rsync \
-    -avz \
-    --progress \
-    $DRY_RUN_FLAG \
-    "${SOURCE_DIR}" \
-    "${TARGET_DIR}"
+    rsync \
+        -avz \
+        --progress \
+        $DRY_RUN_FLAG \
+        "${SOURCE_DIR}" \
+        "${TARGET_DIR}"
 
-  # Capture the exit code of rsync
-  RSYNC_EXIT_CODE=$?
-  if [[ ${RSYNC_EXIT_CODE} -ne 0 ]]; then
-    echo "@@@ Error: rsync failed with exit code ${RSYNC_EXIT_CODE}"
-    exit ${RSYNC_EXIT_CODE}
-  fi
+    RSYNC_EXIT_CODE=$?
+    if [[ ${RSYNC_EXIT_CODE} -ne 0 ]]; then
+        echo "@@@ Error: rsync failed with exit code ${RSYNC_EXIT_CODE}"
+        exit ${RSYNC_EXIT_CODE}
+    fi
+
+    # Increment the index
+    SELECTED_SUBFOLDER_INDEX=$((SELECTED_SUBFOLDER_INDEX + 1))
+    echo "--------------------------------------------------------------------------------"
 done
 
 echo ">>> rsync completed successfully."

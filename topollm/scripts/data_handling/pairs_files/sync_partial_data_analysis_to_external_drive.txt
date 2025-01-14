@@ -1,0 +1,2 @@
+"/Users/ruppik/git-source/Topo_LLM/data/analysis/twonn.only_small_files/" "/Volumes/ruppik_external/research_data/Topo_LLM/data/analysis/twonn.only_small_files/"
+"/Users/ruppik/git-source/Topo_LLM/data/analysis/twonn/" "/Volumes/ruppik_external/research_data/Topo_LLM/data/analysis/twonn/"

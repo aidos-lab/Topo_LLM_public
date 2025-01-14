@@ -726,16 +726,16 @@
                 // "--data-list-options",
                 // "validation_split_only",
                 //    >> Individual dataset and splits, so that you can submit them in separate tmux sessions
-                // "--data-list-options",
-                // "iclr_validation_only",
+                "--data-list-options",
+                "iclr_validation_only",
                 "--data-list-options",
                 "multiwoz21_validation_only",
-                // "--data-list-options",
-                // "reddit_validation_only",
-                // "--data-list-options",
-                // "sgd_validation_only",
-                // "--data-list-options",
-                // "wikitext_validation_only",
+                "--data-list-options",
+                "reddit_validation_only",
+                "--data-list-options",
+                "sgd_validation_only",
+                "--data-list-options",
+                "wikitext_validation_only",
                 //    >> END Data list options.
                 //    >> Model group options.
                 //    >> Note that for multiple options, you need to specify the `--model-group-options` multiple times.
@@ -743,8 +743,83 @@
                 // "roberta_base_without_modifications",
                 // "--model-group-options",
                 // "roberta_base_finetuned_for_few_epochs_old_and_new_data_single_seed_last_checkpoint",
+                // "--model-group-options",
+                // "roberta_base_finetuned_for_few_epochs_multiwoz_data_single_seed_last_checkpoint",
                 "--model-group-options",
-                "roberta_base_finetuned_for_few_epochs_multiwoz_data_single_seed_last_checkpoint",
+                "gpt2_medium_without_modifications",
+            ]
+        },
+        {
+            "name": "call_submit_jobs_for_experiments_via_tmux_submission; regular embeddings, last layer, single sample",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/scripts/submission_scripts/call_submit_jobs_scripts/call_submit_jobs_for_experiments_via_tmux_submission.py",
+            "console": "integratedTerminal",
+            "args": [
+                // >>>> BEGIN: Select the run option
+                // >>>> Use the following to dry run with all configurations
+                //
+                // "--run-option",
+                // "dry_run",
+                // "--run-only-selected-configs-option",
+                // "run_all",
+                //
+                // >>>> Use the following to dry run a random configuration
+                //
+                // "--run-option",
+                // "dry_run",
+                // "--run-only-selected-configs-option",
+                // "run_single_random",
+                //
+                // >>> Use the following to run a random configuration
+                //
+                // "--run-option",
+                // "do_submission",
+                // "--run-only-selected-configs-option",
+                // "run_single_random",
+                //
+                // >>>> Use the following to run with all configurations
+                //
+                "--run-option",
+                "do_submission",
+                "--run-only-selected-configs-option",
+                "run_all",
+                //
+                // >>>> END: Select the run option
+                "--submission-mode",
+                // "local",
+                "hpc_submission",
+                "--template-to-use-for-compute-embeddings",
+                // "DSML",
+                "RTX6000",
+                // >>>> Concrete experiment configurations
+                "--experiment-selector-options",
+                "regular_token_embeddings_last_layer_single_sample",
+                "--experiment-stage",
+                "compute_embeddings_plus_single_pipeline_run",
+                //    >> START Data list options.
+                //    >> Data list options.
+                //    >> Note that for multiple options, you need to specify the `--data-list-options` multiple times.
+                // "--data-list-options",
+                // "validation_split_only",
+                //    >> Individual dataset and splits, so that you can submit them in separate tmux sessions
+                "--data-list-options",
+                "multiwoz21_test_only",
+                "--data-list-options",
+                "multiwoz21_train_only",
+                "--data-list-options",
+                "multiwoz21_validation_only",
+                //    >> END Data list options.
+                //    >> Model group options.
+                //    >> Note that for multiple options, you need to specify the `--model-group-options` multiple times.
+                "--model-group-options",
+                "roberta_base_without_modifications",
+                // "--model-group-options",
+                // "roberta_base_finetuned_for_few_epochs_old_and_new_data_single_seed_last_checkpoint",
+                // "--model-group-options",
+                // "roberta_base_finetuned_for_few_epochs_multiwoz_data_single_seed_last_checkpoint",
+                // "--model-group-options",
+                // "gpt2_medium_without_modifications",
             ]
         },
         {
@@ -864,20 +939,27 @@
                 "--experiment-selector-options",
                 "sensitivity_analysis_different_local_estimates_filtering_number_of_samples",
                 "--experiment-stage",
-                // "compute_embeddings_plus_single_pipeline_run", // Note: You need to make sure the embedding arrays exist before you can call the skip_compute_embeddings_but_do_multiple_pipeline_runs stage
-                "skip_compute_embeddings_but_do_multiple_pipeline_runs",
+                // "compute_embeddings_plus_single_pipeline_run", // Note: You need to make sure the embedding arrays exist before you can call the skip_compute_embeddings_but_do_multiple_pipeline_runs stage.
+                // "skip_compute_embeddings_but_do_multiple_pipeline_runs", // Note: If some results are not available, this might have been caused by conflicts in writing the results from parallel data_prep steps.
+                "skip_compute_embeddings_and_skip_embeddings_data_prep", // Note: Make sure the prepared data exists before you run this stage.
                 //    >> Data list options.
                 //    >> Note that for multiple options, you need to specify the `--data-list-options` multiple times.
                 // "--data-list-options",
-                // "multiwoz_only",
+                // "multiwoz21_only",
                 // "--data-list-options",
                 // "reddit_only",
                 "--data-list-options",
-                "reddit_test_only",
+                "multiwoz21_test_only",
                 "--data-list-options",
-                "reddit_train_only",
+                "multiwoz21_train_only",
                 "--data-list-options",
-                "reddit_validation_only",
+                "multiwoz21_validation_only",
+                // "--data-list-options",
+                // "reddit_test_only",
+                // "--data-list-options",
+                // "reddit_train_only",
+                // "--data-list-options",
+                // "reddit_validation_only",
             ]
         },
         {
