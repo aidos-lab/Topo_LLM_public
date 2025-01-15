@@ -55,6 +55,8 @@ def create_scatter_plot(
     x_max: float | None = None,
     y_min: float | None = None,
     y_max: float | None = None,
+    output_pdf_width: int = 2500,
+    ouput_pdf_height: int = 1500,
     show_plot: bool = False,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
@@ -122,6 +124,8 @@ def create_scatter_plot(
     if show_plot:
         fig.show()
 
+    # # # # # # # # # # # # # #
+    # Save plots and raw data
     if output_folder is not None:
         output_folder = pathlib.Path(
             output_folder,
@@ -170,10 +174,33 @@ def create_scatter_plot(
         fig.write_image(
             file=output_file_pdf,
             format="pdf",
-            width=2500,
-            height=1500,
+            width=output_pdf_width,
+            height=ouput_pdf_height,
         )
         if verbosity >= Verbosity.NORMAL:
             logger.info(
                 msg=f"Saving plot to {output_file_pdf} DONE",  # noqa: G004 - low overhead
+            )
+
+        # Save the raw data
+        output_file_raw_data = pathlib.Path(
+            output_folder,
+            f"{plot_name}_raw_data.csv",
+        )
+        output_file_raw_data.parent.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"Saving raw data to {output_file_raw_data} ...",  # noqa: G004 - low overhead
+            )
+        df.to_csv(
+            path_or_buf=output_file_raw_data,
+            index=False,
+        )
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"Saving raw data to {output_file_raw_data} DONE",  # noqa: G004 - low overhead
             )

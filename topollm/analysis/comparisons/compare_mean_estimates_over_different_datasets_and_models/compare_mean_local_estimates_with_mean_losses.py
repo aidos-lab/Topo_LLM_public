@@ -221,6 +221,8 @@ def compare_mean_local_estimates_with_mean_losses_for_different_models(
     logger: logging.Logger = default_logger,
 ) -> None:
     """Create plots with compare mean local estimates with mean losses for different models."""
+    # # # #
+    # Common parameters for all plots
     axes_limits_choices: list[dict] = [
         {
             "x_min": None,
@@ -235,15 +237,56 @@ def compare_mean_local_estimates_with_mean_losses_for_different_models(
             "y_max": 4.0,
         },
     ]
+    x_column_name = "local_estimates_mean"
+    y_column_name = "loss_mean"
+
+    # ========================================================== #
+    # Create a common plot for all datasets together
+    # ========================================================== #
+
+    data_subsampling_full = "split=validation_samples=10000_sampling=random_sampling-seed=777"
+
+    output_folder = pathlib.Path(
+        output_root_dir,
+        "plots_for_all_datasets_together",
+        f"{data_subsampling_full=}",
+    )
+
+    # No filtering necessary in this mode
+    filtered_df = descriptive_statistics_df.copy()
+
+    for axes_limits in axes_limits_choices:
+        plot_name: str = (
+            f"mean_local_estimates_vs_mean_losses"
+            f"_{axes_limits['x_min']}_{axes_limits['x_max']}_{axes_limits['y_min']}_{axes_limits['y_max']}"
+        )
+
+        create_scatter_plot(
+            df=filtered_df,
+            output_folder=output_folder,
+            plot_name=plot_name,
+            x_column_name=x_column_name,
+            y_column_name=y_column_name,
+            color_column_name="data_full",
+            symbol_column_name="model_partial_name",
+            hover_data=filtered_df.columns.tolist(),
+            **axes_limits,
+            output_pdf_width=3000,
+            show_plot=False,
+            verbosity=verbosity,
+            logger=logger,
+        )
+
+    # TODO: Compute correlation between the mean values under comparison
+
+    # ========================================================== #
+    # Create separate plots for different datasets and splits
+    # ========================================================== #
+
     # Filter the DataFrame:
     # - We want to make separate plots for each dataset and split.
     data_full_options: list[str] = descriptive_statistics_df["data_full"].unique().tolist()
     data_subsampling_full = "split=validation_samples=10000_sampling=random_sampling-seed=777"
-
-    # TODO: Make one common plot which contains all datasets
-    # TODO: Compute correlation between the mean values under comparison
-
-    # TODO: Make separate plots for each finetuning run (with base model), but with all datasets
 
     combinations = itertools.product(
         data_full_options,
@@ -291,6 +334,7 @@ def compare_mean_local_estimates_with_mean_losses_for_different_models(
 
         output_folder = pathlib.Path(
             output_root_dir,
+            "plots_for_individual_datasets_and_splits",
             f"{data_full=}",
             f"{data_subsampling_full=}",
         )
@@ -306,8 +350,8 @@ def compare_mean_local_estimates_with_mean_losses_for_different_models(
                 df=filtered_df,
                 output_folder=output_folder,
                 plot_name=plot_name,
-                x_column_name="local_estimates_mean",
-                y_column_name="loss_mean",
+                x_column_name=x_column_name,
+                y_column_name=y_column_name,
                 color_column_name="model_checkpoint",
                 symbol_column_name="model_partial_name",
                 hover_data=filtered_df.columns.tolist(),
@@ -316,6 +360,8 @@ def compare_mean_local_estimates_with_mean_losses_for_different_models(
                 verbosity=verbosity,
                 logger=logger,
             )
+
+    # TODO: Make separate plots for each finetuning run (with base model), but with all datasets
 
 
 if __name__ == "__main__":
