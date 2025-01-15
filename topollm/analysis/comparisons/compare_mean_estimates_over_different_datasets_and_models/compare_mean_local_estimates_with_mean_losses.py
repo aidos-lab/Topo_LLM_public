@@ -25,8 +25,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Create plots to compare mean local estimates with mean losses for different models."""
+
 # TODO: This script is under development.
 
+import json
 import logging
 import pathlib
 import pprint
@@ -34,10 +37,12 @@ import pprint
 import hydra
 import omegaconf
 import pandas as pd
+from tqdm import tqdm
 
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
 from topollm.config_classes.main_config import MainConfig
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
+from topollm.data_processing.dictionary_handling import flatten_dict
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
@@ -119,6 +124,7 @@ def load_descriptive_statistics_from_folder_structure(
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> pd.DataFrame:
+    """Load descriptive statistics from the folder structure and organize them in a DataFrame."""
     if verbosity >= Verbosity.NORMAL:
         logger.info(
             msg=f"{iteration_root_dir = }",  # noqa: G004 - low overhead
@@ -126,14 +132,22 @@ def load_descriptive_statistics_from_folder_structure(
 
     # Iterate over the different dataset folders in the 'iteration_root_dir' directory
     rootdir: pathlib.Path = iteration_root_dir
-    file_list: list[pathlib.Path] = [f for f in rootdir.resolve().glob(pattern="**/*") if f.is_file()]
+    # Only match the 'descriptive_statistics_dict.json' files
+    pattern: str = "**/*.json"
+    file_path_list: list[pathlib.Path] = [
+        f
+        for f in rootdir.resolve().glob(
+            pattern=pattern,
+        )
+        if f.is_file()
+    ]
 
     if verbosity >= Verbosity.NORMAL:
         logger.info(
-            msg=f"{len(file_list) = }",  # noqa: G004 - low overhead
+            msg=f"{len(file_path_list) = }",  # noqa: G004 - low overhead
         )
         logger.info(
-            msg=f"file_list:\n{pprint.pformat(file_list)}",  # noqa: G004 - low overhead
+            msg=f"file_list:\n{pprint.pformat(object=file_path_list)}",  # noqa: G004 - low overhead
         )
 
     # Full path example:
@@ -144,15 +158,38 @@ def load_descriptive_statistics_from_folder_structure(
     # layer=-1_agg=mean/norm=None/sampling=random_seed=42_samples=150000/
     # desc=twonn_samples=60000_zerovec=keep_dedup=array_deduplicator_noise=do_nothing/
     # descriptive_statistics_dict.json
+    #
+    # Example dataset folder:
+    # data=one-year-of-tsla-on-reddit_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags
 
-    example_dataset_folder = "data=one-year-of-tsla-on-reddit_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags"
+    loaded_data_list: list[dict] = []
 
-    # TODO: Load mean estimates and losses, and parse the corresponding model and dataset names
+    for file_path in tqdm(
+        iterable=file_path_list,
+        desc="Loading data from files",
+    ):
+        with file_path.open(
+            mode="r",
+        ) as file:
+            file_data: dict = json.load(
+                fp=file,
+            )
 
-    result_df = pd.DataFrame()
+            flattened_file_data: dict = flatten_dict(
+                d=file_data,
+                separator="_",
+            )
 
-    logger.warning(
-        msg="TODO: This function is not yet implemented.",
+            # TODO: Parse the corresponding model and dataset names from the path
+            # TODO: Add the parsed information to the dictionary
+
+            loaded_data_list.append(
+                flattened_file_data,
+            )
+
+    # Convert the list of dictionaries to a DataFrame
+    result_df = pd.DataFrame(
+        data=loaded_data_list,
     )
 
     return result_df
@@ -163,7 +200,7 @@ def compare_mean_local_estimates_with_mean_losses_for_different_models(
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> None:
-    """Compare mean local estimates with mean losses for different models."""
+    """Create plots with compare mean local estimates with mean losses for different models."""
 
     # TODO: Make a scatter plot with mean estimates on the x-axis and mean losses on the y-axis
 
