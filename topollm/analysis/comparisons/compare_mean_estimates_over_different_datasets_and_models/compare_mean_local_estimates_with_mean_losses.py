@@ -29,6 +29,7 @@
 
 # TODO: This script is under development.
 
+import itertools
 import json
 import logging
 import pathlib
@@ -220,68 +221,101 @@ def compare_mean_local_estimates_with_mean_losses_for_different_models(
     logger: logging.Logger = default_logger,
 ) -> None:
     """Create plots with compare mean local estimates with mean losses for different models."""
+    axes_limits_choices: list[dict] = [
+        {
+            "x_min": None,
+            "x_max": None,
+            "y_min": None,
+            "y_max": None,
+        },
+        {
+            "x_min": 6.0,
+            "x_max": 18.5,
+            "y_min": 1.0,
+            "y_max": 4.0,
+        },
+    ]
     # Filter the DataFrame:
     # - We want to make separate plots for each dataset and split.
-
-    data_full = "data=one-year-of-tsla-on-reddit_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags"
-    # data_full = "data=wikitext-103-v1_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags"
+    data_full_options: list[str] = descriptive_statistics_df["data_full"].unique().tolist()
     data_subsampling_full = "split=validation_samples=10000_sampling=random_sampling-seed=777"
 
-    filtered_df: pd.DataFrame = descriptive_statistics_df[
-        (descriptive_statistics_df["data_full"] == data_full)
-        & (descriptive_statistics_df["data_subsampling_full"] == data_subsampling_full)
-    ]
-    if verbosity >= Verbosity.NORMAL:
-        log_dataframe_info(
-            df=filtered_df,
-            df_name="filtered_df",
-            logger=logger,
-        )
+    # TODO: Make one common plot which contains all datasets
+    # TODO: Compute correlation between the mean values under comparison
 
-    # Check that certain columns only contain a unique value
-    # This is important for consistency in the plots.
-    columns_to_check_for_uniqueness: list[str] = [
-        "data_full",
-        "data_subsampling_full",
-        "embedding_data_handler_full",
-        "local_estimates_desc_full",
-    ]
-    for column_name in columns_to_check_for_uniqueness:
-        unique_values: pd.Series = filtered_df[column_name].unique()  # type: ignore - problem with pandas typing
-        if len(unique_values) != 1:
-            msg: str = f"Column '{column_name = }' does not contain a unique value. Found: {unique_values = }"
-            raise ValueError(
-                msg,
+    # TODO: Make separate plots for each finetuning run (with base model), but with all datasets
+
+    combinations = itertools.product(
+        data_full_options,
+    )
+
+    # Note: If combinations contains only one element, the unpacked value still needs to be put into a tuple.
+    for (data_full,) in tqdm(
+        iterable=combinations,
+        desc="Iterating over different plot combinations",
+    ):
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"{data_full = }",  # noqa: G004 - low overhead
             )
 
-    output_folder = pathlib.Path(
-        output_root_dir,
-        f"{data_full=}",
-        f"{data_subsampling_full=}",
-    )
+        # Make a copy of the DataFrame so that we do not modify the original DataFrame
+        descriptive_statistics_df_copy: pd.DataFrame = descriptive_statistics_df.copy()
 
-    # - Use the 'model_checkpoint' column for the color
-    # - Use the training data description for the model as the symbol
-    create_scatter_plot(
-        df=filtered_df,
-        output_folder=output_folder,
-        x_column_name="local_estimates_mean",
-        y_column_name="loss_mean",
-        color_column_name="model_checkpoint",
-        symbol_column_name="model_partial_name",
-        hover_data=filtered_df.columns.tolist(),
-        y_min=None,  # TODO
-        y_max=None,  # TODO
-        show_plot=False,
-        verbosity=verbosity,
-        logger=logger,
-    )
+        filtered_df: pd.DataFrame = descriptive_statistics_df_copy[
+            (descriptive_statistics_df_copy["data_full"] == data_full)
+            & (descriptive_statistics_df_copy["data_subsampling_full"] == data_subsampling_full)
+        ]
+        if verbosity >= Verbosity.NORMAL:
+            log_dataframe_info(
+                df=filtered_df,
+                df_name="filtered_df",
+                logger=logger,
+            )
 
-    # TODO: Make a scatter plot with mean estimates on the x-axis and mean losses on the y-axis
+        # Check that certain columns only contain a unique value
+        # This is important for consistency in the plots.
+        columns_to_check_for_uniqueness: list[str] = [
+            "data_full",
+            "data_subsampling_full",
+            "embedding_data_handler_full",
+            "local_estimates_desc_full",
+        ]
+        for column_name in columns_to_check_for_uniqueness:
+            unique_values: pd.Series = filtered_df[column_name].unique()  # type: ignore - problem with pandas typing
+            if len(unique_values) != 1:
+                msg: str = f"Column '{column_name = }' does not contain a unique value. Found: {unique_values = }"
+                raise ValueError(
+                    msg,
+                )
 
-    logger.warning(
-        msg="TODO: This function is not yet implemented.",
-    )
+        output_folder = pathlib.Path(
+            output_root_dir,
+            f"{data_full=}",
+            f"{data_subsampling_full=}",
+        )
+
+        for axes_limits in axes_limits_choices:
+            plot_name: str = (
+                f"mean_local_estimates_vs_mean_losses"
+                f"_{axes_limits['x_min']}_{axes_limits['x_max']}_{axes_limits['y_min']}_{axes_limits['y_max']}"
+            )
+            # - Use the 'model_checkpoint' column for the color
+            # - Use the training data description for the model as the symbol
+            create_scatter_plot(
+                df=filtered_df,
+                output_folder=output_folder,
+                plot_name=plot_name,
+                x_column_name="local_estimates_mean",
+                y_column_name="loss_mean",
+                color_column_name="model_checkpoint",
+                symbol_column_name="model_partial_name",
+                hover_data=filtered_df.columns.tolist(),
+                **axes_limits,
+                show_plot=False,
+                verbosity=verbosity,
+                logger=logger,
+            )
 
 
 if __name__ == "__main__":

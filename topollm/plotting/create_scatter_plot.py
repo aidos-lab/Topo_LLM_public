@@ -45,11 +45,14 @@ def create_scatter_plot(
     df: pd.DataFrame,
     output_folder: pathlib.Path | None = None,
     *,
+    plot_name: str = "scatter_plot",
     x_column_name: str = "additional_distance_approximate_hausdorff_via_kdtree",
     y_column_name: str = "pointwise_results_np_mean",
     color_column_name: str = "local_estimates_noise_distortion",
     symbol_column_name: str | None = None,
     hover_data: list[str] | None = None,
+    x_min: float | None = None,
+    x_max: float | None = None,
     y_min: float | None = None,
     y_max: float | None = None,
     show_plot: bool = False,
@@ -101,9 +104,19 @@ def create_scatter_plot(
         },
     )
 
+    if x_min is not None and x_max is not None:
+        fig.update_xaxes(
+            range=[
+                x_min,
+                x_max,
+            ],
+        )
     if y_min is not None and y_max is not None:
         fig.update_yaxes(
-            range=[y_min, y_max],
+            range=[
+                y_min,
+                y_max,
+            ],
         )
 
     if show_plot:
@@ -121,7 +134,7 @@ def create_scatter_plot(
         # Save plot as HTML
         output_file_html = pathlib.Path(
             output_folder,
-            "scatter_plot.html",
+            f"{plot_name}.html",
         )
         output_file_html.parent.mkdir(
             parents=True,
@@ -143,7 +156,7 @@ def create_scatter_plot(
         # Save plot as PDF
         output_file_pdf = pathlib.Path(
             output_folder,
-            "scatter_plot.pdf",
+            f"{plot_name}.pdf",
         )
         output_file_html.parent.mkdir(
             parents=True,
@@ -157,8 +170,8 @@ def create_scatter_plot(
         fig.write_image(
             file=output_file_pdf,
             format="pdf",
-            width=1920,
-            height=1080,
+            width=2500,
+            height=1500,
         )
         if verbosity >= Verbosity.NORMAL:
             logger.info(
