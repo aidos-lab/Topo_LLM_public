@@ -47,6 +47,7 @@ from topollm.logging.initialize_configuration_and_log import initialize_configur
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
 from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
+from topollm.path_management.parse_path_info import parse_path_info_full
 from topollm.typing.enums import Verbosity
 
 # Logger for this file
@@ -180,11 +181,18 @@ def load_descriptive_statistics_from_folder_structure(
                 separator="_",
             )
 
-            # TODO: Parse the corresponding model and dataset names from the path
-            # TODO: Add the parsed information to the dictionary
+            path_info: dict = parse_path_info_full(
+                path=file_path,
+            )
+
+            # Combine the path information with the flattened file data
+            combined_data: dict = {
+                **path_info,
+                **flattened_file_data,
+            }
 
             loaded_data_list.append(
-                flattened_file_data,
+                combined_data,
             )
 
     # Convert the list of dictionaries to a DataFrame
@@ -201,6 +209,32 @@ def compare_mean_local_estimates_with_mean_losses_for_different_models(
     logger: logging.Logger = default_logger,
 ) -> None:
     """Create plots with compare mean local estimates with mean losses for different models."""
+    # Filter the DataFrame:
+    # - We want to make separate plots for each dataset and split.
+
+    example_data_full = "data=wikitext-103-v1_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags"
+    example_data_subsampling_full = "split=validation_samples=10000_sampling=random_sampling-seed=777"
+
+    filtered_df: pd.DataFrame = descriptive_statistics_df[
+        (descriptive_statistics_df["data_full"] == example_data_full)
+        & (descriptive_statistics_df["data_subsampling_full"] == example_data_subsampling_full)
+    ]
+
+    # Check that certain columns only contain a unique value
+    # This is important for consistency in the plots.
+    columns_to_check_for_uniqueness: list[str] = [
+        "data_full",
+        "data_subsampling_full",
+        "embedding_data_handler_full",
+        "local_estimates_desc_full",
+    ]
+    for column_name in columns_to_check_for_uniqueness:
+        unique_values: pd.Series = filtered_df[column_name].unique()  # type: ignore - problem with pandas typing
+        if len(unique_values) != 1:
+            msg: str = f"Column '{column_name = }' does not contain a unique value. Found: {unique_values = }"
+            raise ValueError(
+                msg,
+            )
 
     # TODO: Make a scatter plot with mean estimates on the x-axis and mean losses on the y-axis
 
