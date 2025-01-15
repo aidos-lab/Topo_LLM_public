@@ -40,9 +40,6 @@ import omegaconf
 import pandas as pd
 from tqdm import tqdm
 
-from topollm.analysis.investigate_distances_and_influence_on_losses_and_local_estimates.create_scatter_plot import (
-    create_scatter_plot,
-)
 from topollm.analysis.local_estimates_handling.saving.local_estimates_saving_manager import LocalEstimatesSavingManager
 from topollm.config_classes.constants import (
     HYDRA_CONFIGS_BASE_PATH,
@@ -52,6 +49,9 @@ from topollm.logging.initialize_configuration_and_log import initialize_configur
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
 from topollm.path_management.parse_path_info import parse_local_estimates_info
+from topollm.plotting.create_scatter_plot import (
+    create_scatter_plot,
+)
 from topollm.storage.saving_and_loading_functions.saving_and_loading import save_dataframe_as_csv
 from topollm.typing.enums import Verbosity
 

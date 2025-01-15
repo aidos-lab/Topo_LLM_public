@@ -1002,7 +1002,6 @@
                 "--data-subsampling-sampling-mode",
                 "take_first",
                 //    >> START Model group options.
-                // TODO: Set model group that you want to process
                 //    >> Note that for multiple options, you need to specify the `--model-group-options` multiple times.
                 // "--model-group-options",
                 // "roberta_base_without_modifications",

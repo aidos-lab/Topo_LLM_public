@@ -25,6 +25,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Create a scatter plots and save to disk."""
+
 import logging
 import pathlib
 
@@ -46,6 +48,8 @@ def create_scatter_plot(
     x_column_name: str = "additional_distance_approximate_hausdorff_via_kdtree",
     y_column_name: str = "pointwise_results_np_mean",
     color_column_name: str = "local_estimates_noise_distortion",
+    symbol_column_name: str | None = None,
+    hover_data: list[str] | None = None,
     y_min: float | None = None,
     y_max: float | None = None,
     show_plot: bool = False,
@@ -67,17 +71,21 @@ def create_scatter_plot(
             Logger instance.
 
     """
+    if hover_data is None:
+        hover_data = [
+            "experiment_dir_name",
+            "local_estimates_noise_seed",
+            "local_estimates_noise_distortion",
+        ]
+
     fig: Figure = px.scatter(
         data_frame=df,
         x=x_column_name,
         y=y_column_name,
         color=color_column_name,
         color_continuous_scale="bluered",
-        hover_data=[
-            "experiment_dir_name",
-            "local_estimates_noise_seed",
-            "local_estimates_noise_distortion",
-        ],
+        symbol=symbol_column_name,
+        hover_data=hover_data,
         title=f"{x_column_name=} vs {y_column_name=}",
         labels={
             x_column_name: x_column_name,

@@ -44,10 +44,12 @@ from topollm.config_classes.main_config import MainConfig
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.data_processing.dictionary_handling import flatten_dict
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
+from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
 from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 from topollm.path_management.parse_path_info import parse_path_info_full
+from topollm.plotting.create_scatter_plot import create_scatter_plot
 from topollm.typing.enums import Verbosity
 
 # Logger for this file
@@ -100,7 +102,14 @@ def main(
         embeddings_path_manager.analysis_dir,
         "distances_and_influence_on_losses_and_local_estimates",
         main_config.analysis.investigate_distances.get_config_description(),
-        "twonn",
+        main_config.local_estimates.method_description,  # For example: 'twonn'
+    )
+
+    output_root_dir: pathlib.Path = pathlib.Path(
+        embeddings_path_manager.saved_plots_dir_absolute_path,
+        "compare_mean_local_estimates_with_mean_losses_for_different_models",
+        main_config.analysis.investigate_distances.get_config_description(),
+        main_config.local_estimates.method_description,  # For example: 'twonn'
     )
 
     descriptive_statistics_df: pd.DataFrame = load_descriptive_statistics_from_folder_structure(
@@ -111,6 +120,7 @@ def main(
 
     compare_mean_local_estimates_with_mean_losses_for_different_models(
         descriptive_statistics_df=descriptive_statistics_df,
+        output_root_dir=output_root_dir,
         verbosity=verbosity,
         logger=logger,
     )
@@ -205,6 +215,7 @@ def load_descriptive_statistics_from_folder_structure(
 
 def compare_mean_local_estimates_with_mean_losses_for_different_models(
     descriptive_statistics_df: pd.DataFrame,
+    output_root_dir: pathlib.Path,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> None:
@@ -212,13 +223,20 @@ def compare_mean_local_estimates_with_mean_losses_for_different_models(
     # Filter the DataFrame:
     # - We want to make separate plots for each dataset and split.
 
-    example_data_full = "data=wikitext-103-v1_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags"
-    example_data_subsampling_full = "split=validation_samples=10000_sampling=random_sampling-seed=777"
+    data_full = "data=one-year-of-tsla-on-reddit_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags"
+    # data_full = "data=wikitext-103-v1_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags"
+    data_subsampling_full = "split=validation_samples=10000_sampling=random_sampling-seed=777"
 
     filtered_df: pd.DataFrame = descriptive_statistics_df[
-        (descriptive_statistics_df["data_full"] == example_data_full)
-        & (descriptive_statistics_df["data_subsampling_full"] == example_data_subsampling_full)
+        (descriptive_statistics_df["data_full"] == data_full)
+        & (descriptive_statistics_df["data_subsampling_full"] == data_subsampling_full)
     ]
+    if verbosity >= Verbosity.NORMAL:
+        log_dataframe_info(
+            df=filtered_df,
+            df_name="filtered_df",
+            logger=logger,
+        )
 
     # Check that certain columns only contain a unique value
     # This is important for consistency in the plots.
@@ -235,6 +253,29 @@ def compare_mean_local_estimates_with_mean_losses_for_different_models(
             raise ValueError(
                 msg,
             )
+
+    output_folder = pathlib.Path(
+        output_root_dir,
+        f"{data_full=}",
+        f"{data_subsampling_full=}",
+    )
+
+    # - Use the 'model_checkpoint' column for the color
+    # - Use the training data description for the model as the symbol
+    create_scatter_plot(
+        df=filtered_df,
+        output_folder=output_folder,
+        x_column_name="local_estimates_mean",
+        y_column_name="loss_mean",
+        color_column_name="model_checkpoint",
+        symbol_column_name="model_partial_name",
+        hover_data=filtered_df.columns.tolist(),
+        y_min=None,  # TODO
+        y_max=None,  # TODO
+        show_plot=False,
+        verbosity=verbosity,
+        logger=logger,
+    )
 
     # TODO: Make a scatter plot with mean estimates on the x-axis and mean losses on the y-axis
 
