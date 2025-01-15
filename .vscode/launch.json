@@ -1015,6 +1015,59 @@
             ]
         },
         {
+            "name": "call_submit_jobs_for_experiments_via_tmux_submission; sensitivity analysis multiwoz21/reddit different data subsampling number of samples",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/scripts/submission_scripts/call_submit_jobs_scripts/call_submit_jobs_for_experiments_via_tmux_submission.py",
+            "console": "integratedTerminal",
+            "args": [
+                // >>>> BEGIN: Select the run option
+                // >>>> Use the following to dry run with all configurations
+                //
+                // "--run-option",
+                // "dry_run",
+                // "--run-only-selected-configs-option",
+                // "run_all",
+                //
+                // >>>> Use the following to dry run a random configuration
+                //
+                // "--run-option",
+                // "dry_run",
+                // "--run-only-selected-configs-option",
+                // "run_single_random",
+                //
+                // >>> Use the following to run a random configuration
+                //
+                // "--run-option",
+                // "do_submission",
+                // "--run-only-selected-configs-option",
+                // "run_single_random",
+                //
+                // >>>> Use the following to run with all configurations
+                //
+                "--run-option",
+                "do_submission",
+                "--run-only-selected-configs-option",
+                "run_all",
+                //
+                // >>>> END: Select the run option
+                "--submission-mode",
+                "hpc_submission",
+                // >>>> Concrete experiment configurations
+                "--experiment-selector-options",
+                "sensitivity_analysis_multiwoz21_different_data_subsampling_number_of_samples",
+                "--experiment-selector-options",
+                "sensitivity_analysis_reddit_different_data_subsampling_number_of_samples",
+                "--experiment-stage",
+                "compute_embeddings_plus_single_pipeline_run", // Note: You need to make sure the embedding arrays exist before you can call the skip_compute_embeddings_but_do_multiple_pipeline_runs stage.
+                // "skip_compute_embeddings_but_do_multiple_pipeline_runs", // Note: If some results are not available, this might have been caused by conflicts in writing the results from parallel data_prep steps.
+                // "skip_compute_embeddings_and_skip_embeddings_data_prep", // Note: Make sure the prepared data exists before you run this stage.
+                //    >> Data list options.
+                //    >> NOTE: These experiments set the data list option themselves.
+                //    >>       Make sure that the default data list option is a single entry, otherwise this script might get called multiple times.
+            ]
+        },
+        {
             "name": "call_submit_jobs_for_experiments_via_tmux_submission; sensitivity_analysis_different_local_estimates_filtering_number_of_samples",
             "type": "debugpy",
             "request": "launch",

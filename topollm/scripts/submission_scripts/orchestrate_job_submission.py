@@ -413,7 +413,7 @@ def orchestrate_job_submission(
                 DataSubsamplingNumberOfSamplesListOption.RANGE_START_2000_STOP_18000_STEP_2000
             )
 
-            data_subsampling_sampling_seed_list_option = DataSubsamplingSamplingSeedListOption.THREE_SEEDS
+            data_subsampling_sampling_seed_list_option = DataSubsamplingSamplingSeedListOption.FIVE_SEEDS
         case ExperimentSelector.SENSITIVITY_ANALYSIS_REDDIT_DIFFERENT_DATA_SUBSAMPLING_NUMBER_OF_SAMPLES:
             # ++++ Experiment > different subsampling number of samples for reddit dataset
             #
@@ -428,7 +428,7 @@ def orchestrate_job_submission(
                 DataSubsamplingNumberOfSamplesListOption.RANGE_START_2000_STOP_24000_STEP_2000
             )
 
-            data_subsampling_sampling_seed_list_option = DataSubsamplingSamplingSeedListOption.THREE_SEEDS
+            data_subsampling_sampling_seed_list_option = DataSubsamplingSamplingSeedListOption.FIVE_SEEDS
         case ExperimentSelector.SENSITIVITY_ANALYSIS_DIFFERENT_LOCAL_ESTIMATES_FILTERING_NUMBER_OF_SAMPLES:
             # Notes:
             # - You need to set the data_list_option via the command line arguments.
