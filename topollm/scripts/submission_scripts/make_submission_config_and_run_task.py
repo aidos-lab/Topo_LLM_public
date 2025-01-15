@@ -935,6 +935,7 @@ def make_machine_config(
                 case (
                     ModelGroupOption.GPT2_MEDIUM_WITHOUT_MODIFICATIONS
                     | ModelGroupOption.GPT2_MEDIUM_FINETUNED_FOR_FEW_EPOCHS_MULTIWOZ_AND_REDDIT_AND_WIKITEXT_DATA_SINGLE_SEED_LAST_CHECKPOINT
+                    | ModelGroupOption.GPT2_MEDIUM_FINETUNED_FOR_FEW_EPOCHS_MULTIWOZ_AND_REDDIT_AND_WIKITEXT_DATA_SINGLE_SEED_CHECKPOINTS_1200_1600
                 ):
                     # For the GPT2 medium model, we need more memory since the embeddings have higher dimensionality.
                     # The embeddings data prep step failed with 32GB of memory for the GPT2 medium model.

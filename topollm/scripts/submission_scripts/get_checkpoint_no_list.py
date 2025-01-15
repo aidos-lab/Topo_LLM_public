@@ -26,6 +26,8 @@
 # limitations under the License.
 
 
+"""Get the list of checkpoint numbers to use."""
+
 from topollm.scripts.submission_scripts.types import CheckpointNoListOption
 
 
@@ -33,8 +35,10 @@ def get_checkpoint_no_list(
     checkpoint_no_list_option: CheckpointNoListOption,
     num_train_epochs: int = 5,
 ) -> list[str]:
-    """Get the list of checkpoint numbers to use."""
-    # TODO: Make this more flexible (work for other numbers of epochs)
+    """Get the list of checkpoint numbers to use.
+
+    Note: This function only works for certain values of `num_train_epochs`.
+    """
     match checkpoint_no_list_option:
         case CheckpointNoListOption.SELECTED:
             if num_train_epochs == 5:
@@ -108,6 +112,11 @@ def get_checkpoint_no_list(
         case CheckpointNoListOption.FIXED_2800:
             checkpoint_no_list = [
                 "2800",
+            ]
+        case CheckpointNoListOption.FIXED_1200_1600:
+            checkpoint_no_list = [
+                "1200",
+                "1600",
             ]
         case CheckpointNoListOption.RANGE_START_400_STOP_3200_STEP_400:
             checkpoint_no_list = [

@@ -750,7 +750,7 @@
                 // "local",
                 "hpc_submission",
                 "--template-to-use-for-compute-embeddings",
-                // "DSML",
+                // "DSML", # Note: The GPT-2-medium embedding computation does not run on the 8 GB GPUs
                 "RTX6000",
                 // >>>> Concrete experiment configurations
                 "--experiment-selector-options",
@@ -784,8 +784,10 @@
                 // "roberta_base_finetuned_for_few_epochs_multiwoz_data_single_seed_last_checkpoint",
                 //"--model-group-options",
                 // "gpt2_medium_without_modifications",
+                // "--model-group-options",
+                // "gpt2_medium_finetuned_for_few_epochs_multiwoz_and_reddit_and_wikitext_data_single_seed_last_checkpoint",
                 "--model-group-options",
-                "gpt2_medium_finetuned_for_few_epochs_multiwoz_and_reddit_and_wikitext_data_single_seed_last_checkpoint",
+                "gpt2_medium_finetuned_for_few_epochs_multiwoz_and_reddit_and_wikitext_data_single_seed_checkpoints_1200_1600",
                 //    >> END Model group options.
             ]
         },

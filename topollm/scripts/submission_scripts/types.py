@@ -77,6 +77,8 @@ class CheckpointNoListOption(StrEnum):
     # Fixed checkpoints
     FIXED_2800 = auto()
 
+    FIXED_1200_1600 = auto()
+
     RANGE_START_400_STOP_3200_STEP_400 = auto()
 
 
@@ -199,6 +201,9 @@ class ModelGroupOption(StrEnum):
     GPT2_MEDIUM_WITHOUT_MODIFICATIONS = auto()
 
     GPT2_MEDIUM_FINETUNED_FOR_FEW_EPOCHS_MULTIWOZ_AND_REDDIT_AND_WIKITEXT_DATA_SINGLE_SEED_LAST_CHECKPOINT = auto()
+    GPT2_MEDIUM_FINETUNED_FOR_FEW_EPOCHS_MULTIWOZ_AND_REDDIT_AND_WIKITEXT_DATA_SINGLE_SEED_CHECKPOINTS_1200_1600 = (
+        auto()
+    )
 
 
 class FinetuningRegimeOption(StrEnum):
