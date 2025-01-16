@@ -103,7 +103,7 @@ for SELECTED_SUBFOLDER in "${SELECTED_SUBFOLDERS_LIST[@]}"; do
     echo ">>> TARGET_DIR=$TARGET_DIR"
 
     rsync \
-        -avz \
+        -avhz \
         --progress \
         $DRY_RUN_FLAG \
         "${SOURCE_DIR}" \

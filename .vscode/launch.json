@@ -609,7 +609,7 @@
             "request": "launch",
             "program": "topollm/analysis/investigate_distances_and_influence_on_losses_and_local_estimates/run_compare_losses_and_local_estimates.py",
             "console": "integratedTerminal",
-            // TODO: Update this and run it for the fine-tuned models
+            // TODO: Re-submit this for the fine-tuned models, since the last submission process stopped in the middle
             "args": [
                 // >>>> BEGIN: Hydra options
                 "--multirun",
@@ -622,7 +622,8 @@
                 "hydra.launcher.ngpus=1",
                 "hydra.launcher.walltime=02:00:00", // For 60000 samples and one dataset and model, a forward pass takes only a few minutes on an RTX 6000
                 // >>>> END: Hydra options
-                "data=iclr_2024_submissions_train,multiwoz21_train,one-year-of-tsla-on-reddit_train,sgd_train,wikitext-103-v1_train",
+                // "data=iclr_2024_submissions_train,multiwoz21_train,one-year-of-tsla-on-reddit_train,sgd_train,wikitext-103-v1_train",
+                "data=one-year-of-tsla-on-reddit_train,sgd_train,wikitext-103-v1_train",
                 // "data.data_subsampling.sampling_mode=random",
                 "data.data_subsampling.sampling_mode=take_first",
                 "data.data_subsampling.number_of_samples=10000",

@@ -52,7 +52,7 @@ if [[ -d "${USER_REPOSITORY_DIR_TRIPPY}" ]]; then
 fi
 
 echo "Copying data from ${DATA_DIR_TRIPPY} to ${USER_REPOSITORY_DIR_TRIPPY} ..."
-cp -r \
+cp \
   "${DATA_DIR_TRIPPY}" \
   "${USER_REPOSITORY_DIR_TRIPPY}"
 echo "Copying data from ${DATA_DIR_TRIPPY} to ${USER_REPOSITORY_DIR_TRIPPY} DONE"

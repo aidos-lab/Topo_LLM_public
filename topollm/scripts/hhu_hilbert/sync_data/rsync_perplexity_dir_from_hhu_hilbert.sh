@@ -10,7 +10,7 @@ REPOSITORY_SUBDIRECTORY_PATH="data/embeddings/perplexity/"
 
 # Following rsync instructions from:
 # https://wiki.hhu.de/pages/viewpage.action?pageId=55725648
-rsync -avz --progress \
+rsync -avhz --progress \
     "Hilbert-Storage:${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}/${REPOSITORY_SUBDIRECTORY_PATH}" \
     "${TOPO_LLM_REPOSITORY_BASE_PATH}/${REPOSITORY_SUBDIRECTORY_PATH}"
 

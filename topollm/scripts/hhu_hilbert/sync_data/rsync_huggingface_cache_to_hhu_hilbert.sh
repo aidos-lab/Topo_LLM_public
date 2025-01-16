@@ -8,7 +8,7 @@ echo "TOPO_LLM_REPOSITORY_BASE_PATH=$TOPO_LLM_REPOSITORY_BASE_PATH"
 source "${TOPO_LLM_REPOSITORY_BASE_PATH}/.env"
 
 
-rsync -avz --delete --progress \
+rsync -avhz --delete --progress \
     "${LOCAL_HUGGINGFACE_CACHE_PATH}" \
     "${ZIM_USERNAME}@Hilbert-Storage:/gpfs/project/${ZIM_USERNAME}/models/"
 

@@ -36,7 +36,7 @@ for remote_dir in $wandb_dirs; do
     else
         echo ">>> Syncing ${ZIM_USERNAME}@Hilbert-Storage:${remote_dir} to ${local_dir}"
         # Actual sync command
-        rsync -avz --progress \
+        rsync -avhz --progress \
             --exclude-from="$RSYNC_GIT_REPOSITORY_EXCLUDES_FILE" \
             "${ZIM_USERNAME}@Hilbert-Storage:${remote_dir}/" \
             "${local_dir}/"

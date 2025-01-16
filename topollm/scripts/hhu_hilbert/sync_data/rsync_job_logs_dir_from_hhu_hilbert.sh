@@ -9,7 +9,7 @@ echo "ZIM_TOPO_LLM_REPOSITORY_BASE_PATH=$ZIM_TOPO_LLM_REPOSITORY_BASE_PATH"
 
 # Following rsync instructions from:
 # https://wiki.hhu.de/pages/viewpage.action?pageId=55725648
-rsync -avz --progress \
+rsync -avhz --progress \
     "Hilbert-Storage:/gpfs/project/${ZIM_USERNAME}/job_logs/" \
     "${TOPO_LLM_REPOSITORY_BASE_PATH}/hilbert_job_logs/"
 
