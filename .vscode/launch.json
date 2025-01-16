@@ -920,7 +920,7 @@
             ]
         },
         {
-            "name": "call_submit_jobs_for_experiments_via_tmux_submission; NOTE: expensive computation; masked embeddings, last layer, for random subsample of data validation splits",
+            "name": "call_submit_jobs_for_experiments_via_tmux_submission; NOTE: expensive computation; masked embeddings, last layer, for random subsample of selected data splits",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/scripts/submission_scripts/call_submit_jobs_scripts/call_submit_jobs_for_experiments_via_tmux_submission.py",
@@ -971,6 +971,7 @@
                 //    >> Note that for multiple options, you need to specify the `--data-list-options` multiple times.
                 // "--data-list-options",
                 // "validation_split_only",
+                //
                 // "--data-list-options",
                 // "iclr_validation_only",
                 // "--data-list-options",
@@ -979,12 +980,23 @@
                 // "reddit_validation_only",
                 // "--data-list-options",
                 // "sgd_validation_only",
+                // "--data-list-options",
+                // "wikitext_validation_only",
+                //
                 "--data-list-options",
-                "wikitext_validation_only",
+                "iclr_test_only",
+                "--data-list-options",
+                "multiwoz21_test_only",
+                "--data-list-options",
+                "reddit_test_only",
+                "--data-list-options",
+                "sgd_test_only",
+                "--data-list-options",
+                "wikitext_test_only",
                 //    >> START Model group options.
                 //    >> Note that for multiple options, you need to specify the `--model-group-options` multiple times.
-                // "--model-group-options",
-                // "roberta_base_without_modifications",
+                "--model-group-options",
+                "roberta_base_without_modifications",
                 // "--model-group-options",
                 // "roberta_base_finetuned_for_few_epochs_old_and_new_data_single_seed_last_checkpoint",
                 // "--model-group-options",
