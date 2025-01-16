@@ -58,7 +58,7 @@ def create_scatter_plot(
     y_min: float | None = None,
     y_max: float | None = None,
     output_pdf_width: int = 2500,
-    ouput_pdf_height: int = 1500,
+    output_pdf_height: int = 1500,
     show_plot: bool = False,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
@@ -104,10 +104,18 @@ def create_scatter_plot(
     )
     fig.update_traces(
         marker={
-            "size": 10,
+            # > Note: Do not set the size here, otherwise we cannot use it as a variable in the scatter plot.
+            # > Example: "size": 10,
             "opacity": 0.7,
         },
     )
+    if size_column_name is None:
+        # Set the default size of the markers
+        fig.update_traces(
+            marker={
+                "size": 10,
+            },
+        )
 
     if x_min is not None and x_max is not None:
         fig.update_xaxes(
@@ -140,6 +148,20 @@ def create_scatter_plot(
                 "color": "black",
             },
         )
+
+    # Decrease the size of the legend
+    fig.update_layout(
+        legend={
+            "itemsizing": "constant",
+            "itemwidth": 50,
+        },
+    )
+    # Fixing problem with the overlapping colorbar and legend:
+    # https://stackoverflow.com/questions/61827165/plotly-how-to-handle-overlapping-colorbar-and-legends
+    # This also reduces the horizontal space of the legend since it is placed below the plot.
+    fig.update_layout(
+        legend_orientation="h",
+    )
 
     if show_plot:
         fig.show()
@@ -195,7 +217,7 @@ def create_scatter_plot(
             file=output_file_pdf,
             format="pdf",
             width=output_pdf_width,
-            height=ouput_pdf_height,
+            height=output_pdf_height,
         )
         if verbosity >= Verbosity.NORMAL:
             logger.info(

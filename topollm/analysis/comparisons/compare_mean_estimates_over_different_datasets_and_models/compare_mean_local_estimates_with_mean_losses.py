@@ -229,12 +229,16 @@ def compare_mean_local_estimates_with_mean_losses_for_different_models(
             "x_max": None,
             "y_min": None,
             "y_max": None,
+            "output_pdf_width": 2_000,
+            "output_pdf_height": 2_000,
         },
         {
             "x_min": 5.5,
             "x_max": 18.5,
             "y_min": 1.0,
             "y_max": 4.5,
+            "output_pdf_width": 2_000,
+            "output_pdf_height": 2_000,
         },
     ]
     x_column_name = "local_estimates_mean"
@@ -271,7 +275,7 @@ def compare_mean_local_estimates_with_mean_losses_for_different_models(
     # For this to work, we need to create a mapped column that contains the point size.
     size_mapping_dict: dict = {
         "split=train_samples=10000_sampling=take_first": 5,
-        "split=validation_samples=10000_sampling=random_sampling-seed=777": 20,
+        "split=validation_samples=10000_sampling=random_sampling-seed=777": 10,
     }
     filtered_df["size_column"] = filtered_df["data_subsampling_full"].map(arg=size_mapping_dict)
 
@@ -294,7 +298,6 @@ def compare_mean_local_estimates_with_mean_losses_for_different_models(
             size_column_name="size_column",
             hover_data=filtered_df.columns.tolist(),
             **axes_limits,
-            output_pdf_width=3000,
             show_plot=False,
             verbosity=verbosity,
             logger=logger,
@@ -353,7 +356,6 @@ def compare_mean_local_estimates_with_mean_losses_for_different_models(
                 symbol_column_name="model_partial_name",
                 hover_data=filtered_df.columns.tolist(),
                 **axes_limits,
-                output_pdf_width=3000,
                 show_plot=False,
                 verbosity=verbosity,
                 logger=logger,
@@ -460,7 +462,77 @@ def compare_mean_local_estimates_with_mean_losses_for_different_models(
     # - all datasets together
     # ========================================================== #
 
-    # TODO: Make separate plots for each finetuning run (with base model), but with all datasets
+    combinations = itertools.product(
+        data_subsampling_full_options,
+        model_partial_name_options,
+    )
+
+    # Note: If combinations contains only one element, the unpacked value still needs to be put into a tuple.
+    for (
+        data_subsampling_full,
+        model_partial_name,
+    ) in tqdm(
+        iterable=combinations,
+        desc="Iterating over different plot combinations",
+    ):
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"{data_subsampling_full = }",  # noqa: G004 - low overhead
+            )
+            logger.info(
+                msg=f"{model_partial_name = }",  # noqa: G004 - low overhead
+            )
+
+        output_folder = pathlib.Path(
+            output_root_dir,
+            "plots_for_individual_splits_and_all_datasets_and_individual_models",
+            f"{data_subsampling_full=}",
+            f"{model_partial_name=}",
+        )
+        subtitle_text: str = f"{data_subsampling_full=}, {model_partial_name=}"
+
+        # Make a copy of the DataFrame so that we do not modify the original DataFrame
+        descriptive_statistics_df_copy: pd.DataFrame = descriptive_statistics_df.copy()
+
+        # Filter the DataFrame:
+        # - We want to make separate plots for each dataset and split.
+        filtered_df: pd.DataFrame = descriptive_statistics_df_copy[
+            (descriptive_statistics_df_copy["data_subsampling_full"] == data_subsampling_full)
+            & (
+                (descriptive_statistics_df_copy["model_partial_name"] == model_partial_name)
+                | (descriptive_statistics_df_copy["model_partial_name"] == base_model_model_partial_name)
+            )
+        ]
+        if verbosity >= Verbosity.NORMAL:
+            log_dataframe_info(
+                df=filtered_df,
+                df_name="filtered_df",
+                logger=logger,
+            )
+
+        for axes_limits in axes_limits_choices:
+            plot_name: str = (
+                f"{x_column_name}_vs_{y_column_name}"
+                f"_{axes_limits['x_min']}_{axes_limits['x_max']}"
+                f"_{axes_limits['y_min']}_{axes_limits['y_max']}"
+            )
+            # - Use the 'model_checkpoint' column for the color
+            # - Use the training data description for the model as the symbol
+            create_scatter_plot(
+                df=filtered_df,
+                output_folder=output_folder,
+                plot_name=plot_name,
+                subtitle_text=subtitle_text,
+                x_column_name=x_column_name,
+                y_column_name=y_column_name,
+                color_column_name="model_checkpoint",
+                symbol_column_name="data_full",
+                hover_data=filtered_df.columns.tolist(),
+                **axes_limits,
+                show_plot=False,
+                verbosity=verbosity,
+                logger=logger,
+            )
 
 
 if __name__ == "__main__":
