@@ -243,17 +243,68 @@ def compare_mean_local_estimates_with_mean_losses_for_different_models(
     data_full_options: list[str] = descriptive_statistics_df["data_full"].unique().tolist()
     data_subsampling_full_options: list[str] = descriptive_statistics_df["data_subsampling_full"].unique().tolist()
     # > Example: data_subsampling_full = "split=validation_samples=10000_sampling=random_sampling-seed=777"
+    model_partial_name_options: list[str] = descriptive_statistics_df["model_partial_name"].unique().tolist()
+
+    # The identifier of the base model.
+    # This value will be used to filter the DataFrame for the correlation analysis and for the model checkpoint analysis.
+    base_model_model_partial_name = "model=roberta-base"
 
     # ========================================================== #
-    # Create a common plot for all datasets and splits together
+    # Create a common plot for
+    # - all datasets
+    # - all splits
+    # - all models together
     # ========================================================== #
 
-    # TODO
+    descriptive_statistics_df_copy: pd.DataFrame = descriptive_statistics_df.copy()
+
+    # No filtering in this case
+    filtered_df: pd.DataFrame = descriptive_statistics_df_copy
+
+    output_folder = pathlib.Path(
+        output_root_dir,
+        "plots_for_all_splits_and_all_datasets_and_all_models",
+    )
+    subtitle_text: str = "all_splits_and_all_datasets_and_all_models"
+
+    # We use the point size to indicate the subsampling.
+    # For this to work, we need to create a mapped column that contains the point size.
+    size_mapping_dict: dict = {
+        "split=train_samples=10000_sampling=take_first": 5,
+        "split=validation_samples=10000_sampling=random_sampling-seed=777": 20,
+    }
+    filtered_df["size_column"] = filtered_df["data_subsampling_full"].map(arg=size_mapping_dict)
+
+    for axes_limits in axes_limits_choices:
+        plot_name: str = (
+            f"{x_column_name}_vs_{y_column_name}"
+            f"_{axes_limits['x_min']}_{axes_limits['x_max']}"
+            f"_{axes_limits['y_min']}_{axes_limits['y_max']}"
+        )
+
+        create_scatter_plot(
+            df=filtered_df,
+            output_folder=output_folder,
+            plot_name=plot_name,
+            subtitle_text=subtitle_text,
+            x_column_name=x_column_name,
+            y_column_name=y_column_name,
+            color_column_name="data_full",
+            symbol_column_name="model_partial_name",
+            size_column_name="size_column",
+            hover_data=filtered_df.columns.tolist(),
+            **axes_limits,
+            output_pdf_width=3000,
+            show_plot=False,
+            verbosity=verbosity,
+            logger=logger,
+        )
 
     # ========================================================== #
     # Create separate plots for:
-    # - a given split
-    # - but all datasets together
+    # - individual splits
+    # - all datasets together
+    # - all models together
     # ========================================================== #
 
     combinations = itertools.product(
@@ -272,7 +323,7 @@ def compare_mean_local_estimates_with_mean_losses_for_different_models(
 
         output_folder = pathlib.Path(
             output_root_dir,
-            "plots_for_individual_splits_all_datasets",
+            "plots_for_individual_splits_and_all_datasets_and_all_models",
             f"{data_subsampling_full=}",
         )
         subtitle_text: str = f"{data_subsampling_full=}"
@@ -286,8 +337,9 @@ def compare_mean_local_estimates_with_mean_losses_for_different_models(
 
         for axes_limits in axes_limits_choices:
             plot_name: str = (
-                f"mean_local_estimates_vs_mean_losses"
-                f"_{axes_limits['x_min']}_{axes_limits['x_max']}_{axes_limits['y_min']}_{axes_limits['y_max']}"
+                f"{x_column_name}_vs_{y_column_name}"
+                f"_{axes_limits['x_min']}_{axes_limits['x_max']}"
+                f"_{axes_limits['y_min']}_{axes_limits['y_max']}"
             )
 
             create_scatter_plot(
@@ -311,8 +363,9 @@ def compare_mean_local_estimates_with_mean_losses_for_different_models(
 
     # ========================================================== #
     # Create separate plots for:
-    # - different datasets and
     # - different splits
+    # - different datasets
+    # - all models together
     # ========================================================== #
 
     combinations = itertools.product(
@@ -338,7 +391,7 @@ def compare_mean_local_estimates_with_mean_losses_for_different_models(
 
         output_folder = pathlib.Path(
             output_root_dir,
-            "plots_for_individual_datasets_and_individual_splits",
+            "plots_for_individual_splits_and_individual_datasets_and_all_models",
             f"{data_full=}",
             f"{data_subsampling_full=}",
         )
@@ -378,8 +431,9 @@ def compare_mean_local_estimates_with_mean_losses_for_different_models(
 
         for axes_limits in axes_limits_choices:
             plot_name: str = (
-                f"mean_local_estimates_vs_mean_losses"
-                f"_{axes_limits['x_min']}_{axes_limits['x_max']}_{axes_limits['y_min']}_{axes_limits['y_max']}"
+                f"{x_column_name}_vs_{y_column_name}"
+                f"_{axes_limits['x_min']}_{axes_limits['x_max']}"
+                f"_{axes_limits['y_min']}_{axes_limits['y_max']}"
             )
             # - Use the 'model_checkpoint' column for the color
             # - Use the training data description for the model as the symbol
@@ -398,6 +452,13 @@ def compare_mean_local_estimates_with_mean_losses_for_different_models(
                 verbosity=verbosity,
                 logger=logger,
             )
+
+    # ========================================================== #
+    # Create separate plots for:
+    # - different splits
+    # - a single model finetuning (plus base model)
+    # - all datasets together
+    # ========================================================== #
 
     # TODO: Make separate plots for each finetuning run (with base model), but with all datasets
 

@@ -51,6 +51,7 @@ def create_scatter_plot(
     y_column_name: str = "pointwise_results_np_mean",
     color_column_name: str = "local_estimates_noise_distortion",
     symbol_column_name: str | None = None,
+    size_column_name: str | None = None,
     hover_data: list[str] | None = None,
     x_min: float | None = None,
     x_max: float | None = None,
@@ -91,6 +92,7 @@ def create_scatter_plot(
         color=color_column_name,
         color_continuous_scale="bluered",
         symbol=symbol_column_name,
+        size=size_column_name,
         hover_data=hover_data,
         title=f"{x_column_name=} vs {y_column_name=}",
         labels={
