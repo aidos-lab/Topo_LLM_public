@@ -46,6 +46,7 @@ def create_scatter_plot(
     output_folder: pathlib.Path | None = None,
     *,
     plot_name: str = "scatter_plot",
+    subtitle_text: str | None = None,
     x_column_name: str = "additional_distance_approximate_hausdorff_via_kdtree",
     y_column_name: str = "pointwise_results_np_mean",
     color_column_name: str = "local_estimates_noise_distortion",
@@ -119,6 +120,23 @@ def create_scatter_plot(
                 y_min,
                 y_max,
             ],
+        )
+
+    if subtitle_text is not None:
+        # Add subtitle
+        fig.add_annotation(
+            xref="paper",
+            yref="paper",
+            x=0.5,
+            y=1.05,
+            xanchor="center",
+            yanchor="bottom",
+            text=subtitle_text,
+            showarrow=False,
+            font={
+                "size": 12,
+                "color": "black",
+            },
         )
 
     if show_plot:

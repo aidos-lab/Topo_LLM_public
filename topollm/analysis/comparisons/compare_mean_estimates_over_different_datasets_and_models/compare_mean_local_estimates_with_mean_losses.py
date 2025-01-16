@@ -231,69 +231,100 @@ def compare_mean_local_estimates_with_mean_losses_for_different_models(
             "y_max": None,
         },
         {
-            "x_min": 6.0,
+            "x_min": 5.5,
             "x_max": 18.5,
             "y_min": 1.0,
-            "y_max": 4.0,
+            "y_max": 4.5,
         },
     ]
     x_column_name = "local_estimates_mean"
     y_column_name = "loss_mean"
 
+    data_full_options: list[str] = descriptive_statistics_df["data_full"].unique().tolist()
+    data_subsampling_full_options: list[str] = descriptive_statistics_df["data_subsampling_full"].unique().tolist()
+    # > Example: data_subsampling_full = "split=validation_samples=10000_sampling=random_sampling-seed=777"
+
     # ========================================================== #
-    # Create a common plot for all datasets together
+    # Create a common plot for all datasets and splits together
     # ========================================================== #
 
-    data_subsampling_full = "split=validation_samples=10000_sampling=random_sampling-seed=777"
+    # TODO
 
-    output_folder = pathlib.Path(
-        output_root_dir,
-        "plots_for_all_datasets_together",
-        f"{data_subsampling_full=}",
+    # ========================================================== #
+    # Create separate plots for:
+    # - a given split
+    # - but all datasets together
+    # ========================================================== #
+
+    combinations = itertools.product(
+        data_subsampling_full_options,
     )
 
-    # No filtering necessary in this mode
-    filtered_df = descriptive_statistics_df.copy()
+    # Note: If combinations contains only one element, the unpacked value still needs to be put into a tuple.
+    for (data_subsampling_full,) in tqdm(
+        iterable=combinations,
+        desc="Iterating over different plot combinations",
+    ):
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"{data_subsampling_full = }",  # noqa: G004 - low overhead
+            )
 
-    for axes_limits in axes_limits_choices:
-        plot_name: str = (
-            f"mean_local_estimates_vs_mean_losses"
-            f"_{axes_limits['x_min']}_{axes_limits['x_max']}_{axes_limits['y_min']}_{axes_limits['y_max']}"
+        output_folder = pathlib.Path(
+            output_root_dir,
+            "plots_for_individual_splits_all_datasets",
+            f"{data_subsampling_full=}",
         )
+        subtitle_text: str = f"{data_subsampling_full=}"
 
-        create_scatter_plot(
-            df=filtered_df,
-            output_folder=output_folder,
-            plot_name=plot_name,
-            x_column_name=x_column_name,
-            y_column_name=y_column_name,
-            color_column_name="data_full",
-            symbol_column_name="model_partial_name",
-            hover_data=filtered_df.columns.tolist(),
-            **axes_limits,
-            output_pdf_width=3000,
-            show_plot=False,
-            verbosity=verbosity,
-            logger=logger,
-        )
+        # Only filter by the subsampling
+        descriptive_statistics_df_copy: pd.DataFrame = descriptive_statistics_df.copy()
+
+        filtered_df: pd.DataFrame = descriptive_statistics_df_copy[
+            (descriptive_statistics_df_copy["data_subsampling_full"] == data_subsampling_full)
+        ]
+
+        for axes_limits in axes_limits_choices:
+            plot_name: str = (
+                f"mean_local_estimates_vs_mean_losses"
+                f"_{axes_limits['x_min']}_{axes_limits['x_max']}_{axes_limits['y_min']}_{axes_limits['y_max']}"
+            )
+
+            create_scatter_plot(
+                df=filtered_df,
+                output_folder=output_folder,
+                plot_name=plot_name,
+                subtitle_text=subtitle_text,
+                x_column_name=x_column_name,
+                y_column_name=y_column_name,
+                color_column_name="data_full",
+                symbol_column_name="model_partial_name",
+                hover_data=filtered_df.columns.tolist(),
+                **axes_limits,
+                output_pdf_width=3000,
+                show_plot=False,
+                verbosity=verbosity,
+                logger=logger,
+            )
 
     # TODO: Compute correlation between the mean values under comparison
 
     # ========================================================== #
-    # Create separate plots for different datasets and splits
+    # Create separate plots for:
+    # - different datasets and
+    # - different splits
     # ========================================================== #
-
-    # Filter the DataFrame:
-    # - We want to make separate plots for each dataset and split.
-    data_full_options: list[str] = descriptive_statistics_df["data_full"].unique().tolist()
-    data_subsampling_full = "split=validation_samples=10000_sampling=random_sampling-seed=777"
 
     combinations = itertools.product(
         data_full_options,
+        data_subsampling_full_options,
     )
 
     # Note: If combinations contains only one element, the unpacked value still needs to be put into a tuple.
-    for (data_full,) in tqdm(
+    for (
+        data_full,
+        data_subsampling_full,
+    ) in tqdm(
         iterable=combinations,
         desc="Iterating over different plot combinations",
     ):
@@ -301,10 +332,23 @@ def compare_mean_local_estimates_with_mean_losses_for_different_models(
             logger.info(
                 msg=f"{data_full = }",  # noqa: G004 - low overhead
             )
+            logger.info(
+                msg=f"{data_subsampling_full = }",  # noqa: G004 - low overhead
+            )
+
+        output_folder = pathlib.Path(
+            output_root_dir,
+            "plots_for_individual_datasets_and_individual_splits",
+            f"{data_full=}",
+            f"{data_subsampling_full=}",
+        )
+        subtitle_text: str = f"{data_full=}, {data_subsampling_full=}"
 
         # Make a copy of the DataFrame so that we do not modify the original DataFrame
         descriptive_statistics_df_copy: pd.DataFrame = descriptive_statistics_df.copy()
 
+        # Filter the DataFrame:
+        # - We want to make separate plots for each dataset and split.
         filtered_df: pd.DataFrame = descriptive_statistics_df_copy[
             (descriptive_statistics_df_copy["data_full"] == data_full)
             & (descriptive_statistics_df_copy["data_subsampling_full"] == data_subsampling_full)
@@ -332,13 +376,6 @@ def compare_mean_local_estimates_with_mean_losses_for_different_models(
                     msg,
                 )
 
-        output_folder = pathlib.Path(
-            output_root_dir,
-            "plots_for_individual_datasets_and_splits",
-            f"{data_full=}",
-            f"{data_subsampling_full=}",
-        )
-
         for axes_limits in axes_limits_choices:
             plot_name: str = (
                 f"mean_local_estimates_vs_mean_losses"
@@ -350,6 +387,7 @@ def compare_mean_local_estimates_with_mean_losses_for_different_models(
                 df=filtered_df,
                 output_folder=output_folder,
                 plot_name=plot_name,
+                subtitle_text=subtitle_text,
                 x_column_name=x_column_name,
                 y_column_name=y_column_name,
                 color_column_name="model_checkpoint",

@@ -336,6 +336,11 @@ def orchestrate_job_submission(
             finetuning_regime_option = FinetuningRegimeOption.FEW_EPOCHS
             language_model_seed_list_option = SeedListOption.FIXED_SEED_1234
             checkpoint_no_list_option = CheckpointNoListOption.FIXED_1200_1600
+        case ModelGroupOption.GPT2_MEDIUM_FINETUNED_FOR_FEW_EPOCHS_WIKITEXT_DATA_SINGLE_SEED_CHECKPOINTS_1200_1600:
+            language_model_list_option = LanguageModelListOption.FINETUNED_ON_WIKITEXT_DATA_FEW_EPOCHS_FROM_GPT2_MEDIUM
+            finetuning_regime_option = FinetuningRegimeOption.FEW_EPOCHS
+            language_model_seed_list_option = SeedListOption.FIXED_SEED_1234
+            checkpoint_no_list_option = CheckpointNoListOption.FIXED_1200_1600
         case _:
             msg: str = f"Unknown {model_group_option = }"
             raise ValueError(
@@ -591,6 +596,9 @@ def orchestrate_job_submission(
                 ]
             elif language_model_list_option in [
                 LanguageModelListOption.GPT2_MEDIUM,
+                LanguageModelListOption.FINETUNED_ON_OLD_AND_NEW_DATA_FEW_EPOCHS_FROM_GPT2_MEDIUM,
+                LanguageModelListOption.FINETUNED_ON_MULTIWOZ_DATA_FEW_EPOCHS_FROM_GPT2_MEDIUM,
+                LanguageModelListOption.FINETUNED_ON_WIKITEXT_DATA_FEW_EPOCHS_FROM_GPT2_MEDIUM,
                 LanguageModelListOption.FINETUNED_ON_MULTIWOZ_AND_REDDIT_AND_WIKITEXT_DATA_FEW_EPOCHS_FROM_GPT2_MEDIUM,
             ]:
                 # Use every second layer for models with gpt2-medium architecture
