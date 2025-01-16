@@ -62,9 +62,11 @@ class ExperimentSelector(StrEnum):
     REGULAR_TOKEN_EMBEDDINGS = auto()
     MASKED_TOKEN_EMBEDDINGS = auto()
 
+    # >>> Embedding computation
     REGULAR_TOKEN_EMBEDDINGS_MULTIPLE_LAYERS_SINGLE_SAMPLE = auto()
     REGULAR_TOKEN_EMBEDDINGS_LAST_LAYER_SINGLE_SAMPLE = auto()
     MASKED_TOKEN_EMBEDDINGS_LAST_LAYER_SINGLE_SAMPLE = auto()
+    MASKED_TOKEN_EMBEDDINGS_LAST_LAYER_TWO_DATA_SUBSAMPLING_SAMPLING_SEEDS = auto()
 
 
 class CheckpointNoListOption(StrEnum):
@@ -148,6 +150,7 @@ class DataSubsamplingSamplingSeedListOption(StrEnum):
     NONE = auto()
     DEFAULT = auto()
     FIXED_777 = auto()
+    FIXED_778_779 = auto()
     TWO_SEEDS = auto()
     THREE_SEEDS = auto()
     FIVE_SEEDS = auto()

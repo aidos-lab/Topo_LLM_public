@@ -647,6 +647,19 @@ def orchestrate_job_submission(
             ]
 
             embedding_data_handler_mode = EmbeddingDataHandlerMode.MASKED_TOKEN
+        case ExperimentSelector.MASKED_TOKEN_EMBEDDINGS_LAST_LAYER_TWO_DATA_SUBSAMPLING_SAMPLING_SEEDS:
+            # Notes:
+            # - You need to set the data_list_option via the command line arguments.
+            # - Do not set the checkpoint_no_list_option here, since we want to take it from the model group option.
+
+            data_subsampling_number_of_samples_list_option = DataSubsamplingNumberOfSamplesListOption.FIXED_10000
+            data_subsampling_sampling_seed_list_option = DataSubsamplingSamplingSeedListOption.FIXED_778_779
+
+            layer_indices_list = [
+                "[-1]",
+            ]
+
+            embedding_data_handler_mode = EmbeddingDataHandlerMode.MASKED_TOKEN
         # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
         # NOTE: You can add more experiment configurations here.
         case _:

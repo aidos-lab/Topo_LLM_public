@@ -354,7 +354,7 @@ def retrieve_data_subsampling_sampling_seed_list(
             data_subsampling_sampling_seed_list = [
                 "777",
             ]
-        case DataSubsamplingSamplingSeedListOption.TWO_SEEDS:
+        case DataSubsamplingSamplingSeedListOption.TWO_SEEDS | DataSubsamplingSamplingSeedListOption.FIXED_778_779:
             data_subsampling_sampling_seed_list = [
                 "778",
                 "779",
