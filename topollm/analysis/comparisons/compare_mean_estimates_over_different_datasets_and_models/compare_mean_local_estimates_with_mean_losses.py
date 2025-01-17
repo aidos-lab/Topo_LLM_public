@@ -278,6 +278,10 @@ def compare_mean_local_estimates_with_mean_losses_for_different_models(
         "split=validation_samples=10000_sampling=random_sampling-seed=777": 10,
     }
     filtered_df["size_column"] = filtered_df["data_subsampling_full"].map(arg=size_mapping_dict)
+    # Fill NaN values with a default value
+    filtered_df["size_column"] = filtered_df["size_column"].fillna(
+        value=3,
+    )
 
     for axes_limits in axes_limits_choices:
         plot_name: str = (
@@ -354,6 +358,7 @@ def compare_mean_local_estimates_with_mean_losses_for_different_models(
                 y_column_name=y_column_name,
                 color_column_name="data_full",
                 symbol_column_name="model_partial_name",
+                size_column_name=None,
                 hover_data=filtered_df.columns.tolist(),
                 **axes_limits,
                 show_plot=False,
@@ -448,6 +453,7 @@ def compare_mean_local_estimates_with_mean_losses_for_different_models(
                 y_column_name=y_column_name,
                 color_column_name="model_checkpoint",
                 symbol_column_name="model_partial_name",
+                size_column_name=None,
                 hover_data=filtered_df.columns.tolist(),
                 **axes_limits,
                 show_plot=False,
@@ -527,6 +533,7 @@ def compare_mean_local_estimates_with_mean_losses_for_different_models(
                 y_column_name=y_column_name,
                 color_column_name="model_checkpoint",
                 symbol_column_name="data_full",
+                size_column_name=None,
                 hover_data=filtered_df.columns.tolist(),
                 **axes_limits,
                 show_plot=False,
