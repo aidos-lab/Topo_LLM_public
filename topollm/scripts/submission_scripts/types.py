@@ -62,9 +62,11 @@ class ExperimentSelector(StrEnum):
     REGULAR_TOKEN_EMBEDDINGS = auto()
     MASKED_TOKEN_EMBEDDINGS = auto()
 
+    # >>> Embedding computation
     REGULAR_TOKEN_EMBEDDINGS_MULTIPLE_LAYERS_SINGLE_SAMPLE = auto()
     REGULAR_TOKEN_EMBEDDINGS_LAST_LAYER_SINGLE_SAMPLE = auto()
     MASKED_TOKEN_EMBEDDINGS_LAST_LAYER_SINGLE_SAMPLE = auto()
+    MASKED_TOKEN_EMBEDDINGS_LAST_LAYER_TWO_DATA_SUBSAMPLING_SAMPLING_SEEDS = auto()
 
 
 class CheckpointNoListOption(StrEnum):
@@ -76,6 +78,8 @@ class CheckpointNoListOption(StrEnum):
 
     # Fixed checkpoints
     FIXED_2800 = auto()
+
+    FIXED_1200_1600 = auto()
 
     RANGE_START_400_STOP_3200_STEP_400 = auto()
 
@@ -146,6 +150,7 @@ class DataSubsamplingSamplingSeedListOption(StrEnum):
     NONE = auto()
     DEFAULT = auto()
     FIXED_777 = auto()
+    FIXED_778_779 = auto()
     TWO_SEEDS = auto()
     THREE_SEEDS = auto()
     FIVE_SEEDS = auto()
@@ -183,7 +188,7 @@ class FinetuningDatasetsListOption(StrEnum):
 class ModelGroupOption(StrEnum):
     """Options for specifying the model and finetuning regime."""
 
-    # # # #
+    # # # # # # # # # # # #
     # RoBERTa-base models
     ROBERTA_BASE_WITHOUT_MODIFICATIONS = auto()
 
@@ -193,10 +198,16 @@ class ModelGroupOption(StrEnum):
 
     ROBERTA_BASE_FINETUNED_FOR_MANY_EPOCHS = auto()
 
-    # # # #
+    # # # # # # # # # # # #
     # GPT-2 models
 
     GPT2_MEDIUM_WITHOUT_MODIFICATIONS = auto()
+
+    GPT2_MEDIUM_FINETUNED_FOR_FEW_EPOCHS_MULTIWOZ_AND_REDDIT_AND_WIKITEXT_DATA_SINGLE_SEED_LAST_CHECKPOINT = auto()
+    GPT2_MEDIUM_FINETUNED_FOR_FEW_EPOCHS_WIKITEXT_DATA_SINGLE_SEED_CHECKPOINTS_1200_1600 = auto()
+    GPT2_MEDIUM_FINETUNED_FOR_FEW_EPOCHS_MULTIWOZ_AND_REDDIT_AND_WIKITEXT_DATA_SINGLE_SEED_CHECKPOINTS_1200_1600 = (
+        auto()
+    )
 
 
 class FinetuningRegimeOption(StrEnum):
@@ -234,6 +245,11 @@ class LanguageModelListOption(StrEnum):
     # # # #
     # GPT-2 models
     GPT2_MEDIUM = auto()
+
+    FINETUNED_ON_OLD_AND_NEW_DATA_FEW_EPOCHS_FROM_GPT2_MEDIUM = auto()
+    FINETUNED_ON_MULTIWOZ_DATA_FEW_EPOCHS_FROM_GPT2_MEDIUM = auto()
+    FINETUNED_ON_WIKITEXT_DATA_FEW_EPOCHS_FROM_GPT2_MEDIUM = auto()
+    FINETUNED_ON_MULTIWOZ_AND_REDDIT_AND_WIKITEXT_DATA_FEW_EPOCHS_FROM_GPT2_MEDIUM = auto()
 
     # # # #
     # Other models

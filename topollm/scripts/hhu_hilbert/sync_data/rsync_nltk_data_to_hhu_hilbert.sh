@@ -9,7 +9,7 @@ source "${TOPO_LLM_REPOSITORY_BASE_PATH}/.env"
 
 LOCAL_NLTK_DATA_PATH="$HOME/nltk_data/"
 
-rsync -avz --delete --progress \
+rsync -avhz --delete --progress \
     "${LOCAL_NLTK_DATA_PATH}" \
     "${ZIM_USERNAME}@Hilbert-Storage:/home/${ZIM_USERNAME}/nltk_data/"
 

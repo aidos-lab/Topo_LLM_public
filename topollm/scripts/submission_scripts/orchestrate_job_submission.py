@@ -275,6 +275,8 @@ def orchestrate_job_submission(
     # Note:
     # - For the finetuning task, the finetuning_regime_option might get overwritten at a later stage.
     match model_group_option:
+        # # # # # # # # # # # #
+        # RoBERTa-base models
         case ModelGroupOption.ROBERTA_BASE_WITHOUT_MODIFICATIONS:
             ####################################
             ### With POS tags for base model ###
@@ -309,11 +311,36 @@ def orchestrate_job_submission(
             finetuning_regime_option = FinetuningRegimeOption.MANY_EPOCHS_WITH_OVERFITTING_RISK
             language_model_seed_list_option = SeedListOption.FIXED_SEED_1234
             checkpoint_no_list_option = CheckpointNoListOption.ONLY_BEGINNING_AND_MIDDLE_AND_END
+        # # # # # # # # # # # #
+        # GPT-2 models
+        #
+        # Notes:
+        # - Remember to add new model in the case distinctions in the `make_machine_config` function,
+        #   if they require different memory sizes.
         case ModelGroupOption.GPT2_MEDIUM_WITHOUT_MODIFICATIONS:
             language_model_list_option = LanguageModelListOption.GPT2_MEDIUM
             finetuning_regime_option = FinetuningRegimeOption.FEW_EPOCHS  # Ignored for the base model
             language_model_seed_list_option = SeedListOption.DO_NOT_SET
             checkpoint_no_list_option = CheckpointNoListOption.SELECTED  # Ignored for the base model
+        case ModelGroupOption.GPT2_MEDIUM_FINETUNED_FOR_FEW_EPOCHS_MULTIWOZ_AND_REDDIT_AND_WIKITEXT_DATA_SINGLE_SEED_LAST_CHECKPOINT:
+            language_model_list_option = (
+                LanguageModelListOption.FINETUNED_ON_MULTIWOZ_AND_REDDIT_AND_WIKITEXT_DATA_FEW_EPOCHS_FROM_GPT2_MEDIUM
+            )
+            finetuning_regime_option = FinetuningRegimeOption.FEW_EPOCHS
+            language_model_seed_list_option = SeedListOption.FIXED_SEED_1234
+            checkpoint_no_list_option = CheckpointNoListOption.FIXED_2800
+        case ModelGroupOption.GPT2_MEDIUM_FINETUNED_FOR_FEW_EPOCHS_MULTIWOZ_AND_REDDIT_AND_WIKITEXT_DATA_SINGLE_SEED_CHECKPOINTS_1200_1600:
+            language_model_list_option = (
+                LanguageModelListOption.FINETUNED_ON_MULTIWOZ_AND_REDDIT_AND_WIKITEXT_DATA_FEW_EPOCHS_FROM_GPT2_MEDIUM
+            )
+            finetuning_regime_option = FinetuningRegimeOption.FEW_EPOCHS
+            language_model_seed_list_option = SeedListOption.FIXED_SEED_1234
+            checkpoint_no_list_option = CheckpointNoListOption.FIXED_1200_1600
+        case ModelGroupOption.GPT2_MEDIUM_FINETUNED_FOR_FEW_EPOCHS_WIKITEXT_DATA_SINGLE_SEED_CHECKPOINTS_1200_1600:
+            language_model_list_option = LanguageModelListOption.FINETUNED_ON_WIKITEXT_DATA_FEW_EPOCHS_FROM_GPT2_MEDIUM
+            finetuning_regime_option = FinetuningRegimeOption.FEW_EPOCHS
+            language_model_seed_list_option = SeedListOption.FIXED_SEED_1234
+            checkpoint_no_list_option = CheckpointNoListOption.FIXED_1200_1600
         case _:
             msg: str = f"Unknown {model_group_option = }"
             raise ValueError(
@@ -398,7 +425,7 @@ def orchestrate_job_submission(
                 DataSubsamplingNumberOfSamplesListOption.RANGE_START_2000_STOP_18000_STEP_2000
             )
 
-            data_subsampling_sampling_seed_list_option = DataSubsamplingSamplingSeedListOption.THREE_SEEDS
+            data_subsampling_sampling_seed_list_option = DataSubsamplingSamplingSeedListOption.FIVE_SEEDS
         case ExperimentSelector.SENSITIVITY_ANALYSIS_REDDIT_DIFFERENT_DATA_SUBSAMPLING_NUMBER_OF_SAMPLES:
             # ++++ Experiment > different subsampling number of samples for reddit dataset
             #
@@ -413,7 +440,7 @@ def orchestrate_job_submission(
                 DataSubsamplingNumberOfSamplesListOption.RANGE_START_2000_STOP_24000_STEP_2000
             )
 
-            data_subsampling_sampling_seed_list_option = DataSubsamplingSamplingSeedListOption.THREE_SEEDS
+            data_subsampling_sampling_seed_list_option = DataSubsamplingSamplingSeedListOption.FIVE_SEEDS
         case ExperimentSelector.SENSITIVITY_ANALYSIS_DIFFERENT_LOCAL_ESTIMATES_FILTERING_NUMBER_OF_SAMPLES:
             # Notes:
             # - You need to set the data_list_option via the command line arguments.
@@ -569,6 +596,10 @@ def orchestrate_job_submission(
                 ]
             elif language_model_list_option in [
                 LanguageModelListOption.GPT2_MEDIUM,
+                LanguageModelListOption.FINETUNED_ON_OLD_AND_NEW_DATA_FEW_EPOCHS_FROM_GPT2_MEDIUM,
+                LanguageModelListOption.FINETUNED_ON_MULTIWOZ_DATA_FEW_EPOCHS_FROM_GPT2_MEDIUM,
+                LanguageModelListOption.FINETUNED_ON_WIKITEXT_DATA_FEW_EPOCHS_FROM_GPT2_MEDIUM,
+                LanguageModelListOption.FINETUNED_ON_MULTIWOZ_AND_REDDIT_AND_WIKITEXT_DATA_FEW_EPOCHS_FROM_GPT2_MEDIUM,
             ]:
                 # Use every second layer for models with gpt2-medium architecture
                 layer_indices_list = [
@@ -610,6 +641,19 @@ def orchestrate_job_submission(
 
             data_subsampling_number_of_samples_list_option = DataSubsamplingNumberOfSamplesListOption.FIXED_10000
             data_subsampling_sampling_seed_list_option = DataSubsamplingSamplingSeedListOption.FIXED_777
+
+            layer_indices_list = [
+                "[-1]",
+            ]
+
+            embedding_data_handler_mode = EmbeddingDataHandlerMode.MASKED_TOKEN
+        case ExperimentSelector.MASKED_TOKEN_EMBEDDINGS_LAST_LAYER_TWO_DATA_SUBSAMPLING_SAMPLING_SEEDS:
+            # Notes:
+            # - You need to set the data_list_option via the command line arguments.
+            # - Do not set the checkpoint_no_list_option here, since we want to take it from the model group option.
+
+            data_subsampling_number_of_samples_list_option = DataSubsamplingNumberOfSamplesListOption.FIXED_10000
+            data_subsampling_sampling_seed_list_option = DataSubsamplingSamplingSeedListOption.FIXED_778_779
 
             layer_indices_list = [
                 "[-1]",

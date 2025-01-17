@@ -241,7 +241,7 @@ def execute_single_directory_sync(
 
     rsync_command = [
         "rsync",
-        "-zarv",
+        "-zahrv",
         "--progress",
         dry_run_option,
         *include_and_exclude_pattern,

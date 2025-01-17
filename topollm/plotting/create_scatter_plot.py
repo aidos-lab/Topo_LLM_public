@@ -25,6 +25,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Create a scatter plots and save to disk."""
+
 import logging
 import pathlib
 
@@ -43,11 +45,20 @@ def create_scatter_plot(
     df: pd.DataFrame,
     output_folder: pathlib.Path | None = None,
     *,
+    plot_name: str = "scatter_plot",
+    subtitle_text: str | None = None,
     x_column_name: str = "additional_distance_approximate_hausdorff_via_kdtree",
     y_column_name: str = "pointwise_results_np_mean",
     color_column_name: str = "local_estimates_noise_distortion",
+    symbol_column_name: str | None = None,
+    size_column_name: str | None = None,
+    hover_data: list[str] | None = None,
+    x_min: float | None = None,
+    x_max: float | None = None,
     y_min: float | None = None,
     y_max: float | None = None,
+    output_pdf_width: int = 2500,
+    output_pdf_height: int = 1500,
     show_plot: bool = False,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
@@ -67,17 +78,22 @@ def create_scatter_plot(
             Logger instance.
 
     """
+    if hover_data is None:
+        hover_data = [
+            "experiment_dir_name",
+            "local_estimates_noise_seed",
+            "local_estimates_noise_distortion",
+        ]
+
     fig: Figure = px.scatter(
         data_frame=df,
         x=x_column_name,
         y=y_column_name,
         color=color_column_name,
         color_continuous_scale="bluered",
-        hover_data=[
-            "experiment_dir_name",
-            "local_estimates_noise_seed",
-            "local_estimates_noise_distortion",
-        ],
+        symbol=symbol_column_name,
+        size=size_column_name,
+        hover_data=hover_data,
         title=f"{x_column_name=} vs {y_column_name=}",
         labels={
             x_column_name: x_column_name,
@@ -88,19 +104,70 @@ def create_scatter_plot(
     )
     fig.update_traces(
         marker={
-            "size": 10,
+            # > Note: Do not set the size here, otherwise we cannot use it as a variable in the scatter plot.
+            # > Example: "size": 10,
             "opacity": 0.7,
         },
     )
+    if size_column_name is None:
+        # Set the default size of the markers
+        fig.update_traces(
+            marker={
+                "size": 10,
+            },
+        )
 
+    if x_min is not None and x_max is not None:
+        fig.update_xaxes(
+            range=[
+                x_min,
+                x_max,
+            ],
+        )
     if y_min is not None and y_max is not None:
         fig.update_yaxes(
-            range=[y_min, y_max],
+            range=[
+                y_min,
+                y_max,
+            ],
         )
+
+    if subtitle_text is not None:
+        # Add subtitle
+        fig.add_annotation(
+            xref="paper",
+            yref="paper",
+            x=0.5,
+            y=1.05,
+            xanchor="center",
+            yanchor="bottom",
+            text=subtitle_text,
+            showarrow=False,
+            font={
+                "size": 12,
+                "color": "black",
+            },
+        )
+
+    # Decrease the size of the legend
+    fig.update_layout(
+        legend={
+            "itemsizing": "constant",
+            "itemwidth": 50,
+        },
+    )
+    # Fixing problem with the overlapping colorbar and legend:
+    # https://stackoverflow.com/questions/61827165/plotly-how-to-handle-overlapping-colorbar-and-legends
+    # This also reduces the horizontal space of the legend since it is placed below the plot.
+    fig.update_layout(
+        legend_orientation="h",
+    )
 
     if show_plot:
         fig.show()
 
+    # # # # # # # # # # # # # #
+    # Save plots and raw data
     if output_folder is not None:
         output_folder = pathlib.Path(
             output_folder,
@@ -113,7 +180,7 @@ def create_scatter_plot(
         # Save plot as HTML
         output_file_html = pathlib.Path(
             output_folder,
-            "scatter_plot.html",
+            f"{plot_name}.html",
         )
         output_file_html.parent.mkdir(
             parents=True,
@@ -135,7 +202,7 @@ def create_scatter_plot(
         # Save plot as PDF
         output_file_pdf = pathlib.Path(
             output_folder,
-            "scatter_plot.pdf",
+            f"{plot_name}.pdf",
         )
         output_file_html.parent.mkdir(
             parents=True,
@@ -149,10 +216,33 @@ def create_scatter_plot(
         fig.write_image(
             file=output_file_pdf,
             format="pdf",
-            width=1920,
-            height=1080,
+            width=output_pdf_width,
+            height=output_pdf_height,
         )
         if verbosity >= Verbosity.NORMAL:
             logger.info(
                 msg=f"Saving plot to {output_file_pdf} DONE",  # noqa: G004 - low overhead
+            )
+
+        # Save the raw data
+        output_file_raw_data = pathlib.Path(
+            output_folder,
+            f"{plot_name}_raw_data.csv",
+        )
+        output_file_raw_data.parent.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"Saving raw data to {output_file_raw_data} ...",  # noqa: G004 - low overhead
+            )
+        df.to_csv(
+            path_or_buf=output_file_raw_data,
+            index=False,
+        )
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"Saving raw data to {output_file_raw_data} DONE",  # noqa: G004 - low overhead
             )

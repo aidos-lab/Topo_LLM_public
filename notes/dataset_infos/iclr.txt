@@ -1,0 +1,105 @@
+[2025-01-15 13:43:07,374][    INFO][__main__] Using DatasetFilterBasic as dataset filter. (dataset_filter_basic.py:65)
+[2025-01-15 13:43:07,374][    INFO][__main__] data_filtering_config:
+{'remove_empty_sequences': True,
+ 'remove_sequences_with_starting_segment_in_this_blocklist': []} (dataset_filter_basic.py:68)
+[2025-01-15 13:43:07,374][    INFO][__main__] Filtering based on data in column_name = 'text' (dataset_filter_basic.py:71)
+[2025-01-15 13:43:07,375][    INFO][__main__] Using dataset_filter.__class__.__name__ = 'DatasetFilterBasic' as dataset filter. (factory.py:63)
+[2025-01-15 13:43:07,375][    INFO][__main__] Using dataset_splitter.__class__.__name__ = 'DatasetSplitterDoNothing' as dataset splitter. (factory.py:73)
+[2025-01-15 13:43:07,375][    INFO][__main__] Using take first dataset subsampling via DatasetSubsamplerTakeFirst. (factory.py:50)
+[2025-01-15 13:43:07,375][    INFO][__main__] Using dataset_subsampler.__class__.__name__ = 'DatasetSubsamplerTakeFirst' as dataset subsampler. (factory.py:83)
+[2025-01-15 13:43:07,553][    INFO][__main__] dataset_dict:
+DatasetDict({
+    train: Dataset({
+        features: ['title', 'abstract', 'text'],
+        num_rows: 5764
+    })
+    validation: Dataset({
+        features: ['title', 'abstract', 'text'],
+        num_rows: 721
+    })
+    test: Dataset({
+        features: ['title', 'abstract', 'text'],
+        num_rows: 720
+    })
+}) (dataset_preparer_huggingface.py:103)
+[2025-01-15 13:43:07,553][    INFO][__main__] dataset_dict:
+DatasetDict({
+    train: Dataset({
+        features: ['title', 'abstract', 'text'],
+        num_rows: 5764
+    })
+    validation: Dataset({
+        features: ['title', 'abstract', 'text'],
+        num_rows: 721
+    })
+    test: Dataset({
+        features: ['title', 'abstract', 'text'],
+        num_rows: 720
+    })
+}) (dataset_filter_basic.py:81)
+[2025-01-15 13:43:07,553][    INFO][__main__] Removing empty sequences based on self.column_name = 'text'. (dataset_filter_basic.py:92)
+[2025-01-15 13:43:07,603][    INFO][__main__] Logging information of dataset_dict_filtered after potentially removing empty sequences (dataset_filter_basic.py:107)
+[2025-01-15 13:43:07,603][    INFO][__main__] dataset_dict_filtered:
+DatasetDict({
+    train: Dataset({
+        features: ['title', 'abstract', 'text'],
+        num_rows: 5764
+    })
+    validation: Dataset({
+        features: ['title', 'abstract', 'text'],
+        num_rows: 721
+    })
+    test: Dataset({
+        features: ['title', 'abstract', 'text'],
+        num_rows: 720
+    })
+}) (dataset_filter_basic.py:110)
+[2025-01-15 13:43:07,603][    INFO][__main__] Logging information of dataset_dict_filtered at the end of filtering. (dataset_filter_basic.py:148)
+[2025-01-15 13:43:07,603][    INFO][__main__] dataset_dict_filtered:
+DatasetDict({
+    train: Dataset({
+        features: ['title', 'abstract', 'text'],
+        num_rows: 5764
+    })
+    validation: Dataset({
+        features: ['title', 'abstract', 'text'],
+        num_rows: 721
+    })
+    test: Dataset({
+        features: ['title', 'abstract', 'text'],
+        num_rows: 720
+    })
+}) (dataset_filter_basic.py:151)
+[2025-01-15 13:43:07,603][    INFO][topollm.data_handling.dataset_preparer.dataset_preparer_huggingface] dataset_dict:
+DatasetDict({
+    train: Dataset({
+        features: ['title', 'abstract', 'text'],
+        num_rows: 5764
+    })
+    validation: Dataset({
+        features: ['title', 'abstract', 'text'],
+        num_rows: 721
+    })
+    test: Dataset({
+        features: ['title', 'abstract', 'text'],
+        num_rows: 720
+    })
+}) (dataset_preparer_huggingface.py:124)
+[2025-01-15 13:43:07,603][    INFO][topollm.data_handling.dataset_preparer.dataset_preparer_huggingface] Applying dataset splitter ... (dataset_preparer_huggingface.py:128)
+[2025-01-15 13:43:07,603][    INFO][__main__] Returning unchanged dataset_dict. (dataset_splitter_do_nothing.py:59)
+[2025-01-15 13:43:07,603][    INFO][topollm.data_handling.dataset_preparer.dataset_preparer_huggingface] Applying dataset splitter DONE. (dataset_preparer_huggingface.py:137)
+[2025-01-15 13:43:07,603][    INFO][topollm.data_handling.dataset_preparer.dataset_preparer_huggingface] new_dataset_dict:
+DatasetDict({
+    train: Dataset({
+        features: ['title', 'abstract', 'text'],
+        num_rows: 5764
+    })
+    validation: Dataset({
+        features: ['title', 'abstract', 'text'],
+        num_rows: 721
+    })
+    test: Dataset({
+        features: ['title', 'abstract', 'text'],
+        num_rows: 720
+    })
+}) (dataset_preparer_huggingface.py:140)

@@ -8,7 +8,7 @@ echo "TOPO_LLM_REPOSITORY_BASE_PATH=$TOPO_LLM_REPOSITORY_BASE_PATH"
 source "${TOPO_LLM_REPOSITORY_BASE_PATH}/.env"
 
 
-rsync -aPe ssh \
+rsync -ahPe ssh \
     --exclude-from="$RSYNC_GIT_REPOSITORY_EXCLUDES_FILE" \
     "${TOPO_LLM_REPOSITORY_BASE_PATH}/" \
     "${ZIM_USERNAME}@Hilbert-Storage:/gpfs/project/${ZIM_USERNAME}/git-source/Topo_LLM/"

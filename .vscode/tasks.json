@@ -47,7 +47,7 @@
             }
         },
         {
-            "label": "sync wandb runs to cloud",
+            "label": "sync selected wandb runs to cloud",
             "command": "./wandb_output_dir/sync_wandb_runs.sh --wandb_project_dir_name 'Topo_LLM_gpt2_finetuning_from_submission_script_for_5_epochs_and_linear_lr_schedule'",
             "type": "shell",
             "group": {

@@ -552,7 +552,7 @@
             ]
         },
         {
-            "name": "run_compare_losses_and_local_estimates.py; on HHU Hilbert; for multiple datasets and models; without comparison (i.e., only computing the losses on the base data)",
+            "name": "run_compare_losses_and_local_estimates.py; on HHU Hilbert; for validation or test splits of datasets (random sampling) and models; without comparison (i.e., only computing the losses on the base data)",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/analysis/investigate_distances_and_influence_on_losses_and_local_estimates/run_compare_losses_and_local_estimates.py",
@@ -570,18 +570,19 @@
                 "hydra.launcher.walltime=02:00:00", // For 60000 samples and one dataset and model, a forward pass takes only a few minutes on an RTX 6000
                 // >>>> END: Hydra options
                 // "data=multiwoz21_validation",
-                "data=iclr_2024_submissions_validation,multiwoz21_validation,one-year-of-tsla-on-reddit_validation,sgd_validation,wikitext-103-v1_validation",
+                // "data=iclr_2024_submissions_validation,multiwoz21_validation,one-year-of-tsla-on-reddit_validation,sgd_validation,wikitext-103-v1_validation",
+                "data=iclr_2024_submissions_test,multiwoz21_test,one-year-of-tsla-on-reddit_test,sgd_test,wikitext-103-v1_test",
                 "data.data_subsampling.sampling_mode=random",
                 "data.data_subsampling.number_of_samples=10000",
                 "data.data_subsampling.sampling_seed=777",
                 "+data.dataset_type=huggingface_dataset_named_entity",
                 "tokenizer.add_prefix_space=True",
-                // Note: We have not computed the masked token embeddings for the ICLR-finetuned models yet, so we will skip the loss computation for now.
-                // Note: You need to have the masked embeddings precomputed for the given checkpoints before you can call this loss computation.
-                // "language_model=roberta-base",
+                // > Note: You need to have the masked embeddings precomputed for the given checkpoints before you can call this loss computation.
+                // "language_model=roberta-base", // Note: Do not set checkpoint_no for the base model
+                // > Note: Set checkpoint_no for the fine-tuned models
                 // "language_model=roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
-                "language_model=roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,roberta-base-masked_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,roberta-base-masked_lm-defaults_wikitext-103-v1-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
-                // "language_model=roberta-base,roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,roberta-base-masked_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,roberta-base-masked_lm-defaults_wikitext-103-v1-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+                // "language_model=roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,roberta-base-masked_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,roberta-base-masked_lm-defaults_wikitext-103-v1-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+                "language_model=roberta-base,roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,roberta-base-masked_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,roberta-base-masked_lm-defaults_wikitext-103-v1-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
                 // "language_model=roberta-base-masked_lm-defaults_iclr_2024_submissions-rm-empty-True-do_nothing-ner_tags_train-5000-take_first-111_standard-None_5e-05-linear-0.01-5",
                 "++language_model.checkpoint_no=400,800,1200,1600,2000,2400,2800",
                 // "++language_model.checkpoint_no=2800",
@@ -602,6 +603,156 @@
                 "analysis.investigate_distances.array_truncation_size=60000", // The value '60000' potentially takes a long time to run, and this might run out of memory on the 16GB MacBook Pro M1
                 // >>>> Set this feature flag to avoid the comparison
                 "feature_flags.comparison.do_comparison_of_local_estimates=False",
+            ]
+        },
+        {
+            "name": "run_compare_losses_and_local_estimates.py; on HHU Hilbert; for different subsampling seeds of validation splits of datasets (random sampling) and models; without comparison (i.e., only computing the losses on the base data)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/analysis/investigate_distances_and_influence_on_losses_and_local_estimates/run_compare_losses_and_local_estimates.py",
+            "console": "integratedTerminal",
+            "args": [
+                // >>>> BEGIN: Hydra options
+                "--multirun",
+                "hydra/sweeper=basic",
+                "hydra/launcher=hpc_submission",
+                "hydra.launcher.queue=CUDA",
+                "hydra.launcher.template=RTX6000",
+                "hydra.launcher.memory=32",
+                "hydra.launcher.ncpus=4",
+                "hydra.launcher.ngpus=1",
+                "hydra.launcher.walltime=02:00:00", // For 60000 samples and one dataset and model, a forward pass takes only a few minutes on an RTX 6000
+                // >>>> END: Hydra options
+                // "data=multiwoz21_validation",
+                "data=iclr_2024_submissions_validation,multiwoz21_validation,one-year-of-tsla-on-reddit_validation,sgd_validation,wikitext-103-v1_validation",
+                "data.data_subsampling.sampling_mode=random",
+                "data.data_subsampling.number_of_samples=10000",
+                "data.data_subsampling.sampling_seed=778,779", // <-- Different choices of data_subsampling.sampling_seed here
+                "+data.dataset_type=huggingface_dataset_named_entity",
+                "tokenizer.add_prefix_space=True",
+                // > Note: You need to have the masked embeddings precomputed for the given checkpoints before you can call this loss computation.
+                // "language_model=roberta-base", // Note: Do not set checkpoint_no for the base model
+                //
+                // > Note: Remember to set checkpoint_no for the fine-tuned models!
+                //
+                // "language_model=roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+                "language_model=roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,roberta-base-masked_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,roberta-base-masked_lm-defaults_wikitext-103-v1-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+                "++language_model.checkpoint_no=400,800,1200,1600,2000,2400,2800",
+                //
+                // "language_model=roberta-base,roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,roberta-base-masked_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,roberta-base-masked_lm-defaults_wikitext-103-v1-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+                // "++language_model.checkpoint_no=400,800,1200,1600,2000,2400,2800",
+                //
+                // "language_model=roberta-base-masked_lm-defaults_iclr_2024_submissions-rm-empty-True-do_nothing-ner_tags_train-5000-take_first-111_standard-None_5e-05-linear-0.01-5",
+                // "++language_model.checkpoint_no=400,800,1200,1600,2000,2400,2800",
+                // "++language_model.checkpoint_no=2800",
+                //
+                "embeddings.embedding_data_handler.mode=masked_token",
+                "embeddings.embedding_extraction.layer_indices=[-1]",
+                "embeddings_data_prep.sampling.num_samples=150000",
+                "embeddings_data_prep.sampling.sampling_mode=random",
+                "embeddings_data_prep.sampling.seed=42",
+                "local_estimates.pointwise.n_neighbors_mode=absolute_size",
+                "local_estimates.filtering.deduplication_mode=array_deduplicator",
+                "local_estimates.filtering.num_samples=60000",
+                "local_estimates.pointwise.absolute_n_neighbors=128",
+                // >>>> Since we are only interested in the base data, we do not need to set the comparison data
+                // "analysis.investigate_distances.array_truncation_size=500", // The value '500' can be used for quick testing
+                // "analysis.investigate_distances.array_truncation_size=5000",
+                // "analysis.investigate_distances.array_truncation_size=20000",
+                // Note: "analysis.investigate_distances.array_truncation_size=30000" runs out of memory on the 16GB MacBook Pro M1
+                "analysis.investigate_distances.array_truncation_size=60000", // The value '60000' potentially takes a long time to run, and this might run out of memory on the 16GB MacBook Pro M1
+                // >>>> Set this feature flag to avoid the comparison
+                "feature_flags.comparison.do_comparison_of_local_estimates=False",
+            ]
+        },
+        {
+            "name": "run_compare_losses_and_local_estimates.py; on HHU Hilbert; for multiple train datasets (take first sampling) and models; without comparison (i.e., only computing the losses on the base data)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/analysis/investigate_distances_and_influence_on_losses_and_local_estimates/run_compare_losses_and_local_estimates.py",
+            "console": "integratedTerminal",
+            "args": [
+                // >>>> BEGIN: Hydra options
+                "--multirun",
+                "hydra/sweeper=basic",
+                "hydra/launcher=hpc_submission",
+                "hydra.launcher.queue=CUDA",
+                "hydra.launcher.template=RTX6000",
+                "hydra.launcher.memory=32",
+                "hydra.launcher.ncpus=4",
+                "hydra.launcher.ngpus=1",
+                "hydra.launcher.walltime=02:00:00", // For 60000 samples and one dataset and model, a forward pass takes only a few minutes on an RTX 6000
+                // >>>> END: Hydra options
+                // "data=iclr_2024_submissions_train,multiwoz21_train,one-year-of-tsla-on-reddit_train,sgd_train,wikitext-103-v1_train",
+                "data=one-year-of-tsla-on-reddit_train,sgd_train,wikitext-103-v1_train",
+                // "data.data_subsampling.sampling_mode=random",
+                "data.data_subsampling.sampling_mode=take_first",
+                "data.data_subsampling.number_of_samples=10000",
+                // Note: No sampling seed for take_first sampling: "data.data_subsampling.sampling_seed=777",
+                "+data.dataset_type=huggingface_dataset_named_entity",
+                "tokenizer.add_prefix_space=True",
+                // Note: You need to have the masked embeddings precomputed for the given checkpoints before you can call this loss computation.
+                // "language_model=roberta-base", // Note: Do not set checkpoint_no for the base model
+                // "language_model=roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+                "language_model=roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,roberta-base-masked_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,roberta-base-masked_lm-defaults_wikitext-103-v1-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+                // "language_model=roberta-base,roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,roberta-base-masked_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,roberta-base-masked_lm-defaults_wikitext-103-v1-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+                // "language_model=roberta-base-masked_lm-defaults_iclr_2024_submissions-rm-empty-True-do_nothing-ner_tags_train-5000-take_first-111_standard-None_5e-05-linear-0.01-5",
+                // "++language_model.checkpoint_no=2800",
+                "++language_model.checkpoint_no=400,800,1200,1600,2000,2400,2800",
+                "embeddings.embedding_data_handler.mode=masked_token",
+                "embeddings.embedding_extraction.layer_indices=[-1]",
+                "embeddings_data_prep.sampling.num_samples=150000",
+                "embeddings_data_prep.sampling.sampling_mode=random",
+                "embeddings_data_prep.sampling.seed=42",
+                "local_estimates.pointwise.n_neighbors_mode=absolute_size",
+                "local_estimates.filtering.deduplication_mode=array_deduplicator",
+                "local_estimates.filtering.num_samples=60000",
+                "local_estimates.pointwise.absolute_n_neighbors=128",
+                // >>>> Since we are only interested in the base data, we do not need to set the comparison data
+                // "analysis.investigate_distances.array_truncation_size=500", // The value '500' can be used for quick testing
+                // "analysis.investigate_distances.array_truncation_size=5000",
+                // "analysis.investigate_distances.array_truncation_size=20000",
+                // Note: "analysis.investigate_distances.array_truncation_size=30000" runs out of memory on the 16GB MacBook Pro M1
+                "analysis.investigate_distances.array_truncation_size=60000", // The value '60000' potentially takes a long time to run, and this might run out of memory on the 16GB MacBook Pro M1
+                // >>>> Set this feature flag to avoid the comparison
+                "feature_flags.comparison.do_comparison_of_local_estimates=False",
+            ]
+        },
+        {
+            "name": "compare_mean_local_estimates_with_mean_losses.py",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/analysis/comparisons/compare_mean_estimates_over_different_datasets_and_models/compare_mean_local_estimates_with_mean_losses.py",
+            "console": "integratedTerminal",
+            "args": [
+                // >>>> BEGIN: Hydra options
+                "--multirun",
+                "hydra/sweeper=basic",
+                "hydra/launcher=basic",
+                // >>>> END: Hydra options
+                "data=multiwoz21_validation",
+                "data.data_subsampling.sampling_mode=random",
+                "data.data_subsampling.number_of_samples=10000",
+                "data.data_subsampling.sampling_seed=777",
+                "+data.dataset_type=huggingface_dataset_named_entity",
+                "tokenizer.add_prefix_space=True",
+                "language_model=roberta-base",
+                "++language_model.checkpoint_no=2800",
+                "embeddings.embedding_data_handler.mode=masked_token",
+                "embeddings.embedding_extraction.layer_indices=[-1]",
+                "embeddings_data_prep.sampling.num_samples=150000",
+                "embeddings_data_prep.sampling.sampling_mode=random",
+                "embeddings_data_prep.sampling.seed=42",
+                "local_estimates.pointwise.n_neighbors_mode=absolute_size",
+                "local_estimates.filtering.deduplication_mode=array_deduplicator",
+                "local_estimates.filtering.num_samples=60000",
+                "local_estimates.pointwise.absolute_n_neighbors=128",
+                // "analysis.investigate_distances.array_truncation_size=500", // The value '500' can be used for quick testing
+                // "analysis.investigate_distances.array_truncation_size=5000",
+                // "analysis.investigate_distances.array_truncation_size=20000",
+                // Note: "analysis.investigate_distances.array_truncation_size=30000" runs out of memory on the 16GB MacBook Pro M1
+                "analysis.investigate_distances.array_truncation_size=60000", // The value '60000' potentially takes a long time to run, and this might run out of memory on the 16GB MacBook Pro M1
+                // >>>> Feature flags
             ]
         },
         {
@@ -713,7 +864,7 @@
                 // "local",
                 "hpc_submission",
                 "--template-to-use-for-compute-embeddings",
-                // "DSML",
+                // "DSML", # Note: The GPT-2-medium embedding computation does not run on the 8 GB GPUs
                 "RTX6000",
                 // >>>> Concrete experiment configurations
                 "--experiment-selector-options",
@@ -737,7 +888,7 @@
                 "--data-list-options",
                 "wikitext_validation_only",
                 //    >> END Data list options.
-                //    >> Model group options.
+                //    >> START Model group options.
                 //    >> Note that for multiple options, you need to specify the `--model-group-options` multiple times.
                 // "--model-group-options",
                 // "roberta_base_without_modifications",
@@ -745,8 +896,15 @@
                 // "roberta_base_finetuned_for_few_epochs_old_and_new_data_single_seed_last_checkpoint",
                 // "--model-group-options",
                 // "roberta_base_finetuned_for_few_epochs_multiwoz_data_single_seed_last_checkpoint",
+                //"--model-group-options",
+                // "gpt2_medium_without_modifications",
+                // "--model-group-options",
+                // "gpt2_medium_finetuned_for_few_epochs_multiwoz_and_reddit_and_wikitext_data_single_seed_last_checkpoint",
+                // "--model-group-options",
+                // "gpt2_medium_finetuned_for_few_epochs_multiwoz_and_reddit_and_wikitext_data_single_seed_checkpoints_1200_1600",
                 "--model-group-options",
-                "gpt2_medium_without_modifications",
+                "gpt2_medium_finetuned_for_few_epochs_wikitext_data_single_seed_checkpoints_1200_1600",
+                //    >> END Model group options.
             ]
         },
         {
@@ -810,7 +968,7 @@
                 "--data-list-options",
                 "multiwoz21_validation_only",
                 //    >> END Data list options.
-                //    >> Model group options.
+                //    >> START Model group options.
                 //    >> Note that for multiple options, you need to specify the `--model-group-options` multiple times.
                 "--model-group-options",
                 "roberta_base_without_modifications",
@@ -820,10 +978,106 @@
                 // "roberta_base_finetuned_for_few_epochs_multiwoz_data_single_seed_last_checkpoint",
                 // "--model-group-options",
                 // "gpt2_medium_without_modifications",
+                //    >> END Model group options.
             ]
         },
         {
-            "name": "call_submit_jobs_for_experiments_via_tmux_submission; NOTE: expensive computation; masked embeddings, last layer, for data validation splits",
+            "name": "call_submit_jobs_for_experiments_via_tmux_submission; NOTE: expensive computation; masked embeddings, last layer, for random subsample of selected data splits",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/scripts/submission_scripts/call_submit_jobs_scripts/call_submit_jobs_for_experiments_via_tmux_submission.py",
+            "console": "integratedTerminal",
+            "args": [
+                // >>>> BEGIN: Select the run option
+                // >>>> Use the following to dry run with all configurations
+                //
+                // "--run-option",
+                // "dry_run",
+                // "--run-only-selected-configs-option",
+                // "run_all",
+                //
+                // >>>> Use the following to dry run a random configuration
+                //
+                // "--run-option",
+                // "dry_run",
+                // "--run-only-selected-configs-option",
+                // "run_single_random",
+                //
+                // >>> Use the following to run a random configuration
+                //
+                // "--run-option",
+                // "do_submission",
+                // "--run-only-selected-configs-option",
+                // "run_single_random",
+                //
+                // >>>> Use the following to run with all configurations
+                //
+                "--run-option",
+                "do_submission",
+                "--run-only-selected-configs-option",
+                "run_all",
+                //
+                // >>>> END: Select the run option
+                "--submission-mode",
+                // "local",
+                "hpc_submission",
+                "--template-to-use-for-compute-embeddings",
+                // "DSML",
+                "RTX6000",
+                // >>>> Concrete experiment configurations
+                "--experiment-selector-options",
+                "masked_token_embeddings_last_layer_single_sample",
+                // "--experiment-selector-options",
+                // "masked_token_embeddings_last_layer_two_data_subsampling_sampling_seeds",
+                //
+                "--experiment-stage",
+                "compute_embeddings_plus_single_pipeline_run",
+                //
+                //    >> BEGIN Data list options.
+                //    >> Note that for multiple options, you need to specify the `--data-list-options` multiple times.
+                //
+                // "--data-list-options",
+                // "validation_split_only",
+                //
+                "--data-list-options",
+                "iclr_validation_only",
+                "--data-list-options",
+                "multiwoz21_validation_only",
+                "--data-list-options",
+                "reddit_validation_only",
+                "--data-list-options",
+                "sgd_validation_only",
+                "--data-list-options",
+                "wikitext_validation_only",
+                //
+                // "--data-list-options",
+                // "iclr_test_only",
+                // "--data-list-options",
+                // "multiwoz21_test_only",
+                // "--data-list-options",
+                // "reddit_test_only",
+                // "--data-list-options",
+                // "sgd_test_only",
+                // "--data-list-options",
+                // "wikitext_test_only",
+                //
+                //    >> END Data list options.
+                //
+                //    >> BEGIN Model group options.
+                //    >> Note that for multiple options, you need to specify the `--model-group-options` multiple times.
+                "--model-group-options",
+                "roberta_base_without_modifications",
+                // "--model-group-options",
+                // "roberta_base_finetuned_for_few_epochs_old_and_new_data_single_seed_last_checkpoint",
+                // "--model-group-options",
+                // "roberta_base_finetuned_for_few_epochs_multiwoz_data_single_seed_last_checkpoint",
+                "--model-group-options",
+                "roberta_base_finetuned_for_few_epochs_multiwoz_and_reddit_and_wikitext_data_single_seed_all_checkpoints",
+                //    >> END Model group options.
+            ]
+        },
+        {
+            "name": "call_submit_jobs_for_experiments_via_tmux_submission; NOTE: expensive computation; masked embeddings, last layer, for take_first sample of data train splits",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/scripts/submission_scripts/call_submit_jobs_scripts/call_submit_jobs_for_experiments_via_tmux_submission.py",
@@ -870,21 +1124,22 @@
                 "masked_token_embeddings_last_layer_single_sample",
                 "--experiment-stage",
                 "compute_embeddings_plus_single_pipeline_run",
-                //    >> Data list options.
+                //    >> START Data list options.
                 //    >> Note that for multiple options, you need to specify the `--data-list-options` multiple times.
-                // "--data-list-options",
-                // "validation_split_only",
-                // "--data-list-options",
-                // "iclr_validation_only",
-                // "--data-list-options",
-                // "multiwoz21_validation_only",
-                // "--data-list-options",
-                // "reddit_validation_only",
-                // "--data-list-options",
-                // "sgd_validation_only",
                 "--data-list-options",
-                "wikitext_validation_only",
-                //    >> Model group options.
+                "iclr_train_only",
+                "--data-list-options",
+                "multiwoz21_train_only",
+                "--data-list-options",
+                "reddit_train_only",
+                "--data-list-options",
+                "sgd_train_only",
+                "--data-list-options",
+                "wikitext_train_only",
+                //    >> END Data list options.
+                "--data-subsampling-sampling-mode",
+                "take_first",
+                //    >> START Model group options.
                 //    >> Note that for multiple options, you need to specify the `--model-group-options` multiple times.
                 // "--model-group-options",
                 // "roberta_base_without_modifications",
@@ -894,6 +1149,60 @@
                 // "roberta_base_finetuned_for_few_epochs_multiwoz_data_single_seed_last_checkpoint",
                 "--model-group-options",
                 "roberta_base_finetuned_for_few_epochs_multiwoz_and_reddit_and_wikitext_data_single_seed_all_checkpoints",
+                //    >> END Model group options.
+            ]
+        },
+        {
+            "name": "call_submit_jobs_for_experiments_via_tmux_submission; sensitivity analysis multiwoz21/reddit different data subsampling number of samples",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/scripts/submission_scripts/call_submit_jobs_scripts/call_submit_jobs_for_experiments_via_tmux_submission.py",
+            "console": "integratedTerminal",
+            "args": [
+                // >>>> BEGIN: Select the run option
+                // >>>> Use the following to dry run with all configurations
+                //
+                // "--run-option",
+                // "dry_run",
+                // "--run-only-selected-configs-option",
+                // "run_all",
+                //
+                // >>>> Use the following to dry run a random configuration
+                //
+                // "--run-option",
+                // "dry_run",
+                // "--run-only-selected-configs-option",
+                // "run_single_random",
+                //
+                // >>> Use the following to run a random configuration
+                //
+                // "--run-option",
+                // "do_submission",
+                // "--run-only-selected-configs-option",
+                // "run_single_random",
+                //
+                // >>>> Use the following to run with all configurations
+                //
+                "--run-option",
+                "do_submission",
+                "--run-only-selected-configs-option",
+                "run_all",
+                //
+                // >>>> END: Select the run option
+                "--submission-mode",
+                "hpc_submission",
+                // >>>> Concrete experiment configurations
+                "--experiment-selector-options",
+                "sensitivity_analysis_multiwoz21_different_data_subsampling_number_of_samples",
+                "--experiment-selector-options",
+                "sensitivity_analysis_reddit_different_data_subsampling_number_of_samples",
+                "--experiment-stage",
+                "compute_embeddings_plus_single_pipeline_run", // Note: You need to make sure the embedding arrays exist before you can call the skip_compute_embeddings_but_do_multiple_pipeline_runs stage.
+                // "skip_compute_embeddings_but_do_multiple_pipeline_runs", // Note: If some results are not available, this might have been caused by conflicts in writing the results from parallel data_prep steps.
+                // "skip_compute_embeddings_and_skip_embeddings_data_prep", // Note: Make sure the prepared data exists before you run this stage.
+                //    >> Data list options.
+                //    >> NOTE: These experiments set the data list option themselves.
+                //    >>       Make sure that the default data list option is a single entry, otherwise this script might get called multiple times.
             ]
         },
         {
@@ -1011,10 +1320,11 @@
                 "--data-list-options",
                 // "multiwoz21_validation_and_reddit_validation",
                 "reddit_validation_only",
-                //    >> Model group options.
+                //    >> START Model group options.
                 //    >> Note that for multiple options, you need to specify the `--model-group-options` multiple times.
                 "--model-group-options",
                 "roberta_base_without_modifications",
+                //    >> END Model group options.
             ]
         },
     ]

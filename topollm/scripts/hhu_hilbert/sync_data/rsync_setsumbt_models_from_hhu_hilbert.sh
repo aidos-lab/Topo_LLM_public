@@ -70,7 +70,7 @@ echo ">>> Syncing data from HHU Hilbert server to local machine ..."
 # Following rsync instructions from:
 # https://wiki.hhu.de/pages/viewpage.action?pageId=55725648
 rsync \
-  -avz \
+  -avhz \
   --progress \
   $DRY_RUN_FLAG \
   --exclude-from="${EXCLUDE_FROM_FILE}" \

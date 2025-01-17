@@ -354,7 +354,7 @@ def retrieve_data_subsampling_sampling_seed_list(
             data_subsampling_sampling_seed_list = [
                 "777",
             ]
-        case DataSubsamplingSamplingSeedListOption.TWO_SEEDS:
+        case DataSubsamplingSamplingSeedListOption.TWO_SEEDS | DataSubsamplingSamplingSeedListOption.FIXED_778_779:
             data_subsampling_sampling_seed_list = [
                 "778",
                 "779",
@@ -523,9 +523,37 @@ def retrieve_model_and_checkpoint_list(
                 checkpoint_no_list_option=checkpoint_no_list_option,
                 num_train_epochs=int(num_train_epochs),
             )
+        case LanguageModelListOption.FINETUNED_ON_OLD_AND_NEW_DATA_FEW_EPOCHS_FROM_GPT2_MEDIUM:
+            language_model_list: list[str] = [
+                "gpt2-medium-causal_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+                "gpt2-medium-causal_lm-defaults_wikitext-103-v1-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+            ]
+
+            checkpoint_no_list = get_checkpoint_no_list(
+                checkpoint_no_list_option=checkpoint_no_list_option,
+                num_train_epochs=int(num_train_epochs),
+            )
         case LanguageModelListOption.FINETUNED_ON_MULTIWOZ_DATA_FEW_EPOCHS_FROM_ROBERTA_BASE:
             language_model_list: list[str] = [
                 "roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+            ]
+
+            checkpoint_no_list = get_checkpoint_no_list(
+                checkpoint_no_list_option=checkpoint_no_list_option,
+                num_train_epochs=int(num_train_epochs),
+            )
+        case LanguageModelListOption.FINETUNED_ON_MULTIWOZ_DATA_FEW_EPOCHS_FROM_GPT2_MEDIUM:
+            language_model_list: list[str] = [
+                "gpt2-medium-causal_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+            ]
+
+            checkpoint_no_list = get_checkpoint_no_list(
+                checkpoint_no_list_option=checkpoint_no_list_option,
+                num_train_epochs=int(num_train_epochs),
+            )
+        case LanguageModelListOption.FINETUNED_ON_WIKITEXT_DATA_FEW_EPOCHS_FROM_GPT2_MEDIUM:
+            language_model_list: list[str] = [
+                "gpt2-medium-causal_lm-defaults_wikitext-103-v1-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
             ]
 
             checkpoint_no_list = get_checkpoint_no_list(
@@ -537,6 +565,17 @@ def retrieve_model_and_checkpoint_list(
                 "roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
                 "roberta-base-masked_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
                 "roberta-base-masked_lm-defaults_wikitext-103-v1-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+            ]
+
+            checkpoint_no_list = get_checkpoint_no_list(
+                checkpoint_no_list_option=checkpoint_no_list_option,
+                num_train_epochs=int(num_train_epochs),
+            )
+        case LanguageModelListOption.FINETUNED_ON_MULTIWOZ_AND_REDDIT_AND_WIKITEXT_DATA_FEW_EPOCHS_FROM_GPT2_MEDIUM:
+            language_model_list: list[str] = [
+                "gpt2-medium-causal_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+                "gpt2-medium-causal_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+                "gpt2-medium-causal_lm-defaults_wikitext-103-v1-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
             ]
 
             checkpoint_no_list = get_checkpoint_no_list(
@@ -893,10 +932,29 @@ def make_machine_config(
                     )
 
             match model_group_option:
-                case ModelGroupOption.GPT2_MEDIUM_WITHOUT_MODIFICATIONS:
+                case (
+                    ModelGroupOption.ROBERTA_BASE_WITHOUT_MODIFICATIONS
+                    | ModelGroupOption.ROBERTA_BASE_FINETUNED_FOR_FEW_EPOCHS_OLD_AND_NEW_DATA_SINGLE_SEED_LAST_CHECKPOINT
+                    | ModelGroupOption.ROBERTA_BASE_FINETUNED_FOR_FEW_EPOCHS_MULTIWOZ_DATA_SINGLE_SEED_LAST_CHECKPOINT
+                    | ModelGroupOption.ROBERTA_BASE_FINETUNED_FOR_FEW_EPOCHS_MULTIWOZ_AND_REDDIT_AND_WIKITEXT_DATA_SINGLE_SEED_ALL_CHECKPOINTS
+                    | ModelGroupOption.ROBERTA_BASE_FINETUNED_FOR_MANY_EPOCHS
+                ):
+                    # For the RoBERTa base model, we need less memory since the embeddings have lower dimensionality.
+                    memory = "32"
+                case (
+                    ModelGroupOption.GPT2_MEDIUM_WITHOUT_MODIFICATIONS
+                    | ModelGroupOption.GPT2_MEDIUM_FINETUNED_FOR_FEW_EPOCHS_MULTIWOZ_AND_REDDIT_AND_WIKITEXT_DATA_SINGLE_SEED_LAST_CHECKPOINT
+                    | ModelGroupOption.GPT2_MEDIUM_FINETUNED_FOR_FEW_EPOCHS_MULTIWOZ_AND_REDDIT_AND_WIKITEXT_DATA_SINGLE_SEED_CHECKPOINTS_1200_1600
+                    | ModelGroupOption.GPT2_MEDIUM_FINETUNED_FOR_FEW_EPOCHS_WIKITEXT_DATA_SINGLE_SEED_CHECKPOINTS_1200_1600
+                ):
                     # For the GPT2 medium model, we need more memory since the embeddings have higher dimensionality.
                     # The embeddings data prep step failed with 32GB of memory for the GPT2 medium model.
                     memory = "64"
+                case _:
+                    msg: str = f"The {model_group_option = } is not yet handled in the machine configuration selection."
+                    raise ValueError(
+                        msg,
+                    )
 
         case (
             ExperimentStage.SKIP_COMPUTE_EMBEDDINGS_BUT_DO_MULTIPLE_PIPELINE_RUNS

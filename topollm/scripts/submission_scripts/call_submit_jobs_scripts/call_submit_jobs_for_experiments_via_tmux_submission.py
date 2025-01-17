@@ -83,7 +83,6 @@ from topollm.typing.enums import DataSamplingMode, SubmissionMode
     multiple=True,
     default=[
         DataListOption.MULTIWOZ21_ONLY,
-        DataListOption.REDDIT_ONLY,
     ],
     help="List of data options to use.",
 )
