@@ -52,11 +52,11 @@ class GradientModifierConfig(ConfigBaseModel):
     def gradient_modifier_description(self) -> str:
         """Return a description of the gradient modifier which can be used in file paths."""
         description = (
-            f"{NAME_PREFIXES['GradientModifierMode']}{KV_SEP}{str(self.mode)}"
+            f"{NAME_PREFIXES['GradientModifierMode']}{KV_SEP}{str(object=self.mode)}"
             f"{ITEM_SEP}"
             f"{NAME_PREFIXES['target_modules_to_freeze']}"
             f"{KV_SEP}"
-            f"{target_modules_to_freeze_to_path_part(self.target_modules_to_freeze)}"
+            f"{target_modules_to_freeze_to_path_part(target_modules_to_freeze=self.target_modules_to_freeze)}"
         )
 
         return description
