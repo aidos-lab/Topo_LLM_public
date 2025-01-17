@@ -27,8 +27,6 @@
 
 """Create plots to compare mean local estimates with mean losses for different models."""
 
-# TODO: This script is under development.
-
 import itertools
 import json
 import logging
