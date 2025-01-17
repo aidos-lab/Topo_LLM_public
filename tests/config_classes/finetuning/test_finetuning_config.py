@@ -1,10 +1,10 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -25,6 +25,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Test the FinetuningConfig class with Hydra."""
+
 import logging
 import pprint
 from typing import TYPE_CHECKING
@@ -36,7 +38,9 @@ from topollm.config_classes.finetuning.finetuning_config import FinetuningConfig
 if TYPE_CHECKING:
     import omegaconf
 
-logger = logging.getLogger(__name__)
+logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 def test_hydra_with_finetuning_config() -> None:
