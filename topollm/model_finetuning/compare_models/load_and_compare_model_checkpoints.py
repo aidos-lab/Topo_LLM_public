@@ -1,10 +1,10 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -25,6 +25,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# TODO This script is under development and not yet finished.
+
 """Load and compare model checkpoints."""
 
 import logging
@@ -39,12 +41,16 @@ from topollm.config_classes.get_data_dir import get_data_dir
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
+from topollm.path_management.embeddings.factory import get_embeddings_path_manager
+from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 
 if TYPE_CHECKING:
     from topollm.config_classes.main_config import MainConfig
 
 
-global_logger = logging.getLogger(__name__)
+global_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 setup_exception_logging(
     logger=global_logger,
@@ -55,31 +61,32 @@ setup_omega_conf()
 @hydra.main(
     config_path="../../../configs",
     config_name="main_config",
-    version_base="1.2",
+    version_base="1.3",
 )
 def main(
     config: omegaconf.DictConfig,
 ) -> None:
     """Run the script."""
-    logger = global_logger
-    logger.info("Running script ...")
+    logger: logging.Logger = global_logger
+    logger.info(
+        msg="Running script ...",
+    )
 
     main_config: MainConfig = initialize_configuration(
         config=config,
         logger=global_logger,
     )
 
-    data_dir: pathlib.Path = get_data_dir(
+    embeddings_path_manager: EmbeddingsPathManager = get_embeddings_path_manager(
         main_config=main_config,
-        verbosity=main_config.verbosity,
-        logger=global_logger,
+        logger=logger,
     )
 
     # # # #
     # Load the models
 
     model_files_root_dir = pathlib.Path(
-        data_dir,
+        embeddings_path_manager.data_dir,
         "models",
         "finetuned_models",
         "data-one-year-of-tsla-on-reddit_split-train_ctxt-dataset_entry_samples-10000",
@@ -92,16 +99,18 @@ def main(
         "model_files",
     )
 
-    model_paths_list: list[pathlib.Path] = []
+    # This holds the list of model files to compare
+    models_identifier_or_paths_list: list[str] = []
 
+    # This holds the list of parameters to compare
     layer_names_to_compare: list[str] = [
         "roberta.encoder.layer.1.attention.self.query.weight",
         "roberta.encoder.layer.11.attention.self.query.weight",
     ]
 
-    # TODO This script is not finished
-
-    logger.info("Running script DONE")
+    logger.info(
+        msg="Running script DONE",
+    )
 
 
 if __name__ == "__main__":

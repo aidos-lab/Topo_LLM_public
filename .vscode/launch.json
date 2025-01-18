@@ -63,7 +63,7 @@
             ]
         },
         {
-            "name": "TEST run_finetune_language_model_on_huggingface_dataset.py; on MLM task; for 2 epochs",
+            "name": "For debugging: run_finetune_language_model_on_huggingface_dataset.py; on MLM task; for 2 epochs",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/model_finetuning/run_finetune_language_model_on_huggingface_dataset.py",
@@ -71,15 +71,16 @@
             "args": [
                 "--multirun",
                 "finetuning=finetuning_for_masked_lm",
-                "finetuning.save_steps=2",
+                "finetuning.save_steps=2", // <-- Saving every 2 steps should result in two saved checkpoints
                 "finetuning.eval_steps=2",
                 "finetuning.finetuning_datasets.train_dataset.data_subsampling.number_of_samples=80",
                 "finetuning.finetuning_datasets.eval_dataset.data_subsampling.number_of_samples=20",
                 "finetuning.num_train_epochs=2",
                 "finetuning.trainer_modifier.mode=add_wandb_prediction_progress_callback",
                 "finetuning.trainer_modifier.frequency=4",
-                "finetuning.seed=1235,1236",
-                // Optional: Change gradient modifier
+                "finetuning.seed=1235",
+                // "finetuning.seed=1235,1236",
+                // >> Optional: Change gradient modifier
                 "finetuning/gradient_modifier=freeze_lm_head_bert-style-models",
                 "feature_flags.wandb.use_wandb=true",
                 "wandb.project=Topo_LLM_finetuning_for_language_modeling_DEBUG",
