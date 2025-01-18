@@ -34,11 +34,11 @@ RUN_ONLY_SELECTED_CONFIGS_OPTION="run_all"
 # >>>> END: Select the run option
 
 FINETUNING_DATASETS_LIST_OPTION_LIST=(
-  # "iclr_small"
-  "multiwoz21_small"
-  "reddit_small"
-  # "sgd_small"
-  # "wikitext_small"
+  "iclr_small"
+  # "multiwoz21_small"
+  # "reddit_small"
+  "sgd_small"
+  "wikitext_small"
   # "multiwoz21_and_reddit_small"
 )
 
