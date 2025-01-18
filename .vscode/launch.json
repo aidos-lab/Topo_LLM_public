@@ -71,7 +71,8 @@
             "args": [
                 "--multirun",
                 "finetuning=finetuning_for_masked_lm",
-                "finetuning.save_steps=2", // <-- Saving every 2 steps should result in two saved checkpoints
+                // <-- Saving every 2 steps should result in two saved checkpoints for a dataset of size 80 and batch size of: "Instantaneous batch size per device = 16"
+                "finetuning.save_steps=2",
                 "finetuning.eval_steps=2",
                 "finetuning.finetuning_datasets.train_dataset.data_subsampling.number_of_samples=80",
                 "finetuning.finetuning_datasets.eval_dataset.data_subsampling.number_of_samples=20",
@@ -80,8 +81,10 @@
                 "finetuning.trainer_modifier.frequency=4",
                 "finetuning.seed=1235",
                 // "finetuning.seed=1235,1236",
-                // >> Optional: Change gradient modifier
-                "finetuning/gradient_modifier=freeze_lm_head_bert-style-models",
+                // >> START Optional: Change gradient modifier
+                // "finetuning/gradient_modifier=freeze_lm_head_bert-style-models",
+                "finetuning/gradient_modifier=do_nothing",
+                // >> END Optional: Change gradient modifier
                 "feature_flags.wandb.use_wandb=true",
                 "wandb.project=Topo_LLM_finetuning_for_language_modeling_DEBUG",
             ]

@@ -29,6 +29,7 @@
 
 """Load and compare model checkpoints."""
 
+import itertools
 import logging
 import pathlib
 from typing import TYPE_CHECKING
@@ -82,6 +83,7 @@ def main(
         config=config,
         logger=global_logger,
     )
+    verbosity: Verbosity = main_config.verbosity
 
     embeddings_path_manager: EmbeddingsPathManager = get_embeddings_path_manager(
         main_config=main_config,
@@ -114,12 +116,6 @@ def main(
         for relative_dir in model_files_dir_relative_to_data_dir_list
     ]
 
-    # This holds the list of parameters to compare
-    layer_names_to_compare: list[str] = [
-        "roberta.encoder.layer.1.attention.self.query.weight",
-        "roberta.encoder.layer.11.attention.self.query.weight",
-    ]
-
     # Load the models
     models_list: list[transformers.PreTrainedModel] = [
         model_loading_class.from_pretrained(
@@ -127,6 +123,38 @@ def main(
         )
         for model_identifier_or_path in models_identifier_or_paths_list
     ]
+
+    # Example lists of parameters to compare
+    parameter_names_to_compare_debug_list: list[str] = [
+        "lm_head.dense.weight",
+    ]
+
+    parameter_names_to_compare_extended_list: list[str] = [
+        "roberta.embeddings.word_embeddings.weight",
+        "roberta.embeddings.position_embeddings.weight",
+        "roberta.embeddings.token_type_embeddings.weight",
+        "roberta.embeddings.LayerNorm.weight",
+        "roberta.embeddings.LayerNorm.bias",
+        "lm_head.bias",
+        "lm_head.dense.weight",
+        "lm_head.dense.bias",
+        "lm_head.layer_norm.weight",
+        "lm_head.layer_norm.bias",
+        "lm_head.decoder",
+        "roberta.encoder.layer.1.attention.self.query.weight",
+        "roberta.encoder.layer.11.attention.self.query.weight",
+    ]
+
+    # This holds the list of parameters to compare
+    parameter_names_to_compare = parameter_names_to_compare_debug_list
+
+    for parameter_name in parameter_names_to_compare:
+        compare_model_components(
+            models_list=models_list,
+            parameters_to_compare=parameter_name,
+            verbosity=verbosity,
+            logger=logger,
+        )
 
     logger.info(
         msg="Running script DONE",
@@ -140,6 +168,18 @@ def compare_model_components(
     logger: logging.Logger = default_logger,
 ):
     """Compare the model components."""
+    # Iterate over pairs of models
+    pairs_of_models = itertools.combinations(
+        iterable=models_list,
+        r=2,
+    )
+
+    for model_1, model_2 in pairs_of_models:
+        # Compare the parameters
+        model_1_parameter = model_1.state_dict()[parameters_to_compare]
+        model_2_parameter = model_2.state_dict()[parameters_to_compare]
+
+        # Compare the parameters
 
     # TODO: Implement this
 
