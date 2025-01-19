@@ -1,0 +1,4 @@
+mode: freeze_layers
+target_modules_to_freeze:
+- "lm_head"
+- "embeddings.word_embeddings"

@@ -82,8 +82,9 @@
                 "finetuning.seed=1235",
                 // "finetuning.seed=1235,1236",
                 // >> START Optional: Change gradient modifier
+                // "finetuning/gradient_modifier=do_nothing",
                 // "finetuning/gradient_modifier=freeze_lm_head_bert-style-models",
-                "finetuning/gradient_modifier=do_nothing",
+                "finetuning/gradient_modifier=freeze_lm_head_and_word_embeddings_bert-style-models",
                 // >> END Optional: Change gradient modifier
                 "feature_flags.wandb.use_wandb=true",
                 "wandb.project=Topo_LLM_finetuning_for_language_modeling_DEBUG",
