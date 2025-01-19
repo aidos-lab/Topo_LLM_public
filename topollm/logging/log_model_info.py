@@ -1,10 +1,10 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -63,6 +63,11 @@ def log_model_info(
         logger=logger,
     )
 
+    log_param_requires_grad_for_model(
+        model=model,
+        logger=logger,
+    )
+
 
 def log_named_parameters_and_state_dict_for_model(
     model: PreTrainedModel | Any,  # noqa: ANN401 - fixing typing issue with the transformers models
@@ -86,6 +91,16 @@ def log_named_parameters_and_state_dict_for_model(
     logger.info(
         msg=f"state_dict_keys_list:\n{state_dict_keys_list}",  # noqa: G004 - low overhead
     )
+
+    # Log the shapes of the parameters in the state dict
+    for key, value in model.state_dict().items():
+        if hasattr(
+            value,
+            "shape",
+        ):
+            logger.info(
+                msg=f"{key = }; {value.shape = }",  # noqa: G004 - low overhead
+            )
 
 
 def log_param_requires_grad_for_model(
