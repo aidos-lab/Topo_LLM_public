@@ -32,20 +32,22 @@ from typing import Any
 
 from transformers import PreTrainedModel
 
-default_logger = logging.getLogger(__name__)
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 def log_model_info(
-    model: PreTrainedModel | Any,
+    model: PreTrainedModel | Any,  # noqa: ANN401 - fixing typing issue with the transformers models
     model_name: str = "model",
     logger: logging.Logger = default_logger,
 ) -> None:
     """Log model information."""
     logger.info(
-        f"{type(model) = }",  # noqa: G004 - low overhead
+        msg=f"{type(model) = }",  # noqa: G004 - low overhead
     )
     logger.info(
-        f"{model_name}:\n{model}",  # noqa: G004 - low overhead
+        msg=f"{model_name}:\n{model}",  # noqa: G004 - low overhead
     )
 
     if hasattr(
@@ -53,12 +55,41 @@ def log_model_info(
         "config",
     ):
         logger.info(
-            f"{model_name}.config:\n{model.config}",  # noqa: G004 - low overhead
+            msg=f"{model_name}.config:\n{model.config}",  # noqa: G004 - low overhead
         )
+
+    log_named_parameters_and_state_dict_for_model(
+        model=model,
+        logger=logger,
+    )
+
+
+def log_named_parameters_and_state_dict_for_model(
+    model: PreTrainedModel | Any,  # noqa: ANN401 - fixing typing issue with the transformers models
+    logger: logging.Logger = default_logger,
+) -> None:
+    """Log named parameters and state dict for a model."""
+    # Log the names of the named parameters
+    logger.info(
+        msg=f"{model.__class__.__name__} model.named_parameters():",  # noqa: G004 - low overhead
+    )
+    names_list = [name for name, _ in model.named_parameters()]
+    logger.info(
+        msg=f"names_list:\n{names_list}",  # noqa: G004 - low overhead
+    )
+
+    # Log the keys in the state dict
+    logger.info(
+        msg=f"{model.__class__.__name__} model.state_dict().keys():",  # noqa: G004 - low overhead
+    )
+    state_dict_keys_list = list(model.state_dict().keys())
+    logger.info(
+        msg=f"state_dict_keys_list:\n{state_dict_keys_list}",  # noqa: G004 - low overhead
+    )
 
 
 def log_param_requires_grad_for_model(
-    model: PreTrainedModel | Any,
+    model: PreTrainedModel | Any,  # noqa: ANN401 - fixing typing issue with the transformers models
     logger: logging.Logger = default_logger,
 ) -> None:
     """Log whether parameters require gradients for a model."""

@@ -53,7 +53,9 @@ from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.model_handling.loaded_model_container import LoadedModelContainer
-from topollm.model_handling.prepare_loaded_model_container import prepare_device_and_tokenizer_and_model
+from topollm.model_handling.prepare_loaded_model_container import (
+    prepare_device_and_tokenizer_and_model_from_main_config,
+)
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
 from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 from topollm.typing.enums import Verbosity
@@ -132,7 +134,7 @@ class ComputationManager:
 
         local_estimates_container: LocalEstimatesContainer = local_estimates_saving_manager.load_local_estimates()
 
-        loaded_model_container: LoadedModelContainer = prepare_device_and_tokenizer_and_model(
+        loaded_model_container: LoadedModelContainer = prepare_device_and_tokenizer_and_model_from_main_config(
             main_config=main_config,
             verbosity=verbosity,
             logger=logger,

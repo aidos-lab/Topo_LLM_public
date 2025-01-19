@@ -32,7 +32,9 @@ import pprint
 from typing import TYPE_CHECKING
 
 from topollm.config_classes.main_config import MainConfig
-from topollm.model_handling.prepare_loaded_model_container import prepare_device_and_tokenizer_and_model
+from topollm.model_handling.prepare_loaded_model_container import (
+    prepare_device_and_tokenizer_and_model_from_main_config,
+)
 from topollm.model_inference.causal_language_modeling.do_text_generation import (
     do_text_generation,
 )
@@ -62,7 +64,7 @@ def do_inference(
     If `prompts` is `None`, default prompts are used.
     Make sure to not accidentally use an empty list as the default argument.
     """
-    loaded_model_container: LoadedModelContainer = prepare_device_and_tokenizer_and_model(
+    loaded_model_container: LoadedModelContainer = prepare_device_and_tokenizer_and_model_from_main_config(
         main_config=main_config,
         verbosity=verbosity,
         logger=logger,

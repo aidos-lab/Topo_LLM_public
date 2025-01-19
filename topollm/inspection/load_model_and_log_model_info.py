@@ -25,7 +25,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Run script to create embedding vectors from dataset based on config."""
+"""Scrip to load model and log model info."""
 
 import logging
 from typing import TYPE_CHECKING
@@ -33,13 +33,16 @@ from typing import TYPE_CHECKING
 import hydra
 import hydra.core.hydra_config
 import omegaconf
+import transformers
 
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
+from topollm.logging.log_model_info import log_model_info
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.model_handling.get_torch_device import get_torch_device
 from topollm.pipeline_scripts.worker_for_pipeline import worker_for_pipeline
+from topollm.typing.enums import Verbosity
 
 if TYPE_CHECKING:
     from topollm.config_classes.main_config import MainConfig
@@ -81,18 +84,23 @@ def main(
         config=config,
         logger=logger,
     )
+    verbosity: Verbosity = main_config.verbosity
 
-    device = get_torch_device(
-        preferred_torch_backend=main_config.preferred_torch_backend,
-        logger=logger,
+    # # # #
+    # Load model and call logging function
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"{transformers.__version__ = }",  # noqa: G004 - low overhead
+        )
+
+    model = transformers.AutoModelForMaskedLM.from_pretrained(
+        pretrained_model_name_or_path="roberta-base",
     )
 
-    # # # # # # # # # # # # # # # #
-    # Call the worker function
-    worker_for_pipeline(
-        main_config=main_config,
+    log_model_info(
+        model=model,
+        model_name="model_name",
         logger=logger,
-        device=device,
     )
 
     logger.info(
