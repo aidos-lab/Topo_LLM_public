@@ -1073,14 +1073,18 @@
                 //
                 //    >> BEGIN Model group options.
                 //    >> Note that for multiple options, you need to specify the `--model-group-options` multiple times.
-                "--model-group-options",
-                "roberta_base_without_modifications",
+                //
+                // "--model-group-options",
+                // "roberta_base_without_modifications",
                 // "--model-group-options",
                 // "roberta_base_finetuned_for_few_epochs_old_and_new_data_single_seed_last_checkpoint",
                 // "--model-group-options",
                 // "roberta_base_finetuned_for_few_epochs_multiwoz_data_single_seed_last_checkpoint",
+                // "--model-group-options",
+                // "roberta_base_finetuned_for_few_epochs_multiwoz_and_reddit_and_wikitext_data_single_seed_all_checkpoints",
                 "--model-group-options",
-                "roberta_base_finetuned_for_few_epochs_multiwoz_and_reddit_and_wikitext_data_single_seed_all_checkpoints",
+                "roberta_base_finetuned_for_few_epochs_multiwoz_data_single_seed_all_checkpoints_step_100",
+                //
                 //    >> END Model group options.
             ]
         },

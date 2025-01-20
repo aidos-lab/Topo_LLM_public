@@ -297,7 +297,13 @@ def orchestrate_job_submission(
             finetuning_regime_option = FinetuningRegimeOption.FEW_EPOCHS
             language_model_seed_list_option = SeedListOption.FIXED_SEED_1234
             checkpoint_no_list_option = CheckpointNoListOption.FIXED_2800
-        case ModelGroupOption.ROBERTA_BASE_FINETUNED_FOR_FEW_EPOCHS_MULTIWOZ_AND_REDDIT_AND_WIKITEXT_DATA_SINGLE_SEED_ALL_CHECKPOINTS:
+        case ModelGroupOption.ROBERTA_BASE_FINETUNED_FOR_FEW_EPOCHS_MULTIWOZ_DATA_SINGLE_SEED_ALL_CHECKPOINTS_STEP_100:
+            language_model_list_option = LanguageModelListOption.FINETUNED_ON_MULTIWOZ_DATA_FEW_EPOCHS_FROM_ROBERTA_BASE
+            finetuning_regime_option = FinetuningRegimeOption.FEW_EPOCHS
+            language_model_seed_list_option = SeedListOption.FIXED_SEED_1234
+            checkpoint_no_list_option = CheckpointNoListOption.RANGE_START_100_STOP_3200_STEP_100
+            # TODO: Run this experiment
+        case ModelGroupOption.ROBERTA_BASE_FINETUNED_FOR_FEW_EPOCHS_MULTIWOZ_AND_REDDIT_AND_WIKITEXT_DATA_SINGLE_SEED_ALL_CHECKPOINTS_STEP_400:
             language_model_list_option = (
                 LanguageModelListOption.FINETUNED_ON_MULTIWOZ_AND_REDDIT_AND_WIKITEXT_DATA_FEW_EPOCHS_FROM_ROBERTA_BASE
             )

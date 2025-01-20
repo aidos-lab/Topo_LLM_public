@@ -17,6 +17,7 @@ __pycache__
 
 # Large data directories
 data/analysis/
+data/analysis/prepared/
 data/embeddings/
 data/models/
 data/models/finetuned_models/
@@ -24,7 +25,7 @@ data/models/finetuned_models/
 data/models/setsumbt_checkpoints
 # do not add a slash at the end, since then the symlink will be deleted on the remote machine
 data/models/trippy_checkpoints
-data/saved_plots
+data/saved_plots/
 
 # Log files
 hilbert_job_logs/

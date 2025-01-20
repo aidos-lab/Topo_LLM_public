@@ -936,7 +936,8 @@ def make_machine_config(
                     ModelGroupOption.ROBERTA_BASE_WITHOUT_MODIFICATIONS
                     | ModelGroupOption.ROBERTA_BASE_FINETUNED_FOR_FEW_EPOCHS_OLD_AND_NEW_DATA_SINGLE_SEED_LAST_CHECKPOINT
                     | ModelGroupOption.ROBERTA_BASE_FINETUNED_FOR_FEW_EPOCHS_MULTIWOZ_DATA_SINGLE_SEED_LAST_CHECKPOINT
-                    | ModelGroupOption.ROBERTA_BASE_FINETUNED_FOR_FEW_EPOCHS_MULTIWOZ_AND_REDDIT_AND_WIKITEXT_DATA_SINGLE_SEED_ALL_CHECKPOINTS
+                    | ModelGroupOption.ROBERTA_BASE_FINETUNED_FOR_FEW_EPOCHS_MULTIWOZ_DATA_SINGLE_SEED_ALL_CHECKPOINTS_STEP_100
+                    | ModelGroupOption.ROBERTA_BASE_FINETUNED_FOR_FEW_EPOCHS_MULTIWOZ_AND_REDDIT_AND_WIKITEXT_DATA_SINGLE_SEED_ALL_CHECKPOINTS_STEP_400
                     | ModelGroupOption.ROBERTA_BASE_FINETUNED_FOR_MANY_EPOCHS
                 ):
                     # For the RoBERTa base model, we need less memory since the embeddings have lower dimensionality.
