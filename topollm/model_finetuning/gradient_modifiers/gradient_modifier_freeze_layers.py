@@ -1,10 +1,10 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -35,7 +35,9 @@ from transformers import PreTrainedModel
 from topollm.logging.log_model_info import log_param_requires_grad_for_model
 from topollm.typing.enums import Verbosity
 
-default_logger = logging.getLogger(__name__)
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 class GradientModifierFreezeLayers:
@@ -48,13 +50,13 @@ class GradientModifierFreezeLayers:
         logger: logging.Logger = default_logger,
     ) -> None:
         """Initialize the model modifier."""
-        self.verbosity = verbosity
-        self.logger = logger
+        self.verbosity: Verbosity = verbosity
+        self.logger: logging.Logger = logger
 
         if target_modules_to_freeze is None:
-            self.target_modules_to_freeze = []
+            self.target_modules_to_freeze: list = []
         else:
-            self.target_modules_to_freeze = target_modules_to_freeze
+            self.target_modules_to_freeze: list = target_modules_to_freeze
 
     def modify_gradients(
         self,
@@ -62,12 +64,14 @@ class GradientModifierFreezeLayers:
     ) -> PreTrainedModel | peft.peft_model.PeftModel:
         """Freeze layers of the model."""
         if self.verbosity >= Verbosity.NORMAL:
-            self.logger.info("Freezing layers ...")
+            self.logger.info(
+                msg="Freezing layers ...",
+            )
 
         for name, param in model.named_parameters():
             name: str
 
-            should_be_frozen = self.check_if_layer_should_be_frozen(
+            should_be_frozen: bool = self.check_if_layer_should_be_frozen(
                 name=name,
             )
 
@@ -81,7 +85,9 @@ class GradientModifierFreezeLayers:
             )
 
         if self.verbosity >= Verbosity.NORMAL:
-            self.logger.info("Freezing layers DONE.")
+            self.logger.info(
+                msg="Freezing layers DONE.",
+            )
 
         return model
 

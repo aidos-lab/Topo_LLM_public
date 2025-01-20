@@ -1,10 +1,10 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -119,7 +119,7 @@ def dump_language_model_config_to_file(
     # > }
     # ```
     new_language_model_config_yaml_data: str = omegaconf.OmegaConf.to_yaml(
-        language_model_config.model_dump(
+        cfg=language_model_config.model_dump(
             mode="json",
         ),
     )

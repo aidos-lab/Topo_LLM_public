@@ -47,8 +47,9 @@
             }
         },
         {
-            "label": "sync selected wandb runs to cloud",
-            "command": "./wandb_output_dir/sync_wandb_runs.sh --wandb_project_dir_name 'Topo_LLM_gpt2_finetuning_from_submission_script_for_5_epochs_and_linear_lr_schedule'",
+            "label": "wandb - sync selected wandb runs to cloud",
+            // "command": "./wandb_output_dir/sync_wandb_runs.sh --wandb-project-dir-name 'Topo_LLM_gpt2_finetuning_from_submission_script_for_5_epochs_and_linear_lr_schedule'",
+            "command": "./wandb_output_dir/sync_wandb_runs.sh --wandb-project-dir-name 'Topo_LLM_roberta-base_finetuning_from_submission_script_for_5_epochs_and_linear_lr_schedule_freeze_lm_head'",
             "type": "shell",
             "group": {
                 "kind": "build",

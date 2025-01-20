@@ -1,10 +1,10 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -73,7 +73,9 @@ def main(
 ) -> None:
     """Run the script."""
     logger: logging.Logger = global_logger
-    logger.info("Running script ...")
+    logger.info(
+        msg="Running script ...",
+    )
 
     main_config: MainConfig = initialize_configuration(
         config=config,
@@ -93,7 +95,9 @@ def main(
         device=device,
     )
 
-    logger.info("Running script DONE")
+    logger.info(
+        msg="Running script DONE",
+    )
 
 
 if __name__ == "__main__":

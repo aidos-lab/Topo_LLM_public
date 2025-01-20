@@ -54,7 +54,7 @@ class TestFinetuningPathManager:
         )
 
         assert validate_path_part(  # noqa: S101 - pytest assertion
-            path_part=str(result),
+            path_part=str(object=result),
         )
 
     def test_logging_dir(

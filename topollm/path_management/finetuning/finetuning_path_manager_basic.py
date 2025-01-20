@@ -91,7 +91,9 @@ class FinetuningPathManagerBasic:
                 description_type=DescriptionType.LONG,
             ),
             self.peft_path_manager.peft_description_subdir,
-            self.finetuning_config.gradient_modifier.gradient_modifier_description,
+            self.finetuning_config.gradient_modifier.get_config_description(
+                description_type=DescriptionType.LONG,
+            ),
             self.finetuning_parameters_partial_path,
             self.batch_size_description,
             self.training_duration_subdir,
@@ -113,7 +115,6 @@ class FinetuningPathManagerBasic:
 
         Note:
         - Dropout parameters are part of the base model config description.
-        - The short model name does not include the gradient modifier at the moment.
 
         """
         finetuned_short_model_name: str = (
@@ -137,9 +138,10 @@ class FinetuningPathManagerBasic:
             )
             + ITEM_SEP
             + str(
-                # Note: the short finetuning parameters description contains in particular:
+                # Note: the short finetuning parameters description does NOT contain:
                 # - the finetuning seed
                 # - the current epoch
+                # We handle these through value interpolation via the hydra config system.
                 object=self.get_finetuning_parameters_description_for_short_model_name(
                     short_description_separator=short_description_separator,
                 ),
@@ -208,6 +210,11 @@ class FinetuningPathManagerBasic:
             + str(object=self.finetuning_config.lr_scheduler_type)
             + short_description_separator
             + str(object=self.finetuning_config.weight_decay)
+            + short_description_separator
+            + self.finetuning_config.gradient_modifier.get_config_description(
+                description_type=DescriptionType.SHORT,
+                short_description_separator=short_description_separator,
+            )
             + short_description_separator
             + str(object=self.finetuning_config.num_train_epochs)
         )

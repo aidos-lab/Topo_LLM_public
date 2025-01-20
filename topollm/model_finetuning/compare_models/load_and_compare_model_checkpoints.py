@@ -1,10 +1,10 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -25,8 +25,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# TODO This script is under development and not yet finished.
+
 """Load and compare model checkpoints."""
 
+import itertools
 import logging
 import pathlib
 from typing import TYPE_CHECKING
@@ -34,17 +37,28 @@ from typing import TYPE_CHECKING
 import hydra
 import hydra.core.hydra_config
 import omegaconf
+import transformers
 
 from topollm.config_classes.get_data_dir import get_data_dir
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
+from topollm.logging.log_model_info import log_model_info
 from topollm.logging.setup_exception_logging import setup_exception_logging
+from topollm.path_management.embeddings.factory import get_embeddings_path_manager
+from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
+from topollm.typing.enums import Verbosity
 
 if TYPE_CHECKING:
     from topollm.config_classes.main_config import MainConfig
 
 
-global_logger = logging.getLogger(__name__)
+global_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
+
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 setup_exception_logging(
     logger=global_logger,
@@ -55,53 +69,142 @@ setup_omega_conf()
 @hydra.main(
     config_path="../../../configs",
     config_name="main_config",
-    version_base="1.2",
+    version_base="1.3",
 )
 def main(
     config: omegaconf.DictConfig,
 ) -> None:
     """Run the script."""
-    logger = global_logger
-    logger.info("Running script ...")
+    logger: logging.Logger = global_logger
+    logger.info(
+        msg="Running script ...",
+    )
 
     main_config: MainConfig = initialize_configuration(
         config=config,
         logger=global_logger,
     )
+    verbosity: Verbosity = main_config.verbosity
 
-    data_dir: pathlib.Path = get_data_dir(
+    embeddings_path_manager: EmbeddingsPathManager = get_embeddings_path_manager(
         main_config=main_config,
-        verbosity=main_config.verbosity,
-        logger=global_logger,
+        logger=logger,
     )
 
     # # # #
     # Load the models
+    model_loading_class = transformers.AutoModelForMaskedLM
 
-    model_files_root_dir = pathlib.Path(
-        data_dir,
-        "models",
-        "finetuned_models",
-        "data-one-year-of-tsla-on-reddit_split-train_ctxt-dataset_entry_samples-10000",
-        "model-roberta-base",
-        "ftm-standard",
-        "lora-None",
-        "gradmod-freeze_layers_target-freeze-['encoder.layer.0.', 'encoder.layer.1.', 'encoder.layer.2.', 'encoder.layer.3.', 'encoder.layer.4.', 'encoder.layer.5.']"
-        "lr-5e-05_lr_scheduler_type-constant_wd-0.01",
-        "ep-50",
-        "model_files",
-    )
+    model_files_dir_relative_to_data_dir_list: list = [
+        # > target-freeze= (i.e., freeze nothing)
+        pathlib.Path(
+            "models/finetuned_models/data=one-year-of-tsla-on-reddit_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags/split=train_samples=80_sampling=take_first/model=roberta-base_task=masked_lm_dr=defaults/ftm=standard/lora-None/",
+            "gradmod=do_nothing_target-freeze=/lr=5e-05_lr-scheduler-type=linear_wd=0.01/bs-train=16/ep=2/",
+            "seed=1235/model_files/checkpoint-2",
+        ),
+        pathlib.Path(
+            "models/finetuned_models/data=one-year-of-tsla-on-reddit_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags/split=train_samples=80_sampling=take_first/model=roberta-base_task=masked_lm_dr=defaults/ftm=standard/lora-None/",
+            "gradmod=do_nothing_target-freeze=/lr=5e-05_lr-scheduler-type=linear_wd=0.01/bs-train=16/ep=2/",
+            "seed=1235/model_files/checkpoint-4",
+        ),
+        # > target-freeze=lm_head
+        pathlib.Path(
+            "models/finetuned_models/data=one-year-of-tsla-on-reddit_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags/split=train_samples=80_sampling=take_first/model=roberta-base_task=masked_lm_dr=defaults/ftm=standard/lora-None/",
+            "gradmod=freeze_layers_target-freeze=lm_head/lr=5e-05_lr-scheduler-type=linear_wd=0.01/bs-train=16/ep=2/",
+            "seed=1235/model_files/checkpoint-2",
+        ),
+        pathlib.Path(
+            "models/finetuned_models/data=one-year-of-tsla-on-reddit_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags/split=train_samples=80_sampling=take_first/model=roberta-base_task=masked_lm_dr=defaults/ftm=standard/lora-None/",
+            "gradmod=freeze_layers_target-freeze=lm_head/lr=5e-05_lr-scheduler-type=linear_wd=0.01/bs-train=16/ep=2/",
+            "seed=1235/model_files/checkpoint-4",
+        ),
+    ]
 
-    model_paths_list: list[pathlib.Path] = []
+    # This holds the list of model files to compare
+    models_identifier_or_paths_list: list[str] = [
+        str(
+            object=pathlib.Path(
+                embeddings_path_manager.data_dir,
+                relative_dir,
+            ),
+        )
+        for relative_dir in model_files_dir_relative_to_data_dir_list
+    ]
 
-    layer_names_to_compare: list[str] = [
+    # Load the models
+    models_list: list[transformers.PreTrainedModel] = [
+        model_loading_class.from_pretrained(
+            pretrained_model_name_or_path=model_identifier_or_path,
+        )
+        for model_identifier_or_path in models_identifier_or_paths_list
+    ]
+
+    # Log the model information
+    if verbosity >= Verbosity.NORMAL:
+        for model in models_list:
+            log_model_info(
+                model=model,
+                logger=logger,
+            )
+
+    # Example lists of parameters to compare
+    parameter_names_to_compare_debug_list: list[str] = [
+        "lm_head.dense.weight",
+    ]
+
+    parameter_names_to_compare_extended_list: list[str] = [
+        "roberta.embeddings.word_embeddings.weight",
+        "roberta.embeddings.position_embeddings.weight",
+        "roberta.embeddings.token_type_embeddings.weight",
+        "roberta.embeddings.LayerNorm.weight",
+        "roberta.embeddings.LayerNorm.bias",
+        "lm_head.bias",
+        "lm_head.dense.weight",
+        "lm_head.dense.bias",
+        "lm_head.layer_norm.weight",
+        "lm_head.layer_norm.bias",
+        "lm_head.decoder",
         "roberta.encoder.layer.1.attention.self.query.weight",
         "roberta.encoder.layer.11.attention.self.query.weight",
     ]
 
-    # TODO This script is not finished
+    # This holds the list of parameters to compare
+    parameter_names_to_compare = parameter_names_to_compare_debug_list
 
-    logger.info("Running script DONE")
+    for parameter_name in parameter_names_to_compare:
+        compare_model_components(
+            models_list=models_list,
+            parameters_to_compare=parameter_name,
+            verbosity=verbosity,
+            logger=logger,
+        )
+
+    logger.info(
+        msg="Running script DONE",
+    )
+
+
+def compare_model_components(
+    models_list: list[transformers.PreTrainedModel],
+    parameters_to_compare: str,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+):
+    """Compare the model components."""
+    # Iterate over pairs of models
+    pairs_of_models = itertools.combinations(
+        iterable=models_list,
+        r=2,
+    )
+
+    for model_1, model_2 in pairs_of_models:
+        # Compare the parameters
+        model_1_parameter = model_1.state_dict()[parameters_to_compare]
+        model_2_parameter = model_2.state_dict()[parameters_to_compare]
+
+        # Compare the parameters
+
+    # TODO: Implement this
 
 
 if __name__ == "__main__":

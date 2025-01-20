@@ -34,13 +34,16 @@ RUN_ONLY_SELECTED_CONFIGS_OPTION="run_all"
 # >>>> END: Select the run option
 
 FINETUNING_DATASETS_LIST_OPTION_LIST=(
-  # "iclr_small"
+  "iclr_small"
   "multiwoz21_small"
   "reddit_small"
-  # "sgd_small"
-  # "wikitext_small"
+  "sgd_small"
+  "wikitext_small"
   # "multiwoz21_and_reddit_small"
 )
+
+FINETUNING_BASE_MODEL_LIST_OPTION="roberta_base"
+# FINETUNING_BASE_MODEL_LIST_OPTION="gpt2_medium"
 
 # Example of a list of parameters to loop through
 PARAMETER_LIST=(
@@ -48,8 +51,23 @@ PARAMETER_LIST=(
   # "PLACEHOLDER_1"
 )
 
+# # # # # # # #
+# Note:
+# If you do not want to set the following options, you can leave the variables as empty strings,
+# or you can comment them out.
+
 # SKIP_FINETUNING_OPTION="--additional-overrides feature_flags.finetuning.skip_finetuning=true"
 # USE_WANDB_FALSE_OPTION="--additional-overrides feature_flags.wandb.use_wandb=false"
+
+FINETUNING_SAVE_STEPS_OPTION="--additional-overrides finetuning.save_steps=100" # <-- Note: This will lead to a large number of checkpoints being saved
+
+FINETUNING_GRADIENT_MODIFIER_OPTION="--additional-overrides finetuning/gradient_modifier=do_nothing"
+# FINETUNING_GRADIENT_MODIFIER_OPTION="--additional-overrides finetuning/gradient_modifier=freeze_lm_head_bert-style-models"
+# FINETUNING_GRADIENT_MODIFIER_OPTION="--additional-overrides finetuning/gradient_modifier=freeze_lm_head_and_word_embeddings_bert-style-models"
+
+# WANDB_OPTION="Topo_LLM_roberta-base_finetuning_from_submission_script_for_5_epochs_and_linear_lr_schedule_no_freeze"
+WANDB_OPTION="Topo_LLM_roberta-base_finetuning_from_submission_script_for_5_epochs_and_linear_lr_schedule_freeze_lm_head"
+# WANDB_OPTION="Topo_LLM_gpt2_finetuning_from_submission_script_for_5_epochs_and_linear_lr_schedule_no_freeze"
 
 # The "mps" backend does not support FP16 training,
 # this option allows us to deactivate it when runnign locally
@@ -81,13 +99,15 @@ for FINETUNING_DATASETS_LIST_OPTION in "${FINETUNING_DATASETS_LIST_OPTION_LIST[@
     poetry run submit_jobs \
       --experiment-selector "sensitivity_analysis_multiwoz21_different_data_subsampling_number_of_samples" \
       --experiment-stage "skip_compute_embeddings_but_do_multiple_pipeline_runs" \
-      --finetuning-base-model-list-option "gpt2_medium" \
-      --finetuning-datasets-list-option "${FINETUNING_DATASETS_LIST_OPTION}" \
-      --wandb-project "Topo_LLM_gpt2_finetuning_from_submission_script_for_5_epochs_and_linear_lr_schedule" \
-      --fp16 "${FP16}" \
       --model-group-option "roberta_base_finetuned_for_few_epochs_old_and_new_data_single_seed_last_checkpoint" \
+      --finetuning-base-model-list-option "${FINETUNING_BASE_MODEL_LIST_OPTION}" \
+      --finetuning-datasets-list-option "${FINETUNING_DATASETS_LIST_OPTION}" \
+      --wandb-project "${WANDB_OPTION}" \
+      --fp16 "${FP16}" \
       $SKIP_FINETUNING_OPTION \
       $USE_WANDB_FALSE_OPTION \
+      $FINETUNING_SAVE_STEPS_OPTION \
+      $FINETUNING_GRADIENT_MODIFIER_OPTION \
       --task=finetuning \
       --submission-mode "${SUBMISSION_MODE}" \
       --run-option "${RUN_OPTION}" \

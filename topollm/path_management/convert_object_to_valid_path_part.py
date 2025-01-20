@@ -56,7 +56,7 @@ def convert_list_to_path_part(
 
     """
     # Convert the elements of the list to strings
-    input_list_with_string_values = [str(item) for item in input_list]
+    input_list_with_string_values: list[str] = [str(object=item) for item in input_list]
     # Join the string values with the specified delimiter
     path_part = delimiter.join(
         input_list_with_string_values,

@@ -43,6 +43,7 @@ echo ">>> TOPO_LLM_REPOSITORY_BASE_PATH=$TOPO_LLM_REPOSITORY_BASE_PATH"
 REPOSITORY_SUBDIRECTORY_PATH_LIST=(
   "wandb_output_dir/Topo_LLM_finetuning_from_submission_script_for_5_epochs_and_linear_lr_schedule/"
   "wandb_output_dir/Topo_LLM_gpt2_finetuning_from_submission_script_for_5_epochs_and_linear_lr_schedule/"
+  "wandb_output_dir/Topo_LLM_roberta-base_finetuning_from_submission_script_for_5_epochs_and_linear_lr_schedule_freeze_lm_head/"
 )
 
 

@@ -1,10 +1,10 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -32,7 +32,7 @@ from pydantic import Field
 from topollm.config_classes.config_base_model import ConfigBaseModel
 from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
 from topollm.path_management.convert_object_to_valid_path_part import convert_list_to_path_part
-from topollm.typing.enums import GradientModifierMode
+from topollm.typing.enums import DescriptionType, GradientModifierMode
 
 
 class GradientModifierConfig(ConfigBaseModel):
@@ -48,16 +48,34 @@ class GradientModifierConfig(ConfigBaseModel):
         description="The target modules to freeze.",
     )
 
-    @property
-    def gradient_modifier_description(self) -> str:
+    def get_config_description(
+        self,
+        description_type: DescriptionType = DescriptionType.LONG,
+        short_description_separator: str = "-",
+    ) -> str:
         """Return a description of the gradient modifier which can be used in file paths."""
-        description = (
-            f"{NAME_PREFIXES['GradientModifierMode']}{KV_SEP}{str(self.mode)}"
-            f"{ITEM_SEP}"
-            f"{NAME_PREFIXES['target_modules_to_freeze']}"
-            f"{KV_SEP}"
-            f"{target_modules_to_freeze_to_path_part(self.target_modules_to_freeze)}"
-        )
+        match description_type:
+            case DescriptionType.LONG:
+                description: str = (
+                    f"{NAME_PREFIXES['GradientModifierMode']}{KV_SEP}{str(object=self.mode)}"
+                    f"{ITEM_SEP}"
+                    f"{NAME_PREFIXES['target_modules_to_freeze']}"
+                    f"{KV_SEP}"
+                    f"{target_modules_to_freeze_to_path_part(target_modules_to_freeze=self.target_modules_to_freeze)}"
+                )
+            case DescriptionType.SHORT:
+                description: str = (
+                    NAME_PREFIXES["target_modules_to_freeze_short"]
+                    + short_description_separator
+                    + target_modules_to_freeze_to_path_part(
+                        target_modules_to_freeze=self.target_modules_to_freeze,
+                    )
+                )
+            case _:
+                msg: str = f"Unknown {description_type = }"
+                raise ValueError(
+                    msg,
+                )
 
         return description
 

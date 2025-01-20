@@ -32,12 +32,14 @@ from typing import TYPE_CHECKING
 
 import transformers
 
+from topollm.config_classes.language_model.language_model_config import LanguageModelConfig
 from topollm.config_classes.main_config import MainConfig
+from topollm.config_classes.tokenizer.tokenizer_config import TokenizerConfig
 from topollm.model_handling.get_torch_device import get_torch_device
 from topollm.model_handling.loaded_model_container import LoadedModelContainer
 from topollm.model_handling.model.load_model import load_model
 from topollm.model_handling.tokenizer.load_tokenizer import load_modified_tokenizer
-from topollm.typing.enums import LMmode, Verbosity
+from topollm.typing.enums import LMmode, PreferredTorchBackend, Verbosity
 
 if TYPE_CHECKING:
     import torch
@@ -47,14 +49,16 @@ default_logger: logging.Logger = logging.getLogger(
 )
 
 
-def prepare_device_and_tokenizer_and_model(
-    main_config: MainConfig,
+def prepare_device_and_tokenizer_and_model_from_language_model_config(
+    language_model_config: LanguageModelConfig,
+    tokenizer_config: TokenizerConfig,
+    preferred_torch_backend: PreferredTorchBackend,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> LoadedModelContainer:
-    """Prepare device, tokenizer, and model."""
+    """Prepare the loaded container from the individual config files."""
     device: torch.device = get_torch_device(
-        preferred_torch_backend=main_config.preferred_torch_backend,
+        preferred_torch_backend=preferred_torch_backend,
         verbosity=verbosity,
         logger=logger,
     )
@@ -63,8 +67,8 @@ def prepare_device_and_tokenizer_and_model(
         tokenizer,
         tokenizer_modifier,
     ) = load_modified_tokenizer(
-        language_model_config=main_config.language_model,
-        tokenizer_config=main_config.tokenizer,
+        language_model_config=language_model_config,
+        tokenizer_config=tokenizer_config,
         verbosity=verbosity,
         logger=logger,
     )
@@ -81,7 +85,7 @@ def prepare_device_and_tokenizer_and_model(
 
     # Case distinction for different language model modes
     # (Masked Language Modeling, Causal Language Modeling).
-    lm_mode: LMmode = main_config.language_model.lm_mode
+    lm_mode: LMmode = language_model_config.lm_mode
 
     if lm_mode == LMmode.MLM:
         model_loading_class = transformers.AutoModelForMaskedLM
@@ -94,7 +98,7 @@ def prepare_device_and_tokenizer_and_model(
         )
 
     model: transformers.PreTrainedModel = load_model(
-        pretrained_model_name_or_path=main_config.language_model.pretrained_model_name_or_path,
+        pretrained_model_name_or_path=language_model_config.pretrained_model_name_or_path,
         model_loading_class=model_loading_class,
         device=device,
         verbosity=verbosity,
@@ -104,10 +108,27 @@ def prepare_device_and_tokenizer_and_model(
     loaded_model_container = LoadedModelContainer(
         device=device,
         tokenizer=tokenizer,
-        tokenizer_config=main_config.tokenizer,
+        tokenizer_config=tokenizer_config,
         tokenizer_modifier=tokenizer_modifier,
         lm_mode=lm_mode,
         model=model,
+    )
+
+    return loaded_model_container
+
+
+def prepare_device_and_tokenizer_and_model_from_main_config(
+    main_config: MainConfig,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> LoadedModelContainer:
+    """Prepare device, tokenizer, and model from a main config file."""
+    loaded_model_container: LoadedModelContainer = prepare_device_and_tokenizer_and_model_from_language_model_config(
+        language_model_config=main_config.language_model,
+        tokenizer_config=main_config.tokenizer,
+        preferred_torch_backend=main_config.preferred_torch_backend,
+        verbosity=verbosity,
+        logger=logger,
     )
 
     return loaded_model_container

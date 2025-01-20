@@ -1,10 +1,10 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -118,6 +118,7 @@ NAME_PREFIXES: dict[
     "split_shuffle": "spl-shuf",
     "split_seed": "spl-seed",
     "target_modules_to_freeze": "target-freeze",
+    "target_modules_to_freeze_short": "freeze",
     "task_type": "task",
     "test_short": "te",
     "transformation": "trans",
