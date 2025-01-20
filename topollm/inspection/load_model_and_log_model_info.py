@@ -116,9 +116,15 @@ def main(
         "gradmod=freeze_layers_target-freeze=lm_head/lr=5e-05_lr-scheduler-type=linear_wd=0.01/bs-train=16/ep=2/",
         "seed=1235/model_files/checkpoint-4",
     )
+    example_3_finetuned_model_identifier = pathlib.Path(
+        embeddings_path_manager.data_dir,
+        "models/finetuned_models/data=one-year-of-tsla-on-reddit_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags/split=train_samples=80_sampling=take_first/model=roberta-base_task=masked_lm_dr=defaults/ftm=standard/lora-None/",
+        "gradmod=freeze_layers_target-freeze=lm_head_embeddings.word_embeddings/lr=5e-05_lr-scheduler-type=linear_wd=0.01/bs-train=16/ep=2/",
+        "seed=1235/model_files/checkpoint-4",
+    )
 
     # Select the model identifier
-    model_identifier = example_2_finetuned_model_identifier
+    model_identifier: str = str(object=example_3_finetuned_model_identifier)
 
     # Load the model
     model = transformers.AutoModelForMaskedLM.from_pretrained(

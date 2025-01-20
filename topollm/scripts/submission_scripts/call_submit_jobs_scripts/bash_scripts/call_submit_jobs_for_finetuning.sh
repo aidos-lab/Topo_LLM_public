@@ -13,8 +13,8 @@ SUBMISSION_MODE="hpc_submission"
 # >>>> BEGIN: Select the run option
 # >>>> Use the following to dry run with all configurations
 #
-# RUN_OPTION="dry_run"
-# RUN_ONLY_SELECTED_CONFIGS_OPTION="run_all"
+RUN_OPTION="dry_run"
+RUN_ONLY_SELECTED_CONFIGS_OPTION="run_all"
 #
 # >>>> Use the following to dry run a random configuration
 #
@@ -28,15 +28,15 @@ SUBMISSION_MODE="hpc_submission"
 #
 # >>>> Use the following to run with all configurations
 #
-RUN_OPTION="do_submission"
-RUN_ONLY_SELECTED_CONFIGS_OPTION="run_all"
+# RUN_OPTION="do_submission"
+# RUN_ONLY_SELECTED_CONFIGS_OPTION="run_all"
 #
 # >>>> END: Select the run option
 
 FINETUNING_DATASETS_LIST_OPTION_LIST=(
   "iclr_small"
-  # "multiwoz21_small"
-  # "reddit_small"
+  "multiwoz21_small"
+  "reddit_small"
   "sgd_small"
   "wikitext_small"
   # "multiwoz21_and_reddit_small"
@@ -59,7 +59,8 @@ PARAMETER_LIST=(
 # SKIP_FINETUNING_OPTION="--additional-overrides feature_flags.finetuning.skip_finetuning=true"
 # USE_WANDB_FALSE_OPTION="--additional-overrides feature_flags.wandb.use_wandb=false"
 FINETUNING_SAVE_STEPS_OPTION="--additional-overrides finetuning.save_steps=100" # <-- Note: This will lead to a large number of checkpoints being saved
-FINETUNING_GRADIENT_MODIFIER_OPTION="--additional-overrides finetuning/gradient_modifier=freeze_lm_head_bert-style-models"
+# FINETUNING_GRADIENT_MODIFIER_OPTION="--additional-overrides finetuning/gradient_modifier=freeze_lm_head_bert-style-models"
+FINETUNING_GRADIENT_MODIFIER_OPTION="--additional-overrides finetuning/gradient_modifier=freeze_lm_head_and_word_embeddings_bert-style-models"
 
 # WANDB_OPTION="Topo_LLM_roberta-base_finetuning_from_submission_script_for_5_epochs_and_linear_lr_schedule_no_freeze"
 WANDB_OPTION="Topo_LLM_roberta-base_finetuning_from_submission_script_for_5_epochs_and_linear_lr_schedule_freeze_lm_head"
