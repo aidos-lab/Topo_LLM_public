@@ -7,14 +7,14 @@ echo ">>> Submission script started."
 
 # # # #
 #
-SUBMISSION_MODE="local"
-# SUBMISSION_MODE="hpc_submission"
+# SUBMISSION_MODE="local"
+SUBMISSION_MODE="hpc_submission"
 
 # >>>> BEGIN: Select the run option
 # >>>> Use the following to dry run with all configurations
 #
-RUN_OPTION="dry_run"
-RUN_ONLY_SELECTED_CONFIGS_OPTION="run_all"
+# RUN_OPTION="dry_run"
+# RUN_ONLY_SELECTED_CONFIGS_OPTION="run_all"
 #
 # >>>> Use the following to dry run a random configuration
 #
@@ -28,8 +28,8 @@ RUN_ONLY_SELECTED_CONFIGS_OPTION="run_all"
 #
 # >>>> Use the following to run with all configurations
 #
-# RUN_OPTION="do_submission"
-# RUN_ONLY_SELECTED_CONFIGS_OPTION="run_all"
+RUN_OPTION="do_submission"
+RUN_ONLY_SELECTED_CONFIGS_OPTION="run_all"
 #
 # >>>> END: Select the run option
 
@@ -50,11 +50,10 @@ elif [ "$SUBMISSION_MODE_SELECTOR" == "WIKITEXT_SMALL_DATA_MULTIPLE_DATA_SUBSAMP
         "wikitext_small"
     )
 
-    # TODO: Add these options
-    # TODO "finetuning.finetuning_datasets.train_dataset.data_subsampling.sampling_mode=random"
-    # TODO "finetuning.finetuning_datasets.train_dataset.data_subsampling.sampling_seed=113"
+    FINETUNING_TRAIN_DATASET_DATA_SUBSAMPLING_SAMPLING_MODE_OPTION="--additional-overrides finetuning.finetuning_datasets.train_dataset.data_subsampling.sampling_mode=random"
+    FINETUNING_TRAIN_DATASET_DATA_SUBSAMPLING_SAMPLING_SEED_OPTION="--additional-overrides finetuning.finetuning_datasets.train_dataset.data_subsampling.sampling_seed=112,113,114"
 
-    WANDB_OPTION="Topo_LLM_roberta-base_finetuning_from_submission_script_for_5_epochs_and_linear_lr_schedule_no_freeze_different_data_subsampling_seeds"
+    WANDB_OPTION="Topo_LLM_roberta-base_finetuning_for_ep-5_lr-linear_no_freeze_different_data_subsampling_seeds"
 else
   echo ">>> Unknown submission mode selector: SUBMISSION_MODE_SELECTOR=${SUBMISSION_MODE_SELECTOR}"
   echo ">>> Will not set any additional options."
@@ -68,6 +67,11 @@ FINETUNING_BASE_MODEL_LIST_OPTION="roberta_base"
 # WANDB_OPTION="Topo_LLM_roberta-base_finetuning_from_submission_script_for_5_epochs_and_linear_lr_schedule_no_freeze"
 # WANDB_OPTION="Topo_LLM_roberta-base_finetuning_from_submission_script_for_5_epochs_and_linear_lr_schedule_freeze_lm_head"
 # WANDB_OPTION="Topo_LLM_gpt2_finetuning_from_submission_script_for_5_epochs_and_linear_lr_schedule_no_freeze"
+
+# Note: The wandb project name must not exceeded 128 characters.
+#
+# Truncate the WANDB_OPTION to 128 characters
+WANDB_OPTION="${WANDB_OPTION:0:128}"
 
 # Example of a list of parameters to loop through
 PARAMETER_LIST=(
@@ -127,6 +131,8 @@ for FINETUNING_DATASETS_LIST_OPTION in "${FINETUNING_DATASETS_LIST_OPTION_LIST[@
       --fp16 "${FP16}" \
       $SKIP_FINETUNING_OPTION \
       $USE_WANDB_FALSE_OPTION \
+      $FINETUNING_TRAIN_DATASET_DATA_SUBSAMPLING_SAMPLING_MODE_OPTION \
+      $FINETUNING_TRAIN_DATASET_DATA_SUBSAMPLING_SAMPLING_SEED_OPTION \
       $FINETUNING_SAVE_STEPS_OPTION \
       $FINETUNING_GRADIENT_MODIFIER_OPTION \
       --task=finetuning \
