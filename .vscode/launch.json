@@ -1039,6 +1039,7 @@
                 // "DSML",
                 "RTX6000",
                 // >>>> Concrete experiment configurations
+                //
                 "--experiment-selector-options",
                 "masked_token_embeddings_last_layer_single_sample",
                 // "--experiment-selector-options",
@@ -1088,8 +1089,10 @@
                 // "roberta_base_finetuned_for_few_epochs_multiwoz_data_single_seed_last_checkpoint",
                 // "--model-group-options",
                 // "roberta_base_finetuned_for_few_epochs_multiwoz_and_reddit_and_wikitext_data_single_seed_all_checkpoints",
+                // "--model-group-options",
+                // "roberta_base_finetuned_for_few_epochs_multiwoz_data_single_seed_all_checkpoints_step_100",
                 "--model-group-options",
-                "roberta_base_finetuned_for_few_epochs_multiwoz_data_single_seed_all_checkpoints_step_100",
+                "roberta_base_finetuned_for_few_epochs_multiwoz_data_single_seed_frozen_lm_head_all_checkpoints_step_100",
                 //
                 //    >> END Model group options.
             ]
