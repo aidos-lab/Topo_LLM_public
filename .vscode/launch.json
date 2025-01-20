@@ -74,7 +74,13 @@
                 // <-- Saving every 2 steps should result in two saved checkpoints for a dataset of size 80 and batch size of: "Instantaneous batch size per device = 16"
                 "finetuning.save_steps=2",
                 "finetuning.eval_steps=2",
+                // "finetuning/finetuning_datasets=train_and_eval_on_one-year-of-tsla-on-reddit_train-samples-small",
+                "finetuning/finetuning_datasets=train_and_eval_on_wikitext_train-samples-small",
                 "finetuning.finetuning_datasets.train_dataset.data_subsampling.number_of_samples=80",
+                // "finetuning.finetuning_datasets.train_dataset.data_subsampling.sampling_mode=take_first",
+                "finetuning.finetuning_datasets.train_dataset.data_subsampling.sampling_mode=random",
+                // "finetuning.finetuning_datasets.train_dataset.data_subsampling.sampling_seed=112",
+                "finetuning.finetuning_datasets.train_dataset.data_subsampling.sampling_seed=113",
                 "finetuning.finetuning_datasets.eval_dataset.data_subsampling.number_of_samples=20",
                 "finetuning.num_train_epochs=2",
                 "finetuning.trainer_modifier.mode=add_wandb_prediction_progress_callback",
@@ -82,9 +88,9 @@
                 "finetuning.seed=1235",
                 // "finetuning.seed=1235,1236",
                 // >> START Optional: Change gradient modifier
-                // "finetuning/gradient_modifier=do_nothing",
+                "finetuning/gradient_modifier=do_nothing",
                 // "finetuning/gradient_modifier=freeze_lm_head_bert-style-models",
-                "finetuning/gradient_modifier=freeze_lm_head_and_word_embeddings_bert-style-models",
+                // "finetuning/gradient_modifier=freeze_lm_head_and_word_embeddings_bert-style-models",
                 // >> END Optional: Change gradient modifier
                 "feature_flags.wandb.use_wandb=true",
                 "wandb.project=Topo_LLM_finetuning_for_language_modeling_DEBUG",

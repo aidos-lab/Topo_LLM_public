@@ -1,10 +1,10 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -25,6 +25,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Select random elements from a dataset and log information about them."""
+
 import logging
 import random
 
@@ -34,7 +36,9 @@ from datasets import ClassLabel, Sequence
 
 from topollm.logging.log_dataframe_info import log_dataframe_info
 
-default_logger = logging.getLogger(__name__)
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 def select_random_elements_and_create_dataframe_with_classlabel(
@@ -98,7 +102,7 @@ def log_selected_dataset_elements_info(
 ) -> None:
     """Select random elements from a dataset and log information about them."""
     try:
-        selected_elements_df = select_random_elements_and_create_dataframe_with_classlabel(
+        selected_elements_df: pd.DataFrame = select_random_elements_and_create_dataframe_with_classlabel(
             dataset=dataset,
             num_examples=num_examples,
         )
@@ -108,4 +112,6 @@ def log_selected_dataset_elements_info(
             logger=logger,
         )
     except ValueError as e:
-        logger.warning(e)
+        logger.warning(
+            msg=e,
+        )

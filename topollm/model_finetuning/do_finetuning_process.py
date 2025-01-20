@@ -154,7 +154,10 @@ def do_finetuning_process(
     # For instance, for some autoregressive models, the tokenizer
     # needs to be modified to add a padding token.
 
-    tokenizer, tokenizer_modifier = load_modified_tokenizer_from_finetuning_config(
+    (
+        tokenizer,
+        tokenizer_modifier,
+    ) = load_modified_tokenizer_from_finetuning_config(
         finetuning_config=finetuning_config,
         verbosity=verbosity,
         logger=logger,

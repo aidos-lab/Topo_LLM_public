@@ -51,16 +51,18 @@ echo ">>> GPFS_PROJECT_DIR_DSML=$GPFS_PROJECT_DIR_DSML"
 # which are not all checkpoints of the model. This is for space reasons on the local machine.
 
 # Define the subfolder to sync
-SELECTED_SUBFOLDER="multiwoz21/roberta/setsumbt/gru/cosine/labelsmoothing/0.05/seed0/"
+#
+# SELECTED_SUBFOLDER="multiwoz21/roberta/setsumbt/gru/cosine/labelsmoothing/0.05/seed0/"
+SELECTED_SUBFOLDER="data/"
 
-SOURCE_DIR="Hilbert-Storage:${GPFS_PROJECT_DIR_DSML}/data/data-exp-eriments-zetsumbt/$SELECTED_SUBFOLDER"
+SOURCE_DIR="Hilbert-Storage:${GPFS_PROJECT_DIR_DSML}/${SELECTED_SUBFOLDER}"
 # Create the target directory if it doesn't exist
-TARGET_DIR="${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/setsumbt_checkpoints/$SELECTED_SUBFOLDER"
+TARGET_DIR="${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/setsumbt_checkpoints/${SELECTED_SUBFOLDER}"
 mkdir -p "$TARGET_DIR"
 
 EXCLUDE_FROM_FILE="${TOPO_LLM_REPOSITORY_BASE_PATH}/topollm/scripts/hhu_hilbert/sync_data/rsync_setsumbt_models_excludes.txt"
 
-echo "EXCLUDE_FROM_FILE=$EXCLUDE_FROM_FILE"
+echo ">>> EXCLUDE_FROM_FILE=$EXCLUDE_FROM_FILE"
 
 # ========================
 
@@ -80,7 +82,7 @@ rsync \
 # Capture the exit code of rsync
 RSYNC_EXIT_CODE=$?
 if [[ ${RSYNC_EXIT_CODE} -ne 0 ]]; then
-  echo ">>> Error: rsync failed with exit code ${RSYNC_EXIT_CODE}"
+  echo "@@@ Error: rsync failed with exit code ${RSYNC_EXIT_CODE}"
   exit ${RSYNC_EXIT_CODE}
 fi
 

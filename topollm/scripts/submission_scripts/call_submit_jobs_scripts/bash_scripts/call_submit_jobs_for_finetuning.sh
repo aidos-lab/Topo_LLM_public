@@ -7,14 +7,14 @@ echo ">>> Submission script started."
 
 # # # #
 #
-# SUBMISSION_MODE="local"
-SUBMISSION_MODE="hpc_submission"
+SUBMISSION_MODE="local"
+# SUBMISSION_MODE="hpc_submission"
 
 # >>>> BEGIN: Select the run option
 # >>>> Use the following to dry run with all configurations
 #
-# RUN_OPTION="dry_run"
-# RUN_ONLY_SELECTED_CONFIGS_OPTION="run_all"
+RUN_OPTION="dry_run"
+RUN_ONLY_SELECTED_CONFIGS_OPTION="run_all"
 #
 # >>>> Use the following to dry run a random configuration
 #
@@ -28,22 +28,46 @@ SUBMISSION_MODE="hpc_submission"
 #
 # >>>> Use the following to run with all configurations
 #
-RUN_OPTION="do_submission"
-RUN_ONLY_SELECTED_CONFIGS_OPTION="run_all"
+# RUN_OPTION="do_submission"
+# RUN_ONLY_SELECTED_CONFIGS_OPTION="run_all"
 #
 # >>>> END: Select the run option
 
-FINETUNING_DATASETS_LIST_OPTION_LIST=(
-  "iclr_small"
-  "multiwoz21_small"
-  "reddit_small"
-  "sgd_small"
-  "wikitext_small"
-  # "multiwoz21_and_reddit_small"
-)
+# SUBMISSION_MODE_SELECTOR="ALL_DATASETS"
+SUBMISSION_MODE_SELECTOR="WIKITEXT_SMALL_DATA_MULTIPLE_DATA_SUBSAMPLING_SAMPLING_SEEDS"
+
+# Select options based on the submission mode
+if [ "$SUBMISSION_MODE_SELECTOR" == "ALL_DATASETS" ]; then
+    FINETUNING_DATASETS_LIST_OPTION_LIST=(
+        "iclr_small"
+        "multiwoz21_small"
+        "reddit_small"
+        "sgd_small"
+        "wikitext_small"
+    )
+elif [ "$SUBMISSION_MODE_SELECTOR" == "WIKITEXT_SMALL_DATA_MULTIPLE_DATA_SUBSAMPLING_SAMPLING_SEEDS" ]; then
+    FINETUNING_DATASETS_LIST_OPTION_LIST=(
+        "wikitext_small"
+    )
+
+    # TODO: Add these options
+    # TODO "finetuning.finetuning_datasets.train_dataset.data_subsampling.sampling_mode=random"
+    # TODO "finetuning.finetuning_datasets.train_dataset.data_subsampling.sampling_seed=113"
+
+    WANDB_OPTION="Topo_LLM_roberta-base_finetuning_from_submission_script_for_5_epochs_and_linear_lr_schedule_no_freeze_different_data_subsampling_seeds"
+else
+  echo ">>> Unknown submission mode selector: SUBMISSION_MODE_SELECTOR=${SUBMISSION_MODE_SELECTOR}"
+  echo ">>> Will not set any additional options."
+fi
+
+# # # #
 
 FINETUNING_BASE_MODEL_LIST_OPTION="roberta_base"
 # FINETUNING_BASE_MODEL_LIST_OPTION="gpt2_medium"
+
+# WANDB_OPTION="Topo_LLM_roberta-base_finetuning_from_submission_script_for_5_epochs_and_linear_lr_schedule_no_freeze"
+# WANDB_OPTION="Topo_LLM_roberta-base_finetuning_from_submission_script_for_5_epochs_and_linear_lr_schedule_freeze_lm_head"
+# WANDB_OPTION="Topo_LLM_gpt2_finetuning_from_submission_script_for_5_epochs_and_linear_lr_schedule_no_freeze"
 
 # Example of a list of parameters to loop through
 PARAMETER_LIST=(
@@ -65,9 +89,6 @@ FINETUNING_GRADIENT_MODIFIER_OPTION="--additional-overrides finetuning/gradient_
 # FINETUNING_GRADIENT_MODIFIER_OPTION="--additional-overrides finetuning/gradient_modifier=freeze_lm_head_bert-style-models"
 # FINETUNING_GRADIENT_MODIFIER_OPTION="--additional-overrides finetuning/gradient_modifier=freeze_lm_head_and_word_embeddings_bert-style-models"
 
-# WANDB_OPTION="Topo_LLM_roberta-base_finetuning_from_submission_script_for_5_epochs_and_linear_lr_schedule_no_freeze"
-WANDB_OPTION="Topo_LLM_roberta-base_finetuning_from_submission_script_for_5_epochs_and_linear_lr_schedule_freeze_lm_head"
-# WANDB_OPTION="Topo_LLM_gpt2_finetuning_from_submission_script_for_5_epochs_and_linear_lr_schedule_no_freeze"
 
 # The "mps" backend does not support FP16 training,
 # this option allows us to deactivate it when runnign locally

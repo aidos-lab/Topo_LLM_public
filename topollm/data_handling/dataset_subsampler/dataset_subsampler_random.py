@@ -1,10 +1,10 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -67,14 +67,30 @@ class DatasetSubsamplerRandom:
         # https://huggingface.co/learn/nlp-course/en/chapter5/3
 
         # Shuffle the dataset first
+        if self.verbosity >= Verbosity.NORMAL:
+            self.logger.info(
+                msg=f"Shuffling dataset with {self.sampling_seed = } ...",  # noqa: G004 - low overhead
+            )
         dataset_shuffled: datasets.Dataset = dataset.shuffle(
             seed=self.sampling_seed,
         )
+        if self.verbosity >= Verbosity.NORMAL:
+            self.logger.info(
+                msg=f"Shuffling dataset with {self.sampling_seed = } DONE",  # noqa: G004 - low overhead
+            )
 
+        if self.verbosity >= Verbosity.NORMAL:
+            self.logger.info(
+                msg=f"Subsampling dataset to {self.number_of_samples = } samples (or how many are available) ...",  # noqa: G004 - low overhead
+            )
         dataset_shuffled_subsampled: datasets.Dataset = truncate_dataset_with_maximum_the_actual_number_of_samples(
             dataset=dataset_shuffled,
             number_of_samples=self.number_of_samples,
             logger=self.logger,
         )
+        if self.verbosity >= Verbosity.NORMAL:
+            self.logger.info(
+                msg=f"Subsampling dataset to {self.number_of_samples = } samples (or how many are available) DONE",  # noqa: G004 - low overhead
+            )
 
         return dataset_shuffled_subsampled
