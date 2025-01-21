@@ -1141,6 +1141,9 @@ def make_submission_config_and_run_task(
             f"Setting {add_prefix_space = }, which is required for our POS tagging to work, "
             f"since the tokenizer will be presented with input pre-split into words.",
         )
+        print(  # noqa: T201 - We want this script to print this output
+            "WARNING: This might make the local estimates computation inconsistent with the finetuning setup.",
+        )
 
         additional_data_options = [
             "+data.dataset_type=huggingface_dataset_named_entity",
