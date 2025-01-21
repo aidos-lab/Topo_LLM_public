@@ -107,21 +107,45 @@ def main(
         main_config.local_estimates.method_description,  # For example: 'twonn'
     )
 
-    output_root_dir: pathlib.Path = pathlib.Path(
-        embeddings_path_manager.saved_plots_dir_absolute_path,
-        "compare_mean_local_estimates_with_mean_losses_for_different_models",
-        main_config.analysis.investigate_distances.get_config_description(),
-        main_config.local_estimates.method_description,  # For example: 'twonn'
-    )
-
     descriptive_statistics_df: pd.DataFrame = load_descriptive_statistics_from_folder_structure(
         iteration_root_dir=iteration_root_dir,
         verbosity=verbosity,
         logger=logger,
     )
 
+    # # # #
+    # Filter the DataFrame for selected settings
+    tokenizer_add_prefix_space = "False"
+
+    filtered_descriptive_statistics_df: pd.DataFrame = descriptive_statistics_df.copy()
+    filtered_descriptive_statistics_df = filtered_descriptive_statistics_df[
+        (filtered_descriptive_statistics_df["tokenizer_add_prefix_space"] == tokenizer_add_prefix_space)
+    ]
+
+    output_root_dir: pathlib.Path = pathlib.Path(
+        embeddings_path_manager.saved_plots_dir_absolute_path,
+        "compare_mean_local_estimates_with_mean_losses_for_different_models",
+        f"{tokenizer_add_prefix_space=}",
+        main_config.analysis.investigate_distances.get_config_description(),
+        main_config.local_estimates.method_description,  # For example: 'twonn'
+    )
+    output_root_dir.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    # Save descriptive_statistics_df and filtered_descriptive_statistics_df to CSV
+    descriptive_statistics_df.to_csv(
+        path_or_buf=output_root_dir / "descriptive_statistics_df.csv",
+        index=False,
+    )
+    filtered_descriptive_statistics_df.to_csv(
+        path_or_buf=output_root_dir / "filtered_descriptive_statistics_df.csv",
+        index=False,
+    )
+
     compare_mean_local_estimates_with_mean_losses_for_different_models(
-        descriptive_statistics_df=descriptive_statistics_df,
+        descriptive_statistics_df=filtered_descriptive_statistics_df,
         output_root_dir=output_root_dir,
         verbosity=verbosity,
         logger=logger,

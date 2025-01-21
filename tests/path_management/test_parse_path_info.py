@@ -150,6 +150,9 @@ def test_parse_path_info_full_sampling_random(
         "n_neighbors": 128,
         "n_neighbors_mode": "absolute_size",
         "normalization": "None",
+        "tokenizer_add_prefix_space": "True",
+        "tokenizer_full": "add-prefix-space=True_max-len=512",
+        "tokenizer_max_len": 512,
     }
 
     compare_result_for_example_path_and_expected_result(

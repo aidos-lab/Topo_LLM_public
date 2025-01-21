@@ -104,6 +104,11 @@ def parse_path_info_full(
         path=path_str,
     )
 
+    # Extract tokenizer information
+    tokenizer_info: dict = parse_tokenizer_info(
+        path_str=path_str,
+    )
+
     # Extract embedding data handler information
     embedding_data_handler_info: dict = parse_embedding_data_handler_info(
         path_str=path_str,
@@ -169,6 +174,7 @@ def parse_path_info_full(
     parsed_info: dict = {
         **data_info,
         **data_subsampling_info,
+        **tokenizer_info,
         **embedding_data_handler_info,
         **sampling_info,
         **local_estimates_info,
@@ -299,6 +305,28 @@ def parse_data_subsampling_info(
         parsed_info["data_subsampling_sampling_seed"] = (
             int(subsampling_match.group(4)) if subsampling_match.group(4) else None
         )
+
+    return parsed_info
+
+
+def parse_tokenizer_info(
+    path_str: str,
+) -> dict:
+    """Parse the tokenizer information from the given path."""
+    parsed_info: dict = {}
+
+    # e.g.
+    # > "add-prefix-space=False_max-len=512"
+    # > "add-prefix-space=True_max-len=512
+    #
+    matched_info: re.Match[str] | None = re.search(
+        pattern=r"add-prefix-space=(False|True)_max-len=(\d+)",
+        string=path_str,
+    )
+    if matched_info:
+        parsed_info["tokenizer_full"] = matched_info.group(0)
+        parsed_info["tokenizer_add_prefix_space"] = matched_info.group(1)
+        parsed_info["tokenizer_max_len"] = int(matched_info.group(2))
 
     return parsed_info
 
