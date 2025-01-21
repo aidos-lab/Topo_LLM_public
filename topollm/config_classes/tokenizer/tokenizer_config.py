@@ -64,14 +64,14 @@ class TokenizerConfig(ConfigBaseModel):
             str: The description of the tokenizer.
 
         """
-        desc = (
+        desc: str = (
             f"{NAME_PREFIXES['add_prefix_space']}"
             f"{KV_SEP}"
-            f"{str(self.add_prefix_space)}"
+            f"{str(object=self.add_prefix_space)}"
             f"{ITEM_SEP}"
             f"{NAME_PREFIXES['max_length']}"
             f"{KV_SEP}"
-            f"{str(self.max_length)}"
+            f"{str(object=self.max_length)}"
         )
 
         return desc

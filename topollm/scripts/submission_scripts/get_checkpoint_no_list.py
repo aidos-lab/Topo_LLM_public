@@ -127,6 +127,15 @@ def get_checkpoint_no_list(
                     400,
                 )
             ]
+        case CheckpointNoListOption.RANGE_START_100_STOP_3200_STEP_100:
+            checkpoint_no_list = [
+                str(i)
+                for i in range(
+                    100,
+                    3200,
+                    100,
+                )
+            ]
         case _:
             msg = f"Unknown {checkpoint_no_list_option = }"
             raise ValueError(msg)

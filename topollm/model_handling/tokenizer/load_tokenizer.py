@@ -34,12 +34,15 @@ from transformers import AutoTokenizer, PreTrainedTokenizer, PreTrainedTokenizer
 
 from topollm.config_classes.language_model.language_model_config import LanguageModelConfig
 from topollm.config_classes.tokenizer.tokenizer_config import TokenizerConfig
+from topollm.logging.log_tokenizer_info import log_tokenizer_info
 from topollm.model_handling.tokenizer.tokenizer_modifier.factory import get_tokenizer_modifier
 from topollm.model_handling.tokenizer.tokenizer_modifier.protocol import TokenizerModifier
 from topollm.typing.enums import Verbosity
 from topollm.typing.types import TransformersTokenizer
 
-default_logger = logging.getLogger(__name__)
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 def load_tokenizer(
@@ -51,7 +54,8 @@ def load_tokenizer(
     """Load the tokenizer based on the configuration."""
     if verbosity >= Verbosity.NORMAL:
         logger.info(
-            f"Loading tokenizer {pretrained_model_name_or_path = } ...",  # noqa: G004 - low overhead
+            msg=f"Loading tokenizer {pretrained_model_name_or_path = } with "  # noqa: G004 - low overhead
+            f"{tokenizer_config.add_prefix_space = } ...",
         )
 
     try:
@@ -61,17 +65,23 @@ def load_tokenizer(
         )
     except Exception as e:
         logger.exception(
-            f"Failed to load tokenizer {pretrained_model_name_or_path = }",  # noqa: G004 - low overhead
+            msg=f"Failed to load tokenizer {pretrained_model_name_or_path = } with "  # noqa: G004 - low overhead
+            f"{tokenizer_config.add_prefix_space = }",
         )
         raise
 
     if verbosity >= Verbosity.NORMAL:
         logger.info(
-            f"Loading tokenizer {pretrained_model_name_or_path = } DONE",  # noqa: G004 - low overhead
+            msg=f"Loading tokenizer {pretrained_model_name_or_path = } with "  # noqa: G004 - low overhead
+            f"{tokenizer_config.add_prefix_space = } DONE",
         )
-        logger.info(
-            "tokenizer:\n%s",
-            tokenizer,
+
+    # Log the tokenizer information.
+    if verbosity >= Verbosity.NORMAL:
+        log_tokenizer_info(
+            tokenizer=tokenizer,
+            name="tokenizer",
+            logger=logger,
         )
 
     return tokenizer
@@ -90,7 +100,7 @@ def load_modified_tokenizer(
     if language_model_config.manual_tokenizer_override_pretrained_model_name_or_path is not None:
         if verbosity >= Verbosity.NORMAL:
             logger.info(
-                "@@@ Note: Using manual tokenizer override. @@@",
+                msg=">>> Note: Using manual tokenizer override. @@@",
             )
         tokenizer = load_tokenizer(
             pretrained_model_name_or_path=language_model_config.manual_tokenizer_override_pretrained_model_name_or_path,
@@ -101,7 +111,7 @@ def load_modified_tokenizer(
     else:
         if verbosity >= Verbosity.NORMAL:
             logger.info(
-                "Loading tokenizer without manual override.",
+                msg="Loading tokenizer without manual override.",
             )
         tokenizer = load_tokenizer(
             pretrained_model_name_or_path=language_model_config.pretrained_model_name_or_path,
@@ -110,7 +120,7 @@ def load_modified_tokenizer(
             logger=logger,
         )
 
-    tokenizer_modifier = get_tokenizer_modifier(
+    tokenizer_modifier: TokenizerModifier = get_tokenizer_modifier(
         tokenizer_modifier_config=language_model_config.tokenizer_modifier,
         verbosity=verbosity,
         logger=logger,
@@ -119,5 +129,13 @@ def load_modified_tokenizer(
     tokenizer_modified = tokenizer_modifier.modify_tokenizer(
         tokenizer=tokenizer,
     )
+
+    # Log the modified tokenizer information.
+    if verbosity >= Verbosity.NORMAL:
+        log_tokenizer_info(
+            tokenizer=tokenizer_modified,
+            name="tokenizer_modified",
+            logger=logger,
+        )
 
     return tokenizer_modified, tokenizer_modifier

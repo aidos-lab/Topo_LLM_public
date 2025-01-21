@@ -32,6 +32,7 @@ import json
 import logging
 import pathlib
 import pprint
+from typing import TYPE_CHECKING
 
 import hydra
 import omegaconf
@@ -39,17 +40,19 @@ import pandas as pd
 from tqdm import tqdm
 
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
-from topollm.config_classes.main_config import MainConfig
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.data_processing.dictionary_handling import flatten_dict
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
-from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 from topollm.path_management.parse_path_info import parse_path_info_full
 from topollm.plotting.create_scatter_plot import create_scatter_plot
 from topollm.typing.enums import Verbosity
+
+if TYPE_CHECKING:
+    from topollm.config_classes.main_config import MainConfig
+    from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 
 # Logger for this file
 global_logger: logging.Logger = logging.getLogger(
@@ -161,6 +164,7 @@ def load_descriptive_statistics_from_folder_structure(
         )
 
     # Full path example:
+    #
     # data/analysis/distances_and_influence_on_losses_and_local_estimates/a-tr-s=60000/twonn/
     # data=iclr_2024_submissions_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/
     # split=validation_samples=10000_sampling=random_sampling-seed=777/edh-mode=masked_token_lvl=token/add-prefix-space=True_max-len=512/
@@ -170,6 +174,7 @@ def load_descriptive_statistics_from_folder_structure(
     # descriptive_statistics_dict.json
     #
     # Example dataset folder:
+    #
     # data=one-year-of-tsla-on-reddit_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags
 
     loaded_data_list: list[dict] = []
@@ -198,6 +203,7 @@ def load_descriptive_statistics_from_folder_structure(
             combined_data: dict = {
                 **path_info,
                 **flattened_file_data,
+                "file_path": str(object=file_path),
             }
 
             loaded_data_list.append(

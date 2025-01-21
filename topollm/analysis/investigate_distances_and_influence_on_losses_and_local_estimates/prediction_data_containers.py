@@ -76,6 +76,7 @@ class LocalEstimatesAndPredictionsSavePathCollection:
 
     # Arrays
     loss_vector_save_path: pathlib.Path
+    local_estimates_vector_save_path: pathlib.Path
 
     # Correlation
     correlations_df_save_path: pathlib.Path
@@ -99,6 +100,11 @@ class LocalEstimatesAndPredictionsSavePathCollection:
             "arrays",
             "loss_vector.npy",
         )
+        local_estimates_vector_save_path: pathlib.Path = pathlib.Path(
+            distances_and_influence_on_local_estimates_dir_absolute_path,
+            "arrays",
+            "local_estimates_vector.npy",
+        )
 
         correlations_df_save_path: pathlib.Path = pathlib.Path(
             distances_and_influence_on_local_estimates_dir_absolute_path,
@@ -119,6 +125,7 @@ class LocalEstimatesAndPredictionsSavePathCollection:
         return LocalEstimatesAndPredictionsSavePathCollection(
             distances_and_influence_on_losses_and_local_estimates_dir_absolute_path=distances_and_influence_on_local_estimates_dir_absolute_path,
             loss_vector_save_path=loss_vector_save_path,
+            local_estimates_vector_save_path=local_estimates_vector_save_path,
             descriptive_statistics_dict_save_path=descriptive_statistics_dict_save_path,
             correlations_df_save_path=correlations_df_save_path,
             local_estimates_and_predictions_results_list_save_path=local_estimates_and_predictions_results_list_save_path,
@@ -132,6 +139,7 @@ class LocalEstimatesAndPredictionsSavePathCollection:
             self.distances_and_influence_on_losses_and_local_estimates_dir_absolute_path,
             self.descriptive_statistics_dict_save_path,
             self.loss_vector_save_path,
+            self.local_estimates_vector_save_path,
             self.correlations_df_save_path,
             self.local_estimates_and_predictions_results_list_save_path,
             self.human_readable_predictions_logging_save_path,
@@ -260,21 +268,39 @@ class LocalEstimatesAndPredictionsContainer:
         local_estimates_vector: np.ndarray = self.get_local_estimates_vector()
         loss_vector: np.ndarray = self.get_loss_vector()
 
+        # Create versions of the loss vector with log and exp applied
+        log_loss_vector: np.ndarray = np.log(
+            loss_vector,
+        )
+        exp_loss_vector: np.ndarray = np.exp(
+            loss_vector,
+        )
+
         local_estimates_series: pd.Series = pd.Series(
             data=local_estimates_vector,
         )
         loss_series: pd.Series = pd.Series(
             data=loss_vector,
         )
+        log_loss_series: pd.Series = pd.Series(
+            data=log_loss_vector,
+        )
+        exp_loss_series: pd.Series = pd.Series(
+            data=exp_loss_vector,
+        )
 
-        local_estimates_descriptive_sttistics: pd.Series = local_estimates_series.describe()
+        local_estimates_descriptive_statistics: pd.Series = local_estimates_series.describe()
         loss_descriptive_statistics: pd.Series = loss_series.describe()
+        log_loss_descriptive_statistics: pd.Series = log_loss_series.describe()
+        exp_loss_descriptive_statistics: pd.Series = exp_loss_series.describe()
 
         # Note: The conversion of the pd.Series to dicts is necessary to be able to save the results as JSON.
         # Otherwise, we run into the error that the pd.Series is not JSON serializable.
         descriptive_statistics_dict: dict[str, dict] = {
-            "local_estimates": local_estimates_descriptive_sttistics.to_dict(),
+            "local_estimates": local_estimates_descriptive_statistics.to_dict(),
             "loss": loss_descriptive_statistics.to_dict(),
+            "log_loss": log_loss_descriptive_statistics.to_dict(),
+            "exp_loss": exp_loss_descriptive_statistics.to_dict(),
         }
 
         if self.verbosity >= Verbosity.NORMAL:
@@ -299,11 +325,21 @@ class LocalEstimatesAndPredictionsContainer:
             },
         )
 
+        # Create columns containing the log and exp of the loss values
+        local_estimates_and_loss_df["log_loss"] = np.log(
+            local_estimates_and_loss_df["loss"],
+        )
+        local_estimates_and_loss_df["exp_loss"] = np.exp(
+            local_estimates_and_loss_df["loss"],
+        )
+
         correlations_df: pd.DataFrame = compute_correlations_with_count(
             df=local_estimates_and_loss_df,
             cols=[
                 "local_estimate",
                 "loss",
+                "log_loss",
+                "exp_loss",
             ],
             methods=None,  # default correlation methods are used
             significance_level=0.05,
@@ -363,6 +399,16 @@ class LocalEstimatesAndPredictionsContainer:
             array_np=loss_vector,
             save_path=local_estimates_and_predictions_save_path_collection.loss_vector_save_path,
             array_name_for_logging="loss_vector",
+            verbosity=self.verbosity,
+            logger=self.logger,
+        )
+
+        local_estimates_vector: np.ndarray = self.get_local_estimates_vector()
+
+        save_numpy_array_as_npy(
+            array_np=local_estimates_vector,
+            save_path=local_estimates_and_predictions_save_path_collection.local_estimates_vector_save_path,
+            array_name_for_logging="local_estimates_vector",
             verbosity=self.verbosity,
             logger=self.logger,
         )

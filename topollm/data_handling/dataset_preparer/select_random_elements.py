@@ -1,10 +1,10 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -25,6 +25,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Select random elements from a dataset and log information about them."""
+
 import logging
 import random
 
@@ -34,34 +36,47 @@ from datasets import ClassLabel, Sequence
 
 from topollm.logging.log_dataframe_info import log_dataframe_info
 
-default_logger = logging.getLogger(__name__)
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 def select_random_elements_and_create_dataframe_with_classlabel(
     dataset: datasets.Dataset,
     num_examples: int = 10,
+    seed: int | None = None,
 ) -> pd.DataFrame:
-    """Select random elements from a dataset and create a pandas DataFrame from them."""
+    """Select random elements from a dataset and create a pandas DataFrame with class labels.
+
+    Args:
+        dataset: The input HuggingFace dataset.
+        num_examples: Number of examples to sample from the dataset.
+        seed: Random seed for reproducibility.
+
+    Returns:
+        A pandas DataFrame containing the selected elements and transformed class labels.
+
+    """
     if num_examples > len(dataset):
         msg = "Can't pick more elements than there are in the dataset."
-        raise ValueError(msg)
-
-    picks: list[int] = []
-    for _ in range(num_examples):
-        pick = random.randint(  # noqa: S311 - not used for security/cryptographic purposes
-            0,
-            len(dataset) - 1,
+        raise ValueError(
+            msg,
         )
-        while pick in picks:
-            pick = random.randint(  # noqa: S311 - not used for security/cryptographic purposes
-                0,
-                len(dataset) - 1,
-            )
-        picks.append(pick)
 
+    # Set the seed for reproducibility
+    if seed is not None:
+        random.seed(seed)
+
+    # Randomly sample unique indices
+    picks: list[int] = random.sample(
+        population=range(len(dataset)),
+        k=num_examples,
+    )
+
+    # Select the corresponding elements
     selected_elements = [dataset[i] for i in picks]
     selected_elements_df = pd.DataFrame(
-        selected_elements,
+        data=selected_elements,
     )
 
     for column_name, feature_type in dataset.features.items():
@@ -94,13 +109,15 @@ def log_selected_dataset_elements_info(
     dataset: datasets.Dataset,
     dataset_name: str = "selected_dataset_elements",
     num_examples: int = 20,
+    seed: int | None = None,
     logger: logging.Logger = default_logger,
 ) -> None:
     """Select random elements from a dataset and log information about them."""
     try:
-        selected_elements_df = select_random_elements_and_create_dataframe_with_classlabel(
+        selected_elements_df: pd.DataFrame = select_random_elements_and_create_dataframe_with_classlabel(
             dataset=dataset,
             num_examples=num_examples,
+            seed=seed,
         )
         log_dataframe_info(
             df=selected_elements_df,
@@ -108,4 +125,6 @@ def log_selected_dataset_elements_info(
             logger=logger,
         )
     except ValueError as e:
-        logger.warning(e)
+        logger.warning(
+            msg=e,
+        )

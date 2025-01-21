@@ -1,10 +1,10 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -25,13 +25,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Log information about a dataset."""
+
 import logging
 import pprint
 
 import datasets
 import torch.utils.data
 
-default_logger = logging.getLogger(__name__)
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 def log_huggingface_dataset_info(
@@ -46,19 +50,19 @@ def log_huggingface_dataset_info(
         pprint.pformat(object=dataset.info),
     )
     logger.info(
-        f"{dataset_name}.column_names:\n{pprint.pformat(dataset.column_names)}",  # noqa: G004 - low overhead
+        msg=f"{dataset_name}.column_names:\n{pprint.pformat(object=dataset.column_names)}",  # noqa: G004 - low overhead
     )
     logger.info(
-        f"{dataset_name}:\n{pprint.pformat(dataset)}",  # noqa: G004 - low overhead
+        msg=f"{dataset_name}:\n{pprint.pformat(object=dataset)}",  # noqa: G004 - low overhead
     )
 
     # Log the first and last few samples of the dataset
     logger.info(
-        f"{dataset_name}[:{num_samples_to_log}]:\n"
+        f"{dataset_name}[:{num_samples_to_log}]:\n"  # noqa: G004 - low overhead
         f"{dataset[:num_samples_to_log]}",  # Do not use pprint here, as it will not be readable
     )
     logger.info(
-        f"{dataset_name}[-{num_samples_to_log}:]:\n"
+        f"{dataset_name}[-{num_samples_to_log}:]:\n"  # noqa: G004 - low overhead
         f"{dataset[-num_samples_to_log:]}",  # Do not use pprint here, as it will not be readable
     )
 
@@ -71,10 +75,10 @@ def log_torch_dataset_info(
 ) -> None:
     """Log information about the dataset."""
     logger.info(
-        f"{dataset_name = }",  # noqa: G004 - low overhead
+        msg=f"{dataset_name = }",  # noqa: G004 - low overhead
     )
     logger.info(
-        f"{dataset_name}:\n{pprint.pformat(dataset)}",  # noqa: G004 - low overhead
+        msg=f"{dataset_name}:\n{pprint.pformat(dataset)}",  # noqa: G004 - low overhead
     )
 
     # Log the first and last few samples of the dataset.
@@ -85,7 +89,7 @@ def log_torch_dataset_info(
     ):
         # Do not use pprint for 'dataset[idx]', as it will not be readable
         logger.info(
-            f"{dataset_name}[{idx}]:\n{(dataset[idx])}",  # noqa: G004 - low overhead
+            msg=f"{dataset_name}[{idx}]:\n{(dataset[idx])}",  # noqa: G004 - low overhead
         )
 
     for idx in range(
@@ -94,5 +98,5 @@ def log_torch_dataset_info(
     ):
         # Do not use pprint for 'dataset[idx]', as it will not be readable
         logger.info(
-            f"{dataset_name}[{idx}]:\n{(dataset[idx])}",  # noqa: G004 - low overhead
+            msg=f"{dataset_name}[{idx}]:\n{(dataset[idx])}",  # noqa: G004 - low overhead
         )

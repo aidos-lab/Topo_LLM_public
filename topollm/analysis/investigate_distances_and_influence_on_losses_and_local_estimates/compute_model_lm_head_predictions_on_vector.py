@@ -165,7 +165,7 @@ def compute_model_lm_head_predictions_on_vector(
         actual_token_name = extracted_metadata["token_name"]
 
         # Reshape prediction_scores and actual_token_id for the loss computation
-        loss = compute_masked_language_model_loss(
+        loss: torch.Tensor = compute_masked_language_model_loss(
             actual_token_id=actual_token_id,
             output_logits=output_logits,
             model=model,

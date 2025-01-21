@@ -149,12 +149,24 @@ class DatasetPreparerHuggingface:
                 msg=f"Selecting dataset split {self.data_config.data_subsampling.split.value = } ...",  # noqa: G004 - low overhead
             )
         dataset: datasets.Dataset = new_dataset_dict[self.data_config.data_subsampling.split.value]
+        if self.verbosity >= Verbosity.NORMAL:
+            self.logger.info(
+                msg=f"Selecting dataset split {self.data_config.data_subsampling.split.value = } DONE",  # noqa: G004 - low overhead
+            )
 
         # # # #
         # Apply the dataset subsampler to the dataset
+        if self.verbosity >= Verbosity.NORMAL:
+            self.logger.info(
+                msg="Applying dataset subsampler ...",
+            )
         subsampled_dataset: datasets.Dataset = self.dataset_subsampler.subsample_dataset(
             dataset=dataset,
         )
+        if self.verbosity >= Verbosity.NORMAL:
+            self.logger.info(
+                msg="Applying dataset subsampler DONE",
+            )
 
         self.dataset_length = len(subsampled_dataset)
 

@@ -1,10 +1,10 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -25,43 +25,48 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Evaluate the tuned model."""
+"""Logging utilities for tokenizer information."""
 
 import logging
-import math
+import pprint
 
-import transformers
+from transformers import PreTrainedTokenizer, PreTrainedTokenizerFast
 
 default_logger: logging.Logger = logging.getLogger(
     name=__name__,
 )
 
+default_logger_block_separator: str = "=" * 80
+default_logger_section_separator: str = "-" * 80
 
-def evaluate_tuned_model(
-    trainer: transformers.Trainer,
+
+def log_tokenizer_info(
+    tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast,
+    name: str = "tokenizer",
+    logger_section_separator: str | None = default_logger_section_separator,
+    logger_block_separator: str | None = default_logger_block_separator,
     logger: logging.Logger = default_logger,
 ) -> None:
-    """Evaluate the model."""
-    logger.info(
-        msg="Evaluating the model ...",
-    )
-
-    eval_results = trainer.evaluate()
-    logger.info(
-        msg=f"eval_results:\n{eval_results}",  # noqa: G004 - low overhead
-    )
-
-    # Since the model evaluation might not return the 'eval_loss' key, we need to check for it
-    if "eval_loss" in eval_results:
-        perplexity = math.exp(eval_results["eval_loss"])
+    """Log model information."""
+    if logger_block_separator is not None:
         logger.info(
-            msg=f"perplexity:\n{perplexity:.2f}",  # noqa: G004 - low overhead
-        )
-    else:
-        logger.warning(
-            msg="Could not calculate perplexity, because 'eval_loss' was not in eval_results",
+            msg=logger_block_separator,
         )
 
     logger.info(
-        msg="Evaluating the model DONE",
+        msg=f"{name}:\n{tokenizer}",  # noqa: G004 - low overhead
     )
+
+    if logger_section_separator is not None:
+        logger.info(
+            msg=logger_section_separator,
+        )
+
+    logger.info(
+        f"{name}.__dict__:\n{pprint.pformat(object=tokenizer.__dict__)}",  # noqa: G004 - low overhead
+    )
+
+    if logger_block_separator is not None:
+        logger.info(
+            msg=logger_block_separator,
+        )
