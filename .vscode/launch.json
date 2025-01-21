@@ -537,14 +537,18 @@
                 // "hydra.launcher.ngpus=1",
                 // "hydra.launcher.walltime=06:00:00",
                 // >>>> END: Hydra options
-                // "data=multiwoz21_validation",
-                "data=one-year-of-tsla-on-reddit_validation,multiwoz21_validation",
+                //    >> START Data option.
+                "data=multiwoz21_validation",
+                // "data=one-year-of-tsla-on-reddit_validation,multiwoz21_validation",
+                //    >> END Data option.
                 "data.data_subsampling.sampling_mode=random",
                 "data.data_subsampling.number_of_samples=10000",
                 "data.data_subsampling.sampling_seed=777",
                 "+data.dataset_type=huggingface_dataset_named_entity",
                 "tokenizer.add_prefix_space=True",
-                "language_model=roberta-base",
+                // > Note: You need to have the masked embeddings precomputed for the given checkpoints before you can call this loss computation.
+                "language_model=roberta-base", // Note: Do not set checkpoint_no for the base model
+                // > Note: Set checkpoint_no for the fine-tuned models
                 // "++language_model.checkpoint_no=2800",
                 "embeddings.embedding_data_handler.mode=masked_token",
                 "embeddings.embedding_extraction.layer_indices=[-1]",
