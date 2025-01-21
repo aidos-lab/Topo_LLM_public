@@ -30,6 +30,7 @@ from pydantic import Field
 
 from topollm.config_classes.config_base_model import ConfigBaseModel
 from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
+from topollm.typing.enums import DescriptionType
 
 
 class TokenizerConfig(ConfigBaseModel):
@@ -53,25 +54,36 @@ class TokenizerConfig(ConfigBaseModel):
         description="Whether to return special tokens mask.",
     )
 
-    @property
-    def config_description(
+    def get_config_description(
         self,
+        description_type: DescriptionType = DescriptionType.LONG,
+        short_description_separator: str = "-",
     ) -> str:
-        """Get the description of the tokenizer config.
+        """Return the config description."""
+        match description_type:
+            case DescriptionType.LONG:
+                description: str = (
+                    f"{NAME_PREFIXES['add_prefix_space']}"
+                    f"{KV_SEP}"
+                    f"{str(object=self.add_prefix_space)}"
+                    f"{ITEM_SEP}"
+                    f"{NAME_PREFIXES['max_length']}"
+                    f"{KV_SEP}"
+                    f"{str(object=self.max_length)}"
+                )
+            case DescriptionType.SHORT:
+                # This should be a combined description which is short enough to be used in the model name
+                description: str = (
+                    f"{NAME_PREFIXES['add_prefix_space_short']}"
+                    f"{short_description_separator}"
+                    f"{str(object=self.add_prefix_space)}"
+                    f"{short_description_separator}"
+                    f"{NAME_PREFIXES['max_length_short']}"
+                    f"{short_description_separator}"
+                    f"{str(object=self.max_length)}"
+                )
+            case _:
+                msg: str = f"Unknown {description_type = }"
+                raise ValueError(msg)
 
-        Returns
-        -------
-            str: The description of the tokenizer.
-
-        """
-        desc: str = (
-            f"{NAME_PREFIXES['add_prefix_space']}"
-            f"{KV_SEP}"
-            f"{str(object=self.add_prefix_space)}"
-            f"{ITEM_SEP}"
-            f"{NAME_PREFIXES['max_length']}"
-            f"{KV_SEP}"
-            f"{str(object=self.max_length)}"
-        )
-
-        return desc
+        return description

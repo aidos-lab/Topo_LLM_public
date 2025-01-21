@@ -83,10 +83,16 @@ class FinetuningPathManagerBasic:
         self,
     ) -> pathlib.Path:
         """Return the directory for the finetuned model relative to the data_dir."""
+        # Notes:
+        # - The tokenizer.config_description should be part of the fine-tuned model directory,
+        #   because this determines the processing of the input data in the fine-tuning process.
         path = pathlib.Path(
             "models",
             "finetuned_models",
             self.finetuning_config.finetuning_datasets.train_dataset.get_partial_path(),
+            self.finetuning_config.tokenizer.get_config_description(
+                description_type=DescriptionType.LONG,
+            ),
             self.finetuning_config.get_base_model_config_description(
                 description_type=DescriptionType.LONG,
             ),
@@ -127,6 +133,13 @@ class FinetuningPathManagerBasic:
             + ITEM_SEP
             + str(
                 object=self.finetuning_config.finetuning_datasets.train_dataset.get_config_description(
+                    description_type=DescriptionType.SHORT,
+                    short_description_separator=short_description_separator,
+                ),
+            )
+            + ITEM_SEP
+            + str(
+                object=self.finetuning_config.tokenizer.get_config_description(
                     description_type=DescriptionType.SHORT,
                     short_description_separator=short_description_separator,
                 ),
