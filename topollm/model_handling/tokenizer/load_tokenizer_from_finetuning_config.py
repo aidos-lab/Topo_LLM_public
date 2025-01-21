@@ -47,7 +47,10 @@ def load_modified_tokenizer_from_finetuning_config(
     TokenizerModifier,
 ]:
     """Interface function to load a tokenizer from a FinetuningConfig object."""
-    tokenizer, tokenizer_modifier = load_modified_tokenizer(
+    (
+        tokenizer,
+        tokenizer_modifier,
+    ) = load_modified_tokenizer(
         language_model_config=finetuning_config.base_model,
         tokenizer_config=finetuning_config.tokenizer,
         verbosity=verbosity,

@@ -74,8 +74,8 @@
                 // <-- Saving every 2 steps should result in two saved checkpoints for a dataset of size 80 and batch size of: "Instantaneous batch size per device = 16"
                 "finetuning.save_steps=2",
                 "finetuning.eval_steps=2",
-                // "finetuning/finetuning_datasets=train_and_eval_on_one-year-of-tsla-on-reddit_train-samples-small",
-                "finetuning/finetuning_datasets=train_and_eval_on_wikitext_train-samples-small",
+                "finetuning/finetuning_datasets=train_and_eval_on_one-year-of-tsla-on-reddit_train-samples-small",
+                // "finetuning/finetuning_datasets=train_and_eval_on_wikitext_train-samples-small",
                 "finetuning.finetuning_datasets.train_dataset.data_subsampling.number_of_samples=80",
                 // "finetuning.finetuning_datasets.train_dataset.data_subsampling.sampling_mode=take_first",
                 "finetuning.finetuning_datasets.train_dataset.data_subsampling.sampling_mode=random",
@@ -537,10 +537,10 @@
                 // "hydra.launcher.ngpus=1",
                 // "hydra.launcher.walltime=06:00:00",
                 // >>>> END: Hydra options
-                //    >> START Data option.
+                //    >> START Data options.
                 "data=multiwoz21_validation",
                 // "data=one-year-of-tsla-on-reddit_validation,multiwoz21_validation",
-                //    >> END Data option.
+                //    >> END Data options.
                 "data.data_subsampling.sampling_mode=random",
                 "data.data_subsampling.number_of_samples=10000",
                 "data.data_subsampling.sampling_seed=777",
@@ -585,11 +585,14 @@
                 "hydra.launcher.memory=32",
                 "hydra.launcher.ncpus=4",
                 "hydra.launcher.ngpus=1",
-                "hydra.launcher.walltime=02:00:00", // For 60000 samples and one dataset and model, a forward pass takes only a few minutes on an RTX 6000
+                "hydra.launcher.walltime=00:20:00", // For 60000 samples and one dataset and model, a forward pass takes only a few minutes on an RTX 6000
                 // >>>> END: Hydra options
-                // "data=multiwoz21_validation",
-                // "data=iclr_2024_submissions_validation,multiwoz21_validation,one-year-of-tsla-on-reddit_validation,sgd_validation,wikitext-103-v1_validation",
-                "data=iclr_2024_submissions_test,multiwoz21_test,one-year-of-tsla-on-reddit_test,sgd_test,wikitext-103-v1_test",
+                //    >> START Data options.
+                // "data=multiwoz21_validation", // <-- only multiwoz21_validation
+                "data=iclr_2024_submissions_validation,one-year-of-tsla-on-reddit_validation,sgd_validation,wikitext-103-v1_validation", // <-- all validation splits except multiwoz21_validation
+                // "data=iclr_2024_submissions_validation,multiwoz21_validation,one-year-of-tsla-on-reddit_validation,sgd_validation,wikitext-103-v1_validation", // <-- all validation splits
+                // "data=iclr_2024_submissions_test,multiwoz21_test,one-year-of-tsla-on-reddit_test,sgd_test,wikitext-103-v1_test", // <-- all test splits
+                //    >> END Data options.
                 "data.data_subsampling.sampling_mode=random",
                 "data.data_subsampling.number_of_samples=10000",
                 "data.data_subsampling.sampling_seed=777",
@@ -600,9 +603,11 @@
                 // > Note: Set checkpoint_no for the fine-tuned models
                 // "language_model=roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
                 // "language_model=roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,roberta-base-masked_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,roberta-base-masked_lm-defaults_wikitext-103-v1-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
-                "language_model=roberta-base,roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,roberta-base-masked_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,roberta-base-masked_lm-defaults_wikitext-103-v1-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+                // "language_model=roberta-base,roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,roberta-base-masked_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,roberta-base-masked_lm-defaults_wikitext-103-v1-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
                 // "language_model=roberta-base-masked_lm-defaults_iclr_2024_submissions-rm-empty-True-do_nothing-ner_tags_train-5000-take_first-111_standard-None_5e-05-linear-0.01-5",
-                "++language_model.checkpoint_no=400,800,1200,1600,2000,2400,2800",
+                "language_model=roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-freeze-lm_head_embeddings.word_embeddings-5,roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-freeze-lm_head-5",
+                "++language_model.checkpoint_no=100,200,300,400,500,600,700,800,900,1000,1100,1200,1300,1400,1500,1600,1700,1800,1900,2000,2100,2200,2300,2400,2500,2600,2700,2800,2900,3000,3100",
+                // "++language_model.checkpoint_no=400,800,1200,1600,2000,2400,2800",
                 // "++language_model.checkpoint_no=2800",
                 "embeddings.embedding_data_handler.mode=masked_token",
                 "embeddings.embedding_extraction.layer_indices=[-1]",
@@ -641,8 +646,10 @@
                 "hydra.launcher.ngpus=1",
                 "hydra.launcher.walltime=02:00:00", // For 60000 samples and one dataset and model, a forward pass takes only a few minutes on an RTX 6000
                 // >>>> END: Hydra options
+                //    >> START Data options.
                 // "data=multiwoz21_validation",
                 "data=iclr_2024_submissions_validation,multiwoz21_validation,one-year-of-tsla-on-reddit_validation,sgd_validation,wikitext-103-v1_validation",
+                //    >> END Data options.
                 "data.data_subsampling.sampling_mode=random",
                 "data.data_subsampling.number_of_samples=10000",
                 "data.data_subsampling.sampling_seed=778,779", // <-- Different choices of data_subsampling.sampling_seed here
@@ -1093,10 +1100,10 @@
                 // "roberta_base_finetuned_for_few_epochs_multiwoz_data_single_seed_last_checkpoint",
                 // "--model-group-options",
                 // "roberta_base_finetuned_for_few_epochs_multiwoz_and_reddit_and_wikitext_data_single_seed_all_checkpoints",
-                // "--model-group-options",
-                // "roberta_base_finetuned_for_few_epochs_multiwoz_data_single_seed_all_checkpoints_step_100",
                 "--model-group-options",
-                "roberta_base_finetuned_for_few_epochs_multiwoz_data_single_seed_frozen_lm_head_all_checkpoints_step_100",
+                "roberta_base_finetuned_for_few_epochs_multiwoz_data_single_seed_all_checkpoints_step_100",
+                // "--model-group-options",
+                // "roberta_base_finetuned_for_few_epochs_multiwoz_data_single_seed_frozen_lm_head_all_checkpoints_step_100",
                 //
                 //    >> END Model group options.
             ]
