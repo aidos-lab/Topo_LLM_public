@@ -65,6 +65,7 @@ NAME_PREFIXES: dict[
 ] = {
     "array_truncation_size": "a-tr-s",
     "add_prefix_space": "add-prefix-space",
+    "add_prefix_space_short": "aps",
     "aggregation": "agg",
     "attention_probs_dropout_prob": "attn-dr",
     "batch_size": "bs",
@@ -105,6 +106,7 @@ NAME_PREFIXES: dict[
     "model_parameters": "mparam",
     "masking_mode": "mask",
     "max_length": "max-len",
+    "max_length_short": "mx",
     "normalization": "norm",
     "number_of_samples": "samples",
     "num_samples": "samples",
