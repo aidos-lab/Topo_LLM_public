@@ -597,7 +597,7 @@
                 "data.data_subsampling.number_of_samples=10000",
                 "data.data_subsampling.sampling_seed=777",
                 "+data.dataset_type=huggingface_dataset_named_entity",
-                "tokenizer.add_prefix_space=False", // <-- Note: We already changed `add_prefix_space` to `False` to be consistent with the fine-tuning
+                "tokenizer.add_prefix_space=False", // <-- Note: We set `add_prefix_space` to `False` to be consistent with the fine-tuning
                 // > Note: You need to have the masked embeddings precomputed for the given checkpoints before you can call this loss computation.
                 // "language_model=roberta-base", // Note: Do not set checkpoint_no for the base model
                 // > Note: Set checkpoint_no for the fine-tuned models
@@ -698,24 +698,28 @@
             "console": "integratedTerminal",
             "args": [
                 // >>>> BEGIN: Hydra options
+                //
                 "--multirun",
                 "hydra/sweeper=basic",
                 "hydra/launcher=hpc_submission",
-                "hydra.launcher.queue=CUDA",
-                "hydra.launcher.template=RTX6000",
+                // "hydra.launcher.queue=CUDA",
+                // "hydra.launcher.template=RTX6000",
+                "hydra.launcher.queue=DSML",
+                "hydra.launcher.template=DSML",
                 "hydra.launcher.memory=32",
                 "hydra.launcher.ncpus=4",
                 "hydra.launcher.ngpus=1",
-                "hydra.launcher.walltime=02:00:00", // For 60000 samples and one dataset and model, a forward pass takes only a few minutes on an RTX 6000
+                "hydra.launcher.walltime=00:30:00", // For 60000 samples and one dataset and model, a forward pass takes only a few minutes on an RTX6000-24GB (CUDA queue) or an GTX2080-8GB (DSML queue)
+                //
                 // >>>> END: Hydra options
-                // "data=iclr_2024_submissions_train,multiwoz21_train,one-year-of-tsla-on-reddit_train,sgd_train,wikitext-103-v1_train",
-                "data=one-year-of-tsla-on-reddit_train,sgd_train,wikitext-103-v1_train",
+                "data=iclr_2024_submissions_train,multiwoz21_train,one-year-of-tsla-on-reddit_train,sgd_train,wikitext-103-v1_train",
+                // "data=one-year-of-tsla-on-reddit_train,sgd_train,wikitext-103-v1_train",
                 // "data.data_subsampling.sampling_mode=random",
                 "data.data_subsampling.sampling_mode=take_first",
                 "data.data_subsampling.number_of_samples=10000",
                 // Note: No sampling seed for take_first sampling: "data.data_subsampling.sampling_seed=777",
                 "+data.dataset_type=huggingface_dataset_named_entity",
-                "tokenizer.add_prefix_space=True",
+                "tokenizer.add_prefix_space=False", // <-- Note: We set `add_prefix_space` to `False` to be consistent with the fine-tuning
                 // Note: You need to have the masked embeddings precomputed for the given checkpoints before you can call this loss computation.
                 // "language_model=roberta-base", // Note: Do not set checkpoint_no for the base model
                 // "language_model=roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
@@ -1062,19 +1066,19 @@
                 //    >> BEGIN Data list options.
                 //    >> Note that for multiple options, you need to specify the `--data-list-options` multiple times.
                 //
-                // "--data-list-options",
-                // "validation_split_only",
+                "--data-list-options",
+                "validation_split_only",
                 //
-                "--data-list-options",
-                "iclr_validation_only",
-                "--data-list-options",
-                "multiwoz21_validation_only",
-                "--data-list-options",
-                "reddit_validation_only",
-                "--data-list-options",
-                "sgd_validation_only",
-                "--data-list-options",
-                "wikitext_validation_only",
+                // "--data-list-options",
+                // "iclr_validation_only",
+                // "--data-list-options",
+                // "multiwoz21_validation_only",
+                // "--data-list-options",
+                // "reddit_validation_only",
+                // "--data-list-options",
+                // "sgd_validation_only",
+                // "--data-list-options",
+                // "wikitext_validation_only",
                 //
                 // "--data-list-options",
                 // "iclr_test_only",
@@ -1099,11 +1103,11 @@
                 // "--model-group-options",
                 // "roberta_base_finetuned_for_few_epochs_multiwoz_data_single_seed_last_checkpoint",
                 // "--model-group-options",
-                // "roberta_base_finetuned_for_few_epochs_multiwoz_and_reddit_and_wikitext_data_single_seed_all_checkpoints",
-                "--model-group-options",
-                "roberta_base_finetuned_for_few_epochs_multiwoz_data_single_seed_all_checkpoints_step_100",
+                // "roberta_base_finetuned_for_few_epochs_multiwoz_and_reddit_and_wikitext_data_single_seed_all_checkpoints_step_400",
                 // "--model-group-options",
-                // "roberta_base_finetuned_for_few_epochs_multiwoz_data_single_seed_frozen_lm_head_all_checkpoints_step_100",
+                // "roberta_base_finetuned_for_few_epochs_multiwoz_data_single_seed_all_checkpoints_step_100",
+                "--model-group-options",
+                "roberta_base_finetuned_for_few_epochs_multiwoz_data_single_seed_frozen_lm_head_all_checkpoints_step_100",
                 //
                 //    >> END Model group options.
             ]
@@ -1158,6 +1162,7 @@
                 "compute_embeddings_plus_single_pipeline_run",
                 //    >> START Data list options.
                 //    >> Note that for multiple options, you need to specify the `--data-list-options` multiple times.
+                //
                 "--data-list-options",
                 "iclr_train_only",
                 "--data-list-options",
@@ -1168,19 +1173,22 @@
                 "sgd_train_only",
                 "--data-list-options",
                 "wikitext_train_only",
+                //
                 //    >> END Data list options.
                 "--data-subsampling-sampling-mode",
                 "take_first",
                 //    >> START Model group options.
                 //    >> Note that for multiple options, you need to specify the `--model-group-options` multiple times.
-                // "--model-group-options",
-                // "roberta_base_without_modifications",
+                //
+                "--model-group-options",
+                "roberta_base_without_modifications",
                 // "--model-group-options",
                 // "roberta_base_finetuned_for_few_epochs_old_and_new_data_single_seed_last_checkpoint",
                 // "--model-group-options",
                 // "roberta_base_finetuned_for_few_epochs_multiwoz_data_single_seed_last_checkpoint",
-                "--model-group-options",
-                "roberta_base_finetuned_for_few_epochs_multiwoz_and_reddit_and_wikitext_data_single_seed_all_checkpoints",
+                // "--model-group-options",
+                // "roberta_base_finetuned_for_few_epochs_multiwoz_and_reddit_and_wikitext_data_single_seed_all_checkpoints_step_400",
+                //
                 //    >> END Model group options.
             ]
         },

@@ -458,7 +458,11 @@ def compare_mean_local_estimates_with_mean_losses_for_different_models(
         ]
         for column_name in columns_to_check_for_uniqueness:
             unique_values: pd.Series = filtered_df[column_name].unique()  # type: ignore - problem with pandas typing
-            if len(unique_values) != 1:
+            if len(unique_values) == 0:
+                logger.warning(
+                    msg=f"Column '{column_name = }' does not contain any values.",  # noqa: G004 - low overhead
+                )
+            elif len(unique_values) != 1:
                 msg: str = f"Column '{column_name = }' does not contain a unique value. Found: {unique_values = }"
                 raise ValueError(
                     msg,
