@@ -33,6 +33,8 @@ hilbert_job_logs_backup/
 hydra_output_dir/
 wandb_output_dir/
 
+tmp_trainer/
+
 # OSX files
 .DS_Store
 

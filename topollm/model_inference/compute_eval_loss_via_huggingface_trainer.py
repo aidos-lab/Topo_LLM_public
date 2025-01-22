@@ -27,6 +27,7 @@
 
 
 import logging
+from functools import partial
 from typing import TYPE_CHECKING
 
 import datasets
@@ -35,6 +36,17 @@ import hydra.core.hydra_config
 import omegaconf
 import transformers
 
+from topollm.compute_embeddings.collate_batch_for_embedding import (
+    collate_batch_and_move_to_device,
+)
+from topollm.compute_embeddings.embedding_dataloader_preparer.embedding_dataloader_preparer_context import (
+    EmbeddingDataLoaderPreparerContext,
+)
+from topollm.compute_embeddings.embedding_dataloader_preparer.embedding_dataloader_preparer_huggingface import (
+    EmbeddingDataLoaderPreparerHuggingface,
+)
+from topollm.compute_embeddings.embedding_dataloader_preparer.factory import get_embedding_dataloader_preparer
+from topollm.compute_embeddings.embedding_dataloader_preparer.protocol import EmbeddingDataLoaderPreparer
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.data_handling.dataset_preparer.factory import get_dataset_preparer
@@ -104,29 +116,48 @@ def main(
     # For example, dropout layers behave differently during evaluation.
     loaded_model_container.model.eval()
 
-    # # # #
-    # Prepare the dataset
-    dataset_preparer: DatasetPreparer = get_dataset_preparer(
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    #
+    # Note: This collation function will not be used in this evalutation script
+    partial_collate_fn = partial(
+        collate_batch_and_move_to_device,
+        device=loaded_model_container.device,
+        model_input_names=loaded_model_container.tokenizer.model_input_names,
+    )
+
+    preparer_context = EmbeddingDataLoaderPreparerContext(
         data_config=main_config.data,
+        embeddings_config=main_config.embeddings,
+        tokenizer_config=main_config.tokenizer,
+        tokenizer=loaded_model_container.tokenizer,
+        collate_fn=partial_collate_fn,
         verbosity=verbosity,
         logger=logger,
     )
-    dataset: datasets.Dataset = dataset_preparer.prepare_dataset()
+    embedding_dataloader_preparer: EmbeddingDataLoaderPreparerHuggingface = get_embedding_dataloader_preparer(
+        preparer_context=preparer_context,
+    )  # type: ignore - This script only works with EmbeddingDataLoaderPreparerHuggingface
 
-    # TODO: Prepare dataset
-
-    # TODO: Set up huggingface trainer
-
-    trainer: transformers.Trainer = transformers.Trainer(
-        model=model_which_will_be_trained,
-        args=training_args,
-        data_collator=data_collator,
-        train_dataset=train_dataset_mapped,  # type: ignore - typing issue with Dataset
-        eval_dataset=eval_dataset_mapped,  # type: ignore - typing issue with Dataset
-        tokenizer=tokenizer,  # type: ignore - typing issue with Tokenizer
-        compute_metrics=compute_metrics,
+    # # # #
+    # Prepare the dataset
+    dataset: datasets.Dataset = embedding_dataloader_preparer.dataset_preparer.prepare_dataset()
+    dataset_mapped: datasets.Dataset = embedding_dataloader_preparer.create_dataset_tokenized(
+        dataset=dataset,
     )
 
+    training_args = None
+
+    trainer: transformers.Trainer = transformers.Trainer(
+        model=loaded_model_container.model,
+        args=training_args,
+        data_collator=None,  # TODO: Find out if we can set this to None
+        train_dataset=None,  # type: ignore - typing issue with Dataset
+        eval_dataset=dataset_mapped,  # type: ignore - typing issue with Dataset
+        tokenizer=loaded_model_container.tokenizer,  # type: ignore - typing issue with Tokenizer
+        compute_metrics=None,
+    )
+
+    # TODO: Currently, this does not return the eval loss
     result: dict = evaluate_trainer(
         trainer=trainer,
         verbosity=verbosity,
