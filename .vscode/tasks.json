@@ -94,6 +94,21 @@
             "problemMatcher": []
         },
         {
+            "label": "rsync from local to Dropbox - 'data/analysis/distances_and_influence_on_losses_and_local_estimates' directory",
+            "command": "./topollm/scripts/data_handling/sync_folders_script.sh ./topollm/scripts/data_handling/pairs_files/sync_small_files_distances_and_influence_on_losses_and_local_estimates_to_dropbox.txt",
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": false
+            },
+            "problemMatcher": []
+        },
+        {
             "label": "rsync from HHU Hilbert to local - 'hydra_output_dir' directory",
             "command": "./topollm/scripts/hhu_hilbert/sync_data/rsync_hydra_output_dir_from_hhu_hilbert.sh",
             "type": "shell",
