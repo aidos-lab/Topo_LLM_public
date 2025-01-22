@@ -71,7 +71,7 @@ def worker_for_pipeline(
 
         compute_and_store_embeddings(
             main_config=main_config,
-            device=device,
+            verbosity=verbosity,
             logger=logger,
         )
 

@@ -40,7 +40,7 @@ from topollm.data_handling.dataset_preparer.select_random_elements import (
     log_selected_dataset_elements_info,
 )
 from topollm.logging.log_dataset_info import log_huggingface_dataset_info
-from topollm.model_finetuning.evaluate_tuned_model import evaluate_tuned_model
+from topollm.model_finetuning.evaluate_trainer import evaluate_trainer
 from topollm.model_finetuning.finetune_model import finetune_model
 from topollm.model_finetuning.generate_from_pretrained_kwargs_instance import (
     extract_label_list,
@@ -105,14 +105,14 @@ def do_finetuning_process(
     # Load data
     train_dataset_preparer: DatasetPreparer = get_dataset_preparer(
         data_config=finetuning_config.finetuning_datasets.train_dataset,
-        verbosity=main_config.verbosity,
+        verbosity=verbosity,
         logger=logger,
     )
     train_dataset: datasets.Dataset = train_dataset_preparer.prepare_dataset()
 
     eval_dataset_preparer: DatasetPreparer = get_dataset_preparer(
         data_config=finetuning_config.finetuning_datasets.eval_dataset,
-        verbosity=main_config.verbosity,
+        verbosity=verbosity,
         logger=logger,
     )
     eval_dataset: datasets.Dataset = eval_dataset_preparer.prepare_dataset()
@@ -141,6 +141,9 @@ def do_finetuning_process(
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Load tokenizer and model
+    #
+    # Note: We deliberately do not use the prepare_device_and_tokenizer_and_model_from_main_config here,
+    # since for the finetuning, the model loading is more complex and requires additional information.
 
     base_model: transformers.PreTrainedModel = load_base_model_from_finetuning_config(
         label_list=label_list,
@@ -197,6 +200,7 @@ def do_finetuning_process(
         model=modified_model,
     )
 
+    # # # #
     # Set the model to train
     model_which_will_be_trained: ModifiedModel = gradient_modified_model.train()
 
@@ -326,7 +330,8 @@ def do_finetuning_process(
         logger=logger,
     )
 
-    evaluate_tuned_model(
+    evaluate_trainer(
         trainer=trainer,
+        verbosity=verbosity,
         logger=logger,
     )

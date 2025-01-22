@@ -148,12 +148,12 @@
             "args": [
                 "tokenizer.add_prefix_space=True", // `add_prefix_space=True` is necessary to use the tokenizer with input split into words
                 "data=multiwoz21",
-                "data.number_of_samples=3000",
-                "data.split=validation",
+                "data.data_subsampling.number_of_samples=3000",
+                "data.data_subsampling.split=validation",
                 "language_model=roberta-base",
                 "embeddings.embedding_extraction.layer_indices=[-1]",
                 "embeddings_data_prep.sampling.num_samples=30000",
-                "+embeddings_data_prep.sampling.sampling_mode=random",
+                "embeddings_data_prep.sampling.sampling_mode=random",
                 // "local_estimates.filtering.num_samples=2500",
                 "local_estimates.filtering.num_samples=5000",
                 // "local_estimates.filtering.deduplication_mode=identity",
@@ -173,20 +173,24 @@
             "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
             "console": "integratedTerminal",
             "args": [
-                "tokenizer.add_prefix_space=True", // This is necessary to use the tokenizer with input split into words
+                "tokenizer.add_prefix_space=False", // "tokenizer.add_prefix_space=True" is necessary to use the tokenizer with input split into words
                 "data=multiwoz21",
-                "data.number_of_samples=512",
-                "data.split=validation",
-                "language_model=roberta-base",
+                "data.data_subsampling.number_of_samples=512",
+                "data.data_subsampling.split=validation",
+                // "language_model=roberta-base",
+                "language_model=gpt2-medium",
                 "embeddings.embedding_extraction.layer_indices=[-1]",
                 "embeddings_data_prep.sampling.num_samples=3000",
-                "+embeddings_data_prep.sampling.sampling_mode=random",
-                // "+embeddings_data_prep.sampling.sampling_mode=take_first",
+                "embeddings_data_prep.sampling.sampling_mode=random",
+                // "embeddings_data_prep.sampling.sampling_mode=take_first",
                 "local_estimates.filtering.num_samples=500",
                 "local_estimates.compute_global_estimates=true",
                 "local_estimates.pointwise.n_neighbors_mode=absolute_size",
                 "local_estimates.pointwise.absolute_n_neighbors=256",
-            ]
+            ],
+            "env": {
+                "PYTORCH_ENABLE_MPS_FALLBACK": "1"
+            }
         },
         {
             "name": "Regular Token Embedding; with POS on multiwoz21 - run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
@@ -198,12 +202,12 @@
                 "tokenizer.add_prefix_space=True", // This is necessary to use the tokenizer with input split into words
                 "+data.dataset_type=huggingface_dataset_named_entity",
                 "data=multiwoz21",
-                "data.number_of_samples=128",
-                "data.split=validation",
+                "data.data_subsampling.number_of_samples=128",
+                "data.data_subsampling.split=validation",
                 "language_model=roberta-base",
                 "embeddings.embedding_extraction.layer_indices=[-1]",
                 "embeddings_data_prep.sampling.num_samples=3000",
-                "+embeddings_data_prep.sampling.sampling_mode=random",
+                "embeddings_data_prep.sampling.sampling_mode=random",
                 "local_estimates.filtering.num_samples=300",
                 "local_estimates.compute_global_estimates=true",
                 "local_estimates.pointwise.n_neighbors_mode=absolute_size",
@@ -390,7 +394,7 @@
                 "language_model=model-roberta-base_task-MASKED_LM_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-linear-0.01-5",
                 "embeddings.embedding_extraction.layer_indices=[-1]",
                 "embeddings_data_prep.sampling.num_samples=30000",
-                "+embeddings_data_prep.sampling.sampling_mode=take_first",
+                "embeddings_data_prep.sampling.sampling_mode=take_first",
             ]
         },
         {
@@ -721,13 +725,13 @@
                 "+data.dataset_type=huggingface_dataset_named_entity",
                 "tokenizer.add_prefix_space=False", // <-- Note: We set `add_prefix_space` to `False` to be consistent with the fine-tuning
                 // Note: You need to have the masked embeddings precomputed for the given checkpoints before you can call this loss computation.
-                // "language_model=roberta-base", // Note: Do not set checkpoint_no for the base model
+                "language_model=roberta-base", // Note: Do not set checkpoint_no for the base model
                 // "language_model=roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
-                "language_model=roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,roberta-base-masked_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,roberta-base-masked_lm-defaults_wikitext-103-v1-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+                // "language_model=roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,roberta-base-masked_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,roberta-base-masked_lm-defaults_wikitext-103-v1-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
                 // "language_model=roberta-base,roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,roberta-base-masked_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,roberta-base-masked_lm-defaults_wikitext-103-v1-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
                 // "language_model=roberta-base-masked_lm-defaults_iclr_2024_submissions-rm-empty-True-do_nothing-ner_tags_train-5000-take_first-111_standard-None_5e-05-linear-0.01-5",
                 // "++language_model.checkpoint_no=2800",
-                "++language_model.checkpoint_no=400,800,1200,1600,2000,2400,2800",
+                // "++language_model.checkpoint_no=400,800,1200,1600,2000,2400,2800",
                 "embeddings.embedding_data_handler.mode=masked_token",
                 "embeddings.embedding_extraction.layer_indices=[-1]",
                 "embeddings_data_prep.sampling.num_samples=150000",
@@ -1153,8 +1157,8 @@
                 // "local",
                 "hpc_submission",
                 "--template-to-use-for-compute-embeddings",
-                // "DSML",
-                "RTX6000",
+                "DSML",
+                // "RTX6000", // <-- TODO: Change this back to "RTX6000" when the RTX6000 is available again
                 // >>>> Concrete experiment configurations
                 "--experiment-selector-options",
                 "masked_token_embeddings_last_layer_single_sample",

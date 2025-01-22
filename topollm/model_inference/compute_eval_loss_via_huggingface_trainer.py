@@ -29,14 +29,19 @@
 import logging
 from typing import TYPE_CHECKING
 
+import datasets
 import hydra
 import hydra.core.hydra_config
 import omegaconf
+import transformers
 
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
+from topollm.data_handling.dataset_preparer.factory import get_dataset_preparer
+from topollm.data_handling.dataset_preparer.protocol import DatasetPreparer
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
+from topollm.model_finetuning.evaluate_trainer import evaluate_trainer
 from topollm.model_handling.get_torch_device import get_torch_device
 from topollm.model_handling.loaded_model_container import LoadedModelContainer
 from topollm.model_handling.prepare_loaded_model_container import (
@@ -87,16 +92,46 @@ def main(
     )
     verbosity: Verbosity = main_config.verbosity
 
+    # # # #
+    # Load and prepare model
     loaded_model_container: LoadedModelContainer = prepare_device_and_tokenizer_and_model_from_main_config(
         main_config=main_config,
         verbosity=verbosity,
         logger=logger,
     )
 
-    # TODO: Implement this script:
+    # Put the model in evaluation mode.
+    # For example, dropout layers behave differently during evaluation.
+    loaded_model_container.model.eval()
+
+    # # # #
+    # Prepare the dataset
+    dataset_preparer: DatasetPreparer = get_dataset_preparer(
+        data_config=main_config.data,
+        verbosity=verbosity,
+        logger=logger,
+    )
+    dataset: datasets.Dataset = dataset_preparer.prepare_dataset()
+
     # TODO: Prepare dataset
+
     # TODO: Set up huggingface trainer
-    # TODO: Call eval function of huggingface trainer
+
+    trainer: transformers.Trainer = transformers.Trainer(
+        model=model_which_will_be_trained,
+        args=training_args,
+        data_collator=data_collator,
+        train_dataset=train_dataset_mapped,  # type: ignore - typing issue with Dataset
+        eval_dataset=eval_dataset_mapped,  # type: ignore - typing issue with Dataset
+        tokenizer=tokenizer,  # type: ignore - typing issue with Tokenizer
+        compute_metrics=compute_metrics,
+    )
+
+    result: dict = evaluate_trainer(
+        trainer=trainer,
+        verbosity=verbosity,
+        logger=logger,
+    )
 
     logger.info(
         msg="Running script DONE",

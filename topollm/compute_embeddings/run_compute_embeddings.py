@@ -76,14 +76,8 @@ def main(
         logger=global_logger,
     )
 
-    device = get_torch_device(
-        preferred_torch_backend=main_config.preferred_torch_backend,
-        logger=global_logger,
-    )
-
     compute_and_store_embeddings(
         main_config=main_config,
-        device=device,
         logger=global_logger,
     )
 

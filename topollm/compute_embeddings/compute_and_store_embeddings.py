@@ -48,8 +48,9 @@ from topollm.compute_embeddings.embedding_extractor.factory import (
     get_embedding_extractor,
 )
 from topollm.config_classes.main_config import MainConfig
-from topollm.model_handling.model.load_model import load_model
-from topollm.model_handling.tokenizer.load_tokenizer import load_modified_tokenizer
+from topollm.model_handling.prepare_loaded_model_container import (
+    prepare_device_and_tokenizer_and_model_from_main_config,
+)
 from topollm.path_management.embeddings.factory import (
     get_embeddings_path_manager,
 )
@@ -62,18 +63,15 @@ from topollm.storage.StorageDataclasses import ArrayProperties
 from topollm.typing.enums import Verbosity
 
 if TYPE_CHECKING:
-    from transformers.modeling_utils import PreTrainedModel
-
     from topollm.compute_embeddings.embedding_data_handler.base_embedding_data_handler import BaseEmbeddingDataHandler
     from topollm.compute_embeddings.embedding_dataloader_preparer.protocol import EmbeddingDataLoaderPreparer
     from topollm.compute_embeddings.embedding_extractor.protocol import EmbeddingExtractor
+    from topollm.model_handling.loaded_model_container import LoadedModelContainer
     from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
     from topollm.storage.array_storage.protocol import ChunkedArrayStorageProtocol
     from topollm.storage.metadata_storage.protocol import ChunkedMetadataStorageProtocol
 
-default_device = torch.device(
-    device="cpu",
-)
+
 default_logger: logging.Logger = logging.getLogger(
     name=__name__,
 )
@@ -81,7 +79,6 @@ default_logger: logging.Logger = logging.getLogger(
 
 def compute_and_store_embeddings(
     main_config: MainConfig,
-    device: torch.device = default_device,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> None:
@@ -90,63 +87,43 @@ def compute_and_store_embeddings(
         main_config=main_config,
         logger=logger,
     )
-    storage_paths = StoragePaths(
-        array_dir=embeddings_path_manager.array_dir_absolute_path,
-        metadata_dir=embeddings_path_manager.metadata_dir_absolute_path,
-    )
 
-    (
-        tokenizer,
-        tokenizer_modifier,
-    ) = load_modified_tokenizer(
-        language_model_config=main_config.language_model,
-        tokenizer_config=main_config.tokenizer,
+    loaded_model_container: LoadedModelContainer = prepare_device_and_tokenizer_and_model_from_main_config(
+        main_config=main_config,
         verbosity=verbosity,
         logger=logger,
-    )
-
-    # Logging of the model happens in the 'load_model' function
-    model = load_model(
-        pretrained_model_name_or_path=main_config.language_model.pretrained_model_name_or_path,
-        device=device,
-        logger=logger,
-        verbosity=verbosity,
     )
 
     # Put the model in evaluation mode.
     # For example, dropout layers behave differently during evaluation.
-    model.eval()
-
-    # Potential modification of the tokenizer and the model if this is necessary for compatibility.
-    # For instance, for some autoregressive models, the tokenizer needs to be modified to add a padding token.
-    model: PreTrainedModel = tokenizer_modifier.update_model(
-        model=model,
-    )
+    loaded_model_container.model.eval()
 
     # Check that the model config exists as an attribute of the model object.
     if not hasattr(
-        model,
+        loaded_model_container.model,
         "config",
     ):
         msg = (
             "The model object does not have an attribute 'model_config', "
             "which is necessary to access the hidden size of the model."
         )
-        raise ValueError(msg)
+        raise ValueError(
+            msg,
+        )
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Prepare data collator
     partial_collate_fn = partial(
         collate_batch_and_move_to_device,
-        device=device,
-        model_input_names=tokenizer.model_input_names,
+        device=loaded_model_container.device,
+        model_input_names=loaded_model_container.tokenizer.model_input_names,
     )
 
     preparer_context = EmbeddingDataLoaderPreparerContext(
         data_config=main_config.data,
         embeddings_config=main_config.embeddings,
         tokenizer_config=main_config.tokenizer,
-        tokenizer=tokenizer,
+        tokenizer=loaded_model_container.tokenizer,
         collate_fn=partial_collate_fn,
         verbosity=verbosity,
         logger=logger,
@@ -165,7 +142,7 @@ def compute_and_store_embeddings(
     # Length of each sequence
     length_of_sequence: int = embedding_dataloader_preparer.sequence_length
     # Dimension of the embeddings
-    embedding_dimension: int = model.config.hidden_size
+    embedding_dimension: int = loaded_model_container.model.config.hidden_size
 
     array_properties = ArrayProperties(
         shape=(
@@ -175,6 +152,10 @@ def compute_and_store_embeddings(
         ),
         dtype="float32",
         chunks=(main_config.storage.chunk_size,),
+    )
+    storage_paths = StoragePaths(
+        array_dir=embeddings_path_manager.array_dir_absolute_path,
+        metadata_dir=embeddings_path_manager.metadata_dir_absolute_path,
     )
     storage_specification = StorageSpecification(
         array_storage_type=main_config.storage.array_storage_type,
@@ -201,11 +182,11 @@ def compute_and_store_embeddings(
         language_model_config=main_config.language_model,
         array_storage_backend=array_storage_backend,
         metadata_storage_backend=metadata_storage_backend,
-        tokenizer=tokenizer,
-        model=model,
+        tokenizer=loaded_model_container.tokenizer,
+        model=loaded_model_container.model,
         dataloader=dataloader,
         embedding_extractor=embedding_extractor,
-        device=device,
+        device=loaded_model_container.device,
         verbosity=verbosity,
         logger=logger,
     )

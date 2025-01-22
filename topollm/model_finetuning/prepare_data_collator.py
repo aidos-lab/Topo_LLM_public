@@ -34,7 +34,9 @@ import transformers
 from topollm.config_classes.finetuning.finetuning_config import FinetuningConfig
 from topollm.typing.enums import LMmode, TaskType, Verbosity
 
-default_logger = logging.getLogger(__name__)
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 def prepare_data_collator(
@@ -61,12 +63,14 @@ def prepare_data_collator(
                 tokenizer=tokenizer,
             )
         case _:
-            msg = f"Unknown {finetuning_config.base_model.task_type = }"
-            raise ValueError(msg)
+            msg: str = f"Unknown {finetuning_config.base_model.task_type = }"
+            raise ValueError(
+                msg,
+            )
 
     if verbosity >= Verbosity.NORMAL:
         logger.info(
-            f"{data_collator = }",  # noqa: G004 - low overhead
+            msg=f"{data_collator = }",  # noqa: G004 - low overhead
         )
 
     return data_collator
