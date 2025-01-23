@@ -29,6 +29,7 @@
 
 import json
 import logging
+import os
 import pathlib
 from functools import partial
 from typing import TYPE_CHECKING
@@ -39,6 +40,7 @@ import hydra.core.hydra_config
 import omegaconf
 import transformers
 
+import wandb
 from topollm.compute_embeddings.collate_batch_for_embedding import (
     collate_batch_and_move_to_device,
 )
@@ -59,6 +61,7 @@ from topollm.logging.initialize_configuration_and_log import initialize_configur
 from topollm.logging.log_dataset_info import log_huggingface_dataset_info
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.model_finetuning.evaluate_trainer import evaluate_trainer
+from topollm.model_finetuning.initialize_wandb import initialize_wandb
 from topollm.model_finetuning.prepare_data_collator import prepare_data_collator
 from topollm.model_handling.get_torch_device import get_torch_device
 from topollm.model_handling.loaded_model_container import LoadedModelContainer
@@ -79,6 +82,16 @@ try:
     hpc_submission_launcher.register_plugin()
 except ImportError:
     pass
+
+# Increase the wandb service wait time to prevent errors on HHU Hilbert.
+# https://github.com/wandb/wandb/issues/5214
+os.environ["WANDB__SERVICE_WAIT"] = "300"
+
+# The "core" argument is only available from wandb 0.17 onwards
+#
+# > wandb.require(
+# >     "core",
+# > )
 
 # Logger for this file
 global_logger: logging.Logger = logging.getLogger(
@@ -112,6 +125,24 @@ def main(
     )
     verbosity: Verbosity = main_config.verbosity
 
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    # Initialize wandb
+    if main_config.feature_flags.wandb.use_wandb:
+        initialize_wandb(
+            main_config=main_config,
+            config=config,
+            logger=logger,
+        )
+    else:
+        os.environ["WANDB_MODE"] = "disabled"
+        # Note: Do not set `os.environ["WANDB_DISABLED"] = "true"` because this will raise the error
+        # `RuntimeError: WandbCallback requires wandb to be installed. Run `pip install wandb`.`
+        main_config.finetuning.report_to = [
+            "tensorboard",
+        ]
+
+    # # # #
+    # Path management
     embeddings_path_manager: EmbeddingsPathManager = get_embeddings_path_manager(
         main_config=main_config,
         verbosity=verbosity,
@@ -235,6 +266,11 @@ def main(
             fp=file,
             indent=4,
         )
+
+    if main_config.feature_flags.wandb.use_wandb:
+        # We need to manually finish the wandb run
+        # so that the hydra multi-run submissions are not summarized in the same run
+        wandb.finish()
 
     logger.info(
         msg="Running script DONE",
