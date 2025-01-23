@@ -32,8 +32,8 @@ from typing import TYPE_CHECKING
 
 import torch
 import transformers
-import wandb
 
+import wandb
 from topollm.config_classes.main_config import MainConfig
 from topollm.data_handling.dataset_preparer.factory import get_dataset_preparer
 from topollm.data_handling.dataset_preparer.select_random_elements import (
@@ -53,7 +53,9 @@ from topollm.model_finetuning.load_base_model_from_finetuning_config import (
 from topollm.model_finetuning.model_modifiers.factory import (
     get_model_modifier,
 )
-from topollm.model_finetuning.prepare_data_collator import prepare_data_collator
+from topollm.model_finetuning.prepare_data_collator import (
+    prepare_data_collator_from_finetuning_config,
+)
 from topollm.model_finetuning.prepare_finetuned_model_dir import (
     prepare_finetuned_model_dir,
 )
@@ -253,7 +255,7 @@ def do_finetuning_process(
         )
 
     data_collator: transformers.DataCollatorForLanguageModeling | transformers.DataCollatorForTokenClassification = (
-        prepare_data_collator(
+        prepare_data_collator_from_finetuning_config(
             finetuning_config=finetuning_config,
             tokenizer=tokenizer,
             verbosity=verbosity,

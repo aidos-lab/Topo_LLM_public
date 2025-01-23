@@ -18,6 +18,7 @@ __pycache__
 # Large data directories
 data/analysis/
 data/analysis/prepared/
+data/analysis/training_and_evaluation_losses/
 data/embeddings/
 data/models/
 data/models/finetuned_models/

@@ -107,7 +107,7 @@ def prepare_device_and_tokenizer_and_model_from_language_model_config(
 
     # Potential modification of the tokenizer and the model if this is necessary for compatibility.
     # For instance, for some autoregressive models, the tokenizer needs to be modified to add a padding token.
-    model = transformers.PreTrainedModel = tokenizer_modifier.update_model(
+    model: transformers.PreTrainedModel = tokenizer_modifier.update_model(
         model=model,
     )
 
