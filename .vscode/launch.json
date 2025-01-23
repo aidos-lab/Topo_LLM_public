@@ -46,6 +46,24 @@
             ]
         },
         {
+            "name": "load_huggingface_dataset.py",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/data_processing/load_huggingface_dataset.py",
+            "console": "integratedTerminal",
+            "args": [
+                // "data=bookcorpus",
+                // "data=multiwoz21",
+                "data=wikitext-103-v1",
+                "data.data_subsampling.number_of_samples=128",
+                "data.data_subsampling.sampling_mode=random",
+                "data.data_subsampling.sampling_seed=777",
+                "data.data_subsampling.split=validation",
+                "feature_flags.wandb.use_wandb=false",
+                "wandb.project=Topo_LLM_DEBUG",
+            ]
+        },
+        {
             "name": "on NER task; run_finetune_language_model_on_huggingface_dataset.py",
             "type": "debugpy",
             "request": "launch",

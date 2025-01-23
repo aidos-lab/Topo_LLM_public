@@ -1,0 +1,13 @@
+defaults:
+  - data_splitting: proportions
+  - data_subsampling: train_split_and_take_first
+  - _self_
+
+column_name: text
+context: dataset_entry
+dataset_description_string: bookcorpus
+dataset_path: bookcorpus
+dataset_name: plain_text
+
+filtering:
+  remove_sequences_with_starting_segment_in_this_blocklist: []

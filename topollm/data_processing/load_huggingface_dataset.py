@@ -25,7 +25,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Compute the evaluation loss of a model on a dataset using the Huggingface Trainer."""
 
 import logging
 from functools import partial
@@ -105,65 +104,15 @@ def main(
     )
     verbosity: Verbosity = main_config.verbosity
 
-    # # # #
-    # Load and prepare model
-    loaded_model_container: LoadedModelContainer = prepare_device_and_tokenizer_and_model_from_main_config(
-        main_config=main_config,
-        verbosity=verbosity,
-        logger=logger,
-    )
-
-    # Put the model in evaluation mode.
-    # For example, dropout layers behave differently during evaluation.
-    loaded_model_container.model.eval()
-
-    # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-    #
-    # Note: This collation function will not be used in this evalutation script
-    partial_collate_fn = partial(
-        collate_batch_and_move_to_device,
-        device=loaded_model_container.device,
-        model_input_names=loaded_model_container.tokenizer.model_input_names,
-    )
-
-    preparer_context = EmbeddingDataLoaderPreparerContext(
+    dataset_preparer: DatasetPreparer = get_dataset_preparer(
         data_config=main_config.data,
-        embeddings_config=main_config.embeddings,
-        tokenizer_config=main_config.tokenizer,
-        tokenizer=loaded_model_container.tokenizer,
-        collate_fn=partial_collate_fn,
         verbosity=verbosity,
         logger=logger,
     )
-    embedding_dataloader_preparer: EmbeddingDataLoaderPreparerHuggingface = get_embedding_dataloader_preparer(
-        preparer_context=preparer_context,
-    )  # type: ignore - This script only works with EmbeddingDataLoaderPreparerHuggingface
 
-    # # # #
-    # Prepare the dataset
-    dataset: datasets.Dataset = embedding_dataloader_preparer.dataset_preparer.prepare_dataset()
-    dataset_mapped: datasets.Dataset = embedding_dataloader_preparer.create_dataset_tokenized(
-        dataset=dataset,
-    )
+    dataset: datasets.Dataset = dataset_preparer.prepare_dataset()
 
-    training_args = None
-
-    trainer: transformers.Trainer = transformers.Trainer(
-        model=loaded_model_container.model,
-        args=training_args,
-        data_collator=None,  # TODO: Find out if we can set this to None
-        train_dataset=None,  # type: ignore - typing issue with Dataset
-        eval_dataset=dataset_mapped,  # type: ignore - typing issue with Dataset
-        tokenizer=loaded_model_container.tokenizer,  # type: ignore - typing issue with Tokenizer
-        compute_metrics=None,
-    )
-
-    # TODO: Currently, this does not return the eval loss
-    result: dict = evaluate_trainer(
-        trainer=trainer,
-        verbosity=verbosity,
-        logger=logger,
-    )
+    pass  # Note: You can place a breakpoint here to inspect the dataset
 
     logger.info(
         msg="Running script DONE",
