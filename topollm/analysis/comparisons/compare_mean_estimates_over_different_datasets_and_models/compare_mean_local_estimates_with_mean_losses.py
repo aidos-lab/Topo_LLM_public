@@ -426,6 +426,12 @@ def create_plot_for_all_datasets_all_splits_all_models(
     # # # #
     # No filtering in this case
     filtered_df: pd.DataFrame = descriptive_statistics_df_copy
+    if verbosity >= Verbosity.NORMAL:
+        log_dataframe_info(
+            df=filtered_df,
+            df_name="filtered_df",
+            logger=logger,
+        )
 
     compute_and_save_correlations_on_filtered_df(
         filtered_df=filtered_df,
@@ -435,8 +441,6 @@ def create_plot_for_all_datasets_all_splits_all_models(
         verbosity=verbosity,
         logger=logger,
     )
-
-    # TODO: Add calls of the correlation computation to the separate plotting functions for the different subsets
 
     # We use the point size to indicate the subsampling.
     # For this to work, we need to create a mapped column that contains the point size.
@@ -514,6 +518,21 @@ def create_plots_for_individual_splits_all_datasets_all_models(
         filtered_df: pd.DataFrame = descriptive_statistics_df_copy[
             (descriptive_statistics_df_copy["data_subsampling_full"] == data_subsampling_full)
         ]
+        if verbosity >= Verbosity.NORMAL:
+            log_dataframe_info(
+                df=filtered_df,
+                df_name="filtered_df",
+                logger=logger,
+            )
+
+        compute_and_save_correlations_on_filtered_df(
+            filtered_df=filtered_df,
+            x_column_name=x_column_name,
+            y_column_name=y_column_name,
+            output_folder=output_folder,
+            verbosity=verbosity,
+            logger=logger,
+        )
 
         for axes_limits in axes_limits_choices:
             plot_name: str = (
@@ -596,6 +615,15 @@ def create_plots_for_individual_splits_individual_datasets_all_models(
                 df_name="filtered_df",
                 logger=logger,
             )
+
+        compute_and_save_correlations_on_filtered_df(
+            filtered_df=filtered_df,
+            x_column_name=x_column_name,
+            y_column_name=y_column_name,
+            output_folder=output_folder,
+            verbosity=verbosity,
+            logger=logger,
+        )
 
         # Check that certain columns only contain a unique value
         # This is important for consistency in the plots.
@@ -702,6 +730,15 @@ def create_plots_for_individual_splits_individual_models_all_datasets(
                 df_name="filtered_df",
                 logger=logger,
             )
+
+        compute_and_save_correlations_on_filtered_df(
+            filtered_df=filtered_df,
+            x_column_name=x_column_name,
+            y_column_name=y_column_name,
+            output_folder=output_folder,
+            verbosity=verbosity,
+            logger=logger,
+        )
 
         for axes_limits in axes_limits_choices:
             plot_name: str = (
