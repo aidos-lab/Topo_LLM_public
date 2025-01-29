@@ -39,6 +39,7 @@ import omegaconf
 import pandas as pd
 from tqdm import tqdm
 
+from topollm.analysis.correlation.compute_correlations_with_count import compute_correlations_with_count
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.data_processing.dictionary_handling import flatten_dict
@@ -122,10 +123,15 @@ def main(
         (filtered_descriptive_statistics_df["tokenizer_add_prefix_space"] == tokenizer_add_prefix_space)
     ]
 
+    # Choose which comparisons to make
+    x_column_name: str = "local_estimates_mean"
+    y_column_name: str = "loss_mean"
+
     output_root_dir: pathlib.Path = pathlib.Path(
         embeddings_path_manager.saved_plots_dir_absolute_path,
         "compare_mean_local_estimates_with_mean_losses_for_different_models",
         f"{tokenizer_add_prefix_space=}",
+        f"{x_column_name=}_vs_{y_column_name=}",
         main_config.analysis.investigate_distances.get_config_description(),
         main_config.local_estimates.method_description,  # For example: 'twonn'
     )
@@ -147,6 +153,8 @@ def main(
     compare_mean_local_estimates_with_mean_losses_for_different_models(
         descriptive_statistics_df=filtered_descriptive_statistics_df,
         output_root_dir=output_root_dir,
+        x_column_name=x_column_name,
+        y_column_name=y_column_name,
         verbosity=verbosity,
         logger=logger,
     )
@@ -245,6 +253,8 @@ def load_descriptive_statistics_from_folder_structure(
 def compare_mean_local_estimates_with_mean_losses_for_different_models(
     descriptive_statistics_df: pd.DataFrame,
     output_root_dir: pathlib.Path,
+    x_column_name: str = "local_estimates_mean",
+    y_column_name: str = "loss_mean",
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> None:
@@ -269,16 +279,16 @@ def compare_mean_local_estimates_with_mean_losses_for_different_models(
             "output_pdf_height": 2_000,
         },
     ]
-    x_column_name = "local_estimates_mean"
-    y_column_name = "loss_mean"
 
     data_full_options: list[str] = descriptive_statistics_df["data_full"].unique().tolist()
+    # > Example:
+    # > data_subsampling_full = "split=validation_samples=10000_sampling=random_sampling-seed=777"
     data_subsampling_full_options: list[str] = descriptive_statistics_df["data_subsampling_full"].unique().tolist()
-    # > Example: data_subsampling_full = "split=validation_samples=10000_sampling=random_sampling-seed=777"
     model_partial_name_options: list[str] = descriptive_statistics_df["model_partial_name"].unique().tolist()
 
     # The identifier of the base model.
-    # This value will be used to filter the DataFrame for the correlation analysis and for the model checkpoint analysis.
+    # This value will be used to filter the DataFrame
+    # for the correlation analysis and for the model checkpoint analysis.
     base_model_model_partial_name = "model=roberta-base"
 
     # ========================================================== #
@@ -288,16 +298,131 @@ def compare_mean_local_estimates_with_mean_losses_for_different_models(
     # - all models together
     # ========================================================== #
 
-    descriptive_statistics_df_copy: pd.DataFrame = descriptive_statistics_df.copy()
+    create_plot_for_all_datasets_all_splits_all_models(
+        descriptive_statistics_df=descriptive_statistics_df,
+        output_root_dir=output_root_dir,
+        x_column_name=x_column_name,
+        y_column_name=y_column_name,
+        axes_limits_choices=axes_limits_choices,
+        verbosity=verbosity,
+        logger=logger,
+    )
 
-    # No filtering in this case
-    filtered_df: pd.DataFrame = descriptive_statistics_df_copy
+    # ========================================================== #
+    # Create separate plots for:
+    # - individual splits
+    # - all datasets together
+    # - all models together
+    # ========================================================== #
+
+    create_plots_for_individual_splits_all_datasets_all_models(
+        descriptive_statistics_df=descriptive_statistics_df,
+        data_subsampling_full_options=data_subsampling_full_options,
+        output_root_dir=output_root_dir,
+        x_column_name=x_column_name,
+        y_column_name=y_column_name,
+        axes_limits_choices=axes_limits_choices,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+    # ========================================================== #
+    # Create separate plots for:
+    # - individual splits
+    # - individual datasets
+    # - all models together
+    # ========================================================== #
+
+    create_plots_for_individual_splits_individual_datasets_all_models(
+        descriptive_statistics_df=descriptive_statistics_df,
+        data_full_options=data_full_options,
+        data_subsampling_full_options=data_subsampling_full_options,
+        output_root_dir=output_root_dir,
+        x_column_name=x_column_name,
+        y_column_name=y_column_name,
+        axes_limits_choices=axes_limits_choices,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+    # ========================================================== #
+    # Create separate plots for:
+    # - individual splits
+    # - individual models (one finetuning setup plus base model)
+    # - all datasets together
+    # ========================================================== #
+
+    create_plots_for_individual_splits_individual_models_all_datasets(
+        descriptive_statistics_df=descriptive_statistics_df,
+        data_subsampling_full_options=data_subsampling_full_options,
+        model_partial_name_options=model_partial_name_options,
+        base_model_model_partial_name=base_model_model_partial_name,
+        output_root_dir=output_root_dir,
+        x_column_name=x_column_name,
+        y_column_name=y_column_name,
+        axes_limits_choices=axes_limits_choices,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+
+def create_plot_for_all_datasets_all_splits_all_models(
+    descriptive_statistics_df: pd.DataFrame,
+    output_root_dir: pathlib.Path,
+    x_column_name: str,
+    y_column_name: str,
+    axes_limits_choices: list[dict],
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
+    descriptive_statistics_df_copy: pd.DataFrame = descriptive_statistics_df.copy()
 
     output_folder = pathlib.Path(
         output_root_dir,
         "plots_for_all_splits_and_all_datasets_and_all_models",
     )
     subtitle_text: str = "all_splits_and_all_datasets_and_all_models"
+
+    # # # #
+    # No filtering in this case
+    filtered_df: pd.DataFrame = descriptive_statistics_df_copy
+
+    # ===== #
+    # Compute correlations for the filtered DataFrame
+    filtered_correlations_df: pd.DataFrame = compute_correlations_with_count(
+        df=filtered_df,
+        cols=[
+            x_column_name,
+            y_column_name,
+        ],
+        methods=None,  # default correlation methods are used
+        significance_level=0.05,
+    )
+
+    if verbosity >= Verbosity.NORMAL:
+        log_dataframe_info(
+            df=filtered_correlations_df,
+            df_name="filtered_correlations_df",
+            logger=logger,
+        )
+
+    filtered_correlations_df_save_path: pathlib.Path = pathlib.Path(
+        output_folder,
+        "filtered_correlations_df.csv",
+    )
+    filtered_correlations_df_save_path.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+    filtered_correlations_df.to_csv(
+        path_or_buf=filtered_correlations_df_save_path,
+        index=False,
+    )
+
+    # TODO: Make the correlation computation and saving into a separate function
+    # TODO: Add calls of the correlation computation to the separate plotting functions for the different subsets
+
+    # ===== #
 
     # We use the point size to indicate the subsampling.
     # For this to work, we need to create a mapped column that contains the point size.
@@ -335,13 +460,18 @@ def compare_mean_local_estimates_with_mean_losses_for_different_models(
             logger=logger,
         )
 
-    # ========================================================== #
-    # Create separate plots for:
-    # - individual splits
-    # - all datasets together
-    # - all models together
-    # ========================================================== #
 
+def create_plots_for_individual_splits_all_datasets_all_models(
+    descriptive_statistics_df: pd.DataFrame,
+    data_subsampling_full_options: list[str],
+    output_root_dir: pathlib.Path,
+    x_column_name: str,
+    y_column_name: str,
+    axes_limits_choices: list[dict],
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
+    """Create plots for individual splits, all datasets, and all models."""
     combinations = itertools.product(
         data_subsampling_full_options,
     )
@@ -363,6 +493,7 @@ def compare_mean_local_estimates_with_mean_losses_for_different_models(
         )
         subtitle_text: str = f"{data_subsampling_full=}"
 
+        # # # #
         # Only filter by the subsampling
         descriptive_statistics_df_copy: pd.DataFrame = descriptive_statistics_df.copy()
 
@@ -394,15 +525,19 @@ def compare_mean_local_estimates_with_mean_losses_for_different_models(
                 logger=logger,
             )
 
-    # TODO: Compute correlation between the mean values under comparison
 
-    # ========================================================== #
-    # Create separate plots for:
-    # - different splits
-    # - different datasets
-    # - all models together
-    # ========================================================== #
-
+def create_plots_for_individual_splits_individual_datasets_all_models(
+    descriptive_statistics_df: pd.DataFrame,
+    data_full_options: list[str],
+    data_subsampling_full_options: list[str],
+    output_root_dir: pathlib.Path,
+    x_column_name: str,
+    y_column_name: str,
+    axes_limits_choices: list[dict],
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
+    """Create plots for individual splits, individual datasets, and all models."""
     combinations = itertools.product(
         data_full_options,
         data_subsampling_full_options,
@@ -493,13 +628,19 @@ def compare_mean_local_estimates_with_mean_losses_for_different_models(
                 logger=logger,
             )
 
-    # ========================================================== #
-    # Create separate plots for:
-    # - different splits
-    # - a single model finetuning (plus base model)
-    # - all datasets together
-    # ========================================================== #
 
+def create_plots_for_individual_splits_individual_models_all_datasets(
+    descriptive_statistics_df: pd.DataFrame,
+    data_subsampling_full_options: list[str],
+    model_partial_name_options: list[str],
+    base_model_model_partial_name: str,
+    output_root_dir: pathlib.Path,
+    x_column_name: str,
+    y_column_name: str,
+    axes_limits_choices: list[dict],
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
     combinations = itertools.product(
         data_subsampling_full_options,
         model_partial_name_options,

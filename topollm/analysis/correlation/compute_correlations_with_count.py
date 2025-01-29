@@ -62,8 +62,13 @@ def compute_correlations_with_count(
 
     results: list[dict] = []
     for method_name, method_func in methods.items():
-        for i in range(len(cols)):
-            for j in range(i + 1, len(cols)):
+        for i in range(
+            len(cols),
+        ):
+            for j in range(
+                i + 1,
+                len(cols),
+            ):
                 (
                     col1,
                     col2,
