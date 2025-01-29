@@ -105,6 +105,12 @@ def prepare_device_and_tokenizer_and_model_from_language_model_config(
         logger=logger,
     )
 
+    # Potential modification of the tokenizer and the model if this is necessary for compatibility.
+    # For instance, for some autoregressive models, the tokenizer needs to be modified to add a padding token.
+    model: transformers.PreTrainedModel = tokenizer_modifier.update_model(
+        model=model,
+    )
+
     loaded_model_container = LoadedModelContainer(
         device=device,
         tokenizer=tokenizer,
@@ -122,7 +128,10 @@ def prepare_device_and_tokenizer_and_model_from_main_config(
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> LoadedModelContainer:
-    """Prepare device, tokenizer, and model from a main config file."""
+    """Prepare device, tokenizer, and model from a main config file.
+
+    This is a convenience function that extracts the necessary information from the main config file.
+    """
     loaded_model_container: LoadedModelContainer = prepare_device_and_tokenizer_and_model_from_language_model_config(
         language_model_config=main_config.language_model,
         tokenizer_config=main_config.tokenizer,

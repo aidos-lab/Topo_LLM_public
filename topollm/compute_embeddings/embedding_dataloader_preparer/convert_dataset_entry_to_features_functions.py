@@ -46,7 +46,7 @@ def get_convert_dataset_entry_to_features_function(
         case DatasetType.HUGGINGFACE_DATASET_NAMED_ENTITY:
             dataset_entry_to_features_function = convert_dataset_entry_to_features_named_entity
         case _:
-            msg = f"Unsupported {data_config.dataset_type = }"
+            msg: str = f"Unsupported {data_config.dataset_type = }"
             raise ValueError(msg)
 
     return dataset_entry_to_features_function
@@ -59,7 +59,7 @@ def convert_dataset_entry_to_features(
     max_length: int = 512,
 ) -> BatchEncoding:
     """Convert dataset entires/examples to features by tokenizing the text and padding/truncating to a maximum length."""
-    features = tokenizer(
+    features: BatchEncoding = tokenizer(
         dataset_entry[column_name],
         max_length=max_length,
         padding="max_length",

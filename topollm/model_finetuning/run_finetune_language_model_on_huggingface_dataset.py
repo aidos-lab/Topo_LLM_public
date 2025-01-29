@@ -34,8 +34,8 @@ from typing import TYPE_CHECKING
 import hydra
 import hydra.core.hydra_config
 import omegaconf
-import wandb
 
+import wandb
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
@@ -56,15 +56,15 @@ except ImportError:
 if TYPE_CHECKING:
     from topollm.config_classes.main_config import MainConfig
 
-# Increase the wandb service wait time to prevent errors.
+# Increase the wandb service wait time to prevent errors on HHU Hilbert.
 # https://github.com/wandb/wandb/issues/5214
 os.environ["WANDB__SERVICE_WAIT"] = "300"
 
 # The "core" argument is only available from wandb 0.17 onwards
 #
-# wandb.require(
-#     "core",
-# )
+# > wandb.require(
+# >     "core",
+# > )
 
 global_logger: logging.Logger = logging.getLogger(
     name=__name__,

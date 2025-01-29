@@ -33,7 +33,9 @@ from topollm.path_management.finetuning.protocol import (
     FinetuningPathManager,
 )
 
-default_logger = logging.getLogger(__name__)
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 def prepare_logging_dir(
@@ -41,9 +43,9 @@ def prepare_logging_dir(
     logger: logging.Logger = default_logger,
 ) -> pathlib.Path | None:
     """Prepare the logging directory for the finetuning process."""
-    logging_dir = finetuning_path_manager.logging_dir
+    logging_dir: pathlib.Path | None = finetuning_path_manager.logging_dir
     logger.info(
-        f"{logging_dir = }",  # noqa: G004 - low overhead
+        msg=f"{logging_dir = }",  # noqa: G004 - low overhead
     )
 
     # Create the logging directory if it does not exist
@@ -53,6 +55,8 @@ def prepare_logging_dir(
             exist_ok=True,
         )
     else:
-        logger.info("No logging directory specified. Using default logging from transformers.Trainer.")
+        logger.info(
+            msg="No logging directory specified. Using default logging from transformers.Trainer.",
+        )
 
     return logging_dir

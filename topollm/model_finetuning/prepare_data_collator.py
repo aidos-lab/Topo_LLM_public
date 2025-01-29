@@ -1,10 +1,10 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -32,24 +32,27 @@ import logging
 import transformers
 
 from topollm.config_classes.finetuning.finetuning_config import FinetuningConfig
-from topollm.typing.enums import LMmode, TaskType, Verbosity
+from topollm.typing.enums import TaskType, Verbosity
 
-default_logger = logging.getLogger(__name__)
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 def prepare_data_collator(
-    finetuning_config: FinetuningConfig,
+    task_type: TaskType,
+    mlm_probability: float,
     tokenizer: transformers.PreTrainedTokenizerBase,
     verbosity: int = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> transformers.DataCollatorForLanguageModeling | transformers.DataCollatorForTokenClassification:
     """Prepare the data collator for the finetuning process."""
-    match finetuning_config.base_model.task_type:
+    match task_type:
         case TaskType.MASKED_LM:
             data_collator = transformers.DataCollatorForLanguageModeling(
                 tokenizer=tokenizer,
                 mlm=True,
-                mlm_probability=finetuning_config.mlm_probability,
+                mlm_probability=mlm_probability,
             )
         case TaskType.CAUSAL_LM:
             data_collator = transformers.DataCollatorForLanguageModeling(
@@ -61,12 +64,33 @@ def prepare_data_collator(
                 tokenizer=tokenizer,
             )
         case _:
-            msg = f"Unknown {finetuning_config.base_model.task_type = }"
-            raise ValueError(msg)
+            msg: str = f"Unknown {task_type = }"
+            raise ValueError(
+                msg,
+            )
 
     if verbosity >= Verbosity.NORMAL:
         logger.info(
-            f"{data_collator = }",  # noqa: G004 - low overhead
+            msg=f"{data_collator = }",  # noqa: G004 - low overhead
         )
 
     return data_collator
+
+
+def prepare_data_collator_from_finetuning_config(
+    finetuning_config: FinetuningConfig,
+    tokenizer: transformers.PreTrainedTokenizerBase,
+    verbosity: int = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> transformers.DataCollatorForLanguageModeling | transformers.DataCollatorForTokenClassification:
+    result: transformers.DataCollatorForLanguageModeling | transformers.DataCollatorForTokenClassification = (
+        prepare_data_collator(
+            task_type=finetuning_config.base_model.task_type,
+            mlm_probability=finetuning_config.mlm_probability,
+            tokenizer=tokenizer,
+            verbosity=verbosity,
+            logger=logger,
+        )
+    )
+
+    return result

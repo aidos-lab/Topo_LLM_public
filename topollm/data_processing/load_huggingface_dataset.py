@@ -25,28 +25,54 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Run script to create embedding vectors from dataset based on config."""
 
 import logging
+from functools import partial
 from typing import TYPE_CHECKING
 
+import datasets
 import hydra
 import hydra.core.hydra_config
 import omegaconf
+import transformers
 
-from topollm.compute_embeddings.compute_and_store_embeddings import (
-    compute_and_store_embeddings,
+from topollm.compute_embeddings.collate_batch_for_embedding import (
+    collate_batch_and_move_to_device,
 )
+from topollm.compute_embeddings.embedding_dataloader_preparer.embedding_dataloader_preparer_context import (
+    EmbeddingDataLoaderPreparerContext,
+)
+from topollm.compute_embeddings.embedding_dataloader_preparer.embedding_dataloader_preparer_huggingface import (
+    EmbeddingDataLoaderPreparerHuggingface,
+)
+from topollm.compute_embeddings.embedding_dataloader_preparer.factory import get_embedding_dataloader_preparer
+from topollm.compute_embeddings.embedding_dataloader_preparer.protocol import EmbeddingDataLoaderPreparer
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
+from topollm.data_handling.dataset_preparer.factory import get_dataset_preparer
+from topollm.data_handling.dataset_preparer.protocol import DatasetPreparer
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
+from topollm.model_finetuning.evaluate_trainer import evaluate_trainer
 from topollm.model_handling.get_torch_device import get_torch_device
+from topollm.model_handling.loaded_model_container import LoadedModelContainer
+from topollm.model_handling.prepare_loaded_model_container import (
+    prepare_device_and_tokenizer_and_model_from_main_config,
+)
+from topollm.pipeline_scripts.worker_for_pipeline import worker_for_pipeline
+from topollm.typing.enums import Verbosity
 
 if TYPE_CHECKING:
     from topollm.config_classes.main_config import MainConfig
 
-# logger for this file
+try:
+    from hydra_plugins import hpc_submission_launcher
+
+    hpc_submission_launcher.register_plugin()
+except ImportError:
+    pass
+
+# Logger for this file
 global_logger: logging.Logger = logging.getLogger(
     name=__name__,
 )
@@ -67,21 +93,28 @@ def main(
     config: omegaconf.DictConfig,
 ) -> None:
     """Run the script."""
-    global_logger.info(
+    logger: logging.Logger = global_logger
+    logger.info(
         msg="Running script ...",
     )
 
     main_config: MainConfig = initialize_configuration(
         config=config,
-        logger=global_logger,
+        logger=logger,
+    )
+    verbosity: Verbosity = main_config.verbosity
+
+    dataset_preparer: DatasetPreparer = get_dataset_preparer(
+        data_config=main_config.data,
+        verbosity=verbosity,
+        logger=logger,
     )
 
-    compute_and_store_embeddings(
-        main_config=main_config,
-        logger=global_logger,
-    )
+    dataset: datasets.Dataset = dataset_preparer.prepare_dataset()
 
-    global_logger.info(
+    pass  # Note: You can place a breakpoint here to inspect the dataset
+
+    logger.info(
         msg="Running script DONE",
     )
 

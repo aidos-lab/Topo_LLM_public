@@ -55,12 +55,12 @@ def prepare_model_input(
         finetuning_config=finetuning_config,
     )
 
-    train_dataset_mapped = train_dataset.map(
-        tokenize_function,
+    train_dataset_mapped: datasets.Dataset = train_dataset.map(
+        function=tokenize_function,
         batched=True,
     )
-    eval_dataset_mapped = eval_dataset.map(
-        tokenize_function,
+    eval_dataset_mapped: datasets.Dataset = eval_dataset.map(
+        function=tokenize_function,
         batched=True,
     )
 
@@ -93,7 +93,7 @@ def get_tokenize_function(
             finetuning_config=finetuning_config,
         )
     else:
-        msg = f"Task type {finetuning_config.base_model.task_type} is not supported."
+        msg: str = f"Task type {finetuning_config.base_model.task_type = } is not supported."
         raise ValueError(
             msg,
         )
@@ -112,7 +112,7 @@ def standard_tokenize_function(
     """Tokenize the dataset entries."""
     column_name: str = finetuning_config.finetuning_datasets.train_dataset.column_name
 
-    result = tokenizer(
+    result: transformers.BatchEncoding = tokenizer(
         dataset_entries[column_name],
         truncation=True,
         padding="max_length",

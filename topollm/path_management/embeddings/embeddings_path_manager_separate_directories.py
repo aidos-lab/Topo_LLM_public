@@ -95,6 +95,25 @@ class EmbeddingsPathManagerSeparateDirectories:
 
         return path
 
+    def get_data_language_model_combination_path(
+        self,
+    ) -> pathlib.Path:
+        """Construct a nested subfolder path based on specific attributes.
+
+        This can be used for the paths for saving the losses.
+        """
+        path = pathlib.Path(
+            self.main_config.data.get_partial_path(),
+            self.main_config.tokenizer.get_config_description(
+                description_type=DescriptionType.LONG,
+            ),
+            self.main_config.language_model.get_config_description(
+                description_type=DescriptionType.LONG,
+            ),
+        )
+
+        return path
+
     # # # #
     # array directory
 
@@ -437,6 +456,19 @@ class EmbeddingsPathManagerSeparateDirectories:
             "distances_and_influence_on_losses_and_local_estimates",
             self.main_config.analysis.investigate_distances.get_config_description(),
             self.get_local_estimates_subfolder_path(),
+        )
+
+        return path
+
+    ### Losses from language model fine-tuning training and evaluation
+
+    def get_training_and_evaluation_losses_dir_absolute_path(
+        self,
+    ) -> pathlib.Path:
+        path = pathlib.Path(
+            self.analysis_dir,
+            "training_and_evaluation_losses",
+            self.get_data_language_model_combination_path(),
         )
 
         return path
