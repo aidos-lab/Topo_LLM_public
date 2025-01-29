@@ -366,36 +366,22 @@ def compare_mean_local_estimates_with_mean_losses_for_different_models(
     )
 
 
-def create_plot_for_all_datasets_all_splits_all_models(
-    descriptive_statistics_df: pd.DataFrame,
-    output_root_dir: pathlib.Path,
+def compute_and_save_correlations_on_filtered_df(
+    filtered_df: pd.DataFrame,
     x_column_name: str,
     y_column_name: str,
-    axes_limits_choices: list[dict],
+    output_folder: pathlib.Path,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> None:
-    descriptive_statistics_df_copy: pd.DataFrame = descriptive_statistics_df.copy()
-
-    output_folder = pathlib.Path(
-        output_root_dir,
-        "plots_for_all_splits_and_all_datasets_and_all_models",
-    )
-    subtitle_text: str = "all_splits_and_all_datasets_and_all_models"
-
-    # # # #
-    # No filtering in this case
-    filtered_df: pd.DataFrame = descriptive_statistics_df_copy
-
-    # ===== #
-    # Compute correlations for the filtered DataFrame
+    """Compute and save correlations on the filtered DataFrame."""
     filtered_correlations_df: pd.DataFrame = compute_correlations_with_count(
         df=filtered_df,
         cols=[
             x_column_name,
             y_column_name,
         ],
-        methods=None,  # default correlation methods are used
+        methods=None,  # 'None' means that default correlation methods are used
         significance_level=0.05,
     )
 
@@ -419,10 +405,38 @@ def create_plot_for_all_datasets_all_splits_all_models(
         index=False,
     )
 
-    # TODO: Make the correlation computation and saving into a separate function
-    # TODO: Add calls of the correlation computation to the separate plotting functions for the different subsets
 
-    # ===== #
+def create_plot_for_all_datasets_all_splits_all_models(
+    descriptive_statistics_df: pd.DataFrame,
+    output_root_dir: pathlib.Path,
+    x_column_name: str,
+    y_column_name: str,
+    axes_limits_choices: list[dict],
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
+    descriptive_statistics_df_copy: pd.DataFrame = descriptive_statistics_df.copy()
+
+    output_folder = pathlib.Path(
+        output_root_dir,
+        "plots_for_all_splits_and_all_datasets_and_all_models",
+    )
+    subtitle_text: str = "all_splits_and_all_datasets_and_all_models"
+
+    # # # #
+    # No filtering in this case
+    filtered_df: pd.DataFrame = descriptive_statistics_df_copy
+
+    compute_and_save_correlations_on_filtered_df(
+        filtered_df=filtered_df,
+        x_column_name=x_column_name,
+        y_column_name=y_column_name,
+        output_folder=output_folder,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+    # TODO: Add calls of the correlation computation to the separate plotting functions for the different subsets
 
     # We use the point size to indicate the subsampling.
     # For this to work, we need to create a mapped column that contains the point size.
