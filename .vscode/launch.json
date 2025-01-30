@@ -333,8 +333,8 @@
                 // TODO: We need to add new data configurations for the SETSUMBT dataloaders
                 "data=multiwoz21",
                 // "data=sgd",
-                "data.data_subsampling.number_of_samples=512",
                 "data.data_subsampling.split=validation",
+                "data.data_subsampling.number_of_samples=512",
                 //
                 //    >> END: Data options.
                 //    >> START: Model options.
@@ -383,6 +383,7 @@
                 //
                 "data=multiwoz21",
                 // "data=sgd",
+                "data.data_subsampling.split=validation",
                 "data.data_subsampling.sampling_mode=random",
                 "data.data_subsampling.number_of_samples=10000",
                 "data.data_subsampling.sampling_seed=778",
@@ -393,8 +394,8 @@
                 //
                 "language_model=roberta-base-setsumbt_multiwoz21",
                 // "++language_model.checkpoint_no=2813",
-                "++language_model.checkpoint_no=2813,5626,8439",
-                // "++language_model.checkpoint_no=2813,5626,8439,11252,14065,16878,19691,25317,33756,36569,39382,42195,50634,56260,70325,90016,109707,115333,126585",
+                // "++language_model.checkpoint_no=2813,5626,8439",
+                "++language_model.checkpoint_no=2813,5626,8439,11252,14065,16878,19691,25317,33756,36569,39382,42195,50634,56260,70325,90016,109707,115333,126585",
                 //
                 //    >> END: Model options.
                 //
