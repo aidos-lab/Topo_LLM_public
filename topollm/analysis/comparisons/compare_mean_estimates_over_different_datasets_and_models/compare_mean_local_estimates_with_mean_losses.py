@@ -280,11 +280,28 @@ def compare_mean_local_estimates_with_mean_losses_for_different_models(
         },
     ]
 
+    # # # #
+    # Log information about the different values in the DataFrame.
+    # Notes:
+    # - The individual plotting functions iterate over the different values,
+    #   they will be computed again there.
+
     data_full_options: list[str] = descriptive_statistics_df["data_full"].unique().tolist()
     # > Example:
     # > data_subsampling_full = "split=validation_samples=10000_sampling=random_sampling-seed=777"
     data_subsampling_full_options: list[str] = descriptive_statistics_df["data_subsampling_full"].unique().tolist()
     model_partial_name_options: list[str] = descriptive_statistics_df["model_partial_name"].unique().tolist()
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"{data_full_options = }",  # noqa: G004 - low overhead
+        )
+        logger.info(
+            msg=f"{data_subsampling_full_options = }",  # noqa: G004 - low overhead
+        )
+        logger.info(
+            msg=f"{model_partial_name_options = }",  # noqa: G004 - low overhead
+        )
 
     # The identifier of the base model.
     # This value will be used to filter the DataFrame
@@ -317,7 +334,6 @@ def compare_mean_local_estimates_with_mean_losses_for_different_models(
 
     create_plots_for_individual_splits_all_datasets_all_models(
         descriptive_statistics_df=descriptive_statistics_df,
-        data_subsampling_full_options=data_subsampling_full_options,
         output_root_dir=output_root_dir,
         x_column_name=x_column_name,
         y_column_name=y_column_name,
@@ -335,8 +351,6 @@ def compare_mean_local_estimates_with_mean_losses_for_different_models(
 
     create_plots_for_individual_splits_individual_datasets_all_models(
         descriptive_statistics_df=descriptive_statistics_df,
-        data_full_options=data_full_options,
-        data_subsampling_full_options=data_subsampling_full_options,
         output_root_dir=output_root_dir,
         x_column_name=x_column_name,
         y_column_name=y_column_name,
@@ -354,8 +368,6 @@ def compare_mean_local_estimates_with_mean_losses_for_different_models(
 
     create_plots_for_individual_splits_individual_models_all_datasets(
         descriptive_statistics_df=descriptive_statistics_df,
-        data_subsampling_full_options=data_subsampling_full_options,
-        model_partial_name_options=model_partial_name_options,
         base_model_model_partial_name=base_model_model_partial_name,
         output_root_dir=output_root_dir,
         x_column_name=x_column_name,
@@ -481,7 +493,6 @@ def create_plot_for_all_datasets_all_splits_all_models(
 
 def create_plots_for_individual_splits_all_datasets_all_models(
     descriptive_statistics_df: pd.DataFrame,
-    data_subsampling_full_options: list[str],
     output_root_dir: pathlib.Path,
     x_column_name: str,
     y_column_name: str,
@@ -490,6 +501,8 @@ def create_plots_for_individual_splits_all_datasets_all_models(
     logger: logging.Logger = default_logger,
 ) -> None:
     """Create plots for individual splits, all datasets, and all models."""
+    data_subsampling_full_options: list[str] = descriptive_statistics_df["data_subsampling_full"].unique().tolist()
+
     combinations = itertools.product(
         data_subsampling_full_options,
     )
@@ -561,8 +574,6 @@ def create_plots_for_individual_splits_all_datasets_all_models(
 
 def create_plots_for_individual_splits_individual_datasets_all_models(
     descriptive_statistics_df: pd.DataFrame,
-    data_full_options: list[str],
-    data_subsampling_full_options: list[str],
     output_root_dir: pathlib.Path,
     x_column_name: str,
     y_column_name: str,
@@ -571,6 +582,9 @@ def create_plots_for_individual_splits_individual_datasets_all_models(
     logger: logging.Logger = default_logger,
 ) -> None:
     """Create plots for individual splits, individual datasets, and all models."""
+    data_full_options: list[str] = descriptive_statistics_df["data_full"].unique().tolist()
+    data_subsampling_full_options: list[str] = descriptive_statistics_df["data_subsampling_full"].unique().tolist()
+
     combinations = itertools.product(
         data_full_options,
         data_subsampling_full_options,
@@ -673,16 +687,22 @@ def create_plots_for_individual_splits_individual_datasets_all_models(
 
 def create_plots_for_individual_splits_individual_models_all_datasets(
     descriptive_statistics_df: pd.DataFrame,
-    data_subsampling_full_options: list[str],
-    model_partial_name_options: list[str],
-    base_model_model_partial_name: str,
     output_root_dir: pathlib.Path,
     x_column_name: str,
     y_column_name: str,
     axes_limits_choices: list[dict],
+    base_model_model_partial_name: str = "model=roberta-base",
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> None:
+    """Create plots for individual splits, individual models, and all datasets.
+
+    base_model_model_partial_name:
+        - The identifier of the base model.
+    """
+    data_subsampling_full_options: list[str] = descriptive_statistics_df["data_subsampling_full"].unique().tolist()
+    model_partial_name_options: list[str] = descriptive_statistics_df["model_partial_name"].unique().tolist()
+
     combinations = itertools.product(
         data_subsampling_full_options,
         model_partial_name_options,
