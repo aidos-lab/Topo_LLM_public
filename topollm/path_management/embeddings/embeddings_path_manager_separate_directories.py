@@ -448,12 +448,21 @@ class EmbeddingsPathManagerSeparateDirectories:
 
     ### Distances and influence on local estimates
 
-    def get_distances_and_influence_on_local_estimates_dir_absolute_path(
+    def get_distances_and_influence_on_local_estimates_root_dir_absolute_path(
         self,
     ) -> pathlib.Path:
         path = pathlib.Path(
             self.analysis_dir,
             "distances_and_influence_on_losses_and_local_estimates",
+        )
+
+        return path
+
+    def get_distances_and_influence_on_local_estimates_dir_absolute_path(
+        self,
+    ) -> pathlib.Path:
+        path = pathlib.Path(
+            self.get_distances_and_influence_on_local_estimates_root_dir_absolute_path(),
             self.main_config.analysis.investigate_distances.get_config_description(),
             self.get_local_estimates_subfolder_path(),
         )
@@ -462,12 +471,21 @@ class EmbeddingsPathManagerSeparateDirectories:
 
     ### Losses from language model fine-tuning training and evaluation
 
-    def get_training_and_evaluation_losses_dir_absolute_path(
+    def get_training_and_evaluation_losses_root_dir_absolute_path(
         self,
     ) -> pathlib.Path:
         path = pathlib.Path(
             self.analysis_dir,
             "training_and_evaluation_losses",
+        )
+
+        return path
+
+    def get_training_and_evaluation_losses_dir_absolute_path(
+        self,
+    ) -> pathlib.Path:
+        path = pathlib.Path(
+            self.get_training_and_evaluation_losses_root_dir_absolute_path(),
             self.get_data_language_model_combination_path(),
         )
 

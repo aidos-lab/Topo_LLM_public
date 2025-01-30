@@ -104,10 +104,9 @@ def main(
     )
 
     # The following directory contains the different dataset folders.
-    # Logging of the directory is done in the 'load_descriptive_statistics_from_folder_structure' function.
+    # Logging of the directory is done in the function which iterates over the directories.
     iteration_root_dir = pathlib.Path(
-        embeddings_path_manager.analysis_dir,
-        "distances_and_influence_on_losses_and_local_estimates",
+        embeddings_path_manager.get_distances_and_influence_on_local_estimates_root_dir_absolute_path(),
         main_config.analysis.investigate_distances.get_config_description(),
         main_config.local_estimates.method_description,  # For example: 'twonn'
     )

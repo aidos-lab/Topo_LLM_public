@@ -29,6 +29,7 @@
 
 import json
 import logging
+import os
 import pathlib
 import pprint
 
@@ -45,7 +46,7 @@ default_logger: logging.Logger = logging.getLogger(
 
 
 def load_json_dicts_from_folder_structure_into_df(
-    iteration_root_dir: pathlib.Path,
+    iteration_root_dir: os.PathLike,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> pd.DataFrame:
@@ -61,7 +62,9 @@ def load_json_dicts_from_folder_structure_into_df(
         )
 
     # Iterate over the different dataset folders in the 'iteration_root_dir' directory
-    rootdir: pathlib.Path = iteration_root_dir
+    rootdir: pathlib.Path = pathlib.Path(
+        iteration_root_dir,
+    )
     # Only match the 'descriptive_statistics_dict.json' files
     pattern: str = "**/*.json"
     file_path_list: list[pathlib.Path] = [
