@@ -32,11 +32,14 @@ import json
 import logging
 import pathlib
 import pprint
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Generator
 
 import hydra
+import matplotlib
+import matplotlib.pyplot as plt
 import omegaconf
 import pandas as pd
+from attr import dataclass
 from tqdm import tqdm
 
 from topollm.analysis.correlation.compute_correlations_with_count import compute_correlations_with_count
@@ -418,6 +421,18 @@ def compute_and_save_correlations_on_filtered_df(
     )
 
 
+@dataclass
+class SelectedDataAndComparisonParameters:
+    """Data class for selected data and comparison parameters."""
+
+    selected_statistics_df: pd.DataFrame
+    x_column_name: str
+    y_column_name: str
+    output_folder: pathlib.Path
+
+    subtitle_text: str = "placeholder_subtitle_text"
+
+
 def create_plot_for_all_datasets_all_splits_all_models(
     descriptive_statistics_df: pd.DataFrame,
     output_root_dir: pathlib.Path,
@@ -685,21 +700,20 @@ def create_plots_for_individual_splits_individual_datasets_all_models(
             )
 
 
-def create_plots_for_individual_splits_individual_models_all_datasets(
+def generate_selected_data_for_individual_splits_individual_models_all_datasets(
     descriptive_statistics_df: pd.DataFrame,
     output_root_dir: pathlib.Path,
     x_column_name: str,
     y_column_name: str,
-    axes_limits_choices: list[dict],
-    base_model_model_partial_name: str = "model=roberta-base",
+    base_model_model_partial_name: str,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
-) -> None:
-    """Create plots for individual splits, individual models, and all datasets.
-
-    base_model_model_partial_name:
-        - The identifier of the base model.
-    """
+) -> Generator[
+    SelectedDataAndComparisonParameters,
+    None,
+    None,
+]:
+    """Generate selected data for individual splits, individual models, and all datasets."""
     data_subsampling_full_options: list[str] = descriptive_statistics_df["data_subsampling_full"].unique().tolist()
     model_partial_name_options: list[str] = descriptive_statistics_df["model_partial_name"].unique().tolist()
 
@@ -730,7 +744,7 @@ def create_plots_for_individual_splits_individual_models_all_datasets(
             f"{data_subsampling_full=}",
             f"{model_partial_name=}",
         )
-        subtitle_text: str = f"{data_subsampling_full=}, {model_partial_name=}"
+        subtitle_text: str = f"{data_subsampling_full=}; {model_partial_name=}"
 
         # Make a copy of the DataFrame so that we do not modify the original DataFrame
         descriptive_statistics_df_copy: pd.DataFrame = descriptive_statistics_df.copy()
@@ -751,38 +765,234 @@ def create_plots_for_individual_splits_individual_models_all_datasets(
                 logger=logger,
             )
 
-        compute_and_save_correlations_on_filtered_df(
-            filtered_df=filtered_df,
+        result = SelectedDataAndComparisonParameters(
+            selected_statistics_df=filtered_df,
             x_column_name=x_column_name,
             y_column_name=y_column_name,
             output_folder=output_folder,
+            subtitle_text=subtitle_text,
+        )
+
+        yield result
+
+
+def create_plots_for_individual_splits_individual_models_all_datasets(
+    descriptive_statistics_df: pd.DataFrame,
+    output_root_dir: pathlib.Path,
+    x_column_name: str,
+    y_column_name: str,
+    axes_limits_choices: list[dict],
+    base_model_model_partial_name: str = "model=roberta-base",
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
+    """Create plots for individual splits, individual models, and all datasets.
+
+    base_model_model_partial_name:
+        - The identifier of the base model.
+    """
+    for selected_data in tqdm(
+        iterable=generate_selected_data_for_individual_splits_individual_models_all_datasets(
+            descriptive_statistics_df=descriptive_statistics_df,
+            output_root_dir=output_root_dir,
+            x_column_name=x_column_name,
+            y_column_name=y_column_name,
+            base_model_model_partial_name=base_model_model_partial_name,
+            verbosity=verbosity,
+            logger=logger,
+        ),
+    ):
+        compute_and_save_correlations_on_filtered_df(
+            filtered_df=selected_data.selected_statistics_df,
+            x_column_name=selected_data.x_column_name,
+            y_column_name=selected_data.y_column_name,
+            output_folder=selected_data.output_folder,
             verbosity=verbosity,
             logger=logger,
         )
 
         for axes_limits in axes_limits_choices:
+            # # # #
+            # Call the scatter plot function
             plot_name: str = (
-                f"{x_column_name}_vs_{y_column_name}"
+                f"scatterplot"
+                f"_{selected_data.x_column_name}_vs_{selected_data.y_column_name}"
                 f"_{axes_limits['x_min']}_{axes_limits['x_max']}"
                 f"_{axes_limits['y_min']}_{axes_limits['y_max']}"
             )
             # - Use the 'model_checkpoint' column for the color
             # - Use the training data description for the model as the symbol
             create_scatter_plot(
-                df=filtered_df,
-                output_folder=output_folder,
+                df=selected_data.selected_statistics_df,
+                output_folder=selected_data.output_folder,
                 plot_name=plot_name,
-                subtitle_text=subtitle_text,
-                x_column_name=x_column_name,
-                y_column_name=y_column_name,
+                subtitle_text=selected_data.subtitle_text,
+                x_column_name=selected_data.x_column_name,
+                y_column_name=selected_data.y_column_name,
                 color_column_name="model_checkpoint",
                 symbol_column_name="data_full",
                 size_column_name=None,
-                hover_data=filtered_df.columns.tolist(),
+                hover_data=selected_data.selected_statistics_df.columns.tolist(),
                 **axes_limits,
                 show_plot=False,
                 verbosity=verbosity,
                 logger=logger,
+            )
+
+            # # # #
+            # Call the line plot function
+            line_plot_x_column_name = "model_checkpoint"
+
+            # We want line plots for both x and y columns
+            for line_plot_y_column_name in [
+                selected_data.x_column_name,
+                selected_data.y_column_name,
+            ]:
+                plot_name: str = (
+                    f"lineplot"
+                    f"_{line_plot_x_column_name}_vs_{line_plot_y_column_name}"
+                    f"_{axes_limits['y_min']}_{axes_limits['y_max']}"
+                )
+
+                line_plot_development_over_checkpoints(
+                    df=selected_data.selected_statistics_df,
+                    output_folder=selected_data.output_folder,
+                    x_column=line_plot_x_column_name,
+                    y_column=line_plot_y_column_name,
+                    group_column="data_full",
+                    plot_name=plot_name,
+                    y_min=axes_limits["y_min"],
+                    y_max=axes_limits["y_max"],
+                    verbosity=verbosity,
+                    logger=logger,
+                )
+
+
+def line_plot_development_over_checkpoints(
+    df: pd.DataFrame,
+    output_folder: pathlib.Path | None = None,
+    x_column: str = "model_checkpoint",
+    y_column: str = "loss_mean",
+    group_column: str = "data_full",
+    plot_name: str = "line_plot",
+    y_min: float | None = None,
+    y_max: float | None = None,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
+    """Plot the development of a selected y-axis column over a selected x-axis column, grouping by a categorical column."""
+    # Ensure x_column exists and fill missing values with -1
+    df[x_column] = df.get(
+        key=x_column,
+        default=pd.Series([-1] * len(df)),
+    )
+    df[x_column] = df[x_column].fillna(
+        value=-1,
+    )
+
+    # Sort by x_column for better visualization
+    df = df.sort_values(
+        by=x_column,
+    )
+
+    # Plotting
+    fig = plt.figure(
+        figsize=(12, 6),
+    )
+
+    # Plot each group separately
+    for group_value in df[group_column].unique():
+        subset = df[df[group_column] == group_value]
+        plt.plot(
+            subset[x_column],
+            subset[y_column],
+            marker="o",
+            linestyle="-",
+            label=f"{group_column}={group_value}",
+        )
+
+    # Labels and title
+    plt.xlabel(
+        xlabel=x_column.replace("_", " ").title(),
+    )
+    plt.ylabel(
+        ylabel=y_column.replace("_", " ").title(),
+    )
+    plt.title(
+        label=f"Development of {y_column.replace('_', ' ')} over {x_column.replace('_', ' ')}",
+    )
+
+    # Set the y-axis limits
+    if y_min is not None and y_max is not None:
+        plt.ylim(
+            y_min,
+            y_max,
+        )
+
+    # Legend at the bottom
+    plt.legend(
+        loc="upper center",
+        bbox_to_anchor=(0.5, -0.15),
+        ncol=3,
+        frameon=False,
+    )
+
+    # Grid for better readability
+    plt.grid(
+        visible=True,
+    )
+
+    # # # # # # # # # # # # # #
+    # Save plot and raw data
+    if output_folder is not None:
+        output_folder = pathlib.Path(
+            output_folder,
+        )
+        output_folder.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+
+        # Save as PDF
+        output_file = pathlib.Path(
+            output_folder,
+            f"{plot_name}.pdf",
+        )
+
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"Saving plot to {output_file} ...",  # noqa: G004 - low overhead
+            )
+        plt.savefig(
+            output_file,
+            bbox_inches="tight",
+        )
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"Saving plot to {output_file} DONE",  # noqa: G004 - low overhead
+            )
+
+        # Save the raw data
+        output_file_raw_data = pathlib.Path(
+            output_folder,
+            f"{plot_name}_raw_data.csv",
+        )
+        output_file_raw_data.parent.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"Saving raw data to {output_file_raw_data} ...",  # noqa: G004 - low overhead
+            )
+        df.to_csv(
+            path_or_buf=output_file_raw_data,
+            index=False,
+        )
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"Saving raw data to {output_file_raw_data} DONE",  # noqa: G004 - low overhead
             )
 
 
