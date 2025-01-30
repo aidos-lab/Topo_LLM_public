@@ -313,17 +313,28 @@
             "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
             "console": "integratedTerminal",
             "args": [
+                // >>>> START: Hydra options
                 "--multirun",
                 "hydra/sweeper=basic",
                 "hydra/launcher=basic",
+                // >>>> END: Hydra options
                 "tokenizer.add_prefix_space=False", // "tokenizer.add_prefix_space=True" is necessary to use the tokenizer with input split into words
+                //    >> START: Data options.
+                //
                 // TODO: We need to add new data configurations for the SETSUMBT dataloaders
-                "data=multiwoz21",
+                // "data=multiwoz21",
+                "data=sgd",
                 "data.data_subsampling.number_of_samples=512",
                 "data.data_subsampling.split=validation",
+                //
+                //    >> END: Data options.
+                //    >> START: Model options.
+                //
                 "language_model=roberta-base-setsumbt_multiwoz21",
                 // "++language_model.checkpoint_no=2813",
                 "++language_model.checkpoint_no=2813,5626,8439",
+                //
+                //    >> END: Model options.
                 "embeddings.embedding_extraction.layer_indices=[-1]",
                 "embeddings_data_prep.sampling.num_samples=3000",
                 "embeddings_data_prep.sampling.sampling_mode=random",
