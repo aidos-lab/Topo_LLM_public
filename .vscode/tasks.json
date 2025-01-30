@@ -197,6 +197,21 @@
             }
         },
         {
+            "label": "rsync from HHU Hilbert to local - (LARGE) - 'data/saved_plots/local_estimates_projection/' directory",
+            "detail": "rsync from HHU Hilbert: 'data/saved_plots/local_estimates_projection/'.",
+            "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/saved_plots/local_estimates_projection/' --file-type all",
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": false
+            }
+        },
+        {
             "label": "rsync from HHU Hilbert to local - ONLY .npy file types 'analysis/twonn' directory",
             "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/twonn/' --file-type npy",
             "type": "shell",
