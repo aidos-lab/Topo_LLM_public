@@ -51,6 +51,7 @@ from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
 from topollm.plotting.line_plot_grouped_by_categorical_column import (
+    generate_color_mapping,
     line_plot_grouped_by_categorical_column,
 )
 from topollm.typing.enums import Verbosity
@@ -163,7 +164,7 @@ def main(
             "y_min": None,
             "y_max": None,
             "output_pdf_width": 2_000,
-            "output_pdf_height": 2_000,
+            "output_pdf_height": 1_500,
         },
         {
             "x_min": None,
@@ -171,7 +172,7 @@ def main(
             "y_min": 0.5,
             "y_max": 4.5,
             "output_pdf_width": 2_000,
-            "output_pdf_height": 2_000,
+            "output_pdf_height": 1_500,
         },
     ]
 
@@ -181,6 +182,11 @@ def main(
     base_model_model_partial_name = "model=roberta-base"
     line_plot_x_column_name = "model_checkpoint"
     line_plot_y_column_name = y_column_name
+
+    color_mapping: dict = generate_color_mapping(
+        df=filtered_loaded_df,
+        group_column="data_full",
+    )
 
     for selected_data in tqdm(
         iterable=generate_selected_data_for_individual_splits_individual_models_all_datasets(
@@ -205,6 +211,7 @@ def main(
                 output_folder=selected_data.output_folder,
                 plot_name=plot_name,
                 subtitle_text=selected_data.subtitle_text,
+                color_mapping=color_mapping,
                 x_column=line_plot_x_column_name,
                 y_column=line_plot_y_column_name,
                 group_column="data_full",

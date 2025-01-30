@@ -30,6 +30,7 @@
 import logging
 import pathlib
 
+import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
 import pandas as pd
 
@@ -38,6 +39,19 @@ from topollm.typing.enums import Verbosity
 default_logger: logging.Logger = logging.getLogger(
     name=__name__,
 )
+
+
+def generate_color_mapping(
+    df: pd.DataFrame,
+    group_column: str,
+) -> dict:
+    """Generate a consistent color mapping for unique values in a categorical column."""
+    unique_groups: list = sorted(df[group_column].unique())  # Sort for consistent ordering
+    color_list = list(
+        mcolors.TABLEAU_COLORS.values(),
+    )  # Use Matplotlib's Tableau colors
+    color_mapping: dict = {group: color_list[i % len(color_list)] for i, group in enumerate(iterable=unique_groups)}
+    return color_mapping
 
 
 def line_plot_grouped_by_categorical_column(
@@ -49,6 +63,7 @@ def line_plot_grouped_by_categorical_column(
     x_column: str = "model_checkpoint",
     y_column: str = "loss_mean",
     group_column: str = "data_full",
+    color_mapping: dict | None = None,
     x_min: float | None = None,
     x_max: float | None = None,
     y_min: float | None = None,
@@ -78,8 +93,15 @@ def line_plot_grouped_by_categorical_column(
 
     # Plotting
     fig = plt.figure(
-        figsize=(20, 12),
+        figsize=(output_pdf_width / 100, output_pdf_height / 100),  # Convert pixels to inches
     )
+
+    # Generate color mapping if not provided
+    if color_mapping is None:
+        color_mapping = generate_color_mapping(
+            df=df,
+            group_column=group_column,
+        )
 
     # Plot each group separately
     for group_value in df[group_column].unique():
@@ -89,6 +111,10 @@ def line_plot_grouped_by_categorical_column(
             subset[y_column],
             marker="o",
             linestyle="-",
+            color=color_mapping.get(
+                group_value,
+                "black",
+            ),  # Use mapped color or default to black
             label=f"{group_column}={group_value}",
         )
 
