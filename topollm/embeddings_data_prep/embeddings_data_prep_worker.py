@@ -31,7 +31,6 @@ import logging
 from typing import TYPE_CHECKING
 
 import pandas as pd
-import torch
 
 from topollm.config_classes.main_config import MainConfig
 from topollm.embeddings_data_prep.add_additional_metadata_to_meta_df import (
@@ -52,12 +51,13 @@ from topollm.typing.enums import Verbosity
 if TYPE_CHECKING:
     from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 
-default_logger = logging.getLogger(__name__)
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 def embeddings_data_prep_worker(
     main_config: MainConfig,
-    device: torch.device,  # noqa: ARG001 - placeholder for future use
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> None:
