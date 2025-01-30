@@ -189,14 +189,14 @@ def create_scatter_plot(
 
         if verbosity >= Verbosity.NORMAL:
             logger.info(
-                msg=f"Saving plot to {output_file_html} ...",  # noqa: G004 - low overhead
+                msg=f"Saving plot to {output_file_html = } ...",  # noqa: G004 - low overhead
             )
         fig.write_html(
             output_file_html,
         )
         if verbosity >= Verbosity.NORMAL:
             logger.info(
-                msg=f"Saving plot to {output_file_html} DONE",  # noqa: G004 - low overhead
+                msg=f"Saving plot to {output_file_html = } DONE",  # noqa: G004 - low overhead
             )
 
         # Save plot as PDF

@@ -152,11 +152,19 @@ class EmbeddingsPathManager(Protocol):
 
     ### Distances and influence on local estimates
 
+    def get_distances_and_influence_on_local_estimates_root_dir_absolute_path(
+        self,
+    ) -> pathlib.Path: ...  # pragma: no cover
+
     def get_distances_and_influence_on_local_estimates_dir_absolute_path(
         self,
     ) -> pathlib.Path: ...  # pragma: no cover
 
     ### Losses from language model fine-tuning training and evaluation
+
+    def get_training_and_evaluation_losses_root_dir_absolute_path(
+        self,
+    ) -> pathlib.Path: ...  # pragma: no cover
 
     def get_training_and_evaluation_losses_dir_absolute_path(
         self,
