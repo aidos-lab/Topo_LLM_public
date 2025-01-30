@@ -43,12 +43,18 @@ default_logger: logging.Logger = logging.getLogger(
 def line_plot_grouped_by_categorical_column(
     df: pd.DataFrame,
     output_folder: pathlib.Path | None = None,
+    *,
+    plot_name: str = "line_plot",
+    subtitle_text: str | None = None,
     x_column: str = "model_checkpoint",
     y_column: str = "loss_mean",
     group_column: str = "data_full",
-    plot_name: str = "line_plot",
+    x_min: float | None = None,
+    x_max: float | None = None,
     y_min: float | None = None,
     y_max: float | None = None,
+    output_pdf_width: int = 2500,
+    output_pdf_height: int = 1500,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> None:
@@ -72,7 +78,7 @@ def line_plot_grouped_by_categorical_column(
 
     # Plotting
     fig = plt.figure(
-        figsize=(12, 6),
+        figsize=(20, 12),
     )
 
     # Plot each group separately
@@ -97,11 +103,23 @@ def line_plot_grouped_by_categorical_column(
         label=f"Development of {y_column.replace('_', ' ')} over {x_column.replace('_', ' ')}",
     )
 
+    # Set the x-axis limits
+    if x_min is not None and x_max is not None:
+        plt.xlim(
+            x_min,
+            x_max,
+        )
+
     # Set the y-axis limits
     if y_min is not None and y_max is not None:
         plt.ylim(
             y_min,
             y_max,
+        )
+
+    if subtitle_text is not None:
+        plt.suptitle(
+            t=subtitle_text,
         )
 
     # Legend at the bottom
@@ -141,6 +159,7 @@ def line_plot_grouped_by_categorical_column(
         plt.savefig(
             output_file,
             bbox_inches="tight",
+            format="pdf",
         )
         if verbosity >= Verbosity.NORMAL:
             logger.info(

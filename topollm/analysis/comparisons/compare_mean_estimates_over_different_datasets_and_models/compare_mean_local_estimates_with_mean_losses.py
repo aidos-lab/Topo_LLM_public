@@ -31,12 +31,12 @@ import itertools
 import logging
 import pathlib
 from collections.abc import Generator
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 import hydra
 import omegaconf
 import pandas as pd
-from attr import dataclass
 from tqdm import tqdm
 
 from topollm.analysis.correlation.compute_correlations_with_count import compute_correlations_with_count
@@ -71,8 +71,6 @@ setup_exception_logging(
     logger=global_logger,
 )
 
-setup_omega_conf()
-
 
 @hydra.main(
     config_path=f"{HYDRA_CONFIGS_BASE_PATH}",
@@ -89,7 +87,7 @@ def main(
     )
 
     # ================================================== #
-    #
+    # Load configuration and initialize path manager
     # ================================================== #
 
     main_config: MainConfig = initialize_configuration(
@@ -102,6 +100,10 @@ def main(
         main_config=main_config,
         logger=logger,
     )
+
+    # ================================================== #
+    # Load data and create plots
+    # ================================================== #
 
     # The following directory contains the different dataset folders.
     # Logging of the directory is done in the function which iterates over the directories.
@@ -783,4 +785,6 @@ def create_plots_for_individual_splits_individual_models_all_datasets(
 
 
 if __name__ == "__main__":
+    setup_omega_conf()
+
     main()
