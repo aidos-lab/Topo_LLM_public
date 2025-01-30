@@ -28,15 +28,12 @@
 """Create plots to compare mean local estimates with mean losses for different models."""
 
 import itertools
-import json
 import logging
 import pathlib
-import pprint
-from typing import TYPE_CHECKING, Generator
+from collections.abc import Generator
+from typing import TYPE_CHECKING
 
 import hydra
-import matplotlib
-import matplotlib.pyplot as plt
 import omegaconf
 import pandas as pd
 from attr import dataclass
@@ -45,13 +42,17 @@ from tqdm import tqdm
 from topollm.analysis.correlation.compute_correlations_with_count import compute_correlations_with_count
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
-from topollm.data_processing.dictionary_handling import flatten_dict
+from topollm.data_processing.iteration_over_directories.load_json_dicts_from_folder_structure_into_df import (
+    load_json_dicts_from_folder_structure_into_df,
+)
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
-from topollm.path_management.parse_path_info import parse_path_info_full
 from topollm.plotting.create_scatter_plot import create_scatter_plot
+from topollm.plotting.line_plot_grouped_by_categorical_column import (
+    line_plot_grouped_by_categorical_column,
+)
 from topollm.typing.enums import Verbosity
 
 if TYPE_CHECKING:
@@ -111,7 +112,7 @@ def main(
         main_config.local_estimates.method_description,  # For example: 'twonn'
     )
 
-    descriptive_statistics_df: pd.DataFrame = load_descriptive_statistics_from_folder_structure(
+    descriptive_statistics_df: pd.DataFrame = load_json_dicts_from_folder_structure_into_df(
         iteration_root_dir=iteration_root_dir,
         verbosity=verbosity,
         logger=logger,
@@ -165,92 +166,6 @@ def main(
     logger.info(
         msg="Script finished.",
     )
-
-
-def load_descriptive_statistics_from_folder_structure(
-    iteration_root_dir: pathlib.Path,
-    verbosity: Verbosity = Verbosity.NORMAL,
-    logger: logging.Logger = default_logger,
-) -> pd.DataFrame:
-    """Load descriptive statistics from the folder structure and organize them in a DataFrame."""
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            msg=f"{iteration_root_dir = }",  # noqa: G004 - low overhead
-        )
-
-    # Iterate over the different dataset folders in the 'iteration_root_dir' directory
-    rootdir: pathlib.Path = iteration_root_dir
-    # Only match the 'descriptive_statistics_dict.json' files
-    pattern: str = "**/*.json"
-    file_path_list: list[pathlib.Path] = [
-        f
-        for f in rootdir.resolve().glob(
-            pattern=pattern,
-        )
-        if f.is_file()
-    ]
-
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            msg=f"{len(file_path_list) = }",  # noqa: G004 - low overhead
-        )
-        logger.info(
-            msg=f"file_list:\n{pprint.pformat(object=file_path_list)}",  # noqa: G004 - low overhead
-        )
-
-    # Full path example:
-    #
-    # data/analysis/distances_and_influence_on_losses_and_local_estimates/a-tr-s=60000/twonn/
-    # data=iclr_2024_submissions_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/
-    # split=validation_samples=10000_sampling=random_sampling-seed=777/edh-mode=masked_token_lvl=token/add-prefix-space=True_max-len=512/
-    # model=roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5_seed-1234_ckpt-800_task=masked_lm_dr=defaults/
-    # layer=-1_agg=mean/norm=None/sampling=random_seed=42_samples=150000/
-    # desc=twonn_samples=60000_zerovec=keep_dedup=array_deduplicator_noise=do_nothing/
-    # descriptive_statistics_dict.json
-    #
-    # Example dataset folder:
-    #
-    # data=one-year-of-tsla-on-reddit_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags
-
-    loaded_data_list: list[dict] = []
-
-    for file_path in tqdm(
-        iterable=file_path_list,
-        desc="Loading data from files",
-    ):
-        with file_path.open(
-            mode="r",
-        ) as file:
-            file_data: dict = json.load(
-                fp=file,
-            )
-
-            flattened_file_data: dict = flatten_dict(
-                d=file_data,
-                separator="_",
-            )
-
-            path_info: dict = parse_path_info_full(
-                path=file_path,
-            )
-
-            # Combine the path information with the flattened file data
-            combined_data: dict = {
-                **path_info,
-                **flattened_file_data,
-                "file_path": str(object=file_path),
-            }
-
-            loaded_data_list.append(
-                combined_data,
-            )
-
-    # Convert the list of dictionaries to a DataFrame
-    result_df = pd.DataFrame(
-        data=loaded_data_list,
-    )
-
-    return result_df
 
 
 def compare_mean_local_estimates_with_mean_losses_for_different_models(
@@ -854,7 +769,7 @@ def create_plots_for_individual_splits_individual_models_all_datasets(
                     f"_{axes_limits['y_min']}_{axes_limits['y_max']}"
                 )
 
-                line_plot_development_over_checkpoints(
+                line_plot_grouped_by_categorical_column(
                     df=selected_data.selected_statistics_df,
                     output_folder=selected_data.output_folder,
                     x_column=line_plot_x_column_name,
@@ -866,134 +781,6 @@ def create_plots_for_individual_splits_individual_models_all_datasets(
                     verbosity=verbosity,
                     logger=logger,
                 )
-
-
-def line_plot_development_over_checkpoints(
-    df: pd.DataFrame,
-    output_folder: pathlib.Path | None = None,
-    x_column: str = "model_checkpoint",
-    y_column: str = "loss_mean",
-    group_column: str = "data_full",
-    plot_name: str = "line_plot",
-    y_min: float | None = None,
-    y_max: float | None = None,
-    verbosity: Verbosity = Verbosity.NORMAL,
-    logger: logging.Logger = default_logger,
-) -> None:
-    """Plot the development of a selected y-axis column over a selected x-axis column, grouping by a categorical column."""
-    # Ensure x_column exists and fill missing values with -1
-    df[x_column] = df.get(
-        key=x_column,
-        default=pd.Series([-1] * len(df)),
-    )
-    df[x_column] = df[x_column].fillna(
-        value=-1,
-    )
-
-    # Sort by x_column for better visualization
-    df = df.sort_values(
-        by=x_column,
-    )
-
-    # Plotting
-    fig = plt.figure(
-        figsize=(12, 6),
-    )
-
-    # Plot each group separately
-    for group_value in df[group_column].unique():
-        subset = df[df[group_column] == group_value]
-        plt.plot(
-            subset[x_column],
-            subset[y_column],
-            marker="o",
-            linestyle="-",
-            label=f"{group_column}={group_value}",
-        )
-
-    # Labels and title
-    plt.xlabel(
-        xlabel=x_column.replace("_", " ").title(),
-    )
-    plt.ylabel(
-        ylabel=y_column.replace("_", " ").title(),
-    )
-    plt.title(
-        label=f"Development of {y_column.replace('_', ' ')} over {x_column.replace('_', ' ')}",
-    )
-
-    # Set the y-axis limits
-    if y_min is not None and y_max is not None:
-        plt.ylim(
-            y_min,
-            y_max,
-        )
-
-    # Legend at the bottom
-    plt.legend(
-        loc="upper center",
-        bbox_to_anchor=(0.5, -0.15),
-        ncol=3,
-        frameon=False,
-    )
-
-    # Grid for better readability
-    plt.grid(
-        visible=True,
-    )
-
-    # # # # # # # # # # # # # #
-    # Save plot and raw data
-    if output_folder is not None:
-        output_folder = pathlib.Path(
-            output_folder,
-        )
-        output_folder.mkdir(
-            parents=True,
-            exist_ok=True,
-        )
-
-        # Save as PDF
-        output_file = pathlib.Path(
-            output_folder,
-            f"{plot_name}.pdf",
-        )
-
-        if verbosity >= Verbosity.NORMAL:
-            logger.info(
-                msg=f"Saving plot to {output_file} ...",  # noqa: G004 - low overhead
-            )
-        plt.savefig(
-            output_file,
-            bbox_inches="tight",
-        )
-        if verbosity >= Verbosity.NORMAL:
-            logger.info(
-                msg=f"Saving plot to {output_file} DONE",  # noqa: G004 - low overhead
-            )
-
-        # Save the raw data
-        output_file_raw_data = pathlib.Path(
-            output_folder,
-            f"{plot_name}_raw_data.csv",
-        )
-        output_file_raw_data.parent.mkdir(
-            parents=True,
-            exist_ok=True,
-        )
-
-        if verbosity >= Verbosity.NORMAL:
-            logger.info(
-                msg=f"Saving raw data to {output_file_raw_data} ...",  # noqa: G004 - low overhead
-            )
-        df.to_csv(
-            path_or_buf=output_file_raw_data,
-            index=False,
-        )
-        if verbosity >= Verbosity.NORMAL:
-            logger.info(
-                msg=f"Saving raw data to {output_file_raw_data} DONE",  # noqa: G004 - low overhead
-            )
 
 
 if __name__ == "__main__":
