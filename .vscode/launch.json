@@ -384,6 +384,7 @@
                 "data=multiwoz21",
                 // "data=sgd",
                 // "data=one-year-of-tsla-on-reddit",
+                // "data=sgd,one-year-of-tsla-on-reddit",
                 //
                 "data.data_subsampling.split=validation",
                 "data.data_subsampling.sampling_mode=random",
@@ -1632,14 +1633,18 @@
                 //
                 //    >> START: Model options.
                 //
-                // "language_model=roberta-base-setsumbt_multiwoz21",
-                // "++language_model.checkpoint_no=2813",
+                // "language_model=roberta-base",
+                //
+                "language_model=roberta-base-setsumbt_multiwoz21",
+                "++language_model.checkpoint_no=2813",
                 // "++language_model.checkpoint_no=2813,5626,8439",
                 // "++language_model.checkpoint_no=2813,5626,8439,11252,14065,16878,19691,25317,33756,36569,39382,42195,50634,56260,70325,90016,109707,115333,126585",
                 //
-                "language_model=roberta-base-trippy_multiwoz21",
+                // "language_model=roberta-base-trippy_multiwoz21",
                 // "++language_model.checkpoint_no=3549",
-                "++language_model.checkpoint_no=7098",
+                // "++language_model.checkpoint_no=7098",
+                // "++language_model.checkpoint_no=10647",
+                // "++language_model.checkpoint_no=3549,7098,10647,14196,17745,21294,24843,28392,31941,35490",
                 //
                 //    >> END: Model options.
             ],

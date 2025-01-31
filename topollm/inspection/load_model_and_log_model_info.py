@@ -156,9 +156,59 @@ def main(
         logger=logger,
     )
 
+    compute_average_l2_norm_of_model_parameters(
+        model=model,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
     logger.info(
         msg="Running script DONE",
     )
+
+
+def compute_average_l2_norm_of_model_parameters(
+    model: transformers.PreTrainedModel,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> float:
+    """Compute the average L2 norm of the model parameters."""
+    # Compute the average L2 norm of the model parameters
+    average_l2_norm: float = 0.0
+    num_parameter_components: int = 0
+    skipped_parameter_components: int = 0
+
+    for parameter_value in model.state_dict().values():
+        if hasattr(
+            parameter_value,
+            "shape",
+        ):
+            num_parameter_components += 1
+            average_l2_norm += (
+                torch.linalg.norm(
+                    input=parameter_value,
+                )
+                .detach()
+                .cpu()
+                .numpy()
+            )
+        else:
+            skipped_parameter_components += 1
+
+    average_l2_norm /= num_parameter_components
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"{num_parameter_components = }",  # noqa: G004 - low overhead
+        )
+        logger.info(
+            msg=f"{skipped_parameter_components = }",  # noqa: G004 - low overhead
+        )
+        logger.info(
+            msg=f"{average_l2_norm = }",  # noqa: G004 - low overhead
+        )
+
+    return average_l2_norm
 
 
 def load_model_manually_from_identifier(
