@@ -113,11 +113,12 @@ def prepare_device_and_tokenizer_and_model_from_language_model_config(
 
     loaded_model_container = LoadedModelContainer(
         device=device,
+        model=model,
+        language_model_config=language_model_config,
+        lm_mode=lm_mode,
         tokenizer=tokenizer,
         tokenizer_config=tokenizer_config,
         tokenizer_modifier=tokenizer_modifier,
-        lm_mode=lm_mode,
-        model=model,
     )
 
     return loaded_model_container

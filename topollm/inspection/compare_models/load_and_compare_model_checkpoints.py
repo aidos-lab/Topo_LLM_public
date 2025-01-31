@@ -39,7 +39,6 @@ import hydra.core.hydra_config
 import omegaconf
 import transformers
 
-from topollm.config_classes.get_data_dir import get_data_dir
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.log_model_info import log_model_info
@@ -63,7 +62,6 @@ default_logger: logging.Logger = logging.getLogger(
 setup_exception_logging(
     logger=global_logger,
 )
-setup_omega_conf()
 
 
 @hydra.main(
@@ -91,53 +89,12 @@ def main(
         logger=logger,
     )
 
-    # # # #
+    # ==================================================== #
     # Load the models
-    model_loading_class = transformers.AutoModelForMaskedLM
-
-    model_files_dir_relative_to_data_dir_list: list = [
-        # > target-freeze= (i.e., freeze nothing)
-        pathlib.Path(
-            "models/finetuned_models/data=one-year-of-tsla-on-reddit_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags/split=train_samples=80_sampling=take_first/model=roberta-base_task=masked_lm_dr=defaults/ftm=standard/lora-None/",
-            "gradmod=do_nothing_target-freeze=/lr=5e-05_lr-scheduler-type=linear_wd=0.01/bs-train=16/ep=2/",
-            "seed=1235/model_files/checkpoint-2",
-        ),
-        pathlib.Path(
-            "models/finetuned_models/data=one-year-of-tsla-on-reddit_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags/split=train_samples=80_sampling=take_first/model=roberta-base_task=masked_lm_dr=defaults/ftm=standard/lora-None/",
-            "gradmod=do_nothing_target-freeze=/lr=5e-05_lr-scheduler-type=linear_wd=0.01/bs-train=16/ep=2/",
-            "seed=1235/model_files/checkpoint-4",
-        ),
-        # > target-freeze=lm_head
-        pathlib.Path(
-            "models/finetuned_models/data=one-year-of-tsla-on-reddit_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags/split=train_samples=80_sampling=take_first/model=roberta-base_task=masked_lm_dr=defaults/ftm=standard/lora-None/",
-            "gradmod=freeze_layers_target-freeze=lm_head/lr=5e-05_lr-scheduler-type=linear_wd=0.01/bs-train=16/ep=2/",
-            "seed=1235/model_files/checkpoint-2",
-        ),
-        pathlib.Path(
-            "models/finetuned_models/data=one-year-of-tsla-on-reddit_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags/split=train_samples=80_sampling=take_first/model=roberta-base_task=masked_lm_dr=defaults/ftm=standard/lora-None/",
-            "gradmod=freeze_layers_target-freeze=lm_head/lr=5e-05_lr-scheduler-type=linear_wd=0.01/bs-train=16/ep=2/",
-            "seed=1235/model_files/checkpoint-4",
-        ),
-    ]
-
-    # This holds the list of model files to compare
-    models_identifier_or_paths_list: list[str] = [
-        str(
-            object=pathlib.Path(
-                embeddings_path_manager.data_dir,
-                relative_dir,
-            ),
-        )
-        for relative_dir in model_files_dir_relative_to_data_dir_list
-    ]
-
-    # Load the models
-    models_list: list[transformers.PreTrainedModel] = [
-        model_loading_class.from_pretrained(
-            pretrained_model_name_or_path=model_identifier_or_path,
-        )
-        for model_identifier_or_path in models_identifier_or_paths_list
-    ]
+    # ==================================================== #
+    models_list: list[transformers.PreTrainedModel] = create_models_list_from_list_of_manual_paths(
+        embeddings_path_manager=embeddings_path_manager,
+    )
 
     # Log the model information
     if verbosity >= Verbosity.NORMAL:
@@ -184,6 +141,58 @@ def main(
     )
 
 
+def create_models_list_from_list_of_manual_paths(
+    embeddings_path_manager: EmbeddingsPathManager,
+) -> list[transformers.PreTrainedModel]:
+    model_loading_class = transformers.AutoModelForMaskedLM
+
+    model_files_dir_relative_to_data_dir_list: list = [
+        # > target-freeze= (i.e., freeze nothing)
+        pathlib.Path(
+            "models/finetuned_models/data=one-year-of-tsla-on-reddit_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags/split=train_samples=80_sampling=take_first/model=roberta-base_task=masked_lm_dr=defaults/ftm=standard/lora-None/",
+            "gradmod=do_nothing_target-freeze=/lr=5e-05_lr-scheduler-type=linear_wd=0.01/bs-train=16/ep=2/",
+            "seed=1235/model_files/checkpoint-2",
+        ),
+        pathlib.Path(
+            "models/finetuned_models/data=one-year-of-tsla-on-reddit_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags/split=train_samples=80_sampling=take_first/model=roberta-base_task=masked_lm_dr=defaults/ftm=standard/lora-None/",
+            "gradmod=do_nothing_target-freeze=/lr=5e-05_lr-scheduler-type=linear_wd=0.01/bs-train=16/ep=2/",
+            "seed=1235/model_files/checkpoint-4",
+        ),
+        # > target-freeze=lm_head
+        pathlib.Path(
+            "models/finetuned_models/data=one-year-of-tsla-on-reddit_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags/split=train_samples=80_sampling=take_first/model=roberta-base_task=masked_lm_dr=defaults/ftm=standard/lora-None/",
+            "gradmod=freeze_layers_target-freeze=lm_head/lr=5e-05_lr-scheduler-type=linear_wd=0.01/bs-train=16/ep=2/",
+            "seed=1235/model_files/checkpoint-2",
+        ),
+        pathlib.Path(
+            "models/finetuned_models/data=one-year-of-tsla-on-reddit_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags/split=train_samples=80_sampling=take_first/model=roberta-base_task=masked_lm_dr=defaults/ftm=standard/lora-None/",
+            "gradmod=freeze_layers_target-freeze=lm_head/lr=5e-05_lr-scheduler-type=linear_wd=0.01/bs-train=16/ep=2/",
+            "seed=1235/model_files/checkpoint-4",
+        ),
+    ]
+
+    # This holds the list of model files to compare
+    models_identifier_or_paths_list: list[str] = [
+        str(
+            object=pathlib.Path(
+                embeddings_path_manager.data_dir,
+                relative_dir,
+            ),
+        )
+        for relative_dir in model_files_dir_relative_to_data_dir_list
+    ]
+
+    # Load the models
+    models_list: list[transformers.PreTrainedModel] = [
+        model_loading_class.from_pretrained(
+            pretrained_model_name_or_path=model_identifier_or_path,
+        )
+        for model_identifier_or_path in models_identifier_or_paths_list
+    ]
+
+    return models_list
+
+
 def compare_model_components(
     models_list: list[transformers.PreTrainedModel],
     parameters_to_compare: str,
@@ -208,4 +217,6 @@ def compare_model_components(
 
 
 if __name__ == "__main__":
+    setup_omega_conf()
+
     main()

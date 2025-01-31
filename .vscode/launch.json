@@ -381,8 +381,10 @@
                 //
                 //    >> START: Data options.
                 //
-                "data=multiwoz21",
+                // "data=multiwoz21",
                 // "data=sgd",
+                "data=one-year-of-tsla-on-reddit",
+                //
                 "data.data_subsampling.split=validation",
                 "data.data_subsampling.sampling_mode=random",
                 "data.data_subsampling.number_of_samples=10000",
@@ -408,7 +410,8 @@
                 "local_estimates.filtering.deduplication_mode=array_deduplicator",
                 "local_estimates.filtering.num_samples=60000",
                 "local_estimates.pointwise.absolute_n_neighbors=128",
-                "feature_flags.analysis.create_plots_in_local_estimates_worker=true",
+                //
+                "feature_flags.analysis.create_plots_in_local_estimates_worker=true", // <-- Decide whether to create plots in the local estimates worker.
             ],
             "env": {
                 "PYTORCH_ENABLE_MPS_FALLBACK": "1"
