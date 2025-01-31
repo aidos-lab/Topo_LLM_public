@@ -1,0 +1,12 @@
+checkpoint_no: 3549
+seed: 42
+lm_mode: mlm
+task_type: masked_lm
+pretrained_model_name_or_path: ${paths.data_dir}/models/trippy_checkpoints/results.${language_model.seed}/checkpoint-${language_model.checkpoint_no}
+manual_tokenizer_override_pretrained_model_name_or_path: roberta-base
+
+short_model_name: roberta-base-trippy_multiwoz21_seed-${language_model.seed}_ckpt-${language_model.checkpoint_no}
+
+tokenizer_modifier:
+  mode: do_nothing
+  padding_token: <pad>

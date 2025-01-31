@@ -141,8 +141,6 @@ def main(
                 msg,
             )
 
-    # TODO: Write and test the configs for the Trippy models
-
     # ==================================================== #
     # Log model information
     # ==================================================== #
@@ -168,6 +166,7 @@ def load_model_manually_from_identifier(
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> transformers.PreTrainedModel:
+    """Load model manually from identifier."""
     example_base_model_identifier = "roberta-base"
     example_1_finetuned_model_identifier = pathlib.Path(
         embeddings_path_manager.data_dir,

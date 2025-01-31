@@ -1603,5 +1603,43 @@
                 //    >> END Model group options.
             ]
         },
+        {
+            "name": "For debugging: SetSUMBT and Trippy - load_model_and_log_model_info.py",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/inspection/load_model_and_log_model_info.py",
+            "console": "integratedTerminal",
+            "args": [
+                // >>>> START: Hydra options
+                "--multirun",
+                "hydra/sweeper=basic",
+                "hydra/launcher=basic",
+                // "hydra/launcher=hpc_submission",
+                // "hydra.launcher.queue=CUDA",
+                // "hydra.launcher.template=RTX6000",
+                // "hydra.launcher.memory=32",
+                // "hydra.launcher.ncpus=4",
+                // "hydra.launcher.ngpus=1",
+                // "hydra.launcher.walltime=00:10:00", // <-- The logging script should run very quickly.
+                // >>>> END: Hydra options
+                "tokenizer.add_prefix_space=False", // "tokenizer.add_prefix_space=True" is necessary to use the tokenizer with input split into words
+                //
+                //    >> START: Model options.
+                //
+                // "language_model=roberta-base-setsumbt_multiwoz21",
+                // "++language_model.checkpoint_no=2813",
+                // "++language_model.checkpoint_no=2813,5626,8439",
+                // "++language_model.checkpoint_no=2813,5626,8439,11252,14065,16878,19691,25317,33756,36569,39382,42195,50634,56260,70325,90016,109707,115333,126585",
+                //
+                "language_model=roberta-base-trippy_multiwoz21",
+                // "++language_model.checkpoint_no=3549",
+                "++language_model.checkpoint_no=7098",
+                //
+                //    >> END: Model options.
+            ],
+            "env": {
+                "PYTORCH_ENABLE_MPS_FALLBACK": "1"
+            }
+        },
     ]
 }
