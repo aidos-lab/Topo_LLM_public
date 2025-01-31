@@ -29,6 +29,7 @@
 
 import logging
 import pathlib
+from enum import StrEnum, auto, unique
 from typing import TYPE_CHECKING
 
 import hydra
@@ -42,10 +43,12 @@ from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.log_model_info import log_model_info
 from topollm.logging.setup_exception_logging import setup_exception_logging
-from topollm.model_handling.get_torch_device import get_torch_device
+from topollm.model_handling.loaded_model_container import LoadedModelContainer
+from topollm.model_handling.prepare_loaded_model_container import (
+    prepare_device_and_tokenizer_and_model_from_main_config,
+)
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
 from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
-from topollm.pipeline_scripts.worker_for_pipeline import worker_for_pipeline
 from topollm.typing.enums import Verbosity
 
 if TYPE_CHECKING:
@@ -59,6 +62,9 @@ except ImportError:
     pass
 
 # Logger for this file
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 global_logger: logging.Logger = logging.getLogger(
     name=__name__,
 )
@@ -68,6 +74,14 @@ setup_exception_logging(
 )
 
 setup_omega_conf()
+
+
+@unique
+class ModelLoadingMode(StrEnum):
+    """How to load the model."""
+
+    MANUALLY_FROM_IDENTIFIER = auto()
+    FROM_MAIN_CONFIG = auto()
 
 
 @hydra.main(
@@ -96,13 +110,64 @@ def main(
         logger=logger,
     )
 
-    # # # #
-    # Load model and call logging function
+    # ==================================================== #
+    # Load model
+    # ==================================================== #
     if verbosity >= Verbosity.NORMAL:
         logger.info(
             msg=f"{transformers.__version__ = }",  # noqa: G004 - low overhead
         )
 
+    # Select how the model should be loaded
+    model_loading_mode: ModelLoadingMode = ModelLoadingMode.FROM_MAIN_CONFIG
+
+    match model_loading_mode:
+        case ModelLoadingMode.MANUALLY_FROM_IDENTIFIER:
+            model: transformers.PreTrainedModel = load_model_manually_from_identifier(
+                embeddings_path_manager=embeddings_path_manager,
+                verbosity=verbosity,
+                logger=logger,
+            )
+        case ModelLoadingMode.FROM_MAIN_CONFIG:
+            loaded_model_container: LoadedModelContainer = prepare_device_and_tokenizer_and_model_from_main_config(
+                main_config=main_config,
+                verbosity=verbosity,
+                logger=logger,
+            )
+            model: transformers.PreTrainedModel = loaded_model_container.model
+        case _:
+            msg: str = f"Invalid {model_loading_mode = }."
+            raise ValueError(
+                msg,
+            )
+
+    # TODO: Write and test the configs for the Trippy models
+
+    # ==================================================== #
+    # Log model information
+    # ==================================================== #
+
+    log_model_info_for_notes_text_files(
+        model=model,
+        logger=logger,
+    )
+
+    # Example for accessing specific model parameters
+    compare_different_ways_to_access_model_parameters(
+        model=model,
+        logger=logger,
+    )
+
+    logger.info(
+        msg="Running script DONE",
+    )
+
+
+def load_model_manually_from_identifier(
+    embeddings_path_manager: EmbeddingsPathManager,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> transformers.PreTrainedModel:
     example_base_model_identifier = "roberta-base"
     example_1_finetuned_model_identifier = pathlib.Path(
         embeddings_path_manager.data_dir,
@@ -123,14 +188,39 @@ def main(
         "seed=1235/model_files/checkpoint-4",
     )
 
-    # Select the model identifier
-    model_identifier: str = str(object=example_3_finetuned_model_identifier)
+    # ==================================================== #
+    # > Select the model identifier.
+    # > Note: You can change the model identifier here.
+    model_identifier: str = str(
+        object=example_base_model_identifier,
+    )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"{model_identifier = }",  # noqa: G004 - low overhead
+        )
 
     # Load the model
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Loading model from {model_identifier = } ...",  # noqa: G004 - low overhead
+        )
     model = transformers.AutoModelForMaskedLM.from_pretrained(
         pretrained_model_name_or_path=model_identifier,
     )
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Loading model from {model_identifier = } DONE",  # noqa: G004 - low overhead
+        )
 
+    return model
+
+
+def log_model_info_for_notes_text_files(
+    model: transformers.PreTrainedModel,
+    logger: logging.Logger = default_logger,
+) -> None:
+    """Log model information for notes text files."""
     log_model_info(
         model=model,
         model_name="model_name",
@@ -150,10 +240,13 @@ def main(
                 f"{key = }:\n{value.shape = }.",
             )
 
-    # # # #
-    # Accessing specific model parameters
 
-    # Try to access the model parameters for RoBERTa models
+def compare_different_ways_to_access_model_parameters(
+    model: transformers.PreTrainedModel,
+    logger: logging.Logger = default_logger,
+) -> None:
+    """Compare different ways to access model parameters."""
+    # Access the model parameters for RoBERTa models
     try:
         # Two different ways to access the same parameter:
         # 1. Via the model object
@@ -200,10 +293,6 @@ def main(
         logger.exception(
             msg="KeyError when trying to access model parameters.",
         )
-
-    logger.info(
-        msg="Running script DONE",
-    )
 
 
 if __name__ == "__main__":
