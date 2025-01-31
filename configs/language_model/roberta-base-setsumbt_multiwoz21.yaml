@@ -1,6 +1,6 @@
 checkpoint_no: 2813
 seed: 0
-lm_mode: mlm
+lm_mode: setsumbt
 task_type: masked_lm
 pretrained_model_name_or_path: ${paths.data_dir}/models/setsumbt_checkpoints/multiwoz21/roberta/setsumbt/gru/cosine/labelsmoothing/0.05/seed${language_model.seed}/04-09-2024-14-53/checkpoint-${language_model.checkpoint_no}
 manual_tokenizer_override_pretrained_model_name_or_path: roberta-base

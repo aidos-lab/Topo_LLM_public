@@ -286,6 +286,8 @@ class LMmode(StrEnum):
 
     MLM = auto()  # masked language model
     CLM = auto()  # causal language model
+    SETSUMBT = auto()  # SETSUMBT set-based slot filling model
+    TRIPPY = auto()  # trippy dialog state tracking model
 
 
 class TaskType(StrEnum):
