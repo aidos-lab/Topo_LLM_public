@@ -359,7 +359,7 @@
             }
         },
         {
-            "name": "HPC submission: SETSUMBT-checkpoints - run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
+            "name": "HPC submission: SETSUMBT or Trippy checkpoints - run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
@@ -381,9 +381,9 @@
                 //
                 //    >> START: Data options.
                 //
-                // "data=multiwoz21",
+                "data=multiwoz21",
                 // "data=sgd",
-                "data=one-year-of-tsla-on-reddit",
+                // "data=one-year-of-tsla-on-reddit",
                 //
                 "data.data_subsampling.split=validation",
                 "data.data_subsampling.sampling_mode=random",
@@ -394,10 +394,15 @@
                 //
                 //    >> START: Model options.
                 //
-                "language_model=roberta-base-setsumbt_multiwoz21",
+                // "language_model=roberta-base-setsumbt_multiwoz21",
                 // "++language_model.checkpoint_no=2813",
                 // "++language_model.checkpoint_no=2813,5626,8439",
-                "++language_model.checkpoint_no=2813,5626,8439,11252,14065,16878,19691,25317,33756,36569,39382,42195,50634,56260,70325,90016,109707,115333,126585",
+                // "++language_model.checkpoint_no=2813,5626,8439,11252,14065,16878,19691,25317,33756,36569,39382,42195,50634,56260,70325,90016,109707,115333,126585",
+                //
+                "language_model=roberta-base-trippy_multiwoz21",
+                "++language_model.seed=42",
+                // "++language_model.checkpoint_no=3549",
+                "++language_model.checkpoint_no=3549,7098",
                 //
                 //    >> END: Model options.
                 //
