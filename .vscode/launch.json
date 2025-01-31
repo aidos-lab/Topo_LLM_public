@@ -284,9 +284,11 @@
             "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
             "console": "integratedTerminal",
             "args": [
+                // >>>> START: Hydra options
                 "--multirun",
                 "hydra/sweeper=basic",
                 "hydra/launcher=basic",
+                // >>>> END: Hydra options
                 "tokenizer.add_prefix_space=False", // "tokenizer.add_prefix_space=True" is necessary to use the tokenizer with input split into words
                 "data=multiwoz21",
                 "data.data_subsampling.number_of_samples=512",
@@ -301,6 +303,122 @@
                 "local_estimates.compute_global_estimates=true",
                 "local_estimates.pointwise.n_neighbors_mode=absolute_size",
                 "local_estimates.pointwise.absolute_n_neighbors=256",
+            ],
+            "env": {
+                "PYTORCH_ENABLE_MPS_FALLBACK": "1"
+            }
+        },
+        {
+            "name": "For debugging: SETSUMBT-checkpoints - run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
+            "console": "integratedTerminal",
+            "args": [
+                // >>>> START: Hydra options
+                "--multirun",
+                "hydra/sweeper=basic",
+                "hydra/launcher=basic",
+                // "hydra/launcher=hpc_submission",
+                // "hydra.launcher.queue=CUDA",
+                // "hydra.launcher.template=RTX6000",
+                // "hydra.launcher.memory=32",
+                // "hydra.launcher.ncpus=4",
+                // "hydra.launcher.ngpus=1",
+                // "hydra.launcher.walltime=01:00:00", // <-- The pipeline run for regular embeddings should only take a few minutes.
+                // >>>> END: Hydra options
+                "tokenizer.add_prefix_space=False", // "tokenizer.add_prefix_space=True" is necessary to use the tokenizer with input split into words
+                //    >> START: Data options.
+                //
+                // TODO: We need to add new data configurations for the SETSUMBT dataloaders
+                "data=multiwoz21",
+                // "data=sgd",
+                "data.data_subsampling.split=validation",
+                "data.data_subsampling.number_of_samples=512",
+                //
+                //    >> END: Data options.
+                //    >> START: Model options.
+                //
+                "language_model=roberta-base-setsumbt_multiwoz21",
+                // "++language_model.checkpoint_no=2813",
+                "++language_model.checkpoint_no=2813,5626,8439",
+                //
+                //    >> END: Model options.
+                "embeddings.embedding_extraction.layer_indices=[-1]",
+                "embeddings_data_prep.sampling.num_samples=3000",
+                "embeddings_data_prep.sampling.sampling_mode=random",
+                // "embeddings_data_prep.sampling.sampling_mode=take_first",
+                "local_estimates.filtering.num_samples=500",
+                "local_estimates.compute_global_estimates=true",
+                "local_estimates.pointwise.n_neighbors_mode=absolute_size",
+                "local_estimates.pointwise.absolute_n_neighbors=128",
+                "feature_flags.analysis.create_plots_in_local_estimates_worker=true",
+            ],
+            "env": {
+                "PYTORCH_ENABLE_MPS_FALLBACK": "1"
+            }
+        },
+        {
+            "name": "HPC submission: SETSUMBT or Trippy checkpoints - run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
+            "console": "integratedTerminal",
+            "args": [
+                // >>>> START: Hydra options
+                "--multirun",
+                "hydra/sweeper=basic",
+                "hydra/launcher=basic",
+                "hydra/launcher=hpc_submission",
+                "hydra.launcher.queue=CUDA",
+                "hydra.launcher.template=RTX6000",
+                "hydra.launcher.memory=32",
+                "hydra.launcher.ncpus=4",
+                "hydra.launcher.ngpus=1",
+                "hydra.launcher.walltime=01:00:00", // <-- The pipeline run for regular embeddings should only take a few minutes.
+                // >>>> END: Hydra options
+                "tokenizer.add_prefix_space=False", // "tokenizer.add_prefix_space=True" is necessary to use the tokenizer with input split into words
+                //
+                //    >> START: Data options.
+                //
+                "data=multiwoz21",
+                // "data=sgd",
+                // "data=one-year-of-tsla-on-reddit",
+                // "data=sgd,one-year-of-tsla-on-reddit",
+                //
+                "data.data_subsampling.split=validation",
+                "data.data_subsampling.sampling_mode=random",
+                "data.data_subsampling.number_of_samples=10000",
+                "data.data_subsampling.sampling_seed=778",
+                //
+                //    >> END: Data options.
+                //
+                //    >> START: Model options.
+                //
+                // "language_model=roberta-base-setsumbt_multiwoz21",
+                // "++language_model.checkpoint_no=2813",
+                // "++language_model.checkpoint_no=2813,5626,8439",
+                // "++language_model.checkpoint_no=2813,5626,8439,11252,14065,16878,19691,25317,33756,36569,39382,42195,50634,56260,70325,90016,109707,115333,126585",
+                //
+                "language_model=roberta-base-trippy_multiwoz21",
+                "++language_model.seed=42",
+                // "++language_model.checkpoint_no=3549",
+                // "++language_model.checkpoint_no=3549,7098",
+                "++language_model.checkpoint_no=3549,7098,10647,14196,17745,21294,24843,28392,31941,35490",
+                //
+                //    >> END: Model options.
+                //
+                "embeddings.embedding_data_handler.mode=regular",
+                "embeddings.embedding_extraction.layer_indices=[-1]",
+                "embeddings_data_prep.sampling.num_samples=150000",
+                "embeddings_data_prep.sampling.sampling_mode=random",
+                "embeddings_data_prep.sampling.seed=42",
+                "local_estimates.pointwise.n_neighbors_mode=absolute_size",
+                "local_estimates.filtering.deduplication_mode=array_deduplicator",
+                "local_estimates.filtering.num_samples=60000",
+                "local_estimates.pointwise.absolute_n_neighbors=128",
+                //
+                "feature_flags.analysis.create_plots_in_local_estimates_worker=true", // <-- Decide whether to create plots in the local estimates worker.
             ],
             "env": {
                 "PYTORCH_ENABLE_MPS_FALLBACK": "1"
@@ -1491,6 +1609,50 @@
                 "roberta_base_without_modifications",
                 //    >> END Model group options.
             ]
+        },
+        {
+            "name": "For debugging: SetSUMBT and Trippy - load_model_and_log_model_info.py",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/inspection/load_model_and_log_model_info.py",
+            "console": "integratedTerminal",
+            "args": [
+                // >>>> START: Hydra options
+                "--multirun",
+                "hydra/sweeper=basic",
+                "hydra/launcher=basic",
+                // "hydra/launcher=hpc_submission",
+                // "hydra.launcher.queue=CUDA",
+                // "hydra.launcher.template=RTX6000",
+                // "hydra.launcher.memory=32",
+                // "hydra.launcher.ncpus=4",
+                // "hydra.launcher.ngpus=1",
+                // "hydra.launcher.walltime=00:10:00", // <-- The logging script should run very quickly.
+                // >>>> END: Hydra options
+                "tokenizer.add_prefix_space=False", // "tokenizer.add_prefix_space=True" is necessary to use the tokenizer with input split into words
+                //
+                //    >> START: Model options.
+                //
+                // "language_model=roberta-base",
+                //
+                // "language_model=roberta-base-setsumbt_multiwoz21",
+                // "++language_model.seed=0",
+                // "++language_model.checkpoint_no=2813",
+                // "++language_model.checkpoint_no=2813,5626,8439",
+                // "++language_model.checkpoint_no=2813,5626,8439,11252,14065,16878,19691,25317,33756,36569,39382,42195,50634,56260,70325,90016,109707,115333,126585",
+                //
+                "language_model=roberta-base-trippy_multiwoz21",
+                "++language_model.seed=42",
+                // "++language_model.checkpoint_no=3549",
+                // "++language_model.checkpoint_no=7098",
+                // "++language_model.checkpoint_no=10647",
+                "++language_model.checkpoint_no=3549,7098,10647,14196,17745,21294,24843,28392,31941,35490",
+                //
+                //    >> END: Model options.
+            ],
+            "env": {
+                "PYTORCH_ENABLE_MPS_FALLBACK": "1"
+            }
         },
     ]
 }

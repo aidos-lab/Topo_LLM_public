@@ -38,7 +38,6 @@ from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
-from topollm.model_handling.get_torch_device import get_torch_device
 from topollm.pipeline_scripts.worker_for_pipeline import worker_for_pipeline
 
 if TYPE_CHECKING:
@@ -60,8 +59,6 @@ setup_exception_logging(
     logger=global_logger,
 )
 
-setup_omega_conf()
-
 
 @hydra.main(
     config_path=f"{HYDRA_CONFIGS_BASE_PATH}",
@@ -82,17 +79,11 @@ def main(
         logger=logger,
     )
 
-    device = get_torch_device(
-        preferred_torch_backend=main_config.preferred_torch_backend,
-        logger=logger,
-    )
-
     # # # # # # # # # # # # # # # #
     # Call the worker function
     worker_for_pipeline(
         main_config=main_config,
         logger=logger,
-        device=device,
     )
 
     logger.info(
@@ -101,4 +92,6 @@ def main(
 
 
 if __name__ == "__main__":
+    setup_omega_conf()
+
     main()

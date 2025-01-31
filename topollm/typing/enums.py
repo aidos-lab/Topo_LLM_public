@@ -1,10 +1,10 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -286,6 +286,8 @@ class LMmode(StrEnum):
 
     MLM = auto()  # masked language model
     CLM = auto()  # causal language model
+    SETSUMBT = auto()  # SETSUMBT set-based slot filling model
+    TRIPPY = auto()  # trippy dialog state tracking model
 
 
 class TaskType(StrEnum):

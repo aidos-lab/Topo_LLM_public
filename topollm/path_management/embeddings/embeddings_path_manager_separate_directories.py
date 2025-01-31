@@ -83,19 +83,32 @@ class EmbeddingsPathManagerSeparateDirectories:
         path = pathlib.Path(
             self.main_config.data.get_partial_path(),
             self.main_config.embeddings.config_description,
-            self.main_config.tokenizer.get_config_description(
-                description_type=DescriptionType.LONG,
-            ),
-            self.main_config.language_model.get_config_description(
-                description_type=DescriptionType.LONG,
-            ),
+            self.get_tokenizer_language_model_combination_path(),
             self.main_config.embeddings.embedding_extraction.config_description,
             self.main_config.transformations.config_description,
         )
 
         return path
 
-    def get_data_language_model_combination_path(
+    def get_tokenizer_language_model_combination_path(
+        self,
+    ) -> pathlib.Path:
+        """Construct a nested subfolder path based on specific attributes.
+
+        This can be used for the paths for saving the losses.
+        """
+        path = pathlib.Path(
+            self.main_config.tokenizer.get_config_description(
+                description_type=DescriptionType.LONG,
+            ),
+            self.main_config.language_model.get_config_description(
+                description_type=DescriptionType.LONG,
+            ),
+        )
+
+        return path
+
+    def get_data_tokenizer_language_model_combination_path(
         self,
     ) -> pathlib.Path:
         """Construct a nested subfolder path based on specific attributes.
@@ -104,12 +117,7 @@ class EmbeddingsPathManagerSeparateDirectories:
         """
         path = pathlib.Path(
             self.main_config.data.get_partial_path(),
-            self.main_config.tokenizer.get_config_description(
-                description_type=DescriptionType.LONG,
-            ),
-            self.main_config.language_model.get_config_description(
-                description_type=DescriptionType.LONG,
-            ),
+            self.get_tokenizer_language_model_combination_path(),
         )
 
         return path
@@ -469,6 +477,28 @@ class EmbeddingsPathManagerSeparateDirectories:
 
         return path
 
+    ### Information about language models
+
+    def get_language_model_information_root_dir_absolute_path(
+        self,
+    ) -> pathlib.Path:
+        path = pathlib.Path(
+            self.analysis_dir,
+            "model_information",
+        )
+
+        return path
+
+    def get_language_model_information_dir_absolute_path(
+        self,
+    ) -> pathlib.Path:
+        path = pathlib.Path(
+            self.get_language_model_information_root_dir_absolute_path(),
+            self.get_tokenizer_language_model_combination_path(),
+        )
+
+        return path
+
     ### Losses from language model fine-tuning training and evaluation
 
     def get_training_and_evaluation_losses_root_dir_absolute_path(
@@ -486,7 +516,7 @@ class EmbeddingsPathManagerSeparateDirectories:
     ) -> pathlib.Path:
         path = pathlib.Path(
             self.get_training_and_evaluation_losses_root_dir_absolute_path(),
-            self.get_data_language_model_combination_path(),
+            self.get_data_tokenizer_language_model_combination_path(),
         )
 
         return path

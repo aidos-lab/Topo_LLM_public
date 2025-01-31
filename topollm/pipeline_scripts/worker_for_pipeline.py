@@ -29,8 +29,6 @@
 
 import logging
 
-import torch
-
 from topollm.analysis.local_estimates_computation.global_and_pointwise_local_estimates_worker import (
     global_and_pointwise_local_estimates_worker,
 )
@@ -41,9 +39,7 @@ from topollm.typing.enums import Verbosity
 
 logger_section_separation_line = 30 * "="
 
-default_device = torch.device(
-    device="cpu",
-)
+
 default_logger: logging.Logger = logging.getLogger(
     name=__name__,
 )
@@ -51,7 +47,6 @@ default_logger: logging.Logger = logging.getLogger(
 
 def worker_for_pipeline(
     main_config: MainConfig,
-    device: torch.device = default_device,
     logger: logging.Logger = default_logger,
 ) -> None:
     """Run the worker which goes through the pipeline."""
@@ -102,7 +97,6 @@ def worker_for_pipeline(
 
         embeddings_data_prep_worker(
             main_config=main_config,
-            device=device,
             verbosity=main_config.verbosity,
             logger=logger,
         )
@@ -132,7 +126,6 @@ def worker_for_pipeline(
 
     global_and_pointwise_local_estimates_worker(
         main_config=main_config,
-        device=device,
         verbosity=main_config.verbosity,
         logger=logger,
     )

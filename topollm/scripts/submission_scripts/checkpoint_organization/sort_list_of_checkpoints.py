@@ -1,10 +1,10 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -25,11 +25,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Sort a list of strings representing integers in ascending order."""
+
 
 def main() -> None:
     """Sort a list of strings representing integers in ascending order."""
     # List of strings representing integers
-    checkpoint_no_list = [
+    checkpoint_no_list: list[str] = [
         "109707",
         "11252",
         "115333",
@@ -61,6 +63,10 @@ def main() -> None:
     print(  # noqa: T201 - we want this script to print the output
         sorted_checkpoint_no_list,
     )
+
+    # > Expected output:
+    # >
+    # > ['2813', '5626', '8439', '11252', '14065', '16878', '19691', '25317', '33756', '36569', '39382', '42195', '50634', '56260', '70325', '90016', '109707', '115333', '126585']
 
 
 if __name__ == "__main__":

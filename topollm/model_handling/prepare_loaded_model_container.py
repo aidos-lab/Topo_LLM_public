@@ -84,18 +84,24 @@ def prepare_device_and_tokenizer_and_model_from_language_model_config(
     # "roberta"-models, but not for the "bert"-models.
 
     # Case distinction for different language model modes
-    # (Masked Language Modeling, Causal Language Modeling).
+    # (Masked Language Modeling, Causal Language Modeling or other tasks).
     lm_mode: LMmode = language_model_config.lm_mode
 
-    if lm_mode == LMmode.MLM:
-        model_loading_class = transformers.AutoModelForMaskedLM
-    elif lm_mode == LMmode.CLM:
-        model_loading_class = transformers.AutoModelForCausalLM
-    else:
-        msg = f"Invalid lm_mode: {lm_mode = }"
-        raise ValueError(
-            msg,
-        )
+    match lm_mode:
+        case LMmode.MLM:
+            model_loading_class = transformers.AutoModelForMaskedLM
+        case LMmode.CLM:
+            model_loading_class = transformers.AutoModelForCausalLM
+        # For the SETSUMBT and Trippy models, we use the AutoModel class without a specific head on top of the encoder.
+        case LMmode.SETSUMBT:
+            model_loading_class = transformers.AutoModel
+        case LMmode.TRIPPY:
+            model_loading_class = transformers.AutoModel
+        case _:
+            msg: str = f"Invalid lm_mode: {lm_mode = }"
+            raise ValueError(
+                msg,
+            )
 
     model: transformers.PreTrainedModel = load_model(
         pretrained_model_name_or_path=language_model_config.pretrained_model_name_or_path,
@@ -113,11 +119,12 @@ def prepare_device_and_tokenizer_and_model_from_language_model_config(
 
     loaded_model_container = LoadedModelContainer(
         device=device,
+        model=model,
+        language_model_config=language_model_config,
+        lm_mode=lm_mode,
         tokenizer=tokenizer,
         tokenizer_config=tokenizer_config,
         tokenizer_modifier=tokenizer_modifier,
-        lm_mode=lm_mode,
-        model=model,
     )
 
     return loaded_model_container

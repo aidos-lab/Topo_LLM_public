@@ -160,6 +160,12 @@ class EmbeddingsPathManager(Protocol):
         self,
     ) -> pathlib.Path: ...  # pragma: no cover
 
+    ### Information about language models
+
+    def get_language_model_information_dir_absolute_path(
+        self,
+    ) -> pathlib.Path: ...  # pragma: no cover
+
     ### Losses from language model fine-tuning training and evaluation
 
     def get_training_and_evaluation_losses_root_dir_absolute_path(
