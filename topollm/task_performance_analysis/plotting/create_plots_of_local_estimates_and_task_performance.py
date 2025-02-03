@@ -172,8 +172,8 @@ def main(
         {
             "x_min": None,
             "x_max": None,
-            "y_min": 0.5,
-            "y_max": 4.5,
+            "y_min": 1.5,
+            "y_max": 10.5,
             "output_pdf_width": 2_000,
             "output_pdf_height": 1_500,
         },

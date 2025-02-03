@@ -64,9 +64,9 @@
         },
         // END Weights and Biases related tasks (wandb)
         {
-            "label": "Create small version of 'data/analysis/twonn' directory",
-            "detail": "Create a copy of the 'data/analysis/twonn' directory but exclude large arrays and metadata files.",
-            "command": "topollm/scripts/data_handling/copy_folder_but_exclude_large_arrays_and_metadata.sh /Users/ruppik/git-source/Topo_LLM/data/analysis/twonn /Users/ruppik/git-source/Topo_LLM/data/analysis/twonn.only_small_files",
+            "label": "Create small version of 'data/analysis/local_estimates' directory",
+            "detail": "Create a copy of the 'data/analysis/local_estimates' directory but exclude large arrays and metadata files.",
+            "command": "topollm/scripts/data_handling/copy_folder_but_exclude_large_arrays_and_metadata.sh /Users/ruppik/git-source/Topo_LLM/data/analysis/local_estimates /Users/ruppik/git-source/Topo_LLM/data/analysis/local_estimates.only_small_files",
             "type": "shell",
             "group": {
                 "kind": "build",
@@ -79,7 +79,7 @@
             }
         },
         {
-            "label": "rsync from local to Dropbox - 'data/analysis/twonn.only_small_files' directory",
+            "label": "rsync from local to Dropbox - 'data/analysis/twonn.only_small_files/' directory",
             "command": "./topollm/scripts/data_handling/sync_folders_script.sh ./topollm/scripts/data_handling/pairs_files/sync_small_files_data_analysis_to_dropbox.txt",
             "type": "shell",
             "group": {
@@ -168,8 +168,8 @@
             }
         },
         {
-            "label": "rsync from HHU Hilbert to external drive - (LARGE) - 'analysis/prepared' and 'analysis/twonn' directories",
-            "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/twonn/' 'data/analysis/prepared/' --file-type all --sync_to_external_drive",
+            "label": "rsync from HHU Hilbert to external drive - (LARGE) - 'analysis/prepared' and 'analysis/local_estimates' directories",
+            "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/local_estimates/' 'data/analysis/prepared/' --file-type all --sync_to_external_drive",
             "type": "shell",
             "group": {
                 "kind": "build",
@@ -182,9 +182,9 @@
             }
         },
         {
-            "label": "rsync from HHU Hilbert to local - (LARGE) - ALL file types 'analysis/twonn' directory",
-            "detail": "rsync from HHU Hilbert: 'analysis/twonn'.",
-            "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/twonn/' --file-type all",
+            "label": "rsync from HHU Hilbert to local - (LARGE) - ALL file types 'analysis/local_estimates' directory",
+            "detail": "rsync from HHU Hilbert: 'analysis/local_estimates'.",
+            "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/local_estimates/' --file-type all",
             "type": "shell",
             "group": {
                 "kind": "build",
@@ -212,8 +212,8 @@
             }
         },
         {
-            "label": "rsync from HHU Hilbert to local - ONLY .npy file types 'analysis/twonn' directory",
-            "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/twonn/' --file-type npy",
+            "label": "rsync from HHU Hilbert to local - ONLY .npy file types 'analysis/local_estimates' directory",
+            "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/local_estimates/' --file-type npy",
             "type": "shell",
             "group": {
                 "kind": "build",
@@ -226,8 +226,8 @@
             }
         },
         {
-            "label": "rsync from HHU Hilbert to local - results_arrays, statistics from 'analysis/twonn' directory",
-            "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/twonn/' --syncing-mode 'results_arrays_and_statistics'",
+            "label": "rsync from HHU Hilbert to local - results_arrays, statistics from 'analysis/local_estimates/' directory",
+            "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/local_estimates/' --syncing-mode 'results_arrays_and_statistics'",
             "type": "shell",
             "group": {
                 "kind": "build",
@@ -240,8 +240,8 @@
             }
         },
         {
-            "label": "rsync from HHU Hilbert to local - (LARGE) - results_arrays, statistics, metadata from 'analysis/twonn' directory",
-            "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/twonn/' --syncing-mode 'results_array_and_statistics_and_metadata'",
+            "label": "rsync from HHU Hilbert to local - (LARGE) - results_arrays, statistics, metadata from 'analysis/local_estimates/' directory",
+            "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/local_estimates/' --syncing-mode 'results_array_and_statistics_and_metadata'",
             "type": "shell",
             "group": {
                 "kind": "build",
@@ -353,8 +353,8 @@
             }
         },
         {
-            "label": "GC - Sync from GC Bucket to Local - only 'data/analysis/twonn' directory ",
-            "command": "poetry run sync_gc_data --source bucket --target local --subdirectory 'data/analysis/twonn'",
+            "label": "GC - Sync from GC Bucket to Local - only 'data/analysis/local_estimates/' directory ",
+            "command": "poetry run sync_gc_data --source bucket --target local --subdirectory 'data/analysis/local_estimates'",
             "type": "shell",
             "group": {
                 "kind": "build",
@@ -367,8 +367,8 @@
             }
         },
         {
-            "label": "GC - Sync from GC Bucket to Local - only selected subdirectories from 'data/analysis/twonn'",
-            "command": "poetry run sync_gc_data --source bucket --target local --subdirectory 'data/analysis/twonn/data=iclr_2024_submissions_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags' 'data/analysis/twonn/data=multiwoz21_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags' 'data/analysis/twonn/data=one-year-of-tsla-on-reddit_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags' 'data/analysis/twonn/data=sgd_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags' 'data/analysis/twonn/data=wikitext-103-v1_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags'",
+            "label": "GC - Sync from GC Bucket to Local - only selected subdirectories from 'data/analysis/local_estimates'",
+            "command": "poetry run sync_gc_data --source bucket --target local --subdirectory 'data/analysis/local_estimates/data=iclr_2024_submissions_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags' 'data/analysis/local_estimates/data=multiwoz21_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags' 'data/analysis/local_estimates/data=one-year-of-tsla-on-reddit_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags' 'data/analysis/local_estimates/data=sgd_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags' 'data/analysis/local_estimates/data=wikitext-103-v1_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags'",
             // Note: You can add more subdirectories by adding more arguments to the command
             "type": "shell",
             "group": {
@@ -382,8 +382,8 @@
             }
         },
         {
-            "label": "GC - Sync from GC Bucket to Local - logs and only 'data/analysis/twonn' directory",
-            "command": "poetry run sync_gc_data --source bucket --target local --subdirectory 'data/analysis/twonn' 'hydra_output_dir' 'wandb_output_dir'",
+            "label": "GC - Sync from GC Bucket to Local - logs and only 'data/analysis/local_estimates' directory",
+            "command": "poetry run sync_gc_data --source bucket --target local --subdirectory 'data/analysis/local_estimates' 'hydra_output_dir' 'wandb_output_dir'",
             "type": "shell",
             "group": {
                 "kind": "build",

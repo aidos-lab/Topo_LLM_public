@@ -20,6 +20,7 @@ data/analysis/
 data/analysis/prepared/
 data/analysis/training_and_evaluation_losses/
 data/embeddings/
+data/analysis/local_estimates/
 data/models/
 data/models/finetuned_models/
 # do not add a slash at the end, since then the symlink will be deleted on the remote machine
