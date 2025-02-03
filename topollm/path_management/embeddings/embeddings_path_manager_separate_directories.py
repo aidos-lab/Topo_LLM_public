@@ -301,15 +301,30 @@ class EmbeddingsPathManagerSeparateDirectories:
     # # # #
     # Local estimates directories
 
+    def get_local_estimates_root_dir_absolute_path(
+        self,
+    ) -> pathlib.Path:
+        """Construct the root directory for the local estimates."""
+        path = pathlib.Path(
+            self.analysis_dir,
+            "local_estimates",
+        )
+
+        return path
+
     def get_local_estimates_subfolder_path(
         self,
     ) -> pathlib.Path:
-        """Construct a nested subfolder path to describe the local estimates."""
-        # We include the
-        # `embeddings_data_prep.config_description`
-        # because the local estimates are computed on the prepared data.
+        """Construct a nested subfolder path to describe the local estimates.
+
+        We include the
+        `embeddings_data_prep.config_description`
+        because the local estimates are computed on the prepared data.
+
+        Note that the local estimates method description
+        is part of the local estimates config description.
+        """
         path = pathlib.Path(
-            self.main_config.local_estimates.method_description,
             self.get_nested_subfolder_path(),
             self.main_config.embeddings_data_prep.config_description,
             self.main_config.local_estimates.config_description,
@@ -321,7 +336,7 @@ class EmbeddingsPathManagerSeparateDirectories:
         self,
     ) -> pathlib.Path:
         path = pathlib.Path(
-            self.analysis_dir,
+            self.get_local_estimates_root_dir_absolute_path(),
             self.get_local_estimates_subfolder_path(),
         )
 
