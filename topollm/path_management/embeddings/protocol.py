@@ -94,6 +94,10 @@ class EmbeddingsPathManager(Protocol):
     # # # #
     # Local estimates directories
 
+    def get_local_estimates_root_dir_absolute_path(
+        self,
+    ) -> pathlib.Path: ...  # pragma: no cover
+
     def get_local_estimates_subfolder_path(
         self,
     ) -> pathlib.Path: ...  # pragma: no cover

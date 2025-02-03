@@ -106,13 +106,13 @@ def main(
     # Load data
     # ================================================== #
 
-    # TODO: Update this script for the new task performance analysis
-
-    # The following directory contains the precomputed Huggingface Trainer evaluation losses.
+    # The following directory contains the precomputed local estimates.
     # Logging of the directory is done in the function which iterates over the directories.
     iteration_root_dir = pathlib.Path(
-        embeddings_path_manager.get_training_and_evaluation_losses_root_dir_absolute_path(),
+        embeddings_path_manager.get_local_estimates_root_dir_absolute_path(),
     )
+
+    # TODO: Update this script for the new task performance analysis
 
     loaded_df: pd.DataFrame = load_json_dicts_from_folder_structure_into_df(
         iteration_root_dir=iteration_root_dir,
@@ -129,12 +129,13 @@ def main(
         (filtered_loaded_df["tokenizer_add_prefix_space"] == tokenizer_add_prefix_space)
     ]
 
+    # # # #
     # Choose which comparisons to make
-    y_column_name: str = "eval_loss"
+    y_column_name: str = "pointwise_results_array_np_np_mean"
 
     output_root_dir: pathlib.Path = pathlib.Path(
         embeddings_path_manager.saved_plots_dir_absolute_path,
-        "huggingface_trainer_losses_for_different_models",
+        "task_performance_analysis",
         f"{tokenizer_add_prefix_space=}",
         f"{y_column_name=}",
     )
