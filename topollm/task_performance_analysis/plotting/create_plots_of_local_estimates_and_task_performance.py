@@ -27,10 +27,8 @@
 
 """Create plots of the local estimates and compare with other task performance measures."""
 
-import itertools
 import logging
 import pathlib
-from collections.abc import Generator
 from typing import TYPE_CHECKING
 
 import hydra
@@ -47,18 +45,19 @@ from topollm.data_processing.iteration_over_directories.load_json_dicts_from_fol
     load_json_dicts_from_folder_structure_into_df,
 )
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
-from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
 from topollm.plotting.line_plot_grouped_by_categorical_column import (
+    PlotColumnsConfig,
+    PlotSizeConfig,
     generate_color_mapping,
     line_plot_grouped_by_categorical_column,
 )
-from topollm.typing.enums import Verbosity
 
 if TYPE_CHECKING:
     from topollm.config_classes.main_config import MainConfig
     from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
+    from topollm.typing.enums import Verbosity
 
 # Logger for this file
 global_logger: logging.Logger = logging.getLogger(
@@ -159,31 +158,36 @@ def main(
 
     # # # #
     # Common parameters for all plots
-    axes_limits_choices: list[dict] = [
-        {
-            "x_min": None,
-            "x_max": None,
-            "y_min": None,
-            "y_max": None,
-            "output_pdf_width": 2_000,
-            "output_pdf_height": 1_500,
-        },
-        {
-            "x_min": None,
-            "x_max": None,
-            "y_min": 1.5,
-            "y_max": 10.5,
-            "output_pdf_width": 2_000,
-            "output_pdf_height": 1_500,
-        },
+    plot_size_configs_list: list[PlotSizeConfig] = [
+        PlotSizeConfig(
+            x_min=None,
+            x_max=None,
+            y_min=None,
+            y_max=None,
+            output_pdf_width=2_000,
+            output_pdf_height=1_500,
+        ),
+        PlotSizeConfig(
+            x_min=None,
+            x_max=None,
+            y_min=1.5,
+            y_max=10.5,
+            output_pdf_width=2_000,
+            output_pdf_height=1_500,
+        ),
     ]
 
     # The identifier of the base model.
     # This value will be used to filter the DataFrame
     # for the correlation analysis and for the model checkpoint analysis.
     base_model_model_partial_name = "model=roberta-base"
-    line_plot_x_column_name = "model_checkpoint"
-    line_plot_y_column_name = y_column_name
+
+    plot_columns_config = PlotColumnsConfig(
+        x_column="model_checkpoint",
+        y_column=y_column_name,
+        group_column="data_full",
+        std_column=None,  # TODO: Replace this with the actual column name
+    )
 
     color_mapping: dict = generate_color_mapping(
         df=filtered_loaded_df,
@@ -194,33 +198,28 @@ def main(
         iterable=generate_selected_data_for_individual_splits_individual_models_all_datasets(
             descriptive_statistics_df=filtered_loaded_df,
             output_root_dir=output_root_dir,
-            x_column_name=line_plot_x_column_name,
-            y_column_name=y_column_name,
+            x_column_name=plot_columns_config.x_column,
+            y_column_name=plot_columns_config.y_column,
             base_model_model_partial_name=base_model_model_partial_name,
             verbosity=verbosity,
             logger=logger,
         ),
     ):
-        for axes_limits in axes_limits_choices:
+        for plot_size_config in plot_size_configs_list:
             plot_name: str = (
                 f"lineplot"
-                f"_{line_plot_x_column_name}_vs_{line_plot_y_column_name}"
-                f"_{axes_limits['y_min']}_{axes_limits['y_max']}"
+                f"_{plot_columns_config.x_column}_vs_{plot_columns_config.y_column}"
+                f"_{plot_size_config.y_min}_{plot_size_config.y_max}"
             )
-
-            # TODO: Fix the problem with the broken lines in the plot
-            # TODO: Add plotting of the standard deviation
 
             line_plot_grouped_by_categorical_column(
                 df=selected_data.selected_statistics_df,
                 output_folder=selected_data.output_folder,
                 plot_name=plot_name,
                 subtitle_text=selected_data.subtitle_text,
+                plot_columns_config=plot_columns_config,
                 color_mapping=color_mapping,
-                x_column=line_plot_x_column_name,
-                y_column=line_plot_y_column_name,
-                group_column="data_full",
-                **axes_limits,
+                plot_size_config=plot_size_config,
                 verbosity=verbosity,
                 logger=logger,
             )
