@@ -186,6 +186,12 @@ class LanguageModelConfig(ConfigBaseModel):
         description="The model identifier for the huggingface transformers model to use for computing embeddings.",
     )
 
+    model_log_file_path: str | pathlib.Path | None = Field(
+        default=None,
+        title="Optional path to a log file about the model training.",
+        description="Path to a log file about the model training.",
+    )
+
     manual_tokenizer_override_pretrained_model_name_or_path: str | pathlib.Path | None = Field(
         default=None,
         title="If this is not None, it will be used for loading the tokenizer.",
