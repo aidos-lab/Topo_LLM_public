@@ -38,6 +38,7 @@ import matplotlib.pyplot as plt
 import omegaconf
 import pandas as pd
 
+from tests.conftest import language_model_config
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
 from topollm.config_classes.main_config import MainConfig
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
@@ -45,7 +46,7 @@ from topollm.logging.initialize_configuration_and_log import initialize_configur
 from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
-from topollm.typing.enums import Verbosity
+from topollm.typing.enums import DescriptionType, Verbosity
 
 if TYPE_CHECKING:
     from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
@@ -106,6 +107,11 @@ def parse_log_file(
         msg: str = f"File not found: {file_path = }"
         raise FileNotFoundError(
             msg,
+        )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Reading {log_file = } ...",  # noqa: G004 - low overhead
         )
 
     # Open the file and process line by line
@@ -177,6 +183,11 @@ def parse_log_file(
                     }
                     row.update(validation_metrics)
                     results.append(row)
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Reading {log_file = } DONE",  # noqa: G004 - low overhead
+        )
 
     # Convert the list of dictionaries into a pandas DataFrame.
     parsed_df = pd.DataFrame(
@@ -341,10 +352,14 @@ def main(
     # Parse the SetSUMBT log file and print a summary of the DataFrame.
     # ================================================== #
 
-    # TODO: Get this path from the language model config
+    if main_config.language_model.model_log_file_path is None:
+        logger.error(
+            msg="The path to the SETSUMBT log file is not set in the configuration.",
+        )
+        return
+
     log_filepath = pathlib.Path(
-        embeddings_path_manager.data_dir,
-        "models/setsumbt_checkpoints/multiwoz21/roberta/setsumbt/gru/cosine/labelsmoothing/0.05/seed0/04-09-2024-14-53/run.jsonl",
+        main_config.language_model.model_log_file_path,
     )
 
     try:
@@ -361,11 +376,13 @@ def main(
     # Saved parsed DataFrame
     # ================================================== #
 
-    # TODO: Include the language model config in the output path
     output_root_dir: pathlib.Path = pathlib.Path(
         embeddings_path_manager.saved_plots_dir_absolute_path,
         "task_performance_analysis",
         "model_performance_metrics",
+        main_config.language_model.get_config_description(
+            description_type=DescriptionType.LONG,
+        ),
     )
     output_root_dir.mkdir(
         parents=True,
