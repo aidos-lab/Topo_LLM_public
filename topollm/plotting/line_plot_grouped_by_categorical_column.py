@@ -28,6 +28,7 @@
 """Plot the development of a selected y-axis column over a selected x-axis column, grouping by a categorical column."""
 
 import logging
+import os
 import pathlib
 from dataclasses import dataclass
 
@@ -152,20 +153,35 @@ def line_plot_grouped_by_categorical_column(
             group_column=plot_columns_config.group_column,
         )
 
+    # # # #
     # Plot each group separately
     for group_value in df[plot_columns_config.group_column].unique():
         subset = df[df[plot_columns_config.group_column] == group_value]
+        group_color = color_mapping.get(
+            group_value,
+            "black",
+        )  # Use mapped color or default to black
         plt.plot(
             subset[plot_columns_config.x_column],
             subset[plot_columns_config.y_column],
             marker="o",
             linestyle="-",
-            color=color_mapping.get(
-                group_value,
-                "black",
-            ),  # Use mapped color or default to black
+            color=group_color,
             label=f"{plot_columns_config.group_column}={group_value}",
         )
+
+        # # # #
+        # If a standard deviation column is provided and exists in the subset, plot an error band.
+        if plot_columns_config.std_column is not None and plot_columns_config.std_column in subset.columns:
+            lower_bound = subset[plot_columns_config.y_column] - subset[plot_columns_config.std_column]
+            upper_bound = subset[plot_columns_config.y_column] + subset[plot_columns_config.std_column]
+            plt.fill_between(
+                x=subset[plot_columns_config.x_column],
+                y1=lower_bound,
+                y2=upper_bound,
+                color=group_color,
+                alpha=0.1,  # Transparency for the error band.
+            )
 
     # Labels and title
     plt.xlabel(
@@ -214,53 +230,70 @@ def line_plot_grouped_by_categorical_column(
     # # # # # # # # # # # # # #
     # Save plot and raw data
     if output_folder is not None:
-        output_folder = pathlib.Path(
-            output_folder,
-        )
-        output_folder.mkdir(
-            parents=True,
-            exist_ok=True,
-        )
-
-        # Save as PDF
-        output_file = pathlib.Path(
-            output_folder,
-            f"{plot_name}.pdf",
+        save_plot_and_raw_data(
+            df=df,
+            plot_name=plot_name,
+            output_folder=output_folder,
+            verbosity=verbosity,
+            logger=logger,
         )
 
-        if verbosity >= Verbosity.NORMAL:
-            logger.info(
-                msg=f"Saving plot to {output_file} ...",  # noqa: G004 - low overhead
-            )
-        plt.savefig(
-            output_file,
-            bbox_inches="tight",
-            format="pdf",
+
+def save_plot_and_raw_data(
+    df: pd.DataFrame,
+    plot_name: str,
+    output_folder: os.PathLike,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
+    """Save the plot and the raw data to the output folder."""
+    output_folder = pathlib.Path(
+        output_folder,
+    )
+    output_folder.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    # Save as PDF
+    output_file = pathlib.Path(
+        output_folder,
+        f"{plot_name}.pdf",
+    )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Saving plot to {output_file} ...",  # noqa: G004 - low overhead
         )
-        if verbosity >= Verbosity.NORMAL:
-            logger.info(
-                msg=f"Saving plot to {output_file} DONE",  # noqa: G004 - low overhead
-            )
+    plt.savefig(
+        output_file,
+        bbox_inches="tight",
+        format="pdf",
+    )
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Saving plot to {output_file} DONE",  # noqa: G004 - low overhead
+        )
 
         # Save the raw data
-        output_file_raw_data = pathlib.Path(
-            output_folder,
-            f"{plot_name}_raw_data.csv",
-        )
-        output_file_raw_data.parent.mkdir(
-            parents=True,
-            exist_ok=True,
-        )
+    output_file_raw_data = pathlib.Path(
+        output_folder,
+        f"{plot_name}_raw_data.csv",
+    )
+    output_file_raw_data.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
 
-        if verbosity >= Verbosity.NORMAL:
-            logger.info(
-                msg=f"Saving raw data to {output_file_raw_data} ...",  # noqa: G004 - low overhead
-            )
-        df.to_csv(
-            path_or_buf=output_file_raw_data,
-            index=False,
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Saving raw data to {output_file_raw_data} ...",  # noqa: G004 - low overhead
         )
-        if verbosity >= Verbosity.NORMAL:
-            logger.info(
-                msg=f"Saving raw data to {output_file_raw_data} DONE",  # noqa: G004 - low overhead
-            )
+    df.to_csv(
+        path_or_buf=output_file_raw_data,
+        index=False,
+    )
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Saving raw data to {output_file_raw_data} DONE",  # noqa: G004 - low overhead
+        )

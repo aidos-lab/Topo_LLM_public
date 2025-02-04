@@ -186,7 +186,7 @@ def main(
         x_column="model_checkpoint",
         y_column=y_column_name,
         group_column="data_full",
-        std_column=None,  # TODO: Replace this with the actual column name
+        std_column="pointwise_results_array_np_np_std",
     )
 
     color_mapping: dict = generate_color_mapping(
