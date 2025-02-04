@@ -120,13 +120,13 @@ def line_plot_grouped_by_categorical_column(
 
     # Labels and title
     plt.xlabel(
-        xlabel=x_column.replace("_", " ").title(),
+        xlabel=x_column,
     )
     plt.ylabel(
-        ylabel=y_column.replace("_", " ").title(),
+        ylabel=y_column,
     )
     plt.title(
-        label=f"Development of {y_column.replace('_', ' ')} over {x_column.replace('_', ' ')}",
+        label=f"Development of {y_column = } over {x_column = } grouped by {group_column = }",
     )
 
     # Set the x-axis limits

@@ -47,6 +47,7 @@ default_logger: logging.Logger = logging.getLogger(
 
 def load_json_dicts_from_folder_structure_into_df(
     iteration_root_dir: os.PathLike,
+    pattern: str = "**/*.json",
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> pd.DataFrame:
@@ -60,13 +61,15 @@ def load_json_dicts_from_folder_structure_into_df(
         logger.info(
             msg=f"{iteration_root_dir = }",  # noqa: G004 - low overhead
         )
+        logger.info(
+            msg=f"{pattern = }",  # noqa: G004 - low overhead
+        )
 
     # Iterate over the different dataset folders in the 'iteration_root_dir' directory
     rootdir: pathlib.Path = pathlib.Path(
         iteration_root_dir,
     )
-    # Only match the 'descriptive_statistics_dict.json' files
-    pattern: str = "**/*.json"
+    # Only match the files compatible with the pattern
     file_path_list: list[pathlib.Path] = [
         f
         for f in rootdir.resolve().glob(

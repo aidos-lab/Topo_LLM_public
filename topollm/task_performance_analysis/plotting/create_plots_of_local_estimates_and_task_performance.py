@@ -112,15 +112,14 @@ def main(
         embeddings_path_manager.get_local_estimates_root_dir_absolute_path(),
     )
 
-    # TODO: Update this script for the new task performance analysis
-
     loaded_df: pd.DataFrame = load_json_dicts_from_folder_structure_into_df(
         iteration_root_dir=iteration_root_dir,
+        pattern="**/additional_pointwise_results_statistics.json",
         verbosity=verbosity,
         logger=logger,
     )
 
-    # # # #
+    # # #
     # Filter the DataFrame for selected settings
     tokenizer_add_prefix_space = "False"
 
@@ -208,6 +207,9 @@ def main(
                 f"_{line_plot_x_column_name}_vs_{line_plot_y_column_name}"
                 f"_{axes_limits['y_min']}_{axes_limits['y_max']}"
             )
+
+            # TODO: Fix the problem with the broken lines in the plot
+            # TODO: Add plotting of the standard deviation
 
             line_plot_grouped_by_categorical_column(
                 df=selected_data.selected_statistics_df,
