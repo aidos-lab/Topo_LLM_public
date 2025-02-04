@@ -217,6 +217,7 @@ def plot_performance_metrics(
     secondary_ylim: tuple[float, float] | None = None,
     figsize: tuple[int, int] = (20, 8),
     output_root_dir: pathlib.Path | None = None,
+    highlight_best: list[str] | None = None,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> None:
@@ -284,8 +285,94 @@ def plot_performance_metrics(
     else:
         ax2 = None
 
-    ax1.set_xlabel(xlabel)
-    ax1.set_title(title)
+    # Highlight both the maximum and minimum points for selected columns.
+    if highlight_best is not None:
+        for col in highlight_best:
+            if col not in df.columns:
+                logger.info(f"Warning: '{col}' not found in DataFrame for highlighting; skipping.")
+                continue
+
+            # Determine which axis to use.
+            if primary_y_cols is not None and col in primary_y_cols:
+                axis = ax1
+            elif secondary_y_cols is not None and ax2 is not None and col in secondary_y_cols:
+                axis = ax2
+            else:
+                axis = ax1
+
+            # Mark maximum point.
+            max_idx = df[col].idxmax()
+            max_x = df.loc[max_idx, x_col]
+            max_y = df.loc[max_idx, col]
+
+            # Make sure max_x and max_y are numbers.
+            max_x = float(
+                max_x,  # type: ignore - typing problem with pandas Scalar
+            )
+            max_y = float(
+                max_y,  # type: ignore - typing problem with pandas Scalar
+            )
+
+            # Check that max_x and max_y are valid numbers.
+            axis.plot(
+                max_x,
+                max_y,
+                marker="*",
+                markersize=14,
+                color="red",
+                label=f"Max {col}",
+            )
+
+            # Compute an offset (5% of the current y-axis range) for the maximum annotation.
+            current_ylim = axis.get_ylim()
+            offset_max = (current_ylim[1] - current_ylim[0]) * 0.05
+            axis.annotate(
+                f"{max_y:.2f}",
+                xy=(max_x, max_y),
+                xytext=(max_x, max_y + offset_max),
+                arrowprops={"arrowstyle": "->", "color": "red"},
+                color="red",
+                fontsize=10,
+            )
+
+            # Mark minimum point.
+            min_idx = df[col].idxmin()
+            min_x = df.loc[min_idx, x_col]
+            min_y = df.loc[min_idx, col]
+
+            # Make sure min_x and min_y are numbers.
+            min_x = float(
+                min_x,  # type: ignore - typing problem with pandas Scalar
+            )
+            min_y = float(
+                min_y,  # type: ignore - typing problem with pandas Scalar
+            )
+            axis.plot(
+                min_x,
+                min_y,
+                marker="*",
+                markersize=14,
+                color="blue",
+                label=f"Min {col}",
+            )
+
+            # Compute an offset for the minimum annotation (placing text below the marker).
+            offset_min = (current_ylim[1] - current_ylim[0]) * 0.05
+            axis.annotate(
+                f"{min_y:.2f}",
+                xy=(min_x, min_y),
+                xytext=(min_x, min_y - offset_min),
+                arrowprops={"arrowstyle": "->", "color": "blue"},
+                color="blue",
+                fontsize=10,
+            )
+
+    ax1.set_xlabel(
+        xlabel=xlabel,
+    )
+    ax1.set_title(
+        label=title,
+    )
 
     # Combine legends from both axes.
     handles1, labels1 = ax1.get_legend_handles_labels()
@@ -416,6 +503,13 @@ def main(
         "Joint Goal L2-Error Ratio",
     ]
 
+    highlight_columns: list[str] = [
+        "Joint Goal Accuracy",
+        "Slot F1 Score",
+        "Slot Precision",
+        "Slot Recall",
+    ]
+
     # Call the plotting function.
     # Leave primary_ylim and secondary_ylim as None for auto-scaling,
     # or supply a tuple (min, max) if you want fixed limits.
@@ -431,12 +525,16 @@ def main(
         primary_ylim=None,  # e.g., None for auto
         secondary_ylim=None,  # e.g., None for auto
         output_root_dir=output_root_dir,
-        figsize=(14, 7),
+        figsize=(20, 10),
+        highlight_best=highlight_columns,
+        verbosity=verbosity,
         logger=logger,
     )
 
 
 if __name__ == "__main__":
+    # Note: See the VSCode launch configurations for an example of how to run this script.
+
     setup_omega_conf()
 
     main()
