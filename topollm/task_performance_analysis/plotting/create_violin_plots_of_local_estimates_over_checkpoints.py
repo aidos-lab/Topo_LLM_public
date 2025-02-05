@@ -36,7 +36,6 @@ import hydra
 import matplotlib.pyplot as plt
 import numpy as np
 import omegaconf
-import pandas as pd
 from tqdm import tqdm
 
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
@@ -44,19 +43,17 @@ from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.data_processing.dictionary_handling import (
     dictionary_to_partial_path,
     filter_list_of_dictionaries_by_key_value_pairs,
+    generate_fixed_parameters_text_from_dict,
 )
 from topollm.data_processing.iteration_over_directories.load_np_arrays_from_folder_structure_into_list_of_dicts import (
     load_np_arrays_from_folder_structure_into_list_of_dicts,
 )
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
-from topollm.logging.log_array_info import log_array_info
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
 from topollm.plotting.line_plot_grouped_by_categorical_column import (
     PlotColumnsConfig,
     PlotSizeConfig,
-    generate_color_mapping,
-    line_plot_grouped_by_categorical_column,
 )
 from topollm.typing.enums import Verbosity
 
@@ -112,17 +109,15 @@ def main(
 
     # The following directory contains the precomputed local estimates.
     # Logging of the directory is done in the function which iterates over the directories.
-    # TODO: We write this function first to iterate only over one of the subfolders.
     iteration_root_dir = pathlib.Path(
         embeddings_path_manager.get_local_estimates_root_dir_absolute_path(),
-        "data=sgd_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags",
-        "split=validation_samples=10000_sampling=random_sampling-seed=778",
-        "edh-mode=regular_lvl=token/add-prefix-space=False_max-len=512",
     )
+
+    pattern = "**/split=validation_samples=10000_sampling=random_sampling-seed=778/edh-mode=regular_lvl=token/add-prefix-space=False_max-len=512/**/local_estimates_pointwise_array.npy"
 
     loaded_data: list[dict] = load_np_arrays_from_folder_structure_into_list_of_dicts(
         iteration_root_dir=iteration_root_dir,
-        pattern="**/local_estimates_pointwise_array.npy",
+        pattern=pattern,
         verbosity=verbosity,
         logger=logger,
     )
@@ -131,8 +126,6 @@ def main(
     # This value will be used to filter the DataFrame
     # for the correlation analysis and for the model checkpoint analysis.
     base_model_model_partial_name = "model=roberta-base"
-
-    # TODO: Add the base model to the plots
 
     # # # #
     # Choose which comparisons to make
@@ -196,8 +189,12 @@ def main(
             "tokenizer_add_prefix_space": "False",  # This needs to be a string
             "data_full": data_full,
             "data_subsampling_full": data_subsampling_full,
+            "model_layer": -1,  # This needs to be an integer
             "model_partial_name": model_partial_name,
         }
+        fixed_params_text: str = generate_fixed_parameters_text_from_dict(
+            filters_dict=filter_key_value_pairs,
+        )
 
         filtered_data: list[dict] = filter_list_of_dictionaries_by_key_value_pairs(
             list_of_dicts=loaded_data,
@@ -212,6 +209,45 @@ def main(
                 msg="Skipping this combination of parameters.",
             )
             continue
+
+        # Extract the dictionary which matches the same other parameters but the base model.
+        filter_key_value_pairs_base_model: dict = {
+            **filter_key_value_pairs,
+            "model_partial_name": base_model_model_partial_name,
+        }
+        filtered_data_base_model: list[dict] = filter_list_of_dictionaries_by_key_value_pairs(
+            list_of_dicts=loaded_data,
+            key_value_pairs=filter_key_value_pairs_base_model,
+        )
+        if len(filtered_data_base_model) == 0:
+            logger.warning(
+                msg=f"No base model data found for {filter_key_value_pairs = }.",  # noqa: G004 - low overhead
+            )
+            logger.warning(
+                msg="Proceeding without adding base model data.",
+            )
+        elif len(filtered_data_base_model) == 1:
+            logger.info(
+                msg=f"Unique base model data found for {filter_key_value_pairs = }.",  # noqa: G004 - low overhead
+            )
+            filtered_data_base_model_dict: dict = filtered_data_base_model[0]
+            # Add the base model data to the list of data to plot.
+            filtered_data.append(
+                filtered_data_base_model_dict,
+            )
+        elif len(filtered_data_base_model) > 1:
+            logger.warning(
+                f"Ambiguous base model data ({len(filtered_data_base_model)} entries) "  # noqa: G004 - low overhead
+                f"found for {filter_key_value_pairs = }.",
+            )
+            logger.warning(
+                msg="Will use the first entry.",
+            )
+            filtered_data_base_model_dict: dict = filtered_data_base_model[0]
+            # Add the base model data to the list of data to plot.
+            filtered_data.append(
+                filtered_data_base_model_dict,
+            )
 
         # Sort the arrays by increasing model checkpoint.
         # Then from this point, the list of arrays and list of extracted checkpoints will be in the correct order.
@@ -294,6 +330,22 @@ def main(
                     top=plot_size_config.y_max,
                 )
 
+            if fixed_params_text is not None:
+                ax.text(
+                    x=1.05,
+                    y=0.25,
+                    s=f"Fixed Parameters:\n{fixed_params_text}",
+                    transform=plt.gca().transAxes,
+                    fontsize=6,
+                    verticalalignment="top",
+                    bbox={
+                        "boxstyle": "round",
+                        "facecolor": "wheat",
+                        "alpha": 0.3,
+                    },
+                )
+
+            # Saving the plot
             plot_name: str = f"violinplot" f"_{plot_size_config.y_min}_{plot_size_config.y_max}"
             plot_output_path: pathlib.Path = pathlib.Path(
                 plots_output_dir,

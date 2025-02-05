@@ -125,3 +125,20 @@ def dictionary_to_partial_path(
     )
 
     return result
+
+
+def generate_fixed_parameters_text_from_dict(
+    filters_dict: dict[str, Any],
+) -> str:
+    """Generate a string representation of the fixed parameters used for filtering.
+
+    Args:
+        filters_dict:
+            A dictionary of column names and corresponding values used for filtering.
+
+    Returns:
+        str:
+            A formatted string suitable for display in the plot.
+
+    """
+    return "\n".join([f"{key}: {value}" for key, value in filters_dict.items()])
