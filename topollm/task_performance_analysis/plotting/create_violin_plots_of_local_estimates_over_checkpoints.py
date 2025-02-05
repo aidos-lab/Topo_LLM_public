@@ -27,11 +27,14 @@
 
 """Create plots of the local estimates and compare with other task performance measures."""
 
+import itertools
 import logging
 import pathlib
 from typing import TYPE_CHECKING
 
 import hydra
+import matplotlib.pyplot as plt
+import numpy as np
 import omegaconf
 import pandas as pd
 from tqdm import tqdm
@@ -43,6 +46,8 @@ from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.data_processing.iteration_over_directories.load_json_dicts_from_folder_structure_into_df import (
     load_json_dicts_from_folder_structure_into_df,
+)
+from topollm.data_processing.iteration_over_directories.load_np_arrays_from_folder_structure_into_list_of_dicts import (
     load_np_arrays_from_folder_structure_into_list_of_dicts,
 )
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
@@ -128,6 +133,11 @@ def main(
     # Filter the DataFrame for selected settings
     tokenizer_add_prefix_space = "False"
 
+    # The identifier of the base model.
+    # This value will be used to filter the DataFrame
+    # for the correlation analysis and for the model checkpoint analysis.
+    base_model_model_partial_name = "model=roberta-base"
+
     # TODO: Implement filtering of the loaded data
 
     # # # #
@@ -150,15 +160,6 @@ def main(
 
     # TODO: Continue editing the script from here
 
-    example_array = loaded_data[0][array_key_name]
-
-    if verbosity >= Verbosity.NORMAL:
-        log_array_info(
-            array_=example_array,
-            array_name=example_array,
-            logger=logger,
-        )
-
     # # # #
     # Common parameters for all plots
     plot_size_configs_list: list[PlotSizeConfig] = [
@@ -180,10 +181,96 @@ def main(
         ),
     ]
 
-    # The identifier of the base model.
-    # This value will be used to filter the DataFrame
-    # for the correlation analysis and for the model checkpoint analysis.
-    base_model_model_partial_name = "model=roberta-base"
+    data_full_options: set[str] = {single_dict["data_full"] for single_dict in loaded_data}
+    data_subsampling_full_options: set[str] = {single_dict["data_subsampling_full"] for single_dict in loaded_data}
+    model_partial_name_options: set[str] = {single_dict["model_partial_name"] for single_dict in loaded_data}
+
+    for (
+        data_full,
+        data_subsampling_full,
+        model_partial_name,
+    ) in tqdm(
+        iterable=itertools.product(
+            data_full_options,
+            data_subsampling_full_options,
+            model_partial_name_options,
+        ),
+        desc="Plotting different choices",
+    ):
+        # TODO: Filter the correct dictionaries
+        filtered_data = loaded_data
+
+        extracted_arrays: list[np.ndarray] = [single_dict[array_key_name] for single_dict in filtered_data]
+        model_checkpoint_list: list[int] = [single_dict["model_checkpoint"] for single_dict in filtered_data]
+        # TODO: Sort the arrays by increasing model checkpoint
+
+        for plot_size_config in plot_size_configs_list:
+            plot_name: str = f"violinplot" f"_{plot_size_config.y_min}_{plot_size_config.y_max}"
+
+            # # # #
+            # Violin plots
+            (
+                fig,
+                ax,
+            ) = plt.subplots(
+                figsize=(
+                    plot_size_config.output_pdf_width / 100,
+                    plot_size_config.output_pdf_height / 100,
+                ),
+            )
+
+            # plot violin plot
+
+            ax.violinplot(
+                dataset=extracted_arrays,
+                showmeans=True,
+                showmedians=True,
+            )
+            ax.set_title(
+                label="Violin plot",
+            )
+
+            # adding horizontal grid lines
+            ax.yaxis.grid(
+                visible=True,
+            )
+
+            # Use the model_checkpoint_list to set the xticks
+            ax.set_xticks(
+                [y + 1 for y in range(len(extracted_arrays))],
+                labels=model_checkpoint_list,
+            )
+
+            # TODO: Fix this for plotting of multiple samples
+            # ax.set_xticks([y + 1 for y in range(len(all_data))], labels=["x1", "x2", "x3", "x4"])
+            ax.set_xlabel(
+                xlabel="Checkpoints",
+            )
+            ax.set_ylabel(
+                ylabel="Observed values",
+            )
+
+            plt.show()
+
+            # # # #
+            # Boxplots
+
+            fig, ax = plt.subplots(
+                figsize=(
+                    plot_size_config.output_pdf_width / 100,
+                    plot_size_config.output_pdf_height / 100,
+                ),
+            )
+
+            # plot box plot
+            ax.boxplot(
+                x=extracted_arrays,
+            )
+            ax.set_title(
+                label="Box plot",
+            )
+
+            plt.show()
 
     logger.info(
         msg="Script finished.",
