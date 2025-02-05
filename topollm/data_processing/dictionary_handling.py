@@ -27,12 +27,15 @@
 
 """Utility functions for handling dictionaries."""
 
+import logging
+import pathlib
 from typing import Any
 
-from topollm.task_performance_analysis.plotting.create_violin_plots_of_local_estimates_over_checkpoints import (
-    default_logger,
-)
 from topollm.typing.enums import Verbosity
+
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 def flatten_dict(

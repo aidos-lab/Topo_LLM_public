@@ -213,9 +213,21 @@ def main(
             )
             continue
 
-        extracted_arrays: list[np.ndarray] = [single_dict[array_key_name] for single_dict in filtered_data]
+        # Sort the arrays by increasing model checkpoint.
+        # Then from this point, the list of arrays and list of extracted checkpoints will be in the correct order.
+        # 1. Step: Replace None model checkpoints with -1.
+        for single_dict in filtered_data:
+            if single_dict["model_checkpoint"] is None:
+                single_dict["model_checkpoint"] = -1
+        # 2. Step: Call sorting function.
+        sorted_data: list[dict] = sorted(
+            filtered_data,
+            key=lambda single_dict: int(single_dict["model_checkpoint"]),
+        )
+
+        extracted_arrays: list[np.ndarray] = [single_dict[array_key_name] for single_dict in sorted_data]
         model_checkpoint_str_list: list[str] = [
-            str(object=single_dict["model_checkpoint"]) for single_dict in filtered_data
+            str(object=single_dict["model_checkpoint"]) for single_dict in sorted_data
         ]
 
         plots_output_dir: pathlib.Path = pathlib.Path(
@@ -229,9 +241,6 @@ def main(
             logger.info(
                 msg=f"{plots_output_dir = }",  # noqa: G004 - low overhead
             )
-
-        # TODO: Sort the arrays by increasing model checkpoint
-        pass  # This is here for setting a breakpoint
 
         for plot_size_config in plot_size_configs_list:
             # # # #
