@@ -1786,6 +1786,9 @@
                 // "language_model=roberta-base",
                 //
                 //    >> END: Model options.
+                //
+                "feature_flags.task_performance_analysis.plotting_create_distribution_plots_over_model_checkpoints=False", // Note: Change this to "True" to create the distribution plots
+                "feature_flags.task_performance_analysis.plotting_create_distribution_plots_over_model_layers=True",
             ],
             "env": {
                 "PYTORCH_ENABLE_MPS_FALLBACK": "1"

@@ -166,12 +166,68 @@ def main(
         ),
     ]
 
+    # # # #
+    # Create plots which show the distribution of the local estimates over the checkpoints
+    if main_config.feature_flags.task_performance_analysis.plotting_create_distribution_plots_over_model_checkpoints:
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg="Creating the distribution plots over the model checkpoints ...",
+            )
+        create_distribution_plots_over_model_checkpoints(
+            loaded_data=loaded_data,
+            base_model_model_partial_name=base_model_model_partial_name,
+            array_key_name=array_key_name,
+            output_root_dir=output_root_dir,
+            plot_size_configs_list=plot_size_configs_list,
+            verbosity=verbosity,
+            logger=logger,
+        )
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg="Creating the distribution plots over the model checkpoints DONE",
+            )
+    else:
+        logger.info(
+            msg="Skipping the creation of the distribution plots over the model checkpoints.",
+        )
+
+    # # # #
+    # Create plots which show the distribution of the local estimates over different layers of the model
+    if main_config.feature_flags.task_performance_analysis.plotting_create_distribution_plots_over_model_layers:
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg="Creating the distribution plots over the model layers ...",
+            )
+
+        # TODO: Implement the creation of the plots over the layers
+
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg="Creating the distribution plots over the model layers DONE",
+            )
+    else:
+        logger.info(
+            msg="Skipping the creation of the distribution plots over the model layers.",
+        )
+
+    logger.info(
+        msg="Script finished.",
+    )
+
+
+def create_distribution_plots_over_model_checkpoints(
+    loaded_data: list[dict],
+    base_model_model_partial_name: str,
+    array_key_name: str,
+    output_root_dir: pathlib.Path,
+    plot_size_configs_list: list[PlotSizeConfig],
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
+    """Create plots which show the distribution of the local estimates over the checkpoints."""
     data_full_options: set[str] = {single_dict["data_full"] for single_dict in loaded_data}
     data_subsampling_full_options: set[str] = {single_dict["data_subsampling_full"] for single_dict in loaded_data}
     model_partial_name_options: set[str] = {single_dict["model_partial_name"] for single_dict in loaded_data}
-
-    # # # #
-    # Create plots which show the distribution of the local estimates over the checkpoints
 
     for (
         data_full,
@@ -434,15 +490,6 @@ def main(
                 logger.info(
                     msg=f"Saving plot to {plot_output_path = } DONE",  # noqa: G004 - low overhead
                 )
-
-    # # # #
-    # Create plots which show the distribution of the local estimates over different layers of the model
-
-    # TODO: Implement the creation of the plots over the layers
-
-    logger.info(
-        msg="Script finished.",
-    )
 
 
 if __name__ == "__main__":
