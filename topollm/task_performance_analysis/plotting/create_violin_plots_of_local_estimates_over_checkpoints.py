@@ -113,7 +113,14 @@ def main(
         embeddings_path_manager.get_local_estimates_root_dir_absolute_path(),
     )
 
-    pattern = "**/split=validation_samples=10000_sampling=random_sampling-seed=778/edh-mode=regular_lvl=token/add-prefix-space=False_max-len=512/**/local_estimates_pointwise_array.npy"
+    pattern = (
+        "**/"
+        "split=validation_samples=10000_sampling=random_sampling-seed=778/"
+        "edh-mode=regular_lvl=token/"
+        "add-prefix-space=False_max-len=512/"
+        "**/"
+        "local_estimates_pointwise_array.npy"
+    )
 
     loaded_data: list[dict] = load_np_arrays_from_folder_structure_into_list_of_dicts(
         iteration_root_dir=iteration_root_dir,
@@ -199,7 +206,100 @@ def main(
                 msg="Creating the distribution plots over the model layers ...",
             )
 
-        # TODO: Implement the creation of the plots over the layers
+        # TODO: Make the layer-wise plots into a function.
+
+        data_full_options: set[str] = {single_dict["data_full"] for single_dict in loaded_data}
+        data_subsampling_full_options: set[str] = {single_dict["data_subsampling_full"] for single_dict in loaded_data}
+        model_partial_name_options: set[str] = {single_dict["model_partial_name"] for single_dict in loaded_data}
+        model_checkpoint_options: set = {single_dict["model_checkpoint"] for single_dict in loaded_data}
+
+        for (
+            data_full,
+            data_subsampling_full,
+            model_partial_name,
+            model_checkpoint,
+        ) in tqdm(
+            iterable=itertools.product(
+                data_full_options,
+                data_subsampling_full_options,
+                model_partial_name_options,
+                model_checkpoint_options,
+            ),
+            desc="Plotting different choices",
+        ):
+            filter_key_value_pairs: dict = {
+                "tokenizer_add_prefix_space": "False",  # This needs to be a string
+                "data_full": data_full,
+                "data_subsampling_full": data_subsampling_full,
+                "model_partial_name": model_partial_name,
+                "model_checkpoint": model_checkpoint,
+                # We want all checkpoints for the given model checkpoint.
+            }
+            fixed_params_text: str = generate_fixed_parameters_text_from_dict(
+                filters_dict=filter_key_value_pairs,
+            )
+
+            filtered_data: list[dict] = filter_list_of_dictionaries_by_key_value_pairs(
+                list_of_dicts=loaded_data,
+                key_value_pairs=filter_key_value_pairs,
+            )
+
+            if len(filtered_data) == 0:
+                logger.warning(
+                    msg=f"No data found for {filter_key_value_pairs = }.",  # noqa: G004 - low overhead
+                )
+                logger.warning(
+                    msg="Skipping this combination of parameters.",
+                )
+                continue
+
+            # Sort the arrays by increasing model layer.
+            sorted_data: list[dict] = sorted(
+                filtered_data,
+                key=lambda single_dict: int(single_dict["model_layer"]),
+            )
+
+            extracted_arrays: list[np.ndarray] = [single_dict[array_key_name] for single_dict in sorted_data]
+            model_layer_str_list: list[str] = [str(object=single_dict["model_layer"]) for single_dict in sorted_data]
+
+            plots_output_dir: pathlib.Path = pathlib.Path(
+                output_root_dir,
+                "plots_over_layers",
+                dictionary_to_partial_path(
+                    dictionary=filter_key_value_pairs,
+                ),
+            )
+            if verbosity >= Verbosity.NORMAL:
+                logger.info(
+                    msg=f"{plots_output_dir = }",  # noqa: G004 - low overhead
+                )
+
+            for plot_size_config in plot_size_configs_list:
+                # TODO: Change the label on the x-axis to "Layers" instead of "Checkpoints"
+
+                # # # #
+                # Violin plots
+                make_distribution_violinplots_from_extracted_arrays(
+                    extracted_arrays=extracted_arrays,
+                    xticks_str_list=model_layer_str_list,
+                    fixed_params_text=fixed_params_text,
+                    plots_output_dir=plots_output_dir,
+                    plot_size_config=plot_size_config,
+                    verbosity=verbosity,
+                    logger=logger,
+                )
+
+                # # # #
+                # Boxplots
+                make_distribution_boxplots_from_extracted_arrays(
+                    extracted_arrays=extracted_arrays,
+                    xticks_str_list=model_layer_str_list,
+                    fixed_params_text=fixed_params_text,
+                    plots_output_dir=plots_output_dir,
+                    plot_size_config=plot_size_config,
+                    verbosity=verbosity,
+                    logger=logger,
+                )
 
         if verbosity >= Verbosity.NORMAL:
             logger.info(
@@ -337,159 +437,217 @@ def create_distribution_plots_over_model_checkpoints(
         for plot_size_config in plot_size_configs_list:
             # # # #
             # Violin plots
-            (
-                fig,
-                ax,
-            ) = plt.subplots(
-                figsize=(
-                    plot_size_config.output_pdf_width / 100,
-                    plot_size_config.output_pdf_height / 100,
-                ),
+            make_distribution_violinplots_from_extracted_arrays(
+                extracted_arrays=extracted_arrays,
+                xticks_str_list=model_checkpoint_str_list,
+                fixed_params_text=fixed_params_text,
+                plots_output_dir=plots_output_dir,
+                plot_size_config=plot_size_config,
+                verbosity=verbosity,
+                logger=logger,
             )
-
-            # plot violin plot
-
-            ax.violinplot(
-                dataset=extracted_arrays,
-                showmeans=True,
-                showmedians=True,
-            )
-            ax.set_title(
-                label="Violin plot",
-            )
-
-            # adding horizontal grid lines
-            ax.yaxis.grid(
-                visible=True,
-            )
-
-            # Use the model checkpoints to set the xticks
-            ax.set_xticks(
-                ticks=[y + 1 for y in range(len(extracted_arrays))],
-                labels=model_checkpoint_str_list,
-            )
-
-            ax.set_xlabel(
-                xlabel="Checkpoints",
-            )
-            ax.set_ylabel(
-                ylabel="Observed values",
-            )
-
-            # Set the y-axis limits
-            if plot_size_config.y_min is not None:
-                ax.set_ylim(
-                    bottom=plot_size_config.y_min,
-                )
-            if plot_size_config.y_max is not None:
-                ax.set_ylim(
-                    top=plot_size_config.y_max,
-                )
-
-            if fixed_params_text is not None:
-                ax.text(
-                    x=1.05,
-                    y=0.25,
-                    s=f"Fixed Parameters:\n{fixed_params_text}",
-                    transform=plt.gca().transAxes,
-                    fontsize=6,
-                    verticalalignment="top",
-                    bbox={
-                        "boxstyle": "round",
-                        "facecolor": "wheat",
-                        "alpha": 0.3,
-                    },
-                )
-
-            # Saving the plot
-            plot_name: str = f"violinplot" f"_{plot_size_config.y_min}_{plot_size_config.y_max}"
-            plot_output_path: pathlib.Path = pathlib.Path(
-                plots_output_dir,
-                f"{plot_name}.pdf",
-            )
-            plot_output_path.parent.mkdir(
-                parents=True,
-                exist_ok=True,
-            )
-            if verbosity >= Verbosity.NORMAL:
-                logger.info(
-                    msg=f"Saving plot to {plot_output_path = } ...",  # noqa: G004 - low overhead
-                )
-            fig.savefig(
-                fname=plot_output_path,
-                bbox_inches="tight",
-            )
-            if verbosity >= Verbosity.NORMAL:
-                logger.info(
-                    msg=f"Saving plot to {plot_output_path = } DONE",  # noqa: G004 - low overhead
-                )
 
             # # # #
             # Boxplots
-            fig, ax = plt.subplots(
-                figsize=(
-                    plot_size_config.output_pdf_width / 100,
-                    plot_size_config.output_pdf_height / 100,
-                ),
+            make_distribution_boxplots_from_extracted_arrays(
+                extracted_arrays=extracted_arrays,
+                xticks_str_list=model_checkpoint_str_list,
+                fixed_params_text=fixed_params_text,
+                plots_output_dir=plots_output_dir,
+                plot_size_config=plot_size_config,
+                verbosity=verbosity,
+                logger=logger,
             )
 
-            # plot box plot
-            ax.boxplot(
-                x=extracted_arrays,
-            )
-            ax.set_title(
-                label="Box plot",
-            )
 
-            # adding horizontal grid lines
-            ax.yaxis.grid(
-                visible=True,
-            )
+def make_distribution_violinplots_from_extracted_arrays(
+    extracted_arrays: list[np.ndarray],
+    xticks_str_list: list[str],
+    fixed_params_text: str,
+    plots_output_dir: pathlib.Path,
+    plot_size_config: PlotSizeConfig,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
+    (
+        fig,
+        ax,
+    ) = plt.subplots(
+        figsize=(
+            plot_size_config.output_pdf_width / 100,
+            plot_size_config.output_pdf_height / 100,
+        ),
+    )
 
-            # Use the model checkpoints to set the xticks
-            ax.set_xticks(
-                ticks=[y + 1 for y in range(len(extracted_arrays))],
-                labels=model_checkpoint_str_list,
-            )
+    # Plot violin plot
+    ax.violinplot(
+        dataset=extracted_arrays,
+        showmeans=True,
+        showmedians=True,
+    )
+    ax.set_title(
+        label="Violin plot",
+    )
 
-            ax.set_xlabel(
-                xlabel="Checkpoints",
-            )
-            ax.set_ylabel(
-                ylabel="Observed values",
-            )
+    # adding horizontal grid lines
+    ax.yaxis.grid(
+        visible=True,
+    )
 
-            # Set the y-axis limits
-            if plot_size_config.y_min is not None:
-                ax.set_ylim(
-                    bottom=plot_size_config.y_min,
-                )
-            if plot_size_config.y_max is not None:
-                ax.set_ylim(
-                    top=plot_size_config.y_max,
-                )
+    # Use the model checkpoints to set the xticks
+    ax.set_xticks(
+        ticks=[y + 1 for y in range(len(extracted_arrays))],
+        labels=xticks_str_list,
+    )
 
-            plot_name: str = f"boxplot" f"_{plot_size_config.y_min}_{plot_size_config.y_max}"
-            plot_output_path: pathlib.Path = pathlib.Path(
-                plots_output_dir,
-                f"{plot_name}.pdf",
-            )
-            plot_output_path.parent.mkdir(
-                parents=True,
-                exist_ok=True,
-            )
-            if verbosity >= Verbosity.NORMAL:
-                logger.info(
-                    msg=f"Saving plot to {plot_output_path = } ...",  # noqa: G004 - low overhead
-                )
-            fig.savefig(
-                fname=plot_output_path,
-                bbox_inches="tight",
-            )
-            if verbosity >= Verbosity.NORMAL:
-                logger.info(
-                    msg=f"Saving plot to {plot_output_path = } DONE",  # noqa: G004 - low overhead
-                )
+    ax.set_xlabel(
+        xlabel="Checkpoints",
+    )
+    ax.set_ylabel(
+        ylabel="Observed values",
+    )
+
+    # Set the y-axis limits
+    if plot_size_config.y_min is not None:
+        ax.set_ylim(
+            bottom=plot_size_config.y_min,
+        )
+    if plot_size_config.y_max is not None:
+        ax.set_ylim(
+            top=plot_size_config.y_max,
+        )
+
+    if fixed_params_text is not None:
+        ax.text(
+            x=1.05,
+            y=0.25,
+            s=f"Fixed Parameters:\n{fixed_params_text}",
+            transform=plt.gca().transAxes,
+            fontsize=6,
+            verticalalignment="top",
+            bbox={
+                "boxstyle": "round",
+                "facecolor": "wheat",
+                "alpha": 0.3,
+            },
+        )
+
+        # Saving the plot
+    plot_name: str = f"violinplot_{plot_size_config.y_min}_{plot_size_config.y_max}"
+    plot_output_path: pathlib.Path = pathlib.Path(
+        plots_output_dir,
+        f"{plot_name}.pdf",
+    )
+    plot_output_path.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Saving plot to {plot_output_path = } ...",  # noqa: G004 - low overhead
+        )
+    fig.savefig(
+        fname=plot_output_path,
+        bbox_inches="tight",
+    )
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Saving plot to {plot_output_path = } DONE",  # noqa: G004 - low overhead
+        )
+
+
+def make_distribution_boxplots_from_extracted_arrays(
+    extracted_arrays: list[np.ndarray],
+    xticks_str_list: list[str],
+    fixed_params_text: str,
+    plots_output_dir: pathlib.Path,
+    plot_size_config: PlotSizeConfig,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
+    """Create a boxplot."""
+    (
+        fig,
+        ax,
+    ) = plt.subplots(
+        figsize=(
+            plot_size_config.output_pdf_width / 100,
+            plot_size_config.output_pdf_height / 100,
+        ),
+    )
+
+    # Plot box plot
+    ax.boxplot(
+        x=extracted_arrays,
+    )
+    ax.set_title(
+        label="Box plot",
+    )
+
+    # adding horizontal grid lines
+    ax.yaxis.grid(
+        visible=True,
+    )
+
+    # Use the model checkpoints to set the xticks
+    ax.set_xticks(
+        ticks=[y + 1 for y in range(len(extracted_arrays))],
+        labels=xticks_str_list,
+    )
+
+    ax.set_xlabel(
+        xlabel="Checkpoints",
+    )
+    ax.set_ylabel(
+        ylabel="Observed values",
+    )
+
+    # Set the y-axis limits
+    if plot_size_config.y_min is not None:
+        ax.set_ylim(
+            bottom=plot_size_config.y_min,
+        )
+    if plot_size_config.y_max is not None:
+        ax.set_ylim(
+            top=plot_size_config.y_max,
+        )
+
+    if fixed_params_text is not None:
+        ax.text(
+            x=1.05,
+            y=0.25,
+            s=f"Fixed Parameters:\n{fixed_params_text}",
+            transform=plt.gca().transAxes,
+            fontsize=6,
+            verticalalignment="top",
+            bbox={
+                "boxstyle": "round",
+                "facecolor": "wheat",
+                "alpha": 0.3,
+            },
+        )
+
+    plot_name: str = f"boxplot_{plot_size_config.y_min}_{plot_size_config.y_max}"
+    plot_output_path: pathlib.Path = pathlib.Path(
+        plots_output_dir,
+        f"{plot_name}.pdf",
+    )
+    plot_output_path.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Saving plot to {plot_output_path = } ...",  # noqa: G004 - low overhead
+        )
+    fig.savefig(
+        fname=plot_output_path,
+        bbox_inches="tight",
+    )
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Saving plot to {plot_output_path = } DONE",  # noqa: G004 - low overhead
+        )
 
 
 if __name__ == "__main__":
