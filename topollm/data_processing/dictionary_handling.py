@@ -29,6 +29,11 @@
 
 from typing import Any
 
+from topollm.task_performance_analysis.plotting.create_violin_plots_of_local_estimates_over_checkpoints import (
+    default_logger,
+)
+from topollm.typing.enums import Verbosity
+
 
 def flatten_dict(
     d: dict[str, Any],
@@ -63,3 +68,57 @@ def flatten_dict(
         else:
             items[new_key] = value
     return items
+
+
+def filter_list_of_dictionaries_by_key_value_pairs(  # noqa: D417 - we do not add the verbosity and logger argument to the docstring
+    list_of_dicts: list[dict],
+    key_value_pairs: dict,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> list[dict]:
+    """Filter a list of dictionaries by a set of key-value pairs.
+
+    Args:
+        list_of_dicts: The list of dictionaries to filter.
+        key_value_pairs: The key-value pairs to filter by.
+
+    Returns:
+        The filtered list of dictionaries.
+
+    """
+    filtered_list_of_dicts: list[dict] = [
+        single_dict
+        for single_dict in list_of_dicts
+        if all(single_dict[key] == value for key, value in key_value_pairs.items())
+    ]
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"{len(list_of_dicts) = } filtered to {len(filtered_list_of_dicts) = }.",  # noqa: G004 - low overhead
+        )
+
+    return filtered_list_of_dicts
+
+
+def dictionary_to_partial_path(
+    dictionary: dict,
+    key_value_separator: str = "=",
+) -> pathlib.Path:
+    """Convert a dictionary to a partial path.
+
+    Args:
+        dictionary: The dictionary to convert.
+        key_value_separator: The separator between key and value.
+
+    Returns:
+        The partial path.
+
+    """
+    partial_path_list: list[str] = [f"{key}{key_value_separator}{value}" for key, value in dictionary.items()]
+
+    # Unpack the list into the Path constructor
+    result = pathlib.Path(
+        *partial_path_list,
+    )
+
+    return result

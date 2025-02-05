@@ -429,7 +429,7 @@
             }
         },
         {
-            "name": "Task performance analysis - HPC submission - SETSUMBT or Trippy single checkpoint, multiple layers - run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
+            "name": "Task performance analysis - HPC submission - SETSUMBT or Trippy selected checkpoints, multiple layers - run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
@@ -471,7 +471,8 @@
                 //
                 "language_model=roberta-base-setsumbt_multiwoz21",
                 // "++language_model.checkpoint_no=2813",
-                "++language_model.checkpoint_no=2813,16878",
+                // "++language_model.checkpoint_no=2813,16878",
+                "++language_model.checkpoint_no=5626,8439,11252,14065",
                 // "++language_model.checkpoint_no=2813,5626,8439,11252,14065,16878,19691,25317,33756,36569,39382,42195,50634,56260,70325,90016,109707,115333,126585",
                 //
                 // "language_model=roberta-base-trippy_multiwoz21",

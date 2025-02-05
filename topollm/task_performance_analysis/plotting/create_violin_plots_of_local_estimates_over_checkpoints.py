@@ -39,13 +39,11 @@ import omegaconf
 import pandas as pd
 from tqdm import tqdm
 
-from topollm.analysis.comparisons.compare_mean_estimates_over_different_datasets_and_models.compare_mean_local_estimates_with_mean_losses import (
-    generate_selected_data_for_individual_splits_individual_models_all_datasets,
-)
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
-from topollm.data_processing.iteration_over_directories.load_json_dicts_from_folder_structure_into_df import (
-    load_json_dicts_from_folder_structure_into_df,
+from topollm.data_processing.dictionary_handling import (
+    dictionary_to_partial_path,
+    filter_list_of_dictionaries_by_key_value_pairs,
 )
 from topollm.data_processing.iteration_over_directories.load_np_arrays_from_folder_structure_into_list_of_dicts import (
     load_np_arrays_from_folder_structure_into_list_of_dicts,
@@ -129,16 +127,12 @@ def main(
         logger=logger,
     )
 
-    # # #
-    # Filter the DataFrame for selected settings
-    tokenizer_add_prefix_space = "False"
-
     # The identifier of the base model.
     # This value will be used to filter the DataFrame
     # for the correlation analysis and for the model checkpoint analysis.
     base_model_model_partial_name = "model=roberta-base"
 
-    # TODO: Implement filtering of the loaded data
+    # TODO: Add the base model to the plots
 
     # # # #
     # Choose which comparisons to make
@@ -147,7 +141,7 @@ def main(
     output_root_dir: pathlib.Path = pathlib.Path(
         embeddings_path_manager.saved_plots_dir_absolute_path,
         "task_performance_analysis",
-        f"{tokenizer_add_prefix_space=}",
+        "distribution_of_local_estimates",
     )
     output_root_dir.mkdir(
         parents=True,
@@ -157,8 +151,6 @@ def main(
     # ================================================== #
     # Create plots
     # ================================================== #
-
-    # TODO: Continue editing the script from here
 
     # # # #
     # Common parameters for all plots
@@ -174,7 +166,7 @@ def main(
         PlotSizeConfig(
             x_min=None,
             x_max=None,
-            y_min=1.5,
+            y_min=0.0,
             y_max=10.5,
             output_pdf_width=2_000,
             output_pdf_height=1_500,
@@ -184,6 +176,9 @@ def main(
     data_full_options: set[str] = {single_dict["data_full"] for single_dict in loaded_data}
     data_subsampling_full_options: set[str] = {single_dict["data_subsampling_full"] for single_dict in loaded_data}
     model_partial_name_options: set[str] = {single_dict["model_partial_name"] for single_dict in loaded_data}
+
+    # # # #
+    # Create plots which show the distribution of the local estimates over the checkpoints
 
     for (
         data_full,
@@ -197,16 +192,48 @@ def main(
         ),
         desc="Plotting different choices",
     ):
-        # TODO: Filter the correct dictionaries
-        filtered_data = loaded_data
+        filter_key_value_pairs: dict = {
+            "tokenizer_add_prefix_space": "False",  # This needs to be a string
+            "data_full": data_full,
+            "data_subsampling_full": data_subsampling_full,
+            "model_partial_name": model_partial_name,
+        }
+
+        filtered_data: list[dict] = filter_list_of_dictionaries_by_key_value_pairs(
+            list_of_dicts=loaded_data,
+            key_value_pairs=filter_key_value_pairs,
+        )
+
+        if len(filtered_data) == 0:
+            logger.warning(
+                msg=f"No data found for {filter_key_value_pairs = }.",  # noqa: G004 - low overhead
+            )
+            logger.warning(
+                msg="Skipping this combination of parameters.",
+            )
+            continue
 
         extracted_arrays: list[np.ndarray] = [single_dict[array_key_name] for single_dict in filtered_data]
-        model_checkpoint_list: list[int] = [single_dict["model_checkpoint"] for single_dict in filtered_data]
+        model_checkpoint_str_list: list[str] = [
+            str(object=single_dict["model_checkpoint"]) for single_dict in filtered_data
+        ]
+
+        plots_output_dir: pathlib.Path = pathlib.Path(
+            output_root_dir,
+            "plots_over_checkpoints",
+            dictionary_to_partial_path(
+                dictionary=filter_key_value_pairs,
+            ),
+        )
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"{plots_output_dir = }",  # noqa: G004 - low overhead
+            )
+
         # TODO: Sort the arrays by increasing model checkpoint
+        pass  # This is here for setting a breakpoint
 
         for plot_size_config in plot_size_configs_list:
-            plot_name: str = f"violinplot" f"_{plot_size_config.y_min}_{plot_size_config.y_max}"
-
             # # # #
             # Violin plots
             (
@@ -235,14 +262,12 @@ def main(
                 visible=True,
             )
 
-            # Use the model_checkpoint_list to set the xticks
+            # Use the model checkpoints to set the xticks
             ax.set_xticks(
-                [y + 1 for y in range(len(extracted_arrays))],
-                labels=model_checkpoint_list,
+                ticks=[y + 1 for y in range(len(extracted_arrays))],
+                labels=model_checkpoint_str_list,
             )
 
-            # TODO: Fix this for plotting of multiple samples
-            # ax.set_xticks([y + 1 for y in range(len(all_data))], labels=["x1", "x2", "x3", "x4"])
             ax.set_xlabel(
                 xlabel="Checkpoints",
             )
@@ -250,11 +275,40 @@ def main(
                 ylabel="Observed values",
             )
 
-            plt.show()
+            # Set the y-axis limits
+            if plot_size_config.y_min is not None:
+                ax.set_ylim(
+                    bottom=plot_size_config.y_min,
+                )
+            if plot_size_config.y_max is not None:
+                ax.set_ylim(
+                    top=plot_size_config.y_max,
+                )
+
+            plot_name: str = f"violinplot" f"_{plot_size_config.y_min}_{plot_size_config.y_max}"
+            plot_output_path: pathlib.Path = pathlib.Path(
+                plots_output_dir,
+                f"{plot_name}.pdf",
+            )
+            plot_output_path.parent.mkdir(
+                parents=True,
+                exist_ok=True,
+            )
+            if verbosity >= Verbosity.NORMAL:
+                logger.info(
+                    msg=f"Saving plot to {plot_output_path = } ...",  # noqa: G004 - low overhead
+                )
+            fig.savefig(
+                fname=plot_output_path,
+                bbox_inches="tight",
+            )
+            if verbosity >= Verbosity.NORMAL:
+                logger.info(
+                    msg=f"Saving plot to {plot_output_path = } DONE",  # noqa: G004 - low overhead
+                )
 
             # # # #
             # Boxplots
-
             fig, ax = plt.subplots(
                 figsize=(
                     plot_size_config.output_pdf_width / 100,
@@ -270,7 +324,60 @@ def main(
                 label="Box plot",
             )
 
-            plt.show()
+            # adding horizontal grid lines
+            ax.yaxis.grid(
+                visible=True,
+            )
+
+            # Use the model checkpoints to set the xticks
+            ax.set_xticks(
+                ticks=[y + 1 for y in range(len(extracted_arrays))],
+                labels=model_checkpoint_str_list,
+            )
+
+            ax.set_xlabel(
+                xlabel="Checkpoints",
+            )
+            ax.set_ylabel(
+                ylabel="Observed values",
+            )
+
+            # Set the y-axis limits
+            if plot_size_config.y_min is not None:
+                ax.set_ylim(
+                    bottom=plot_size_config.y_min,
+                )
+            if plot_size_config.y_max is not None:
+                ax.set_ylim(
+                    top=plot_size_config.y_max,
+                )
+
+            plot_name: str = f"boxplot" f"_{plot_size_config.y_min}_{plot_size_config.y_max}"
+            plot_output_path: pathlib.Path = pathlib.Path(
+                plots_output_dir,
+                f"{plot_name}.pdf",
+            )
+            plot_output_path.parent.mkdir(
+                parents=True,
+                exist_ok=True,
+            )
+            if verbosity >= Verbosity.NORMAL:
+                logger.info(
+                    msg=f"Saving plot to {plot_output_path = } ...",  # noqa: G004 - low overhead
+                )
+            fig.savefig(
+                fname=plot_output_path,
+                bbox_inches="tight",
+            )
+            if verbosity >= Verbosity.NORMAL:
+                logger.info(
+                    msg=f"Saving plot to {plot_output_path = } DONE",  # noqa: G004 - low overhead
+                )
+
+    # # # #
+    # Create plots which show the distribution of the local estimates over different layers of the model
+
+    # TODO: Implement the creation of the plots over the layers
 
     logger.info(
         msg="Script finished.",
