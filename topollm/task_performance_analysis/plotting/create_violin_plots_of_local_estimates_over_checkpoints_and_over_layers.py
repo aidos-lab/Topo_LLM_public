@@ -30,6 +30,7 @@
 import itertools
 import logging
 import pathlib
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 import hydra
@@ -274,14 +275,18 @@ def main(
                     msg=f"{plots_output_dir = }",  # noqa: G004 - low overhead
                 )
 
-            for plot_size_config in plot_size_configs_list:
-                # TODO: Change the label on the x-axis to "Layers" instead of "Checkpoints"
+            ticks_and_labels: TicksAndLabels = TicksAndLabels(
+                xlabel="layers",
+                ylabel=array_key_name,
+                xticks_labels=model_layer_str_list,
+            )
 
+            for plot_size_config in plot_size_configs_list:
                 # # # #
                 # Violin plots
                 make_distribution_violinplots_from_extracted_arrays(
                     extracted_arrays=extracted_arrays,
-                    xticks_str_list=model_layer_str_list,
+                    ticks_and_labels=ticks_and_labels,
                     fixed_params_text=fixed_params_text,
                     plots_output_dir=plots_output_dir,
                     plot_size_config=plot_size_config,
@@ -293,7 +298,7 @@ def main(
                 # Boxplots
                 make_distribution_boxplots_from_extracted_arrays(
                     extracted_arrays=extracted_arrays,
-                    xticks_str_list=model_layer_str_list,
+                    ticks_and_labels=ticks_and_labels,
                     fixed_params_text=fixed_params_text,
                     plots_output_dir=plots_output_dir,
                     plot_size_config=plot_size_config,
@@ -434,12 +439,18 @@ def create_distribution_plots_over_model_checkpoints(
                 msg=f"{plots_output_dir = }",  # noqa: G004 - low overhead
             )
 
+        ticks_and_labels: TicksAndLabels = TicksAndLabels(
+            xlabel="checkpoints",
+            ylabel=array_key_name,
+            xticks_labels=model_checkpoint_str_list,
+        )
+
         for plot_size_config in plot_size_configs_list:
             # # # #
             # Violin plots
             make_distribution_violinplots_from_extracted_arrays(
                 extracted_arrays=extracted_arrays,
-                xticks_str_list=model_checkpoint_str_list,
+                ticks_and_labels=ticks_and_labels,
                 fixed_params_text=fixed_params_text,
                 plots_output_dir=plots_output_dir,
                 plot_size_config=plot_size_config,
@@ -451,7 +462,7 @@ def create_distribution_plots_over_model_checkpoints(
             # Boxplots
             make_distribution_boxplots_from_extracted_arrays(
                 extracted_arrays=extracted_arrays,
-                xticks_str_list=model_checkpoint_str_list,
+                ticks_and_labels=ticks_and_labels,
                 fixed_params_text=fixed_params_text,
                 plots_output_dir=plots_output_dir,
                 plot_size_config=plot_size_config,
@@ -460,9 +471,18 @@ def create_distribution_plots_over_model_checkpoints(
             )
 
 
+@dataclass
+class TicksAndLabels:
+    """Container for ticks and labels."""
+
+    xlabel: str
+    ylabel: str
+    xticks_labels: list[str]
+
+
 def make_distribution_violinplots_from_extracted_arrays(
     extracted_arrays: list[np.ndarray],
-    xticks_str_list: list[str],
+    ticks_and_labels: TicksAndLabels,
     fixed_params_text: str,
     plots_output_dir: pathlib.Path,
     plot_size_config: PlotSizeConfig,
@@ -497,14 +517,14 @@ def make_distribution_violinplots_from_extracted_arrays(
     # Use the model checkpoints to set the xticks
     ax.set_xticks(
         ticks=[y + 1 for y in range(len(extracted_arrays))],
-        labels=xticks_str_list,
+        labels=ticks_and_labels.xticks_labels,
     )
 
     ax.set_xlabel(
-        xlabel="Checkpoints",
+        xlabel=ticks_and_labels.xlabel,
     )
     ax.set_ylabel(
-        ylabel="Observed values",
+        ylabel=ticks_and_labels.ylabel,
     )
 
     # Set the y-axis limits
@@ -558,7 +578,7 @@ def make_distribution_violinplots_from_extracted_arrays(
 
 def make_distribution_boxplots_from_extracted_arrays(
     extracted_arrays: list[np.ndarray],
-    xticks_str_list: list[str],
+    ticks_and_labels: TicksAndLabels,
     fixed_params_text: str,
     plots_output_dir: pathlib.Path,
     plot_size_config: PlotSizeConfig,
@@ -592,14 +612,14 @@ def make_distribution_boxplots_from_extracted_arrays(
     # Use the model checkpoints to set the xticks
     ax.set_xticks(
         ticks=[y + 1 for y in range(len(extracted_arrays))],
-        labels=xticks_str_list,
+        labels=ticks_and_labels.xticks_labels,
     )
 
     ax.set_xlabel(
-        xlabel="Checkpoints",
+        xlabel=ticks_and_labels.xlabel,
     )
     ax.set_ylabel(
-        ylabel="Observed values",
+        ylabel=ticks_and_labels.ylabel,
     )
 
     # Set the y-axis limits

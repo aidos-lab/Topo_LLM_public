@@ -469,22 +469,22 @@
                 //
                 // "language_model=roberta-base",
                 //
-                "language_model=roberta-base-setsumbt_multiwoz21",
+                // "language_model=roberta-base-setsumbt_multiwoz21",
                 // "++language_model.checkpoint_no=2813",
                 // "++language_model.checkpoint_no=2813,16878",
-                "++language_model.checkpoint_no=5626,8439,11252,14065",
+                // "++language_model.checkpoint_no=5626,8439,11252,14065",
                 // "++language_model.checkpoint_no=2813,5626,8439,11252,14065,16878,19691,25317,33756,36569,39382,42195,50634,56260,70325,90016,109707,115333,126585",
                 //
-                // "language_model=roberta-base-trippy_multiwoz21",
-                // "++language_model.seed=42",
+                "language_model=roberta-base-trippy_multiwoz21",
+                "++language_model.seed=42",
                 // "++language_model.checkpoint_no=3549",
                 // "++language_model.checkpoint_no=3549,7098",
-                // "++language_model.checkpoint_no=3549,7098,10647,14196,17745,21294,24843,28392,31941,35490",
+                "++language_model.checkpoint_no=3549,7098,10647,14196,17745,21294,24843,28392,31941,35490",
                 //
                 //    >> END: Model options.
                 //
                 "embeddings.embedding_data_handler.mode=regular",
-                "embeddings.embedding_extraction.layer_indices=[-1],[-2],[-3],[-4],[-5],[-6],[-7],[-8],[-9],[-10],[-11],[-12]",
+                "embeddings.embedding_extraction.layer_indices=[-1],[-2],[-3],[-4],[-5],[-6],[-7],[-8],[-9],[-10],[-11],[-12]", // <-- Compute estimates for all layers
                 "embeddings_data_prep.sampling.num_samples=150000",
                 "embeddings_data_prep.sampling.sampling_mode=random",
                 "embeddings_data_prep.sampling.seed=42",
@@ -493,7 +493,7 @@
                 "local_estimates.filtering.num_samples=60000",
                 "local_estimates.pointwise.absolute_n_neighbors=128",
                 //
-                "feature_flags.analysis.create_plots_in_local_estimates_worker=true", // <-- Decide whether to create plots in the local estimates worker.
+                "feature_flags.analysis.create_plots_in_local_estimates_worker=false", // <-- Decide whether to create plots in the local estimates worker.
             ],
             "env": {
                 "PYTORCH_ENABLE_MPS_FALLBACK": "1"
@@ -1761,10 +1761,10 @@
             }
         },
         {
-            "name": "Task performance analysis - create_violin_plots_of_local_estimates_over_checkpoints.py",
+            "name": "Task performance analysis - create_violin_plots_of_local_estimates_over_checkpoints_and_over_layers.py",
             "type": "debugpy",
             "request": "launch",
-            "program": "topollm/task_performance_analysis/plotting/create_violin_plots_of_local_estimates_over_checkpoints.py",
+            "program": "topollm/task_performance_analysis/plotting/create_violin_plots_of_local_estimates_over_checkpoints_and_over_layers.py",
             "console": "integratedTerminal",
             "args": [
                 // >>>> START: Hydra options
