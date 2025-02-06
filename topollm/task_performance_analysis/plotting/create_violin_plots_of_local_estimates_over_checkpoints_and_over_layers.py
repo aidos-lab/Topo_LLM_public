@@ -206,106 +206,14 @@ def main(
             logger.info(
                 msg="Creating the distribution plots over the model layers ...",
             )
-
-        # TODO: Make the layer-wise plots into a function.
-
-        data_full_options: set[str] = {single_dict["data_full"] for single_dict in loaded_data}
-        data_subsampling_full_options: set[str] = {single_dict["data_subsampling_full"] for single_dict in loaded_data}
-        model_partial_name_options: set[str] = {single_dict["model_partial_name"] for single_dict in loaded_data}
-        model_checkpoint_options: set = {single_dict["model_checkpoint"] for single_dict in loaded_data}
-
-        for (
-            data_full,
-            data_subsampling_full,
-            model_partial_name,
-            model_checkpoint,
-        ) in tqdm(
-            iterable=itertools.product(
-                data_full_options,
-                data_subsampling_full_options,
-                model_partial_name_options,
-                model_checkpoint_options,
-            ),
-            desc="Plotting different choices",
-        ):
-            filter_key_value_pairs: dict = {
-                "tokenizer_add_prefix_space": "False",  # This needs to be a string
-                "data_full": data_full,
-                "data_subsampling_full": data_subsampling_full,
-                "model_partial_name": model_partial_name,
-                "model_checkpoint": model_checkpoint,
-                # We want all checkpoints for the given model checkpoint.
-            }
-            fixed_params_text: str = generate_fixed_parameters_text_from_dict(
-                filters_dict=filter_key_value_pairs,
-            )
-
-            filtered_data: list[dict] = filter_list_of_dictionaries_by_key_value_pairs(
-                list_of_dicts=loaded_data,
-                key_value_pairs=filter_key_value_pairs,
-            )
-
-            if len(filtered_data) == 0:
-                logger.warning(
-                    msg=f"No data found for {filter_key_value_pairs = }.",  # noqa: G004 - low overhead
-                )
-                logger.warning(
-                    msg="Skipping this combination of parameters.",
-                )
-                continue
-
-            # Sort the arrays by increasing model layer.
-            sorted_data: list[dict] = sorted(
-                filtered_data,
-                key=lambda single_dict: int(single_dict["model_layer"]),
-            )
-
-            extracted_arrays: list[np.ndarray] = [single_dict[array_key_name] for single_dict in sorted_data]
-            model_layer_str_list: list[str] = [str(object=single_dict["model_layer"]) for single_dict in sorted_data]
-
-            plots_output_dir: pathlib.Path = pathlib.Path(
-                output_root_dir,
-                "plots_over_layers",
-                dictionary_to_partial_path(
-                    dictionary=filter_key_value_pairs,
-                ),
-            )
-            if verbosity >= Verbosity.NORMAL:
-                logger.info(
-                    msg=f"{plots_output_dir = }",  # noqa: G004 - low overhead
-                )
-
-            ticks_and_labels: TicksAndLabels = TicksAndLabels(
-                xlabel="layers",
-                ylabel=array_key_name,
-                xticks_labels=model_layer_str_list,
-            )
-
-            for plot_size_config in plot_size_configs_list:
-                # # # #
-                # Violin plots
-                make_distribution_violinplots_from_extracted_arrays(
-                    extracted_arrays=extracted_arrays,
-                    ticks_and_labels=ticks_and_labels,
-                    fixed_params_text=fixed_params_text,
-                    plots_output_dir=plots_output_dir,
-                    plot_size_config=plot_size_config,
-                    verbosity=verbosity,
-                    logger=logger,
-                )
-
-                # # # #
-                # Boxplots
-                make_distribution_boxplots_from_extracted_arrays(
-                    extracted_arrays=extracted_arrays,
-                    ticks_and_labels=ticks_and_labels,
-                    fixed_params_text=fixed_params_text,
-                    plots_output_dir=plots_output_dir,
-                    plot_size_config=plot_size_config,
-                    verbosity=verbosity,
-                    logger=logger,
-                )
-
+        create_distribution_plots_over_model_layers(
+            loaded_data=loaded_data,
+            array_key_name=array_key_name,
+            output_root_dir=output_root_dir,
+            plot_size_configs_list=plot_size_configs_list,
+            verbosity=verbosity,
+            logger=logger,
+        )
         if verbosity >= Verbosity.NORMAL:
             logger.info(
                 msg="Creating the distribution plots over the model layers DONE",
@@ -318,6 +226,113 @@ def main(
     logger.info(
         msg="Script finished.",
     )
+
+
+def create_distribution_plots_over_model_layers(
+    loaded_data: list[dict],
+    array_key_name: str,
+    output_root_dir: pathlib.Path,
+    plot_size_configs_list: list[PlotSizeConfig],
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
+    """Create plots which show the distribution of the local estimates over the layers."""
+    data_full_options: set[str] = {single_dict["data_full"] for single_dict in loaded_data}
+    data_subsampling_full_options: set[str] = {single_dict["data_subsampling_full"] for single_dict in loaded_data}
+    model_partial_name_options: set[str] = {single_dict["model_partial_name"] for single_dict in loaded_data}
+    model_checkpoint_options: set = {single_dict["model_checkpoint"] for single_dict in loaded_data}
+
+    for (
+        data_full,
+        data_subsampling_full,
+        model_partial_name,
+        model_checkpoint,
+    ) in tqdm(
+        iterable=itertools.product(
+            data_full_options,
+            data_subsampling_full_options,
+            model_partial_name_options,
+            model_checkpoint_options,
+        ),
+        desc="Plotting different choices",
+    ):
+        filter_key_value_pairs: dict = {
+            "tokenizer_add_prefix_space": "False",  # This needs to be a string
+            "data_full": data_full,
+            "data_subsampling_full": data_subsampling_full,
+            "model_partial_name": model_partial_name,
+            "model_checkpoint": model_checkpoint,
+            # We want all checkpoints for the given model checkpoint.
+        }
+        fixed_params_text: str = generate_fixed_parameters_text_from_dict(
+            filters_dict=filter_key_value_pairs,
+        )
+
+        filtered_data: list[dict] = filter_list_of_dictionaries_by_key_value_pairs(
+            list_of_dicts=loaded_data,
+            key_value_pairs=filter_key_value_pairs,
+        )
+
+        if len(filtered_data) == 0:
+            logger.warning(
+                msg=f"No data found for {filter_key_value_pairs = }.",  # noqa: G004 - low overhead
+            )
+            logger.warning(
+                msg="Skipping this combination of parameters.",
+            )
+            continue
+
+            # Sort the arrays by increasing model layer.
+        sorted_data: list[dict] = sorted(
+            filtered_data,
+            key=lambda single_dict: int(single_dict["model_layer"]),
+        )
+
+        extracted_arrays: list[np.ndarray] = [single_dict[array_key_name] for single_dict in sorted_data]
+        model_layer_str_list: list[str] = [str(object=single_dict["model_layer"]) for single_dict in sorted_data]
+
+        plots_output_dir: pathlib.Path = pathlib.Path(
+            output_root_dir,
+            "plots_over_layers",
+            dictionary_to_partial_path(
+                dictionary=filter_key_value_pairs,
+            ),
+        )
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"{plots_output_dir = }",  # noqa: G004 - low overhead
+            )
+
+        ticks_and_labels: TicksAndLabels = TicksAndLabels(
+            xlabel="layers",
+            ylabel=array_key_name,
+            xticks_labels=model_layer_str_list,
+        )
+
+        for plot_size_config in plot_size_configs_list:
+            # # # #
+            # Violin plots
+            make_distribution_violinplots_from_extracted_arrays(
+                extracted_arrays=extracted_arrays,
+                ticks_and_labels=ticks_and_labels,
+                fixed_params_text=fixed_params_text,
+                plots_output_dir=plots_output_dir,
+                plot_size_config=plot_size_config,
+                verbosity=verbosity,
+                logger=logger,
+            )
+
+            # # # #
+            # Boxplots
+            make_distribution_boxplots_from_extracted_arrays(
+                extracted_arrays=extracted_arrays,
+                ticks_and_labels=ticks_and_labels,
+                fixed_params_text=fixed_params_text,
+                plots_output_dir=plots_output_dir,
+                plot_size_config=plot_size_config,
+                verbosity=verbosity,
+                logger=logger,
+            )
 
 
 def create_distribution_plots_over_model_checkpoints(
@@ -489,6 +504,7 @@ def make_distribution_violinplots_from_extracted_arrays(
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> None:
+    """Create a violin plot."""
     (
         fig,
         ax,
