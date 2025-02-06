@@ -43,6 +43,7 @@ from topollm.config_classes.constants import (
 from topollm.config_classes.main_config import MainConfig
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
+from topollm.logging.log_recursive_dict_info import log_recursive_dict_info
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
 from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
@@ -141,17 +142,15 @@ def main(
                 msg="Logging additional information about the dictionary.",
             )
 
-            logger.info(
-                msg=f"{dataloader_processed.keys() = }",  # noqa: G004 - low overhead
+            log_recursive_dict_info(
+                dictionary=dataloader_processed,
+                dictionary_name="dataloader_processed",
+                logger=logger,
             )
 
-            # Log the types of the values in the dictionary
-            for key, value in dataloader_processed.items():
-                logger.info(
-                    msg=f"{key = }; {type(value) = }.",  # noqa: G004 - low overhead
-                )
+    # TODO: Implement using the tokenizer to decode the input_ids to text to check some examples
 
-    # TODO: Implement the script here
+    # TODO: Implement concatenating the tensors of the individual dialogues (select only those where the attention mask is non-zero)
 
     logger.info(
         msg="Running script DONE",
