@@ -40,7 +40,7 @@ from topollm.compute_embeddings.embedding_dataloader_preparer.embedding_dataload
     EmbeddingDataLoaderPreparerContext,
 )
 from topollm.compute_embeddings.embedding_dataloader_preparer.embedding_dataloader_preparer_huggingface import (
-    EmbeddingDataLoaderPreparerHuggingface,
+    EmbeddingDataLoaderPreparerHuggingfaceWithTokenization,
 )
 from topollm.compute_embeddings.embedding_dataloader_preparer.factory import get_embedding_dataloader_preparer
 from topollm.compute_embeddings.embedding_dataloader_preparer.protocol import (

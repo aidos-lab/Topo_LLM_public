@@ -40,17 +40,21 @@ import torch
 from topollm.config_classes.constants import (
     HYDRA_CONFIGS_BASE_PATH,
 )
-from topollm.config_classes.main_config import MainConfig
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.log_recursive_dict_info import log_recursive_dict_info
 from topollm.logging.setup_exception_logging import setup_exception_logging
+from topollm.model_handling.loaded_model_container import LoadedModelContainer
+from topollm.model_handling.prepare_loaded_model_container import (
+    prepare_device_and_tokenizer_and_model_from_main_config,
+)
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
-from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 from topollm.typing.enums import Verbosity
 
 if TYPE_CHECKING:
-    pass
+    from topollm.config_classes.main_config import MainConfig
+    from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
+
 
 try:
     from hydra_plugins import hpc_submission_launcher
@@ -109,7 +113,9 @@ def main(
         "dataloaders_processed",
     )
 
-    selected_dataloader_processed_name = "train_0.data"
+    # selected_dataloader_processed_name = "train_0.data"
+    selected_dataloader_processed_name = "train_1.data"
+
     selected_dataloader_processed_path = pathlib.Path(
         dataloaders_processed_root_directory,
         selected_dataloader_processed_name,
@@ -148,7 +154,40 @@ def main(
                 logger=logger,
             )
 
-    # TODO: Implement using the tokenizer to decode the input_ids to text to check some examples
+    # # # # # # # #
+    # Decode some of the input_ids to text to check the content
+
+    loaded_model_container: LoadedModelContainer = prepare_device_and_tokenizer_and_model_from_main_config(
+        main_config=main_config,
+        verbosity=verbosity,
+        logger=logger,
+    )
+    tokenizer = loaded_model_container.tokenizer
+
+    # Example for 'train_0.data':
+    # > dataloader_processed["input_ids"].shape = torch.Size([8438, 12, 64])
+    #
+    # Example: Select the first sequence of the first dialogue:
+    # > dataloader_processed["input_ids"][0][0]
+
+    for sequence_to_decode in dataloader_processed["input_ids"][0]:
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"{sequence_to_decode.shape = }",  # noqa: G004 - low overhead
+            )
+
+        # Decode the sequence
+        decoded_sequence = tokenizer.decode(
+            token_ids=sequence_to_decode,
+        )
+
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"{sequence_to_decode = }",  # noqa: G004 - low overhead
+            )
+            logger.info(
+                msg=f"{decoded_sequence = }",  # noqa: G004 - low overhead
+            )
 
     # TODO: Implement concatenating the tensors of the individual dialogues (select only those where the attention mask is non-zero)
 

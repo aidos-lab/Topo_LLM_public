@@ -39,7 +39,7 @@ from topollm.logging.log_dataset_info import log_huggingface_dataset_info
 from topollm.typing.enums import Verbosity
 
 
-class EmbeddingDataLoaderPreparerHuggingface(EmbeddingDataLoaderPreparer):
+class EmbeddingDataLoaderPreparerHuggingfaceWithTokenization(EmbeddingDataLoaderPreparer):
     """Prepare a dataloader for computing embeddings using Huggingface datasets."""
 
     @property

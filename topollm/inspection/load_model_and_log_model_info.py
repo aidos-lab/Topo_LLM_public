@@ -44,7 +44,6 @@ from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.log_model_info import log_model_info
 from topollm.logging.setup_exception_logging import setup_exception_logging
-from topollm.model_handling.loaded_model_container import LoadedModelContainer
 from topollm.model_handling.prepare_loaded_model_container import (
     prepare_device_and_tokenizer_and_model_from_main_config,
 )
@@ -54,6 +53,7 @@ from topollm.typing.enums import Verbosity
 
 if TYPE_CHECKING:
     from topollm.config_classes.main_config import MainConfig
+    from topollm.model_handling.loaded_model_container import LoadedModelContainer
 
 try:
     from hydra_plugins import hpc_submission_launcher
