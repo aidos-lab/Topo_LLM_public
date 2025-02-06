@@ -13,6 +13,7 @@ dataset_description_string: setsumbt_dataloaders_processed
 
 dataset_type: setsumbt_dataloaders_processed
 
+# data_dir is currently unused for the setsumbt_dataloaders_processed dataset
 data_dir: ${paths.data_dir}/models/setsumbt_checkpoints/multiwoz21/dataloaders_processed
 # TODO: Use this path to load the selected dataloader
 dataset_path: ${paths.data_dir}/models/setsumbt_checkpoints/multiwoz21/dataloaders_processed/${data.data_subsampling.split}_0.data
