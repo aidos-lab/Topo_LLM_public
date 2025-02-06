@@ -25,7 +25,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Run script to compare computed Hausdorff distances with the local estimates."""
+"""Example script to load a dataloader processed file and check the content."""
 
 import logging
 import pathlib
@@ -69,8 +69,6 @@ default_logger: logging.Logger = logging.getLogger(
 setup_exception_logging(
     logger=global_logger,
 )
-
-setup_omega_conf()
 
 
 @hydra.main(
@@ -135,9 +133,23 @@ def main(
             msg=f"{type(dataloader_processed) = }",  # noqa: G004 - low overhead
         )
 
-        logger.info(
-            msg=f"{dataloader_processed.keys() = }",  # noqa: G004 - low overhead
-        )
+        if isinstance(
+            dataloader_processed,
+            dict,
+        ):
+            logger.info(
+                msg="Logging additional information about the dictionary.",
+            )
+
+            logger.info(
+                msg=f"{dataloader_processed.keys() = }",  # noqa: G004 - low overhead
+            )
+
+            # Log the types of the values in the dictionary
+            for key, value in dataloader_processed.items():
+                logger.info(
+                    msg=f"{key = }; {type(value) = }.",  # noqa: G004 - low overhead
+                )
 
     # TODO: Implement the script here
 
@@ -147,4 +159,6 @@ def main(
 
 
 if __name__ == "__main__":
+    setup_omega_conf()
+
     main()

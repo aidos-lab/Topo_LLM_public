@@ -1,10 +1,10 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -118,5 +118,5 @@ def log_array_info(
             # `numpy.exceptions.AxisError: axis 1 is out of bounds for array of dimension 1`
             # if we try to calculate the L2-norms of a 1D array.
             logger.exception(
-                msg=f"Error when trying to calculate L2-norms of {array_name}: {e}",  # noqa: G004 , TRY401- low overhead
+                msg=f"Error when trying to calculate L2-norms of {array_name}: {e}",  # noqa: G004 - low overhead
             )
