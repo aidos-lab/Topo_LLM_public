@@ -39,12 +39,12 @@ from topollm.analysis.compare_sampling_methods.make_plots import (
     Y_AXIS_LIMITS,
     PlotSavePathCollection,
     create_boxplot_of_mean_over_different_sampling_seeds,
-    generate_fixed_params_text,
 )
 from topollm.analysis.compare_sampling_methods.sensitivity_to_parameter_choices.analysis_influence_of_local_estimates_n_neighbors import (
     analysis_influence_of_local_estimates_n_neighbors,
 )
 from topollm.config_classes.constants import NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS
+from topollm.data_processing.dictionary_handling import generate_fixed_parameters_text_from_dict
 from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.path_management.parse_path_info import parse_path_info_full
 from topollm.typing.enums import Verbosity
@@ -318,7 +318,7 @@ def run_search_on_single_base_directory_and_process_and_save(
                 filters_dict=filters_dict,
             )
 
-            fixed_params_text: str = generate_fixed_params_text(
+            fixed_params_text: str = generate_fixed_parameters_text_from_dict(
                 filters_dict=filters_dict,
             )
 

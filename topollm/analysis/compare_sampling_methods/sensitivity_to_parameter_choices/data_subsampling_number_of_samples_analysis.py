@@ -43,9 +43,9 @@ from topollm.analysis.compare_sampling_methods.make_plots import (
     Y_AXIS_LIMITS,
     PlotSavePathCollection,
     create_boxplot_of_mean_over_different_sampling_seeds,
-    generate_fixed_params_text,
 )
 from topollm.config_classes.constants import NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS, TOPO_LLM_REPOSITORY_BASE_PATH
+from topollm.data_processing.dictionary_handling import generate_fixed_parameters_text_from_dict
 from topollm.typing.enums import Verbosity
 
 default_logger: logging.Logger = logging.getLogger(
@@ -83,7 +83,7 @@ def create_histograms_over_data_subsampling_number_of_samples(
     # Select the data for the analysis
     data_for_different_data_subsampling_number_of_samples_analysis_df: pd.DataFrame = filtered_concatenated_df
 
-    fixed_params_text: str = generate_fixed_params_text(
+    fixed_params_text: str = generate_fixed_parameters_text_from_dict(
         filters_dict=concatenated_filters_dict,
     )
 

@@ -28,5 +28,9 @@ finetuning:
 scripts:
   dry_run: false
 
+task_performance_analysis:
+  plotting_create_distribution_plots_over_model_checkpoints: true
+  plotting_create_distribution_plots_over_model_layers: true
+
 wandb:
   use_wandb: true

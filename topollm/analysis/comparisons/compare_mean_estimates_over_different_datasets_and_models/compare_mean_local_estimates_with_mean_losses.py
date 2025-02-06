@@ -51,6 +51,8 @@ from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
 from topollm.plotting.create_scatter_plot import create_scatter_plot
 from topollm.plotting.line_plot_grouped_by_categorical_column import (
+    PlotColumnsConfig,
+    PlotSizeConfig,
     line_plot_grouped_by_categorical_column,
 )
 from topollm.typing.enums import Verbosity
@@ -728,13 +730,20 @@ def create_plots_for_individual_splits_individual_models_all_datasets(
         )
 
         for axes_limits in axes_limits_choices:
+            plot_size_config = PlotSizeConfig(
+                x_min=axes_limits["x_min"],
+                x_max=axes_limits["x_max"],
+                y_min=axes_limits["y_min"],
+                y_max=axes_limits["y_max"],
+            )
+
             # # # #
             # Call the scatter plot function
             plot_name: str = (
                 f"scatterplot"
                 f"_{selected_data.x_column_name}_vs_{selected_data.y_column_name}"
-                f"_{axes_limits['x_min']}_{axes_limits['x_max']}"
-                f"_{axes_limits['y_min']}_{axes_limits['y_max']}"
+                f"_{plot_size_config.x_min}_{plot_size_config.x_max}"
+                f"_{plot_size_config.y_min}_{plot_size_config.y_max}"
             )
             # - Use the 'model_checkpoint' column for the color
             # - Use the training data description for the model as the symbol
@@ -757,28 +766,31 @@ def create_plots_for_individual_splits_individual_models_all_datasets(
 
             # # # #
             # Call the line plot function
-            line_plot_x_column_name = "model_checkpoint"
 
             # We want line plots for both x and y columns
             for line_plot_y_column_name in [
                 selected_data.x_column_name,
                 selected_data.y_column_name,
             ]:
+                plot_columns_config = PlotColumnsConfig(
+                    x_column="model_checkpoint",
+                    y_column=line_plot_y_column_name,
+                    group_column="data_full",
+                    std_column=None,
+                )
+
                 plot_name: str = (
                     f"lineplot"
-                    f"_{line_plot_x_column_name}_vs_{line_plot_y_column_name}"
-                    f"_{axes_limits['y_min']}_{axes_limits['y_max']}"
+                    f"_{plot_columns_config.x_column}_vs_{plot_columns_config.y_column}"
+                    f"_{plot_size_config.y_min}_{plot_size_config.y_max}"
                 )
 
                 line_plot_grouped_by_categorical_column(
                     df=selected_data.selected_statistics_df,
                     output_folder=selected_data.output_folder,
-                    x_column=line_plot_x_column_name,
-                    y_column=line_plot_y_column_name,
-                    group_column="data_full",
+                    plot_columns_config=plot_columns_config,
                     plot_name=plot_name,
-                    y_min=axes_limits["y_min"],
-                    y_max=axes_limits["y_max"],
+                    plot_size_config=plot_size_config,
                     verbosity=verbosity,
                     logger=logger,
                 )

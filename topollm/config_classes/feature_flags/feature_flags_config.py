@@ -209,6 +209,22 @@ class ScriptsFeatureFlagsConfig(ConfigBaseModel):
     )
 
 
+class TaskPerformanceAnalysisFeatureFlagsConfig(ConfigBaseModel):
+    """Feature flags for the task performance analysis."""
+
+    plotting_create_distribution_plots_over_model_checkpoints: bool = Field(
+        default=True,
+        title="Create distribution plots over model checkpoints.",
+        description="Whether to create distribution plots over model checkpoints.",
+    )
+
+    plotting_create_distribution_plots_over_model_layers: bool = Field(
+        default=True,
+        title="Create distribution plots over model layers.",
+        description="Whether to create distribution plots over model layers.",
+    )
+
+
 class WandbFeatureFlagsConfig(ConfigBaseModel):
     """Feature flags for the Weights and Biases integration."""
 
@@ -256,6 +272,12 @@ class FeatureFlagsConfig(ConfigBaseModel):
         default_factory=ScriptsFeatureFlagsConfig,
         title="Scripts feature flags.",
         description="Feature flags for the scripts.",
+    )
+
+    task_performance_analysis: TaskPerformanceAnalysisFeatureFlagsConfig = Field(
+        default_factory=TaskPerformanceAnalysisFeatureFlagsConfig,
+        title="Task performance analysis feature flags.",
+        description="Feature flags for the task performance analysis.",
     )
 
     wandb: WandbFeatureFlagsConfig = Field(

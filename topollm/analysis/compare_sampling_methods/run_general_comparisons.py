@@ -62,7 +62,6 @@ from topollm.analysis.compare_sampling_methods.load_and_concatenate_saved_datafr
 )
 from topollm.analysis.compare_sampling_methods.make_plots import (
     PlotProperties,
-    generate_fixed_params_text,
     scatterplot_individual_seed_combinations_and_combined,
 )
 from topollm.analysis.compare_sampling_methods.organize_results_directory_structure import (
@@ -77,6 +76,7 @@ from topollm.config_classes.constants import (
     TOPO_LLM_REPOSITORY_BASE_PATH,
 )
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
+from topollm.data_processing.dictionary_handling import generate_fixed_parameters_text_from_dict
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.logging.log_list_info import log_list_info
@@ -350,7 +350,7 @@ def do_noise_analysis(
         )
 
         # This string will be used in the plots
-        fixed_params_text: str = generate_fixed_params_text(
+        fixed_params_text: str = generate_fixed_parameters_text_from_dict(
             filters_dict=concatenated_filters_dict,
         )
 

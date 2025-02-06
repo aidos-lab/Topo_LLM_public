@@ -30,7 +30,6 @@
 import logging
 import pathlib
 from dataclasses import dataclass
-from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -657,23 +656,6 @@ def add_secondary_loss_plot(
         )
 
     return ax2
-
-
-def generate_fixed_params_text(
-    filters_dict: dict[str, Any],
-) -> str:
-    """Generate a string representation of the fixed parameters used for filtering.
-
-    Args:
-        filters_dict:
-            A dictionary of column names and corresponding values used for filtering.
-
-    Returns:
-        str:
-            A formatted string suitable for display in the plot.
-
-    """
-    return "\n".join([f"{key}: {value}" for key, value in filters_dict.items()])
 
 
 def add_subtitle(
