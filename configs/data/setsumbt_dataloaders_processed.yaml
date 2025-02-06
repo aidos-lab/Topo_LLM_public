@@ -1,0 +1,13 @@
+defaults:
+  - data_splitting: do_nothing
+  - data_subsampling: train_split_and_take_first
+  - _self_
+
+column_name: text
+context: dataset_entry
+dataset_description_string: setsumbt_dataloaders_processed
+
+dataset_type: setsumbt_dataloaders_processed
+
+# TODO: Change this to the correct path
+data_dir: ${paths.data_dir}/models/setsumbt_checkpoints/multiwoz21/dataloaders_processed
