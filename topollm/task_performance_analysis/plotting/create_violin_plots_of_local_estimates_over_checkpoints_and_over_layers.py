@@ -282,7 +282,7 @@ def create_distribution_plots_over_model_layers(
             )
             continue
 
-            # Sort the arrays by increasing model layer.
+        # Sort the arrays by increasing model layer.
         sorted_data: list[dict] = sorted(
             filtered_data,
             key=lambda single_dict: int(single_dict["model_layer"]),
@@ -348,24 +348,27 @@ def create_distribution_plots_over_model_checkpoints(
     data_full_options: set[str] = {single_dict["data_full"] for single_dict in loaded_data}
     data_subsampling_full_options: set[str] = {single_dict["data_subsampling_full"] for single_dict in loaded_data}
     model_partial_name_options: set[str] = {single_dict["model_partial_name"] for single_dict in loaded_data}
+    model_layer_options: set = {single_dict["model_layer"] for single_dict in loaded_data}
 
     for (
         data_full,
         data_subsampling_full,
+        model_layer,
         model_partial_name,
     ) in tqdm(
         iterable=itertools.product(
             data_full_options,
             data_subsampling_full_options,
+            model_layer_options,
             model_partial_name_options,
         ),
         desc="Plotting different choices",
     ):
         filter_key_value_pairs: dict = {
-            "tokenizer_add_prefix_space": "False",  # This needs to be a string
+            "tokenizer_add_prefix_space": "False",  # tokenizer_add_prefix_space needs to be a string
             "data_full": data_full,
             "data_subsampling_full": data_subsampling_full,
-            "model_layer": -1,  # This needs to be an integer
+            "model_layer": model_layer,  # model_layer needs to be an integer
             "model_partial_name": model_partial_name,
         }
         fixed_params_text: str = generate_fixed_parameters_text_from_dict(
