@@ -164,7 +164,18 @@ def main(
         verbosity=verbosity,
         logger=logger,
     )
-    tokenizer = loaded_model_container.tokenizer
+    tokenizer: transformers.PreTrainedTokenizer | transformers.PreTrainedTokenizerFast = (
+        loaded_model_container.tokenizer
+    )
+    pad_token_id = tokenizer.pad_token_id
+    if not isinstance(
+        pad_token_id,
+        int,
+    ):
+        msg = "pad_token_id is not an integer"
+        raise ValueError(  # noqa: TRY004
+            msg,
+        )
 
     # Example for 'train_0.data':
     # > dataloader_processed["input_ids"].shape = torch.Size([8438, 12, 64])
@@ -193,7 +204,7 @@ def main(
         dataloader_processed=dataloader_processed,
     )
 
-    max_index: int = 100
+    max_index: int = 1_000
     decoded_sequences: list[str] = []
     for sequence_to_decode, attention_sequence, dialogue_id in zip(
         dataloader_stacked["input_ids"][:max_index],
@@ -226,7 +237,14 @@ def main(
                 f"does not match sequence_to_decode shape {sequence_to_decode.shape = }",
             )
         # Check that the non-zero attention positions correspond to the non-padded positions in the sequence
-        # TODO: Implement this check
+
+        check_if_sequence_is_compatible_with_attention_via_mask(
+            sequence_to_decode=attention_sequence,
+            attention_sequence=sequence_to_decode,
+            pad_token_id=pad_token_id,
+            verbosity=verbosity,
+            logger=logger,
+        )
 
         if verbosity >= Verbosity.NORMAL:
             logger.info(
@@ -242,6 +260,94 @@ def main(
     logger.info(
         msg="Running script DONE",
     )
+
+
+def check_if_sequence_is_compatible_with_attention_via_mask(
+    sequence_to_decode: torch.Tensor,
+    attention_sequence: torch.Tensor,
+    pad_token_id: int,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> bool:
+    """Check if the token sequence is compatible with its attention mask.
+
+    For each position in the sequence, the following must hold:
+      - If the attention mask is 1, the token must not be the pad token.
+      - If the attention mask is 0, the token must be the pad token.
+
+    Args:
+        sequence_to_decode (Tensor): A tensor of token IDs.
+        attention_sequence (Tensor): A tensor representing the attention mask (0 or 1).
+        pad_token_id (int): The token ID used for padding.
+        verbosity:
+            Verbosity level for logging.
+        logger:
+            Logger for warnings.
+
+    Returns:
+        bool: True if the sequence is compatible with the attention mask; False otherwise.
+
+    """
+    # Create boolean masks for invalid positions.
+    # For attention == 1, a token is invalid if it equals the pad token.
+    invalid_when_attention_on: torch.Tensor = (attention_sequence == 1) & (sequence_to_decode == pad_token_id)
+    # For attention == 0, a token is invalid if it is not the pad token.
+    invalid_when_attention_off: torch.Tensor = (attention_sequence == 0) & (sequence_to_decode != pad_token_id)
+
+    # Log each individual mismatch for further inspection.
+    # torch.nonzero returns the indices where the condition is True.
+    if verbosity >= Verbosity.NORMAL:
+        for idx in torch.nonzero(
+            input=invalid_when_attention_on,
+            as_tuple=False,
+        ).tolist():
+            logger.warning(
+                msg=f"Mismatch at index {idx = }: attention is 1 but token is pad_token_id",  # noqa: G004 - low overhead
+            )
+        for idx in torch.nonzero(
+            input=invalid_when_attention_off,
+            as_tuple=False,
+        ).tolist():
+            logger.warning(
+                msg=f"Mismatch at index {idx = }: attention is 0 but token is not pad_token_id",  # noqa: G004 - low overhead
+            )
+
+    # Determine overall compatibility.
+    has_invalid = invalid_when_attention_on.any().item() or invalid_when_attention_off.any().item()
+
+    return not has_invalid
+
+
+def check_if_sequence_is_compatible_with_attention_via_loop(
+    sequence_to_decode: torch.Tensor,
+    attention_sequence: torch.Tensor,
+    pad_token_id: int,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> bool:
+    """Check if the sequence is compatible with the attention mask."""
+    check_passed = True
+    for sequence_entry, attention_entry in zip(
+        sequence_to_decode,
+        attention_sequence,
+        strict=True,
+    ):
+        if attention_entry == 1 and sequence_entry == pad_token_id:
+            check_passed = False
+            if verbosity >= Verbosity.NORMAL:
+                logger.warning(
+                    msg="Attention entry is 1 but sequence entry is pad_token_id",
+                )
+        if attention_entry == 0 and sequence_entry != pad_token_id:
+            check_passed = False
+            if verbosity >= Verbosity.NORMAL:
+                logger.warning(
+                    msg="Attention entry is 0 but sequence entry is not pad_token_id",
+                )
+
+    # If no check failed, we went through this loop without setting check_passed to False
+
+    return check_passed
 
 
 def decode_and_log_sequence(
