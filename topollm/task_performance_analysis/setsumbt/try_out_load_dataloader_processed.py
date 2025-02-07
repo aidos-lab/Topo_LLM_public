@@ -44,7 +44,6 @@ from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.log_recursive_dict_info import log_recursive_dict_info
 from topollm.logging.setup_exception_logging import setup_exception_logging
-from topollm.model_handling.loaded_model_container import LoadedModelContainer
 from topollm.model_handling.prepare_loaded_model_container import (
     prepare_device_and_tokenizer_and_model_from_main_config,
 )
@@ -53,6 +52,7 @@ from topollm.typing.enums import Verbosity
 
 if TYPE_CHECKING:
     from topollm.config_classes.main_config import MainConfig
+    from topollm.model_handling.loaded_model_container import LoadedModelContainer
     from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 
 
@@ -167,6 +167,12 @@ def main(
     # Example for 'train_0.data':
     # > dataloader_processed["input_ids"].shape = torch.Size([8438, 12, 64])
     #
+    # Select the first dialogue:
+    # > dataloader_processed['input_ids'][0].shape = torch.Size([12, 64])
+    # > dataloader_processed['attention_mask'][0].shape = torch.Size([12, 64])
+    # In each dialogue, some attention masks at the end for selected utterances are completely zero.
+    # We can select only those utterances where the attention mask is non-zero.
+    #
     # Example: Select the first sequence of the first dialogue:
     # > dataloader_processed["input_ids"][0][0]
 
@@ -189,9 +195,36 @@ def main(
                 msg=f"{decoded_sequence = }",  # noqa: G004 - low overhead
             )
 
+    # # # #
+    # Try out the function to concatenate the tensors of the individual dialogues and filter fully padded utterances
+
+    dataloader_concatenated = concatenate_tensors_from_dialogues_and_filter_fully_padded_utterances(
+        dataloader_processed=dataloader_processed,
+    )
+
     logger.info(
         msg="Running script DONE",
     )
+
+
+def concatenate_tensors_from_dialogues_and_filter_fully_padded_utterances(
+    dataloader_processed: dict,
+) -> dict:
+    """Concatenate the tensors of the individual dialogues and filter fully padded utterances.
+
+    This function also replicates the dialogue-ids so that each utterance has a dialogue-id from which it originates.
+    """
+
+    input_ids_to_concatenate = []
+    attention_masks_to_concatenate = []
+    dialogue_ids_to_concatenate = []
+    # Iterate over the input_ids and attention_mask tensors for the dialogues and select only those utterances where the attention mask is non-zero
+    #
+    # Note the shapes:
+    # > dataloader_processed["input_ids"].shape = torch.Size([8438, 12, 64])
+    # We want to iterate over the first dimension (8438), then from the second dimension (12) and select only those utterances where the attention mask is non-zero.
+
+    # TODO: Implement this function
 
 
 if __name__ == "__main__":
