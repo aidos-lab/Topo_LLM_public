@@ -189,8 +189,6 @@ def main(
                 msg=f"{decoded_sequence = }",  # noqa: G004 - low overhead
             )
 
-    # TODO: Implement concatenating the tensors of the individual dialogues (select only those where the attention mask is non-zero)
-
     logger.info(
         msg="Running script DONE",
     )

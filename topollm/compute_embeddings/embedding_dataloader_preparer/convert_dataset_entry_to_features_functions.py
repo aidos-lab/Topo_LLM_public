@@ -38,18 +38,36 @@ from topollm.typing.enums import DatasetType
 
 def get_convert_dataset_entry_to_features_function(
     data_config: DataConfig,
-) -> Callable[..., BatchEncoding]:
+) -> Callable[
+    ...,
+    BatchEncoding,
+]:
     """Get the function to convert a dataset entry to features."""
     match data_config.dataset_type:
         case DatasetType.HUGGINGFACE_DATASET:
             dataset_entry_to_features_function = convert_dataset_entry_to_features
         case DatasetType.HUGGINGFACE_DATASET_NAMED_ENTITY:
             dataset_entry_to_features_function = convert_dataset_entry_to_features_named_entity
+        case DatasetType.SETSUMBT_DATALOADERS_PROCESSED:
+            # In this mode, the dataset entries are already tokenized and can be directly used as features.
+            dataset_entry_to_features_function = convert_dataset_entry_to_features_do_nothing
         case _:
             msg: str = f"Unsupported {data_config.dataset_type = }"
             raise ValueError(msg)
 
     return dataset_entry_to_features_function
+
+
+def convert_dataset_entry_to_features_do_nothing(
+    dataset_entry: dict,
+    tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast,
+    column_name: str = "text",
+    max_length: int = 512,
+) -> BatchEncoding:
+    """Do nothing."""
+    return BatchEncoding(
+        data=dataset_entry,
+    )
 
 
 def convert_dataset_entry_to_features(
@@ -58,7 +76,7 @@ def convert_dataset_entry_to_features(
     column_name: str = "text",
     max_length: int = 512,
 ) -> BatchEncoding:
-    """Convert dataset entires/examples to features by tokenizing the text and padding/truncating to a maximum length."""
+    """Convert dataset entries/examples to features by tokenizing the text and padding/truncating to a maximum length."""
     features: BatchEncoding = tokenizer(
         dataset_entry[column_name],
         max_length=max_length,
@@ -75,7 +93,7 @@ def convert_dataset_entry_to_features_named_entity(
     column_name: str = "text",
     max_length: int = 512,
 ) -> BatchEncoding:
-    """Convert dataset entires/examples to features by tokenizing the text and padding/truncating to a maximum length."""
+    """Convert dataset entries/examples to features by tokenizing the text and padding/truncating to a maximum length."""
     split_words: list[list[str]] = [
         nltk.word_tokenize(
             text=sent,
