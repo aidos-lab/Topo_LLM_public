@@ -31,6 +31,7 @@ import logging
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 
+import datasets
 import torch
 import torch.utils.data
 
@@ -68,6 +69,11 @@ class EmbeddingDataLoaderPreparer(ABC):
             data_config=self.preparer_context.data_config,
         )
 
+        # These private attributes will hold the dataset and dataloader
+        self._dataset: datasets.Dataset | None = None
+        self._dataset_tokenized: datasets.Dataset | None = None
+        self._dataloader: torch.utils.data.DataLoader | None = None
+
     @property
     def logger(
         self,
@@ -81,10 +87,24 @@ class EmbeddingDataLoaderPreparer(ABC):
         return self.preparer_context.verbosity
 
     @abstractmethod
-    def prepare_dataloader(
+    def get_dataset(
+        self,
+    ) -> datasets.Dataset:
+        """Prepare a dataset."""
+        ...  # pragma: no cover
+
+    @abstractmethod
+    def get_dataset_tokenized(
+        self,
+    ) -> datasets.Dataset:
+        """Tokenize the prepared dataset."""
+        ...  # pragma: no cover
+
+    @abstractmethod
+    def get_dataloader(
         self,
     ) -> torch.utils.data.DataLoader:
-        """Load a dataset and prepare a dataloader."""
+        """Get the dataloader based on the tokenized dataset."""
         ...  # pragma: no cover
 
     @property

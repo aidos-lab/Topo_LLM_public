@@ -131,11 +131,11 @@ def compute_and_store_embeddings(
     embedding_dataloader_preparer: EmbeddingDataLoaderPreparer = get_embedding_dataloader_preparer(
         preparer_context=preparer_context,
     )
-    dataloader: torch.utils.data.DataLoader = embedding_dataloader_preparer.prepare_dataloader()
+    dataloader: torch.utils.data.DataLoader = embedding_dataloader_preparer.get_dataloader()
     # Note:
     #
     # You can use the following code to access the underlying dataset:
-    # `dataset = embedding_dataloader_preparer.dataset_preparer.prepare_dataset()`
+    # `dataset = embedding_dataloader_preparer.get_dataset()`
 
     # Number of the sequence of dataset entries
     number_of_sequences: int = len(embedding_dataloader_preparer)

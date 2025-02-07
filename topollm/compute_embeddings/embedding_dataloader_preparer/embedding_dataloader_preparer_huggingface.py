@@ -137,18 +137,69 @@ class EmbeddingDataLoaderPreparerHuggingfaceWithTokenization(EmbeddingDataLoader
 
         return dataloader
 
-    def prepare_dataloader(
+    def get_dataset(
+        self,
+    ) -> datasets.Dataset:
+        """Prepare dataset if not already prepared, otherwise return it."""
+        if self._dataset is None:
+            if self.verbosity >= Verbosity.NORMAL:
+                self.logger.info(
+                    msg="Preparing dataset ...",
+                )
+            self._dataset = self.dataset_preparer.prepare_dataset()
+            if self.verbosity >= Verbosity.NORMAL:
+                self.logger.info(
+                    msg="Preparing dataset DONE",
+                )
+        elif self.verbosity >= Verbosity.NORMAL:
+            self.logger.info(
+                msg="Dataset already prepared. Returning it.",
+            )
+
+        return self._dataset
+
+    def get_dataset_tokenized(
+        self,
+    ) -> datasets.Dataset:
+        """Prepare tokenized dataset if not already prepared, otherwise return it."""
+        if self._dataset_tokenized is None:
+            if self.verbosity >= Verbosity.NORMAL:
+                self.logger.info(
+                    msg="Preparing tokenized dataset ...",
+                )
+            self._dataset_tokenized = self.create_dataset_tokenized(
+                dataset=self.get_dataset(),
+            )
+            if self.verbosity >= Verbosity.NORMAL:
+                self.logger.info(
+                    msg="Preparing tokenized dataset DONE",
+                )
+        elif self.verbosity >= Verbosity.NORMAL:
+            self.logger.info(
+                msg="Tokenized dataset already prepared. Returning it.",
+            )
+
+        return self._dataset_tokenized
+
+    def get_dataloader(
         self,
     ) -> torch.utils.data.DataLoader:
-        """Load and prepare a dataset, return a dataloader."""
-        dataset: datasets.Dataset = self.dataset_preparer.prepare_dataset()
+        """Prepare dataloader if not already prepared, otherwise return it."""
+        if self._dataloader is None:
+            if self.verbosity >= Verbosity.NORMAL:
+                self.logger.info(
+                    msg="Preparing dataloader ...",
+                )
+            self._dataloader = self.create_dataloader_from_tokenized_dataset(
+                dataset_tokenized=self.get_dataset_tokenized(),
+            )
+            if self.verbosity >= Verbosity.NORMAL:
+                self.logger.info(
+                    msg="Preparing dataloader DONE",
+                )
+        elif self.verbosity >= Verbosity.NORMAL:
+            self.logger.info(
+                msg="Dataloader already prepared. Returning it.",
+            )
 
-        dataset_tokenized: datasets.Dataset = self.create_dataset_tokenized(
-            dataset=dataset,
-        )
-
-        dataloader: torch.utils.data.DataLoader = self.create_dataloader_from_tokenized_dataset(
-            dataset_tokenized=dataset_tokenized,
-        )
-
-        return dataloader
+        return self._dataloader
