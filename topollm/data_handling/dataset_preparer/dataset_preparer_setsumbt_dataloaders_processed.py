@@ -38,6 +38,9 @@ from topollm.data_handling.dataset_filtering.protocol import DatasetFilter
 from topollm.data_handling.dataset_splitter.protocol import DatasetSplitter
 from topollm.data_handling.dataset_subsampler.protocol import DatasetSubsampler
 from topollm.logging.log_dataset_info import log_huggingface_dataset_info
+from topollm.task_performance_analysis.setsumbt.stack_tensors_from_dialogues_and_filter_fully_padded_utterances import (
+    stack_tensors_from_dialogues_and_filter_fully_padded_utterances,
+)
 from topollm.typing.enums import DataSplitMode, Verbosity
 
 default_logger: logging.Logger = logging.getLogger(
@@ -119,11 +122,12 @@ class DatasetPreparerSetSUMBTDataloadersProcessed:
         dataloader_processed: dict,
     ) -> datasets.Dataset:
         """Convert the dataloader processed to a dataset."""
+        dataloader_stacked: dict = stack_tensors_from_dialogues_and_filter_fully_padded_utterances(
+            dataloader_processed=dataloader_processed,
+        )
 
-        # TODO: Implement concatenating the tensors of the individual dialogues (select only those where the attention mask is non-zero)
-
-        dataset = datasets.Dataset.from_dict(
-            dataloader_processed,
+        dataset: datasets.Dataset = datasets.Dataset.from_dict(
+            mapping=dataloader_stacked,
         )
 
         return dataset
