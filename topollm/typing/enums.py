@@ -134,6 +134,7 @@ class Split(StrEnum):
 
     TRAIN = auto()
     VALIDATION = auto()
+    DEV = auto()
     TEST = auto()
     FULL = auto()
 

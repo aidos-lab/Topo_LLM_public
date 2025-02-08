@@ -46,7 +46,15 @@ class EmbeddingDataLoaderPreparerHuggingfaceWithTokenization(EmbeddingDataLoader
     def sequence_length(
         self,
     ) -> int:
-        return self.preparer_context.tokenizer_config.max_length
+        """Return the sequence length for the model."""
+        # Try to get the sequence length directly from the tokenized dataset
+        try:
+            result = len(self.get_dataset_tokenized()[self.preparer_context.data_config.column_name][0])
+        except KeyError:
+            # As a fallback, get the sequence length from the tokenizer config
+            result: int = self.preparer_context.tokenizer_config.max_length
+
+        return result
 
     def __len__(
         self,
@@ -59,12 +67,16 @@ class EmbeddingDataLoaderPreparerHuggingfaceWithTokenization(EmbeddingDataLoader
         dataset: datasets.Dataset,
     ) -> datasets.Dataset:
         """Tokenizes dataset."""
-        # Make a partial function for mapping tokenizer over the dataset
+        # Make a partial function for mapping tokenizer over the dataset.
+        # Note that the max_length parameter is taken from the config,
+        # but depending on the convert_dataset_entry_to_features_function,
+        # it might not be used.
+        # We cannot use self.sequence_length here, because this might lead to infinite recursion.
         partial_map_fn = partial(
             self.convert_dataset_entry_to_features_function,
             tokenizer=self.preparer_context.tokenizer,
             column_name=self.preparer_context.data_config.column_name,
-            max_length=self.sequence_length,
+            max_length=self.preparer_context.tokenizer_config.max_length,
         )
 
         dataset_tokenized: datasets.Dataset = dataset.map(

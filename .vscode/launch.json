@@ -381,9 +381,11 @@
                 //
                 //    >> START: Data options.
                 //
-                // TODO: We need to test the data configurations for the SETSUMBT dataloaders
                 "data=setsumbt_dataloaders_processed",
-                // "data.data_subsampling.split=validation",
+                "data.dataset_seed=0",
+                // "data.data_subsampling.split=train",
+                "data.data_subsampling.split=dev",
+                // "data.data_subsampling.split=test",
                 "data.data_subsampling.number_of_samples=512",
                 //
                 //    >> END: Data options.

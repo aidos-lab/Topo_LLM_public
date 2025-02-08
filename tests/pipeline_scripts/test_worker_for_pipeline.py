@@ -210,7 +210,6 @@ def main_config_with_small_dataset_and_model(
 @pytest.mark.slow
 def test_worker_for_pipeline(
     main_config_with_small_dataset_and_model: MainConfig,
-    device_fixture: torch.device,
     logger_fixture: logging.Logger,
 ) -> None:
     """Test the pipeline function."""
@@ -224,7 +223,6 @@ def test_worker_for_pipeline(
 
     worker_for_pipeline(
         main_config=main_config_with_small_dataset_and_model,
-        device=device_fixture,
         logger=logger_fixture,
     )
     logger_fixture.info(
