@@ -52,15 +52,14 @@ from topollm.data_processing.iteration_over_directories.load_np_arrays_from_fold
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
+from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 from topollm.plotting.line_plot_grouped_by_categorical_column import (
-    PlotColumnsConfig,
     PlotSizeConfig,
 )
 from topollm.typing.enums import Verbosity
 
 if TYPE_CHECKING:
     from topollm.config_classes.main_config import MainConfig
-    from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 
 # Logger for this file
 global_logger: logging.Logger = logging.getLogger(
@@ -114,15 +113,67 @@ def main(
         embeddings_path_manager.get_local_estimates_root_dir_absolute_path(),
     )
 
-    pattern = (
-        "**/"
-        "split=validation_samples=10000_sampling=random_sampling-seed=778/"
-        "edh-mode=regular_lvl=token/"
-        "add-prefix-space=False_max-len=512/"
-        "**/"
-        "local_estimates_pointwise_array.npy"
-    )
+    patterns_to_iterate_over: list[str] = [
+        (
+            "**/"
+            "split=train_samples=10000_sampling=random_sampling-seed=778/"
+            "edh-mode=regular_lvl=token/"
+            "add-prefix-space=False_max-len=512/"
+            "**/"
+            "local_estimates_pointwise_array.npy"
+        ),
+        # (
+        #     "**/"
+        #     "split=validation_samples=10000_sampling=random_sampling-seed=778/"
+        #     "edh-mode=regular_lvl=token/"
+        #     "add-prefix-space=False_max-len=512/"
+        #     "**/"
+        #     "local_estimates_pointwise_array.npy"
+        # ),
+        (
+            "**/"
+            "split=dev_samples=10000_sampling=random_sampling-seed=778/"
+            "edh-mode=regular_lvl=token/"
+            "add-prefix-space=False_max-len=512/"
+            "**/"
+            "local_estimates_pointwise_array.npy"
+        ),
+        (
+            "**/"
+            "split=test_samples=10000_sampling=random_sampling-seed=778/"
+            "edh-mode=regular_lvl=token/"
+            "add-prefix-space=False_max-len=512/"
+            "**/"
+            "local_estimates_pointwise_array.npy"
+        ),
+    ]
 
+    for pattern in tqdm(
+        iterable=patterns_to_iterate_over,
+        desc="Iterate over patterns",
+    ):
+        create_plots_for_given_pattern(
+            iteration_root_dir=iteration_root_dir,
+            pattern=pattern,
+            embeddings_path_manager=embeddings_path_manager,
+            do_create_distribution_plots_over_model_checkpoints=main_config.feature_flags.task_performance_analysis.plotting_create_distribution_plots_over_model_checkpoints,
+            do_create_distribution_plots_over_model_layers=main_config.feature_flags.task_performance_analysis.plotting_create_distribution_plots_over_model_layers,
+            verbosity=verbosity,
+            logger=logger,
+        )
+
+
+def create_plots_for_given_pattern(
+    iteration_root_dir: pathlib.Path,
+    pattern: str,
+    embeddings_path_manager: EmbeddingsPathManager,
+    *,
+    do_create_distribution_plots_over_model_checkpoints: bool = True,
+    do_create_distribution_plots_over_model_layers: bool = True,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
+    """Create plots for a given pattern."""
     loaded_data: list[dict] = load_np_arrays_from_folder_structure_into_list_of_dicts(
         iteration_root_dir=iteration_root_dir,
         pattern=pattern,
@@ -176,7 +227,7 @@ def main(
 
     # # # #
     # Create plots which show the distribution of the local estimates over the checkpoints
-    if main_config.feature_flags.task_performance_analysis.plotting_create_distribution_plots_over_model_checkpoints:
+    if do_create_distribution_plots_over_model_checkpoints:
         if verbosity >= Verbosity.NORMAL:
             logger.info(
                 msg="Creating the distribution plots over the model checkpoints ...",
@@ -201,7 +252,7 @@ def main(
 
     # # # #
     # Create plots which show the distribution of the local estimates over different layers of the model
-    if main_config.feature_flags.task_performance_analysis.plotting_create_distribution_plots_over_model_layers:
+    if do_create_distribution_plots_over_model_layers:
         if verbosity >= Verbosity.NORMAL:
             logger.info(
                 msg="Creating the distribution plots over the model layers ...",
@@ -350,18 +401,27 @@ def create_distribution_plots_over_model_checkpoints(
     model_partial_name_options: set[str] = {single_dict["model_partial_name"] for single_dict in loaded_data}
     model_layer_options: set = {single_dict["model_layer"] for single_dict in loaded_data}
 
+    iterable = itertools.product(
+        data_full_options,
+        data_subsampling_full_options,
+        model_layer_options,
+        model_partial_name_options,
+    )
+
+    total_combinations: int = (
+        len(data_full_options)
+        * len(data_subsampling_full_options)
+        * len(model_layer_options)
+        * len(model_partial_name_options)
+    )
     for (
         data_full,
         data_subsampling_full,
         model_layer,
         model_partial_name,
     ) in tqdm(
-        iterable=itertools.product(
-            data_full_options,
-            data_subsampling_full_options,
-            model_layer_options,
-            model_partial_name_options,
-        ),
+        iterable=iterable,
+        total=total_combinations,
         desc="Plotting different choices",
     ):
         filter_key_value_pairs: dict = {
