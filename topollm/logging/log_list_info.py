@@ -1,10 +1,10 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -25,29 +25,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
+"""Log information about a list."""
 
-# Standard library imports
 import logging
 import pprint
 
-# Third party imports
-
-# Local imports
-
-# END Imports
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 def log_list_info(
     list_: list,
     list_name: str,
     max_log_elements: int = 20,
-    logger: logging.Logger = logging.getLogger(__name__),
+    logger: logging.Logger = default_logger,
 ) -> None:
-    """
-    Logs information about a list.
+    """Log information about a list.
 
     Args:
         list_ (list):
@@ -59,17 +53,20 @@ def log_list_info(
             Defaults to 20.
         logger (logging.Logger, optional):
             The logger to log information to.
-            Defaults to logging.getLogger(__name__).
 
     Returns:
         None
 
     Side effects:
         Logs information about the list to the logger.
+
     """
-
-    logger.info(f"len({list_name}):\n" f"{len(list_)}")
-    logger.info(f"{list_name}[:{max_log_elements}]:\n" f"{pprint.pformat(list_[:max_log_elements])}")
-    logger.info(f"{list_name}[-{max_log_elements}:]:\n" f"{pprint.pformat(list_[-max_log_elements:])}")
-
-    return
+    logger.info(
+        msg=f"len({list_name}):\n{len(list_)}",  # noqa: G004 - low overhead
+    )
+    logger.info(
+        msg=f"{list_name}[:{max_log_elements}]:\n{pprint.pformat(list_[:max_log_elements])}",  # noqa: G004 - low overhead
+    )
+    logger.info(
+        msg=f"{list_name}[-{max_log_elements}:]:\n{pprint.pformat(list_[-max_log_elements:])}",  # noqa: G004 - low overhead
+    )

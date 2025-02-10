@@ -1,0 +1,532 @@
+➜ setsumbt_checkpoints git(feature/violin_plots_for_local_estimates) pwd
+/gpfs/project/ruppik/git-source/Topo_LLM/data/models/setsumbt_checkpoints
+➜ setsumbt_checkpoints git(feature/violin_plots_for_local_estimates) tree
+.
+└── multiwoz21
+    ├── dataloaders_processed
+    │   ├── dev_0.data
+    │   ├── dev_1.data
+    │   ├── dev_2.data
+    │   ├── test_0.data
+    │   ├── test_1.data
+    │   ├── test_2.data
+    │   ├── train_0.data
+    │   ├── train_1.data
+    │   └── train_2.data
+    └── roberta
+        └── setsumbt
+            └── gru
+                └── cosine
+                    └── labelsmoothing
+                        └── 0.05
+                            ├── seed0
+                            │   └── 04-09-2024-14-53
+                            │       ├── checkpoint-109707
+                            │       │   ├── config.json
+                            │       │   ├── lr_scheduler.pt
+                            │       │   ├── merges.txt
+                            │       │   ├── model.safetensors
+                            │       │   ├── optimizer.pt
+                            │       │   ├── special_tokens_map.json
+                            │       │   ├── tokenizer_config.json
+                            │       │   └── vocab.json
+                            │       ├── checkpoint-11252
+                            │       │   ├── config.json
+                            │       │   ├── lr_scheduler.pt
+                            │       │   ├── merges.txt
+                            │       │   ├── model.safetensors
+                            │       │   ├── optimizer.pt
+                            │       │   ├── special_tokens_map.json
+                            │       │   ├── tokenizer_config.json
+                            │       │   └── vocab.json
+                            │       ├── checkpoint-115333
+                            │       │   ├── config.json
+                            │       │   ├── lr_scheduler.pt
+                            │       │   ├── merges.txt
+                            │       │   ├── model.safetensors
+                            │       │   ├── optimizer.pt
+                            │       │   ├── special_tokens_map.json
+                            │       │   ├── tokenizer_config.json
+                            │       │   └── vocab.json
+                            │       ├── checkpoint-126585
+                            │       │   ├── config.json
+                            │       │   ├── lr_scheduler.pt
+                            │       │   ├── merges.txt
+                            │       │   ├── model.safetensors
+                            │       │   ├── optimizer.pt
+                            │       │   ├── special_tokens_map.json
+                            │       │   ├── tokenizer_config.json
+                            │       │   └── vocab.json
+                            │       ├── checkpoint-14065
+                            │       │   ├── config.json
+                            │       │   ├── lr_scheduler.pt
+                            │       │   ├── merges.txt
+                            │       │   ├── model.safetensors
+                            │       │   ├── optimizer.pt
+                            │       │   ├── special_tokens_map.json
+                            │       │   ├── tokenizer_config.json
+                            │       │   └── vocab.json
+                            │       ├── checkpoint-16878
+                            │       │   ├── config.json
+                            │       │   ├── lr_scheduler.pt
+                            │       │   ├── merges.txt
+                            │       │   ├── model.safetensors
+                            │       │   ├── optimizer.pt
+                            │       │   ├── special_tokens_map.json
+                            │       │   ├── tokenizer_config.json
+                            │       │   └── vocab.json
+                            │       ├── checkpoint-19691
+                            │       │   ├── config.json
+                            │       │   ├── lr_scheduler.pt
+                            │       │   ├── merges.txt
+                            │       │   ├── model.safetensors
+                            │       │   ├── optimizer.pt
+                            │       │   ├── special_tokens_map.json
+                            │       │   ├── tokenizer_config.json
+                            │       │   └── vocab.json
+                            │       ├── checkpoint-25317
+                            │       │   ├── config.json
+                            │       │   ├── lr_scheduler.pt
+                            │       │   ├── merges.txt
+                            │       │   ├── model.safetensors
+                            │       │   ├── optimizer.pt
+                            │       │   ├── special_tokens_map.json
+                            │       │   ├── tokenizer_config.json
+                            │       │   └── vocab.json
+                            │       ├── checkpoint-2813
+                            │       │   ├── config.json
+                            │       │   ├── lr_scheduler.pt
+                            │       │   ├── merges.txt
+                            │       │   ├── model.safetensors
+                            │       │   ├── optimizer.pt
+                            │       │   ├── special_tokens_map.json
+                            │       │   ├── tokenizer_config.json
+                            │       │   ├── vocab_base.json
+                            │       │   └── vocab.json
+                            │       ├── checkpoint-33756
+                            │       │   ├── config.json
+                            │       │   ├── lr_scheduler.pt
+                            │       │   ├── merges.txt
+                            │       │   ├── model.safetensors
+                            │       │   ├── optimizer.pt
+                            │       │   ├── special_tokens_map.json
+                            │       │   ├── tokenizer_config.json
+                            │       │   └── vocab.json
+                            │       ├── checkpoint-36569
+                            │       │   ├── config.json
+                            │       │   ├── lr_scheduler.pt
+                            │       │   ├── merges.txt
+                            │       │   ├── model.safetensors
+                            │       │   ├── optimizer.pt
+                            │       │   ├── special_tokens_map.json
+                            │       │   ├── tokenizer_config.json
+                            │       │   └── vocab.json
+                            │       ├── checkpoint-39382
+                            │       │   ├── config.json
+                            │       │   ├── lr_scheduler.pt
+                            │       │   ├── merges.txt
+                            │       │   ├── model.safetensors
+                            │       │   ├── optimizer.pt
+                            │       │   ├── special_tokens_map.json
+                            │       │   ├── tokenizer_config.json
+                            │       │   └── vocab.json
+                            │       ├── checkpoint-42195
+                            │       │   ├── config.json
+                            │       │   ├── lr_scheduler.pt
+                            │       │   ├── merges.txt
+                            │       │   ├── model.safetensors
+                            │       │   ├── optimizer.pt
+                            │       │   ├── special_tokens_map.json
+                            │       │   ├── tokenizer_config.json
+                            │       │   └── vocab.json
+                            │       ├── checkpoint-50634
+                            │       │   ├── config.json
+                            │       │   ├── lr_scheduler.pt
+                            │       │   ├── merges.txt
+                            │       │   ├── model.safetensors
+                            │       │   ├── optimizer.pt
+                            │       │   ├── special_tokens_map.json
+                            │       │   ├── tokenizer_config.json
+                            │       │   └── vocab.json
+                            │       ├── checkpoint-5626
+                            │       │   ├── config.json
+                            │       │   ├── lr_scheduler.pt
+                            │       │   ├── merges.txt
+                            │       │   ├── model.safetensors
+                            │       │   ├── optimizer.pt
+                            │       │   ├── special_tokens_map.json
+                            │       │   ├── tokenizer_config.json
+                            │       │   └── vocab.json
+                            │       ├── checkpoint-56260
+                            │       │   ├── config.json
+                            │       │   ├── lr_scheduler.pt
+                            │       │   ├── merges.txt
+                            │       │   ├── model.safetensors
+                            │       │   ├── optimizer.pt
+                            │       │   ├── special_tokens_map.json
+                            │       │   ├── tokenizer_config.json
+                            │       │   └── vocab.json
+                            │       ├── checkpoint-70325
+                            │       │   ├── config.json
+                            │       │   ├── lr_scheduler.pt
+                            │       │   ├── merges.txt
+                            │       │   ├── model.safetensors
+                            │       │   ├── optimizer.pt
+                            │       │   ├── special_tokens_map.json
+                            │       │   ├── tokenizer_config.json
+                            │       │   └── vocab.json
+                            │       ├── checkpoint-8439
+                            │       │   ├── config.json
+                            │       │   ├── lr_scheduler.pt
+                            │       │   ├── merges.txt
+                            │       │   ├── model.safetensors
+                            │       │   ├── optimizer.pt
+                            │       │   ├── special_tokens_map.json
+                            │       │   ├── tokenizer_config.json
+                            │       │   └── vocab.json
+                            │       ├── checkpoint-90016
+                            │       │   ├── config.json
+                            │       │   ├── lr_scheduler.pt
+                            │       │   ├── merges.txt
+                            │       │   ├── model.safetensors
+                            │       │   ├── optimizer.pt
+                            │       │   ├── special_tokens_map.json
+                            │       │   ├── tokenizer_config.json
+                            │       │   └── vocab.json
+                            │       ├── dataloaders
+                            │       │   ├── dev.dataloader
+                            │       │   ├── test.dataloader
+                            │       │   └── train.dataloader
+                            │       ├── predictions
+                            │       │   ├── dev.data
+                            │       │   ├── dev.json
+                            │       │   └── validation_calibration_diagram.json
+                            │       ├── run.jsonl
+                            │       ├── run.log
+                            │       ├── tb_logs
+                            │       │   ├── events.out.tfevents.1725454396.hilbert314
+                            │       │   ├── events.out.tfevents.1725520371.hilbert314
+                            │       │   ├── events.out.tfevents.1725520785.hilbert314
+                            │       │   ├── events.out.tfevents.1725520981.hilbert314
+                            │       │   ├── events.out.tfevents.1725521133.hilbert314
+                            │       │   └── events.out.tfevents.1725521398.hilbert314
+                            │       ├── validation_calibration_diagram.png
+                            │       └── validation_uncertainties_diagram.png
+                            ├── seed1
+                            │   └── 04-09-2024-14-58
+                            │       ├── checkpoint-109707
+                            │       │   ├── config.json
+                            │       │   ├── lr_scheduler.pt
+                            │       │   ├── merges.txt
+                            │       │   ├── model.safetensors
+                            │       │   ├── optimizer.pt
+                            │       │   ├── special_tokens_map.json
+                            │       │   ├── tokenizer_config.json
+                            │       │   └── vocab.json
+                            │       ├── checkpoint-11252
+                            │       │   ├── config.json
+                            │       │   ├── lr_scheduler.pt
+                            │       │   ├── merges.txt
+                            │       │   ├── model.safetensors
+                            │       │   ├── optimizer.pt
+                            │       │   ├── special_tokens_map.json
+                            │       │   ├── tokenizer_config.json
+                            │       │   └── vocab.json
+                            │       ├── checkpoint-14065
+                            │       │   ├── config.json
+                            │       │   ├── lr_scheduler.pt
+                            │       │   ├── merges.txt
+                            │       │   ├── model.safetensors
+                            │       │   ├── optimizer.pt
+                            │       │   ├── special_tokens_map.json
+                            │       │   ├── tokenizer_config.json
+                            │       │   └── vocab.json
+                            │       ├── checkpoint-16878
+                            │       │   ├── config.json
+                            │       │   ├── lr_scheduler.pt
+                            │       │   ├── merges.txt
+                            │       │   ├── model.safetensors
+                            │       │   ├── optimizer.pt
+                            │       │   ├── special_tokens_map.json
+                            │       │   ├── tokenizer_config.json
+                            │       │   └── vocab.json
+                            │       ├── checkpoint-19691
+                            │       │   ├── config.json
+                            │       │   ├── lr_scheduler.pt
+                            │       │   ├── merges.txt
+                            │       │   ├── model.safetensors
+                            │       │   ├── optimizer.pt
+                            │       │   ├── special_tokens_map.json
+                            │       │   ├── tokenizer_config.json
+                            │       │   └── vocab.json
+                            │       ├── checkpoint-25317
+                            │       │   ├── config.json
+                            │       │   ├── lr_scheduler.pt
+                            │       │   ├── merges.txt
+                            │       │   ├── model.safetensors
+                            │       │   ├── optimizer.pt
+                            │       │   ├── special_tokens_map.json
+                            │       │   ├── tokenizer_config.json
+                            │       │   └── vocab.json
+                            │       ├── checkpoint-2813
+                            │       │   ├── config.json
+                            │       │   ├── lr_scheduler.pt
+                            │       │   ├── merges.txt
+                            │       │   ├── model.safetensors
+                            │       │   ├── optimizer.pt
+                            │       │   ├── special_tokens_map.json
+                            │       │   ├── tokenizer_config.json
+                            │       │   └── vocab.json
+                            │       ├── checkpoint-30943
+                            │       │   ├── config.json
+                            │       │   ├── lr_scheduler.pt
+                            │       │   ├── merges.txt
+                            │       │   ├── model.safetensors
+                            │       │   ├── optimizer.pt
+                            │       │   ├── special_tokens_map.json
+                            │       │   ├── tokenizer_config.json
+                            │       │   └── vocab.json
+                            │       ├── checkpoint-42195
+                            │       │   ├── config.json
+                            │       │   ├── lr_scheduler.pt
+                            │       │   ├── merges.txt
+                            │       │   ├── model.safetensors
+                            │       │   ├── optimizer.pt
+                            │       │   ├── special_tokens_map.json
+                            │       │   ├── tokenizer_config.json
+                            │       │   └── vocab.json
+                            │       ├── checkpoint-47821
+                            │       │   ├── config.json
+                            │       │   ├── lr_scheduler.pt
+                            │       │   ├── merges.txt
+                            │       │   ├── model.safetensors
+                            │       │   ├── optimizer.pt
+                            │       │   ├── special_tokens_map.json
+                            │       │   ├── tokenizer_config.json
+                            │       │   └── vocab.json
+                            │       ├── checkpoint-53447
+                            │       │   ├── config.json
+                            │       │   ├── lr_scheduler.pt
+                            │       │   ├── merges.txt
+                            │       │   ├── model.safetensors
+                            │       │   ├── optimizer.pt
+                            │       │   ├── special_tokens_map.json
+                            │       │   ├── tokenizer_config.json
+                            │       │   └── vocab.json
+                            │       ├── checkpoint-5626
+                            │       │   ├── config.json
+                            │       │   ├── lr_scheduler.pt
+                            │       │   ├── merges.txt
+                            │       │   ├── model.safetensors
+                            │       │   ├── optimizer.pt
+                            │       │   ├── special_tokens_map.json
+                            │       │   ├── tokenizer_config.json
+                            │       │   └── vocab.json
+                            │       ├── checkpoint-61886
+                            │       │   ├── config.json
+                            │       │   ├── lr_scheduler.pt
+                            │       │   ├── merges.txt
+                            │       │   ├── model.safetensors
+                            │       │   ├── optimizer.pt
+                            │       │   ├── special_tokens_map.json
+                            │       │   ├── tokenizer_config.json
+                            │       │   └── vocab.json
+                            │       ├── checkpoint-8439
+                            │       │   ├── config.json
+                            │       │   ├── lr_scheduler.pt
+                            │       │   ├── merges.txt
+                            │       │   ├── model.safetensors
+                            │       │   ├── optimizer.pt
+                            │       │   ├── special_tokens_map.json
+                            │       │   ├── tokenizer_config.json
+                            │       │   └── vocab.json
+                            │       ├── config.json
+                            │       ├── dataloaders
+                            │       │   ├── dev.dataloader
+                            │       │   ├── test.dataloader
+                            │       │   └── train.dataloader
+                            │       ├── merges.txt
+                            │       ├── model.safetensors
+                            │       ├── predictions
+                            │       │   ├── dev.data
+                            │       │   ├── dev.json
+                            │       │   └── validation_calibration_diagram.json
+                            │       ├── run.jsonl
+                            │       ├── run.log
+                            │       ├── special_tokens_map.json
+                            │       ├── tb_logs
+                            │       │   └── events.out.tfevents.1725454688.hilbert314
+                            │       ├── tokenizer_config.json
+                            │       ├── validation_calibration_diagram.png
+                            │       ├── validation_uncertainties_diagram.png
+                            │       ├── vocab_base.json
+                            │       └── vocab.json
+                            └── seed2
+                                └── 04-09-2024-14-58
+                                    ├── checkpoint-106894
+                                    │   ├── config.json
+                                    │   ├── lr_scheduler.pt
+                                    │   ├── merges.txt
+                                    │   ├── model.safetensors
+                                    │   ├── optimizer.pt
+                                    │   ├── special_tokens_map.json
+                                    │   ├── tokenizer_config.json
+                                    │   └── vocab.json
+                                    ├── checkpoint-11252
+                                    │   ├── config.json
+                                    │   ├── lr_scheduler.pt
+                                    │   ├── merges.txt
+                                    │   ├── model.safetensors
+                                    │   ├── optimizer.pt
+                                    │   ├── special_tokens_map.json
+                                    │   ├── tokenizer_config.json
+                                    │   └── vocab.json
+                                    ├── checkpoint-126585
+                                    │   ├── config.json
+                                    │   ├── lr_scheduler.pt
+                                    │   ├── merges.txt
+                                    │   ├── model.safetensors
+                                    │   ├── optimizer.pt
+                                    │   ├── special_tokens_map.json
+                                    │   ├── tokenizer_config.json
+                                    │   └── vocab.json
+                                    ├── checkpoint-14065
+                                    │   ├── config.json
+                                    │   ├── lr_scheduler.pt
+                                    │   ├── merges.txt
+                                    │   ├── model.safetensors
+                                    │   ├── optimizer.pt
+                                    │   ├── special_tokens_map.json
+                                    │   ├── tokenizer_config.json
+                                    │   └── vocab.json
+                                    ├── checkpoint-16878
+                                    │   ├── config.json
+                                    │   ├── lr_scheduler.pt
+                                    │   ├── merges.txt
+                                    │   ├── model.safetensors
+                                    │   ├── optimizer.pt
+                                    │   ├── special_tokens_map.json
+                                    │   ├── tokenizer_config.json
+                                    │   └── vocab.json
+                                    ├── checkpoint-19691
+                                    │   ├── config.json
+                                    │   ├── lr_scheduler.pt
+                                    │   ├── merges.txt
+                                    │   ├── model.safetensors
+                                    │   ├── optimizer.pt
+                                    │   ├── special_tokens_map.json
+                                    │   ├── tokenizer_config.json
+                                    │   └── vocab.json
+                                    ├── checkpoint-22504
+                                    │   ├── config.json
+                                    │   ├── lr_scheduler.pt
+                                    │   ├── merges.txt
+                                    │   ├── model.safetensors
+                                    │   ├── optimizer.pt
+                                    │   ├── special_tokens_map.json
+                                    │   ├── tokenizer_config.json
+                                    │   └── vocab.json
+                                    ├── checkpoint-2813
+                                    │   ├── config.json
+                                    │   ├── lr_scheduler.pt
+                                    │   ├── merges.txt
+                                    │   ├── model.safetensors
+                                    │   ├── optimizer.pt
+                                    │   ├── special_tokens_map.json
+                                    │   ├── tokenizer_config.json
+                                    │   └── vocab.json
+                                    ├── checkpoint-28130
+                                    │   ├── config.json
+                                    │   ├── lr_scheduler.pt
+                                    │   ├── merges.txt
+                                    │   ├── model.safetensors
+                                    │   ├── optimizer.pt
+                                    │   ├── special_tokens_map.json
+                                    │   ├── tokenizer_config.json
+                                    │   └── vocab.json
+                                    ├── checkpoint-30943
+                                    │   ├── config.json
+                                    │   ├── lr_scheduler.pt
+                                    │   ├── merges.txt
+                                    │   ├── model.safetensors
+                                    │   ├── optimizer.pt
+                                    │   ├── special_tokens_map.json
+                                    │   ├── tokenizer_config.json
+                                    │   └── vocab.json
+                                    ├── checkpoint-33756
+                                    │   ├── config.json
+                                    │   ├── lr_scheduler.pt
+                                    │   ├── merges.txt
+                                    │   ├── model.safetensors
+                                    │   ├── optimizer.pt
+                                    │   ├── special_tokens_map.json
+                                    │   ├── tokenizer_config.json
+                                    │   └── vocab.json
+                                    ├── checkpoint-42195
+                                    │   ├── config.json
+                                    │   ├── lr_scheduler.pt
+                                    │   ├── merges.txt
+                                    │   ├── model.safetensors
+                                    │   ├── optimizer.pt
+                                    │   ├── special_tokens_map.json
+                                    │   ├── tokenizer_config.json
+                                    │   └── vocab.json
+                                    ├── checkpoint-50634
+                                    │   ├── config.json
+                                    │   ├── lr_scheduler.pt
+                                    │   ├── merges.txt
+                                    │   ├── model.safetensors
+                                    │   ├── optimizer.pt
+                                    │   ├── special_tokens_map.json
+                                    │   ├── tokenizer_config.json
+                                    │   └── vocab.json
+                                    ├── checkpoint-5626
+                                    │   ├── config.json
+                                    │   ├── lr_scheduler.pt
+                                    │   ├── merges.txt
+                                    │   ├── model.safetensors
+                                    │   ├── optimizer.pt
+                                    │   ├── special_tokens_map.json
+                                    │   ├── tokenizer_config.json
+                                    │   └── vocab.json
+                                    ├── checkpoint-67512
+                                    │   ├── config.json
+                                    │   ├── lr_scheduler.pt
+                                    │   ├── merges.txt
+                                    │   ├── model.safetensors
+                                    │   ├── optimizer.pt
+                                    │   ├── special_tokens_map.json
+                                    │   ├── tokenizer_config.json
+                                    │   └── vocab.json
+                                    ├── checkpoint-8439
+                                    │   ├── config.json
+                                    │   ├── lr_scheduler.pt
+                                    │   ├── merges.txt
+                                    │   ├── model.safetensors
+                                    │   ├── optimizer.pt
+                                    │   ├── special_tokens_map.json
+                                    │   ├── tokenizer_config.json
+                                    │   └── vocab.json
+                                    ├── config.json
+                                    ├── dataloaders
+                                    │   ├── dev.dataloader
+                                    │   ├── test.dataloader
+                                    │   └── train.dataloader
+                                    ├── merges.txt
+                                    ├── model.safetensors
+                                    ├── predictions
+                                    │   ├── dev.data
+                                    │   ├── dev.json
+                                    │   └── validation_calibration_diagram.json
+                                    ├── run.jsonl
+                                    ├── run.log
+                                    ├── special_tokens_map.json
+                                    ├── tb_logs
+                                    │   └── events.out.tfevents.1725454688.hilbert314
+                                    ├── tokenizer_config.json
+                                    ├── validation_calibration_diagram.png
+                                    ├── validation_uncertainties_diagram.png
+                                    ├── vocab_base.json
+                                    └── vocab.json
+
+72 directories, 454 files

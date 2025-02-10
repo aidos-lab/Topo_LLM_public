@@ -1,10 +1,10 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -31,7 +31,7 @@ from topollm.compute_embeddings.embedding_dataloader_preparer.embedding_dataload
     EmbeddingDataLoaderPreparerContext,
 )
 from topollm.compute_embeddings.embedding_dataloader_preparer.embedding_dataloader_preparer_huggingface import (
-    EmbeddingDataLoaderPreparerHuggingface,
+    EmbeddingDataLoaderPreparerHuggingfaceWithTokenization,
 )
 from topollm.compute_embeddings.embedding_dataloader_preparer.protocol import (
     EmbeddingDataLoaderPreparer,
@@ -48,7 +48,7 @@ def get_embedding_dataloader_preparer(
         An instance of a DatasetPreparer subclass.
 
     """
-    result = EmbeddingDataLoaderPreparerHuggingface(
+    result = EmbeddingDataLoaderPreparerHuggingfaceWithTokenization(
         preparer_context=preparer_context,
     )
 

@@ -309,7 +309,7 @@
             }
         },
         {
-            "name": "For debugging: SETSUMBT-checkpoints - run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
+            "name": "For debugging: Huggingface dataloaders, SETSUMBT-checkpoints - run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
@@ -330,7 +330,6 @@
                 "tokenizer.add_prefix_space=False", // "tokenizer.add_prefix_space=True" is necessary to use the tokenizer with input split into words
                 //    >> START: Data options.
                 //
-                // TODO: We need to add new data configurations for the SETSUMBT dataloaders
                 "data=multiwoz21",
                 // "data=sgd",
                 "data.data_subsampling.split=validation",
@@ -348,6 +347,60 @@
                 "embeddings_data_prep.sampling.num_samples=3000",
                 "embeddings_data_prep.sampling.sampling_mode=random",
                 // "embeddings_data_prep.sampling.sampling_mode=take_first",
+                "local_estimates.filtering.num_samples=500",
+                "local_estimates.compute_global_estimates=true",
+                "local_estimates.pointwise.n_neighbors_mode=absolute_size",
+                "local_estimates.pointwise.absolute_n_neighbors=128",
+                "feature_flags.analysis.create_plots_in_local_estimates_worker=true",
+            ],
+            "env": {
+                "PYTORCH_ENABLE_MPS_FALLBACK": "1"
+            }
+        },
+        {
+            "name": "For debugging: Stored dataloaders, SETSUMBT-dataloaders - run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
+            "console": "integratedTerminal",
+            "args": [
+                // >>>> START: Hydra options
+                "--multirun",
+                "hydra/sweeper=basic",
+                "hydra/launcher=basic",
+                // "hydra/launcher=hpc_submission",
+                // "hydra.launcher.queue=CUDA",
+                // "hydra.launcher.template=RTX6000",
+                // "hydra.launcher.memory=32",
+                // "hydra.launcher.ncpus=4",
+                // "hydra.launcher.ngpus=1",
+                // "hydra.launcher.walltime=01:00:00", // <-- The pipeline run for regular embeddings should only take a few minutes.
+                // >>>> END: Hydra options
+                //
+                "tokenizer.add_prefix_space=False", // "tokenizer.add_prefix_space=True" is necessary to use the tokenizer with input split into words
+                //
+                //    >> START: Data options.
+                //
+                "data=setsumbt_dataloaders_processed",
+                "data.dataset_seed=0",
+                // "data.data_subsampling.split=train",
+                "data.data_subsampling.split=dev",
+                // "data.data_subsampling.split=test",
+                "data.data_subsampling.number_of_samples=512",
+                //
+                //    >> END: Data options.
+                //
+                //    >> START: Model options.
+                //
+                "language_model=roberta-base-setsumbt_multiwoz21",
+                "++language_model.checkpoint_no=2813",
+                // "++language_model.checkpoint_no=2813,5626,8439",
+                //
+                //    >> END: Model options.
+                //
+                "embeddings.embedding_extraction.layer_indices=[-1]",
+                "embeddings_data_prep.sampling.num_samples=3000",
+                "embeddings_data_prep.sampling.sampling_mode=random",
                 "local_estimates.filtering.num_samples=500",
                 "local_estimates.compute_global_estimates=true",
                 "local_estimates.pointwise.n_neighbors_mode=absolute_size",
@@ -378,6 +431,7 @@
                 "hydra.launcher.ngpus=1",
                 "hydra.launcher.walltime=01:00:00", // <-- The pipeline run for regular embeddings should only take a few minutes.
                 // >>>> END: Hydra options
+                //
                 "tokenizer.add_prefix_space=False", // "tokenizer.add_prefix_space=True" is necessary to use the tokenizer with input split into words
                 //
                 //    >> START: Data options.
@@ -386,9 +440,17 @@
                 // "data=sgd",
                 // "data=one-year-of-tsla-on-reddit",
                 // "data=sgd,one-year-of-tsla-on-reddit",
-                "data=multiwoz21,sgd,one-year-of-tsla-on-reddit",
+                // "data=multiwoz21,sgd,one-year-of-tsla-on-reddit",
                 //
-                "data.data_subsampling.split=validation",
+                "data=setsumbt_dataloaders_processed",
+                "data.dataset_seed=0",
+                //
+                // "data.data_subsampling.split=train",
+                // "data.data_subsampling.split=validation",
+                // "data.data_subsampling.split=dev",
+                // "data.data_subsampling.split=test",
+                "data.data_subsampling.split=train,dev,test",
+                //
                 "data.data_subsampling.sampling_mode=random",
                 "data.data_subsampling.number_of_samples=10000",
                 "data.data_subsampling.sampling_seed=778",
@@ -397,12 +459,12 @@
                 //
                 //    >> START: Model options.
                 //
-                "language_model=roberta-base",
+                // "language_model=roberta-base",
                 //
-                // "language_model=roberta-base-setsumbt_multiwoz21",
+                "language_model=roberta-base-setsumbt_multiwoz21",
                 // "++language_model.checkpoint_no=2813",
                 // "++language_model.checkpoint_no=2813,5626,8439",
-                // "++language_model.checkpoint_no=2813,5626,8439,11252,14065,16878,19691,25317,33756,36569,39382,42195,50634,56260,70325,90016,109707,115333,126585",
+                "++language_model.checkpoint_no=2813,5626,8439,11252,14065,16878,19691,25317,33756,36569,39382,42195,50634,56260,70325,90016,109707,115333,126585",
                 //
                 // "language_model=roberta-base-trippy_multiwoz21",
                 // "++language_model.seed=42",
@@ -1823,6 +1885,57 @@
                 "++language_model.checkpoint_no=2813", // Note: The checkpoint_no should not matter for this script.
                 //
                 //    >> END: Model options.
+            ],
+            "env": {
+                "PYTORCH_ENABLE_MPS_FALLBACK": "1"
+            }
+        },
+        {
+            "name": "For debugging: Load dataloaders - try_out_load_dataloader_processed.py",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/task_performance_analysis/setsumbt/try_out_load_dataloader_processed.py",
+            "console": "integratedTerminal",
+            "args": [
+                // >>>> START: Hydra options
+                "--multirun",
+                "hydra/sweeper=basic",
+                "hydra/launcher=basic",
+                // "hydra/launcher=hpc_submission",
+                // "hydra.launcher.queue=CUDA",
+                // "hydra.launcher.template=RTX6000",
+                // "hydra.launcher.memory=32",
+                // "hydra.launcher.ncpus=4",
+                // "hydra.launcher.ngpus=1",
+                // "hydra.launcher.walltime=01:00:00", // <-- The pipeline run for regular embeddings should only take a few minutes.
+                // >>>> END: Hydra options
+                "tokenizer.add_prefix_space=False",
+                //
+                //    >> START: Data options.
+                //
+                // "data=multiwoz21",
+                // "data=sgd",
+                "data.data_subsampling.split=validation",
+                "data.data_subsampling.number_of_samples=512",
+                //
+                //    >> END: Data options.
+                //
+                //    >> START: Model options.
+                //
+                "language_model=roberta-base-setsumbt_multiwoz21",
+                "++language_model.checkpoint_no=2813",
+                // "++language_model.checkpoint_no=2813,5626,8439",
+                //
+                //    >> END: Model options.
+                //
+                "embeddings.embedding_extraction.layer_indices=[-1]",
+                "embeddings_data_prep.sampling.num_samples=3000",
+                "embeddings_data_prep.sampling.sampling_mode=random",
+                "local_estimates.filtering.num_samples=500",
+                "local_estimates.compute_global_estimates=true",
+                "local_estimates.pointwise.n_neighbors_mode=absolute_size",
+                "local_estimates.pointwise.absolute_n_neighbors=128",
+                "feature_flags.analysis.create_plots_in_local_estimates_worker=true",
             ],
             "env": {
                 "PYTORCH_ENABLE_MPS_FALLBACK": "1"

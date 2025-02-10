@@ -62,13 +62,17 @@ class DataConfig(ConfigBaseModel):
 
     data_dir: pathlib.Path | None = Field(
         default=None,
-        title="data_dir argument will be passed to huggingface datasets.",
+        title="data_dir argument will be passed to `data_dir=` argument in huggingface datasets; "
+        "currently unused for other dataset types.",
     )
 
     dataset_path: str = Field(
         default="SocialGrep/one-year-of-tsla-on-reddit",
-        title="Dataset identifier for huggingface datasets.",
-        description="The dataset identifier for the huggingface datasets to use for computing embeddings.",
+        title="Dataset identifier for huggingface datasets; "
+        "path to the saved processed dataset for the SETSUMBT datasets.",
+        description="The dataset identifier to use for computing embeddings; "
+        "this is used for the `path=` argument for the huggingface datasets; "
+        "for the SETSUMBT datasets, this is the path to the saved processed dataset.",
     )
 
     dataset_name: str | None = Field(

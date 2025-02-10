@@ -1,0 +1,23 @@
+defaults:
+  - data_splitting: do_nothing
+  - data_subsampling: train_split_and_take_first
+  - _self_
+
+data_subsampling:
+  number_of_samples: -1
+  split: train
+
+column_name: input_ids
+context: dataset_entry
+# For the SetSUMBT dataloaders, we include the dataset_seed in the dataset_description_string,
+# so that it can be used to identify the correct embeddings and local estimates.
+dataset_description_string: setsumbt_dataloaders_processed_${data.dataset_seed}
+
+dataset_type: setsumbt_dataloaders_processed
+
+dataset_seed: 0
+
+# data_dir is currently unused for the setsumbt_dataloaders_processed dataset
+data_dir: ${paths.data_dir}/models/setsumbt_checkpoints/multiwoz21/dataloaders_processed
+# The dataset_path will be used to load the dataloader from the disk
+dataset_path: ${paths.data_dir}/models/setsumbt_checkpoints/multiwoz21/dataloaders_processed/${data.data_subsampling.split}_${data.dataset_seed}.data

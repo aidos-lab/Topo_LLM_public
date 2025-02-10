@@ -33,12 +33,10 @@ from topollm.analysis.local_estimates_computation.global_and_pointwise_local_est
     global_and_pointwise_local_estimates_worker,
 )
 from topollm.compute_embeddings.compute_and_store_embeddings import compute_and_store_embeddings
+from topollm.config_classes.constants import logger_section_separation_line
 from topollm.config_classes.main_config import MainConfig
 from topollm.embeddings_data_prep.embeddings_data_prep_worker import embeddings_data_prep_worker
 from topollm.typing.enums import Verbosity
-
-logger_section_separation_line = 30 * "="
-
 
 default_logger: logging.Logger = logging.getLogger(
     name=__name__,

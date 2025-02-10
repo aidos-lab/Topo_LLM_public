@@ -48,7 +48,7 @@ from topollm.compute_embeddings.embedding_dataloader_preparer.embedding_dataload
     EmbeddingDataLoaderPreparerContext,
 )
 from topollm.compute_embeddings.embedding_dataloader_preparer.embedding_dataloader_preparer_huggingface import (
-    EmbeddingDataLoaderPreparerHuggingface,
+    EmbeddingDataLoaderPreparerHuggingfaceWithTokenization,
 )
 from topollm.compute_embeddings.embedding_dataloader_preparer.factory import get_embedding_dataloader_preparer
 from topollm.compute_embeddings.embedding_dataloader_preparer.protocol import EmbeddingDataLoaderPreparer
@@ -179,8 +179,10 @@ def main(
         verbosity=verbosity,
         logger=logger,
     )
-    embedding_dataloader_preparer: EmbeddingDataLoaderPreparerHuggingface = get_embedding_dataloader_preparer(
-        preparer_context=preparer_context,
+    embedding_dataloader_preparer: EmbeddingDataLoaderPreparerHuggingfaceWithTokenization = (
+        get_embedding_dataloader_preparer(
+            preparer_context=preparer_context,
+        )
     )  # type: ignore - This script only works with EmbeddingDataLoaderPreparerHuggingface
 
     # # # #

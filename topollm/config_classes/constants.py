@@ -184,3 +184,5 @@ ZIM_TOPO_LLM_REPOSITORY_BASE_PATH: str = os.path.expandvars(
 )
 
 HYDRA_CONFIGS_BASE_PATH: str = f"{TOPO_LLM_REPOSITORY_BASE_PATH}/configs"
+
+logger_section_separation_line = 30 * "="

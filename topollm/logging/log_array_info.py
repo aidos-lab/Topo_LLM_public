@@ -1,10 +1,10 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -32,6 +32,7 @@ import pprint
 from typing import Any, TypeAlias
 
 import numpy as np
+import torch
 import zarr
 
 ArrayLike: TypeAlias = np.ndarray | zarr.Array
@@ -118,5 +119,32 @@ def log_array_info(
             # `numpy.exceptions.AxisError: axis 1 is out of bounds for array of dimension 1`
             # if we try to calculate the L2-norms of a 1D array.
             logger.exception(
-                msg=f"Error when trying to calculate L2-norms of {array_name}: {e}",  # noqa: G004 , TRY401- low overhead
+                msg=f"Error when trying to calculate L2-norms of {array_name}: {e}",  # noqa: G004 - low overhead
             )
+
+
+def log_tensor_info(
+    tensor: torch.Tensor,
+    tensor_name: str,
+    slice_size_to_log: int = 1,
+    logger: logging.Logger = default_logger,
+) -> None:
+    """Log information about the tensor."""
+    logger.info(
+        msg=f"type({tensor_name}):\n{type(tensor)}",  # noqa: G004 - low overhead
+    )
+
+    logger.info(
+        msg=f"{tensor_name}.shape:\n{tensor.shape}",  # noqa: G004 - low overhead
+    )
+    logger.info(
+        msg=f"{tensor_name}.dtype:\n{tensor.dtype}",  # noqa: G004 - low overhead
+    )
+
+    # Log the first and last slice_size_to_log elements of the tensor
+    logger.info(
+        msg=f"{tensor_name}[:{slice_size_to_log}]:\n{tensor[:slice_size_to_log]}",  # noqa: G004 - low overhead
+    )
+    logger.info(
+        msg=f"{tensor_name}[-{slice_size_to_log}:]:\n{tensor[-slice_size_to_log:]}",  # noqa: G004 - low overhead
+    )

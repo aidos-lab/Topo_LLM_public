@@ -1,10 +1,10 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -32,14 +32,17 @@ from typing import TYPE_CHECKING
 
 from topollm.config_classes.data.data_config import DataConfig
 from topollm.data_handling.dataset_filtering.factory import get_dataset_filter
-from topollm.data_handling.dataset_filtering.protocol import DatasetFilter
-from topollm.data_handling.dataset_preparer import dataset_preparer_huggingface
+from topollm.data_handling.dataset_preparer import (
+    dataset_preparer_huggingface,
+    dataset_preparer_setsumbt_dataloaders_processed,
+)
 from topollm.data_handling.dataset_preparer.protocol import DatasetPreparer
 from topollm.data_handling.dataset_splitter.factory import get_dataset_splitter
 from topollm.data_handling.dataset_subsampler.factory import get_dataset_subsampler
 from topollm.typing.enums import DatasetType, Verbosity
 
 if TYPE_CHECKING:
+    from topollm.data_handling.dataset_filtering.protocol import DatasetFilter
     from topollm.data_handling.dataset_splitter.protocol import DatasetSplitter
     from topollm.data_handling.dataset_subsampler.protocol import DatasetSubsampler
 
@@ -84,19 +87,29 @@ def get_dataset_preparer(
             msg=f"Using {dataset_subsampler.__class__.__name__ = } as dataset subsampler.",  # noqa: G004 - low overhead
         )
 
-    if data_config.dataset_type in (DatasetType.HUGGINGFACE_DATASET, DatasetType.HUGGINGFACE_DATASET_NAMED_ENTITY):
-        result = dataset_preparer_huggingface.DatasetPreparerHuggingface(
-            data_config=data_config,
-            dataset_filter=dataset_filter,
-            dataset_splitter=dataset_splitter,
-            dataset_subsampler=dataset_subsampler,
-            verbosity=verbosity,
-            logger=logger,
-        )
-    else:
-        msg: str = f"Unsupported {data_config.dataset_type = }"
-        raise ValueError(
-            msg,
-        )
+    match data_config.dataset_type:
+        case DatasetType.HUGGINGFACE_DATASET | DatasetType.HUGGINGFACE_DATASET_NAMED_ENTITY:
+            result = dataset_preparer_huggingface.DatasetPreparerHuggingface(
+                data_config=data_config,
+                dataset_filter=dataset_filter,
+                dataset_splitter=dataset_splitter,
+                dataset_subsampler=dataset_subsampler,
+                verbosity=verbosity,
+                logger=logger,
+            )
+        case DatasetType.SETSUMBT_DATALOADERS_PROCESSED:
+            result = dataset_preparer_setsumbt_dataloaders_processed.DatasetPreparerSetSUMBTDataloadersProcessed(
+                data_config=data_config,
+                dataset_filter=dataset_filter,
+                dataset_splitter=dataset_splitter,
+                dataset_subsampler=dataset_subsampler,
+                verbosity=verbosity,
+                logger=logger,
+            )
+        case _:
+            msg: str = f"Unsupported {data_config.dataset_type = }"
+            raise ValueError(
+                msg,
+            )
 
     return result

@@ -77,6 +77,7 @@ class JobRunMode(StrEnum):
 class DatasetType(StrEnum):
     """The different types of datasets."""
 
+    SETSUMBT_DATALOADERS_PROCESSED = auto()
     HUGGINGFACE_DATASET = auto()
     HUGGINGFACE_DATASET_NAMED_ENTITY = auto()
 
@@ -133,6 +134,7 @@ class Split(StrEnum):
 
     TRAIN = auto()
     VALIDATION = auto()
+    DEV = auto()
     TEST = auto()
     FULL = auto()
 
