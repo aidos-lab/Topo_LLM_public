@@ -1889,8 +1889,9 @@
                 //    >> START: Model options.
                 //
                 "language_model=roberta-base-setsumbt_multiwoz21",
-                "++language_model.seed=0",
-                "++language_model.checkpoint_no=2813", // Note: The checkpoint_no should not matter for this script.
+                // "language_model.seed=0",
+                "language_model.seed=0,1,2",
+                "language_model.checkpoint_no=2813", // Note: The checkpoint_no should not matter for this script.
                 //
                 //    >> END: Model options.
             ],
