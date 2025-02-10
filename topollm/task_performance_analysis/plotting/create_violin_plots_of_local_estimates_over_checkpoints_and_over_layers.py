@@ -290,20 +290,23 @@ def create_distribution_plots_over_model_layers(
     """Create plots which show the distribution of the local estimates over the layers."""
     data_full_options: set[str] = {single_dict["data_full"] for single_dict in loaded_data}
     data_subsampling_full_options: set[str] = {single_dict["data_subsampling_full"] for single_dict in loaded_data}
-    model_partial_name_options: set[str] = {single_dict["model_partial_name"] for single_dict in loaded_data}
     model_checkpoint_options: set = {single_dict["model_checkpoint"] for single_dict in loaded_data}
+    model_partial_name_options: set[str] = {single_dict["model_partial_name"] for single_dict in loaded_data}
+    model_seed_options: set = {single_dict["model_seed"] for single_dict in loaded_data}
 
     for (
         data_full,
         data_subsampling_full,
-        model_partial_name,
         model_checkpoint,
+        model_partial_name,
+        model_seed_options,
     ) in tqdm(
         iterable=itertools.product(
             data_full_options,
             data_subsampling_full_options,
-            model_partial_name_options,
             model_checkpoint_options,
+            model_partial_name_options,
+            model_seed_options,
         ),
         desc="Plotting different choices",
     ):
@@ -311,9 +314,10 @@ def create_distribution_plots_over_model_layers(
             "tokenizer_add_prefix_space": "False",  # This needs to be a string
             "data_full": data_full,
             "data_subsampling_full": data_subsampling_full,
-            "model_partial_name": model_partial_name,
             "model_checkpoint": model_checkpoint,
-            # We want all checkpoints for the given model checkpoint.
+            # We want all layers for the given model checkpoint and thus, no filtering for model_layer in this case.
+            "model_partial_name": model_partial_name,
+            "model_seed": model_seed_options,
         }
         fixed_params_text: str = generate_fixed_parameters_text_from_dict(
             filters_dict=filter_key_value_pairs,
@@ -398,14 +402,33 @@ def create_distribution_plots_over_model_checkpoints(
     """Create plots which show the distribution of the local estimates over the checkpoints."""
     data_full_options: set[str] = {single_dict["data_full"] for single_dict in loaded_data}
     data_subsampling_full_options: set[str] = {single_dict["data_subsampling_full"] for single_dict in loaded_data}
-    model_partial_name_options: set[str] = {single_dict["model_partial_name"] for single_dict in loaded_data}
     model_layer_options: set = {single_dict["model_layer"] for single_dict in loaded_data}
+    model_partial_name_options: set[str] = {single_dict["model_partial_name"] for single_dict in loaded_data}
+    model_seed_options: set = {single_dict["model_seed"] for single_dict in loaded_data}
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"{data_full_options = }",  # noqa: G004 - low overhead
+        )
+        logger.info(
+            msg=f"{data_subsampling_full_options = }",  # noqa: G004 - low overhead
+        )
+        logger.info(
+            msg=f"{model_layer_options = }",  # noqa: G004 - low overhead
+        )
+        logger.info(
+            msg=f"{model_partial_name_options = }",  # noqa: G004 - low overhead
+        )
+        logger.info(
+            msg=f"{model_seed_options = }",  # noqa: G004 - low overhead
+        )
 
     iterable = itertools.product(
         data_full_options,
         data_subsampling_full_options,
         model_layer_options,
         model_partial_name_options,
+        model_seed_options,
     )
 
     total_combinations: int = (
@@ -413,12 +436,14 @@ def create_distribution_plots_over_model_checkpoints(
         * len(data_subsampling_full_options)
         * len(model_layer_options)
         * len(model_partial_name_options)
+        * len(model_seed_options)
     )
     for (
         data_full,
         data_subsampling_full,
         model_layer,
         model_partial_name,
+        model_seed,
     ) in tqdm(
         iterable=iterable,
         total=total_combinations,
@@ -430,6 +455,7 @@ def create_distribution_plots_over_model_checkpoints(
             "data_subsampling_full": data_subsampling_full,
             "model_layer": model_layer,  # model_layer needs to be an integer
             "model_partial_name": model_partial_name,
+            "model_seed": model_seed,
         }
         fixed_params_text: str = generate_fixed_parameters_text_from_dict(
             filters_dict=filter_key_value_pairs,
