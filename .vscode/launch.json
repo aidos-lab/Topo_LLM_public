@@ -431,6 +431,7 @@
                 "hydra.launcher.ngpus=1",
                 "hydra.launcher.walltime=01:00:00", // <-- The pipeline run for regular embeddings should only take a few minutes.
                 // >>>> END: Hydra options
+                //
                 "tokenizer.add_prefix_space=False", // "tokenizer.add_prefix_space=True" is necessary to use the tokenizer with input split into words
                 //
                 //    >> START: Data options.
@@ -439,9 +440,17 @@
                 // "data=sgd",
                 // "data=one-year-of-tsla-on-reddit",
                 // "data=sgd,one-year-of-tsla-on-reddit",
-                "data=multiwoz21,sgd,one-year-of-tsla-on-reddit",
+                // "data=multiwoz21,sgd,one-year-of-tsla-on-reddit",
                 //
-                "data.data_subsampling.split=validation",
+                "data=setsumbt_dataloaders_processed",
+                "data.dataset_seed=0",
+                //
+                // "data.data_subsampling.split=train",
+                // "data.data_subsampling.split=validation",
+                // "data.data_subsampling.split=dev",
+                // "data.data_subsampling.split=test",
+                "data.data_subsampling.split=train,dev,test",
+                //
                 "data.data_subsampling.sampling_mode=random",
                 "data.data_subsampling.number_of_samples=10000",
                 "data.data_subsampling.sampling_seed=778",
@@ -450,12 +459,12 @@
                 //
                 //    >> START: Model options.
                 //
-                "language_model=roberta-base",
+                // "language_model=roberta-base",
                 //
-                // "language_model=roberta-base-setsumbt_multiwoz21",
+                "language_model=roberta-base-setsumbt_multiwoz21",
                 // "++language_model.checkpoint_no=2813",
                 // "++language_model.checkpoint_no=2813,5626,8439",
-                // "++language_model.checkpoint_no=2813,5626,8439,11252,14065,16878,19691,25317,33756,36569,39382,42195,50634,56260,70325,90016,109707,115333,126585",
+                "++language_model.checkpoint_no=2813,5626,8439,11252,14065,16878,19691,25317,33756,36569,39382,42195,50634,56260,70325,90016,109707,115333,126585",
                 //
                 // "language_model=roberta-base-trippy_multiwoz21",
                 // "++language_model.seed=42",
