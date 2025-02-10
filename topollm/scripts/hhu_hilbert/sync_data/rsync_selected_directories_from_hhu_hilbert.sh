@@ -5,6 +5,9 @@
 #
 # You can specify the list of subfolders to sync using the --folders option.
 # You can also specify a file containing the list of subfolders to sync using the --file option.
+#
+# Example call:
+# ./rsync_selected_directories_from_hhu_hilbert.sh --dry-run --folders "data/models/setsumbt_checkpoints/multiwoz21/roberta/setsumbt/gru/cosine/labelsmoothing/0.05/seed1/" 
 # # # # # # # # # # # # # # # # # # # # # # # # #
 
 # # # # # # # # # # # # # # # # # # # # # # # # #

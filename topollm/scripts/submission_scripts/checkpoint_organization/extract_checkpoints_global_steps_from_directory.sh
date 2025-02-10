@@ -8,6 +8,18 @@
 # Expected output:
 #
 # > 2813,5626,8439,11252,14065,16878,19691,25317,33756,36569,39382,42195,50634,56260,70325,109707,115333,126585
+#
+# # # # # # # # # # # # # # # # # # # # # # # #
+#
+# Other examples:
+#
+# ./extract_checkpoints_global_steps_from_directory.sh --output-format "csv" --directory "${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/setsumbt_checkpoints/multiwoz21/roberta/setsumbt/gru/cosine/labelsmoothing/0.05/seed1/latest-run"
+#
+# > 2813,5626,8439,11252,14065,16878,19691,25317,30943,42195,47821,53447,61886,109707
+#
+# ./extract_checkpoints_global_steps_from_directory.sh --output-format "csv" --directory "${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/setsumbt_checkpoints/multiwoz21/roberta/setsumbt/gru/cosine/labelsmoothing/0.05/seed2/latest-run"
+#
+# > 2813,5626,8439,11252,14065,16878,19691,22504,28130,30943,33756,42195,50634,67512,106894,126585
 # # # # # # # # # # # # # # # # # # # # # # # #
 
 # Check if TOPO_LLM_REPOSITORY_BASE_PATH is set
