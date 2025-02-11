@@ -27,7 +27,10 @@
 
 """Container for the local estimates data."""
 
+import dataclasses
+import logging
 from dataclasses import dataclass
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -35,14 +38,70 @@ import pandas as pd
 from topollm.analysis.local_estimates_computation.constants import (
     APPROXIMATE_HAUSDORFF_VIA_KDTREE_DICT_KEY,
 )
+from topollm.typing.enums import Verbosity
+
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
+
+
+def summarize_value(
+    value: Any,
+    key: str | None = None,
+    fallback_truncation_length: int = 100,
+) -> str:
+    """Summarize a value for logging purposes.
+
+    This function provides a concise summary depending on the type of `value`.
+
+    Args:
+        value:
+            The value to summarize.
+        key:
+            The key to use to describe the value.
+        fallback_truncation_length:
+            The maximum length of the string representation of the value if no other summary is available.
+
+    Returns:
+        str: A summary string describing the value.
+
+    """
+    key_str: str = f"{key = }: " if key is not None else ""
+
+    if value is None:
+        value_str: str = "None"
+    elif isinstance(
+        value,
+        np.ndarray,
+    ):
+        value_str = f"NumPy array with {value.shape = } and dtype {value.dtype}"
+    elif isinstance(
+        value,
+        pd.DataFrame,
+    ):
+        value_str = f"DataFrame with {value.shape = } and columns {list(value.columns)}"
+    elif isinstance(
+        value,
+        dict,
+    ):
+        value_str = f"Dict with keys {list(value.keys())}"
+    else:
+        value_str = str(object=value)[:fallback_truncation_length]
+
+    result: str = key_str + value_str
+
+    return result
 
 
 @dataclass
 class LocalEstimatesContainer:
     """Container for the local estimates data."""
 
+    # Required: Array with the pointwise results
     pointwise_results_array_np: np.ndarray
     pointwise_results_meta_frame: pd.DataFrame | None = None
+
+    # Optional: Array with the global estimate
     global_estimate_array_np: np.ndarray | None = None
 
     # Optional: Array which was used to compute the local estimates
@@ -115,3 +174,31 @@ class LocalEstimatesContainer:
         output = self.additional_distance_computations_results[APPROXIMATE_HAUSDORFF_VIA_KDTREE_DICT_KEY]
 
         return output
+
+    def log_info(
+        self,
+        verbosity: Verbosity = Verbosity.NORMAL,
+        logger: logging.Logger = default_logger,
+    ) -> None:
+        """Log detailed information about this LocalEstimatesContainer instance.
+
+        Each attribute is summarized rather than dumping the entire content, which
+        is particularly useful for large arrays or data frames.
+        """
+        logger.info(
+            msg="Logging LocalEstimatesContainer details:",
+        )
+        for field_info in dataclasses.fields(
+            class_or_instance=self,
+        ):
+            value = getattr(
+                self,
+                field_info.name,
+            )
+            summary = summarize_value(
+                value=value,
+                key=field_info.name,
+            )
+            logger.info(
+                msg=f"\t{summary}",  # noqa: G004 - low overhead
+            )

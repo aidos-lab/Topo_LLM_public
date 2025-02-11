@@ -1,10 +1,10 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -34,20 +34,20 @@ from topollm.compute_embeddings.embedding_dataloader_preparer.embedding_dataload
 )
 
 
-@pytest.mark.uses_transformers_models()
+@pytest.mark.uses_transformers_models
 def test_EmbeddingDataLoaderPreparerHuggingface(  # noqa: N802 - This is the name of a class
     embedding_dataloader_preparer_huggingface: EmbeddingDataLoaderPreparerHuggingfaceWithTokenization,
     logger_fixture: logging.Logger,
 ) -> None:
     """Test the EmbeddingDataLoaderPreparerHuggingface class."""
-    dataloader = embedding_dataloader_preparer_huggingface.prepare_dataloader()
+    dataloader = embedding_dataloader_preparer_huggingface.get_dataloader()
 
     assert dataloader is not None  # noqa: S101 - pytest assert
 
     # Test the length function
-    length = len(embedding_dataloader_preparer_huggingface)
+    length: int = len(embedding_dataloader_preparer_huggingface)
     logger_fixture.info(
-        f"{length = }",  # noqa: G004 - low overhead
+        msg=f"{length = }",  # noqa: G004 - low overhead
     )
 
     assert length > 0  # noqa: S101 - pytest assert

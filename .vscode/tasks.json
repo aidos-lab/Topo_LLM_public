@@ -169,7 +169,7 @@
         },
         {
             "label": "rsync from HHU Hilbert to external drive - (LARGE) - 'analysis/prepared' and 'analysis/local_estimates' directories",
-            "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/local_estimates/' 'data/analysis/prepared/' --file-type all --sync_to_external_drive",
+            "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/local_estimates/' 'data/analysis/prepared/' --file-type 'all' --sync_to_external_drive",
             "type": "shell",
             "group": {
                 "kind": "build",
@@ -184,7 +184,7 @@
         {
             "label": "rsync from HHU Hilbert to local - (LARGE) - ALL file types 'analysis/local_estimates' directory",
             "detail": "rsync from HHU Hilbert: 'analysis/local_estimates'.",
-            "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/local_estimates/' --file-type all",
+            "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/local_estimates/' --file-type 'all'",
             "type": "shell",
             "group": {
                 "kind": "build",
@@ -199,7 +199,7 @@
         {
             "label": "rsync from HHU Hilbert to local - (LARGE) - 'data/saved_plots/local_estimates_projection/' directory",
             "detail": "rsync from HHU Hilbert: 'data/saved_plots/local_estimates_projection/'.",
-            "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/saved_plots/local_estimates_projection/' --file-type all",
+            "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/saved_plots/local_estimates_projection/' --file-type 'all'",
             "type": "shell",
             "group": {
                 "kind": "build",
@@ -213,7 +213,7 @@
         },
         {
             "label": "rsync from HHU Hilbert to local - ONLY .npy file types 'analysis/local_estimates' directory",
-            "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/local_estimates/' --file-type npy",
+            "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/local_estimates/' --file-type 'npy'",
             "type": "shell",
             "group": {
                 "kind": "build",
@@ -256,7 +256,39 @@
         {
             "label": "rsync from HHU Hilbert to local - ALL file types 'data/analysis/training_and_evaluation_losses/' directory",
             "detail": "rsync from HHU Hilbert: 'data/analysis/training_and_evaluation_losses/'.",
-            "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/training_and_evaluation_losses/' --file-type all",
+            "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/training_and_evaluation_losses/' --file-type 'all'",
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": false
+            }
+        },
+        {
+            "label": "rsync from HHU Hilbert to local - ALL file types - Selected local estimates",
+            "detail": "rsync from HHU Hilbert: ALL file types - Selected local estimates directories.",
+            "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/local_estimates/data=setsumbt_dataloaders_processed_0_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/split=dev_samples=10000_sampling=random_sampling-seed=778/edh-mode=regular_lvl=token/add-prefix-space=False_max-len=512/model=roberta-base-setsumbt_multiwoz21_seed-0_ckpt-2813_task=masked_lm_dr=defaults/layer=-1_agg=mean/norm=None/sampling=random_seed=42_samples=150000/desc=twonn_samples=60000_zerovec=keep_dedup=array_deduplicator_noise=do_nothing/' --syncing-mode 'all' --file-type 'all'",
+            // Note: You can add more subdirectories by adding more arguments to the command
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": false
+            }
+        },
+        {
+            "label": "rsync from HHU Hilbert to local - results_arrays, statistics, metadata - Selected local estimates",
+            "detail": "rsync from HHU Hilbert: Without array_for_estimator - Selected local estimates directories.",
+            "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/local_estimates/data=setsumbt_dataloaders_processed_0_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/split=dev_samples=10000_sampling=random_sampling-seed=778/edh-mode=regular_lvl=token/add-prefix-space=False_max-len=512/' --syncing-mode 'results_array_and_statistics_and_metadata' --file-type 'all'",
+            // Note: You can add more subdirectories by adding more arguments to the command
             "type": "shell",
             "group": {
                 "kind": "build",
@@ -339,7 +371,7 @@
             }
         },
         {
-            "label": "GC - Sync from GC VM to GC Bucket - logs and full 'data' directory ",
+            "label": "GC - Sync from GC VM to GC Bucket - logs and full 'data/' directory ",
             "command": "poetry run sync_gc_data --source vm --target bucket --subdirectory 'data' 'hydra_output_dir' 'wandb_output_dir'",
             "type": "shell",
             "group": {
