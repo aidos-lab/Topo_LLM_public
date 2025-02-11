@@ -114,6 +114,7 @@ def main(
     )
 
     patterns_to_iterate_over: list[str] = [
+        # > Splits for the SetSUMBT saved dataloaders
         (
             "**/"
             "split=train_samples=10000_sampling=random_sampling-seed=778/"
@@ -122,14 +123,6 @@ def main(
             "**/"
             "local_estimates_pointwise_array.npy"
         ),
-        # (
-        #     "**/"
-        #     "split=validation_samples=10000_sampling=random_sampling-seed=778/"
-        #     "edh-mode=regular_lvl=token/"
-        #     "add-prefix-space=False_max-len=512/"
-        #     "**/"
-        #     "local_estimates_pointwise_array.npy"
-        # ),
         (
             "**/"
             "split=dev_samples=10000_sampling=random_sampling-seed=778/"
@@ -142,6 +135,25 @@ def main(
             "**/"
             "split=test_samples=10000_sampling=random_sampling-seed=778/"
             "edh-mode=regular_lvl=token/"
+            "add-prefix-space=False_max-len=512/"
+            "**/"
+            "local_estimates_pointwise_array.npy"
+        ),
+        # > Splits for the Huggingface datasets
+        (
+            "**/"
+            "split=validation_samples=10000_sampling=random_sampling-seed=778/"
+            "edh-mode=regular_lvl=token/"
+            "add-prefix-space=False_max-len=512/"
+            "**/"
+            "local_estimates_pointwise_array.npy"
+        ),
+        # > Other selected datasets and splits
+        (
+            "**/"
+            "data=sgd_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/"
+            "split=validation_samples=10000_sampling=random_sampling-seed=777/"
+            "edh-mode=masked_token_lvl=token/"
             "add-prefix-space=False_max-len=512/"
             "**/"
             "local_estimates_pointwise_array.npy"
@@ -299,7 +311,7 @@ def create_distribution_plots_over_model_layers(
         data_subsampling_full,
         model_checkpoint,
         model_partial_name,
-        model_seed_options,
+        model_seed,
     ) in tqdm(
         iterable=itertools.product(
             data_full_options,
@@ -317,7 +329,7 @@ def create_distribution_plots_over_model_layers(
             "model_checkpoint": model_checkpoint,
             # We want all layers for the given model checkpoint and thus, no filtering for model_layer in this case.
             "model_partial_name": model_partial_name,
-            "model_seed": model_seed_options,
+            "model_seed": model_seed,
         }
         fixed_params_text: str = generate_fixed_parameters_text_from_dict(
             filters_dict=filter_key_value_pairs,
@@ -479,6 +491,7 @@ def create_distribution_plots_over_model_checkpoints(
         filter_key_value_pairs_base_model: dict = {
             **filter_key_value_pairs,
             "model_partial_name": base_model_model_partial_name,
+            "model_seed": None,  # The base model always has model_seed=None.
         }
         filtered_data_base_model: list[dict] = filter_list_of_dictionaries_by_key_value_pairs(
             list_of_dicts=loaded_data,
