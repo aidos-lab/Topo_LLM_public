@@ -74,7 +74,11 @@ def summarize_value(
         value,
         np.ndarray,
     ):
-        value_str = f"NumPy array with {value.shape = } and dtype {value.dtype}"
+        value_str = f"NumPy array with {value.shape = } and {value.dtype = }."
+
+        # If the array is one-dimensional, also compute the mean and standard deviation
+        if len(value.shape) == 1:
+            value_str += f"\nnp.mean: {np.mean(a=value):.3f}; np.std: {np.std(a=value):.3f}"
     elif isinstance(
         value,
         pd.DataFrame,

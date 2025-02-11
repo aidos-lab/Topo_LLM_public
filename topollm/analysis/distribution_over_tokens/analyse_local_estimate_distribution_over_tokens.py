@@ -47,6 +47,11 @@ from topollm.logging.initialize_configuration_and_log import initialize_configur
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
 from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
+from topollm.plotting.line_plot_grouped_by_categorical_column import PlotSizeConfig
+from topollm.task_performance_analysis.plotting.distribution_violinplots_and_distribution_boxplots import (
+    TicksAndLabels,
+    make_distribution_violinplots_from_extracted_arrays,
+)
 from topollm.typing.enums import Verbosity
 
 if TYPE_CHECKING:
@@ -98,12 +103,6 @@ def main(
     # Load data
     # ================================================== #
 
-    # The following directory contains the precomputed local estimates.
-    # Logging of the directory is done in the function which iterates over the directories.
-    iteration_root_dir = pathlib.Path(
-        embeddings_path_manager.get_local_estimates_root_dir_absolute_path(),
-    )
-
     local_estimates_pointwise_dir_absolute_path = (
         embeddings_path_manager.get_local_estimates_pointwise_dir_absolute_path()
     )
@@ -121,6 +120,27 @@ def main(
         logger=logger,
     )
 
+    # # # #
+    # For reference, create the violin plots corresponding to this data
+
+    (
+        fig,
+        ax,
+    ) = make_distribution_violinplots_from_extracted_arrays(
+        extracted_arrays=[local_estimates_container.pointwise_results_array_np],
+        ticks_and_labels=TicksAndLabels(
+            xlabel="main_config.language_model.checkpoint_no",
+            ylabel="pointwise_results_array_np",
+            xticks_labels=[str(object=main_config.language_model.checkpoint_no)],
+        ),
+        plot_size_config=PlotSizeConfig(),
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+    fig.show()
+
+    # TODO: Implement the clustering in value space and analysis of the token distribution
     # TODO: Implement the code for the additional analyis
 
     logger.info(

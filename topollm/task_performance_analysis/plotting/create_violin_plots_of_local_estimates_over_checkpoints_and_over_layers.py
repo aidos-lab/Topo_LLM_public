@@ -30,11 +30,9 @@
 import itertools
 import logging
 import pathlib
-from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 import hydra
-import matplotlib.pyplot as plt
 import numpy as np
 import omegaconf
 from tqdm import tqdm
@@ -55,6 +53,11 @@ from topollm.path_management.embeddings.factory import get_embeddings_path_manag
 from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 from topollm.plotting.line_plot_grouped_by_categorical_column import (
     PlotSizeConfig,
+)
+from topollm.task_performance_analysis.plotting.distribution_violinplots_and_distribution_boxplots import (
+    TicksAndLabels,
+    make_distribution_boxplots_from_extracted_arrays,
+    make_distribution_violinplots_from_extracted_arrays,
 )
 from topollm.typing.enums import Verbosity
 
@@ -586,206 +589,6 @@ def create_distribution_plots_over_model_checkpoints(
                 verbosity=verbosity,
                 logger=logger,
             )
-
-
-@dataclass
-class TicksAndLabels:
-    """Container for ticks and labels."""
-
-    xlabel: str
-    ylabel: str
-    xticks_labels: list[str]
-
-
-def make_distribution_violinplots_from_extracted_arrays(
-    extracted_arrays: list[np.ndarray],
-    ticks_and_labels: TicksAndLabels,
-    fixed_params_text: str,
-    plots_output_dir: pathlib.Path,
-    plot_size_config: PlotSizeConfig,
-    verbosity: Verbosity = Verbosity.NORMAL,
-    logger: logging.Logger = default_logger,
-) -> None:
-    """Create a violin plot."""
-    (
-        fig,
-        ax,
-    ) = plt.subplots(
-        figsize=(
-            plot_size_config.output_pdf_width / 100,
-            plot_size_config.output_pdf_height / 100,
-        ),
-    )
-
-    # Plot violin plot
-    ax.violinplot(
-        dataset=extracted_arrays,
-        showmeans=True,
-        showmedians=True,
-    )
-    ax.set_title(
-        label="Violin plot",
-    )
-
-    # adding horizontal grid lines
-    ax.yaxis.grid(
-        visible=True,
-    )
-
-    # Use the model checkpoints to set the xticks
-    ax.set_xticks(
-        ticks=[y + 1 for y in range(len(extracted_arrays))],
-        labels=ticks_and_labels.xticks_labels,
-    )
-
-    ax.set_xlabel(
-        xlabel=ticks_and_labels.xlabel,
-    )
-    ax.set_ylabel(
-        ylabel=ticks_and_labels.ylabel,
-    )
-
-    # Set the y-axis limits
-    if plot_size_config.y_min is not None:
-        ax.set_ylim(
-            bottom=plot_size_config.y_min,
-        )
-    if plot_size_config.y_max is not None:
-        ax.set_ylim(
-            top=plot_size_config.y_max,
-        )
-
-    if fixed_params_text is not None:
-        ax.text(
-            x=1.05,
-            y=0.25,
-            s=f"Fixed Parameters:\n{fixed_params_text}",
-            transform=plt.gca().transAxes,
-            fontsize=6,
-            verticalalignment="top",
-            bbox={
-                "boxstyle": "round",
-                "facecolor": "wheat",
-                "alpha": 0.3,
-            },
-        )
-
-        # Saving the plot
-    plot_name: str = f"violinplot_{plot_size_config.y_min}_{plot_size_config.y_max}"
-    plot_output_path: pathlib.Path = pathlib.Path(
-        plots_output_dir,
-        f"{plot_name}.pdf",
-    )
-    plot_output_path.parent.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            msg=f"Saving plot to {plot_output_path = } ...",  # noqa: G004 - low overhead
-        )
-    fig.savefig(
-        fname=plot_output_path,
-        bbox_inches="tight",
-    )
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            msg=f"Saving plot to {plot_output_path = } DONE",  # noqa: G004 - low overhead
-        )
-
-
-def make_distribution_boxplots_from_extracted_arrays(
-    extracted_arrays: list[np.ndarray],
-    ticks_and_labels: TicksAndLabels,
-    fixed_params_text: str,
-    plots_output_dir: pathlib.Path,
-    plot_size_config: PlotSizeConfig,
-    verbosity: Verbosity = Verbosity.NORMAL,
-    logger: logging.Logger = default_logger,
-) -> None:
-    """Create a boxplot."""
-    (
-        fig,
-        ax,
-    ) = plt.subplots(
-        figsize=(
-            plot_size_config.output_pdf_width / 100,
-            plot_size_config.output_pdf_height / 100,
-        ),
-    )
-
-    # Plot box plot
-    ax.boxplot(
-        x=extracted_arrays,
-    )
-    ax.set_title(
-        label="Box plot",
-    )
-
-    # adding horizontal grid lines
-    ax.yaxis.grid(
-        visible=True,
-    )
-
-    # Use the model checkpoints to set the xticks
-    ax.set_xticks(
-        ticks=[y + 1 for y in range(len(extracted_arrays))],
-        labels=ticks_and_labels.xticks_labels,
-    )
-
-    ax.set_xlabel(
-        xlabel=ticks_and_labels.xlabel,
-    )
-    ax.set_ylabel(
-        ylabel=ticks_and_labels.ylabel,
-    )
-
-    # Set the y-axis limits
-    if plot_size_config.y_min is not None:
-        ax.set_ylim(
-            bottom=plot_size_config.y_min,
-        )
-    if plot_size_config.y_max is not None:
-        ax.set_ylim(
-            top=plot_size_config.y_max,
-        )
-
-    if fixed_params_text is not None:
-        ax.text(
-            x=1.05,
-            y=0.25,
-            s=f"Fixed Parameters:\n{fixed_params_text}",
-            transform=plt.gca().transAxes,
-            fontsize=6,
-            verticalalignment="top",
-            bbox={
-                "boxstyle": "round",
-                "facecolor": "wheat",
-                "alpha": 0.3,
-            },
-        )
-
-    plot_name: str = f"boxplot_{plot_size_config.y_min}_{plot_size_config.y_max}"
-    plot_output_path: pathlib.Path = pathlib.Path(
-        plots_output_dir,
-        f"{plot_name}.pdf",
-    )
-    plot_output_path.parent.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            msg=f"Saving plot to {plot_output_path = } ...",  # noqa: G004 - low overhead
-        )
-    fig.savefig(
-        fname=plot_output_path,
-        bbox_inches="tight",
-    )
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            msg=f"Saving plot to {plot_output_path = } DONE",  # noqa: G004 - low overhead
-        )
 
 
 if __name__ == "__main__":
