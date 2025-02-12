@@ -187,6 +187,10 @@ def main(
     plot_cluster_distribution(
         clustered_df=clustered_results_df,
         plot_size_config=plot_size_config,
+        plots_output_dir=output_root_dir,
+        bins=150,
+        verbosity=verbosity,
+        logger=logger,
     )
 
     save_cluster_data(
@@ -340,7 +344,10 @@ def save_cluster_data(
 def plot_cluster_distribution(
     clustered_df: pd.DataFrame,
     plot_size_config: PlotSizeConfig,
+    plots_output_dir: pathlib.Path | None = None,
     bins: int = 100,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
 ) -> tuple:
     """Plot the cluster distribution and highlight mean values."""
     (
@@ -404,7 +411,29 @@ def plot_cluster_distribution(
             top=plot_size_config.y_max,
         )
 
-    # TODO: Save the plot to disk
+    # Saving the plot
+    if plots_output_dir is not None:
+        plot_name: str = f"histogram_cluster_distribution_{plot_size_config.y_min}_{plot_size_config.y_max}"
+        plot_output_path: pathlib.Path = pathlib.Path(
+            plots_output_dir,
+            f"{plot_name}.pdf",
+        )
+        plot_output_path.parent.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"Saving plot to {plot_output_path = } ...",  # noqa: G004 - low overhead
+            )
+        fig.savefig(
+            fname=plot_output_path,
+            bbox_inches="tight",
+        )
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"Saving plot to {plot_output_path = } DONE",  # noqa: G004 - low overhead
+            )
 
     return fig, ax
 
