@@ -400,6 +400,9 @@ def plot_cluster_distribution(
     bins: int = 100,
     num_sample_tokens: int | None = 20,
     random_state: int = 42,
+    *,
+    plot_extremal_tokens: bool = True,
+    num_most_frequent_tokens: int | None = 5,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> tuple:
@@ -429,19 +432,20 @@ def plot_cluster_distribution(
     for i, cluster_id in enumerate(
         iterable=sorted(clustered_df["cluster"].unique()),
     ):
-        cluster_data: pd.Series = clustered_df[clustered_df["cluster"] == cluster_id][ESTIMATE_VALUE_COLUMN_NAME]
+        cluster_data: pd.Series = clustered_df[clustered_df["cluster"] == cluster_id]
         ax.hist(
-            x=cluster_data,
+            x=cluster_data[ESTIMATE_VALUE_COLUMN_NAME],
             bins=bin_edges,  # type: ignore - typing problem with numpy
             alpha=0.5,
             label=f"Cluster {cluster_id = }",
             color=palette[i],
         )
-        mean_value: float = cluster_data.mean()
+        mean_value: float = cluster_data[ESTIMATE_VALUE_COLUMN_NAME].mean()
+        std_value: float = cluster_data[ESTIMATE_VALUE_COLUMN_NAME].std()
         ax.axvline(
             x=mean_value,
             linestyle="dashed",
-            label=f"Cluster {cluster_id = } Mean ({mean_value:.2f})",
+            label=f"Cluster {cluster_id = } Mean ({mean_value:.2f}±{std_value:.2f})",
             linewidth=2,
             color=palette[i],
         )
@@ -473,6 +477,75 @@ def plot_cluster_distribution(
                     alpha=1.0,
                 )
 
+        if num_most_frequent_tokens is not None:
+            # Compute the most common tokens in each cluster and their mean/std estimates
+            token_counts = Counter(cluster_data["token_name"])
+            common_tokens = token_counts.most_common(5)
+            token_summary = []
+            for token, count in common_tokens:
+                token_estimates = cluster_data[cluster_data["token_name"] == token][ESTIMATE_VALUE_COLUMN_NAME]
+                token_mean = token_estimates.mean()
+                token_std = token_estimates.std()
+                token_summary.append(f"{token} ({count})\n{token_mean:.2f}±{token_std:.2f}")
+            summary_text = "\n".join(token_summary)
+
+            # Add a transparent box with the common tokens near the cluster mean
+            plt.text(
+                mean_value,
+                plt.ylim()[1] * 0.9,
+                summary_text,
+                fontsize=10,
+                bbox={"facecolor": palette[i], "alpha": 0.3, "edgecolor": "black"},
+                ha="center",
+            )
+
+        if plot_extremal_tokens:
+            # # # #
+            # Find min and max tokens for each cluster and annotate at the top
+            min_row = (
+                clustered_df[clustered_df["cluster"] == cluster_id]
+                .nsmallest(
+                    1,
+                    "estimate_value",
+                )
+                .iloc[0]
+            )
+            max_row = (
+                clustered_df[clustered_df["cluster"] == cluster_id]
+                .nlargest(
+                    1,
+                    "estimate_value",
+                )
+                .iloc[0]
+            )
+
+            extremal_tokens_y_coordinate = 0.9 * plot_size_config.y_max if plot_size_config.y_max is not None else 1_800
+            # Use a small offset in the x-coordinate, so that adjacent extremal values from the clusters do not overlap.
+            x_coordinate_offset: float = 0.07
+
+            plt.text(
+                x=min_row[ESTIMATE_VALUE_COLUMN_NAME] + x_coordinate_offset,
+                y=extremal_tokens_y_coordinate,
+                s=f"Min: {min_row['token_name']} ({min_row[ESTIMATE_VALUE_COLUMN_NAME]:.2f})",
+                rotation=90,
+                verticalalignment="top",
+                fontsize=10,
+                color=palette[i],
+                fontweight="bold",
+            )
+            plt.text(
+                x=max_row[ESTIMATE_VALUE_COLUMN_NAME] - x_coordinate_offset,
+                y=extremal_tokens_y_coordinate,
+                s=f"Max: {max_row['token_name']} ({max_row[ESTIMATE_VALUE_COLUMN_NAME]:.2f})",
+                rotation=90,
+                verticalalignment="top",
+                fontsize=10,
+                color=palette[i],
+                fontweight="bold",
+            )
+
+    # # # #
+    # General plot setup
     ax.set_title(
         label="Clustering of Local Estimates Values",
     )
@@ -505,6 +578,7 @@ def plot_cluster_distribution(
             top=plot_size_config.y_max,
         )
 
+    # # # #
     # Saving the plot
     if plots_output_dir is not None:
         plot_name: str = (
