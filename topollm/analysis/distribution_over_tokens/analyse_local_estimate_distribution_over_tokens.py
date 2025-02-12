@@ -31,6 +31,7 @@ import itertools
 import json
 import logging
 import pathlib
+import pprint
 from collections import Counter
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
@@ -40,6 +41,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import omegaconf
 import pandas as pd
+import seaborn as sns
 from sklearn.cluster import KMeans
 from tqdm import tqdm
 
@@ -72,6 +74,8 @@ default_logger: logging.Logger = logging.getLogger(
 setup_exception_logging(
     logger=global_logger,
 )
+
+ESTIMATE_VALUE_COLUMN_NAME = "estimate_value"
 
 
 @hydra.main(
@@ -150,6 +154,8 @@ def main(
     # For reference, create the violin plot corresponding to this data
     # ================================================== #
 
+    plot_size_config = PlotSizeConfig()
+
     (
         fig,
         ax,
@@ -161,7 +167,7 @@ def main(
             xticks_labels=[str(object=main_config.language_model.checkpoint_no)],
         ),
         plots_output_dir=output_root_dir,
-        plot_size_config=PlotSizeConfig(),
+        plot_size_config=plot_size_config,
         verbosity=verbosity,
         logger=logger,
     )
@@ -180,6 +186,7 @@ def main(
     # Plot cluster distribution
     plot_cluster_distribution(
         clustered_df=clustered_results_df,
+        plot_size_config=plot_size_config,
     )
 
     save_cluster_data(
@@ -244,7 +251,7 @@ def cluster_based_on_estimates(
     )
 
     clustered_df: pd.DataFrame = meta_frame.copy()
-    clustered_df["estimate_value"] = estimates_array
+    clustered_df[ESTIMATE_VALUE_COLUMN_NAME] = estimates_array
     clustered_df["cluster"] = cluster_labels
 
     return clustered_df
@@ -257,7 +264,7 @@ def get_cluster_statistics(
     cluster_stats: dict = {}
 
     for cluster_id in sorted(clustered_df["cluster"].unique()):
-        cluster_data = clustered_df[clustered_df["cluster"] == cluster_id]["estimate_value"]
+        cluster_data = clustered_df[clustered_df["cluster"] == cluster_id][ESTIMATE_VALUE_COLUMN_NAME]
         cluster_stats[f"{cluster_id=}"] = {
             "min": cluster_data.min(),
             "max": cluster_data.max(),
@@ -267,6 +274,8 @@ def get_cluster_statistics(
             "q25": cluster_data.quantile(0.25),
             "q50": cluster_data.quantile(0.50),
             "q75": cluster_data.quantile(0.75),
+            # Number of tokens in the cluster
+            "num": len(cluster_data),
         }
 
     return cluster_stats
@@ -294,6 +303,10 @@ def save_cluster_data(
             clustered_df=clustered_df,
             top_n=top_n,
         ),
+        "extreme_estimate_tokens": get_tokens_with_extreme_estimate_value(
+            clustered_df=clustered_df,
+            num_samples=num_samples,
+        ),
     }
 
     save_file_path = pathlib.Path(
@@ -318,33 +331,82 @@ def save_cluster_data(
             msg=f"Saving cluster data to {save_file_path = } DONE",  # noqa: G004 - low overhead
         )
 
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"data_to_save:\n{pprint.pformat(data_to_save)}",  # noqa: G004 - low overhead
+        )
+
 
 def plot_cluster_distribution(
     clustered_df: pd.DataFrame,
-) -> None:
+    plot_size_config: PlotSizeConfig,
+    bins: int = 100,
+) -> tuple:
     """Plot the cluster distribution and highlight mean values."""
-    plt.figure(figsize=(10, 6))
-    plt.hist(
-        x=clustered_df["estimate_value"],
-        bins=50,
-        alpha=0.7,
-        label="Estimate Distribution",
-        color="blue",
+    (
+        fig,
+        ax,
+    ) = plt.subplots(
+        figsize=(
+            plot_size_config.output_pdf_width / 100,
+            plot_size_config.output_pdf_height / 100,
+        ),
     )
-    for cluster_id in sorted(clustered_df["cluster"].unique()):
-        mean_value = clustered_df[clustered_df["cluster"] == cluster_id]["estimate_value"].mean()
-        plt.axvline(
-            mean_value,
+    palette = sns.color_palette(
+        palette="husl",
+        n_colors=len(clustered_df["cluster"].unique()),
+    )
+
+    # Define common bins for all histograms
+    all_values = clustered_df["estimate_value"].to_numpy()
+    bin_edges = np.histogram_bin_edges(
+        a=all_values,  # type: ignore - typing problem with numpy
+        bins=bins,
+    )
+
+    for i, cluster_id in enumerate(sorted(clustered_df["cluster"].unique())):
+        cluster_data: pd.Series = clustered_df[clustered_df["cluster"] == cluster_id]["estimate_value"]
+        ax.hist(
+            x=cluster_data,
+            bins=bin_edges,  # type: ignore - typing problem with numpy
+            alpha=0.5,
+            label=f"Cluster {cluster_id = }",
+            color=palette[i],
+        )
+        mean_value: float = cluster_data.mean()
+        ax.axvline(
+            x=mean_value,
             linestyle="dashed",
-            label=f"Cluster {cluster_id} Mean ({mean_value:.2f})",
+            label=f"Cluster {cluster_id = } Mean ({mean_value:.2f})",
             linewidth=2,
+            color=palette[i],
         )
 
-    plt.xlabel(xlabel="Local Estimate Values")
-    plt.ylabel(ylabel="Frequency")
-    plt.title(label="Clustering of Local Estimates Values")
-    plt.legend()
-    plt.show()
+    ax.set_title(
+        label="Clustering of Local Estimates Values",
+    )
+    ax.legend()
+
+    ax.set_xlabel(
+        xlabel="Local Estimate Values",
+    )
+    ax.set_ylabel(
+        ylabel="Frequency",
+    )
+
+    # Set the y-axis limits
+    if plot_size_config.y_min is not None:
+        ax.set_ylim(
+            bottom=plot_size_config.y_min,
+        )
+    if plot_size_config.y_max is not None:
+        ax.set_ylim(
+            top=plot_size_config.y_max,
+        )
+
+    # TODO: Save the plot to disk
+
+    return fig, ax
 
 
 def get_example_tokens(
@@ -360,7 +422,7 @@ def get_example_tokens(
             .sample(num_samples, random_state=42)
             .tolist()
         )
-        example_tokens[f"Cluster {cluster_id} Tokens"] = sample_tokens
+        example_tokens[f"{cluster_id = } Randomly Sampled Tokens"] = sample_tokens
 
     return example_tokens
 
@@ -376,11 +438,63 @@ def get_most_frequent_tokens(
         token_counts = Counter(
             clustered_df[clustered_df["cluster"] == cluster_id]["token_name"],
         )
-        most_frequent_tokens[f"{cluster_id = } Frequent Tokens"] = token_counts.most_common(
+        most_frequent_tokens[f"{cluster_id = } Most Frequent Tokens"] = token_counts.most_common(
             n=top_n,
         )
 
+    # TODO: Include statistics of estimate over each token (e.g., the mean of the estimates over each token and std)
+
     return most_frequent_tokens
+
+
+def get_tokens_with_extreme_estimate_value(
+    clustered_df: pd.DataFrame,
+    num_samples: int = 10,
+    columns_to_save: list | None = None,
+) -> dict:
+    """Find tokens with extreme estimate values.
+
+    For each cluster, find the tokens with the lowest and highest estimate values,
+    and return them together with the estimate values in a dictionary.
+    """
+    if columns_to_save is None:
+        columns_to_save = [
+            "token_id",
+            "sentence_idx",
+            "subsample_idx",
+            "token_name",
+            # "tokens_list",
+            "concatenated_tokens",
+        ]
+
+    extreme_estimate_tokens: dict = {}
+
+    for cluster_id in sorted(clustered_df["cluster"].unique()):
+        cluster_data: pd.DataFrame = clustered_df[clustered_df["cluster"] == cluster_id]
+        extreme_estimate_tokens[f"{cluster_id = } Lowest Estimate Tokens"] = cluster_data.nsmallest(
+            num_samples,
+            ESTIMATE_VALUE_COLUMN_NAME,
+        )[
+            [
+                *columns_to_save,
+                ESTIMATE_VALUE_COLUMN_NAME,
+            ]
+        ].to_dict(
+            orient="records",
+        )
+        extreme_estimate_tokens[f"{cluster_id = } Highest Estimate Tokens"] = cluster_data.nlargest(
+            num_samples,
+            ESTIMATE_VALUE_COLUMN_NAME,
+        )[
+            [
+                *columns_to_save,
+                ESTIMATE_VALUE_COLUMN_NAME,
+            ]
+        ].to_dict(
+            orient="records",
+        )
+
+    return extreme_estimate_tokens
 
 
 if __name__ == "__main__":
