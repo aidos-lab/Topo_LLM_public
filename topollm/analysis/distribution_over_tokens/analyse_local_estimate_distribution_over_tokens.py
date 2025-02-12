@@ -154,29 +154,37 @@ def main(
     # For reference, create the violin plot corresponding to this data
     # ================================================== #
 
-    plot_size_config = PlotSizeConfig()
-    random_state = 42
-
-    (
-        fig,
-        ax,
-    ) = make_distribution_violinplots_from_extracted_arrays(
-        extracted_arrays=[local_estimates_container.pointwise_results_array_np],
-        ticks_and_labels=TicksAndLabels(
-            xlabel="main_config.language_model.checkpoint_no",
-            ylabel="pointwise_results_array_np",
-            xticks_labels=[str(object=main_config.language_model.checkpoint_no)],
+    # For the violin plots, the local estimates values are plotted on the y-axis
+    plot_size_config_violinplot_choices = [
+        PlotSizeConfig(),
+        PlotSizeConfig(
+            y_min=0,
+            y_max=15,
         ),
-        plots_output_dir=output_root_dir,
-        plot_size_config=plot_size_config,
-        verbosity=verbosity,
-        logger=logger,
-    )
+    ]
+
+    for plot_size_config_violinplot in plot_size_config_violinplot_choices:
+        (
+            fig,
+            ax,
+        ) = make_distribution_violinplots_from_extracted_arrays(
+            extracted_arrays=[local_estimates_container.pointwise_results_array_np],
+            ticks_and_labels=TicksAndLabels(
+                xlabel="main_config.language_model.checkpoint_no",
+                ylabel="pointwise_results_array_np",
+                xticks_labels=[str(object=main_config.language_model.checkpoint_no)],
+            ),
+            plots_output_dir=output_root_dir,
+            plot_size_config=plot_size_config_violinplot,
+            verbosity=verbosity,
+            logger=logger,
+        )
 
     # ================================================== #
     # Find peaks in the local estimates distribution
     # ================================================== #
 
+    random_state = 42
     # TODO: Iterate over different num_clusters
 
     # Run clustering on the synthetic data
@@ -187,17 +195,32 @@ def main(
         random_state=random_state,
     )
 
-    # Plot cluster distribution
-    plot_cluster_distribution(
-        clustered_df=clustered_results_df,
-        plot_size_config=plot_size_config,
-        plots_output_dir=output_root_dir,
-        bins=150,
-        num_sample_tokens=40,
-        random_state=random_state,
-        verbosity=verbosity,
-        logger=logger,
-    )
+    # # # #
+    # Plot the cluster distribution.
+
+    # For the histograms, the local estimate values are on the x-axis,
+    # and the frequency on the y-axis.
+    plot_size_config_cluster_distribution_choices = [
+        PlotSizeConfig(),  # Set axis limits automatically
+        PlotSizeConfig(
+            x_min=0.0,
+            x_max=15.0,
+            y_min=0,
+            y_max=7_000,
+        ),
+    ]
+
+    for plot_size_config_cluster_distribution in plot_size_config_cluster_distribution_choices:
+        plot_cluster_distribution(
+            clustered_df=clustered_results_df,
+            plot_size_config=plot_size_config_cluster_distribution,
+            plots_output_dir=output_root_dir,
+            bins=150,
+            num_sample_tokens=40,
+            random_state=random_state,
+            verbosity=verbosity,
+            logger=logger,
+        )
 
     save_cluster_data(
         clustered_df=clustered_results_df,
@@ -438,6 +461,16 @@ def plot_cluster_distribution(
         ylabel="Frequency",
     )
 
+    # Set the x-axis limits
+    if plot_size_config.x_min is not None:
+        ax.set_xlim(
+            left=plot_size_config.x_min,
+        )
+    if plot_size_config.x_max is not None:
+        ax.set_xlim(
+            right=plot_size_config.x_max,
+        )
+
     # Set the y-axis limits
     if plot_size_config.y_min is not None:
         ax.set_ylim(
@@ -450,7 +483,11 @@ def plot_cluster_distribution(
 
     # Saving the plot
     if plots_output_dir is not None:
-        plot_name: str = f"histogram_cluster_distribution_{plot_size_config.y_min}_{plot_size_config.y_max}"
+        plot_name: str = (
+            f"histogram_cluster_distribution"
+            f"_x_min={plot_size_config.x_min}_x_max={plot_size_config.x_max}"
+            f"_y_min={plot_size_config.y_min}_y_max={plot_size_config.y_max}"
+        )
         plot_output_path: pathlib.Path = pathlib.Path(
             plots_output_dir,
             f"{plot_name}.pdf",

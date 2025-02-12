@@ -1999,9 +1999,9 @@
                 //
                 "language_model=roberta-base-setsumbt_multiwoz21",
                 "language_model.seed=0",
+                // "language_model.checkpoint_no=2813",
+                "language_model.checkpoint_no=2813,5626,8439,11252,14065,16878,19691,25317,33756,36569,39382,42195,50634,56260,70325,90016,109707,115333,126585", // <-- locally, we have metadata and local estimates for these checkpoints available for "language_model.seed=0"
                 // "language_model.seed=1",
-                "language_model.checkpoint_no=2813",
-                // "language_model.checkpoint_no=2813,5626,8439", // <-- locally, we have these checkpoints available for "language_model.seed=0"
                 // "language_model.checkpoint_no=109707", // <-- locally, we have these checkpoints available for "language_model.seed=1"
                 //
                 //    >> END: Model options.
