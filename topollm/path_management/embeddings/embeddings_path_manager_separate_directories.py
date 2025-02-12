@@ -70,7 +70,7 @@ class EmbeddingsPathManagerSeparateDirectories:
 
         return path
 
-    def get_nested_subfolder_path(
+    def get_data_embeddings_tokenizer_language_model_embedding_extraction_transformations_path(
         self,
     ) -> pathlib.Path:
         """Construct a nested subfolder path based on specific attributes.
@@ -149,7 +149,7 @@ class EmbeddingsPathManagerSeparateDirectories:
         path = pathlib.Path(
             "embeddings",
             "arrays",
-            self.get_nested_subfolder_path(),
+            self.get_data_embeddings_tokenizer_language_model_embedding_extraction_transformations_path(),
             self.array_dir_name,
         )
 
@@ -188,7 +188,7 @@ class EmbeddingsPathManagerSeparateDirectories:
         path = pathlib.Path(
             "embeddings",
             "metadata",
-            self.get_nested_subfolder_path(),
+            self.get_data_embeddings_tokenizer_language_model_embedding_extraction_transformations_path(),
             self.metadata_dir_name,
         )
 
@@ -227,7 +227,7 @@ class EmbeddingsPathManagerSeparateDirectories:
         path = pathlib.Path(
             "embeddings",
             "perplexity",
-            self.get_nested_subfolder_path(),
+            self.get_data_embeddings_tokenizer_language_model_embedding_extraction_transformations_path(),
             self.perplexity_dir_name,
         )
 
@@ -264,7 +264,7 @@ class EmbeddingsPathManagerSeparateDirectories:
         path = pathlib.Path(
             self.analysis_dir,
             "prepared",
-            self.get_nested_subfolder_path(),
+            self.get_data_embeddings_tokenizer_language_model_embedding_extraction_transformations_path(),
             self.main_config.embeddings_data_prep.config_description,
         )
 
@@ -325,7 +325,7 @@ class EmbeddingsPathManagerSeparateDirectories:
         is part of the local estimates config description.
         """
         path = pathlib.Path(
-            self.get_nested_subfolder_path(),
+            self.get_data_embeddings_tokenizer_language_model_embedding_extraction_transformations_path(),
             self.main_config.embeddings_data_prep.config_description,
             self.main_config.local_estimates.config_description,
         )
@@ -638,7 +638,7 @@ def get_perplexity_container_save_file_name(
         case PerplexityContainerSaveFormat.CONCATENATED_ARRAY_AS_ZARR:
             file_name = "token_perplexities_array.zarr"
         case _:
-            msg = f"Unsupported {perplexity_container_save_format = }."
+            msg: str = f"Unsupported {perplexity_container_save_format = }."
             raise ValueError(msg)
 
     return file_name

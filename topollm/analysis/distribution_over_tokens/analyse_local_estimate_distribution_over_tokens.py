@@ -28,8 +28,10 @@
 """Create plots of the local estimates and compare with other task performance measures."""
 
 import itertools
+import json
 import logging
 import pathlib
+from collections import Counter
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -37,6 +39,8 @@ import hydra
 import matplotlib.pyplot as plt
 import numpy as np
 import omegaconf
+import pandas as pd
+from sklearn.cluster import KMeans
 from tqdm import tqdm
 
 from topollm.analysis.local_estimates_handling.saving.local_estimates_containers import LocalEstimatesContainer
@@ -100,6 +104,22 @@ def main(
     )
 
     # ================================================== #
+    # Output folders
+    # ================================================== #
+
+    # We will locate the output of this script nested under the saved plots directory,
+    # into a subfolder derived from the local estimates subfolder.
+    output_root_dir: pathlib.Path = pathlib.Path(
+        embeddings_path_manager.saved_plots_dir_absolute_path,
+        "local_estimates_distribution_over_tokens",
+        embeddings_path_manager.get_local_estimates_subfolder_path(),
+    )
+    output_root_dir.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    # ================================================== #
     # Load data
     # ================================================== #
 
@@ -120,8 +140,15 @@ def main(
         logger=logger,
     )
 
-    # # # #
-    # For reference, create the violin plots corresponding to this data
+    if local_estimates_container.pointwise_results_meta_frame is None:
+        msg = "No metadata for the pointwise results available."
+        raise ValueError(
+            msg,
+        )
+
+    # ================================================== #
+    # For reference, create the violin plot corresponding to this data
+    # ================================================== #
 
     (
         fig,
@@ -133,19 +160,227 @@ def main(
             ylabel="pointwise_results_array_np",
             xticks_labels=[str(object=main_config.language_model.checkpoint_no)],
         ),
+        plots_output_dir=output_root_dir,
         plot_size_config=PlotSizeConfig(),
         verbosity=verbosity,
         logger=logger,
     )
 
-    fig.show()
+    # ================================================== #
+    # Find peaks in the local estimates distribution
+    # ================================================== #
 
-    # TODO: Implement the clustering in value space and analysis of the token distribution
+    # Run clustering on the synthetic data
+    clustered_results_df: pd.DataFrame = cluster_based_on_estimates(
+        meta_frame=local_estimates_container.pointwise_results_meta_frame,
+        estimates_array=local_estimates_container.pointwise_results_array_np,
+        num_clusters=3,
+    )
+
+    # Plot cluster distribution
+    plot_cluster_distribution(
+        clustered_df=clustered_results_df,
+    )
+
+    save_cluster_data(
+        clustered_df=clustered_results_df,
+        output_dir=output_root_dir,
+        num_samples=50,
+        top_n=30,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+    # Retrieve example tokens
+    example_tokens: dict = get_example_tokens(
+        clustered_df=clustered_results_df,
+    )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg="Example tokens per cluster:",
+        )
+        for cluster, tokens in example_tokens.items():
+            logger.info(
+                msg=f"{cluster}: {tokens}",  # noqa: G004 - low overhead
+            )
+
+    # Retrieve most frequent tokens
+    most_frequent_tokens: dict = get_most_frequent_tokens(
+        clustered_df=clustered_results_df,
+    )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg="Most frequent tokens per cluster:",
+        )
+        for cluster, tokens in most_frequent_tokens.items():
+            logger.info(
+                msg=f"{cluster}: {tokens}",  # noqa: G004 - low overhead
+            )
+
     # TODO: Implement the code for the additional analyis
 
     logger.info(
         msg="Running script DONE",
     )
+
+
+def cluster_based_on_estimates(
+    meta_frame: pd.DataFrame,
+    estimates_array: np.ndarray,
+    num_clusters: int = 3,
+) -> pd.DataFrame:
+    """Clusters the local estimates into distinct groups and associates tokens with each cluster."""
+    estimates_reshaped = estimates_array.reshape(-1, 1)
+
+    kmeans = KMeans(
+        n_clusters=num_clusters,
+        random_state=42,
+        n_init=10,
+    )
+    cluster_labels: np.ndarray = kmeans.fit_predict(
+        X=estimates_reshaped,
+    )
+
+    clustered_df: pd.DataFrame = meta_frame.copy()
+    clustered_df["estimate_value"] = estimates_array
+    clustered_df["cluster"] = cluster_labels
+
+    return clustered_df
+
+
+def get_cluster_statistics(
+    clustered_df: pd.DataFrame,
+) -> dict:
+    """Compute summary statistics for each cluster."""
+    cluster_stats: dict = {}
+
+    for cluster_id in sorted(clustered_df["cluster"].unique()):
+        cluster_data = clustered_df[clustered_df["cluster"] == cluster_id]["estimate_value"]
+        cluster_stats[f"{cluster_id=}"] = {
+            "min": cluster_data.min(),
+            "max": cluster_data.max(),
+            "mean": cluster_data.mean(),
+            "std": cluster_data.std(),
+            # Information about the quantiles
+            "q25": cluster_data.quantile(0.25),
+            "q50": cluster_data.quantile(0.50),
+            "q75": cluster_data.quantile(0.75),
+        }
+
+    return cluster_stats
+
+
+def save_cluster_data(
+    clustered_df: pd.DataFrame,
+    output_dir: pathlib.Path,
+    filename: str = "cluster_data.json",
+    num_samples: int = 50,
+    top_n: int = 30,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
+    """Save cluster statistics, example tokens, and frequent tokens to a JSON file."""
+    data_to_save: dict[str, dict] = {
+        "cluster_statistics": get_cluster_statistics(
+            clustered_df=clustered_df,
+        ),
+        "example_tokens": get_example_tokens(
+            clustered_df=clustered_df,
+            num_samples=num_samples,
+        ),
+        "most_frequent_tokens": get_most_frequent_tokens(
+            clustered_df=clustered_df,
+            top_n=top_n,
+        ),
+    }
+
+    save_file_path = pathlib.Path(
+        output_dir,
+        filename,
+    )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Saving cluster data to {save_file_path = } ...",  # noqa: G004 - low overhead
+        )
+    with save_file_path.open(
+        mode="w",
+    ) as f:
+        json.dump(
+            obj=data_to_save,
+            fp=f,
+            indent=4,
+        )
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Saving cluster data to {save_file_path = } DONE",  # noqa: G004 - low overhead
+        )
+
+
+def plot_cluster_distribution(
+    clustered_df: pd.DataFrame,
+) -> None:
+    """Plot the cluster distribution and highlight mean values."""
+    plt.figure(figsize=(10, 6))
+    plt.hist(
+        x=clustered_df["estimate_value"],
+        bins=50,
+        alpha=0.7,
+        label="Estimate Distribution",
+        color="blue",
+    )
+    for cluster_id in sorted(clustered_df["cluster"].unique()):
+        mean_value = clustered_df[clustered_df["cluster"] == cluster_id]["estimate_value"].mean()
+        plt.axvline(
+            mean_value,
+            linestyle="dashed",
+            label=f"Cluster {cluster_id} Mean ({mean_value:.2f})",
+            linewidth=2,
+        )
+
+    plt.xlabel(xlabel="Local Estimate Values")
+    plt.ylabel(ylabel="Frequency")
+    plt.title(label="Clustering of Local Estimates Values")
+    plt.legend()
+    plt.show()
+
+
+def get_example_tokens(
+    clustered_df: pd.DataFrame,
+    num_samples: int = 10,
+) -> dict:
+    """Retrieve example tokens from each cluster."""
+    example_tokens = {}
+
+    for cluster_id in sorted(clustered_df["cluster"].unique()):
+        sample_tokens = (
+            clustered_df[clustered_df["cluster"] == cluster_id]["token_name"]
+            .sample(num_samples, random_state=42)
+            .tolist()
+        )
+        example_tokens[f"Cluster {cluster_id} Tokens"] = sample_tokens
+
+    return example_tokens
+
+
+def get_most_frequent_tokens(
+    clustered_df: pd.DataFrame,
+    top_n: int = 10,
+) -> dict:
+    """Find the most frequent tokens per cluster."""
+    most_frequent_tokens: dict = {}
+
+    for cluster_id in sorted(clustered_df["cluster"].unique()):
+        token_counts = Counter(
+            clustered_df[clustered_df["cluster"] == cluster_id]["token_name"],
+        )
+        most_frequent_tokens[f"{cluster_id = } Frequent Tokens"] = token_counts.most_common(
+            n=top_n,
+        )
+
+    return most_frequent_tokens
 
 
 if __name__ == "__main__":
