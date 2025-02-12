@@ -155,6 +155,7 @@ def main(
     # ================================================== #
 
     plot_size_config = PlotSizeConfig()
+    random_state = 42
 
     (
         fig,
@@ -176,11 +177,14 @@ def main(
     # Find peaks in the local estimates distribution
     # ================================================== #
 
+    # TODO: Iterate over different num_clusters
+
     # Run clustering on the synthetic data
     clustered_results_df: pd.DataFrame = cluster_based_on_estimates(
         meta_frame=local_estimates_container.pointwise_results_meta_frame,
         estimates_array=local_estimates_container.pointwise_results_array_np,
         num_clusters=3,
+        random_state=random_state,
     )
 
     # Plot cluster distribution
@@ -189,6 +193,8 @@ def main(
         plot_size_config=plot_size_config,
         plots_output_dir=output_root_dir,
         bins=150,
+        num_sample_tokens=40,
+        random_state=random_state,
         verbosity=verbosity,
         logger=logger,
     )
@@ -198,13 +204,19 @@ def main(
         output_dir=output_root_dir,
         num_samples=50,
         top_n=30,
+        random_state=random_state,
         verbosity=verbosity,
         logger=logger,
     )
 
+    # ================================================== #
+    # Additional manual logging of the token distribution
+    # ================================================== #
+
     # Retrieve example tokens
     example_tokens: dict = get_example_tokens(
         clustered_df=clustered_results_df,
+        random_state=random_state,
     )
 
     if verbosity >= Verbosity.NORMAL:
@@ -230,8 +242,6 @@ def main(
                 msg=f"{cluster}: {tokens}",  # noqa: G004 - low overhead
             )
 
-    # TODO: Implement the code for the additional analyis
-
     logger.info(
         msg="Running script DONE",
     )
@@ -241,13 +251,14 @@ def cluster_based_on_estimates(
     meta_frame: pd.DataFrame,
     estimates_array: np.ndarray,
     num_clusters: int = 3,
+    random_state: int = 42,
 ) -> pd.DataFrame:
     """Clusters the local estimates into distinct groups and associates tokens with each cluster."""
     estimates_reshaped = estimates_array.reshape(-1, 1)
 
     kmeans = KMeans(
         n_clusters=num_clusters,
-        random_state=42,
+        random_state=random_state,
         n_init=10,
     )
     cluster_labels: np.ndarray = kmeans.fit_predict(
@@ -291,6 +302,7 @@ def save_cluster_data(
     filename: str = "cluster_data.json",
     num_samples: int = 50,
     top_n: int = 30,
+    random_state: int = 42,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> None:
@@ -302,6 +314,7 @@ def save_cluster_data(
         "example_tokens": get_example_tokens(
             clustered_df=clustered_df,
             num_samples=num_samples,
+            random_state=random_state,
         ),
         "most_frequent_tokens": get_most_frequent_tokens(
             clustered_df=clustered_df,
@@ -346,6 +359,8 @@ def plot_cluster_distribution(
     plot_size_config: PlotSizeConfig,
     plots_output_dir: pathlib.Path | None = None,
     bins: int = 100,
+    num_sample_tokens: int | None = 20,
+    random_state: int = 42,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> tuple:
@@ -371,8 +386,11 @@ def plot_cluster_distribution(
         bins=bins,
     )
 
-    for i, cluster_id in enumerate(sorted(clustered_df["cluster"].unique())):
-        cluster_data: pd.Series = clustered_df[clustered_df["cluster"] == cluster_id]["estimate_value"]
+    # Iterate over the clusters and plot the histograms
+    for i, cluster_id in enumerate(
+        iterable=sorted(clustered_df["cluster"].unique()),
+    ):
+        cluster_data: pd.Series = clustered_df[clustered_df["cluster"] == cluster_id][ESTIMATE_VALUE_COLUMN_NAME]
         ax.hist(
             x=cluster_data,
             bins=bin_edges,  # type: ignore - typing problem with numpy
@@ -388,6 +406,25 @@ def plot_cluster_distribution(
             linewidth=2,
             color=palette[i],
         )
+
+        if num_sample_tokens is not None:
+            # Sample tokens from each cluster and plot them with x-coordinates corresponding to the estimate values,
+            # and y-coordinates randomly jittered for better visibility.
+            sampled_tokens = clustered_df[clustered_df["cluster"] == cluster_id].sample(
+                num_sample_tokens,
+                random_state=random_state,
+            )
+            for _, row in sampled_tokens.iterrows():
+                plt.text(
+                    x=row[ESTIMATE_VALUE_COLUMN_NAME],
+                    y=np.random.uniform(low=50, high=1000),  # random jitter for better visibility
+                    s=row["token_name"],
+                    rotation=90,
+                    verticalalignment="bottom",
+                    fontsize=9,
+                    color=palette[i],
+                    alpha=1.0,
+                )
 
     ax.set_title(
         label="Clustering of Local Estimates Values",
@@ -441,6 +478,7 @@ def plot_cluster_distribution(
 def get_example_tokens(
     clustered_df: pd.DataFrame,
     num_samples: int = 10,
+    random_state: int = 42,
 ) -> dict:
     """Retrieve example tokens from each cluster."""
     example_tokens = {}
@@ -448,7 +486,10 @@ def get_example_tokens(
     for cluster_id in sorted(clustered_df["cluster"].unique()):
         sample_tokens = (
             clustered_df[clustered_df["cluster"] == cluster_id]["token_name"]
-            .sample(num_samples, random_state=42)
+            .sample(
+                num_samples,
+                random_state=random_state,
+            )
             .tolist()
         )
         example_tokens[f"{cluster_id = } Randomly Sampled Tokens"] = sample_tokens
