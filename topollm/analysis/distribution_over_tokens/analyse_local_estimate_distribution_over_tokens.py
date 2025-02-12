@@ -185,85 +185,101 @@ def main(
     # ================================================== #
 
     random_state = 42
-    # TODO: Iterate over different num_clusters
 
-    # Run clustering on the synthetic data
-    clustered_results_df: pd.DataFrame = cluster_based_on_estimates(
-        meta_frame=local_estimates_container.pointwise_results_meta_frame,
-        estimates_array=local_estimates_container.pointwise_results_array_np,
-        num_clusters=3,
-        random_state=random_state,
-    )
-
-    # # # #
-    # Plot the cluster distribution.
-
-    # For the histograms, the local estimate values are on the x-axis,
-    # and the frequency on the y-axis.
-    plot_size_config_cluster_distribution_choices = [
-        PlotSizeConfig(),  # Set axis limits automatically
-        PlotSizeConfig(
-            x_min=0.0,
-            x_max=15.0,
-            y_min=0,
-            y_max=7_000,
-        ),
+    num_clusters_options: list[int] = [
+        1,
+        2,
+        3,
+        5,
+        10,
     ]
 
-    for plot_size_config_cluster_distribution in plot_size_config_cluster_distribution_choices:
-        plot_cluster_distribution(
+    for num_clusters in tqdm(
+        iterable=num_clusters_options,
+        desc="Iterating over different number of clusters",
+    ):
+        current_output_dir: pathlib.Path = pathlib.Path(
+            output_root_dir,
+            f"{num_clusters=}",
+        )
+
+        # Run clustering on the synthetic data
+        clustered_results_df: pd.DataFrame = cluster_based_on_estimates(
+            meta_frame=local_estimates_container.pointwise_results_meta_frame,
+            estimates_array=local_estimates_container.pointwise_results_array_np,
+            num_clusters=num_clusters,
+            random_state=random_state,
+        )
+
+        # # # #
+        # Plot the cluster distribution.s
+
+        # For the histograms, the local estimate values are on the x-axis,
+        # and the frequency on the y-axis.
+        plot_size_config_cluster_distribution_choices = [
+            PlotSizeConfig(),  # Set axis limits automatically
+            PlotSizeConfig(
+                x_min=0.0,
+                x_max=15.0,
+                y_min=0,
+                y_max=7_000,
+            ),
+        ]
+
+        for plot_size_config_cluster_distribution in plot_size_config_cluster_distribution_choices:
+            plot_cluster_distribution(
+                clustered_df=clustered_results_df,
+                plot_size_config=plot_size_config_cluster_distribution,
+                plots_output_dir=current_output_dir,
+                bins=150,
+                num_sample_tokens=40,
+                random_state=random_state,
+                verbosity=verbosity,
+                logger=logger,
+            )
+
+        save_cluster_data(
             clustered_df=clustered_results_df,
-            plot_size_config=plot_size_config_cluster_distribution,
-            plots_output_dir=output_root_dir,
-            bins=150,
-            num_sample_tokens=40,
+            output_dir=current_output_dir,
+            num_samples=50,
+            top_n=30,
             random_state=random_state,
             verbosity=verbosity,
             logger=logger,
         )
 
-    save_cluster_data(
-        clustered_df=clustered_results_df,
-        output_dir=output_root_dir,
-        num_samples=50,
-        top_n=30,
-        random_state=random_state,
-        verbosity=verbosity,
-        logger=logger,
-    )
+        # ================================================== #
+        # Additional manual logging of the token distribution
+        # ================================================== #
 
-    # ================================================== #
-    # Additional manual logging of the token distribution
-    # ================================================== #
-
-    # Retrieve example tokens
-    example_tokens: dict = get_example_tokens(
-        clustered_df=clustered_results_df,
-        random_state=random_state,
-    )
-
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            msg="Example tokens per cluster:",
+        # Retrieve example tokens
+        example_tokens: dict = get_example_tokens(
+            clustered_df=clustered_results_df,
+            random_state=random_state,
         )
-        for cluster, tokens in example_tokens.items():
+
+        if verbosity >= Verbosity.NORMAL:
             logger.info(
-                msg=f"{cluster}: {tokens}",  # noqa: G004 - low overhead
+                msg="Example tokens per cluster:",
             )
+            for cluster, tokens in example_tokens.items():
+                logger.info(
+                    msg=f"{cluster}: {tokens}",  # noqa: G004 - low overhead
+                )
 
-    # Retrieve most frequent tokens
-    most_frequent_tokens: dict = get_most_frequent_tokens(
-        clustered_df=clustered_results_df,
-    )
-
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            msg="Most frequent tokens per cluster:",
+        # Retrieve most frequent tokens
+        most_frequent_tokens: dict = get_most_frequent_tokens(
+            clustered_df=clustered_results_df,
         )
-        for cluster, tokens in most_frequent_tokens.items():
+
+        if verbosity >= Verbosity.NORMAL:
             logger.info(
-                msg=f"{cluster}: {tokens}",  # noqa: G004 - low overhead
+                msg="Most frequent tokens per cluster:",
             )
+            for cluster, tokens in most_frequent_tokens.items():
+                logger.info(
+                    msg=f"{cluster}: {tokens}",  # noqa: G004 - low overhead
+                )
 
     logger.info(
         msg="Running script DONE",
@@ -437,10 +453,18 @@ def plot_cluster_distribution(
                 num_sample_tokens,
                 random_state=random_state,
             )
+            if plot_size_config.y_max is not None:
+                largest_y_coordinate_for_jitter: float = plot_size_config.y_max * 0.7
+            else:
+                largest_y_coordinate_for_jitter = 1_500
+
             for _, row in sampled_tokens.iterrows():
                 plt.text(
                     x=row[ESTIMATE_VALUE_COLUMN_NAME],
-                    y=np.random.uniform(low=50, high=1000),  # random jitter for better visibility
+                    y=np.random.uniform(
+                        low=50,
+                        high=largest_y_coordinate_for_jitter,
+                    ),  # random jitter for better visibility
                     s=row["token_name"],
                     rotation=90,
                     verticalalignment="bottom",
