@@ -37,11 +37,12 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 import hydra
-import matplotlib.pyplot as plt
+import matplotlib.axes
 import numpy as np
 import omegaconf
 import pandas as pd
 import seaborn as sns
+from matplotlib import pyplot as plt
 from sklearn.cluster import KMeans
 from tqdm import tqdm
 
@@ -435,117 +436,19 @@ def plot_cluster_distribution(
     for i, cluster_id in enumerate(
         iterable=sorted(clustered_df["cluster"].unique()),
     ):
-        cluster_data: pd.Series = clustered_df[clustered_df["cluster"] == cluster_id]
-        ax.hist(
-            x=cluster_data[ESTIMATE_VALUE_COLUMN_NAME],
-            bins=bin_edges,  # type: ignore - typing problem with numpy
-            alpha=0.5,
-            label=f"Cluster {cluster_id = }",
-            color=palette[i],
+        add_plot_for_single_cluster_id(
+            clustered_df=clustered_df,
+            i=i,
+            cluster_id=cluster_id,
+            ax=ax,
+            palette=palette,
+            plot_size_config=plot_size_config,
+            num_sample_tokens=num_sample_tokens,
+            num_most_frequent_tokens=num_most_frequent_tokens,
+            random_state=random_state,
+            bin_edges=bin_edges,
+            plot_extremal_tokens=plot_extremal_tokens,
         )
-        mean_value: float = cluster_data[ESTIMATE_VALUE_COLUMN_NAME].mean()
-        std_value: float = cluster_data[ESTIMATE_VALUE_COLUMN_NAME].std()
-        ax.axvline(
-            x=mean_value,
-            linestyle="dashed",
-            label=f"Cluster {cluster_id = } Mean ({mean_value:.2f}±{std_value:.2f})",
-            linewidth=2,
-            color=palette[i],
-        )
-
-        if num_sample_tokens is not None:
-            # Sample tokens from each cluster and plot them with x-coordinates corresponding to the estimate values,
-            # and y-coordinates randomly jittered for better visibility.
-            sampled_tokens = clustered_df[clustered_df["cluster"] == cluster_id].sample(
-                num_sample_tokens,
-                random_state=random_state,
-            )
-            if plot_size_config.y_max is not None:
-                largest_y_coordinate_for_jitter: float = plot_size_config.y_max * 0.7
-            else:
-                largest_y_coordinate_for_jitter = 1_500
-
-            for _, row in sampled_tokens.iterrows():
-                plt.text(
-                    x=row[ESTIMATE_VALUE_COLUMN_NAME],
-                    y=np.random.uniform(
-                        low=50,
-                        high=largest_y_coordinate_for_jitter,
-                    ),  # random jitter for better visibility
-                    s=row["token_name"],
-                    rotation=90,
-                    verticalalignment="bottom",
-                    fontsize=9,
-                    color=palette[i],
-                    alpha=1.0,
-                )
-
-        if num_most_frequent_tokens is not None:
-            # Compute the most common tokens in each cluster and their mean/std estimates
-            token_counts = Counter(cluster_data["token_name"])
-            common_tokens = token_counts.most_common(5)
-            token_summary = []
-            for token, count in common_tokens:
-                token_estimates = cluster_data[cluster_data["token_name"] == token][ESTIMATE_VALUE_COLUMN_NAME]
-                token_mean = token_estimates.mean()
-                token_std = token_estimates.std()
-                token_summary.append(f"{token} ({count})\n{token_mean:.2f}±{token_std:.2f}")
-            summary_text = "\n".join(token_summary)
-
-            # Add a transparent box with the common tokens near the cluster mean
-            plt.text(
-                mean_value,
-                plt.ylim()[1] * 0.9,
-                summary_text,
-                fontsize=10,
-                bbox={"facecolor": palette[i], "alpha": 0.3, "edgecolor": "black"},
-                ha="center",
-            )
-
-        if plot_extremal_tokens:
-            # # # #
-            # Find min and max tokens for each cluster and annotate at the top
-            min_row = (
-                clustered_df[clustered_df["cluster"] == cluster_id]
-                .nsmallest(
-                    1,
-                    "estimate_value",
-                )
-                .iloc[0]
-            )
-            max_row = (
-                clustered_df[clustered_df["cluster"] == cluster_id]
-                .nlargest(
-                    1,
-                    "estimate_value",
-                )
-                .iloc[0]
-            )
-
-            extremal_tokens_y_coordinate = 0.9 * plot_size_config.y_max if plot_size_config.y_max is not None else 1_800
-            # Use a small offset in the x-coordinate, so that adjacent extremal values from the clusters do not overlap.
-            x_coordinate_offset: float = 0.07
-
-            plt.text(
-                x=min_row[ESTIMATE_VALUE_COLUMN_NAME] + x_coordinate_offset,
-                y=extremal_tokens_y_coordinate,
-                s=f"Min: {min_row['token_name']} ({min_row[ESTIMATE_VALUE_COLUMN_NAME]:.2f})",
-                rotation=90,
-                verticalalignment="top",
-                fontsize=10,
-                color=palette[i],
-                fontweight="bold",
-            )
-            plt.text(
-                x=max_row[ESTIMATE_VALUE_COLUMN_NAME] - x_coordinate_offset,
-                y=extremal_tokens_y_coordinate,
-                s=f"Max: {max_row['token_name']} ({max_row[ESTIMATE_VALUE_COLUMN_NAME]:.2f})",
-                rotation=90,
-                verticalalignment="top",
-                fontsize=10,
-                color=palette[i],
-                fontweight="bold",
-            )
 
     # # # #
     # General plot setup
@@ -611,6 +514,142 @@ def plot_cluster_distribution(
             )
 
     return fig, ax
+
+
+def add_plot_for_single_cluster_id(
+    clustered_df: pd.DataFrame,
+    i: int,
+    cluster_id: int,
+    ax: matplotlib.axes.Axes,
+    palette: list,
+    plot_size_config: PlotSizeConfig,
+    num_sample_tokens: int | None,
+    num_most_frequent_tokens: int | None,
+    random_state: int,
+    bin_edges: np.ndarray,  # type: ignore - typing problem with numpy
+    *,
+    plot_extremal_tokens: bool,
+) -> None:
+    cluster_data: pd.DataFrame = clustered_df[clustered_df["cluster"] == cluster_id]
+    ax.hist(
+        x=cluster_data[ESTIMATE_VALUE_COLUMN_NAME],
+        bins=bin_edges,  # type: ignore - typing problem with numpy
+        alpha=0.5,
+        label=f"Cluster {cluster_id = }",
+        color=palette[i],
+    )
+    cluster_mean_value: float = cluster_data[ESTIMATE_VALUE_COLUMN_NAME].mean()
+    cluster_std_value: float = cluster_data[ESTIMATE_VALUE_COLUMN_NAME].std()
+    cluster_count: int = len(cluster_data)
+    ax.axvline(
+        x=cluster_mean_value,
+        linestyle="dashed",
+        label=f"Cluster {cluster_id = } (count={cluster_count}; {cluster_mean_value:.2f}±{cluster_std_value:.2f})",
+        linewidth=2,
+        color=palette[i],
+    )
+
+    if num_sample_tokens is not None:
+        # Sample tokens from each cluster and plot them with x-coordinates corresponding to the estimate values,
+        # and y-coordinates randomly jittered for better visibility.
+        sampled_tokens = clustered_df[clustered_df["cluster"] == cluster_id].sample(
+            num_sample_tokens,
+            random_state=random_state,
+        )
+        if plot_size_config.y_max is not None:
+            largest_y_coordinate_for_jitter: float = plot_size_config.y_max * 0.7
+        else:
+            largest_y_coordinate_for_jitter = 1_500
+
+        for _, row in sampled_tokens.iterrows():
+            plt.text(
+                x=row[ESTIMATE_VALUE_COLUMN_NAME],
+                y=np.random.uniform(
+                    low=50,
+                    high=largest_y_coordinate_for_jitter,
+                ),  # random jitter for better visibility
+                s=row["token_name"],
+                rotation=90,
+                verticalalignment="bottom",
+                fontsize=9,
+                color=palette[i],
+                alpha=1.0,
+            )
+
+    if num_most_frequent_tokens is not None:
+        # Compute the most common tokens in each cluster and their mean/std estimates
+        token_counts = Counter(cluster_data["token_name"])
+        common_tokens: list = token_counts.most_common(
+            n=5,
+        )
+        token_summary = []
+        for token, count in common_tokens:
+            token_estimates = cluster_data[cluster_data["token_name"] == token][ESTIMATE_VALUE_COLUMN_NAME]
+            token_mean = token_estimates.mean()
+            token_std = token_estimates.std()
+            token_summary.append(
+                f"{token} ({count=})\n{token_mean:.2f}±{token_std:.2f}",
+            )
+        summary_text = "\n".join(token_summary)
+
+        # Add a transparent box with the common tokens near the cluster mean
+        ax.text(
+            x=cluster_mean_value,
+            y=ax.get_ylim()[1] * 0.95,  # Position the text box at the top of the plot
+            s=summary_text,
+            fontsize=7,
+            bbox={
+                "facecolor": palette[i],
+                "alpha": 0.3,
+                "edgecolor": "black",
+            },
+            ha="center",
+        )
+
+    if plot_extremal_tokens:
+        # # # #
+        # Find min and max tokens for each cluster and annotate at the top
+        min_row = (
+            clustered_df[clustered_df["cluster"] == cluster_id]
+            .nsmallest(
+                n=1,
+                columns="estimate_value",
+            )
+            .iloc[0]
+        )
+        max_row = (
+            clustered_df[clustered_df["cluster"] == cluster_id]
+            .nlargest(
+                n=1,
+                columns="estimate_value",
+            )
+            .iloc[0]
+        )
+
+        extremal_tokens_y_coordinate = 0.9 * plot_size_config.y_max if plot_size_config.y_max is not None else 1_800
+        # Use a small offset in the x-coordinate, so that adjacent extremal values from the clusters do not overlap.
+        x_coordinate_offset: float = 0.07
+
+        ax.text(
+            x=min_row[ESTIMATE_VALUE_COLUMN_NAME] + x_coordinate_offset,
+            y=extremal_tokens_y_coordinate,
+            s=f"Min: {min_row['token_name']} ({min_row[ESTIMATE_VALUE_COLUMN_NAME]:.2f})",
+            rotation=90,
+            verticalalignment="top",
+            fontsize=10,
+            color=palette[i],
+            fontweight="bold",
+        )
+        ax.text(
+            x=max_row[ESTIMATE_VALUE_COLUMN_NAME] - x_coordinate_offset,
+            y=extremal_tokens_y_coordinate,
+            s=f"Max: {max_row['token_name']} ({max_row[ESTIMATE_VALUE_COLUMN_NAME]:.2f})",
+            rotation=90,
+            verticalalignment="top",
+            fontsize=10,
+            color=palette[i],
+            fontweight="bold",
+        )
 
 
 def get_example_tokens(
