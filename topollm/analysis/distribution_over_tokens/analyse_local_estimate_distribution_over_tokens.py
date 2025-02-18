@@ -27,13 +27,11 @@
 
 """Create plots of the local estimates and compare with other task performance measures."""
 
-import itertools
 import json
 import logging
 import pathlib
 import pprint
 from collections import Counter
-from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 import hydra
@@ -272,7 +270,7 @@ def main(
                 )
 
         # Retrieve most frequent tokens
-        most_frequent_tokens: dict = get_most_frequent_tokens(
+        most_frequent_tokens: dict = get_most_and_least_frequent_tokens(
             clustered_df=clustered_results_df,
         )
 
@@ -359,11 +357,11 @@ def save_cluster_data(
             num_samples=num_samples,
             random_state=random_state,
         ),
-        "most_frequent_tokens": get_most_frequent_tokens(
+        "most_and_least_frequent_tokens": get_most_and_least_frequent_tokens(
             clustered_df=clustered_df,
             top_n=top_n,
         ),
-        "extreme_estimate_tokens": get_tokens_with_extreme_estimate_value(
+        "extreme_estimate_value_tokens": get_tokens_with_extreme_estimate_value(
             clustered_df=clustered_df,
             num_samples=num_samples,
         ),
@@ -426,8 +424,8 @@ def plot_cluster_distribution(
     )
 
     # Define common bins for all histograms
-    all_values = clustered_df["estimate_value"].to_numpy()
-    bin_edges = np.histogram_bin_edges(
+    all_values: np.ndarray = clustered_df["estimate_value"].to_numpy()
+    bin_edges: np.ndarray = np.histogram_bin_edges(
         a=all_values,  # type: ignore - typing problem with numpy
         bins=bins,
     )
@@ -530,6 +528,7 @@ def add_plot_for_single_cluster_id(
     *,
     plot_extremal_tokens: bool,
 ) -> None:
+    """Add a histogram for a single cluster to the plot."""
     cluster_data: pd.DataFrame = clustered_df[clustered_df["cluster"] == cluster_id]
     ax.hist(
         x=cluster_data[ESTIMATE_VALUE_COLUMN_NAME],
@@ -552,8 +551,8 @@ def add_plot_for_single_cluster_id(
     if num_sample_tokens is not None:
         # Sample tokens from each cluster and plot them with x-coordinates corresponding to the estimate values,
         # and y-coordinates randomly jittered for better visibility.
-        sampled_tokens = clustered_df[clustered_df["cluster"] == cluster_id].sample(
-            num_sample_tokens,
+        sampled_tokens: pd.DataFrame = clustered_df[clustered_df["cluster"] == cluster_id].sample(
+            n=num_sample_tokens,
             random_state=random_state,
         )
         if plot_size_config.y_max is not None:
@@ -561,10 +560,14 @@ def add_plot_for_single_cluster_id(
         else:
             largest_y_coordinate_for_jitter = 1_500
 
+        rng: np.random.Generator = np.random.default_rng(
+            seed=random_state,
+        )
+
         for _, row in sampled_tokens.iterrows():
             plt.text(
                 x=row[ESTIMATE_VALUE_COLUMN_NAME],
-                y=np.random.uniform(
+                y=rng.uniform(
                     low=50,
                     high=largest_y_coordinate_for_jitter,
                 ),  # random jitter for better visibility
@@ -582,9 +585,9 @@ def add_plot_for_single_cluster_id(
         common_tokens: list = token_counts.most_common(
             n=5,
         )
-        token_summary = []
+        token_summary: list = []
         for token, count in common_tokens:
-            token_estimates = cluster_data[cluster_data["token_name"] == token][ESTIMATE_VALUE_COLUMN_NAME]
+            token_estimates: pd.Series = cluster_data[cluster_data["token_name"] == token][ESTIMATE_VALUE_COLUMN_NAME]
             token_mean = token_estimates.mean()
             token_std = token_estimates.std()
             token_summary.append(
@@ -592,10 +595,11 @@ def add_plot_for_single_cluster_id(
             )
         summary_text = "\n".join(token_summary)
 
-        # Add a transparent box with the common tokens near the cluster mean
+        # Add a transparent box with the common tokens near the cluster mean.
+        # Position the text box at the top of the plot.
         ax.text(
             x=cluster_mean_value,
-            y=ax.get_ylim()[1] * 0.95,  # Position the text box at the top of the plot
+            y=plot_size_config.y_max * 0.95 if plot_size_config.y_max is not None else ax.get_ylim()[1] * 0.95,
             s=summary_text,
             fontsize=7,
             bbox={
@@ -674,24 +678,62 @@ def get_example_tokens(
     return example_tokens
 
 
-def get_most_frequent_tokens(
+def get_most_and_least_frequent_tokens(
     clustered_df: pd.DataFrame,
     top_n: int = 10,
 ) -> dict:
     """Find the most frequent tokens per cluster."""
-    most_frequent_tokens: dict = {}
+    results_dict: dict = {}
 
     for cluster_id in sorted(clustered_df["cluster"].unique()):
-        token_counts = Counter(
-            clustered_df[clustered_df["cluster"] == cluster_id]["token_name"],
+        this_cluster_df: pd.DataFrame = clustered_df[clustered_df["cluster"] == cluster_id]
+
+        this_cluster_token_counts = Counter(
+            this_cluster_df["token_name"],
         )
-        most_frequent_tokens[f"{cluster_id = } Most Frequent Tokens"] = token_counts.most_common(
+
+        # This will hold the information about this cluster
+        results_dict[f"{cluster_id = }"] = {}
+
+        # This will hold the information about the most frequent tokens in this cluster
+        results_dict[f"{cluster_id = }"]["Most Frequent Tokens Information"] = {}
+
+        this_cluster_most_frequent_tokens: list[tuple[str, int]] = this_cluster_token_counts.most_common(
             n=top_n,
         )
 
-    # TODO: Include statistics of estimate over each token (e.g., the mean of the estimates over each token and std)
+        for token, count in this_cluster_most_frequent_tokens:
+            token_estimates: pd.Series = this_cluster_df[this_cluster_df["token_name"] == token][
+                ESTIMATE_VALUE_COLUMN_NAME
+            ]
+            token_mean = token_estimates.mean()
+            token_std = token_estimates.std()
+            results_dict[f"{cluster_id = }"]["Most Frequent Tokens Information"][token] = {
+                "count": count,
+                "mean": token_mean,
+                "std": token_std,
+            }
 
-    return most_frequent_tokens
+        # This will hold the information about the least frequent tokens in this cluster
+        results_dict[f"{cluster_id = }"]["Least Frequent Tokens Information"] = {}
+
+        this_cluster_least_frequent_tokens: list[tuple[str, int]] = this_cluster_token_counts.most_common()[
+            : -top_n - 1 : -1
+        ]
+
+        for token, count in this_cluster_least_frequent_tokens:
+            token_estimates: pd.Series = this_cluster_df[this_cluster_df["token_name"] == token][
+                ESTIMATE_VALUE_COLUMN_NAME
+            ]
+            token_mean = token_estimates.mean()
+            token_std = token_estimates.std()
+            results_dict[f"{cluster_id = }"]["Least Frequent Tokens Information"][token] = {
+                "count": count,
+                "mean": token_mean,
+                "std": token_std,
+            }
+
+    return results_dict
 
 
 def get_tokens_with_extreme_estimate_value(
@@ -714,11 +756,15 @@ def get_tokens_with_extreme_estimate_value(
             "concatenated_tokens",
         ]
 
-    extreme_estimate_tokens: dict = {}
+    results_dict: dict = {}
 
     for cluster_id in sorted(clustered_df["cluster"].unique()):
-        cluster_data: pd.DataFrame = clustered_df[clustered_df["cluster"] == cluster_id]
-        extreme_estimate_tokens[f"{cluster_id = } Lowest Estimate Tokens"] = cluster_data.nsmallest(
+        this_cluster_df: pd.DataFrame = clustered_df[clustered_df["cluster"] == cluster_id]
+
+        # This dict will hold the information about this cluster.
+        results_dict[f"{cluster_id = }"] = {}
+
+        results_dict[f"{cluster_id = }"]["Lowest Estimate Tokens"] = this_cluster_df.nsmallest(
             num_samples,
             ESTIMATE_VALUE_COLUMN_NAME,
         )[
@@ -729,7 +775,7 @@ def get_tokens_with_extreme_estimate_value(
         ].to_dict(
             orient="records",
         )
-        extreme_estimate_tokens[f"{cluster_id = } Highest Estimate Tokens"] = cluster_data.nlargest(
+        results_dict[f"{cluster_id = }"]["Highest Estimate Tokens"] = this_cluster_df.nlargest(
             num_samples,
             ESTIMATE_VALUE_COLUMN_NAME,
         )[
@@ -741,7 +787,7 @@ def get_tokens_with_extreme_estimate_value(
             orient="records",
         )
 
-    return extreme_estimate_tokens
+    return results_dict
 
 
 if __name__ == "__main__":

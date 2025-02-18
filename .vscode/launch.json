@@ -2005,8 +2005,8 @@
                 //
                 "language_model=roberta-base-trippy_multiwoz21",
                 "language_model.seed=42",
-                "language_model.checkpoint_no=3549",
-                // "language_model.checkpoint_no=3549,7098,10647,14196,17745,21294,24843,28392,31941,35490",
+                // "language_model.checkpoint_no=3549",
+                "language_model.checkpoint_no=3549,7098,10647,14196,17745,21294,24843,28392,31941,35490",
                 //
                 //    >> END: Model options.
                 //
