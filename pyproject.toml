@@ -85,6 +85,7 @@ hydra-joblib-launcher = "*"
 pypdf = "*"
 reportlab = "*"
 markupsafe = "^3.0.2"
+wat = "^0.5.0"
 
 [tool.poetry.group.dev.dependencies]
 hypothesis = "*"

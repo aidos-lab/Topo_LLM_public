@@ -191,6 +191,7 @@ data/embeddings/
 data/embeddings/arrays/
 data/embeddings/metadata/
 data/embeddings/perplexity/
+data/example_sync_from_found_files/
 
 data/logs/
 
