@@ -45,14 +45,12 @@ import seaborn as sns
 from sklearn.cluster import KMeans
 from tqdm import tqdm
 
-from topollm.analysis.local_estimates_handling.saving.local_estimates_containers import LocalEstimatesContainer
 from topollm.analysis.local_estimates_handling.saving.local_estimates_saving_manager import LocalEstimatesSavingManager
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
-from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 from topollm.plotting.line_plot_grouped_by_categorical_column import PlotSizeConfig
 from topollm.task_performance_analysis.plotting.distribution_violinplots_and_distribution_boxplots import (
     TicksAndLabels,
@@ -61,7 +59,9 @@ from topollm.task_performance_analysis.plotting.distribution_violinplots_and_dis
 from topollm.typing.enums import Verbosity
 
 if TYPE_CHECKING:
+    from topollm.analysis.local_estimates_handling.saving.local_estimates_containers import LocalEstimatesContainer
     from topollm.config_classes.main_config import MainConfig
+    from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 
 # Logger for this file
 global_logger: logging.Logger = logging.getLogger(
@@ -108,22 +108,6 @@ def main(
     )
 
     # ================================================== #
-    # Output folders
-    # ================================================== #
-
-    # We will locate the output of this script nested under the saved plots directory,
-    # into a subfolder derived from the local estimates subfolder.
-    output_root_dir: pathlib.Path = pathlib.Path(
-        embeddings_path_manager.saved_plots_dir_absolute_path,
-        "local_estimates_distribution_over_tokens",
-        embeddings_path_manager.get_local_estimates_subfolder_path(),
-    )
-    output_root_dir.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
-
-    # ================================================== #
     # Load data
     # ================================================== #
 
@@ -149,6 +133,25 @@ def main(
         raise ValueError(
             msg,
         )
+
+    # ================================================== #
+    # Output folders
+    # ================================================== #
+
+    # We will locate the output of this script nested under the saved plots directory,
+    # into a subfolder derived from the local estimates subfolder.
+    output_root_dir: pathlib.Path = pathlib.Path(
+        embeddings_path_manager.saved_plots_dir_absolute_path,
+        "local_estimates_distribution_over_tokens",
+        embeddings_path_manager.get_local_estimates_subfolder_path(),
+    )
+
+    # Note: We move the creation of the output_root_dir creation after the loading of the local estimates data,
+    # so that we do not create a directory if the data loading fails.
+    output_root_dir.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
 
     # ================================================== #
     # For reference, create the violin plot corresponding to this data

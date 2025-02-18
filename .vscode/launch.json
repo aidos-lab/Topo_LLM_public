@@ -1974,18 +1974,18 @@
                 //
                 //    >> START: Data options.
                 //
-                // "data=multiwoz21",
+                "data=multiwoz21",
                 // "data=sgd",
                 // "data=one-year-of-tsla-on-reddit",
                 // "data=sgd,one-year-of-tsla-on-reddit",
                 // "data=multiwoz21,sgd,one-year-of-tsla-on-reddit",
                 //
-                "data=setsumbt_dataloaders_processed",
-                "data.dataset_seed=0",
+                // "data=setsumbt_dataloaders_processed",
+                // "data.dataset_seed=0",
+                // "data.data_subsampling.split=dev",
                 //
                 // "data.data_subsampling.split=train",
-                // "data.data_subsampling.split=validation",
-                "data.data_subsampling.split=dev",
+                "data.data_subsampling.split=validation",
                 // "data.data_subsampling.split=test",
                 // "data.data_subsampling.split=train,dev,test",
                 //
@@ -1997,12 +1997,16 @@
                 //
                 //    >> START: Model options.
                 //
-                "language_model=roberta-base-setsumbt_multiwoz21",
-                "language_model.seed=0",
-                // "language_model.checkpoint_no=2813",
-                "language_model.checkpoint_no=2813,5626,8439,11252,14065,16878,19691,25317,33756,36569,39382,42195,50634,56260,70325,90016,109707,115333,126585", // <-- locally, we have metadata and local estimates for these checkpoints available for "language_model.seed=0"
+                // "language_model=roberta-base-setsumbt_multiwoz21",
+                // "language_model.seed=0",
+                // "language_model.checkpoint_no=2813,5626,8439,11252,14065,16878,19691,25317,33756,36569,39382,42195,50634,56260,70325,90016,109707,115333,126585", // <-- locally, we have metadata and local estimates for these checkpoints available for "language_model.seed=0"
                 // "language_model.seed=1",
                 // "language_model.checkpoint_no=109707", // <-- locally, we have these checkpoints available for "language_model.seed=1"
+                //
+                "language_model=roberta-base-trippy_multiwoz21",
+                "language_model.seed=42",
+                "language_model.checkpoint_no=3549",
+                // "language_model.checkpoint_no=3549,7098,10647,14196,17745,21294,24843,28392,31941,35490",
                 //
                 //    >> END: Model options.
                 //
