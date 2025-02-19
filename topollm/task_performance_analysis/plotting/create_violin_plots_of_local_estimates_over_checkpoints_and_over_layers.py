@@ -30,11 +30,9 @@
 import itertools
 import logging
 import pathlib
-from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 import hydra
-import matplotlib.pyplot as plt
 import numpy as np
 import omegaconf
 from tqdm import tqdm
@@ -52,15 +50,19 @@ from topollm.data_processing.iteration_over_directories.load_np_arrays_from_fold
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
+from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 from topollm.plotting.line_plot_grouped_by_categorical_column import (
-    PlotColumnsConfig,
     PlotSizeConfig,
+)
+from topollm.task_performance_analysis.plotting.distribution_violinplots_and_distribution_boxplots import (
+    TicksAndLabels,
+    make_distribution_boxplots_from_extracted_arrays,
+    make_distribution_violinplots_from_extracted_arrays,
 )
 from topollm.typing.enums import Verbosity
 
 if TYPE_CHECKING:
     from topollm.config_classes.main_config import MainConfig
-    from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 
 # Logger for this file
 global_logger: logging.Logger = logging.getLogger(
@@ -114,15 +116,79 @@ def main(
         embeddings_path_manager.get_local_estimates_root_dir_absolute_path(),
     )
 
-    pattern = (
-        "**/"
-        "split=validation_samples=10000_sampling=random_sampling-seed=778/"
-        "edh-mode=regular_lvl=token/"
-        "add-prefix-space=False_max-len=512/"
-        "**/"
-        "local_estimates_pointwise_array.npy"
-    )
+    patterns_to_iterate_over: list[str] = [
+        # > Splits for the SetSUMBT saved dataloaders
+        (
+            "**/"
+            "split=train_samples=10000_sampling=random_sampling-seed=778/"
+            "edh-mode=regular_lvl=token/"
+            "add-prefix-space=False_max-len=512/"
+            "**/"
+            "local_estimates_pointwise_array.npy"
+        ),
+        (
+            "**/"
+            "split=dev_samples=10000_sampling=random_sampling-seed=778/"
+            "edh-mode=regular_lvl=token/"
+            "add-prefix-space=False_max-len=512/"
+            "**/"
+            "local_estimates_pointwise_array.npy"
+        ),
+        (
+            "**/"
+            "split=test_samples=10000_sampling=random_sampling-seed=778/"
+            "edh-mode=regular_lvl=token/"
+            "add-prefix-space=False_max-len=512/"
+            "**/"
+            "local_estimates_pointwise_array.npy"
+        ),
+        # > Splits for the Huggingface datasets
+        (
+            "**/"
+            "split=validation_samples=10000_sampling=random_sampling-seed=778/"
+            "edh-mode=regular_lvl=token/"
+            "add-prefix-space=False_max-len=512/"
+            "**/"
+            "local_estimates_pointwise_array.npy"
+        ),
+        # > Other selected datasets and splits
+        (
+            "**/"
+            "data=sgd_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/"
+            "split=validation_samples=10000_sampling=random_sampling-seed=777/"
+            "edh-mode=masked_token_lvl=token/"
+            "add-prefix-space=False_max-len=512/"
+            "**/"
+            "local_estimates_pointwise_array.npy"
+        ),
+    ]
 
+    for pattern in tqdm(
+        iterable=patterns_to_iterate_over,
+        desc="Iterate over patterns",
+    ):
+        create_plots_for_given_pattern(
+            iteration_root_dir=iteration_root_dir,
+            pattern=pattern,
+            embeddings_path_manager=embeddings_path_manager,
+            do_create_distribution_plots_over_model_checkpoints=main_config.feature_flags.task_performance_analysis.plotting_create_distribution_plots_over_model_checkpoints,
+            do_create_distribution_plots_over_model_layers=main_config.feature_flags.task_performance_analysis.plotting_create_distribution_plots_over_model_layers,
+            verbosity=verbosity,
+            logger=logger,
+        )
+
+
+def create_plots_for_given_pattern(
+    iteration_root_dir: pathlib.Path,
+    pattern: str,
+    embeddings_path_manager: EmbeddingsPathManager,
+    *,
+    do_create_distribution_plots_over_model_checkpoints: bool = True,
+    do_create_distribution_plots_over_model_layers: bool = True,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
+    """Create plots for a given pattern."""
     loaded_data: list[dict] = load_np_arrays_from_folder_structure_into_list_of_dicts(
         iteration_root_dir=iteration_root_dir,
         pattern=pattern,
@@ -176,7 +242,7 @@ def main(
 
     # # # #
     # Create plots which show the distribution of the local estimates over the checkpoints
-    if main_config.feature_flags.task_performance_analysis.plotting_create_distribution_plots_over_model_checkpoints:
+    if do_create_distribution_plots_over_model_checkpoints:
         if verbosity >= Verbosity.NORMAL:
             logger.info(
                 msg="Creating the distribution plots over the model checkpoints ...",
@@ -201,7 +267,7 @@ def main(
 
     # # # #
     # Create plots which show the distribution of the local estimates over different layers of the model
-    if main_config.feature_flags.task_performance_analysis.plotting_create_distribution_plots_over_model_layers:
+    if do_create_distribution_plots_over_model_layers:
         if verbosity >= Verbosity.NORMAL:
             logger.info(
                 msg="Creating the distribution plots over the model layers ...",
@@ -239,20 +305,23 @@ def create_distribution_plots_over_model_layers(
     """Create plots which show the distribution of the local estimates over the layers."""
     data_full_options: set[str] = {single_dict["data_full"] for single_dict in loaded_data}
     data_subsampling_full_options: set[str] = {single_dict["data_subsampling_full"] for single_dict in loaded_data}
-    model_partial_name_options: set[str] = {single_dict["model_partial_name"] for single_dict in loaded_data}
     model_checkpoint_options: set = {single_dict["model_checkpoint"] for single_dict in loaded_data}
+    model_partial_name_options: set[str] = {single_dict["model_partial_name"] for single_dict in loaded_data}
+    model_seed_options: set = {single_dict["model_seed"] for single_dict in loaded_data}
 
     for (
         data_full,
         data_subsampling_full,
-        model_partial_name,
         model_checkpoint,
+        model_partial_name,
+        model_seed,
     ) in tqdm(
         iterable=itertools.product(
             data_full_options,
             data_subsampling_full_options,
-            model_partial_name_options,
             model_checkpoint_options,
+            model_partial_name_options,
+            model_seed_options,
         ),
         desc="Plotting different choices",
     ):
@@ -260,9 +329,10 @@ def create_distribution_plots_over_model_layers(
             "tokenizer_add_prefix_space": "False",  # This needs to be a string
             "data_full": data_full,
             "data_subsampling_full": data_subsampling_full,
-            "model_partial_name": model_partial_name,
             "model_checkpoint": model_checkpoint,
-            # We want all checkpoints for the given model checkpoint.
+            # We want all layers for the given model checkpoint and thus, no filtering for model_layer in this case.
+            "model_partial_name": model_partial_name,
+            "model_seed": model_seed,
         }
         fixed_params_text: str = generate_fixed_parameters_text_from_dict(
             filters_dict=filter_key_value_pairs,
@@ -347,21 +417,51 @@ def create_distribution_plots_over_model_checkpoints(
     """Create plots which show the distribution of the local estimates over the checkpoints."""
     data_full_options: set[str] = {single_dict["data_full"] for single_dict in loaded_data}
     data_subsampling_full_options: set[str] = {single_dict["data_subsampling_full"] for single_dict in loaded_data}
-    model_partial_name_options: set[str] = {single_dict["model_partial_name"] for single_dict in loaded_data}
     model_layer_options: set = {single_dict["model_layer"] for single_dict in loaded_data}
+    model_partial_name_options: set[str] = {single_dict["model_partial_name"] for single_dict in loaded_data}
+    model_seed_options: set = {single_dict["model_seed"] for single_dict in loaded_data}
 
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"{data_full_options = }",  # noqa: G004 - low overhead
+        )
+        logger.info(
+            msg=f"{data_subsampling_full_options = }",  # noqa: G004 - low overhead
+        )
+        logger.info(
+            msg=f"{model_layer_options = }",  # noqa: G004 - low overhead
+        )
+        logger.info(
+            msg=f"{model_partial_name_options = }",  # noqa: G004 - low overhead
+        )
+        logger.info(
+            msg=f"{model_seed_options = }",  # noqa: G004 - low overhead
+        )
+
+    iterable = itertools.product(
+        data_full_options,
+        data_subsampling_full_options,
+        model_layer_options,
+        model_partial_name_options,
+        model_seed_options,
+    )
+
+    total_combinations: int = (
+        len(data_full_options)
+        * len(data_subsampling_full_options)
+        * len(model_layer_options)
+        * len(model_partial_name_options)
+        * len(model_seed_options)
+    )
     for (
         data_full,
         data_subsampling_full,
         model_layer,
         model_partial_name,
+        model_seed,
     ) in tqdm(
-        iterable=itertools.product(
-            data_full_options,
-            data_subsampling_full_options,
-            model_layer_options,
-            model_partial_name_options,
-        ),
+        iterable=iterable,
+        total=total_combinations,
         desc="Plotting different choices",
     ):
         filter_key_value_pairs: dict = {
@@ -370,6 +470,7 @@ def create_distribution_plots_over_model_checkpoints(
             "data_subsampling_full": data_subsampling_full,
             "model_layer": model_layer,  # model_layer needs to be an integer
             "model_partial_name": model_partial_name,
+            "model_seed": model_seed,
         }
         fixed_params_text: str = generate_fixed_parameters_text_from_dict(
             filters_dict=filter_key_value_pairs,
@@ -393,6 +494,7 @@ def create_distribution_plots_over_model_checkpoints(
         filter_key_value_pairs_base_model: dict = {
             **filter_key_value_pairs,
             "model_partial_name": base_model_model_partial_name,
+            "model_seed": None,  # The base model always has model_seed=None.
         }
         filtered_data_base_model: list[dict] = filter_list_of_dictionaries_by_key_value_pairs(
             list_of_dicts=loaded_data,
@@ -487,206 +589,6 @@ def create_distribution_plots_over_model_checkpoints(
                 verbosity=verbosity,
                 logger=logger,
             )
-
-
-@dataclass
-class TicksAndLabels:
-    """Container for ticks and labels."""
-
-    xlabel: str
-    ylabel: str
-    xticks_labels: list[str]
-
-
-def make_distribution_violinplots_from_extracted_arrays(
-    extracted_arrays: list[np.ndarray],
-    ticks_and_labels: TicksAndLabels,
-    fixed_params_text: str,
-    plots_output_dir: pathlib.Path,
-    plot_size_config: PlotSizeConfig,
-    verbosity: Verbosity = Verbosity.NORMAL,
-    logger: logging.Logger = default_logger,
-) -> None:
-    """Create a violin plot."""
-    (
-        fig,
-        ax,
-    ) = plt.subplots(
-        figsize=(
-            plot_size_config.output_pdf_width / 100,
-            plot_size_config.output_pdf_height / 100,
-        ),
-    )
-
-    # Plot violin plot
-    ax.violinplot(
-        dataset=extracted_arrays,
-        showmeans=True,
-        showmedians=True,
-    )
-    ax.set_title(
-        label="Violin plot",
-    )
-
-    # adding horizontal grid lines
-    ax.yaxis.grid(
-        visible=True,
-    )
-
-    # Use the model checkpoints to set the xticks
-    ax.set_xticks(
-        ticks=[y + 1 for y in range(len(extracted_arrays))],
-        labels=ticks_and_labels.xticks_labels,
-    )
-
-    ax.set_xlabel(
-        xlabel=ticks_and_labels.xlabel,
-    )
-    ax.set_ylabel(
-        ylabel=ticks_and_labels.ylabel,
-    )
-
-    # Set the y-axis limits
-    if plot_size_config.y_min is not None:
-        ax.set_ylim(
-            bottom=plot_size_config.y_min,
-        )
-    if plot_size_config.y_max is not None:
-        ax.set_ylim(
-            top=plot_size_config.y_max,
-        )
-
-    if fixed_params_text is not None:
-        ax.text(
-            x=1.05,
-            y=0.25,
-            s=f"Fixed Parameters:\n{fixed_params_text}",
-            transform=plt.gca().transAxes,
-            fontsize=6,
-            verticalalignment="top",
-            bbox={
-                "boxstyle": "round",
-                "facecolor": "wheat",
-                "alpha": 0.3,
-            },
-        )
-
-        # Saving the plot
-    plot_name: str = f"violinplot_{plot_size_config.y_min}_{plot_size_config.y_max}"
-    plot_output_path: pathlib.Path = pathlib.Path(
-        plots_output_dir,
-        f"{plot_name}.pdf",
-    )
-    plot_output_path.parent.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            msg=f"Saving plot to {plot_output_path = } ...",  # noqa: G004 - low overhead
-        )
-    fig.savefig(
-        fname=plot_output_path,
-        bbox_inches="tight",
-    )
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            msg=f"Saving plot to {plot_output_path = } DONE",  # noqa: G004 - low overhead
-        )
-
-
-def make_distribution_boxplots_from_extracted_arrays(
-    extracted_arrays: list[np.ndarray],
-    ticks_and_labels: TicksAndLabels,
-    fixed_params_text: str,
-    plots_output_dir: pathlib.Path,
-    plot_size_config: PlotSizeConfig,
-    verbosity: Verbosity = Verbosity.NORMAL,
-    logger: logging.Logger = default_logger,
-) -> None:
-    """Create a boxplot."""
-    (
-        fig,
-        ax,
-    ) = plt.subplots(
-        figsize=(
-            plot_size_config.output_pdf_width / 100,
-            plot_size_config.output_pdf_height / 100,
-        ),
-    )
-
-    # Plot box plot
-    ax.boxplot(
-        x=extracted_arrays,
-    )
-    ax.set_title(
-        label="Box plot",
-    )
-
-    # adding horizontal grid lines
-    ax.yaxis.grid(
-        visible=True,
-    )
-
-    # Use the model checkpoints to set the xticks
-    ax.set_xticks(
-        ticks=[y + 1 for y in range(len(extracted_arrays))],
-        labels=ticks_and_labels.xticks_labels,
-    )
-
-    ax.set_xlabel(
-        xlabel=ticks_and_labels.xlabel,
-    )
-    ax.set_ylabel(
-        ylabel=ticks_and_labels.ylabel,
-    )
-
-    # Set the y-axis limits
-    if plot_size_config.y_min is not None:
-        ax.set_ylim(
-            bottom=plot_size_config.y_min,
-        )
-    if plot_size_config.y_max is not None:
-        ax.set_ylim(
-            top=plot_size_config.y_max,
-        )
-
-    if fixed_params_text is not None:
-        ax.text(
-            x=1.05,
-            y=0.25,
-            s=f"Fixed Parameters:\n{fixed_params_text}",
-            transform=plt.gca().transAxes,
-            fontsize=6,
-            verticalalignment="top",
-            bbox={
-                "boxstyle": "round",
-                "facecolor": "wheat",
-                "alpha": 0.3,
-            },
-        )
-
-    plot_name: str = f"boxplot_{plot_size_config.y_min}_{plot_size_config.y_max}"
-    plot_output_path: pathlib.Path = pathlib.Path(
-        plots_output_dir,
-        f"{plot_name}.pdf",
-    )
-    plot_output_path.parent.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            msg=f"Saving plot to {plot_output_path = } ...",  # noqa: G004 - low overhead
-        )
-    fig.savefig(
-        fname=plot_output_path,
-        bbox_inches="tight",
-    )
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            msg=f"Saving plot to {plot_output_path = } DONE",  # noqa: G004 - low overhead
-        )
 
 
 if __name__ == "__main__":

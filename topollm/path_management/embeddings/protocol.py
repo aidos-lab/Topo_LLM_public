@@ -114,6 +114,10 @@ class EmbeddingsPathManager(Protocol):
         self,
     ) -> str: ...  # pragma: no cover
 
+    def get_local_estimates_pointwise_dir_absolute_path(
+        self,
+    ) -> pathlib.Path: ...  # pragma: no cover
+
     def get_local_estimates_pointwise_array_save_path(
         self,
     ) -> pathlib.Path: ...  # pragma: no cover
