@@ -597,9 +597,15 @@ def add_plot_for_single_cluster_id(
 
         # Add a transparent box with the common tokens near the cluster mean.
         # Position the text box at the top of the plot.
+        y_position_relative_to_top = 0.85
+        y: float = (
+            plot_size_config.y_max * y_position_relative_to_top
+            if plot_size_config.y_max is not None
+            else ax.get_ylim()[1] * y_position_relative_to_top
+        )
         ax.text(
             x=cluster_mean_value,
-            y=plot_size_config.y_max * 0.95 if plot_size_config.y_max is not None else ax.get_ylim()[1] * 0.95,
+            y=y,
             s=summary_text,
             fontsize=7,
             bbox={
