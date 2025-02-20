@@ -57,6 +57,7 @@ def plot_performance_metrics(
     highlight_best: list[str] | None = None,
     loaded_sorted_local_estimates_data: list[dict] | None = None,
     array_key_name: str = "file_data",
+    local_estimates_limits: tuple[float, float] | None = None,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> None:
@@ -137,6 +138,7 @@ def plot_performance_metrics(
     # -------------------------------------------------------------
     # Plot metrics for the secondary y-axis if provided.
     # -------------------------------------------------------------
+
     if secondary_y_cols:
         ax2 = ax1.twinx()
         for col in secondary_y_cols:
@@ -247,25 +249,52 @@ def plot_performance_metrics(
     # -------------------------------------------------------------
     # Add violin plots for the local estimates, if provided.
     # -------------------------------------------------------------
+
+    ax_violin = None
+
     if loaded_sorted_local_estimates_data is not None:
+        # Create a separate twinx so it has an independent y-scale.
+        ax_violin = ax1.twinx()
+
+        # If we already used ax2, shift this new axis' spine further to the right
+        # so it does not overlap ax2.
+        if ax2 is not None:
+            ax_violin.spines["right"].set_position(
+                position=(
+                    "axes",
+                    1.07,
+                ),
+            )
+
+        ax_violin.set_ylabel(
+            ylabel="Local Estimate Value",
+        )
+        # Optionally fix its y-limits
+        if local_estimates_limits is not None:
+            ax_violin.set_ylim(
+                bottom=local_estimates_limits[0],
+                top=local_estimates_limits[1],
+            )
+
         for single_dict in loaded_sorted_local_estimates_data:
             ckpt_raw = single_dict["model_checkpoint"]
             local_estimates = single_dict[array_key_name]
-            # Convert checkpoint to float if it's stored as a string.
+            # Convert checkpoint to float if checkpoint is stored as a string.
             try:
                 ckpt_val = float(ckpt_raw)
             except ValueError:
-                # If it's not parseable, skip or handle differently
-                logger.info(f"Skipping checkpoint {ckpt_raw} - cannot convert to float.")
+                # If it is not parseable, skip or handle differently
+                logger.info(
+                    msg=f"Skipping checkpoint {ckpt_raw=} - cannot convert to float.",  # noqa: G004 - low overhead
+                )
                 continue
 
-            # Create a violin plot at the x-position = ckpt_val
-            # You can tweak 'widths', 'showmeans', 'showextrema', etc. as needed:
+            # Create a violin plot at the x-position = ckpt_val.
             #
             # Note: We need to set the widths to a value in the thousands,
             # because the x-axis is the global step of the checkpoints,
             # and otherwise the violins would not be visible.
-            parts: dict = ax1.violinplot(
+            parts: dict = ax_violin.violinplot(
                 dataset=local_estimates,
                 positions=[ckpt_val],
                 widths=2000,
@@ -292,12 +321,10 @@ def plot_performance_metrics(
             # Optionally unify the violin body color/alpha:
             for pc in parts["bodies"]:
                 pc.set_facecolor("gray")
-                pc.set_alpha(0.8)
+                pc.set_alpha(0.7)
 
         # Note: We do not want to rescale the x-axis,
         # since the violin plot of the base model will be placed at x-coordinate -1.
-
-        pass  # TODO: Here for setting breakpoints in debugging, remove later.
 
     ax1.set_xlabel(
         xlabel=xlabel,

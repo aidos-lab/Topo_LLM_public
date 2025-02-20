@@ -391,10 +391,17 @@ def main(
         primary_ylim=None,  # e.g., None for auto
         secondary_ylim=None,  # e.g., None for auto
         output_root_dir=output_root_dir,
-        figsize=(20, 10),
+        figsize=(
+            20,
+            10,
+        ),
         highlight_best=highlight_columns,
         loaded_sorted_local_estimates_data=loaded_sorted_local_estimates_data,
         array_key_name=array_key_name,
+        local_estimates_limits=(
+            0.0,
+            15.0,
+        ),
         verbosity=verbosity,
         logger=logger,
     )
