@@ -393,7 +393,7 @@ def main(
         output_root_dir=output_root_dir,
         figsize=(
             20,
-            10,
+            14,
         ),
         highlight_best=highlight_columns,
         loaded_sorted_local_estimates_data=loaded_sorted_local_estimates_data,
