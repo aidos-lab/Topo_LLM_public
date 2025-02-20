@@ -1866,10 +1866,10 @@
             }
         },
         {
-            "name": "Task performance analysis - parse_setsumbt_run_jsonl.py",
+            "name": "Task performance analysis - Parse SETSUMBT run JSONL file and plot performance metrics.",
             "type": "debugpy",
             "request": "launch",
-            "program": "topollm/task_performance_analysis/setsumbt/parse_setsumbt_run_jsonl.py",
+            "program": "topollm/task_performance_analysis/setsumbt/run_parse_setsumbt_run_jsonl_and_plot_performance_metrics.py",
             "console": "integratedTerminal",
             "args": [
                 // >>>> START: Hydra options
@@ -1889,8 +1889,8 @@
                 //    >> START: Model options.
                 //
                 "language_model=roberta-base-setsumbt_multiwoz21",
-                // "language_model.seed=0",
-                "language_model.seed=0,1,2",
+                "language_model.seed=0",
+                // "language_model.seed=0,1,2",
                 "language_model.checkpoint_no=2813", // Note: The checkpoint_no should not matter for this script.
                 //
                 //    >> END: Model options.

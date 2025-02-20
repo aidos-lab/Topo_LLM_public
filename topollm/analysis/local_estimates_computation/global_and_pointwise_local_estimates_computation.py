@@ -47,7 +47,6 @@ default_logger: logging.Logger = logging.getLogger(
 def global_and_pointwise_local_estimates_computation(
     array_for_estimator: np.ndarray,
     local_estimates_config: LocalEstimatesConfig,
-    twonn_discard_fraction: float = 0.1,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> tuple[
@@ -66,6 +65,11 @@ def global_and_pointwise_local_estimates_computation(
 
     # # # #
     # Estimator setup
+
+    # TODO: Move this into the local estimates config
+    twonn_discard_fraction: float = 0.1
+
+    # TODO: Make this estimator selection configurable
     estimator = skdim.id.TwoNN(
         discard_fraction=twonn_discard_fraction,
     )
