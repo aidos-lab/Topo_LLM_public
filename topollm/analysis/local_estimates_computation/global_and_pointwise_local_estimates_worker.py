@@ -25,7 +25,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Run script to compute twoNN estimates from prepared embeddings."""
+"""Run script to compute local estimates from prepared embeddings."""
 
 import logging
 import pathlib

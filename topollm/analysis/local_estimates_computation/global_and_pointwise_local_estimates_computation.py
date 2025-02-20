@@ -1,10 +1,10 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -30,8 +30,11 @@
 import logging
 
 import numpy as np
-import skdim
+from skdim._commonfuncs import GlobalEstimator
 
+from topollm.analysis.local_estimates_computation.estimator.get_estimator import (
+    get_estimator_from_local_estimates_config,
+)
 from topollm.analysis.local_estimates_computation.get_n_neighbors_from_array_len_and_pointwise_config import (
     get_n_neighbors_from_array_len_and_pointwise_config,
 )
@@ -65,13 +68,10 @@ def global_and_pointwise_local_estimates_computation(
 
     # # # #
     # Estimator setup
-
-    # TODO: Move this into the local estimates config
-    twonn_discard_fraction: float = 0.1
-
-    # TODO: Make this estimator selection configurable
-    estimator = skdim.id.TwoNN(
-        discard_fraction=twonn_discard_fraction,
+    estimator: GlobalEstimator = get_estimator_from_local_estimates_config(
+        local_estimates_config=local_estimates_config,
+        verbosity=verbosity,
+        logger=logger,
     )
 
     # # # #
@@ -101,7 +101,7 @@ def global_and_pointwise_local_estimates_computation(
         fitted_pw_estimator.dimension_pw_,
     )
 
-    pointwise_results_array_np = np.array(
+    pointwise_results_array_np: np.ndarray = np.array(
         pointwise_results_array,
     )
 

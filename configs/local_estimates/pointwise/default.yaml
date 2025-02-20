@@ -1,0 +1,3 @@
+n_neighbors_mode: "absolute_size"
+absolute_n_neighbors: 128
+relative_n_neighbors: 0.8
