@@ -30,6 +30,7 @@
 import itertools
 import logging
 import pathlib
+import pickle
 from typing import TYPE_CHECKING
 
 import hydra
@@ -117,15 +118,15 @@ def main(
     )
 
     patterns_to_iterate_over: list[str] = [
-        # > Splits for the SetSUMBT saved dataloaders
-        (
-            "**/"
-            "split=train_samples=10000_sampling=random_sampling-seed=778/"
-            "edh-mode=regular_lvl=token/"
-            "add-prefix-space=False_max-len=512/"
-            "**/"
-            "local_estimates_pointwise_array.npy"
-        ),
+        # # > Splits for the SetSUMBT saved dataloaders
+        # (
+        #     "**/"
+        #     "split=train_samples=10000_sampling=random_sampling-seed=778/"
+        #     "edh-mode=regular_lvl=token/"
+        #     "add-prefix-space=False_max-len=512/"
+        #     "**/"
+        #     "local_estimates_pointwise_array.npy"
+        # ),
         (
             "**/"
             "split=dev_samples=10000_sampling=random_sampling-seed=778/"
@@ -134,33 +135,33 @@ def main(
             "**/"
             "local_estimates_pointwise_array.npy"
         ),
-        (
-            "**/"
-            "split=test_samples=10000_sampling=random_sampling-seed=778/"
-            "edh-mode=regular_lvl=token/"
-            "add-prefix-space=False_max-len=512/"
-            "**/"
-            "local_estimates_pointwise_array.npy"
-        ),
-        # > Splits for the Huggingface datasets
-        (
-            "**/"
-            "split=validation_samples=10000_sampling=random_sampling-seed=778/"
-            "edh-mode=regular_lvl=token/"
-            "add-prefix-space=False_max-len=512/"
-            "**/"
-            "local_estimates_pointwise_array.npy"
-        ),
-        # > Other selected datasets and splits
-        (
-            "**/"
-            "data=sgd_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/"
-            "split=validation_samples=10000_sampling=random_sampling-seed=777/"
-            "edh-mode=masked_token_lvl=token/"
-            "add-prefix-space=False_max-len=512/"
-            "**/"
-            "local_estimates_pointwise_array.npy"
-        ),
+        # (
+        #     "**/"
+        #     "split=test_samples=10000_sampling=random_sampling-seed=778/"
+        #     "edh-mode=regular_lvl=token/"
+        #     "add-prefix-space=False_max-len=512/"
+        #     "**/"
+        #     "local_estimates_pointwise_array.npy"
+        # ),
+        # # > Splits for the Huggingface datasets
+        # (
+        #     "**/"
+        #     "split=validation_samples=10000_sampling=random_sampling-seed=778/"
+        #     "edh-mode=regular_lvl=token/"
+        #     "add-prefix-space=False_max-len=512/"
+        #     "**/"
+        #     "local_estimates_pointwise_array.npy"
+        # ),
+        # # > Other selected datasets and splits
+        # (
+        #     "**/"
+        #     "data=sgd_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/"
+        #     "split=validation_samples=10000_sampling=random_sampling-seed=777/"
+        #     "edh-mode=masked_token_lvl=token/"
+        #     "add-prefix-space=False_max-len=512/"
+        #     "**/"
+        #     "local_estimates_pointwise_array.npy"
+        # ),
     ]
 
     for pattern in tqdm(
@@ -205,15 +206,17 @@ def create_plots_for_given_pattern(
     # Choose which comparisons to make
     array_key_name: str = "file_data"
 
-    output_root_dir: pathlib.Path = pathlib.Path(
-        embeddings_path_manager.saved_plots_dir_absolute_path,
-        "task_performance_analysis",
-        "distribution_of_local_estimates",
+    output_root_dir: pathlib.Path = (
+        embeddings_path_manager.get_saved_plots_distribution_of_local_estimates_dir_absolute_path()
     )
     output_root_dir.mkdir(
         parents=True,
         exist_ok=True,
     )
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"{output_root_dir = }",  # noqa: G004 - low overhead
+        )
 
     # ================================================== #
     # Create plots
@@ -411,6 +414,8 @@ def create_distribution_plots_over_model_checkpoints(
     array_key_name: str,
     output_root_dir: pathlib.Path,
     plot_size_configs_list: list[PlotSizeConfig],
+    *,
+    save_sorted_data_list_of_dicts_with_arrays: bool = True,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> None:
@@ -464,7 +469,10 @@ def create_distribution_plots_over_model_checkpoints(
         total=total_combinations,
         desc="Plotting different choices",
     ):
-        filter_key_value_pairs: dict = {
+        filter_key_value_pairs: dict[
+            str,
+            str | int,
+        ] = {
             "tokenizer_add_prefix_space": "False",  # tokenizer_add_prefix_space needs to be a string
             "data_full": data_full,
             "data_subsampling_full": data_subsampling_full,
@@ -490,45 +498,13 @@ def create_distribution_plots_over_model_checkpoints(
             )
             continue
 
-        # Extract the dictionary which matches the same other parameters but the base model.
-        filter_key_value_pairs_base_model: dict = {
-            **filter_key_value_pairs,
-            "model_partial_name": base_model_model_partial_name,
-            "model_seed": None,  # The base model always has model_seed=None.
-        }
-        filtered_data_base_model: list[dict] = filter_list_of_dictionaries_by_key_value_pairs(
-            list_of_dicts=loaded_data,
-            key_value_pairs=filter_key_value_pairs_base_model,
+        filtered_data = add_base_model_data(
+            loaded_data=loaded_data,
+            base_model_model_partial_name=base_model_model_partial_name,
+            filter_key_value_pairs=filter_key_value_pairs,
+            filtered_data=filtered_data,
+            logger=logger,
         )
-        if len(filtered_data_base_model) == 0:
-            logger.warning(
-                msg=f"No base model data found for {filter_key_value_pairs = }.",  # noqa: G004 - low overhead
-            )
-            logger.warning(
-                msg="Proceeding without adding base model data.",
-            )
-        elif len(filtered_data_base_model) == 1:
-            logger.info(
-                msg=f"Unique base model data found for {filter_key_value_pairs = }.",  # noqa: G004 - low overhead
-            )
-            filtered_data_base_model_dict: dict = filtered_data_base_model[0]
-            # Add the base model data to the list of data to plot.
-            filtered_data.append(
-                filtered_data_base_model_dict,
-            )
-        elif len(filtered_data_base_model) > 1:
-            logger.warning(
-                f"Ambiguous base model data ({len(filtered_data_base_model)} entries) "  # noqa: G004 - low overhead
-                f"found for {filter_key_value_pairs = }.",
-            )
-            logger.warning(
-                msg="Will use the first entry.",
-            )
-            filtered_data_base_model_dict: dict = filtered_data_base_model[0]
-            # Add the base model data to the list of data to plot.
-            filtered_data.append(
-                filtered_data_base_model_dict,
-            )
 
         # Sort the arrays by increasing model checkpoint.
         # Then from this point, the list of arrays and list of extracted checkpoints will be in the correct order.
@@ -547,17 +523,29 @@ def create_distribution_plots_over_model_checkpoints(
             str(object=single_dict["model_checkpoint"]) for single_dict in sorted_data
         ]
 
-        plots_output_dir: pathlib.Path = pathlib.Path(
-            output_root_dir,
-            "plots_over_checkpoints",
-            dictionary_to_partial_path(
-                dictionary=filter_key_value_pairs,
-            ),
+        plots_output_dir: pathlib.Path = construct_plots_over_checkpoints_output_dir_from_filter_key_value_pairs(
+            output_root_dir=output_root_dir,
+            filter_key_value_pairs=filter_key_value_pairs,
+            verbosity=verbosity,
+            logger=logger,
         )
-        if verbosity >= Verbosity.NORMAL:
-            logger.info(
-                msg=f"{plots_output_dir = }",  # noqa: G004 - low overhead
+
+        if save_sorted_data_list_of_dicts_with_arrays:
+            # Save the sorted data list of dicts with the arrays to a pickle file.
+            data_to_save: list[dict] = sorted_data
+
+            sorted_data_output_file_path: pathlib.Path = pathlib.Path(
+                plots_output_dir,
+                "sorted_data_list_of_dicts_with_arrays.pkl",
             )
+
+            with sorted_data_output_file_path.open(
+                mode="wb",
+            ) as file:
+                pickle.dump(
+                    obj=data_to_save,
+                    file=file,
+                )
 
         ticks_and_labels: TicksAndLabels = TicksAndLabels(
             xlabel="checkpoints",
@@ -589,6 +577,86 @@ def create_distribution_plots_over_model_checkpoints(
                 verbosity=verbosity,
                 logger=logger,
             )
+
+
+def construct_plots_over_checkpoints_output_dir_from_filter_key_value_pairs(
+    output_root_dir: pathlib.Path,
+    filter_key_value_pairs: dict[
+        str,
+        str | int,
+    ],
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> pathlib.Path:
+    """Construct the plots output directory from the filter key-value pairs."""
+    plots_output_dir: pathlib.Path = pathlib.Path(
+        output_root_dir,
+        "plots_over_checkpoints",
+        dictionary_to_partial_path(
+            dictionary=filter_key_value_pairs,
+        ),
+    )
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"{plots_output_dir = }",  # noqa: G004 - low overhead
+        )
+
+    return plots_output_dir
+
+
+def add_base_model_data(
+    loaded_data: list[dict],
+    base_model_model_partial_name: str,
+    filter_key_value_pairs: dict[
+        str,
+        str | int,
+    ],
+    filtered_data: list[dict],
+    logger: logging.Logger = default_logger,
+) -> list[dict]:
+    """Add the base model data to the list of data to plot."""
+    # Build the dictionary which matches the same parameters as in the filter
+    # but has the model_partial_name from the base model.
+    filter_key_value_pairs_base_model: dict = {
+        **filter_key_value_pairs,
+        "model_partial_name": base_model_model_partial_name,
+        "model_seed": None,  # The base model always has model_seed=None.
+    }
+    filtered_data_base_model: list[dict] = filter_list_of_dictionaries_by_key_value_pairs(
+        list_of_dicts=loaded_data,
+        key_value_pairs=filter_key_value_pairs_base_model,
+    )
+    if len(filtered_data_base_model) == 0:
+        logger.warning(
+            msg=f"No base model data found for {filter_key_value_pairs = }.",  # noqa: G004 - low overhead
+        )
+        logger.warning(
+            msg="Proceeding without adding base model data.",
+        )
+    elif len(filtered_data_base_model) == 1:
+        logger.info(
+            msg=f"Unique base model data found for {filter_key_value_pairs = }.",  # noqa: G004 - low overhead
+        )
+        filtered_data_base_model_dict: dict = filtered_data_base_model[0]
+        # Add the base model data to the list of data to plot.
+        filtered_data.append(
+            filtered_data_base_model_dict,
+        )
+    elif len(filtered_data_base_model) > 1:
+        logger.warning(
+            f"Ambiguous base model data ({len(filtered_data_base_model)} entries) "  # noqa: G004 - low overhead
+            f"found for {filter_key_value_pairs = }.",
+        )
+        logger.warning(
+            msg="Will use the first entry.",
+        )
+        filtered_data_base_model_dict: dict = filtered_data_base_model[0]
+        # Add the base model data to the list of data to plot.
+        filtered_data.append(
+            filtered_data_base_model_dict,
+        )
+
+    return filtered_data
 
 
 if __name__ == "__main__":

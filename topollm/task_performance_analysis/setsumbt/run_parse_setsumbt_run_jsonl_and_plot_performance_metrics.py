@@ -31,24 +31,28 @@ import json
 import logging
 import os
 import pathlib
+import pickle
 from typing import TYPE_CHECKING, Any
 
 import hydra
-import matplotlib.pyplot as plt
+import numpy as np
 import omegaconf
 import pandas as pd
 
-from tests.conftest import language_model_config
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
-from topollm.config_classes.main_config import MainConfig
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
+from topollm.task_performance_analysis.plotting.plot_performance_metrics import plot_performance_metrics
+from topollm.task_performance_analysis.plotting.run_create_distribution_plots_of_local_estimates_over_checkpoints_and_over_layers import (
+    construct_plots_over_checkpoints_output_dir_from_filter_key_value_pairs,
+)
 from topollm.typing.enums import DescriptionType, Verbosity
 
 if TYPE_CHECKING:
+    from topollm.config_classes.main_config import MainConfig
     from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 
 # Logger for this file
@@ -64,7 +68,7 @@ setup_exception_logging(
 )
 
 
-def parse_log_file(
+def parse_setsumbt_run_jsonl_log_file(
     file_path: os.PathLike,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
@@ -204,208 +208,6 @@ def parse_log_file(
     return parsed_df
 
 
-def plot_performance_metrics(
-    df: pd.DataFrame,
-    x_col: str = "checkpoint",
-    primary_y_cols: list[str] | None = None,
-    secondary_y_cols: list[str] | None = None,
-    title: str = "Performance Metrics vs Checkpoint",
-    xlabel: str = "Checkpoint",
-    primary_ylabel: str = "Primary Metric Value",
-    secondary_ylabel: str = "Secondary Metric Value",
-    primary_ylim: tuple[float, float] | None = None,
-    secondary_ylim: tuple[float, float] | None = None,
-    figsize: tuple[int, int] = (20, 8),
-    output_root_dir: pathlib.Path | None = None,
-    highlight_best: list[str] | None = None,
-    verbosity: Verbosity = Verbosity.NORMAL,
-    logger: logging.Logger = default_logger,
-) -> None:
-    """Plot performance metrics versus checkpoints using configurable y-axis groups and scales.
-
-    This function creates a line plot from the given DataFrame showing the development of
-    performance measures through training checkpoints. You can configure which metrics
-    (columns) are plotted on the primary y‑axis and which (if any) on a secondary y‑axis.
-    In addition, you can optionally specify fixed y‑axis limits. If set to None, the scale
-    is determined automatically.
-
-    Args:
-        df (pd.DataFrame): DataFrame containing the log data. Must include the x-axis column.
-        x_col (str): Name of the column to use as the x-axis (default "checkpoint").
-        primary_y_cols: List of column names to plot on the primary y-axis.
-            If None, no primary lines are plotted.
-        secondary_y_cols: List of column names to plot on the secondary y-axis.
-        title (str): Title of the plot.
-        xlabel (str): Label for the x-axis.
-        primary_ylabel (str): Label for the primary y-axis.
-        secondary_ylabel (str): Label for the secondary y-axis.
-        primary_ylim:
-            Fixed y-axis limits for the primary y-axis.
-            If None, the limits are set automatically.
-        secondary_ylim:
-            Fixed y-axis limits for the secondary y-axis.
-            If None, the limits are set automatically.
-        figsize:
-            Figure size.
-
-    """
-    if primary_y_cols is None and secondary_y_cols is None:
-        msg = "At least one of primary_y_cols or secondary_y_cols must be provided."
-        raise ValueError(msg)
-
-    # Create the figure and the primary axis.
-    fig, ax1 = plt.subplots(figsize=figsize)
-
-    # Plot metrics for the primary y-axis.
-    if primary_y_cols:
-        for col in primary_y_cols:
-            if col not in df.columns:
-                logger.info(
-                    msg=f"Warning: '{col}' not found in DataFrame; skipping.",  # noqa: G004 - low overhead
-                )
-                continue
-            ax1.plot(df[x_col], df[col], marker="o", label=col)
-        ax1.set_ylabel(primary_ylabel)
-        if primary_ylim is not None:
-            ax1.set_ylim(primary_ylim)
-
-    # Plot metrics for the secondary y-axis if provided.
-    if secondary_y_cols:
-        ax2 = ax1.twinx()
-        for col in secondary_y_cols:
-            if col not in df.columns:
-                logger.info(
-                    msg=f"Warning: '{col}' not found in DataFrame; skipping.",  # noqa: G004 - low overhead
-                )
-                continue
-            ax2.plot(df[x_col], df[col], marker="s", linestyle="--", label=col)
-        ax2.set_ylabel(secondary_ylabel)
-        if secondary_ylim is not None:
-            ax2.set_ylim(secondary_ylim)
-    else:
-        ax2 = None
-
-    # Highlight both the maximum and minimum points for selected columns.
-    if highlight_best is not None:
-        for col in highlight_best:
-            if col not in df.columns:
-                logger.info(f"Warning: '{col}' not found in DataFrame for highlighting; skipping.")
-                continue
-
-            # Determine which axis to use.
-            if primary_y_cols is not None and col in primary_y_cols:
-                axis = ax1
-            elif secondary_y_cols is not None and ax2 is not None and col in secondary_y_cols:
-                axis = ax2
-            else:
-                axis = ax1
-
-            # Mark maximum point.
-            max_idx = df[col].idxmax()
-            max_x = df.loc[max_idx, x_col]
-            max_y = df.loc[max_idx, col]
-
-            # Make sure max_x and max_y are numbers.
-            max_x = float(
-                max_x,  # type: ignore - typing problem with pandas Scalar
-            )
-            max_y = float(
-                max_y,  # type: ignore - typing problem with pandas Scalar
-            )
-
-            # Check that max_x and max_y are valid numbers.
-            axis.plot(
-                max_x,
-                max_y,
-                marker="*",
-                markersize=14,
-                color="red",
-                label=f"Max {col}",
-            )
-
-            # Compute an offset (5% of the current y-axis range) for the maximum annotation.
-            current_ylim = axis.get_ylim()
-            offset_max = (current_ylim[1] - current_ylim[0]) * 0.05
-            axis.annotate(
-                f"{max_y:.2f}",
-                xy=(max_x, max_y),
-                xytext=(max_x, max_y + offset_max),
-                arrowprops={"arrowstyle": "->", "color": "red"},
-                color="red",
-                fontsize=10,
-            )
-
-            # Mark minimum point.
-            min_idx = df[col].idxmin()
-            min_x = df.loc[min_idx, x_col]
-            min_y = df.loc[min_idx, col]
-
-            # Make sure min_x and min_y are numbers.
-            min_x = float(
-                min_x,  # type: ignore - typing problem with pandas Scalar
-            )
-            min_y = float(
-                min_y,  # type: ignore - typing problem with pandas Scalar
-            )
-            axis.plot(
-                min_x,
-                min_y,
-                marker="*",
-                markersize=14,
-                color="blue",
-                label=f"Min {col}",
-            )
-
-            # Compute an offset for the minimum annotation (placing text below the marker).
-            offset_min = (current_ylim[1] - current_ylim[0]) * 0.05
-            axis.annotate(
-                f"{min_y:.2f}",
-                xy=(min_x, min_y),
-                xytext=(min_x, min_y - offset_min),
-                arrowprops={"arrowstyle": "->", "color": "blue"},
-                color="blue",
-                fontsize=10,
-            )
-
-    ax1.set_xlabel(
-        xlabel=xlabel,
-    )
-    ax1.set_title(
-        label=title,
-    )
-
-    # Combine legends from both axes.
-    handles1, labels1 = ax1.get_legend_handles_labels()
-    if ax2 is not None:
-        handles2, labels2 = ax2.get_legend_handles_labels()
-    else:
-        handles2, labels2 = [], []
-
-    # Place the legend below the plot.
-    ax1.legend(
-        handles=handles1 + handles2,
-        labels=labels1 + labels2,
-        loc="upper center",
-        bbox_to_anchor=(0.5, -0.15),
-        ncol=3,
-        frameon=True,
-    )
-
-    ax1.grid(visible=True)
-    fig.tight_layout()
-
-    if output_root_dir is not None:
-        output_file_path: pathlib.Path = pathlib.Path(
-            output_root_dir,
-            f"{title.replace(' ', '_').lower()}.pdf",
-        )
-        fig.savefig(
-            fname=output_file_path,
-            dpi=300,
-            bbox_inches="tight",
-        )
-
-
 @hydra.main(
     config_path=f"{HYDRA_CONFIGS_BASE_PATH}",
     config_name="main_config",
@@ -435,6 +237,8 @@ def main(
         logger=logger,
     )
 
+    array_key_name: str = "file_data"
+
     # ================================================== #
     # Parse the SetSUMBT log file and print a summary of the DataFrame.
     # ================================================== #
@@ -450,7 +254,7 @@ def main(
     )
 
     try:
-        parsed_df: pd.DataFrame = parse_log_file(
+        parsed_df: pd.DataFrame = parse_setsumbt_run_jsonl_log_file(
             file_path=log_filepath,
         )
     except FileNotFoundError as e:
@@ -484,6 +288,68 @@ def main(
         path_or_buf=output_file_path,
         index=False,
     )
+
+    # ================================================== #
+    # Optional:
+    # Load the local estimates distributions
+    # which can be added to the performance plots.
+    # ================================================== #
+
+    # Note:
+    # In the future, we might want to fill in the values in the dict here from the config.
+    filter_key_value_pairs: dict = {
+        "tokenizer_add_prefix_space": "False",
+        "data_full": "data=setsumbt_dataloaders_processed_0_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags",
+        "data_subsampling_full": "split=dev_samples=10000_sampling=random_sampling-seed=778",
+        "model_layer": -1,
+        "model_partial_name": "model=roberta-base-setsumbt_multiwoz21",
+        "model_seed": main_config.language_model.seed,
+    }
+
+    # We saved the local estimates distributions in the plots over checkpoints directory.
+    plots_over_checkpoints_output_dir: pathlib.Path = (
+        construct_plots_over_checkpoints_output_dir_from_filter_key_value_pairs(
+            output_root_dir=embeddings_path_manager.get_saved_plots_distribution_of_local_estimates_dir_absolute_path(),
+            filter_key_value_pairs=filter_key_value_pairs,
+            verbosity=verbosity,
+            logger=logger,
+        )
+    )
+
+    sorted_data_output_file_path: pathlib.Path = pathlib.Path(
+        plots_over_checkpoints_output_dir,
+        "sorted_data_list_of_dicts_with_arrays.pkl",
+    )
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Trying to load sorted data from {sorted_data_output_file_path = } ...",  # noqa: G004 - low overhead
+        )
+
+    try:
+        with sorted_data_output_file_path.open(
+            mode="rb",
+        ) as f:
+            loaded_sorted_local_estimates_data = pickle.load(  # noqa: S301 - we only use this for trusted data
+                file=f,
+            )
+    except FileNotFoundError as e:
+        logger.warning(
+            msg=f"Error reading local estimates file: {e}",  # noqa: G004 - low overhead
+        )
+        logger.warning(
+            msg="The local estimates distribution will not be added to the performance plots.",
+        )
+        loaded_sorted_local_estimates_data = None
+
+    if loaded_sorted_local_estimates_data is not None:
+        model_checkpoint_str_list: list[str] = [
+            str(object=single_dict["model_checkpoint"]) for single_dict in loaded_sorted_local_estimates_data
+        ]
+
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"{model_checkpoint_str_list=}",  # noqa: G004 - low overhead
+            )
 
     # ================================================== #
     # Create plot of the performance
@@ -525,10 +391,23 @@ def main(
         primary_ylim=None,  # e.g., None for auto
         secondary_ylim=None,  # e.g., None for auto
         output_root_dir=output_root_dir,
-        figsize=(20, 10),
+        figsize=(
+            20,
+            14,
+        ),
         highlight_best=highlight_columns,
+        loaded_sorted_local_estimates_data=loaded_sorted_local_estimates_data,
+        array_key_name=array_key_name,
+        local_estimates_limits=(
+            0.0,
+            15.0,
+        ),
         verbosity=verbosity,
         logger=logger,
+    )
+
+    logger.info(
+        msg="Running script DONE",
     )
 
 

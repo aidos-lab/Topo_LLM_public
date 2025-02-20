@@ -1832,10 +1832,10 @@
             }
         },
         {
-            "name": "Task performance analysis - create_violin_plots_of_local_estimates_over_checkpoints_and_over_layers.py",
+            "name": "Task performance analysis - Create distribution plots of local estimates over checkpoints and over layers.",
             "type": "debugpy",
             "request": "launch",
-            "program": "topollm/task_performance_analysis/plotting/create_violin_plots_of_local_estimates_over_checkpoints_and_over_layers.py",
+            "program": "topollm/task_performance_analysis/plotting/run_create_distribution_plots_of_local_estimates_over_checkpoints_and_over_layers.py",
             "console": "integratedTerminal",
             "args": [
                 // >>>> START: Hydra options
@@ -1866,10 +1866,10 @@
             }
         },
         {
-            "name": "Task performance analysis - parse_setsumbt_run_jsonl.py",
+            "name": "Task performance analysis - Parse SETSUMBT run JSONL file and plot performance metrics.",
             "type": "debugpy",
             "request": "launch",
-            "program": "topollm/task_performance_analysis/setsumbt/parse_setsumbt_run_jsonl.py",
+            "program": "topollm/task_performance_analysis/setsumbt/run_parse_setsumbt_run_jsonl_and_plot_performance_metrics.py",
             "console": "integratedTerminal",
             "args": [
                 // >>>> START: Hydra options
