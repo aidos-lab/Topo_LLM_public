@@ -329,7 +329,7 @@ def main(
         with sorted_data_output_file_path.open(
             mode="rb",
         ) as f:
-            loaded_sorted_data = pickle.load(  # noqa: S301 - we only use this for trusted data
+            loaded_sorted_local_estimates_data = pickle.load(  # noqa: S301 - we only use this for trusted data
                 file=f,
             )
     except FileNotFoundError as e:
@@ -339,20 +339,17 @@ def main(
         logger.warning(
             msg="The local estimates distribution will not be added to the performance plots.",
         )
-        loaded_sorted_data = None
+        loaded_sorted_local_estimates_data = None
 
-    if loaded_sorted_data is not None:
-        extracted_arrays: list[np.ndarray] = [single_dict[array_key_name] for single_dict in loaded_sorted_data]
+    if loaded_sorted_local_estimates_data is not None:
         model_checkpoint_str_list: list[str] = [
-            str(object=single_dict["model_checkpoint"]) for single_dict in loaded_sorted_data
+            str(object=single_dict["model_checkpoint"]) for single_dict in loaded_sorted_local_estimates_data
         ]
 
         if verbosity >= Verbosity.NORMAL:
             logger.info(
                 msg=f"{model_checkpoint_str_list=}",  # noqa: G004 - low overhead
             )
-
-    # TODO: Add the processing of the loaded data here.
 
     # ================================================== #
     # Create plot of the performance
@@ -396,6 +393,8 @@ def main(
         output_root_dir=output_root_dir,
         figsize=(20, 10),
         highlight_best=highlight_columns,
+        loaded_sorted_local_estimates_data=loaded_sorted_local_estimates_data,
+        array_key_name=array_key_name,
         verbosity=verbosity,
         logger=logger,
     )

@@ -31,6 +31,7 @@ import logging
 import pathlib
 
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 
 from topollm.typing.enums import Verbosity
@@ -54,6 +55,8 @@ def plot_performance_metrics(
     figsize: tuple[int, int] = (20, 8),
     output_root_dir: pathlib.Path | None = None,
     highlight_best: list[str] | None = None,
+    loaded_sorted_local_estimates_data: list[dict] | None = None,
+    array_key_name: str = "file_data",
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> None:
@@ -66,15 +69,23 @@ def plot_performance_metrics(
     is determined automatically.
 
     Args:
-        df (pd.DataFrame): DataFrame containing the log data. Must include the x-axis column.
-        x_col (str): Name of the column to use as the x-axis (default "checkpoint").
-        primary_y_cols: List of column names to plot on the primary y-axis.
+        df :
+            DataFrame containing the log data. Must include the x-axis column.
+        x_col:
+            Name of the column to use as the x-axis (default "checkpoint").
+        primary_y_cols:
+            List of column names to plot on the primary y-axis.
             If None, no primary lines are plotted.
-        secondary_y_cols: List of column names to plot on the secondary y-axis.
-        title (str): Title of the plot.
-        xlabel (str): Label for the x-axis.
-        primary_ylabel (str): Label for the primary y-axis.
-        secondary_ylabel (str): Label for the secondary y-axis.
+        secondary_y_cols:
+            List of column names to plot on the secondary y-axis.
+        title:
+            Title of the plot.
+        xlabel:
+            Label for the x-axis.
+        primary_ylabel:
+            Label for the primary y-axis.
+        secondary_ylabel:
+            Label for the secondary y-axis.
         primary_ylim:
             Fixed y-axis limits for the primary y-axis.
             If None, the limits are set automatically.
@@ -87,7 +98,9 @@ def plot_performance_metrics(
     """
     if primary_y_cols is None and secondary_y_cols is None:
         msg = "At least one of primary_y_cols or secondary_y_cols must be provided."
-        raise ValueError(msg)
+        raise ValueError(
+            msg,
+        )
 
     # Create the figure and the primary axis.
     (
@@ -105,10 +118,19 @@ def plot_performance_metrics(
                     msg=f"Warning: '{col}' not found in DataFrame; skipping.",  # noqa: G004 - low overhead
                 )
                 continue
-            ax1.plot(df[x_col], df[col], marker="o", label=col)
-        ax1.set_ylabel(primary_ylabel)
+            ax1.plot(
+                df[x_col],
+                df[col],
+                marker="o",
+                label=col,
+            )
+        ax1.set_ylabel(
+            ylabel=primary_ylabel,
+        )
         if primary_ylim is not None:
-            ax1.set_ylim(primary_ylim)
+            ax1.set_ylim(
+                bottom=primary_ylim,
+            )
 
     # Plot metrics for the secondary y-axis if provided.
     if secondary_y_cols:
@@ -209,6 +231,18 @@ def plot_performance_metrics(
                 color="blue",
                 fontsize=10,
             )
+
+    # If available, add the local estimates distribution plots.
+    if loaded_sorted_local_estimates_data is not None:
+        extracted_arrays: list[np.ndarray] = [
+            single_dict[array_key_name] for single_dict in loaded_sorted_local_estimates_data
+        ]
+        model_checkpoint_str_list: list[str] = [
+            str(object=single_dict["model_checkpoint"]) for single_dict in loaded_sorted_local_estimates_data
+        ]
+
+        pass  # TODO: Here for setting breakpoints in debugging, remove later.
+        # TODO: Plot the loaded_sorted_local_estimates_data as vertical violin plots.
 
     ax1.set_xlabel(
         xlabel=xlabel,
