@@ -110,7 +110,9 @@ def plot_performance_metrics(
         figsize=figsize,
     )
 
+    # -------------------------------------------------------------
     # Plot metrics for the primary y-axis.
+    # -------------------------------------------------------------
     if primary_y_cols:
         for col in primary_y_cols:
             if col not in df.columns:
@@ -132,7 +134,9 @@ def plot_performance_metrics(
                 bottom=primary_ylim,
             )
 
+    # -------------------------------------------------------------
     # Plot metrics for the secondary y-axis if provided.
+    # -------------------------------------------------------------
     if secondary_y_cols:
         ax2 = ax1.twinx()
         for col in secondary_y_cols:
@@ -141,14 +145,22 @@ def plot_performance_metrics(
                     msg=f"Warning: '{col}' not found in DataFrame; skipping.",  # noqa: G004 - low overhead
                 )
                 continue
-            ax2.plot(df[x_col], df[col], marker="s", linestyle="--", label=col)
+            ax2.plot(
+                df[x_col],
+                df[col],
+                marker="s",
+                linestyle="--",
+                label=col,
+            )
         ax2.set_ylabel(secondary_ylabel)
         if secondary_ylim is not None:
             ax2.set_ylim(secondary_ylim)
     else:
         ax2 = None
 
+    # -------------------------------------------------------------
     # Highlight both the maximum and minimum points for selected columns.
+    # -------------------------------------------------------------
     if highlight_best is not None:
         for col in highlight_best:
             if col not in df.columns:
@@ -232,17 +244,60 @@ def plot_performance_metrics(
                 fontsize=10,
             )
 
-    # If available, add the local estimates distribution plots.
+    # -------------------------------------------------------------
+    # Add violin plots for the local estimates, if provided.
+    # -------------------------------------------------------------
     if loaded_sorted_local_estimates_data is not None:
-        extracted_arrays: list[np.ndarray] = [
-            single_dict[array_key_name] for single_dict in loaded_sorted_local_estimates_data
-        ]
-        model_checkpoint_str_list: list[str] = [
-            str(object=single_dict["model_checkpoint"]) for single_dict in loaded_sorted_local_estimates_data
-        ]
+        for single_dict in loaded_sorted_local_estimates_data:
+            ckpt_raw = single_dict["model_checkpoint"]
+            local_estimates = single_dict[array_key_name]
+            # Convert checkpoint to float if it's stored as a string.
+            try:
+                ckpt_val = float(ckpt_raw)
+            except ValueError:
+                # If it's not parseable, skip or handle differently
+                logger.info(f"Skipping checkpoint {ckpt_raw} - cannot convert to float.")
+                continue
+
+            # Create a violin plot at the x-position = ckpt_val
+            # You can tweak 'widths', 'showmeans', 'showextrema', etc. as needed:
+            #
+            # Note: We need to set the widths to a value in the thousands,
+            # because the x-axis is the global step of the checkpoints,
+            # and otherwise the violins would not be visible.
+            parts: dict = ax1.violinplot(
+                dataset=local_estimates,
+                positions=[ckpt_val],
+                widths=2000,
+                showmeans=True,
+                showextrema=True,
+                showmedians=False,
+            )
+
+            # Make all the violin plots the same color (e.g., black).
+            # Note that since we are creating each violin plot separately,
+            # by default matplotlib will cycle through colors.
+            # We can override this by setting the color of the parts of the violin plot.
+            if "cmeans" in parts:
+                parts["cmeans"].set_color("black")
+                parts["cmeans"].set_linewidth(2.0)
+
+            if "cmins" in parts:
+                parts["cmins"].set_color("black")
+            if "cmaxes" in parts:
+                parts["cmaxes"].set_color("black")
+            if "cbars" in parts:
+                parts["cbars"].set_color("black")
+
+            # Optionally unify the violin body color/alpha:
+            for pc in parts["bodies"]:
+                pc.set_facecolor("gray")
+                pc.set_alpha(0.8)
+
+        # Note: We do not want to rescale the x-axis,
+        # since the violin plot of the base model will be placed at x-coordinate -1.
 
         pass  # TODO: Here for setting breakpoints in debugging, remove later.
-        # TODO: Plot the loaded_sorted_local_estimates_data as vertical violin plots.
 
     ax1.set_xlabel(
         xlabel=xlabel,
