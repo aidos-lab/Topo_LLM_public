@@ -31,9 +31,11 @@ import json
 import logging
 import os
 import pathlib
+import pickle
 from typing import TYPE_CHECKING, Any
 
 import hydra
+import numpy as np
 import omegaconf
 import pandas as pd
 
@@ -44,6 +46,9 @@ from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
 from topollm.task_performance_analysis.plotting.plot_performance_metrics import plot_performance_metrics
+from topollm.task_performance_analysis.plotting.run_create_distribution_plots_of_local_estimates_over_checkpoints_and_over_layers import (
+    construct_plots_over_checkpoints_output_dir_from_filter_key_value_pairs,
+)
 from topollm.typing.enums import DescriptionType, Verbosity
 
 if TYPE_CHECKING:
@@ -232,6 +237,8 @@ def main(
         logger=logger,
     )
 
+    array_key_name: str = "file_data"
+
     # ================================================== #
     # Parse the SetSUMBT log file and print a summary of the DataFrame.
     # ================================================== #
@@ -281,6 +288,71 @@ def main(
         path_or_buf=output_file_path,
         index=False,
     )
+
+    # ================================================== #
+    # Optional:
+    # Load the local estimates distributions
+    # which can be added to the performance plots.
+    # ================================================== #
+
+    # Note:
+    # In the future, we might want to fill in the values in the dict here from the config.
+    filter_key_value_pairs: dict = {
+        "tokenizer_add_prefix_space": "False",
+        "data_full": "data=setsumbt_dataloaders_processed_0_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags",
+        "data_subsampling_full": "split=dev_samples=10000_sampling=random_sampling-seed=778",
+        "model_layer": -1,
+        "model_partial_name": "model=roberta-base-setsumbt_multiwoz21",
+        "model_seed": main_config.language_model.seed,
+    }
+
+    # We saved the local estimates distributions in the plots over checkpoints directory.
+    plots_over_checkpoints_output_dir: pathlib.Path = (
+        construct_plots_over_checkpoints_output_dir_from_filter_key_value_pairs(
+            output_root_dir=embeddings_path_manager.get_saved_plots_distribution_of_local_estimates_dir_absolute_path(),
+            filter_key_value_pairs=filter_key_value_pairs,
+            verbosity=verbosity,
+            logger=logger,
+        )
+    )
+
+    sorted_data_output_file_path: pathlib.Path = pathlib.Path(
+        plots_over_checkpoints_output_dir,
+        "sorted_data_list_of_dicts_with_arrays.pkl",
+    )
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Trying to load sorted data from {sorted_data_output_file_path = } ...",  # noqa: G004 - low overhead
+        )
+
+    try:
+        with sorted_data_output_file_path.open(
+            mode="rb",
+        ) as f:
+            loaded_sorted_data = pickle.load(  # noqa: S301 - we only use this for trusted data
+                file=f,
+            )
+    except FileNotFoundError as e:
+        logger.warning(
+            msg=f"Error reading log file: {e}",  # noqa: G004 - low overhead
+        )
+        logger.warning(
+            msg="The local estimates distribution will not be added to the performance plots.",
+        )
+        loaded_sorted_data = None
+
+    if loaded_sorted_data is not None:
+        extracted_arrays: list[np.ndarray] = [single_dict[array_key_name] for single_dict in loaded_sorted_data]
+        model_checkpoint_str_list: list[str] = [
+            str(object=single_dict["model_checkpoint"]) for single_dict in loaded_sorted_data
+        ]
+
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"{model_checkpoint_str_list=}",  # noqa: G004 - low overhead
+            )
+
+    # TODO: Add the processing of the loaded data here.
 
     # ================================================== #
     # Create plot of the performance

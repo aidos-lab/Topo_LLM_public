@@ -118,15 +118,15 @@ def main(
     )
 
     patterns_to_iterate_over: list[str] = [
-        # > Splits for the SetSUMBT saved dataloaders
-        (
-            "**/"
-            "split=train_samples=10000_sampling=random_sampling-seed=778/"
-            "edh-mode=regular_lvl=token/"
-            "add-prefix-space=False_max-len=512/"
-            "**/"
-            "local_estimates_pointwise_array.npy"
-        ),
+        # # > Splits for the SetSUMBT saved dataloaders
+        # (
+        #     "**/"
+        #     "split=train_samples=10000_sampling=random_sampling-seed=778/"
+        #     "edh-mode=regular_lvl=token/"
+        #     "add-prefix-space=False_max-len=512/"
+        #     "**/"
+        #     "local_estimates_pointwise_array.npy"
+        # ),
         (
             "**/"
             "split=dev_samples=10000_sampling=random_sampling-seed=778/"
@@ -135,33 +135,33 @@ def main(
             "**/"
             "local_estimates_pointwise_array.npy"
         ),
-        (
-            "**/"
-            "split=test_samples=10000_sampling=random_sampling-seed=778/"
-            "edh-mode=regular_lvl=token/"
-            "add-prefix-space=False_max-len=512/"
-            "**/"
-            "local_estimates_pointwise_array.npy"
-        ),
-        # > Splits for the Huggingface datasets
-        (
-            "**/"
-            "split=validation_samples=10000_sampling=random_sampling-seed=778/"
-            "edh-mode=regular_lvl=token/"
-            "add-prefix-space=False_max-len=512/"
-            "**/"
-            "local_estimates_pointwise_array.npy"
-        ),
-        # > Other selected datasets and splits
-        (
-            "**/"
-            "data=sgd_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/"
-            "split=validation_samples=10000_sampling=random_sampling-seed=777/"
-            "edh-mode=masked_token_lvl=token/"
-            "add-prefix-space=False_max-len=512/"
-            "**/"
-            "local_estimates_pointwise_array.npy"
-        ),
+        # (
+        #     "**/"
+        #     "split=test_samples=10000_sampling=random_sampling-seed=778/"
+        #     "edh-mode=regular_lvl=token/"
+        #     "add-prefix-space=False_max-len=512/"
+        #     "**/"
+        #     "local_estimates_pointwise_array.npy"
+        # ),
+        # # > Splits for the Huggingface datasets
+        # (
+        #     "**/"
+        #     "split=validation_samples=10000_sampling=random_sampling-seed=778/"
+        #     "edh-mode=regular_lvl=token/"
+        #     "add-prefix-space=False_max-len=512/"
+        #     "**/"
+        #     "local_estimates_pointwise_array.npy"
+        # ),
+        # # > Other selected datasets and splits
+        # (
+        #     "**/"
+        #     "data=sgd_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/"
+        #     "split=validation_samples=10000_sampling=random_sampling-seed=777/"
+        #     "edh-mode=masked_token_lvl=token/"
+        #     "add-prefix-space=False_max-len=512/"
+        #     "**/"
+        #     "local_estimates_pointwise_array.npy"
+        # ),
     ]
 
     for pattern in tqdm(
@@ -523,18 +523,12 @@ def create_distribution_plots_over_model_checkpoints(
             str(object=single_dict["model_checkpoint"]) for single_dict in sorted_data
         ]
 
-        # TODO: Move this into a function
-        plots_output_dir: pathlib.Path = pathlib.Path(
-            output_root_dir,
-            "plots_over_checkpoints",
-            dictionary_to_partial_path(
-                dictionary=filter_key_value_pairs,
-            ),
+        plots_output_dir: pathlib.Path = construct_plots_over_checkpoints_output_dir_from_filter_key_value_pairs(
+            output_root_dir=output_root_dir,
+            filter_key_value_pairs=filter_key_value_pairs,
+            verbosity=verbosity,
+            logger=logger,
         )
-        if verbosity >= Verbosity.NORMAL:
-            logger.info(
-                msg=f"{plots_output_dir = }",  # noqa: G004 - low overhead
-            )
 
         if save_sorted_data_list_of_dicts_with_arrays:
             # Save the sorted data list of dicts with the arrays to a pickle file.
@@ -583,6 +577,28 @@ def create_distribution_plots_over_model_checkpoints(
                 verbosity=verbosity,
                 logger=logger,
             )
+
+
+def construct_plots_over_checkpoints_output_dir_from_filter_key_value_pairs(
+    output_root_dir: pathlib.Path,
+    filter_key_value_pairs: dict[str, str | int],
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> pathlib.Path:
+    """Construct the plots output directory from the filter key-value pairs."""
+    plots_output_dir: pathlib.Path = pathlib.Path(
+        output_root_dir,
+        "plots_over_checkpoints",
+        dictionary_to_partial_path(
+            dictionary=filter_key_value_pairs,
+        ),
+    )
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"{plots_output_dir = }",  # noqa: G004 - low overhead
+        )
+
+    return plots_output_dir
 
 
 def add_base_model_data(
