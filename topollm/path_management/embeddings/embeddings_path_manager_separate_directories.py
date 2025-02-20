@@ -123,7 +123,7 @@ class EmbeddingsPathManagerSeparateDirectories:
         return path
 
     # # # #
-    # array directory
+    # Array directories
 
     @property
     def array_dir_absolute_path(
@@ -162,7 +162,7 @@ class EmbeddingsPathManagerSeparateDirectories:
         return "array_dir"
 
     # # # #
-    # metadata directory
+    # Metadata directories
 
     @property
     def metadata_dir_absolute_path(
@@ -201,7 +201,7 @@ class EmbeddingsPathManagerSeparateDirectories:
         return "metadata_dir"
 
     # # # #
-    # perplexity directory
+    # Perplexity directories
 
     @property
     def perplexity_dir_absolute_path(
@@ -255,7 +255,7 @@ class EmbeddingsPathManagerSeparateDirectories:
         return path
 
     # # # #
-    # prepared data directory
+    # Prepared data directories
 
     @property
     def prepared_data_dir_absolute_path(
@@ -462,6 +462,17 @@ class EmbeddingsPathManagerSeparateDirectories:
         path = pathlib.Path(
             self.get_saved_plots_local_estimates_projection_dir_absolute_path(),
             file_name,
+        )
+
+        return path
+
+    def get_saved_plots_distribution_of_local_estimates_dir_absolute_path(
+        self,
+    ) -> pathlib.Path:
+        path = pathlib.Path(
+            self.saved_plots_dir_absolute_path,
+            "task_performance_analysis",
+            "distribution_of_local_estimates",
         )
 
         return path

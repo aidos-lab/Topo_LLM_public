@@ -155,6 +155,10 @@ class EmbeddingsPathManager(Protocol):
         file_name: str,
     ) -> pathlib.Path: ...  # pragma: no cover
 
+    def get_saved_plots_distribution_of_local_estimates_dir_absolute_path(
+        self,
+    ) -> pathlib.Path: ...  # pragma: no cover
+
     # # # #
     # Analyzed data directories
 
