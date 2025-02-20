@@ -581,7 +581,10 @@ def create_distribution_plots_over_model_checkpoints(
 
 def construct_plots_over_checkpoints_output_dir_from_filter_key_value_pairs(
     output_root_dir: pathlib.Path,
-    filter_key_value_pairs: dict[str, str | int],
+    filter_key_value_pairs: dict[
+        str,
+        str | int,
+    ],
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> pathlib.Path:

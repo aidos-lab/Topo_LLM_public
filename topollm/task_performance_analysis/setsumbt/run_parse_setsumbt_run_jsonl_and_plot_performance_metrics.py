@@ -334,7 +334,7 @@ def main(
             )
     except FileNotFoundError as e:
         logger.warning(
-            msg=f"Error reading log file: {e}",  # noqa: G004 - low overhead
+            msg=f"Error reading local estimates file: {e}",  # noqa: G004 - low overhead
         )
         logger.warning(
             msg="The local estimates distribution will not be added to the performance plots.",
