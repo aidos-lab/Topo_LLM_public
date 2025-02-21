@@ -75,7 +75,27 @@ class EstimatorConfig(ConfigBaseModel):
 
     lpca_alphaRatio: float = Field(  # noqa: N815 - we want to use names derived from the skdim module
         default=0.05,
-        title="alphaRatio parameter in the lPCA estimator",
+        title="alphaRatio parameter in the lPCA estimator.",
+    )
+
+    lpca_alphaFO: float = Field(  # noqa: N815 - we want to use names derived from the skdim module
+        default=0.05,
+        title="alphaFO parameter in the lPCA estimator.",
+    )
+
+    lpca_alphaFan: int = Field(  # noqa: N815 - we want to use names derived from the skdim module
+        default=10,
+        title="alphaFan parameter in the lPCA estimator.",
+    )
+
+    lpca_betaFan: float = Field(  # noqa: N815 - we want to use names derived from the skdim module
+        default=0.8,
+        title="betaFan parameter in the lPCA estimator.",
+    )
+
+    lpca_PFan: float = Field(  # noqa: N815 - we want to use names derived from the skdim module
+        default=0.95,
+        title="PFan parameter in the lPCA estimator.",
     )
 
 

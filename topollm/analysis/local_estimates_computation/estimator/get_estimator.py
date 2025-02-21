@@ -61,8 +61,11 @@ def get_estimator_from_local_estimates_config(
             estimator = skdim.id.lPCA(
                 ver=local_estimates_config.estimator.lpca_ver,
                 alphaRatio=local_estimates_config.estimator.lpca_alphaRatio,
+                alphaFO=local_estimates_config.estimator.lpca_alphaFO,
+                alphaFan=local_estimates_config.estimator.lpca_alphaFan,
+                betaFan=local_estimates_config.estimator.lpca_betaFan,
+                PFan=local_estimates_config.estimator.lpca_PFan,
             )
-            # TODO: Add additional parameters to the lPCA estimator construction
         # Note: You can add additional estimators here.
         case _:
             msg: str = f"Unsupported estimator method type: {local_estimates_config.estimator.method_type =}"
