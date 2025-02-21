@@ -380,3 +380,4 @@ class EstimatorMethodType(StrEnum):
     """The different types of methods for the estimator."""
 
     TWONN = auto()
+    LPCA = auto()

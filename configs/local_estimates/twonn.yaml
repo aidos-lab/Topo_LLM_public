@@ -9,5 +9,3 @@ estimator:
   method_type: "twonn"
 
 compute_global_estimates: true
-
-

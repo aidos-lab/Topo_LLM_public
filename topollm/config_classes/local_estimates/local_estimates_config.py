@@ -53,10 +53,29 @@ class EstimatorConfig(ConfigBaseModel):
         description="A description of the local estimates.",
     )
 
+    # # # #
+    # Additional parameters for the estimators
+
+    # # # #
+    # TwoNN
+
     twonn_discard_fraction: float = Field(
         default=0.1,
         title="Fraction of points to discard.",
         description="Fraction of points to discard for the twonn estimator.",
+    )
+
+    # # # #
+    # lPCA
+
+    lpca_ver: str = Field(
+        default="FO",
+        title="Local PCA estimator version.",
+    )
+
+    lpca_alphaRatio: float = Field(  # noqa: N815 - we want to use names derived from the skdim module
+        default=0.05,
+        title="alphaRatio parameter in the lPCA estimator",
     )
 
 

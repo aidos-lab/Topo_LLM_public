@@ -26,6 +26,7 @@
 # limitations under the License.
 
 import logging
+import pprint
 
 import skdim
 
@@ -52,7 +53,17 @@ def get_estimator_from_local_estimates_config(
             estimator = skdim.id.TwoNN(
                 discard_fraction=local_estimates_config.estimator.twonn_discard_fraction,
             )
-        # TODO: Add more estimator methods here.
+        case EstimatorMethodType.LPCA:
+            if verbosity >= Verbosity.NORMAL:
+                logger.info(
+                    msg="Using lPCA estimator.",
+                )
+            estimator = skdim.id.lPCA(
+                ver=local_estimates_config.estimator.lpca_ver,
+                alphaRatio=local_estimates_config.estimator.lpca_alphaRatio,
+            )
+            # TODO: Add additional parameters to the lPCA estimator construction
+        # Note: You can add additional estimators here.
         case _:
             msg: str = f"Unsupported estimator method type: {local_estimates_config.estimator.method_type =}"
             logger.error(
@@ -61,5 +72,13 @@ def get_estimator_from_local_estimates_config(
             raise ValueError(
                 msg,
             )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"estimator:\n{estimator}",  # noqa: G004 - low overhead
+        )
+        logger.info(
+            msg=f"estimator.__dict__:\n{pprint.pformat(object=estimator.__dict__)}",  # noqa: G004 - low overhead
+        )
 
     return estimator

@@ -358,7 +358,7 @@
             }
         },
         {
-            "name": "For debugging: Task performance analysis - Stored dataloaders, SETSUMBT-dataloaders - run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
+            "name": "For debugging: Task performance analysis - twoNN, Stored dataloaders, SETSUMBT-dataloaders - Run pipeline.",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
@@ -393,17 +393,77 @@
                 //    >> START: Model options.
                 //
                 "language_model=roberta-base-setsumbt_multiwoz21",
-                // "language_model.seed=0",
-                "language_model.seed=1",
-                // "language_model.checkpoint_no=2813",
+                "language_model.seed=0",
+                // "language_model.seed=1",
+                "language_model.checkpoint_no=2813",
                 // "language_model.checkpoint_no=2813,5626,8439", // <-- locally, we have these checkpoints available for "language_model.seed=0"
-                "language_model.checkpoint_no=109707", // <-- locally, we have these checkpoints available for "language_model.seed=1"
+                // "language_model.checkpoint_no=109707", // <-- locally, we have these checkpoints available for "language_model.seed=1"
                 //
                 //    >> END: Model options.
                 //
                 "embeddings.embedding_extraction.layer_indices=[-1]",
                 "embeddings_data_prep.sampling.num_samples=3000",
                 "embeddings_data_prep.sampling.sampling_mode=random",
+                "local_estimates=twonn",
+                "local_estimates.filtering.num_samples=500",
+                "local_estimates.compute_global_estimates=true",
+                "local_estimates.pointwise.n_neighbors_mode=absolute_size",
+                "local_estimates.pointwise.absolute_n_neighbors=128",
+                "feature_flags.analysis.create_plots_in_local_estimates_worker=true",
+            ],
+            "env": {
+                "PYTORCH_ENABLE_MPS_FALLBACK": "1"
+            }
+        },
+        {
+            "name": "For debugging: Task performance analysis - lPCA, Stored dataloaders, SETSUMBT-dataloaders - Run pipeline.",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
+            "console": "integratedTerminal",
+            "args": [
+                // >>>> START: Hydra options
+                "--multirun",
+                "hydra/sweeper=basic",
+                "hydra/launcher=basic",
+                // "hydra/launcher=hpc_submission",
+                // "hydra.launcher.queue=CUDA",
+                // "hydra.launcher.template=RTX6000",
+                // "hydra.launcher.memory=32",
+                // "hydra.launcher.ncpus=4",
+                // "hydra.launcher.ngpus=1",
+                // "hydra.launcher.walltime=01:00:00", // <-- The pipeline run for regular embeddings should only take a few minutes.
+                // >>>> END: Hydra options
+                //
+                "tokenizer.add_prefix_space=False", // "tokenizer.add_prefix_space=True" is necessary to use the tokenizer with input split into words
+                //
+                //    >> START: Data options.
+                //
+                "data=setsumbt_dataloaders_processed",
+                "data.dataset_seed=0",
+                // "data.data_subsampling.split=train",
+                "data.data_subsampling.split=dev",
+                // "data.data_subsampling.split=test",
+                "data.data_subsampling.number_of_samples=512",
+                //
+                //    >> END: Data options.
+                //
+                //    >> START: Model options.
+                //
+                "language_model=roberta-base-setsumbt_multiwoz21",
+                "language_model.seed=0",
+                // "language_model.seed=1",
+                "language_model.checkpoint_no=2813",
+                // "language_model.checkpoint_no=2813,5626,8439", // <-- locally, we have these checkpoints available for "language_model.seed=0"
+                // "language_model.checkpoint_no=109707", // <-- locally, we have these checkpoints available for "language_model.seed=1"
+                //
+                //    >> END: Model options.
+                //
+                "embeddings.embedding_extraction.layer_indices=[-1]",
+                "embeddings_data_prep.sampling.num_samples=3000",
+                "embeddings_data_prep.sampling.sampling_mode=random",
+                "local_estimates=lpca",
+                "local_estimates.estimator.lpca_ver=Fan",
                 "local_estimates.filtering.num_samples=500",
                 "local_estimates.compute_global_estimates=true",
                 "local_estimates.pointwise.n_neighbors_mode=absolute_size",

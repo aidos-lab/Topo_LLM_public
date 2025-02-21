@@ -1,0 +1,21 @@
+defaults:
+  - filtering: default
+  - noise: default
+  - pointwise: default
+  - _self_
+
+estimator:
+  method_description: "lpca-${local_estimates.estimator.lpca_ver}"
+  # TODO: Add additional parameters to the method_description
+  method_type: "lpca"
+  # Note: The parameters are passed to the estimator.
+  # https://scikit-dimension.readthedocs.io/en/stable/skdim.id.lPCA.html
+  lpca_ver: "FO"
+  lpca_alphaRatio: 0.05
+  lpca_alphaFO: 0.05
+  lpca_alphaFan: 10
+  lpca_betaFan: 0.8
+  lpca_PFan: 0.95
+
+
+compute_global_estimates: true
