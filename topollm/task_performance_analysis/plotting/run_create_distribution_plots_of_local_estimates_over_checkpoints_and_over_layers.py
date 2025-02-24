@@ -31,7 +31,7 @@ import itertools
 import logging
 import pathlib
 import pickle
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Iterator
 
 import hydra
 import numpy as np
@@ -118,15 +118,15 @@ def main(
     )
 
     patterns_to_iterate_over: list[str] = [
-        # # > Splits for the SetSUMBT saved dataloaders
-        # (
-        #     "**/"
-        #     "split=train_samples=10000_sampling=random_sampling-seed=778/"
-        #     "edh-mode=regular_lvl=token/"
-        #     "add-prefix-space=False_max-len=512/"
-        #     "**/"
-        #     "local_estimates_pointwise_array.npy"
-        # ),
+        # > Splits for the SetSUMBT saved dataloaders
+        (
+            "**/"
+            "split=train_samples=10000_sampling=random_sampling-seed=778/"
+            "edh-mode=regular_lvl=token/"
+            "add-prefix-space=False_max-len=512/"
+            "**/"
+            "local_estimates_pointwise_array.npy"
+        ),
         (
             "**/"
             "split=dev_samples=10000_sampling=random_sampling-seed=778/"
@@ -135,33 +135,33 @@ def main(
             "**/"
             "local_estimates_pointwise_array.npy"
         ),
-        # (
-        #     "**/"
-        #     "split=test_samples=10000_sampling=random_sampling-seed=778/"
-        #     "edh-mode=regular_lvl=token/"
-        #     "add-prefix-space=False_max-len=512/"
-        #     "**/"
-        #     "local_estimates_pointwise_array.npy"
-        # ),
-        # # > Splits for the Huggingface datasets
-        # (
-        #     "**/"
-        #     "split=validation_samples=10000_sampling=random_sampling-seed=778/"
-        #     "edh-mode=regular_lvl=token/"
-        #     "add-prefix-space=False_max-len=512/"
-        #     "**/"
-        #     "local_estimates_pointwise_array.npy"
-        # ),
-        # # > Other selected datasets and splits
-        # (
-        #     "**/"
-        #     "data=sgd_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/"
-        #     "split=validation_samples=10000_sampling=random_sampling-seed=777/"
-        #     "edh-mode=masked_token_lvl=token/"
-        #     "add-prefix-space=False_max-len=512/"
-        #     "**/"
-        #     "local_estimates_pointwise_array.npy"
-        # ),
+        (
+            "**/"
+            "split=test_samples=10000_sampling=random_sampling-seed=778/"
+            "edh-mode=regular_lvl=token/"
+            "add-prefix-space=False_max-len=512/"
+            "**/"
+            "local_estimates_pointwise_array.npy"
+        ),
+        # > Splits for the Huggingface datasets
+        (
+            "**/"
+            "split=validation_samples=10000_sampling=random_sampling-seed=778/"
+            "edh-mode=regular_lvl=token/"
+            "add-prefix-space=False_max-len=512/"
+            "**/"
+            "local_estimates_pointwise_array.npy"
+        ),
+        # > Other selected datasets and splits
+        (
+            "**/"
+            "data=sgd_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/"
+            "split=validation_samples=10000_sampling=random_sampling-seed=777/"
+            "edh-mode=masked_token_lvl=token/"
+            "add-prefix-space=False_max-len=512/"
+            "**/"
+            "local_estimates_pointwise_array.npy"
+        ),
     ]
 
     for pattern in tqdm(
@@ -297,46 +297,121 @@ def create_plots_for_given_pattern(
     )
 
 
+def get_fixed_parameter_combinations(
+    loaded_data: list[dict[str, Any]],
+    fixed_keys: list[str],
+    additional_fixed_params: dict[str, Any] | None = None,
+) -> Iterator[dict[str, Any]]:
+    """Generate combinations of fixed parameters from loaded data.
+
+    This function extracts unique values for each key in `fixed_keys` from the provided
+    `loaded_data`, and optionally merges these with `additional_fixed_params` (where each
+    key in additional_fixed_params is fixed to a single value).
+    It returns an iterator over dictionaries, each representing a unique combination of fixed parameters.
+
+    Args:
+        loaded_data: List of dictionaries containing data.
+        fixed_keys: List of keys for which to generate combinations of values.
+        additional_fixed_params: Additional key-value pairs to be fixed.
+
+    Yields:
+        A dictionary representing a combination of fixed parameters.
+
+    """
+    # Step 1: Extract unique options for each fixed key from the loaded data.
+    # For each key in fixed_keys, create a set of all values that appear in the loaded_data.
+    # This ensures that we only consider distinct values for each parameter.
+    fixed_options: dict[str, set] = {
+        key: {entry[key] for entry in loaded_data if key in entry}  # set comprehension for unique values
+        for key in fixed_keys
+    }
+
+    # Step 2: Incorporate additional fixed parameters.
+    # If additional_fixed_params are provided, override or add those parameters
+    # in the fixed_options dictionary.
+    # Each key in additional_fixed_params is set to a singleton
+    # set containing its fixed value, ensuring that only this value is used.
+    if additional_fixed_params:
+        for key, value in additional_fixed_params.items():
+            fixed_options[key] = {value}
+
+    # Step 3: Prepare for generating the Cartesian product.
+    # Create a list of keys from the fixed_options dictionary. The order of keys will
+    # determine the order of values in each combination generated by the Cartesian product.
+    keys_list: list[str] = list(fixed_options.keys())
+
+    # Step 4: Generate the Cartesian product of all fixed parameter options.
+    # For each key in keys_list, we retrieve the set of possible values.
+    # itertools.product then computes the Cartesian product over these sets,
+    # yielding tuples where each tuple represents one unique combination of fixed parameter values.
+    for combination in itertools.product(*(fixed_options[key] for key in keys_list)):
+        # Step 5: Map the tuple of values back to a dictionary using the keys.
+        # The dict(zip(...)) creates a dictionary where each key from keys_list is paired with
+        # the corresponding value from the current combination tuple.
+        yield dict(
+            zip(
+                keys_list,
+                combination,
+                strict=True,
+            ),
+        )
+
+
 def create_distribution_plots_over_model_layers(
     loaded_data: list[dict],
     array_key_name: str,
     output_root_dir: pathlib.Path,
     plot_size_configs_list: list[PlotSizeConfig],
+    *,
+    fixed_keys: list[str] | None = None,
+    additional_fixed_params: dict[str, Any] | None = None,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> None:
-    """Create plots which show the distribution of the local estimates over the layers."""
-    data_full_options: set[str] = {single_dict["data_full"] for single_dict in loaded_data}
-    data_subsampling_full_options: set[str] = {single_dict["data_subsampling_full"] for single_dict in loaded_data}
-    model_checkpoint_options: set = {single_dict["model_checkpoint"] for single_dict in loaded_data}
-    model_partial_name_options: set[str] = {single_dict["model_partial_name"] for single_dict in loaded_data}
-    model_seed_options: set = {single_dict["model_seed"] for single_dict in loaded_data}
+    """Create plots which show the distribution of the local estimates over the layers.
 
-    for (
-        data_full,
-        data_subsampling_full,
-        model_checkpoint,
-        model_partial_name,
-        model_seed,
-    ) in tqdm(
-        iterable=itertools.product(
-            data_full_options,
-            data_subsampling_full_options,
-            model_checkpoint_options,
-            model_partial_name_options,
-            model_seed_options,
-        ),
-        desc="Plotting different choices",
-    ):
-        filter_key_value_pairs: dict = {
-            "tokenizer_add_prefix_space": "False",  # This needs to be a string
-            "data_full": data_full,
-            "data_subsampling_full": data_subsampling_full,
-            "model_checkpoint": model_checkpoint,
-            # We want all layers for the given model checkpoint and thus, no filtering for model_layer in this case.
-            "model_partial_name": model_partial_name,
-            "model_seed": model_seed,
+    Here, we want to fix all parameters except for the model_layer.
+    This means, we exclude the "model_layer" from the fixed_keys,
+    but add the "model_checkpoint" to the fixed_keys.
+    """
+    if fixed_keys is None:
+        fixed_keys = [
+            "data_full",
+            "data_subsampling_full",
+            "model_checkpoint",
+            # We want all layers for the given model checkpoint and thus, no filtering for "model_layer" in this case.
+            "model_partial_name",
+            "model_seed",
+            "local_estimates_desc_full",
+        ]
+
+    if additional_fixed_params is None:
+        additional_fixed_params = {
+            "tokenizer_add_prefix_space": "False",  # tokenizer_add_prefix_space needs to be a string
         }
+
+    if verbosity >= Verbosity.NORMAL:
+        # Log available options
+        for fixed_param in fixed_keys:
+            options = {entry[fixed_param] for entry in loaded_data if fixed_param in entry}
+            logger.info(
+                msg=f"{fixed_param=} options: {options=}",  # noqa: G004 - low overhead
+            )
+
+    # Iterate over fixed parameter combinations.
+    combinations = list(
+        get_fixed_parameter_combinations(
+            loaded_data=loaded_data,
+            fixed_keys=fixed_keys,
+            additional_fixed_params=additional_fixed_params,
+        ),
+    )
+    total_combinations = len(combinations)
+    for filter_key_value_pairs in tqdm(
+        iterable=combinations,
+        total=total_combinations,
+        desc="Plotting different choices for the model layers",
+    ):
         fixed_params_text: str = generate_fixed_parameters_text_from_dict(
             filters_dict=filter_key_value_pairs,
         )
@@ -415,71 +490,58 @@ def create_distribution_plots_over_model_checkpoints(
     output_root_dir: pathlib.Path,
     plot_size_configs_list: list[PlotSizeConfig],
     *,
+    fixed_keys: list[str] | None = None,
+    additional_fixed_params: dict[str, Any] | None = None,
     save_sorted_data_list_of_dicts_with_arrays: bool = True,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> None:
-    """Create plots which show the distribution of the local estimates over the checkpoints."""
-    data_full_options: set[str] = {single_dict["data_full"] for single_dict in loaded_data}
-    data_subsampling_full_options: set[str] = {single_dict["data_subsampling_full"] for single_dict in loaded_data}
-    model_layer_options: set = {single_dict["model_layer"] for single_dict in loaded_data}
-    model_partial_name_options: set[str] = {single_dict["model_partial_name"] for single_dict in loaded_data}
-    model_seed_options: set = {single_dict["model_seed"] for single_dict in loaded_data}
+    """Create plots showing the distribution of local estimates over model checkpoints, while holding fixed parameters constant.
+
+    This implementation automatically gathers unique values for a set of keys that
+    are meant to remain fixed.
+    You can extend or override these fixed parameters by
+    providing the `fixed_keys` list.
+    """
+    # Define default fixed keys if not provided.
+    if fixed_keys is None:
+        fixed_keys = [
+            "data_full",
+            "data_subsampling_full",
+            "model_layer",  # model_layer needs to be an integer
+            "model_partial_name",
+            "model_seed",
+            "local_estimates_desc_full",
+        ]
+
+    if additional_fixed_params is None:
+        additional_fixed_params = {
+            "tokenizer_add_prefix_space": "False",  # tokenizer_add_prefix_space needs to be a string
+        }
+
+    # Iterate over fixed parameter combinations.
+    combinations = list(
+        get_fixed_parameter_combinations(
+            loaded_data=loaded_data,
+            fixed_keys=fixed_keys,
+            additional_fixed_params=additional_fixed_params,
+        ),
+    )
+    total_combinations = len(combinations)
 
     if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            msg=f"{data_full_options = }",  # noqa: G004 - low overhead
-        )
-        logger.info(
-            msg=f"{data_subsampling_full_options = }",  # noqa: G004 - low overhead
-        )
-        logger.info(
-            msg=f"{model_layer_options = }",  # noqa: G004 - low overhead
-        )
-        logger.info(
-            msg=f"{model_partial_name_options = }",  # noqa: G004 - low overhead
-        )
-        logger.info(
-            msg=f"{model_seed_options = }",  # noqa: G004 - low overhead
-        )
+        # Log available options
+        for fixed_param in fixed_keys:
+            options = {entry[fixed_param] for entry in loaded_data if fixed_param in entry}
+            logger.info(
+                msg=f"{fixed_param=} options: {options=}",  # noqa: G004 - low overhead
+            )
 
-    iterable = itertools.product(
-        data_full_options,
-        data_subsampling_full_options,
-        model_layer_options,
-        model_partial_name_options,
-        model_seed_options,
-    )
-
-    total_combinations: int = (
-        len(data_full_options)
-        * len(data_subsampling_full_options)
-        * len(model_layer_options)
-        * len(model_partial_name_options)
-        * len(model_seed_options)
-    )
-    for (
-        data_full,
-        data_subsampling_full,
-        model_layer,
-        model_partial_name,
-        model_seed,
-    ) in tqdm(
-        iterable=iterable,
+    for filter_key_value_pairs in tqdm(
+        iterable=combinations,
         total=total_combinations,
-        desc="Plotting different choices",
+        desc="Plotting different choices for model checkpoints",
     ):
-        filter_key_value_pairs: dict[
-            str,
-            str | int,
-        ] = {
-            "tokenizer_add_prefix_space": "False",  # tokenizer_add_prefix_space needs to be a string
-            "data_full": data_full,
-            "data_subsampling_full": data_subsampling_full,
-            "model_layer": model_layer,  # model_layer needs to be an integer
-            "model_partial_name": model_partial_name,
-            "model_seed": model_seed,
-        }
         fixed_params_text: str = generate_fixed_parameters_text_from_dict(
             filters_dict=filter_key_value_pairs,
         )
@@ -539,12 +601,28 @@ def create_distribution_plots_over_model_checkpoints(
                 "sorted_data_list_of_dicts_with_arrays.pkl",
             )
 
+            # Create the directory if it does not exist.
+            sorted_data_output_file_path.parent.mkdir(
+                parents=True,
+                exist_ok=True,
+            )
+
+            if verbosity >= Verbosity.NORMAL:
+                logger.info(
+                    msg=f"Saving sorted data to {sorted_data_output_file_path = } ...",  # noqa: G004 - low overhead
+                )
+
             with sorted_data_output_file_path.open(
                 mode="wb",
             ) as file:
                 pickle.dump(
                     obj=data_to_save,
                     file=file,
+                )
+
+            if verbosity >= Verbosity.NORMAL:
+                logger.info(
+                    msg=f"Saving sorted data to {sorted_data_output_file_path = } DONE",  # noqa: G004 - low overhead
                 )
 
         ticks_and_labels: TicksAndLabels = TicksAndLabels(
