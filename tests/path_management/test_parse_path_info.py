@@ -312,7 +312,8 @@ def test_parse_local_estimates_info(
     """Example usage of the parse_local_estimates_info function."""
     instances_and_expected_results: list[tuple] = [
         # # # # # # # #
-        # Test case 1
+        # Test case 1:
+        # TwoNN with no noise
         (
             pathlib.Path(
                 "example_prefix",
@@ -326,12 +327,13 @@ def test_parse_local_estimates_info(
                 "local_estimates_noise_artificial_noise_mode": "do_nothing",
                 "local_estimates_noise_distortion": None,
                 "local_estimates_noise_seed": None,
-                "local_estimates_samples": 60000,
+                "local_estimates_samples": 60_000,
                 "local_estimates_zero_vector_handling_mode": "keep",
             },
         ),
         # # # # # # # #
         # Test case 2:
+        # TwoNN with Gaussian noise
         (
             pathlib.Path(
                 "example_prefix",
@@ -346,6 +348,26 @@ def test_parse_local_estimates_info(
                 "local_estimates_noise_distortion": 0.002,
                 "local_estimates_noise_seed": 6,
                 "local_estimates_samples": 60000,
+                "local_estimates_zero_vector_handling_mode": "keep",
+            },
+        ),
+        # # # # # # # #
+        # Test case 3:
+        # lPCA
+        (
+            pathlib.Path(
+                "example_prefix",
+                "desc=lpca-FO-0.05-0.05-10-0.8-0.95_samples=60000_zerovec=keep_dedup=array_deduplicator_noise=do_nothing",
+                "example_suffix",
+            ),
+            {
+                NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["local_estimates_dedup"]: "array_deduplicator",
+                "local_estimates_desc_full": "desc=lpca-FO-0.05-0.05-10-0.8-0.95_samples=60000_zerovec=keep_dedup=array_deduplicator_noise=do_nothing",
+                "local_estimates_description": "lpca-FO-0.05-0.05-10-0.8-0.95",
+                "local_estimates_noise_artificial_noise_mode": "do_nothing",
+                "local_estimates_noise_distortion": None,
+                "local_estimates_noise_seed": None,
+                "local_estimates_samples": 60_000,
                 "local_estimates_zero_vector_handling_mode": "keep",
             },
         ),
