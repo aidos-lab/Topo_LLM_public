@@ -90,7 +90,7 @@
             "env": {}
         },
         {
-            "name": "compute_eval_loss_via_huggingface_trainer.py; on HHU Hilbert;",
+            "name": "compute_eval_loss_via_huggingface_trainer.py - HHU Hilbert HPC submission -",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/model_inference/compute_eval_loss_via_huggingface_trainer.py",
@@ -476,7 +476,7 @@
             }
         },
         {
-            "name": "Task performance analysis - HPC submission - TwoNN; SETSUMBT or Trippy checkpoints last layer - Run pipeline.",
+            "name": "Task performance analysis - HHU Hilbert HPC submission - TwoNN; SETSUMBT or Trippy checkpoints last layer - Run pipeline.",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
@@ -560,7 +560,7 @@
             }
         },
         {
-            "name": "Task performance analysis - HPC submission - lPCA; SETSUMBT or Trippy checkpoints last layer - Run pipeline.",
+            "name": "Task performance analysis - HHU Hilbert HPC submission - lPCA; SETSUMBT or Trippy checkpoints last layer - Run pipeline.",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
@@ -659,7 +659,7 @@
             }
         },
         {
-            "name": "Task performance analysis - HPC submission - TwoNN; SETSUMBT or Trippy selected checkpoints, multiple layers - run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
+            "name": "Task performance analysis - HHU Hilbert HPC submission - TwoNN; SETSUMBT or Trippy selected checkpoints, multiple layers - run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
@@ -1062,7 +1062,7 @@
             ]
         },
         {
-            "name": "Local debugging: Compare local estimates (and potentially losses) - small array_truncation_size; for selected datasets and models; without comparison (i.e., only computing the losses on the base data)",
+            "name": "Compare local estimates (and potentially losses) - Local debugging - small array_truncation_size; for selected datasets and models; without comparison (i.e., only computing the losses on the base data)",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/analysis/compare_local_estimates_and_distances_and_losses/run_compare_local_estimates_and_losses.py",
@@ -1112,7 +1112,7 @@
             ]
         },
         {
-            "name": "Compare local estimates (and potentially losses); on HHU Hilbert; for validation or test splits of datasets (random sampling) and models; without comparison (i.e., only computing the losses on the base data)",
+            "name": "Compare local estimates (and potentially losses) - HHU Hilbert HPC submission - for validation or test splits of datasets (random sampling) and models; without comparison (i.e., only computing the losses on the base data)",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/analysis/compare_local_estimates_and_distances_and_losses/run_compare_local_estimates_and_losses.py",
@@ -1177,7 +1177,7 @@
             ]
         },
         {
-            "name": "Compare local estimates (and potentially losses); on HHU Hilbert; for different subsampling seeds of validation splits of datasets (random sampling) and models; without comparison (i.e., only computing the losses on the base data)",
+            "name": "Compare local estimates (and potentially losses) - HHU Hilbert HPC submission - for different subsampling seeds of validation splits of datasets (random sampling) and models; without comparison (i.e., only computing the losses on the base data)",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/analysis/compare_local_estimates_and_distances_and_losses/run_compare_local_estimates_and_losses.py",
@@ -1239,7 +1239,7 @@
             ]
         },
         {
-            "name": "Compare local estimates (and potentially losses); on HHU Hilbert; for multiple train datasets (take first sampling) and models; without comparison (i.e., only computing the losses on the base data)",
+            "name": "Compare local estimates (and potentially losses) - HHU Hilbert HPC submission - for multiple train datasets (take first sampling) and models; without comparison (i.e., only computing the losses on the base data)",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/analysis/compare_local_estimates_and_distances_and_losses/run_compare_local_estimates_and_losses.py",
@@ -1297,7 +1297,7 @@
             ]
         },
         {
-            "name": "compare_mean_local_estimates_with_mean_losses.py",
+            "name": "compare_mean_local_estimates_with_mean_losses.py - Local debugging -",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/analysis/comparisons/compare_mean_estimates_over_different_datasets_and_models/compare_mean_local_estimates_with_mean_losses.py",
@@ -1917,7 +1917,7 @@
             ]
         },
         {
-            "name": "Local debugging: SetSUMBT and Trippy - load_model_and_log_model_info.py",
+            "name": "Load model and log model info; SetSUMBT and Trippy - Local debugging -",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/inspection/load_model_and_log_model_info.py",
@@ -1961,7 +1961,7 @@
             }
         },
         {
-            "name": "Task performance analysis - create_line_plots_of_local_estimates_over_checkpoints.py",
+            "name": "Task performance analysis - create_line_plots_of_local_estimates_over_checkpoints.py - Local debugging -",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/task_performance_analysis/plotting/create_line_plots_of_local_estimates_over_checkpoints.py",
@@ -1992,7 +1992,7 @@
             }
         },
         {
-            "name": "Task performance analysis - Create distribution plots of local estimates over checkpoints and over layers.",
+            "name": "Task performance analysis - Create distribution plots of local estimates over checkpoints and over layers. - Local debugging -",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/task_performance_analysis/plotting/run_create_distribution_plots_of_local_estimates_over_checkpoints_and_over_layers.py",
@@ -2026,7 +2026,7 @@
             }
         },
         {
-            "name": "Task performance analysis - Parse SETSUMBT run JSONL file and plot performance metrics.",
+            "name": "Task performance analysis - Parse SETSUMBT run JSONL file and plot performance metrics. - Local debugging -",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/task_performance_analysis/setsumbt/run_parse_setsumbt_run_jsonl_and_plot_performance_metrics.py",
@@ -2060,7 +2060,7 @@
             }
         },
         {
-            "name": "Local debugging: Load dataloaders - try_out_load_dataloader_processed.py",
+            "name": "Load dataloaders - try_out_load_dataloader_processed.py - Local debugging -",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/task_performance_analysis/setsumbt/try_out_load_dataloader_processed.py",
@@ -2111,7 +2111,7 @@
             }
         },
         {
-            "name": "Local debugging: Local estimates analysis - analyse_local_estimate_distribution_over_tokens.py",
+            "name": "Local estimates analysis - analyse_local_estimate_distribution_over_tokens.py - Local debugging -",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/analysis/distribution_over_tokens/analyse_local_estimate_distribution_over_tokens.py",
