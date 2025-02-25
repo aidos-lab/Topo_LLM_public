@@ -112,7 +112,7 @@ def main(
     iteration_root_dir = pathlib.Path(
         embeddings_path_manager.get_distances_and_influence_on_local_estimates_root_dir_absolute_path(),
         main_config.analysis.investigate_distances.get_config_description(),
-        main_config.local_estimates.method_description,  # For example: 'twonn'
+        main_config.local_estimates.estimator.method_description,  # For example: 'twonn'
     )
 
     descriptive_statistics_df: pd.DataFrame = load_json_dicts_from_folder_structure_into_df(
@@ -140,7 +140,7 @@ def main(
         f"{tokenizer_add_prefix_space=}",
         f"{x_column_name=}_vs_{y_column_name=}",
         main_config.analysis.investigate_distances.get_config_description(),
-        main_config.local_estimates.method_description,  # For example: 'twonn'
+        main_config.local_estimates.estimator.method_description,  # For example: 'twonn'
     )
     output_root_dir.mkdir(
         parents=True,
