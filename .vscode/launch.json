@@ -351,7 +351,9 @@
                 "local_estimates.compute_global_estimates=true",
                 "local_estimates.pointwise.n_neighbors_mode=absolute_size",
                 "local_estimates.pointwise.absolute_n_neighbors=128",
+                //    >> START: Feature flags.
                 "feature_flags.analysis.create_plots_in_local_estimates_worker=true",
+                //    >> END: Feature flags.
             ],
             "env": {
                 "PYTORCH_ENABLE_MPS_FALLBACK": "1"
@@ -409,7 +411,9 @@
                 "local_estimates.compute_global_estimates=true",
                 "local_estimates.pointwise.n_neighbors_mode=absolute_size",
                 "local_estimates.pointwise.absolute_n_neighbors=128",
+                //    >> START: Feature flags.
                 "feature_flags.analysis.create_plots_in_local_estimates_worker=true",
+                //    >> END: Feature flags.
             ],
             "env": {
                 "PYTORCH_ENABLE_MPS_FALLBACK": "1"
@@ -469,7 +473,9 @@
                 "local_estimates.compute_global_estimates=true",
                 "local_estimates.pointwise.n_neighbors_mode=absolute_size",
                 "local_estimates.pointwise.absolute_n_neighbors=128",
+                //    >> START: Feature flags.
                 "feature_flags.analysis.create_plots_in_local_estimates_worker=true",
+                //    >> END: Feature flags.
             ],
             "env": {
                 "PYTORCH_ENABLE_MPS_FALLBACK": "1"
@@ -553,7 +559,9 @@
                 "local_estimates.filtering.num_samples=60000",
                 "local_estimates.pointwise.absolute_n_neighbors=128",
                 //
+                //    >> START: Feature flags.
                 "feature_flags.analysis.create_plots_in_local_estimates_worker=false", // <-- Decide whether to create plots in the local estimates worker.
+                //    >> END: Feature flags.
             ],
             "env": {
                 "PYTORCH_ENABLE_MPS_FALLBACK": "1"
@@ -587,9 +595,9 @@
                 "hydra.launcher.ngpus=0",
                 // >>>> END: Hydra options
                 //
-                "tokenizer.add_prefix_space=False", // "tokenizer.add_prefix_space=True" is necessary to use the tokenizer with input split into words
-                //
                 //    >> START: Data options.
+                //
+                "tokenizer.add_prefix_space=False", // "tokenizer.add_prefix_space=True" is necessary to use the tokenizer with input split into words
                 //
                 "data=multiwoz21",
                 // "data=sgd",
@@ -724,7 +732,9 @@
                 "local_estimates.filtering.num_samples=60000",
                 "local_estimates.pointwise.absolute_n_neighbors=128",
                 //
+                //    >> START: Feature flags.
                 "feature_flags.analysis.create_plots_in_local_estimates_worker=false", // <-- Decide whether to create plots in the local estimates worker.
+                //    >> END: Feature flags.
             ],
             "env": {
                 "PYTORCH_ENABLE_MPS_FALLBACK": "1"
@@ -783,7 +793,9 @@
                 "local_estimates.compute_global_estimates=true",
                 "local_estimates.pointwise.n_neighbors_mode=absolute_size",
                 "local_estimates.pointwise.absolute_n_neighbors=256",
+                //    >> START: Feature flags.
                 "feature_flags.analysis.create_plots_in_local_estimates_worker=true",
+                //    >> END: Feature flags.
             ]
         },
         {
@@ -812,7 +824,9 @@
                 // "local_estimates.noise.artificial_noise_mode=do_nothing",
                 "local_estimates.noise.distortion_parameter=0.001",
                 "local_estimates.noise.seed=2",
+                //    >> START: Feature flags.
                 "feature_flags.analysis.create_plots_in_local_estimates_worker=true",
+                //    >> END: Feature flags.
             ]
         },
         {
@@ -838,7 +852,9 @@
                 "local_estimates.compute_global_estimates=true",
                 "local_estimates.pointwise.n_neighbors_mode=absolute_size",
                 "local_estimates.pointwise.absolute_n_neighbors=256",
+                //    >> START: Feature flags.
                 "feature_flags.analysis.create_plots_in_local_estimates_worker=true",
+                //    >> END: Feature flags.
             ]
         },
         {
@@ -979,7 +995,7 @@
             ]
         },
         {
-            "name": "Compare local estimates (and potentially losses); on example multiwoz21 test data, compare clean with noisy data",
+            "name": "Compare local estimates (and potentially losses) - Local debugging - on example multiwoz21 test data, compare clean with noisy data",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/analysis/compare_local_estimates_and_distances_and_losses/run_compare_local_estimates_and_losses.py",
@@ -1001,7 +1017,8 @@
                 "local_estimates.filtering.deduplication_mode=array_deduplicator",
                 "local_estimates.filtering.num_samples=60000",
                 "local_estimates.pointwise.absolute_n_neighbors=128",
-                // START: Comparison data.
+                //
+                //    >> START: Comparison data.
                 //
                 // Note: We need to also set all the parameters we overwrote in the main data configuration,
                 // since otherwise the comparison data configs will be initialized with the default values.
@@ -1016,16 +1033,17 @@
                 "+comparison_data.local_estimates.noise.artificial_noise_mode=gaussian",
                 "+comparison_data.local_estimates.noise.distortion_parameter=0.01",
                 "+comparison_data.local_estimates.noise.seed=4",
-                // END: Comparison data.
+                //
+                //    >> END: Comparison data.
+                //
                 // "analysis.investigate_distances.array_truncation_size=500", // The value '500' can be used for quick testing
                 // "analysis.investigate_distances.array_truncation_size=600",
                 // "analysis.investigate_distances.array_truncation_size=5000",
                 "analysis.investigate_distances.array_truncation_size=20000",
-                "feature_flags.analysis.compare_sampling_methods.do_iterate_all_partial_search_base_directories=True", // This is an example for setting the feature flags
             ]
         },
         {
-            "name": "Compare local estimates (and potentially losses); on example wikitext test data, compare masked token embeddings with regular token embeddings",
+            "name": "Compare local estimates (and potentially losses) - Local debugging - on example wikitext test data, compare masked token embeddings with regular token embeddings",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/analysis/compare_local_estimates_and_distances_and_losses/run_compare_local_estimates_and_losses.py",
@@ -1058,11 +1076,10 @@
                 // "analysis.investigate_distances.array_truncation_size=20000",
                 // Note: "analysis.investigate_distances.array_truncation_size=30000" runs out of memory on the 16GB MacBook Pro M1
                 // "analysis.investigate_distances.array_truncation_size=60000", // The value '60000' potentially takes a long time to run, and this might run out of memory on the 16GB MacBook Pro M1
-                "feature_flags.analysis.compare_sampling_methods.do_iterate_all_partial_search_base_directories=True", // This is an example for setting the feature flags
             ]
         },
         {
-            "name": "Compare local estimates (and potentially losses) - Local debugging - small array_truncation_size; for selected datasets and models; without comparison (i.e., only computing the losses on the base data)",
+            "name": "Compare local estimates (and potentially losses) - Local debugging - small array_truncation_size; for selected datasets and models; with comparison of local estimates with losses, but without comparison with other data (i.e., loss computation only on base data)",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/analysis/compare_local_estimates_and_distances_and_losses/run_compare_local_estimates_and_losses.py",
@@ -1071,13 +1088,6 @@
                 // >>>> BEGIN: Hydra options
                 "--multirun",
                 "hydra/sweeper=basic",
-                // "hydra/launcher=hpc_submission",
-                // "hydra.launcher.queue=CUDA",
-                // "hydra.launcher.template=RTX6000",
-                // "hydra.launcher.memory=32",
-                // "hydra.launcher.ncpus=4",
-                // "hydra.launcher.ngpus=1",
-                // "hydra.launcher.walltime=06:00:00",
                 // >>>> END: Hydra options
                 //    >> START Data options.
                 "data=multiwoz21_validation",
@@ -1107,8 +1117,92 @@
                 // "analysis.investigate_distances.array_truncation_size=20000",
                 // Note: "analysis.investigate_distances.array_truncation_size=30000" runs out of memory on the 16GB MacBook Pro M1
                 // "analysis.investigate_distances.array_truncation_size=60000", // The value '60000' potentially takes a long time to run, and this might run out of memory on the 16GB MacBook Pro M1
-                // >>>> Set this feature flag to avoid the comparison
-                "feature_flags.comparison.do_comparison_of_local_estimates=False",
+                //
+                //    >> START: Feature flags.
+                "feature_flags.comparison.do_comparison_of_local_estimates_with_losses=True",
+                // >>>> Set this feature flag to avoid the comparison with other data
+                "feature_flags.comparison.do_comparison_of_local_estimates_between_base_data_and_comparison_data=False",
+                //    >> END: Feature flags.
+            ]
+        },
+        {
+            "name": "Compare local estimates (and potentially losses) - Local debugging - small array_truncation_size; with comparison of local estimates between settings (but without loss computation)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/analysis/compare_local_estimates_and_distances_and_losses/run_compare_local_estimates_and_losses.py",
+            "console": "integratedTerminal",
+            "args": [
+                // >>>> BEGIN: Hydra options
+                "--multirun",
+                "hydra/sweeper=basic",
+                // >>>> END: Hydra options
+                //
+                //    >> START Data options.
+                //
+                "tokenizer.add_prefix_space=False",
+                //
+                // "data=multiwoz21_validation",
+                // "data=one-year-of-tsla-on-reddit_validation,multiwoz21_validation",
+                //
+                "data=setsumbt_dataloaders_processed",
+                "data.dataset_seed=0",
+                "data.data_subsampling.split=dev",
+                //
+                "data.data_subsampling.sampling_mode=random",
+                "data.data_subsampling.number_of_samples=10000",
+                "data.data_subsampling.sampling_seed=778",
+                //    >> END Data options.
+                //
+                //    >> START: Model options.
+                //
+                "language_model=roberta-base", // Note: Do not set checkpoint_no for the base model
+                // > Note: Set checkpoint_no for the fine-tuned models
+                // "language_model=roberta-base-setsumbt_multiwoz21",
+                //
+                // "language_model.seed=0",
+                // "language_model.checkpoint_no=2813",
+                //
+                //    >> END: Model options.
+                //
+                "embeddings.embedding_data_handler.mode=regular",
+                "embeddings.embedding_extraction.layer_indices=[-1]",
+                "embeddings_data_prep.sampling.num_samples=150000",
+                "embeddings_data_prep.sampling.sampling_mode=random",
+                "embeddings_data_prep.sampling.seed=42",
+                "local_estimates=lpca",
+                "local_estimates.estimator.lpca_ver=FO",
+                "local_estimates.pointwise.n_neighbors_mode=absolute_size",
+                "local_estimates.filtering.deduplication_mode=array_deduplicator",
+                "local_estimates.filtering.num_samples=60000",
+                "local_estimates.pointwise.absolute_n_neighbors=128",
+                //
+                "analysis.investigate_distances.array_truncation_size=500", // The value '500' can be used for quick testing
+                // "analysis.investigate_distances.array_truncation_size=5000",
+                // "analysis.investigate_distances.array_truncation_size=20000",
+                // Note: "analysis.investigate_distances.array_truncation_size=30000" runs out of memory on the 16GB MacBook Pro M1
+                // "analysis.investigate_distances.array_truncation_size=60000", // The value '60000' potentially takes a long time to run, and this might run out of memory on the 16GB MacBook Pro M1
+                //
+                //    >> START: Comparison data.
+                // TODO: Update this
+                //
+                // Note: We need to also set all the parameters we overwrote in the main data configuration,
+                // since otherwise the comparison data configs will be initialized with the default values.
+                //
+                // << This is the same as in the main data configuration
+                "+comparison_data.embeddings.embedding_data_handler.mode=regular",
+                "+comparison_data.local_estimates.pointwise.n_neighbors_mode=absolute_size",
+                "+comparison_data.local_estimates.filtering.deduplication_mode=array_deduplicator",
+                "+comparison_data.local_estimates.filtering.num_samples=60000",
+                "+comparison_data.local_estimates.pointwise.absolute_n_neighbors=128",
+                // << This is different from the main data configuration
+                "+comparison_data/local_estimates=twonn",
+                //
+                //    >> END: Comparison data.
+                //
+                //    >> START: Feature flags.
+                "feature_flags.comparison.do_comparison_of_local_estimates_with_losses=False", // <-- Set this feature flag to avoid the predictions and loss computation
+                "feature_flags.comparison.do_comparison_of_local_estimates_between_base_data_and_comparison_data=True", // <-- Set this feature flag to compare with different local estimates
+                //    >> END: Feature flags.
             ]
         },
         {
@@ -1992,7 +2086,7 @@
             }
         },
         {
-            "name": "Task performance analysis - Create distribution plots of local estimates over checkpoints and over layers. - Local debugging -",
+            "name": "Task performance analysis - Create distribution plots of local estimates over checkpoints and over layers - Local debugging -",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/task_performance_analysis/plotting/run_create_distribution_plots_of_local_estimates_over_checkpoints_and_over_layers.py",
@@ -2026,7 +2120,7 @@
             }
         },
         {
-            "name": "Task performance analysis - Parse SETSUMBT run JSONL file and plot performance metrics. - Local debugging -",
+            "name": "Task performance analysis - Parse SETSUMBT run JSONL file and plot performance metrics - Local debugging -",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/task_performance_analysis/setsumbt/run_parse_setsumbt_run_jsonl_and_plot_performance_metrics.py",
@@ -2111,7 +2205,7 @@
             }
         },
         {
-            "name": "Local estimates analysis - analyse_local_estimate_distribution_over_tokens.py - Local debugging -",
+            "name": "Analyse local estimate distribution over tokens - Local debugging -",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/analysis/distribution_over_tokens/analyse_local_estimate_distribution_over_tokens.py",

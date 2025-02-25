@@ -220,6 +220,12 @@ class ComparisonManager:
         If no comparison data is provided, the comparison data will be set to None.
         This mode can be used to only compute the base data.
         """
+        self.main_config_for_base_data: MainConfig = main_config_for_base_data
+        self.main_config_for_comparison_data: MainConfig | None = main_config_for_comparison_data
+        self.verbosity: Verbosity = verbosity
+        self.logger: logging.Logger = logger
+
+        # Initialize the computation data for the base and comparison data.
         self.computation_data_for_base_data: ComputationManager = ComputationManager(
             main_config=main_config_for_base_data,
             descriptive_string="base_data",
@@ -237,7 +243,48 @@ class ComparisonManager:
         else:
             self.computation_data_for_comparison_data = None
 
-        # TODO: Implement calls to the comparisons if the comparison data is available
+    def run_comparison_of_local_estimates_with_losses(
+        self,
+    ) -> None:
+        if self.verbosity >= Verbosity.NORMAL:
+            self.logger.info(
+                msg="Calling function for base data ...",
+            )
+        self.computation_data_for_base_data.run_local_estimates_and_predictions_analysis_and_save_results()
+        if self.verbosity >= Verbosity.NORMAL:
+            self.logger.info(
+                msg="Calling function for base data DONE",
+            )
+
+        if self.computation_data_for_comparison_data is not None:
+            if self.verbosity >= Verbosity.NORMAL:
+                self.logger.info(
+                    msg="Calling function for comparison data ...",
+                )
+            self.computation_data_for_comparison_data.run_local_estimates_and_predictions_analysis_and_save_results()
+            if self.verbosity >= Verbosity.NORMAL:
+                self.logger.info(
+                    msg="Calling function for comparison data DONE",
+                )
+        elif self.verbosity >= Verbosity.NORMAL:
+            self.logger.info(
+                msg="No comparison data provided, skipping loss comparison.",
+            )
+
+    def run_comparison_of_local_estimates_between_base_data_and_comparison_data(
+        self,
+    ) -> None:
+        if self.computation_data_for_comparison_data is None:
+            self.logger.critical(
+                msg="No comparison data provided, skipping comparison of local estimates between base and comparison data.",
+            )
+            return
+
+        self.logger.critical(
+            msg="Comparison of local estimates between base and comparison data is not implemented yet.",
+        )
+
+        # TODO: Implement the comparison methods here
 
 
 @hydra.main(
@@ -265,10 +312,11 @@ def main(
     verbosity: Verbosity = main_config.verbosity
 
     # ================================================== #
-    # Comparison data (for example, noise data)
+    # Comparison data:
+    # for example, noise data or data with different parameters
     # ================================================== #
 
-    if main_config.feature_flags.comparison.do_comparison_of_local_estimates:
+    if main_config.feature_flags.comparison.do_comparison_of_local_estimates_between_base_data_and_comparison_data:
         # We initialize a new main config for the comparison data
         main_config_for_comparison_data: MainConfig | None = main_config.model_copy(
             deep=True,
@@ -299,13 +347,40 @@ def main(
         logger=logger,
     )
 
-    # TODO: Implement the call to the comparison between local estimates and predictions
+    # ================================================== #
+    # Model predictions computation and
+    # comparison between local estimates and losses.
+    # ================================================== #
 
-    if main_config.feature_flags.comparison.do_comparison_of_local_estimates:
-        logger.warning(
-            msg="TODO: Comparisons calls are not implemented yet.",
-        )
-        # TODO: Add a call to the comparison methods (if applicable)
+    if main_config.feature_flags.comparison.do_comparison_of_local_estimates_with_losses:
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg="Running model predictions computation and comparison between local estimates and losses ...",
+            )
+
+        comparison_manager.run_comparison_of_local_estimates_with_losses()
+
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg="Running model predictions computation and comparison between local estimates and losses DONE",
+            )
+
+    # ================================================== #
+    # Comparison between base data and comparison data
+    # ================================================== #
+
+    if main_config.feature_flags.comparison.do_comparison_of_local_estimates_between_base_data_and_comparison_data:
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg="Running comparison between base data and comparison data ...",
+            )
+
+        comparison_manager.run_comparison_of_local_estimates_between_base_data_and_comparison_data()
+
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg="Running comparison between base data and comparison data DONE",
+            )
 
     # ================================================== #
     # Note: You can add additional analysis steps here
