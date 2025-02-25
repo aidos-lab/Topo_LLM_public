@@ -31,10 +31,10 @@ import itertools
 import logging
 import pathlib
 import pickle
-from typing import TYPE_CHECKING, Any, Iterator
+from collections.abc import Iterator
+from typing import TYPE_CHECKING, Any
 
 import hydra
-import numpy as np
 import omegaconf
 from tqdm import tqdm
 
@@ -63,6 +63,8 @@ from topollm.task_performance_analysis.plotting.distribution_violinplots_and_dis
 from topollm.typing.enums import Verbosity
 
 if TYPE_CHECKING:
+    import numpy as np
+
     from topollm.config_classes.main_config import MainConfig
 
 # Logger for this file
