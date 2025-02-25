@@ -86,23 +86,13 @@ setup_omega_conf()
 
 
 @dataclass
-class ComputationData:
-    """Dataclass to hold the data for the computation."""
+class ComputationManagerContainers:
+    """Dataclass to hold the containers for the computation."""
 
-    main_config: MainConfig
-
-    embeddings_path_manager: EmbeddingsPathManager
-    local_estimates_saving_manager: LocalEstimatesSavingManager
-    local_estimates_container: LocalEstimatesContainer
-    loaded_model_container: LoadedModelContainer
-
-    local_estimates_and_predictions_container: LocalEstimatesAndPredictionsContainer
-
-    local_estimates_and_predictions_save_path_collection: LocalEstimatesAndPredictionsSavePathCollection
-
-    # The descriptive string is used for logging to identify the computation data
-    # (for example, to distinguish the base data from the comparison data)
-    descriptive_string: str = ""
+    local_estimates_container: LocalEstimatesContainer | None = None
+    loaded_model_container: LoadedModelContainer | None = None
+    local_estimates_and_predictions_container: LocalEstimatesAndPredictionsContainer | None = None
+    local_estimates_and_predictions_save_path_collection: LocalEstimatesAndPredictionsSavePathCollection | None = None
 
 
 class ComputationManager:
@@ -116,70 +106,102 @@ class ComputationManager:
         logger: logging.Logger = default_logger,
     ) -> None:
         """Initialize the manager."""
+        self.main_config: MainConfig = main_config
+
+        # The descriptive string is used for logging to identify the computation data
+        # (for example, to distinguish the base data from the comparison data)
+        self.descriptive_string: str = descriptive_string
+
         self.verbosity: Verbosity = verbosity
         self.logger: logging.Logger = logger
 
-        embeddings_path_manager: EmbeddingsPathManager = get_embeddings_path_manager(
-            main_config=main_config,
-            logger=logger,
+        self.embeddings_path_manager: EmbeddingsPathManager = get_embeddings_path_manager(
+            main_config=self.main_config,
+            logger=self.logger,
         )
 
-        local_estimates_saving_manager: LocalEstimatesSavingManager = (
+        self.local_estimates_saving_manager: LocalEstimatesSavingManager = (
             LocalEstimatesSavingManager.from_embeddings_path_manager(
-                embeddings_path_manager=embeddings_path_manager,
-                verbosity=verbosity,
-                logger=logger,
+                embeddings_path_manager=self.embeddings_path_manager,
+                verbosity=self.verbosity,
+                logger=self.logger,
             )
         )
 
-        local_estimates_container: LocalEstimatesContainer = local_estimates_saving_manager.load_local_estimates()
+        # Initialize the containers.
+        # These are private attributes and will be set to None if not used,
+        # use the getter methods to access them.
+        self._containers = ComputationManagerContainers()
 
-        loaded_model_container: LoadedModelContainer = prepare_device_and_tokenizer_and_model_from_main_config(
-            main_config=main_config,
-            verbosity=verbosity,
-            logger=logger,
-        )
-
-        local_estimates_and_predictions_container: LocalEstimatesAndPredictionsContainer = (
-            compute_predictions_on_hidden_states_of_local_estimates_container(
-                local_estimates_container_to_analyze=local_estimates_container,
-                array_truncation_size=main_config.analysis.investigate_distances.array_truncation_size,
-                tokenizer=loaded_model_container.tokenizer,
-                model=loaded_model_container.model,
-                descriptive_string=descriptive_string,
-                analysis_verbosity_level=verbosity,
-                logger=logger,
+    def get_loaded_model_container(
+        self,
+    ) -> LoadedModelContainer:
+        """Get the loaded model container."""
+        if self._containers.loaded_model_container is None:
+            self._containers.loaded_model_container = prepare_device_and_tokenizer_and_model_from_main_config(
+                main_config=self.main_config,
+                verbosity=self.verbosity,
+                logger=self.logger,
             )
-        )
 
-        distances_and_influence_on_local_estimates_dir_absolute_path: pathlib.Path = (
-            embeddings_path_manager.get_distances_and_influence_on_local_estimates_dir_absolute_path()
-        )
+        return self._containers.loaded_model_container
 
-        local_estimates_and_predictions_save_path_collection: LocalEstimatesAndPredictionsSavePathCollection = LocalEstimatesAndPredictionsSavePathCollection.from_base_directory(
-            distances_and_influence_on_local_estimates_dir_absolute_path=distances_and_influence_on_local_estimates_dir_absolute_path,
-        )
-        local_estimates_and_predictions_save_path_collection.setup_directories()
+    def get_local_estimates_container(
+        self,
+    ) -> LocalEstimatesContainer:
+        """Get the local estimates container."""
+        if self._containers.local_estimates_container is None:
+            self._containers.local_estimates_container = self.local_estimates_saving_manager.load_local_estimates()
 
-        local_estimates_and_predictions_container.save_computation_data(
-            local_estimates_and_predictions_save_path_collection=local_estimates_and_predictions_save_path_collection,
-        )
-        local_estimates_and_predictions_container.save_human_readable_predictions_logging(
-            local_estimates_and_predictions_save_path_collection=local_estimates_and_predictions_save_path_collection,
-        )
-        local_estimates_and_predictions_container.run_full_analysis_and_save_results(
-            local_estimates_and_predictions_save_path_collection=local_estimates_and_predictions_save_path_collection,
-        )
+        return self._containers.local_estimates_container
 
-        self.computation_data: ComputationData = ComputationData(
-            main_config=main_config,
-            embeddings_path_manager=embeddings_path_manager,
-            local_estimates_saving_manager=local_estimates_saving_manager,
-            local_estimates_container=local_estimates_container,
-            loaded_model_container=loaded_model_container,
-            local_estimates_and_predictions_container=local_estimates_and_predictions_container,
-            local_estimates_and_predictions_save_path_collection=local_estimates_and_predictions_save_path_collection,
-            descriptive_string=descriptive_string,
+    def get_local_estimates_and_predictions_container(
+        self,
+    ) -> LocalEstimatesAndPredictionsContainer:
+        """Get the local estimates and predictions container."""
+        if self._containers.local_estimates_and_predictions_container is None:
+            self._containers.local_estimates_and_predictions_container = (
+                compute_predictions_on_hidden_states_of_local_estimates_container(
+                    local_estimates_container_to_analyze=self.get_local_estimates_container(),
+                    array_truncation_size=self.main_config.analysis.investigate_distances.array_truncation_size,
+                    tokenizer=self.get_loaded_model_container().tokenizer,
+                    model=self.get_loaded_model_container().model,
+                    descriptive_string=self.descriptive_string,
+                    analysis_verbosity_level=self.verbosity,
+                    logger=self.logger,
+                )
+            )
+
+        return self._containers.local_estimates_and_predictions_container
+
+    def get_local_estimates_and_predictions_save_path_collection(
+        self,
+    ) -> LocalEstimatesAndPredictionsSavePathCollection:
+        """Get the local estimates and predictions save path collection."""
+        if self._containers.local_estimates_and_predictions_save_path_collection is None:
+            distances_and_influence_on_local_estimates_dir_absolute_path: pathlib.Path = (
+                self.embeddings_path_manager.get_distances_and_influence_on_local_estimates_dir_absolute_path()
+            )
+
+            self._containers.local_estimates_and_predictions_save_path_collection = LocalEstimatesAndPredictionsSavePathCollection.from_base_directory(
+                distances_and_influence_on_local_estimates_dir_absolute_path=distances_and_influence_on_local_estimates_dir_absolute_path,
+            )
+            self._containers.local_estimates_and_predictions_save_path_collection.setup_directories()
+
+        return self._containers.local_estimates_and_predictions_save_path_collection
+
+    def run_local_estimates_and_predictions_analysis_and_save_results(
+        self,
+    ) -> None:
+        """Run the analysis and save the results."""
+        self.get_local_estimates_and_predictions_container().save_computation_data(
+            local_estimates_and_predictions_save_path_collection=self.get_local_estimates_and_predictions_save_path_collection(),
+        )
+        self.get_local_estimates_and_predictions_container().save_human_readable_predictions_logging(
+            local_estimates_and_predictions_save_path_collection=self.get_local_estimates_and_predictions_save_path_collection(),
+        )
+        self.get_local_estimates_and_predictions_container().run_full_analysis_and_save_results(
+            local_estimates_and_predictions_save_path_collection=self.get_local_estimates_and_predictions_save_path_collection(),
         )
 
 
@@ -276,6 +298,8 @@ def main(
         verbosity=verbosity,
         logger=logger,
     )
+
+    # TODO: Implement the call to the comparison between local estimates and predictions
 
     if main_config.feature_flags.comparison.do_comparison_of_local_estimates:
         logger.warning(
