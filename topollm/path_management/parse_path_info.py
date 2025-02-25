@@ -195,17 +195,23 @@ def parse_local_estimates_info(
     )
 
     # Extract local estimates information
-    # Matches description, samples, zerovec, and optional deduplication, e.g.,
-    # "desc-twonn_samples-2500_zerovec-keep_dedup-array_deduplicator"
-    # - (\w+): Match one or more word characters for the description.
-    # - (\d+): Match one or more digits for the number of samples.
-    # - ([a-zA-Z0-9]+): Match one or more alphanumeric characters for the zerovec.
-    # - (?:_dedup-([a-zA-Z0-9_]+))?: Optionally match "_dedup-"
-    #   followed by one or more alphanumeric or underscore characters for deduplication.
+    # Matches description, samples, zerovec, and optional deduplication, e.g.:
+    # > "desc-twonn_samples-2500_zerovec-keep_dedup-array_deduplicator"
+    # > "desc=lpca-FO-0.05-0.05-10-0.8-0.95_samples=60000_zerovec=keep_dedup=array_deduplicator_noise=do_nothing"
+    #
+    # Regex pattern explanation:
+    # - desc=([a-zA-Z0-9.\-]+): Matches one or more alphanumeric characters, dots, or hyphens for the description.
+    # - _samples=(\d+): Matches one or more digits for the number of samples.
+    # - _zerovec=([a-zA-Z0-9]+): Matches one or more alphanumeric characters for the zerovec.
+    # - (?:_dedup=(do_nothing|array_deduplicator))?: Optionally matches deduplication method.
+    # - (?:_noise=(do_nothing|gaussian))?: Optionally matches noise handling method.
+    # - (?:_distor=([\d.]+))?: Optionally matches a distortion factor (digits and dots).
+    # - (?:_seed=(\d+))?: Optionally matches a seed value.
     local_estimates_info: dict = {}
 
     local_estimates_info_pattern = (
-        r"desc=(\w+)_samples=(\d+)"
+        r"desc=([a-zA-Z0-9.\-]+)"
+        r"_samples=(\d+)"
         r"_zerovec=([a-zA-Z0-9]+)"
         r"(?:_dedup=(do_nothing|array_deduplicator))?"
         r"(?:_noise=(do_nothing|gaussian))?"

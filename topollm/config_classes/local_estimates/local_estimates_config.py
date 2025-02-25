@@ -35,15 +35,77 @@ from topollm.config_classes.local_estimates.filtering_config import LocalEstimat
 from topollm.config_classes.local_estimates.noise_config import LocalEstimatesNoiseConfig
 from topollm.config_classes.local_estimates.plot_config import LocalEstminatesPlotConfig
 from topollm.config_classes.local_estimates.pointwise_config import LocalEstimatesPointwiseConfig
+from topollm.typing.enums import EstimatorMethodType
 
 
-class LocalEstimatesConfig(ConfigBaseModel):
-    """Configurations for specifying parameters of the local estimates computation."""
+class EstimatorConfig(ConfigBaseModel):
+    """Configurations for specifying parameters of the estimator."""
+
+    method_type: EstimatorMethodType = Field(
+        default=EstimatorMethodType.TWONN,
+        title="Type of the estimator.",
+        description="The type of the estimator.",
+    )
 
     method_description: str = Field(
         default="twonn",
         title="Description of the local estimates.",
         description="A description of the local estimates.",
+    )
+
+    # # # #
+    # Additional parameters for the estimators
+
+    # # # #
+    # TwoNN
+
+    twonn_discard_fraction: float = Field(
+        default=0.1,
+        title="Fraction of points to discard.",
+        description="Fraction of points to discard for the twonn estimator.",
+    )
+
+    # # # #
+    # lPCA
+
+    lpca_ver: str = Field(
+        default="FO",
+        title="Local PCA estimator version.",
+    )
+
+    lpca_alphaRatio: float = Field(  # noqa: N815 - we want to use names derived from the skdim module
+        default=0.05,
+        title="alphaRatio parameter in the lPCA estimator.",
+    )
+
+    lpca_alphaFO: float = Field(  # noqa: N815 - we want to use names derived from the skdim module
+        default=0.05,
+        title="alphaFO parameter in the lPCA estimator.",
+    )
+
+    lpca_alphaFan: int = Field(  # noqa: N815 - we want to use names derived from the skdim module
+        default=10,
+        title="alphaFan parameter in the lPCA estimator.",
+    )
+
+    lpca_betaFan: float = Field(  # noqa: N815 - we want to use names derived from the skdim module
+        default=0.8,
+        title="betaFan parameter in the lPCA estimator.",
+    )
+
+    lpca_PFan: float = Field(  # noqa: N815 - we want to use names derived from the skdim module
+        default=0.95,
+        title="PFan parameter in the lPCA estimator.",
+    )
+
+
+class LocalEstimatesConfig(ConfigBaseModel):
+    """Configurations for specifying parameters of the local estimates computation."""
+
+    estimator: EstimatorConfig = Field(
+        default_factory=EstimatorConfig,
+        title="Estimator configurations.",
+        description="Configurations for specifying parameters of the estimator.",
     )
 
     filtering: LocalEstimatesFilteringConfig = Field(
@@ -82,7 +144,7 @@ class LocalEstimatesConfig(ConfigBaseModel):
     ) -> str:
         """Get the description of the config."""
         description = (
-            f"{NAME_PREFIXES['description']}{KV_SEP}{str(object=self.method_description)}"
+            f"{NAME_PREFIXES['description']}{KV_SEP}{str(object=self.estimator.method_description)}"
             + ITEM_SEP
             + self.filtering.config_description
             + ITEM_SEP

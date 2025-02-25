@@ -369,3 +369,15 @@ class NNeighborsMode(StrEnum):
 
     ABSOLUTE_SIZE = auto()
     RELATIVE_SIZE = auto()
+
+
+# ==============================
+# Enums used for local estimates
+# ==============================
+
+
+class EstimatorMethodType(StrEnum):
+    """The different types of methods for the estimator."""
+
+    TWONN = auto()
+    LPCA = auto()
