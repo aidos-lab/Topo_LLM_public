@@ -30,7 +30,6 @@
 import dataclasses
 import logging
 from dataclasses import dataclass
-from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -38,63 +37,12 @@ import pandas as pd
 from topollm.analysis.local_estimates_computation.constants import (
     APPROXIMATE_HAUSDORFF_VIA_KDTREE_DICT_KEY,
 )
+from topollm.logging.summarize_value import summarize_value
 from topollm.typing.enums import Verbosity
 
 default_logger: logging.Logger = logging.getLogger(
     name=__name__,
 )
-
-
-def summarize_value(
-    value: Any,
-    key: str | None = None,
-    fallback_truncation_length: int = 100,
-) -> str:
-    """Summarize a value for logging purposes.
-
-    This function provides a concise summary depending on the type of `value`.
-
-    Args:
-        value:
-            The value to summarize.
-        key:
-            The key to use to describe the value.
-        fallback_truncation_length:
-            The maximum length of the string representation of the value if no other summary is available.
-
-    Returns:
-        str: A summary string describing the value.
-
-    """
-    key_str: str = f"{key = }: " if key is not None else ""
-
-    if value is None:
-        value_str: str = "None"
-    elif isinstance(
-        value,
-        np.ndarray,
-    ):
-        value_str = f"NumPy array with {value.shape = } and {value.dtype = }."
-
-        # If the array is one-dimensional, also compute the mean and standard deviation
-        if len(value.shape) == 1:
-            value_str += f"\nnp.mean: {np.mean(a=value):.3f}; np.std: {np.std(a=value):.3f}"
-    elif isinstance(
-        value,
-        pd.DataFrame,
-    ):
-        value_str = f"DataFrame with {value.shape = } and columns {list(value.columns)}"
-    elif isinstance(
-        value,
-        dict,
-    ):
-        value_str = f"Dict with keys {list(value.keys())}"
-    else:
-        value_str = str(object=value)[:fallback_truncation_length]
-
-    result: str = key_str + value_str
-
-    return result
 
 
 @dataclass

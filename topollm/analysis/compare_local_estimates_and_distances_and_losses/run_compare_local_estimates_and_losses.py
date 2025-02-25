@@ -36,10 +36,10 @@ import hydra
 import hydra.core.hydra_config
 import omegaconf
 
-from topollm.analysis.investigate_distances_and_influence_on_losses_and_local_estimates.compute_predictions_on_hidden_states_of_local_estimates_container import (
+from topollm.analysis.compare_local_estimates_and_distances_and_losses.compute_predictions_on_hidden_states_of_local_estimates_container import (
     compute_predictions_on_hidden_states_of_local_estimates_container,
 )
-from topollm.analysis.investigate_distances_and_influence_on_losses_and_local_estimates.prediction_data_containers import (
+from topollm.analysis.compare_local_estimates_and_distances_and_losses.prediction_data_containers import (
     LocalEstimatesAndPredictionsContainer,
     LocalEstimatesAndPredictionsSavePathCollection,
 )

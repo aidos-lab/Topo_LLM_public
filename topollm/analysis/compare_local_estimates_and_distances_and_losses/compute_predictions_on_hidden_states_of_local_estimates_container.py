@@ -35,10 +35,10 @@ from transformers.modeling_utils import PreTrainedModel
 from transformers.tokenization_utils import PreTrainedTokenizer
 from transformers.tokenization_utils_fast import PreTrainedTokenizerFast
 
-from topollm.analysis.investigate_distances_and_influence_on_losses_and_local_estimates.compute_model_lm_head_predictions_on_vector import (
+from topollm.analysis.compare_local_estimates_and_distances_and_losses.compute_model_lm_head_predictions_on_vector import (
     compute_model_lm_head_predictions_on_vector,
 )
-from topollm.analysis.investigate_distances_and_influence_on_losses_and_local_estimates.prediction_data_containers import (
+from topollm.analysis.compare_local_estimates_and_distances_and_losses.prediction_data_containers import (
     LMHeadPredictionResults,
     LocalEstimateAndPrediction,
     LocalEstimatesAndPredictionsContainer,
