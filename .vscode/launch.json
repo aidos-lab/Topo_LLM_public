@@ -494,8 +494,8 @@
                 "hydra/launcher=basic",
                 "hydra/launcher=hpc_submission",
                 "hydra.launcher.queue=CUDA",
-                // "hydra.launcher.template=RTX6000",
-                "hydra.launcher.template=GTX1080",
+                "hydra.launcher.template=RTX6000",
+                // "hydra.launcher.template=GTX1080",
                 "hydra.launcher.memory=32",
                 "hydra.launcher.ncpus=4",
                 "hydra.launcher.ngpus=1",
@@ -506,20 +506,21 @@
                 //
                 //    >> START: Data options.
                 //
-                // "data=multiwoz21",
+                "data=multiwoz21",
                 // "data=sgd",
                 // "data=one-year-of-tsla-on-reddit",
                 // "data=sgd,one-year-of-tsla-on-reddit",
                 // "data=multiwoz21,sgd,one-year-of-tsla-on-reddit",
                 //
-                "data=setsumbt_dataloaders_processed",
-                "data.dataset_seed=0",
+                // "data=setsumbt_dataloaders_processed",
+                // "data.dataset_seed=0",
                 //
                 // "data.data_subsampling.split=train",
-                // "data.data_subsampling.split=validation",
                 // "data.data_subsampling.split=dev",
+                // "data.data_subsampling.split=validation",
                 // "data.data_subsampling.split=test",
-                "data.data_subsampling.split=train,dev,test",
+                // "data.data_subsampling.split=train,dev,test",
+                "data.data_subsampling.split=train,validation,test",
                 //
                 "data.data_subsampling.sampling_mode=random",
                 "data.data_subsampling.number_of_samples=10000",
@@ -531,17 +532,20 @@
                 //
                 // "language_model=roberta-base",
                 //
-                "language_model=roberta-base-setsumbt_multiwoz21",
+                "language_model=bert-base-uncased",
+                //
+                // "language_model=roberta-base-setsumbt_multiwoz21",
                 //
                 // "language_model.seed=0",
                 // "language_model.checkpoint_no=2813",
                 // "language_model.checkpoint_no=2813,5626,8439,11252,14065,16878,19691,25317,33756,36569,39382,42195,50634,56260,70325,90016,109707,115333,126585", // <-- checkpoints for "language_model.seed=0"
                 // "language_model.seed=1",
                 // "language_model.checkpoint_no=2813,5626,8439,11252,14065,16878,19691,25317,30943,42195,47821,53447,61886,109707", // <-- checkpoints for "language_model.seed=1"
-                "language_model.seed=2",
-                "language_model.checkpoint_no=2813,5626,8439,11252,14065,16878,19691,22504,28130,30943,33756,42195,50634,67512,106894,126585", // <-- checkpoints for "language_model.seed=2"
+                // "language_model.seed=2",
+                // "language_model.checkpoint_no=2813,5626,8439,11252,14065,16878,19691,22504,28130,30943,33756,42195,50634,67512,106894,126585", // <-- checkpoints for "language_model.seed=2"
                 //
                 // "language_model=roberta-base-trippy_multiwoz21",
+                //
                 // "++language_model.seed=42",
                 // "++language_model.checkpoint_no=3549",
                 // "++language_model.checkpoint_no=3549,7098",
@@ -560,7 +564,7 @@
                 "local_estimates.pointwise.absolute_n_neighbors=128",
                 //
                 //    >> START: Feature flags.
-                "feature_flags.analysis.create_plots_in_local_estimates_worker=false", // <-- Decide whether to create plots in the local estimates worker.
+                "feature_flags.analysis.create_plots_in_local_estimates_worker=true", // <-- Decide whether to create plots in the local estimates worker.
                 //    >> END: Feature flags.
             ],
             "env": {
@@ -657,6 +661,7 @@
                 "local_estimates.pointwise.absolute_n_neighbors=128",
                 //
                 //    >> START: Feature flags.
+                //    >> NOTE: Only skip the embedding computation if the embeddings are already available.
                 "feature_flags.compute_and_store_embeddings.skip_compute_and_store_embeddings_in_pipeline=true", // <-- Only set this to true if the embeddings are available
                 "feature_flags.embeddings_data_prep.skip_embeddings_data_prep_in_pipeline=false",
                 "feature_flags.analysis.create_plots_in_local_estimates_worker=true", // <-- Decide whether to create plots in the local estimates worker.
