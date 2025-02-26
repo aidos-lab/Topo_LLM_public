@@ -86,7 +86,7 @@ setup_omega_conf()
 
 
 @dataclass
-class ComputationManagerContainers:
+class ComputationManagerDataContainers:
     """Dataclass to hold the containers for the computation."""
 
     local_estimates_container: LocalEstimatesContainer | None = None
@@ -131,7 +131,7 @@ class ComputationManager:
         # Initialize the containers.
         # These are private attributes and will be set to None if not used,
         # use the getter methods to access them.
-        self._containers = ComputationManagerContainers()
+        self._containers = ComputationManagerDataContainers()
 
     def get_loaded_model_container(
         self,
@@ -205,6 +205,14 @@ class ComputationManager:
         )
 
 
+@dataclass
+class ComputationManagersContainer:
+    """Container for different computation managers."""
+
+    base_data: ComputationManager
+    comparison_data: ComputationManager | None = None
+
+
 class ComparisonManager:
     """Manager to compare the results of the computations."""
 
@@ -226,7 +234,7 @@ class ComparisonManager:
         self.logger: logging.Logger = logger
 
         # Initialize the computation data for the base and comparison data.
-        self.computation_data_for_base_data: ComputationManager = ComputationManager(
+        computation_manager_for_base_data: ComputationManager = ComputationManager(
             main_config=main_config_for_base_data,
             descriptive_string="base_data",
             verbosity=verbosity,
@@ -234,14 +242,19 @@ class ComparisonManager:
         )
 
         if main_config_for_comparison_data is not None:
-            self.computation_data_for_comparison_data: ComputationManager | None = ComputationManager(
+            computation_manager_for_comparison_data: ComputationManager | None = ComputationManager(
                 main_config=main_config_for_comparison_data,
                 descriptive_string="comparison_data",
                 verbosity=verbosity,
                 logger=logger,
             )
         else:
-            self.computation_data_for_comparison_data = None
+            computation_manager_for_comparison_data = None
+
+        self.computation_managers: ComputationManagersContainer = ComputationManagersContainer(
+            base_data=computation_manager_for_base_data,
+            comparison_data=computation_manager_for_comparison_data,
+        )
 
     def run_comparison_of_local_estimates_with_losses(
         self,
@@ -250,18 +263,18 @@ class ComparisonManager:
             self.logger.info(
                 msg="Calling function for base data ...",
             )
-        self.computation_data_for_base_data.run_local_estimates_and_predictions_analysis_and_save_results()
+        self.computation_managers.base_data.run_local_estimates_and_predictions_analysis_and_save_results()
         if self.verbosity >= Verbosity.NORMAL:
             self.logger.info(
                 msg="Calling function for base data DONE",
             )
 
-        if self.computation_data_for_comparison_data is not None:
+        if self.computation_managers.comparison_data is not None:
             if self.verbosity >= Verbosity.NORMAL:
                 self.logger.info(
                     msg="Calling function for comparison data ...",
                 )
-            self.computation_data_for_comparison_data.run_local_estimates_and_predictions_analysis_and_save_results()
+            self.computation_managers.comparison_data.run_local_estimates_and_predictions_analysis_and_save_results()
             if self.verbosity >= Verbosity.NORMAL:
                 self.logger.info(
                     msg="Calling function for comparison data DONE",
@@ -274,7 +287,7 @@ class ComparisonManager:
     def run_comparison_of_local_estimates_between_base_data_and_comparison_data(
         self,
     ) -> None:
-        if self.computation_data_for_comparison_data is None:
+        if self.computation_managers.comparison_data is None:
             self.logger.critical(
                 msg="No comparison data provided, skipping comparison of local estimates between base and comparison data.",
             )
