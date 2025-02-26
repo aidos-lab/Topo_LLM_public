@@ -35,7 +35,7 @@
             ]
         },
         {
-            "name": "Local debugging: load_huggingface_dataset.py",
+            "name": "load_huggingface_dataset.py - Local debugging -",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/data_processing/load_huggingface_dataset.py",
@@ -53,7 +53,7 @@
             ]
         },
         {
-            "name": "Local debugging: compute_eval_loss_via_huggingface_trainer.py",
+            "name": "compute_eval_loss_via_huggingface_trainer.py - Local debugging -",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/model_inference/compute_eval_loss_via_huggingface_trainer.py",
@@ -174,7 +174,7 @@
             ]
         },
         {
-            "name": "Local debugging: run_finetune_language_model_on_huggingface_dataset.py; on MLM task; for 2 epochs",
+            "name": "run_finetune_language_model_on_huggingface_dataset.py - Local debugging - on MLM task; for 2 epochs",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/model_finetuning/run_finetune_language_model_on_huggingface_dataset.py",
@@ -250,7 +250,7 @@
             ]
         },
         {
-            "name": "Local debugging: Duplicate vectors test case - run_local_estimates.py",
+            "name": "Run local estimates: Duplicate vectors test case - Local debugging -",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/analysis/local_estimates_computation/run_local_estimates.py",
@@ -278,7 +278,7 @@
             ]
         },
         {
-            "name": "Local debugging: Run pipeline.",
+            "name": "Run pipeline - Local debugging -",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
@@ -335,7 +335,7 @@
             }
         },
         {
-            "name": "Local debugging: Task performance analysis - Huggingface dataloaders, SetSUMBT-checkpoints - Run pipeline.",
+            "name": "Task performance analysis - Local debugging - Huggingface dataloaders, SetSUMBT-checkpoints - Run pipeline.",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
@@ -391,7 +391,7 @@
             }
         },
         {
-            "name": "Local debugging: Task performance analysis - TwoNN, Stored dataloaders, SetSUMBT-dataloaders - Run pipeline.",
+            "name": "Task performance analysis - Local debugging - TwoNN, Stored dataloaders, SetSUMBT-dataloaders - Run pipeline.",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
@@ -451,7 +451,7 @@
             }
         },
         {
-            "name": "Local debugging: Task performance analysis - lPCA, Stored dataloaders, SetSUMBT-dataloaders - Run pipeline.",
+            "name": "Task performance analysis - Local debugging - lPCA, Stored dataloaders, SetSUMBT-dataloaders - Run pipeline.",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
@@ -513,7 +513,7 @@
             }
         },
         {
-            "name": "Task performance analysis - HHU Hilbert HPC submission - TwoNN; SetSUMBT or Trippy checkpoints last layer - Run pipeline.",
+            "name": "Task performance analysis - HHU Hilbert HPC submission - TwoNN; SetSUMBT or Trippy checkpoints; last layer only - Run pipeline.",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
@@ -537,10 +537,10 @@
                 //
                 //    >> START: Data options.
                 //
-                "data=multiwoz21",
+                // "data=multiwoz21",
                 // "data=sgd",
                 // "data=one-year-of-tsla-on-reddit",
-                // "data=sgd,one-year-of-tsla-on-reddit",
+                "data=sgd,one-year-of-tsla-on-reddit",
                 // "data=multiwoz21,sgd,one-year-of-tsla-on-reddit",
                 //
                 // "data=setsumbt_dataloaders_processed",
@@ -589,6 +589,9 @@
                 "embeddings_data_prep.sampling.num_samples=150000",
                 "embeddings_data_prep.sampling.sampling_mode=random",
                 "embeddings_data_prep.sampling.seed=42",
+                //
+                "local_estimates=twonn",
+                //
                 "local_estimates.pointwise.n_neighbors_mode=absolute_size",
                 "local_estimates.filtering.deduplication_mode=array_deduplicator",
                 "local_estimates.filtering.num_samples=60000",
@@ -603,7 +606,7 @@
             }
         },
         {
-            "name": "Task performance analysis - HHU Hilbert HPC submission - lPCA; SetSUMBT or Trippy checkpoints last layer - Run pipeline.",
+            "name": "Task performance analysis - HHU Hilbert HPC submission - lPCA; SetSUMBT or Trippy checkpoints; last layer only - Run pipeline.",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
@@ -617,7 +620,6 @@
                 "hydra.launcher.walltime=03:00:00", // <-- Until we have a better estimate of how long the lPCA estimates take, we will set the walltime to a larger number of hours.
                 // ===== GPU-machine =====
                 // "hydra.launcher.queue=CUDA",
-                // // "hydra.launcher.template=RTX6000",
                 // "hydra.launcher.template=GTX1080",
                 // "hydra.launcher.memory=32",
                 // "hydra.launcher.ncpus=4",
@@ -634,11 +636,11 @@
                 //
                 "tokenizer.add_prefix_space=False", // "tokenizer.add_prefix_space=True" is necessary to use the tokenizer with input split into words
                 //
-                "data=multiwoz21",
+                // "data=multiwoz21",
                 // "data=sgd",
                 // "data=one-year-of-tsla-on-reddit",
                 // "data=sgd,one-year-of-tsla-on-reddit",
-                // "data=multiwoz21,sgd,one-year-of-tsla-on-reddit",
+                "data=multiwoz21,sgd,one-year-of-tsla-on-reddit",
                 //
                 // "data=setsumbt_dataloaders_processed",
                 // "data.dataset_seed=0",
@@ -657,25 +659,23 @@
                 //
                 //    >> START: Model options.
                 //
-                "language_model=roberta-base",
+                // "language_model=roberta-base",
                 //
                 // "language_model=roberta-base-setsumbt_multiwoz21",
-                //
                 // "language_model.seed=0",
-                // "language_model.checkpoint_no=2813",
-                // "language_model.checkpoint_no=2813,5626,8439",
                 // "language_model.checkpoint_no=2813,5626,8439,11252,14065,16878,19691,25317,33756,36569,39382,42195,50634,56260,70325,90016,109707,115333,126585", // <-- checkpoints for "language_model.seed=0"
                 // "language_model.seed=1",
-                // "language_model.checkpoint_no=2813,5626,8439",
                 // "language_model.checkpoint_no=2813,5626,8439,11252,14065,16878,19691,25317,30943,42195,47821,53447,61886,109707", // <-- checkpoints for "language_model.seed=1"
                 // "language_model.seed=2",
                 // "language_model.checkpoint_no=2813,5626,8439,11252,14065,16878,19691,22504,28130,30943,33756,42195,50634,67512,106894,126585", // <-- checkpoints for "language_model.seed=2"
+                // "language_model.checkpoint_no=2813",
+                // "language_model.checkpoint_no=2813,5626,8439",
                 //
-                // "language_model=roberta-base-trippy_multiwoz21",
-                // "language_model.seed=42",
+                "language_model=roberta-base-trippy_multiwoz21",
+                "language_model.seed=42",
+                "language_model.checkpoint_no=3549,7098,10647,14196,17745,21294,24843,28392,31941,35490", // <-- checkpoints for "language_model.seed=42"
                 // "language_model.checkpoint_no=3549",
                 // "language_model.checkpoint_no=3549,7098",
-                // "language_model.checkpoint_no=3549,7098,10647,14196,17745,21294,24843,28392,31941,35490",
                 //
                 //    >> END: Model options.
                 //
@@ -684,8 +684,11 @@
                 "embeddings_data_prep.sampling.num_samples=150000",
                 "embeddings_data_prep.sampling.sampling_mode=random",
                 "embeddings_data_prep.sampling.seed=42",
+                //
                 "local_estimates=lpca",
                 "local_estimates.estimator.lpca_ver=FO",
+                // "local_estimates.estimator.lpca_ver=Fan",
+                //
                 "local_estimates.pointwise.n_neighbors_mode=absolute_size",
                 "local_estimates.filtering.deduplication_mode=array_deduplicator",
                 "local_estimates.filtering.num_samples=60000",
@@ -695,7 +698,7 @@
                 //    >> NOTE: Only skip the embedding computation if the embeddings are already available.
                 "feature_flags.compute_and_store_embeddings.skip_compute_and_store_embeddings_in_pipeline=true", // <-- Only set this to true if the embeddings are available
                 "feature_flags.embeddings_data_prep.skip_embeddings_data_prep_in_pipeline=false",
-                "feature_flags.analysis.create_plots_in_local_estimates_worker=true", // <-- Decide whether to create plots in the local estimates worker.
+                "feature_flags.analysis.create_plots_in_local_estimates_worker=false", // <-- Decide whether to create plots in the local estimates worker.
                 //    >> END: Feature flags.
             ],
             "env": {
@@ -703,7 +706,7 @@
             }
         },
         {
-            "name": "Task performance analysis - HHU Hilbert HPC submission - TwoNN; SetSUMBT or Trippy selected checkpoints, multiple layers - run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
+            "name": "Task performance analysis - HHU Hilbert HPC submission - TwoNN; SetSUMBT or Trippy selected checkpoints; multiple layers - Run pipeline.",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
@@ -777,28 +780,6 @@
             }
         },
         {
-            "name": "Regular Token Embedding; with POS on multiwoz21 - run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
-            "console": "integratedTerminal",
-            "args": [
-                "tokenizer.add_prefix_space=True", // This is necessary to use the tokenizer with input split into words
-                "+data.dataset_type=huggingface_dataset_named_entity",
-                "data=multiwoz21",
-                "data.data_subsampling.number_of_samples=128",
-                "data.data_subsampling.split=validation",
-                "language_model=roberta-base",
-                "embeddings.embedding_extraction.layer_indices=[-1]",
-                "embeddings_data_prep.sampling.num_samples=3000",
-                "embeddings_data_prep.sampling.sampling_mode=random",
-                "local_estimates.filtering.num_samples=300",
-                "local_estimates.compute_global_estimates=true",
-                "local_estimates.pointwise.n_neighbors_mode=absolute_size",
-                "local_estimates.pointwise.absolute_n_neighbors=256",
-            ]
-        },
-        {
             "name": "Regular Token Embedding; with POS, with data_subsampler - run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
             "type": "debugpy",
             "request": "launch",
@@ -866,34 +847,6 @@
             ]
         },
         {
-            "name": "Masked Token Embedding; on multiwoz21, with POS, with data_subsampler - run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
-            "console": "integratedTerminal",
-            "args": [
-                "tokenizer.add_prefix_space=True", // This is necessary to use the tokenizer with input split into words
-                "+data.dataset_type=huggingface_dataset_named_entity",
-                "data=multiwoz21_validation",
-                "data.data_subsampling.split=validation",
-                "data.data_subsampling.number_of_samples=128",
-                "data.data_subsampling.sampling_mode=random",
-                "data.data_subsampling.sampling_seed=777",
-                "language_model=roberta-base",
-                "embeddings.embedding_data_handler.mode=masked_token",
-                "embeddings.embedding_extraction.layer_indices=[-1]",
-                "embeddings_data_prep.sampling.num_samples=3000",
-                "embeddings_data_prep.sampling.sampling_mode=random",
-                "local_estimates.filtering.num_samples=1000",
-                "local_estimates.compute_global_estimates=true",
-                "local_estimates.pointwise.n_neighbors_mode=absolute_size",
-                "local_estimates.pointwise.absolute_n_neighbors=256",
-                //    >> START: Feature flags.
-                "feature_flags.analysis.create_plots_in_local_estimates_worker=true",
-                //    >> END: Feature flags.
-            ]
-        },
-        {
             "name": "Masked Token Embedding; on reddit, with POS, with data_subsampler - run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
             "type": "debugpy",
             "request": "launch",
@@ -909,58 +862,6 @@
                 "data.data_subsampling.sampling_seed=777",
                 "language_model=roberta-base",
                 "embeddings.embedding_data_handler.mode=masked_token",
-                "embeddings.embedding_extraction.layer_indices=[-1]",
-                "embeddings_data_prep.sampling.num_samples=3000",
-                "embeddings_data_prep.sampling.sampling_mode=random",
-                "local_estimates.filtering.num_samples=1000",
-                "local_estimates.compute_global_estimates=true",
-                "local_estimates.pointwise.n_neighbors_mode=absolute_size",
-                "local_estimates.pointwise.absolute_n_neighbors=256",
-                "feature_flags.analysis.create_plots_in_local_estimates_worker=true",
-            ]
-        },
-        {
-            "name": "Masked Token Embedding; on wikipedia, with POS, with data_subsampler - run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
-            "console": "integratedTerminal",
-            "args": [
-                "tokenizer.add_prefix_space=True", // This is necessary to use the tokenizer with input split into words
-                "+data.dataset_type=huggingface_dataset_named_entity",
-                "data=wikitext-103-v1",
-                "data.data_subsampling.split=validation",
-                "data.data_subsampling.number_of_samples=128",
-                "data.data_subsampling.sampling_mode=random",
-                "data.data_subsampling.sampling_seed=777",
-                "language_model=roberta-base",
-                "embeddings.embedding_data_handler.mode=masked_token",
-                "embeddings.embedding_extraction.layer_indices=[-1]",
-                "embeddings_data_prep.sampling.num_samples=3000",
-                "embeddings_data_prep.sampling.sampling_mode=random",
-                "local_estimates.filtering.num_samples=1000",
-                "local_estimates.compute_global_estimates=true",
-                "local_estimates.pointwise.n_neighbors_mode=absolute_size",
-                "local_estimates.pointwise.absolute_n_neighbors=256",
-                "feature_flags.analysis.create_plots_in_local_estimates_worker=true",
-            ]
-        },
-        {
-            "name": "Regular Token Embedding; on wikipedia, with POS, with data_subsampler - run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
-            "console": "integratedTerminal",
-            "args": [
-                "tokenizer.add_prefix_space=True", // This is necessary to use the tokenizer with input split into words
-                "+data.dataset_type=huggingface_dataset_named_entity",
-                "data=wikitext-103-v1",
-                "data.data_subsampling.split=validation",
-                "data.data_subsampling.number_of_samples=128",
-                "data.data_subsampling.sampling_mode=random",
-                "data.data_subsampling.sampling_seed=777",
-                "language_model=roberta-base",
-                "embeddings.embedding_data_handler.mode=regular",
                 "embeddings.embedding_extraction.layer_indices=[-1]",
                 "embeddings_data_prep.sampling.num_samples=3000",
                 "embeddings_data_prep.sampling.sampling_mode=random",
@@ -2091,7 +1992,7 @@
             }
         },
         {
-            "name": "Task performance analysis - create_line_plots_of_local_estimates_over_checkpoints.py - Local debugging -",
+            "name": "Task performance analysis - Local debugging - create_line_plots_of_local_estimates_over_checkpoints.py",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/task_performance_analysis/plotting/create_line_plots_of_local_estimates_over_checkpoints.py",
@@ -2122,7 +2023,7 @@
             }
         },
         {
-            "name": "Task performance analysis - Create distribution plots of local estimates over checkpoints and over layers - Local debugging -",
+            "name": "Task performance analysis - Local debugging - Create distribution plots of local estimates over checkpoints and over layers",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/task_performance_analysis/plotting/run_create_distribution_plots_of_local_estimates_over_checkpoints_and_over_layers.py",
@@ -2156,7 +2057,7 @@
             }
         },
         {
-            "name": "Task performance analysis - Parse SetSUMBT run JSONL file and plot performance metrics - Local debugging -",
+            "name": "Task performance analysis - Local debugging - Parse SetSUMBT run JSONL file and plot performance metrics",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/task_performance_analysis/setsumbt/run_parse_setsumbt_run_jsonl_and_plot_performance_metrics.py",
@@ -2190,7 +2091,7 @@
             }
         },
         {
-            "name": "Load dataloaders - try_out_load_dataloader_processed.py - Local debugging -",
+            "name": "Load dataloaders - Local debugging - try_out_load_dataloader_processed.py",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/task_performance_analysis/setsumbt/try_out_load_dataloader_processed.py",
