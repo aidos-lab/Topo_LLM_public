@@ -1,10 +1,10 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -38,7 +38,9 @@ from topollm.storage.StorageDataclasses import (
     ChunkIdentifier,
 )
 
-default_logger = logging.getLogger(__name__)
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 class ChunkedArrayStorageZarr:
@@ -53,12 +55,13 @@ class ChunkedArrayStorageZarr:
         array_properties: ArrayProperties,
         root_storage_path: os.PathLike,
         logger: logging.Logger = default_logger,
-    ):
+    ) -> None:
+        """Initialize the storage protocol backend."""
         self.array_properties = array_properties
         self.root_storage_path = pathlib.Path(
             root_storage_path,
         )
-        self.logger = logger
+        self.logger: logging.Logger = logger
 
     def open(
         self,

@@ -47,9 +47,10 @@ class EmbeddingDataLoaderPreparerHuggingfaceWithTokenization(EmbeddingDataLoader
         self,
     ) -> int:
         """Return the sequence length for the model."""
-        # Try to get the sequence length directly from the tokenized dataset
         try:
-            result = len(self.get_dataset_tokenized()[self.preparer_context.data_config.column_name][0])
+            # Try to get the sequence length directly from the tokenized dataset.
+            # We take the first tokenized sample, and get the length of the input_ids.
+            result = len(self.get_dataset_tokenized()["input_ids"][0])
         except KeyError:
             # As a fallback, get the sequence length from the tokenizer config
             result: int = self.preparer_context.tokenizer_config.max_length

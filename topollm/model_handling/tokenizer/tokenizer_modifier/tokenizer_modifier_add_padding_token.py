@@ -32,8 +32,11 @@ import logging
 from transformers import PreTrainedModel, PreTrainedTokenizer, PreTrainedTokenizerFast
 
 from topollm.logging.log_model_info import log_model_info
+from topollm.typing.enums import Verbosity
 
-logger = logging.getLogger(__name__)
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 class TokenizerModifierAddPaddingToken:
@@ -42,8 +45,8 @@ class TokenizerModifierAddPaddingToken:
     def __init__(
         self,
         padding_token: str = "<|pad|>",  # noqa: S107 - Not a magic number.
-        verbosity: int = 1,
-        logger: logging.Logger = logger,
+        verbosity: Verbosity = Verbosity.NORMAL,
+        logger: logging.Logger = default_logger,
     ) -> None:
         self.padding_token = padding_token
         self.verbosity = verbosity
@@ -55,14 +58,14 @@ class TokenizerModifierAddPaddingToken:
         self,
         tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast,
     ) -> PreTrainedTokenizer | PreTrainedTokenizerFast:
-        if self.verbosity >= 1:
+        if self.verbosity >= Verbosity.NORMAL:
             self.logger.info(
                 f"Modifying tokenizer {tokenizer = } " f"by adding padding token {self.padding_token = } ..."
             )
 
         # Check if the tokenizer already has the padding token.
         if self.padding_token in tokenizer.all_special_tokens:
-            if self.verbosity >= 1:
+            if self.verbosity >= Verbosity.NORMAL:
                 self.logger.info(
                     f"The tokenizer already has the padding token " f"{self.padding_token = }. " f"Nothing to do."
                 )
@@ -71,7 +74,7 @@ class TokenizerModifierAddPaddingToken:
                 {"pad_token": self.padding_token},
             )
 
-            if self.verbosity >= 1:
+            if self.verbosity >= Verbosity.NORMAL:
                 self.logger.info(f"Added {num_added_tokens = } token(s).")
                 self.logger.info(f"{tokenizer = }")
                 self.logger.info(
