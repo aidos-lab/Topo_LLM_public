@@ -1,10 +1,10 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -127,19 +127,25 @@ class LocalEstimatesContainer:
 
         return output
 
-    def log_info(
+    def get_summary_string(
         self,
-        verbosity: Verbosity = Verbosity.NORMAL,
-        logger: logging.Logger = default_logger,
-    ) -> None:
-        """Log detailed information about this LocalEstimatesContainer instance.
+        indent: str = "\t",
+    ) -> str:
+        """Generate a summary string for all fields of the container with indentation.
 
-        Each attribute is summarized rather than dumping the entire content, which
-        is particularly useful for large arrays or data frames.
+        Each attribute is summarized rather than dumping the entire content,
+        which is particularly useful for large arrays or data frames.
+
+        Args:
+            indent:
+                The string to prefix each summary line for the fields.
+
+        Returns:
+            str: A summary string starting with a header and followed by a newline-separated
+                 list of each field's summary.
+
         """
-        logger.info(
-            msg="Logging LocalEstimatesContainer details:",
-        )
+        summary_lines: list[str] = ["LocalEstimatesContainer details:"]
         for field_info in dataclasses.fields(
             class_or_instance=self,
         ):
@@ -151,6 +157,5 @@ class LocalEstimatesContainer:
                 value=value,
                 key=field_info.name,
             )
-            logger.info(
-                msg=f"\t{summary}",  # noqa: G004 - low overhead
-            )
+            summary_lines.append(f"{indent}{summary}")
+        return "\n".join(summary_lines)

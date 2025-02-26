@@ -998,7 +998,7 @@
             "name": "Compare local estimates (and potentially losses) - Local debugging - on example multiwoz21 test data, compare clean with noisy data",
             "type": "debugpy",
             "request": "launch",
-            "program": "topollm/analysis/compare_local_estimates_and_distances_and_losses/run_compare_local_estimates_and_losses.py",
+            "program": "topollm/analysis/compare_local_estimates_and_distances_and_losses/run_compare_local_estimates.py",
             "console": "integratedTerminal",
             "args": [
                 "data=multiwoz21_test",
@@ -1046,7 +1046,7 @@
             "name": "Compare local estimates (and potentially losses) - Local debugging - on example wikitext test data, compare masked token embeddings with regular token embeddings",
             "type": "debugpy",
             "request": "launch",
-            "program": "topollm/analysis/compare_local_estimates_and_distances_and_losses/run_compare_local_estimates_and_losses.py",
+            "program": "topollm/analysis/compare_local_estimates_and_distances_and_losses/run_compare_local_estimates.py",
             "console": "integratedTerminal",
             "args": [
                 "data=wikitext-103-v1_test",
@@ -1082,7 +1082,7 @@
             "name": "Compare local estimates (and potentially losses) - Local debugging - small array_truncation_size; for selected datasets and models; with comparison of local estimates with losses, but without comparison with other data (i.e., loss computation only on base data)",
             "type": "debugpy",
             "request": "launch",
-            "program": "topollm/analysis/compare_local_estimates_and_distances_and_losses/run_compare_local_estimates_and_losses.py",
+            "program": "topollm/analysis/compare_local_estimates_and_distances_and_losses/run_compare_local_estimates.py",
             "console": "integratedTerminal",
             "args": [
                 // >>>> BEGIN: Hydra options
@@ -1129,7 +1129,7 @@
             "name": "Compare local estimates (and potentially losses) - Local debugging - small array_truncation_size; with comparison of local estimates between settings (but without loss computation)",
             "type": "debugpy",
             "request": "launch",
-            "program": "topollm/analysis/compare_local_estimates_and_distances_and_losses/run_compare_local_estimates_and_losses.py",
+            "program": "topollm/analysis/compare_local_estimates_and_distances_and_losses/run_compare_local_estimates.py",
             "console": "integratedTerminal",
             "args": [
                 // >>>> BEGIN: Hydra options
@@ -1209,7 +1209,7 @@
             "name": "Compare local estimates (and potentially losses) - HHU Hilbert HPC submission - for validation or test splits of datasets (random sampling) and models; without comparison (i.e., only computing the losses on the base data)",
             "type": "debugpy",
             "request": "launch",
-            "program": "topollm/analysis/compare_local_estimates_and_distances_and_losses/run_compare_local_estimates_and_losses.py",
+            "program": "topollm/analysis/compare_local_estimates_and_distances_and_losses/run_compare_local_estimates.py",
             "console": "integratedTerminal",
             "args": [
                 // >>>> BEGIN: Hydra options
@@ -1274,7 +1274,7 @@
             "name": "Compare local estimates (and potentially losses) - HHU Hilbert HPC submission - for different subsampling seeds of validation splits of datasets (random sampling) and models; without comparison (i.e., only computing the losses on the base data)",
             "type": "debugpy",
             "request": "launch",
-            "program": "topollm/analysis/compare_local_estimates_and_distances_and_losses/run_compare_local_estimates_and_losses.py",
+            "program": "topollm/analysis/compare_local_estimates_and_distances_and_losses/run_compare_local_estimates.py",
             "console": "integratedTerminal",
             "args": [
                 // >>>> BEGIN: Hydra options
@@ -1336,7 +1336,7 @@
             "name": "Compare local estimates (and potentially losses) - HHU Hilbert HPC submission - for multiple train datasets (take first sampling) and models; without comparison (i.e., only computing the losses on the base data)",
             "type": "debugpy",
             "request": "launch",
-            "program": "topollm/analysis/compare_local_estimates_and_distances_and_losses/run_compare_local_estimates_and_losses.py",
+            "program": "topollm/analysis/compare_local_estimates_and_distances_and_losses/run_compare_local_estimates.py",
             "console": "integratedTerminal",
             "args": [
                 // >>>> BEGIN: Hydra options

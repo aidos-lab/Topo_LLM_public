@@ -54,29 +54,29 @@ def summarize_value(
         str: A summary string describing the value.
 
     """
-    key_str: str = f"{key = }: " if key is not None else ""
+    key_str: str = f"{key = }:\n" if key is not None else ""
 
     if value is None:
-        value_str: str = "None"
+        value_str: str = "\t\tNone"
     elif isinstance(
         value,
         np.ndarray,
     ):
-        value_str = f"NumPy array with {value.shape = } and {value.dtype = }."
+        value_str = f"\t\tNumPy array with {value.shape = } and {value.dtype = }."
 
         # If the array is one-dimensional, also compute the mean and standard deviation
         if len(value.shape) == 1:
-            value_str += f"\nnp.mean: {np.mean(a=value):.3f}; np.std: {np.std(a=value):.3f}"
+            value_str += f"\n\t\tnp.mean: {np.mean(a=value):.3f}; np.std: {np.std(a=value):.3f}"
     elif isinstance(
         value,
         pd.DataFrame,
     ):
-        value_str = f"DataFrame with {value.shape = } and columns {list(value.columns)}"
+        value_str = f"\t\tDataFrame with {value.shape = } and columns {list(value.columns)}"
     elif isinstance(
         value,
         dict,
     ):
-        value_str = f"Dict with keys {list(value.keys())}"
+        value_str = f"\t\tdict with keys {list(value.keys())}"
     else:
         value_str = str(object=value)[:fallback_truncation_length]
 

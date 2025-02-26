@@ -212,6 +212,21 @@ class ComputationManagersContainer:
     base_data: ComputationManager
     comparison_data: ComputationManager | None = None
 
+    def log_info(
+        self,
+        logger: logging.Logger = default_logger,
+    ) -> None:
+        """Log the info of the computation managers."""
+        logger.info(
+            msg=f"Computation manager for base data:\n"  # noqa: G004 - low overhead
+            f"{self.base_data.get_local_estimates_container().get_summary_string()}",
+        )
+        if self.comparison_data is not None:
+            logger.info(
+                msg=f"Computation manager for comparison data:\n"  # noqa: G004 - low overhead
+                f"{self.comparison_data.get_local_estimates_container().get_summary_string()}",
+            )
+
 
 class ComparisonManager:
     """Manager to compare the results of the computations."""
@@ -359,6 +374,11 @@ def main(
         verbosity=verbosity,
         logger=logger,
     )
+
+    if verbosity >= Verbosity.NORMAL:
+        comparison_manager.computation_managers.log_info(
+            logger=logger,
+        )
 
     # ================================================== #
     # Model predictions computation and
