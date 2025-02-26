@@ -30,9 +30,11 @@ data/models/trippy_checkpoints
 data/saved_plots/
 
 # Log files
+logs/
 hilbert_job_logs/
 hilbert_job_logs_backup/
 hydra_output_dir/
+hydra_output_dir.backup.*
 wandb_output_dir/
 
 tmp_trainer/
