@@ -53,7 +53,7 @@ def main() -> None:
     # This is where the BERT-component of the ERC model will be saved
     bert_component_save_path = pathlib.Path(
         TOPO_LLM_REPOSITORY_BASE_PATH,
-        "data/models/EmoLoop/extracted_bert_component/checkpoint-best",
+        "data/models/EmoLoop/ContextBERT_ERToD/extracted_bert_component/checkpoint-best",
     )
 
     # ======================================================== #
