@@ -35,7 +35,7 @@
             ]
         },
         {
-            "name": "For debugging: load_huggingface_dataset.py",
+            "name": "load_huggingface_dataset.py - Local debugging -",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/data_processing/load_huggingface_dataset.py",
@@ -53,7 +53,7 @@
             ]
         },
         {
-            "name": "For debugging: compute_eval_loss_via_huggingface_trainer.py",
+            "name": "compute_eval_loss_via_huggingface_trainer.py - Local debugging -",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/model_inference/compute_eval_loss_via_huggingface_trainer.py",
@@ -90,7 +90,7 @@
             "env": {}
         },
         {
-            "name": "compute_eval_loss_via_huggingface_trainer.py; on HHU Hilbert;",
+            "name": "compute_eval_loss_via_huggingface_trainer.py - HHU Hilbert HPC submission -",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/model_inference/compute_eval_loss_via_huggingface_trainer.py",
@@ -174,7 +174,7 @@
             ]
         },
         {
-            "name": "For debugging: run_finetune_language_model_on_huggingface_dataset.py; on MLM task; for 2 epochs",
+            "name": "run_finetune_language_model_on_huggingface_dataset.py - Local debugging - on MLM task; for 2 epochs",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/model_finetuning/run_finetune_language_model_on_huggingface_dataset.py",
@@ -250,7 +250,7 @@
             ]
         },
         {
-            "name": "For debugging: Duplicate vectors test case - run_local_estimates.py",
+            "name": "Run local estimates: Duplicate vectors test case - Local debugging -",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/analysis/local_estimates_computation/run_local_estimates.py",
@@ -278,7 +278,7 @@
             ]
         },
         {
-            "name": "For debugging: run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
+            "name": "Run pipeline - Local debugging -",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
@@ -289,27 +289,53 @@
                 "hydra/sweeper=basic",
                 "hydra/launcher=basic",
                 // >>>> END: Hydra options
+                //
                 "tokenizer.add_prefix_space=False", // "tokenizer.add_prefix_space=True" is necessary to use the tokenizer with input split into words
+                //
+                //    >> START: Data options.
+                //
                 "data=multiwoz21",
+                "data.data_subsampling.sampling_mode=random",
                 "data.data_subsampling.number_of_samples=512",
                 "data.data_subsampling.split=validation",
-                // "language_model=roberta-base",
-                "language_model=gpt2-medium",
+                //
+                //    >> END: Data options.
+                //    >> START: Model options.
+                //
+                "language_model=roberta-base",
+                // "language_model=bert-base-uncased",
+                // "language_model=gpt2-medium",
+                //
+                //    >> END: Model options.
+                //
                 "embeddings.embedding_extraction.layer_indices=[-1]",
                 "embeddings_data_prep.sampling.num_samples=3000",
                 "embeddings_data_prep.sampling.sampling_mode=random",
                 // "embeddings_data_prep.sampling.sampling_mode=take_first",
+                //
+                "local_estimates=twonn",
+                // "local_estimates=lpca",
+                // "local_estimates.estimator.lpca_ver=FO",
+                // "local_estimates.estimator.lpca_ver=Fan",
+                //
                 "local_estimates.filtering.num_samples=500",
                 "local_estimates.compute_global_estimates=true",
                 "local_estimates.pointwise.n_neighbors_mode=absolute_size",
-                "local_estimates.pointwise.absolute_n_neighbors=256",
+                "local_estimates.pointwise.absolute_n_neighbors=128",
+                //
+                //    >> START: Feature flags.
+                //    >> NOTE: Only skip the embedding computation if the embeddings are already available.
+                "feature_flags.compute_and_store_embeddings.skip_compute_and_store_embeddings_in_pipeline=false", // <-- Only set this to true if the embeddings are available
+                "feature_flags.embeddings_data_prep.skip_embeddings_data_prep_in_pipeline=false",
+                "feature_flags.analysis.create_plots_in_local_estimates_worker=true",
+                //    >> END: Feature flags.
             ],
             "env": {
                 "PYTORCH_ENABLE_MPS_FALLBACK": "1"
             }
         },
         {
-            "name": "For debugging: Task performance analysis - Huggingface dataloaders, SETSUMBT-checkpoints - run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
+            "name": "Task performance analysis - Local debugging - Huggingface dataloaders, SetSUMBT-checkpoints - Run pipeline.",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
@@ -327,7 +353,9 @@
                 // "hydra.launcher.ngpus=1",
                 // "hydra.launcher.walltime=01:00:00", // <-- The pipeline run for regular embeddings should only take a few minutes.
                 // >>>> END: Hydra options
+                //
                 "tokenizer.add_prefix_space=False", // "tokenizer.add_prefix_space=True" is necessary to use the tokenizer with input split into words
+                //
                 //    >> START: Data options.
                 //
                 "data=multiwoz21",
@@ -343,22 +371,27 @@
                 "++language_model.checkpoint_no=2813,5626,8439",
                 //
                 //    >> END: Model options.
+                //
                 "embeddings.embedding_extraction.layer_indices=[-1]",
                 "embeddings_data_prep.sampling.num_samples=3000",
                 "embeddings_data_prep.sampling.sampling_mode=random",
                 // "embeddings_data_prep.sampling.sampling_mode=take_first",
+                "local_estimates=twonn",
                 "local_estimates.filtering.num_samples=500",
                 "local_estimates.compute_global_estimates=true",
                 "local_estimates.pointwise.n_neighbors_mode=absolute_size",
                 "local_estimates.pointwise.absolute_n_neighbors=128",
+                //
+                //    >> START: Feature flags.
                 "feature_flags.analysis.create_plots_in_local_estimates_worker=true",
+                //    >> END: Feature flags.
             ],
             "env": {
                 "PYTORCH_ENABLE_MPS_FALLBACK": "1"
             }
         },
         {
-            "name": "For debugging: Task performance analysis - twoNN, Stored dataloaders, SETSUMBT-dataloaders - Run pipeline.",
+            "name": "Task performance analysis - Local debugging - TwoNN, Stored dataloaders, SetSUMBT-dataloaders - Run pipeline.",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
@@ -409,14 +442,16 @@
                 "local_estimates.compute_global_estimates=true",
                 "local_estimates.pointwise.n_neighbors_mode=absolute_size",
                 "local_estimates.pointwise.absolute_n_neighbors=128",
+                //    >> START: Feature flags.
                 "feature_flags.analysis.create_plots_in_local_estimates_worker=true",
+                //    >> END: Feature flags.
             ],
             "env": {
                 "PYTORCH_ENABLE_MPS_FALLBACK": "1"
             }
         },
         {
-            "name": "For debugging: Task performance analysis - lPCA, Stored dataloaders, SETSUMBT-dataloaders - Run pipeline.",
+            "name": "Task performance analysis - Local debugging - lPCA, Stored dataloaders, SetSUMBT-dataloaders - Run pipeline.",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
@@ -469,14 +504,16 @@
                 "local_estimates.compute_global_estimates=true",
                 "local_estimates.pointwise.n_neighbors_mode=absolute_size",
                 "local_estimates.pointwise.absolute_n_neighbors=128",
+                //    >> START: Feature flags.
                 "feature_flags.analysis.create_plots_in_local_estimates_worker=true",
+                //    >> END: Feature flags.
             ],
             "env": {
                 "PYTORCH_ENABLE_MPS_FALLBACK": "1"
             }
         },
         {
-            "name": "Task performance analysis - HPC submission - TwoNN; SETSUMBT or Trippy checkpoints last layer - Run pipeline.",
+            "name": "Task performance analysis - HHU Hilbert HPC submission - TwoNN; SetSUMBT or Trippy checkpoints; last layer only - Run pipeline.",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
@@ -488,8 +525,8 @@
                 "hydra/launcher=basic",
                 "hydra/launcher=hpc_submission",
                 "hydra.launcher.queue=CUDA",
-                // "hydra.launcher.template=RTX6000",
-                "hydra.launcher.template=GTX1080",
+                "hydra.launcher.template=RTX6000",
+                // "hydra.launcher.template=GTX1080",
                 "hydra.launcher.memory=32",
                 "hydra.launcher.ncpus=4",
                 "hydra.launcher.ngpus=1",
@@ -503,17 +540,18 @@
                 // "data=multiwoz21",
                 // "data=sgd",
                 // "data=one-year-of-tsla-on-reddit",
-                // "data=sgd,one-year-of-tsla-on-reddit",
+                "data=sgd,one-year-of-tsla-on-reddit",
                 // "data=multiwoz21,sgd,one-year-of-tsla-on-reddit",
                 //
-                "data=setsumbt_dataloaders_processed",
-                "data.dataset_seed=0",
+                // "data=setsumbt_dataloaders_processed",
+                // "data.dataset_seed=0",
                 //
                 // "data.data_subsampling.split=train",
-                // "data.data_subsampling.split=validation",
                 // "data.data_subsampling.split=dev",
+                // "data.data_subsampling.split=validation",
                 // "data.data_subsampling.split=test",
-                "data.data_subsampling.split=train,dev,test",
+                // "data.data_subsampling.split=train,dev,test",
+                "data.data_subsampling.split=train,validation,test",
                 //
                 "data.data_subsampling.sampling_mode=random",
                 "data.data_subsampling.number_of_samples=10000",
@@ -525,17 +563,20 @@
                 //
                 // "language_model=roberta-base",
                 //
-                "language_model=roberta-base-setsumbt_multiwoz21",
+                "language_model=bert-base-uncased",
+                //
+                // "language_model=roberta-base-setsumbt_multiwoz21",
                 //
                 // "language_model.seed=0",
                 // "language_model.checkpoint_no=2813",
                 // "language_model.checkpoint_no=2813,5626,8439,11252,14065,16878,19691,25317,33756,36569,39382,42195,50634,56260,70325,90016,109707,115333,126585", // <-- checkpoints for "language_model.seed=0"
                 // "language_model.seed=1",
                 // "language_model.checkpoint_no=2813,5626,8439,11252,14065,16878,19691,25317,30943,42195,47821,53447,61886,109707", // <-- checkpoints for "language_model.seed=1"
-                "language_model.seed=2",
-                "language_model.checkpoint_no=2813,5626,8439,11252,14065,16878,19691,22504,28130,30943,33756,42195,50634,67512,106894,126585", // <-- checkpoints for "language_model.seed=2"
+                // "language_model.seed=2",
+                // "language_model.checkpoint_no=2813,5626,8439,11252,14065,16878,19691,22504,28130,30943,33756,42195,50634,67512,106894,126585", // <-- checkpoints for "language_model.seed=2"
                 //
                 // "language_model=roberta-base-trippy_multiwoz21",
+                //
                 // "++language_model.seed=42",
                 // "++language_model.checkpoint_no=3549",
                 // "++language_model.checkpoint_no=3549,7098",
@@ -548,19 +589,24 @@
                 "embeddings_data_prep.sampling.num_samples=150000",
                 "embeddings_data_prep.sampling.sampling_mode=random",
                 "embeddings_data_prep.sampling.seed=42",
+                //
+                "local_estimates=twonn",
+                //
                 "local_estimates.pointwise.n_neighbors_mode=absolute_size",
                 "local_estimates.filtering.deduplication_mode=array_deduplicator",
                 "local_estimates.filtering.num_samples=60000",
                 "local_estimates.pointwise.absolute_n_neighbors=128",
                 //
-                "feature_flags.analysis.create_plots_in_local_estimates_worker=false", // <-- Decide whether to create plots in the local estimates worker.
+                //    >> START: Feature flags.
+                "feature_flags.analysis.create_plots_in_local_estimates_worker=true", // <-- Decide whether to create plots in the local estimates worker.
+                //    >> END: Feature flags.
             ],
             "env": {
                 "PYTORCH_ENABLE_MPS_FALLBACK": "1"
             }
         },
         {
-            "name": "Task performance analysis - HPC submission - lPCA; SETSUMBT or Trippy checkpoints last layer - Run pipeline.",
+            "name": "Task performance analysis - HHU Hilbert HPC submission - lPCA; SetSUMBT or Trippy checkpoints; last layer only - Run pipeline.",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
@@ -574,7 +620,6 @@
                 "hydra.launcher.walltime=03:00:00", // <-- Until we have a better estimate of how long the lPCA estimates take, we will set the walltime to a larger number of hours.
                 // ===== GPU-machine =====
                 // "hydra.launcher.queue=CUDA",
-                // // "hydra.launcher.template=RTX6000",
                 // "hydra.launcher.template=GTX1080",
                 // "hydra.launcher.memory=32",
                 // "hydra.launcher.ncpus=4",
@@ -587,15 +632,15 @@
                 "hydra.launcher.ngpus=0",
                 // >>>> END: Hydra options
                 //
-                "tokenizer.add_prefix_space=False", // "tokenizer.add_prefix_space=True" is necessary to use the tokenizer with input split into words
-                //
                 //    >> START: Data options.
                 //
-                "data=multiwoz21",
+                "tokenizer.add_prefix_space=False", // "tokenizer.add_prefix_space=True" is necessary to use the tokenizer with input split into words
+                //
+                // "data=multiwoz21",
                 // "data=sgd",
                 // "data=one-year-of-tsla-on-reddit",
                 // "data=sgd,one-year-of-tsla-on-reddit",
-                // "data=multiwoz21,sgd,one-year-of-tsla-on-reddit",
+                "data=multiwoz21,sgd,one-year-of-tsla-on-reddit",
                 //
                 // "data=setsumbt_dataloaders_processed",
                 // "data.dataset_seed=0",
@@ -614,25 +659,23 @@
                 //
                 //    >> START: Model options.
                 //
-                "language_model=roberta-base",
+                // "language_model=roberta-base",
                 //
                 // "language_model=roberta-base-setsumbt_multiwoz21",
-                //
                 // "language_model.seed=0",
-                // "language_model.checkpoint_no=2813",
-                // "language_model.checkpoint_no=2813,5626,8439",
                 // "language_model.checkpoint_no=2813,5626,8439,11252,14065,16878,19691,25317,33756,36569,39382,42195,50634,56260,70325,90016,109707,115333,126585", // <-- checkpoints for "language_model.seed=0"
                 // "language_model.seed=1",
-                // "language_model.checkpoint_no=2813,5626,8439",
                 // "language_model.checkpoint_no=2813,5626,8439,11252,14065,16878,19691,25317,30943,42195,47821,53447,61886,109707", // <-- checkpoints for "language_model.seed=1"
                 // "language_model.seed=2",
                 // "language_model.checkpoint_no=2813,5626,8439,11252,14065,16878,19691,22504,28130,30943,33756,42195,50634,67512,106894,126585", // <-- checkpoints for "language_model.seed=2"
+                // "language_model.checkpoint_no=2813",
+                // "language_model.checkpoint_no=2813,5626,8439",
                 //
-                // "language_model=roberta-base-trippy_multiwoz21",
-                // "language_model.seed=42",
+                "language_model=roberta-base-trippy_multiwoz21",
+                "language_model.seed=42",
+                "language_model.checkpoint_no=3549,7098,10647,14196,17745,21294,24843,28392,31941,35490", // <-- checkpoints for "language_model.seed=42"
                 // "language_model.checkpoint_no=3549",
                 // "language_model.checkpoint_no=3549,7098",
-                // "language_model.checkpoint_no=3549,7098,10647,14196,17745,21294,24843,28392,31941,35490",
                 //
                 //    >> END: Model options.
                 //
@@ -641,17 +684,21 @@
                 "embeddings_data_prep.sampling.num_samples=150000",
                 "embeddings_data_prep.sampling.sampling_mode=random",
                 "embeddings_data_prep.sampling.seed=42",
+                //
                 "local_estimates=lpca",
                 "local_estimates.estimator.lpca_ver=FO",
+                // "local_estimates.estimator.lpca_ver=Fan",
+                //
                 "local_estimates.pointwise.n_neighbors_mode=absolute_size",
                 "local_estimates.filtering.deduplication_mode=array_deduplicator",
                 "local_estimates.filtering.num_samples=60000",
                 "local_estimates.pointwise.absolute_n_neighbors=128",
                 //
                 //    >> START: Feature flags.
+                //    >> NOTE: Only skip the embedding computation if the embeddings are already available.
                 "feature_flags.compute_and_store_embeddings.skip_compute_and_store_embeddings_in_pipeline=true", // <-- Only set this to true if the embeddings are available
                 "feature_flags.embeddings_data_prep.skip_embeddings_data_prep_in_pipeline=false",
-                "feature_flags.analysis.create_plots_in_local_estimates_worker=true", // <-- Decide whether to create plots in the local estimates worker.
+                "feature_flags.analysis.create_plots_in_local_estimates_worker=false", // <-- Decide whether to create plots in the local estimates worker.
                 //    >> END: Feature flags.
             ],
             "env": {
@@ -659,7 +706,7 @@
             }
         },
         {
-            "name": "Task performance analysis - HPC submission - TwoNN; SETSUMBT or Trippy selected checkpoints, multiple layers - run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
+            "name": "Task performance analysis - HHU Hilbert HPC submission - TwoNN; SetSUMBT or Trippy selected checkpoints; multiple layers - Run pipeline.",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
@@ -724,33 +771,13 @@
                 "local_estimates.filtering.num_samples=60000",
                 "local_estimates.pointwise.absolute_n_neighbors=128",
                 //
+                //    >> START: Feature flags.
                 "feature_flags.analysis.create_plots_in_local_estimates_worker=false", // <-- Decide whether to create plots in the local estimates worker.
+                //    >> END: Feature flags.
             ],
             "env": {
                 "PYTORCH_ENABLE_MPS_FALLBACK": "1"
             }
-        },
-        {
-            "name": "Regular Token Embedding; with POS on multiwoz21 - run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
-            "console": "integratedTerminal",
-            "args": [
-                "tokenizer.add_prefix_space=True", // This is necessary to use the tokenizer with input split into words
-                "+data.dataset_type=huggingface_dataset_named_entity",
-                "data=multiwoz21",
-                "data.data_subsampling.number_of_samples=128",
-                "data.data_subsampling.split=validation",
-                "language_model=roberta-base",
-                "embeddings.embedding_extraction.layer_indices=[-1]",
-                "embeddings_data_prep.sampling.num_samples=3000",
-                "embeddings_data_prep.sampling.sampling_mode=random",
-                "local_estimates.filtering.num_samples=300",
-                "local_estimates.compute_global_estimates=true",
-                "local_estimates.pointwise.n_neighbors_mode=absolute_size",
-                "local_estimates.pointwise.absolute_n_neighbors=256",
-            ]
         },
         {
             "name": "Regular Token Embedding; with POS, with data_subsampler - run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
@@ -783,7 +810,9 @@
                 "local_estimates.compute_global_estimates=true",
                 "local_estimates.pointwise.n_neighbors_mode=absolute_size",
                 "local_estimates.pointwise.absolute_n_neighbors=256",
+                //    >> START: Feature flags.
                 "feature_flags.analysis.create_plots_in_local_estimates_worker=true",
+                //    >> END: Feature flags.
             ]
         },
         {
@@ -812,33 +841,9 @@
                 // "local_estimates.noise.artificial_noise_mode=do_nothing",
                 "local_estimates.noise.distortion_parameter=0.001",
                 "local_estimates.noise.seed=2",
+                //    >> START: Feature flags.
                 "feature_flags.analysis.create_plots_in_local_estimates_worker=true",
-            ]
-        },
-        {
-            "name": "Masked Token Embedding; on multiwoz21, with POS, with data_subsampler - run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
-            "console": "integratedTerminal",
-            "args": [
-                "tokenizer.add_prefix_space=True", // This is necessary to use the tokenizer with input split into words
-                "+data.dataset_type=huggingface_dataset_named_entity",
-                "data=multiwoz21_validation",
-                "data.data_subsampling.split=validation",
-                "data.data_subsampling.number_of_samples=128",
-                "data.data_subsampling.sampling_mode=random",
-                "data.data_subsampling.sampling_seed=777",
-                "language_model=roberta-base",
-                "embeddings.embedding_data_handler.mode=masked_token",
-                "embeddings.embedding_extraction.layer_indices=[-1]",
-                "embeddings_data_prep.sampling.num_samples=3000",
-                "embeddings_data_prep.sampling.sampling_mode=random",
-                "local_estimates.filtering.num_samples=1000",
-                "local_estimates.compute_global_estimates=true",
-                "local_estimates.pointwise.n_neighbors_mode=absolute_size",
-                "local_estimates.pointwise.absolute_n_neighbors=256",
-                "feature_flags.analysis.create_plots_in_local_estimates_worker=true",
+                //    >> END: Feature flags.
             ]
         },
         {
@@ -857,58 +862,6 @@
                 "data.data_subsampling.sampling_seed=777",
                 "language_model=roberta-base",
                 "embeddings.embedding_data_handler.mode=masked_token",
-                "embeddings.embedding_extraction.layer_indices=[-1]",
-                "embeddings_data_prep.sampling.num_samples=3000",
-                "embeddings_data_prep.sampling.sampling_mode=random",
-                "local_estimates.filtering.num_samples=1000",
-                "local_estimates.compute_global_estimates=true",
-                "local_estimates.pointwise.n_neighbors_mode=absolute_size",
-                "local_estimates.pointwise.absolute_n_neighbors=256",
-                "feature_flags.analysis.create_plots_in_local_estimates_worker=true",
-            ]
-        },
-        {
-            "name": "Masked Token Embedding; on wikipedia, with POS, with data_subsampler - run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
-            "console": "integratedTerminal",
-            "args": [
-                "tokenizer.add_prefix_space=True", // This is necessary to use the tokenizer with input split into words
-                "+data.dataset_type=huggingface_dataset_named_entity",
-                "data=wikitext-103-v1",
-                "data.data_subsampling.split=validation",
-                "data.data_subsampling.number_of_samples=128",
-                "data.data_subsampling.sampling_mode=random",
-                "data.data_subsampling.sampling_seed=777",
-                "language_model=roberta-base",
-                "embeddings.embedding_data_handler.mode=masked_token",
-                "embeddings.embedding_extraction.layer_indices=[-1]",
-                "embeddings_data_prep.sampling.num_samples=3000",
-                "embeddings_data_prep.sampling.sampling_mode=random",
-                "local_estimates.filtering.num_samples=1000",
-                "local_estimates.compute_global_estimates=true",
-                "local_estimates.pointwise.n_neighbors_mode=absolute_size",
-                "local_estimates.pointwise.absolute_n_neighbors=256",
-                "feature_flags.analysis.create_plots_in_local_estimates_worker=true",
-            ]
-        },
-        {
-            "name": "Regular Token Embedding; on wikipedia, with POS, with data_subsampler - run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
-            "console": "integratedTerminal",
-            "args": [
-                "tokenizer.add_prefix_space=True", // This is necessary to use the tokenizer with input split into words
-                "+data.dataset_type=huggingface_dataset_named_entity",
-                "data=wikitext-103-v1",
-                "data.data_subsampling.split=validation",
-                "data.data_subsampling.number_of_samples=128",
-                "data.data_subsampling.sampling_mode=random",
-                "data.data_subsampling.sampling_seed=777",
-                "language_model=roberta-base",
-                "embeddings.embedding_data_handler.mode=regular",
                 "embeddings.embedding_extraction.layer_indices=[-1]",
                 "embeddings_data_prep.sampling.num_samples=3000",
                 "embeddings_data_prep.sampling.sampling_mode=random",
@@ -979,10 +932,10 @@
             ]
         },
         {
-            "name": "run_compare_losses_and_local_estimates.py; on example multiwoz21 test data, compare clean with noisy data",
+            "name": "Compare local estimates (and potentially losses) - Local debugging - on example multiwoz21 test data, compare clean with noisy data",
             "type": "debugpy",
             "request": "launch",
-            "program": "topollm/analysis/investigate_distances_and_influence_on_losses_and_local_estimates/run_compare_losses_and_local_estimates.py",
+            "program": "topollm/analysis/compare_local_estimates_and_distances_and_losses/run_compare_local_estimates.py",
             "console": "integratedTerminal",
             "args": [
                 "data=multiwoz21_test",
@@ -1001,7 +954,8 @@
                 "local_estimates.filtering.deduplication_mode=array_deduplicator",
                 "local_estimates.filtering.num_samples=60000",
                 "local_estimates.pointwise.absolute_n_neighbors=128",
-                // START: Comparison data.
+                //
+                //    >> START: Comparison data.
                 //
                 // Note: We need to also set all the parameters we overwrote in the main data configuration,
                 // since otherwise the comparison data configs will be initialized with the default values.
@@ -1016,19 +970,20 @@
                 "+comparison_data.local_estimates.noise.artificial_noise_mode=gaussian",
                 "+comparison_data.local_estimates.noise.distortion_parameter=0.01",
                 "+comparison_data.local_estimates.noise.seed=4",
-                // END: Comparison data.
+                //
+                //    >> END: Comparison data.
+                //
                 // "analysis.investigate_distances.array_truncation_size=500", // The value '500' can be used for quick testing
                 // "analysis.investigate_distances.array_truncation_size=600",
                 // "analysis.investigate_distances.array_truncation_size=5000",
                 "analysis.investigate_distances.array_truncation_size=20000",
-                "feature_flags.analysis.compare_sampling_methods.do_iterate_all_partial_search_base_directories=True", // This is an example for setting the feature flags
             ]
         },
         {
-            "name": "run_compare_losses_and_local_estimates.py; on example wikitext test data, compare masked token embeddings with regular token embeddings",
+            "name": "Compare local estimates (and potentially losses) - Local debugging - on example wikitext test data, compare masked token embeddings with regular token embeddings",
             "type": "debugpy",
             "request": "launch",
-            "program": "topollm/analysis/investigate_distances_and_influence_on_losses_and_local_estimates/run_compare_losses_and_local_estimates.py",
+            "program": "topollm/analysis/compare_local_estimates_and_distances_and_losses/run_compare_local_estimates.py",
             "console": "integratedTerminal",
             "args": [
                 "data=wikitext-103-v1_test",
@@ -1058,26 +1013,18 @@
                 // "analysis.investigate_distances.array_truncation_size=20000",
                 // Note: "analysis.investigate_distances.array_truncation_size=30000" runs out of memory on the 16GB MacBook Pro M1
                 // "analysis.investigate_distances.array_truncation_size=60000", // The value '60000' potentially takes a long time to run, and this might run out of memory on the 16GB MacBook Pro M1
-                "feature_flags.analysis.compare_sampling_methods.do_iterate_all_partial_search_base_directories=True", // This is an example for setting the feature flags
             ]
         },
         {
-            "name": "run_compare_losses_and_local_estimates.py; local; small array_truncation_size; for selected datasets and models; without comparison (i.e., only computing the losses on the base data)",
+            "name": "Compare local estimates (loss computation only on base data) - Local debugging - small array_truncation_size; for selected datasets and models; with comparison of local estimates with losses, but without comparison with other data (i.e., loss computation only on base data)",
             "type": "debugpy",
             "request": "launch",
-            "program": "topollm/analysis/investigate_distances_and_influence_on_losses_and_local_estimates/run_compare_losses_and_local_estimates.py",
+            "program": "topollm/analysis/compare_local_estimates_and_distances_and_losses/run_compare_local_estimates.py",
             "console": "integratedTerminal",
             "args": [
                 // >>>> BEGIN: Hydra options
                 "--multirun",
                 "hydra/sweeper=basic",
-                // "hydra/launcher=hpc_submission",
-                // "hydra.launcher.queue=CUDA",
-                // "hydra.launcher.template=RTX6000",
-                // "hydra.launcher.memory=32",
-                // "hydra.launcher.ncpus=4",
-                // "hydra.launcher.ngpus=1",
-                // "hydra.launcher.walltime=06:00:00",
                 // >>>> END: Hydra options
                 //    >> START Data options.
                 "data=multiwoz21_validation",
@@ -1107,15 +1054,99 @@
                 // "analysis.investigate_distances.array_truncation_size=20000",
                 // Note: "analysis.investigate_distances.array_truncation_size=30000" runs out of memory on the 16GB MacBook Pro M1
                 // "analysis.investigate_distances.array_truncation_size=60000", // The value '60000' potentially takes a long time to run, and this might run out of memory on the 16GB MacBook Pro M1
-                // >>>> Set this feature flag to avoid the comparison
-                "feature_flags.comparison.do_comparison_of_local_estimates=False",
+                //
+                //    >> START: Feature flags.
+                "feature_flags.comparison.do_comparison_of_local_estimates_with_losses=True",
+                // >>>> Set this feature flag to avoid the comparison with other data
+                "feature_flags.comparison.do_comparison_of_local_estimates_between_base_data_and_comparison_data=False",
+                //    >> END: Feature flags.
             ]
         },
         {
-            "name": "run_compare_losses_and_local_estimates.py; on HHU Hilbert; for validation or test splits of datasets (random sampling) and models; without comparison (i.e., only computing the losses on the base data)",
+            "name": "Compare local estimates (no loss computation) - Local debugging - small array_truncation_size; with comparison of local estimates between settings (but without loss computation)",
             "type": "debugpy",
             "request": "launch",
-            "program": "topollm/analysis/investigate_distances_and_influence_on_losses_and_local_estimates/run_compare_losses_and_local_estimates.py",
+            "program": "topollm/analysis/compare_local_estimates_and_distances_and_losses/run_compare_local_estimates.py",
+            "console": "integratedTerminal",
+            "args": [
+                // >>>> BEGIN: Hydra options
+                "--multirun",
+                "hydra/sweeper=basic",
+                // >>>> END: Hydra options
+                //
+                //    >> START Data options.
+                //
+                "tokenizer.add_prefix_space=False",
+                //
+                // "data=multiwoz21_validation",
+                // "data=one-year-of-tsla-on-reddit_validation,multiwoz21_validation",
+                //
+                "data=setsumbt_dataloaders_processed",
+                "data.dataset_seed=0",
+                "data.data_subsampling.split=dev",
+                //
+                "data.data_subsampling.sampling_mode=random",
+                "data.data_subsampling.number_of_samples=10000",
+                "data.data_subsampling.sampling_seed=778",
+                //    >> END Data options.
+                //
+                //    >> START: Model options.
+                //
+                "language_model=roberta-base", // Note: Do not set checkpoint_no for the base model
+                // > Note: Set checkpoint_no for the fine-tuned models
+                // "language_model=roberta-base-setsumbt_multiwoz21",
+                //
+                // "language_model.seed=0",
+                // "language_model.checkpoint_no=2813",
+                //
+                //    >> END: Model options.
+                //
+                "embeddings.embedding_data_handler.mode=regular",
+                "embeddings.embedding_extraction.layer_indices=[-1]",
+                "embeddings_data_prep.sampling.num_samples=150000",
+                "embeddings_data_prep.sampling.sampling_mode=random",
+                "embeddings_data_prep.sampling.seed=42",
+                "local_estimates=lpca",
+                "local_estimates.estimator.lpca_ver=FO",
+                "local_estimates.pointwise.n_neighbors_mode=absolute_size",
+                "local_estimates.filtering.deduplication_mode=array_deduplicator",
+                "local_estimates.filtering.num_samples=60000",
+                "local_estimates.pointwise.absolute_n_neighbors=128",
+                //
+                "analysis.investigate_distances.array_truncation_size=500", // The value '500' can be used for quick testing
+                // "analysis.investigate_distances.array_truncation_size=5000",
+                // "analysis.investigate_distances.array_truncation_size=20000",
+                // Note: "analysis.investigate_distances.array_truncation_size=30000" runs out of memory on the 16GB MacBook Pro M1
+                // "analysis.investigate_distances.array_truncation_size=60000", // The value '60000' potentially takes a long time to run, and this might run out of memory on the 16GB MacBook Pro M1
+                //
+                //    >> START: Comparison data.
+                // TODO: Update this
+                //
+                // Note: We need to also set all the parameters we overwrote in the main data configuration,
+                // since otherwise the comparison data configs will be initialized with the default values.
+                //
+                // << This is the same as in the main data configuration
+                "+comparison_data.embeddings.embedding_data_handler.mode=regular",
+                "+comparison_data.local_estimates.pointwise.n_neighbors_mode=absolute_size",
+                "+comparison_data.local_estimates.filtering.deduplication_mode=array_deduplicator",
+                "+comparison_data.local_estimates.filtering.num_samples=60000",
+                "+comparison_data.local_estimates.pointwise.absolute_n_neighbors=128",
+                // << This is different from the main data configuration
+                "+comparison_data/local_estimates=twonn",
+                //
+                //    >> END: Comparison data.
+                //
+                //    >> START: Feature flags.
+                "feature_flags.comparison.do_comparison_of_local_estimates_with_losses=False", // <-- Set this feature flag to avoid the predictions and loss computation
+                "feature_flags.comparison.do_comparison_of_local_estimates_between_base_data_and_comparison_data=True", // <-- Set this feature flag to compare with different local estimates
+                //    >> END: Feature flags.
+            ]
+        },
+        {
+            "name": "Compare local estimates (loss computation only on base data) - HHU Hilbert HPC submission - for validation or test splits of datasets (random sampling) and models; without comparison (i.e., only computing the losses on the base data)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/analysis/compare_local_estimates_and_distances_and_losses/run_compare_local_estimates.py",
             "console": "integratedTerminal",
             "args": [
                 // >>>> BEGIN: Hydra options
@@ -1177,10 +1208,10 @@
             ]
         },
         {
-            "name": "run_compare_losses_and_local_estimates.py; on HHU Hilbert; for different subsampling seeds of validation splits of datasets (random sampling) and models; without comparison (i.e., only computing the losses on the base data)",
+            "name": "Compare local estimates (loss computation only on base data) - HHU Hilbert HPC submission - for different subsampling seeds of validation splits of datasets (random sampling) and models; without comparison (i.e., only computing the losses on the base data)",
             "type": "debugpy",
             "request": "launch",
-            "program": "topollm/analysis/investigate_distances_and_influence_on_losses_and_local_estimates/run_compare_losses_and_local_estimates.py",
+            "program": "topollm/analysis/compare_local_estimates_and_distances_and_losses/run_compare_local_estimates.py",
             "console": "integratedTerminal",
             "args": [
                 // >>>> BEGIN: Hydra options
@@ -1239,10 +1270,10 @@
             ]
         },
         {
-            "name": "run_compare_losses_and_local_estimates.py; on HHU Hilbert; for multiple train datasets (take first sampling) and models; without comparison (i.e., only computing the losses on the base data)",
+            "name": "Compare local estimates (loss computation only on base data) - HHU Hilbert HPC submission - for multiple train datasets (take first sampling) and models; without comparison (i.e., only computing the losses on the base data)",
             "type": "debugpy",
             "request": "launch",
-            "program": "topollm/analysis/investigate_distances_and_influence_on_losses_and_local_estimates/run_compare_losses_and_local_estimates.py",
+            "program": "topollm/analysis/compare_local_estimates_and_distances_and_losses/run_compare_local_estimates.py",
             "console": "integratedTerminal",
             "args": [
                 // >>>> BEGIN: Hydra options
@@ -1297,7 +1328,7 @@
             ]
         },
         {
-            "name": "compare_mean_local_estimates_with_mean_losses.py",
+            "name": "compare_mean_local_estimates_with_mean_losses.py - Local debugging -",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/analysis/comparisons/compare_mean_estimates_over_different_datasets_and_models/compare_mean_local_estimates_with_mean_losses.py",
@@ -1917,7 +1948,7 @@
             ]
         },
         {
-            "name": "For debugging: SetSUMBT and Trippy - load_model_and_log_model_info.py",
+            "name": "Load model and log model info; SetSUMBT and Trippy - Local debugging -",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/inspection/load_model_and_log_model_info.py",
@@ -1961,7 +1992,7 @@
             }
         },
         {
-            "name": "Task performance analysis - create_line_plots_of_local_estimates_over_checkpoints.py",
+            "name": "Task performance analysis - Local debugging - create_line_plots_of_local_estimates_over_checkpoints.py",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/task_performance_analysis/plotting/create_line_plots_of_local_estimates_over_checkpoints.py",
@@ -1992,7 +2023,7 @@
             }
         },
         {
-            "name": "Task performance analysis - Create distribution plots of local estimates over checkpoints and over layers.",
+            "name": "Task performance analysis - Local debugging - Create distribution plots of local estimates over checkpoints and over layers",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/task_performance_analysis/plotting/run_create_distribution_plots_of_local_estimates_over_checkpoints_and_over_layers.py",
@@ -2026,7 +2057,7 @@
             }
         },
         {
-            "name": "Task performance analysis - Parse SETSUMBT run JSONL file and plot performance metrics.",
+            "name": "Task performance analysis - Local debugging - Parse SetSUMBT run JSONL file and plot performance metrics",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/task_performance_analysis/setsumbt/run_parse_setsumbt_run_jsonl_and_plot_performance_metrics.py",
@@ -2060,7 +2091,7 @@
             }
         },
         {
-            "name": "For debugging: Load dataloaders - try_out_load_dataloader_processed.py",
+            "name": "Load dataloaders - Local debugging - try_out_load_dataloader_processed.py",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/task_performance_analysis/setsumbt/try_out_load_dataloader_processed.py",
@@ -2111,7 +2142,7 @@
             }
         },
         {
-            "name": "For debugging: Local estimates analysis - analyse_local_estimate_distribution_over_tokens.py",
+            "name": "Analyse local estimate distribution over tokens - Local debugging -",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/analysis/distribution_over_tokens/analyse_local_estimate_distribution_over_tokens.py",

@@ -195,10 +195,12 @@ data/example_sync_from_found_files/
 
 data/logs/
 
+data/models/
+data/models/EmoLoop/
 data/models/finetuned_models/
 data/models/finetuning_monitoring/
-data/models/trippy_checkpoints/
 data/models/setsumbt_checkpoints/
+data/models/trippy_checkpoints/
 
 data/saved_plots/
 

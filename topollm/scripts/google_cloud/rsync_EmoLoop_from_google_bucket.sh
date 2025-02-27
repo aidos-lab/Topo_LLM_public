@@ -35,16 +35,28 @@ source "${ENV_FILE_PATH}"
 
 # # # # # # # # # # # # # # # # # #
 
-echo ">>> Syncing data directory to Google Cloud Storage bucket ..."
+SOURCE_PATH="gs://fengs/EmoLoop/required_files/dst"
+DESTINATION_PATH="${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/EmoLoop/required_files/dst"
+
+
+# # # # # # # # # # # # # # # # # #
+
+echo ">>> Syncing from Google Cloud Storage bucket ..."
 
 
 gcloud storage rsync -r \
     $DRY_RUN_FLAG \
-    $LOCAL_TOPO_LLM_DATA_DIR \
-    $GC_TOPO_LLM_BUCKET_DATA_DIR
+    $SOURCE_PATH \
+    $DESTINATION_PATH
     
+if [[ $? -ne 0 ]]; then
+    echo "@@@ Error: gcloud storage rsync failed."
+    exit 1
+fi
 
-echo ">>> Syncing data directory to Google Cloud Storage bucket DONE"
+echo ">>> Data synchronization completed successfully."
+
+echo ">>> Syncing from Google Cloud Storage bucket DONE"
 
 # # # # # # # # #
 # Exit script

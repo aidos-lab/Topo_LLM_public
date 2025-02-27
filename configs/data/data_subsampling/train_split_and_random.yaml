@@ -1,0 +1,4 @@
+number_of_samples: 10000
+sampling_mode: random
+sampling_seed: 778
+split: train

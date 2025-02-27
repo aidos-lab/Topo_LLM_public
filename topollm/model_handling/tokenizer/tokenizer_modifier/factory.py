@@ -39,7 +39,9 @@ from topollm.model_handling.tokenizer.tokenizer_modifier import (
 )
 from topollm.typing.enums import TokenizerModifierMode, Verbosity
 
-default_logger = logging.getLogger(__name__)
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 def get_tokenizer_modifier(
@@ -67,7 +69,7 @@ def get_tokenizer_modifier(
             logger=logger,
         )
     else:
-        msg = f"Unknown {mode = }"
+        msg: str = f"Unknown {mode = }"
         raise ValueError(msg)
 
     return modifier

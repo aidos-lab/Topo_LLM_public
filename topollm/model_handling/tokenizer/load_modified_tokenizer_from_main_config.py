@@ -1,10 +1,10 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -25,6 +25,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Interface function to load a tokenizer from a MainConfig object."""
+
 import logging
 
 from topollm.config_classes.main_config import MainConfig
@@ -33,7 +35,9 @@ from topollm.model_handling.tokenizer.tokenizer_modifier.protocol import Tokeniz
 from topollm.typing.enums import Verbosity
 from topollm.typing.types import TransformersTokenizer
 
-default_logger = logging.getLogger(__name__)
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 def load_modified_tokenizer_from_main_config(
@@ -45,7 +49,10 @@ def load_modified_tokenizer_from_main_config(
     TokenizerModifier,
 ]:
     """Interface function to load a tokenizer from a MainConfig object."""
-    tokenizer, tokenizer_modifier = load_modified_tokenizer(
+    (
+        tokenizer,
+        tokenizer_modifier,
+    ) = load_modified_tokenizer(
         language_model_config=main_config.language_model,
         tokenizer_config=main_config.tokenizer,
         verbosity=verbosity,

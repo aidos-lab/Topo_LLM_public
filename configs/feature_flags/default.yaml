@@ -12,7 +12,8 @@ analysis:
     do_data_subsampling_number_of_samples_analysis: true
 
 comparison:
-  do_comparison_of_local_estimates: true
+  do_comparison_of_local_estimates_with_losses: true
+  do_comparison_of_local_estimates_between_base_data_and_comparison_data: true
 
 compute_and_store_embeddings:
   skip_compute_and_store_embeddings_in_pipeline: false

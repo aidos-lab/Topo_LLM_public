@@ -138,10 +138,16 @@ class AnalysisFeatureFlagsConfig(ConfigBaseModel):
 class ComparisonFeatureFlagsConfig(ConfigBaseModel):
     """Feature flags for the comparison process."""
 
-    do_comparison_of_local_estimates: bool = Field(
+    do_comparison_of_local_estimates_with_losses: bool = Field(
         default=True,
-        title="Do comparison of local estimates.",
-        description="Whether to do the comparison of local estimates.",
+        title="Do comparison of local estimates with losses.",
+        description="Whether to do the comparison of local estimates with losses.",
+    )
+
+    do_comparison_of_local_estimates_between_base_data_and_comparison_data: bool = Field(
+        default=True,
+        title="Do comparison of local estimates between base and comparison data.",
+        description="Whether to do the comparison of local estimates between base and comparison data.",
     )
 
 
