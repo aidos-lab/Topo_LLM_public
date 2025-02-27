@@ -14,7 +14,7 @@ MODEL_CLASSES = {
 
 
 class ContextBERT_ERToD(nn.Module):
-    """ContextBERT-ERToD ERC Model"""
+    """ContextBERT-ERToD ERC Model."""
 
     def __init__(
         self,
