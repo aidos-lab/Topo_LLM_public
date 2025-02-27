@@ -19,7 +19,7 @@
         },
         // START Weights and Biases related tasks (wandb)
         {
-            "label": "rsync from HHU Hilbert to local - (LARGE) - Full 'wandb' directory",
+            "label": "Local - Sync from HHU Hilbert to local - (LARGE) - Full 'wandb' directory",
             "command": "./topollm/scripts/hhu_hilbert/sync_data/sync_wandb/rsync_full_wandb_output_dir_from_hhu_hilbert.sh",
             "type": "shell",
             "group": {
@@ -33,7 +33,7 @@
             }
         },
         {
-            "label": "rsync from HHU Hilbert to local - Selected 'wandb' directories",
+            "label": "Local - Sync from HHU Hilbert to local - Selected 'wandb' directories",
             "command": "./topollm/scripts/hhu_hilbert/sync_data/sync_wandb/rsync_selected_wandb_output_dirs_from_hhu_hilbert.sh",
             "type": "shell",
             "group": {
@@ -109,7 +109,7 @@
             "problemMatcher": []
         },
         {
-            "label": "rsync from HHU Hilbert to local - 'hydra_output_dir' directory",
+            "label": "Local - Sync from HHU Hilbert to local - 'hydra_output_dir' directory",
             "command": "./topollm/scripts/hhu_hilbert/sync_data/rsync_hydra_output_dir_from_hhu_hilbert.sh",
             "type": "shell",
             "group": {
@@ -124,7 +124,7 @@
             "problemMatcher": []
         },
         {
-            "label": "rsync from HHU Hilbert to local - (LARGE) - 'analysis/distances_and_influence_on_losses_and_local_estimates' directory",
+            "label": "Local - Sync from HHU Hilbert to local - (LARGE) - 'analysis/distances_and_influence_on_losses_and_local_estimates' directory",
             "detail": "rsync from HHU Hilbert: 'analysis/distances_and_influence_on_losses_and_local_estimates'.",
             "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/distances_and_influence_on_losses_and_local_estimates/' --file-type all",
             "type": "shell",
@@ -139,7 +139,7 @@
             }
         },
         {
-            "label": "rsync from HHU Hilbert to local - Small files from 'analysis/distances_and_influence_on_losses_and_local_estimates' directory",
+            "label": "Local - Sync from HHU Hilbert to local - Small files from 'analysis/distances_and_influence_on_losses_and_local_estimates' directory",
             "detail": "rsync from HHU Hilbert: Small files from 'analysis/distances_and_influence_on_losses_and_local_estimates'.",
             "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/distances_and_influence_on_losses_and_local_estimates/' --syncing-mode 'exclude_large_predictions_and_metadata'",
             "type": "shell",
@@ -154,7 +154,7 @@
             }
         },
         {
-            "label": "rsync from HHU Hilbert to external drive - (LARGE) - 'analysis/distances_and_influence_on_losses_and_local_estimates' directory",
+            "label": "Local - Sync from HHU Hilbert to external drive - (LARGE) - 'analysis/distances_and_influence_on_losses_and_local_estimates' directory",
             "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/distances_and_influence_on_losses_and_local_estimates/' --syncing-mode 'all' --file-type 'all' --sync-to-external-drive",
             "type": "shell",
             "group": {
@@ -168,7 +168,7 @@
             }
         },
         {
-            "label": "rsync from HHU Hilbert to external drive - (LARGE) - 'analysis/prepared' and 'analysis/local_estimates' directories",
+            "label": "Local - Sync from HHU Hilbert to external drive - (LARGE) - 'analysis/prepared' and 'analysis/local_estimates' directories",
             "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/local_estimates/' 'data/analysis/prepared/' --file-type 'all' --sync_to_external_drive",
             "type": "shell",
             "group": {
@@ -182,7 +182,7 @@
             }
         },
         {
-            "label": "rsync from HHU Hilbert to local - (LARGE) - ALL file types 'analysis/local_estimates' directory",
+            "label": "Local - Sync from HHU Hilbert to local - (LARGE) - ALL file types 'analysis/local_estimates' directory",
             "detail": "rsync from HHU Hilbert: 'analysis/local_estimates'.",
             "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/local_estimates/' --file-type 'all'",
             "type": "shell",
@@ -197,7 +197,7 @@
             }
         },
         {
-            "label": "rsync from HHU Hilbert to local - (LARGE) - 'data/saved_plots/local_estimates_projection/' directory",
+            "label": "Local - Sync from HHU Hilbert to local - (LARGE) - 'data/saved_plots/local_estimates_projection/' directory",
             "detail": "rsync from HHU Hilbert: 'data/saved_plots/local_estimates_projection/'.",
             "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/saved_plots/local_estimates_projection/' --file-type 'all'",
             "type": "shell",
@@ -212,7 +212,7 @@
             }
         },
         {
-            "label": "rsync from HHU Hilbert to local - ONLY .npy file types 'analysis/local_estimates' directory",
+            "label": "Local - Sync from HHU Hilbert to local - ONLY .npy file types 'analysis/local_estimates' directory",
             "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/local_estimates/' --file-type 'npy'",
             "type": "shell",
             "group": {
@@ -226,7 +226,7 @@
             }
         },
         {
-            "label": "rsync from HHU Hilbert to local - results_arrays, statistics from 'analysis/local_estimates/' directory",
+            "label": "Local - Sync from HHU Hilbert to local - results_arrays, statistics from 'analysis/local_estimates/' directory",
             "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/local_estimates/' --syncing-mode 'results_arrays_and_statistics'",
             "type": "shell",
             "group": {
@@ -240,7 +240,7 @@
             }
         },
         {
-            "label": "rsync from HHU Hilbert to local - (LARGE) - results_arrays, statistics, metadata from 'analysis/local_estimates/' directory",
+            "label": "Local - Sync from HHU Hilbert to local - (LARGE) - results_arrays, statistics, metadata from 'analysis/local_estimates/' directory",
             "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/local_estimates/' --syncing-mode 'results_array_and_statistics_and_metadata'",
             "type": "shell",
             "group": {
@@ -254,7 +254,7 @@
             }
         },
         {
-            "label": "rsync from HHU Hilbert to local - ALL file types 'data/analysis/training_and_evaluation_losses/' directory",
+            "label": "Local - Sync from HHU Hilbert to local - ALL file types 'data/analysis/training_and_evaluation_losses/' directory",
             "detail": "rsync from HHU Hilbert: 'data/analysis/training_and_evaluation_losses/'.",
             "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/training_and_evaluation_losses/' --file-type 'all'",
             "type": "shell",
@@ -269,7 +269,7 @@
             }
         },
         {
-            "label": "rsync from HHU Hilbert to local - ALL file types - Selected local estimates",
+            "label": "Local - Sync from HHU Hilbert to local - ALL file types - Selected local estimates",
             "detail": "rsync from HHU Hilbert: ALL file types - Selected local estimates directories.",
             "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/local_estimates/data=setsumbt_dataloaders_processed_0_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/split=dev_samples=10000_sampling=random_sampling-seed=778/edh-mode=regular_lvl=token/add-prefix-space=False_max-len=512/model=roberta-base-setsumbt_multiwoz21_seed-0_ckpt-2813_task=masked_lm_dr=defaults/layer=-1_agg=mean/norm=None/sampling=random_seed=42_samples=150000/desc=twonn_samples=60000_zerovec=keep_dedup=array_deduplicator_noise=do_nothing/' --syncing-mode 'all' --file-type 'all'",
             // Note: You can add more subdirectories by adding more arguments to the command
@@ -285,7 +285,7 @@
             }
         },
         {
-            "label": "rsync from HHU Hilbert to local - results_arrays, statistics, metadata - Selected local estimates",
+            "label": "Local - Sync from HHU Hilbert to local - results_arrays, statistics, metadata - Selected local estimates",
             "detail": "rsync from HHU Hilbert: Without array_for_estimator - Selected local estimates directories.",
             "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/local_estimates/data=setsumbt_dataloaders_processed_0_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/split=dev_samples=10000_sampling=random_sampling-seed=778/edh-mode=regular_lvl=token/add-prefix-space=False_max-len=512/' --syncing-mode 'results_array_and_statistics_and_metadata' --file-type 'all'",
             // Note: You can add more subdirectories by adding more arguments to the command
@@ -301,7 +301,7 @@
             }
         },
         {
-            "label": "rsync from HHU Hilbert to local - language model config directory",
+            "label": "Local - Sync from HHU Hilbert to local - language model config directory",
             "command": "./topollm/scripts/hhu_hilbert/sync_data/rsync_language_model_config_dir_from_hhu_hilbert.sh",
             "type": "shell",
             "group": {
@@ -315,7 +315,7 @@
             }
         },
         {
-            "label": "rsync from HHU Hilbert to local - 'data/embeddings/perplexity' directory",
+            "label": "Local - Sync from HHU Hilbert to local - 'data/embeddings/perplexity' directory",
             "command": "./topollm/scripts/hhu_hilbert/sync_data/rsync_perplexity_dir_from_hhu_hilbert.sh",
             "type": "shell",
             "group": {

@@ -35,249 +35,6 @@
             ]
         },
         {
-            "name": "load_huggingface_dataset.py - Local debugging -",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "topollm/data_processing/load_huggingface_dataset.py",
-            "console": "integratedTerminal",
-            "args": [
-                // "data=bookcorpus",
-                // "data=multiwoz21",
-                "data=wikitext-103-v1",
-                "data.data_subsampling.number_of_samples=128",
-                "data.data_subsampling.sampling_mode=random",
-                "data.data_subsampling.sampling_seed=777",
-                "data.data_subsampling.split=validation",
-                "feature_flags.wandb.use_wandb=false",
-                "wandb.project=Topo_LLM_DEBUG",
-            ]
-        },
-        {
-            "name": "compute_eval_loss_via_huggingface_trainer.py - Local debugging -",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "topollm/model_inference/compute_eval_loss_via_huggingface_trainer.py",
-            "console": "integratedTerminal",
-            "args": [
-                // >>>> BEGIN: Hydra options
-                "--multirun",
-                "hydra/sweeper=basic",
-                "hydra/launcher=basic",
-                // >>>> END: Hydra options
-                //    >> START Data options.
-                //
-                // "data=multiwoz21",
-                // "data=one-year-of-tsla-on-reddit",
-                // "data.data_subsampling.number_of_samples=512",
-                "data=iclr_2024_submissions_validation,multiwoz21_validation,one-year-of-tsla-on-reddit_validation,sgd_validation,wikitext-103-v1_validation", // <-- all validation splits
-                // "data=iclr_2024_submissions_test,multiwoz21_test,one-year-of-tsla-on-reddit_test,sgd_test,wikitext-103-v1_test", // <-- all test splits
-                //
-                //    >> END Data options.
-                //
-                "data.data_subsampling.number_of_samples=128", // <-- This can be used for quick testing of the script
-                "data.data_subsampling.split=validation",
-                "data.data_subsampling.sampling_mode=random",
-                "data.data_subsampling.sampling_seed=777",
-                //
-                "tokenizer.add_prefix_space=False", // "tokenizer.add_prefix_space=False" to be consistent with the fine-tuning setup
-                //
-                "language_model=roberta-base",
-                // "language_model=gpt2-medium",
-                //
-                "feature_flags.wandb.use_wandb=false",
-                "wandb.project=Topo_LLM_DEBUG",
-            ],
-            "env": {}
-        },
-        {
-            "name": "compute_eval_loss_via_huggingface_trainer.py - HHU Hilbert HPC submission -",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "topollm/model_inference/compute_eval_loss_via_huggingface_trainer.py",
-            "console": "integratedTerminal",
-            "args": [
-                // >>>> BEGIN: Hydra options
-                "--multirun",
-                "hydra/sweeper=basic",
-                "hydra/launcher=hpc_submission",
-                "hydra.launcher.queue=CUDA",
-                "hydra.launcher.template=RTX6000",
-                "hydra.launcher.memory=32",
-                "hydra.launcher.ncpus=4",
-                "hydra.launcher.ngpus=1",
-                "hydra.launcher.walltime=00:30:00", // <-- The evaluation should not take more than a few minutes
-                // >>>> END: Hydra options
-                //    >> START Data options.
-                //
-                // "data=multiwoz21",
-                // "data=one-year-of-tsla-on-reddit",
-                // "data=iclr_2024_submissions_train,multiwoz21_train,one-year-of-tsla-on-reddit_train,sgd_train,wikitext-103-v1_train", // <-- all training splits
-                "data=iclr_2024_submissions_validation,multiwoz21_validation,one-year-of-tsla-on-reddit_validation,sgd_validation,wikitext-103-v1_validation", // <-- all validation splits
-                // "data=iclr_2024_submissions_test,multiwoz21_test,one-year-of-tsla-on-reddit_test,sgd_test,wikitext-103-v1_test", // <-- all test splits
-                //
-                //    >> END Data options.
-                //
-                // "data.data_subsampling.number_of_samples=128", // <-- This can be used for quick testing of the script
-                "data.data_subsampling.number_of_samples=10000",
-                // No data split selected here, since we will do this above in the data configuration
-                // "data.data_subsampling.sampling_mode=take_first",
-                "data.data_subsampling.sampling_mode=random",
-                "data.data_subsampling.sampling_seed=777",
-                // "data.data_subsampling.sampling_seed=778",
-                //
-                "tokenizer.add_prefix_space=False", // "tokenizer.add_prefix_space=False" to be consistent with the fine-tuning setup
-                //
-                //    >> START Model options.
-                //    > Note: You need to have the masked embeddings precomputed for the given checkpoints before you can call this loss computation.
-                // 
-                // "language_model=roberta-base", // Note: Do not set checkpoint_no for the base model
-                // > Note: Set checkpoint_no for the fine-tuned models
-                // "language_model=roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,roberta-base-masked_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,roberta-base-masked_lm-defaults_wikitext-103-v1-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
-                "language_model=roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-freeze-lm_head_embeddings.word_embeddings-5,roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-freeze-lm_head-5",
-                "++language_model.checkpoint_no=100,200,300,400,500,600,700,800,900,1000,1100,1200,1300,1400,1500,1600,1700,1800,1900,2000,2100,2200,2300,2400,2500,2600,2700,2800,2900,3000,3100",
-                // "++language_model.checkpoint_no=400,800,1200,1600,2000,2400,2800",
-                // "++language_model.checkpoint_no=2800",
-                //
-                //    >> END Model options.
-                //
-                "feature_flags.wandb.use_wandb=false",
-                "wandb.project=Topo_LLM_DEBUG",
-            ],
-            "env": {}
-        },
-        {
-            "name": "skip finetuning; only config file creation; run_finetune_language_model_on_huggingface_dataset.py",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "topollm/model_finetuning/run_finetune_language_model_on_huggingface_dataset.py",
-            "console": "integratedTerminal",
-            "args": [
-                "feature_flags.finetuning.skip_finetuning=true",
-                "feature_flags.finetuning.use_wandb=false",
-            ]
-        },
-        {
-            "name": "on NER task; run_finetune_language_model_on_huggingface_dataset.py",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "topollm/model_finetuning/run_finetune_language_model_on_huggingface_dataset.py",
-            "console": "integratedTerminal",
-            "args": [
-                "finetuning=finetuning_for_token_classification",
-                "finetuning.finetuning_datasets.train_dataset.data_subsampling.number_of_samples=100",
-                "finetuning.finetuning_datasets.eval_dataset.data_subsampling.number_of_samples=20",
-                "finetuning.eval_steps=2",
-                "finetuning.trainer_modifier.mode=add_wandb_prediction_progress_callback",
-                "finetuning.trainer_modifier.frequency=4",
-                "feature_flags.wandb.use_wandb=false",
-                "wandb.project=Topo_LLM_finetuning_for_token_classification_DEBUG",
-            ]
-        },
-        {
-            "name": "run_finetune_language_model_on_huggingface_dataset.py - Local debugging - on MLM task; for 2 epochs",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "topollm/model_finetuning/run_finetune_language_model_on_huggingface_dataset.py",
-            "console": "integratedTerminal",
-            "args": [
-                "--multirun",
-                "finetuning=finetuning_for_masked_lm",
-                // <-- Saving every 2 steps should result in two saved checkpoints for a dataset of size 80 and batch size of: "Instantaneous batch size per device = 16"
-                "finetuning.save_steps=2",
-                "finetuning.eval_steps=2",
-                "finetuning/finetuning_datasets=train_and_eval_on_one-year-of-tsla-on-reddit_train-samples-small",
-                // "finetuning/finetuning_datasets=train_and_eval_on_wikitext_train-samples-small",
-                "finetuning.finetuning_datasets.train_dataset.data_subsampling.number_of_samples=80",
-                // "finetuning.finetuning_datasets.train_dataset.data_subsampling.sampling_mode=take_first",
-                "finetuning.finetuning_datasets.train_dataset.data_subsampling.sampling_mode=random",
-                "finetuning.finetuning_datasets.train_dataset.data_subsampling.sampling_seed=112",
-                // "finetuning.finetuning_datasets.train_dataset.data_subsampling.sampling_seed=113",
-                "finetuning.finetuning_datasets.eval_dataset.data_subsampling.number_of_samples=20",
-                "finetuning.num_train_epochs=2",
-                "finetuning.trainer_modifier.mode=add_wandb_prediction_progress_callback",
-                "finetuning.trainer_modifier.frequency=4",
-                "finetuning.seed=1235",
-                // "finetuning.seed=1235,1236",
-                // >> START Optional: Change gradient modifier
-                "finetuning/gradient_modifier=do_nothing",
-                // "finetuning/gradient_modifier=freeze_lm_head_bert-style-models",
-                // "finetuning/gradient_modifier=freeze_lm_head_and_word_embeddings_bert-style-models",
-                // >> END Optional: Change gradient modifier
-                "feature_flags.wandb.use_wandb=true",
-                "wandb.project=Topo_LLM_finetuning_for_language_modeling_DEBUG",
-            ]
-        },
-        {
-            "name": "on CLM task; run_finetune_language_model_on_huggingface_dataset.py",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "topollm/model_finetuning/run_finetune_language_model_on_huggingface_dataset.py",
-            "console": "integratedTerminal",
-            "args": [
-                "finetuning=finetuning_for_causal_lm",
-                "finetuning.finetuning_datasets.train_dataset.data_subsampling.number_of_samples=100",
-                "finetuning.finetuning_datasets.eval_dataset.data_subsampling.number_of_samples=20",
-                "finetuning.eval_steps=2",
-                "finetuning.trainer_modifier.mode=add_wandb_prediction_progress_callback",
-                "finetuning.trainer_modifier.frequency=4",
-                "feature_flags.wandb.use_wandb=false",
-                "wandb.project=Topo_LLM_finetuning_for_language_modeling_DEBUG",
-            ]
-        },
-        {
-            "name": "run_local_estimates.py",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "topollm/analysis/local_estimates_computation/run_local_estimates.py",
-            "console": "integratedTerminal",
-            "args": [
-                "tokenizer.add_prefix_space=True", // `add_prefix_space=True` is necessary to use the tokenizer with input split into words
-                "data=multiwoz21",
-                "data.data_subsampling.number_of_samples=128",
-                "data.data_subsampling.sampling_mode=random",
-                "data.data_subsampling.sampling_seed=777",
-                "data.data_subsampling.split=validation",
-                "language_model=roberta-base",
-                "embeddings.embedding_extraction.layer_indices=[-1]",
-                "embeddings_data_prep.sampling.num_samples=3000",
-                "embeddings_data_prep.sampling.sampling_mode=random",
-                "local_estimates.filtering.num_samples=300",
-                "local_estimates.compute_global_estimates=true",
-                "local_estimates.pointwise.n_neighbors_mode=absolute_size",
-                "local_estimates.pointwise.absolute_n_neighbors=256",
-                "local_estimates.pointwise.relative_n_neighbors=0.3",
-                "feature_flags.analysis.create_plots_in_local_estimates_worker=true",
-            ]
-        },
-        {
-            "name": "Run local estimates: Duplicate vectors test case - Local debugging -",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "topollm/analysis/local_estimates_computation/run_local_estimates.py",
-            "console": "integratedTerminal",
-            // This prepared data leads to the `ValueError: Input X contains NaN.` error in `LinearRegression`.
-            "args": [
-                "tokenizer.add_prefix_space=True", // `add_prefix_space=True` is necessary to use the tokenizer with input split into words
-                "data=multiwoz21",
-                "data.data_subsampling.number_of_samples=3000",
-                "data.data_subsampling.split=validation",
-                "language_model=roberta-base",
-                "embeddings.embedding_extraction.layer_indices=[-1]",
-                "embeddings_data_prep.sampling.num_samples=30000",
-                "embeddings_data_prep.sampling.sampling_mode=random",
-                // "local_estimates.filtering.num_samples=2500",
-                "local_estimates.filtering.num_samples=5000",
-                // "local_estimates.filtering.deduplication_mode=identity",
-                "local_estimates.filtering.deduplication_mode=array_deduplicator",
-                "local_estimates.compute_global_estimates=true",
-                "local_estimates.pointwise.n_neighbors_mode=absolute_size",
-                "local_estimates.pointwise.relative_n_neighbors=0.3",
-                // "local_estimates.pointwise.absolute_n_neighbors=64",
-                "local_estimates.pointwise.absolute_n_neighbors=128",
-                "feature_flags.analysis.create_plots_in_local_estimates_worker=false"
-            ]
-        },
-        {
             "name": "Run pipeline - Local debugging -",
             "type": "debugpy",
             "request": "launch",
@@ -295,6 +52,9 @@
                 //    >> START: Data options.
                 //
                 "data=multiwoz21",
+                // "data=sgd",
+                // "data=one-year-of-tsla-on-reddit",
+                //
                 "data.data_subsampling.sampling_mode=random",
                 "data.data_subsampling.number_of_samples=512",
                 "data.data_subsampling.split=validation",
@@ -302,9 +62,10 @@
                 //    >> END: Data options.
                 //    >> START: Model options.
                 //
-                "language_model=roberta-base",
+                // "language_model=roberta-base",
                 // "language_model=bert-base-uncased",
                 // "language_model=gpt2-medium",
+                "language_model=bert-base-uncased-ContextBERT-ERToD_emowoz",
                 //
                 //    >> END: Model options.
                 //
@@ -335,7 +96,7 @@
             }
         },
         {
-            "name": "Task performance analysis - Local debugging - Huggingface dataloaders, SetSUMBT-checkpoints - Run pipeline.",
+            "name": "Run pipeline - Local debugging - TwoNN; Huggingface dataloaders; SetSUMBT or Trippy checkpoints; - Run pipeline.",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
@@ -360,6 +121,7 @@
                 //
                 "data=multiwoz21",
                 // "data=sgd",
+                //
                 "data.data_subsampling.split=validation",
                 "data.data_subsampling.number_of_samples=512",
                 //
@@ -367,8 +129,12 @@
                 //    >> START: Model options.
                 //
                 "language_model=roberta-base-setsumbt_multiwoz21",
-                // "++language_model.checkpoint_no=2813",
-                "++language_model.checkpoint_no=2813,5626,8439",
+                "++language_model.checkpoint_no=2813",
+                // "++language_model.checkpoint_no=2813,5626,8439",
+                //
+                // "language_model=roberta-base-trippy_multiwoz21",
+                // "language_model.seed=42",
+                // "language_model.checkpoint_no=3549",
                 //
                 //    >> END: Model options.
                 //
@@ -391,7 +157,7 @@
             }
         },
         {
-            "name": "Task performance analysis - Local debugging - TwoNN, Stored dataloaders, SetSUMBT-dataloaders - Run pipeline.",
+            "name": "Run pipeline - Local debugging - TwoNN; Stored dataloaders, SetSUMBT-dataloaders; - Run pipeline.",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
@@ -451,7 +217,7 @@
             }
         },
         {
-            "name": "Task performance analysis - Local debugging - lPCA, Stored dataloaders, SetSUMBT-dataloaders - Run pipeline.",
+            "name": "Run pipeline - Local debugging - lPCA; Stored dataloaders, SetSUMBT-dataloaders; - Run pipeline.",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
@@ -513,13 +279,13 @@
             }
         },
         {
-            "name": "Task performance analysis - HHU Hilbert HPC submission - TwoNN; SetSUMBT or Trippy checkpoints; last layer only - Run pipeline.",
+            "name": "Run pipeline - HHU Hilbert HPC submission - TwoNN; RoBERTa, ContextBERT-ERToD, SetSUMBT or Trippy checkpoints; last layer only - Run pipeline.",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
             "console": "integratedTerminal",
             "args": [
-                // >>>> START: Hydra options
+                //    >> START: Hydra options
                 "--multirun",
                 "hydra/sweeper=basic",
                 "hydra/launcher=basic",
@@ -530,8 +296,8 @@
                 "hydra.launcher.memory=32",
                 "hydra.launcher.ncpus=4",
                 "hydra.launcher.ngpus=1",
-                "hydra.launcher.walltime=01:00:00", // <-- The pipeline run for regular embeddings should only take a few minutes.
-                // >>>> END: Hydra options
+                "hydra.launcher.walltime=01:30:00", // <-- The pipeline run for regular embeddings should only take a few minutes.
+                //    >> END: Hydra options
                 //
                 "tokenizer.add_prefix_space=False", // "tokenizer.add_prefix_space=True" is necessary to use the tokenizer with input split into words
                 //
@@ -540,8 +306,8 @@
                 // "data=multiwoz21",
                 // "data=sgd",
                 // "data=one-year-of-tsla-on-reddit",
-                "data=sgd,one-year-of-tsla-on-reddit",
-                // "data=multiwoz21,sgd,one-year-of-tsla-on-reddit",
+                // "data=sgd,one-year-of-tsla-on-reddit",
+                "data=multiwoz21,sgd,one-year-of-tsla-on-reddit",
                 //
                 // "data=setsumbt_dataloaders_processed",
                 // "data.dataset_seed=0",
@@ -563,10 +329,10 @@
                 //
                 // "language_model=roberta-base",
                 //
-                "language_model=bert-base-uncased",
+                // "language_model=bert-base-uncased",
+                "language_model=bert-base-uncased-ContextBERT-ERToD_emowoz",
                 //
                 // "language_model=roberta-base-setsumbt_multiwoz21",
-                //
                 // "language_model.seed=0",
                 // "language_model.checkpoint_no=2813",
                 // "language_model.checkpoint_no=2813,5626,8439,11252,14065,16878,19691,25317,33756,36569,39382,42195,50634,56260,70325,90016,109707,115333,126585", // <-- checkpoints for "language_model.seed=0"
@@ -576,7 +342,6 @@
                 // "language_model.checkpoint_no=2813,5626,8439,11252,14065,16878,19691,22504,28130,30943,33756,42195,50634,67512,106894,126585", // <-- checkpoints for "language_model.seed=2"
                 //
                 // "language_model=roberta-base-trippy_multiwoz21",
-                //
                 // "++language_model.seed=42",
                 // "++language_model.checkpoint_no=3549",
                 // "++language_model.checkpoint_no=3549,7098",
@@ -606,7 +371,7 @@
             }
         },
         {
-            "name": "Task performance analysis - HHU Hilbert HPC submission - lPCA; SetSUMBT or Trippy checkpoints; last layer only - Run pipeline.",
+            "name": "Run pipeline - HHU Hilbert HPC submission - lPCA; SetSUMBT or Trippy checkpoints; last layer only - Run pipeline.",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
@@ -706,7 +471,7 @@
             }
         },
         {
-            "name": "Task performance analysis - HHU Hilbert HPC submission - TwoNN; SetSUMBT or Trippy selected checkpoints; multiple layers - Run pipeline.",
+            "name": "Run pipeline - HHU Hilbert HPC submission - TwoNN; SetSUMBT or Trippy selected checkpoints; multiple layers - Run pipeline.",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
@@ -778,6 +543,249 @@
             "env": {
                 "PYTORCH_ENABLE_MPS_FALLBACK": "1"
             }
+        },
+        {
+            "name": "Run local estimates - Local debugging -",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/analysis/local_estimates_computation/run_local_estimates.py",
+            "console": "integratedTerminal",
+            "args": [
+                "tokenizer.add_prefix_space=True", // `add_prefix_space=True` is necessary to use the tokenizer with input split into words
+                "data=multiwoz21",
+                "data.data_subsampling.number_of_samples=128",
+                "data.data_subsampling.sampling_mode=random",
+                "data.data_subsampling.sampling_seed=777",
+                "data.data_subsampling.split=validation",
+                "language_model=roberta-base",
+                "embeddings.embedding_extraction.layer_indices=[-1]",
+                "embeddings_data_prep.sampling.num_samples=3000",
+                "embeddings_data_prep.sampling.sampling_mode=random",
+                "local_estimates.filtering.num_samples=300",
+                "local_estimates.compute_global_estimates=true",
+                "local_estimates.pointwise.n_neighbors_mode=absolute_size",
+                "local_estimates.pointwise.absolute_n_neighbors=256",
+                "local_estimates.pointwise.relative_n_neighbors=0.3",
+                "feature_flags.analysis.create_plots_in_local_estimates_worker=true",
+            ]
+        },
+        {
+            "name": "Run local estimates: Duplicate vectors test case - Local debugging -",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/analysis/local_estimates_computation/run_local_estimates.py",
+            "console": "integratedTerminal",
+            // This prepared data leads to the `ValueError: Input X contains NaN.` error in `LinearRegression`.
+            "args": [
+                "tokenizer.add_prefix_space=True", // `add_prefix_space=True` is necessary to use the tokenizer with input split into words
+                "data=multiwoz21",
+                "data.data_subsampling.number_of_samples=3000",
+                "data.data_subsampling.split=validation",
+                "language_model=roberta-base",
+                "embeddings.embedding_extraction.layer_indices=[-1]",
+                "embeddings_data_prep.sampling.num_samples=30000",
+                "embeddings_data_prep.sampling.sampling_mode=random",
+                // "local_estimates.filtering.num_samples=2500",
+                "local_estimates.filtering.num_samples=5000",
+                // "local_estimates.filtering.deduplication_mode=identity",
+                "local_estimates.filtering.deduplication_mode=array_deduplicator",
+                "local_estimates.compute_global_estimates=true",
+                "local_estimates.pointwise.n_neighbors_mode=absolute_size",
+                "local_estimates.pointwise.relative_n_neighbors=0.3",
+                // "local_estimates.pointwise.absolute_n_neighbors=64",
+                "local_estimates.pointwise.absolute_n_neighbors=128",
+                "feature_flags.analysis.create_plots_in_local_estimates_worker=false"
+            ]
+        },
+        {
+            "name": "Load huggingface dataset - Local debugging -",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/data_processing/load_huggingface_dataset.py",
+            "console": "integratedTerminal",
+            "args": [
+                // "data=bookcorpus",
+                // "data=multiwoz21",
+                "data=wikitext-103-v1",
+                "data.data_subsampling.number_of_samples=128",
+                "data.data_subsampling.sampling_mode=random",
+                "data.data_subsampling.sampling_seed=777",
+                "data.data_subsampling.split=validation",
+                "feature_flags.wandb.use_wandb=false",
+                "wandb.project=Topo_LLM_DEBUG",
+            ]
+        },
+        {
+            "name": "Compute eval loss via huggingface transformers Trainer - Local debugging -",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/model_inference/compute_eval_loss_via_huggingface_trainer.py",
+            "console": "integratedTerminal",
+            "args": [
+                // >>>> BEGIN: Hydra options
+                "--multirun",
+                "hydra/sweeper=basic",
+                "hydra/launcher=basic",
+                // >>>> END: Hydra options
+                //    >> START Data options.
+                //
+                // "data=multiwoz21",
+                // "data=one-year-of-tsla-on-reddit",
+                // "data.data_subsampling.number_of_samples=512",
+                "data=iclr_2024_submissions_validation,multiwoz21_validation,one-year-of-tsla-on-reddit_validation,sgd_validation,wikitext-103-v1_validation", // <-- all validation splits
+                // "data=iclr_2024_submissions_test,multiwoz21_test,one-year-of-tsla-on-reddit_test,sgd_test,wikitext-103-v1_test", // <-- all test splits
+                //
+                //    >> END Data options.
+                //
+                "data.data_subsampling.number_of_samples=128", // <-- This can be used for quick testing of the script
+                "data.data_subsampling.split=validation",
+                "data.data_subsampling.sampling_mode=random",
+                "data.data_subsampling.sampling_seed=777",
+                //
+                "tokenizer.add_prefix_space=False", // "tokenizer.add_prefix_space=False" to be consistent with the fine-tuning setup
+                //
+                "language_model=roberta-base",
+                // "language_model=gpt2-medium",
+                //
+                "feature_flags.wandb.use_wandb=false",
+                "wandb.project=Topo_LLM_DEBUG",
+            ],
+            "env": {}
+        },
+        {
+            "name": "Compute eval loss via huggingface transformers Trainer - HHU Hilbert HPC submission -",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/model_inference/compute_eval_loss_via_huggingface_trainer.py",
+            "console": "integratedTerminal",
+            "args": [
+                // >>>> BEGIN: Hydra options
+                "--multirun",
+                "hydra/sweeper=basic",
+                "hydra/launcher=hpc_submission",
+                "hydra.launcher.queue=CUDA",
+                "hydra.launcher.template=RTX6000",
+                "hydra.launcher.memory=32",
+                "hydra.launcher.ncpus=4",
+                "hydra.launcher.ngpus=1",
+                "hydra.launcher.walltime=00:30:00", // <-- The evaluation should not take more than a few minutes
+                // >>>> END: Hydra options
+                //    >> START Data options.
+                //
+                // "data=multiwoz21",
+                // "data=one-year-of-tsla-on-reddit",
+                // "data=iclr_2024_submissions_train,multiwoz21_train,one-year-of-tsla-on-reddit_train,sgd_train,wikitext-103-v1_train", // <-- all training splits
+                "data=iclr_2024_submissions_validation,multiwoz21_validation,one-year-of-tsla-on-reddit_validation,sgd_validation,wikitext-103-v1_validation", // <-- all validation splits
+                // "data=iclr_2024_submissions_test,multiwoz21_test,one-year-of-tsla-on-reddit_test,sgd_test,wikitext-103-v1_test", // <-- all test splits
+                //
+                //    >> END Data options.
+                //
+                // "data.data_subsampling.number_of_samples=128", // <-- This can be used for quick testing of the script
+                "data.data_subsampling.number_of_samples=10000",
+                // No data split selected here, since we will do this above in the data configuration
+                // "data.data_subsampling.sampling_mode=take_first",
+                "data.data_subsampling.sampling_mode=random",
+                "data.data_subsampling.sampling_seed=777",
+                // "data.data_subsampling.sampling_seed=778",
+                //
+                "tokenizer.add_prefix_space=False", // "tokenizer.add_prefix_space=False" to be consistent with the fine-tuning setup
+                //
+                //    >> START Model options.
+                //    > Note: You need to have the masked embeddings precomputed for the given checkpoints before you can call this loss computation.
+                // 
+                // "language_model=roberta-base", // Note: Do not set checkpoint_no for the base model
+                // > Note: Set checkpoint_no for the fine-tuned models
+                // "language_model=roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,roberta-base-masked_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,roberta-base-masked_lm-defaults_wikitext-103-v1-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+                "language_model=roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-freeze-lm_head_embeddings.word_embeddings-5,roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-freeze-lm_head-5",
+                "++language_model.checkpoint_no=100,200,300,400,500,600,700,800,900,1000,1100,1200,1300,1400,1500,1600,1700,1800,1900,2000,2100,2200,2300,2400,2500,2600,2700,2800,2900,3000,3100",
+                // "++language_model.checkpoint_no=400,800,1200,1600,2000,2400,2800",
+                // "++language_model.checkpoint_no=2800",
+                //
+                //    >> END Model options.
+                //
+                "feature_flags.wandb.use_wandb=false",
+                "wandb.project=Topo_LLM_DEBUG",
+            ],
+            "env": {}
+        },
+        {
+            "name": "Fine-tuning - skip finetuning; only config file creation; run_finetune_language_model_on_huggingface_dataset.py",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/model_finetuning/run_finetune_language_model_on_huggingface_dataset.py",
+            "console": "integratedTerminal",
+            "args": [
+                "feature_flags.finetuning.skip_finetuning=true",
+                "feature_flags.finetuning.use_wandb=false",
+            ]
+        },
+        {
+            "name": "Fine-tuning - on NER task; run_finetune_language_model_on_huggingface_dataset.py",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/model_finetuning/run_finetune_language_model_on_huggingface_dataset.py",
+            "console": "integratedTerminal",
+            "args": [
+                "finetuning=finetuning_for_token_classification",
+                "finetuning.finetuning_datasets.train_dataset.data_subsampling.number_of_samples=100",
+                "finetuning.finetuning_datasets.eval_dataset.data_subsampling.number_of_samples=20",
+                "finetuning.eval_steps=2",
+                "finetuning.trainer_modifier.mode=add_wandb_prediction_progress_callback",
+                "finetuning.trainer_modifier.frequency=4",
+                "feature_flags.wandb.use_wandb=false",
+                "wandb.project=Topo_LLM_finetuning_for_token_classification_DEBUG",
+            ]
+        },
+        {
+            "name": "Fine-tuning - Local debugging - on MLM task; for 2 epochs",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/model_finetuning/run_finetune_language_model_on_huggingface_dataset.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--multirun",
+                "finetuning=finetuning_for_masked_lm",
+                // <-- Saving every 2 steps should result in two saved checkpoints for a dataset of size 80 and batch size of: "Instantaneous batch size per device = 16"
+                "finetuning.save_steps=2",
+                "finetuning.eval_steps=2",
+                "finetuning/finetuning_datasets=train_and_eval_on_one-year-of-tsla-on-reddit_train-samples-small",
+                // "finetuning/finetuning_datasets=train_and_eval_on_wikitext_train-samples-small",
+                "finetuning.finetuning_datasets.train_dataset.data_subsampling.number_of_samples=80",
+                // "finetuning.finetuning_datasets.train_dataset.data_subsampling.sampling_mode=take_first",
+                "finetuning.finetuning_datasets.train_dataset.data_subsampling.sampling_mode=random",
+                "finetuning.finetuning_datasets.train_dataset.data_subsampling.sampling_seed=112",
+                // "finetuning.finetuning_datasets.train_dataset.data_subsampling.sampling_seed=113",
+                "finetuning.finetuning_datasets.eval_dataset.data_subsampling.number_of_samples=20",
+                "finetuning.num_train_epochs=2",
+                "finetuning.trainer_modifier.mode=add_wandb_prediction_progress_callback",
+                "finetuning.trainer_modifier.frequency=4",
+                "finetuning.seed=1235",
+                // "finetuning.seed=1235,1236",
+                // >> START Optional: Change gradient modifier
+                "finetuning/gradient_modifier=do_nothing",
+                // "finetuning/gradient_modifier=freeze_lm_head_bert-style-models",
+                // "finetuning/gradient_modifier=freeze_lm_head_and_word_embeddings_bert-style-models",
+                // >> END Optional: Change gradient modifier
+                "feature_flags.wandb.use_wandb=true",
+                "wandb.project=Topo_LLM_finetuning_for_language_modeling_DEBUG",
+            ]
+        },
+        {
+            "name": "Fine-tuning - on CLM task; run_finetune_language_model_on_huggingface_dataset.py",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/model_finetuning/run_finetune_language_model_on_huggingface_dataset.py",
+            "console": "integratedTerminal",
+            "args": [
+                "finetuning=finetuning_for_causal_lm",
+                "finetuning.finetuning_datasets.train_dataset.data_subsampling.number_of_samples=100",
+                "finetuning.finetuning_datasets.eval_dataset.data_subsampling.number_of_samples=20",
+                "finetuning.eval_steps=2",
+                "finetuning.trainer_modifier.mode=add_wandb_prediction_progress_callback",
+                "finetuning.trainer_modifier.frequency=4",
+                "feature_flags.wandb.use_wandb=false",
+                "wandb.project=Topo_LLM_finetuning_for_language_modeling_DEBUG",
+            ]
         },
         {
             "name": "Regular Token Embedding; with POS, with data_subsampler - run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
