@@ -64,7 +64,7 @@ def predict_with_dummy_ds(
     return emo_pred
 
 
-def main():
+def main() -> None:
     logger = default_logger
 
     logger.info(
@@ -85,22 +85,12 @@ def main():
         "contextbert-ertod.pt",
     )
 
-    erc_model = ContextBERT_ERToD(
-        base_model_path=str(bert_base_model_path),
+    erc_model: ContextBERT_ERToD = load_contextbert_ertod_model(
+        bert_base_model_path=bert_base_model_path,
+        erc_state_dict_path=erc_state_dict_path,
     )
 
-    if torch.cuda.is_available():
-        erc_model.load_state_dict(
-            state_dict=torch.load(erc_state_dict_path)["state_dict"],
-            strict=False,
-        )
-    else:
-        erc_model.load_state_dict(
-            state_dict=torch.load(erc_state_dict_path, map_location=torch.device("cpu"))["state_dict"],
-            strict=False,
-        )
-
-    history = [
+    history: list[str] = [
         "hey. I need a cheap restaurant.",
         "There are many cheap places, which food do you like?",
     ]
@@ -112,6 +102,34 @@ def main():
         history,
     )
     print(e)
+
+
+def load_contextbert_ertod_model(
+    bert_base_model_path: pathlib.Path,
+    erc_state_dict_path: pathlib.Path,
+) -> ContextBERT_ERToD:
+    """Load the ContextBERT_ERToD model from the specified paths."""
+    erc_model = ContextBERT_ERToD(
+        base_model_path=str(bert_base_model_path),
+    )
+
+    if torch.cuda.is_available():
+        erc_model.load_state_dict(
+            state_dict=torch.load(erc_state_dict_path)["state_dict"],
+            strict=False,
+        )
+    else:
+        erc_model.load_state_dict(
+            state_dict=torch.load(
+                erc_state_dict_path,
+                map_location=torch.device(
+                    "cpu",
+                ),
+            )["state_dict"],
+            strict=False,
+        )
+
+    return erc_model
 
 
 if __name__ == "__main__":
