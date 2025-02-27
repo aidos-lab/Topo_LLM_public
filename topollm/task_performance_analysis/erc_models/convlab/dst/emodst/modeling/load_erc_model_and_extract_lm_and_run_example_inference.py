@@ -126,6 +126,7 @@ def load_contextbert_ertod_model(
         base_model_path=str(bert_base_model_path),
     )
 
+    # TODO: Check if the `strict=False` might be a problem here, because the positional parameters might not have been loaded.
     if torch.cuda.is_available():
         erc_model.load_state_dict(
             state_dict=torch.load(erc_state_dict_path)["state_dict"],
@@ -150,6 +151,7 @@ def predict_with_dummy_ds(
     user_utt,
     history,
 ):
+    # TODO: Check if the different training data formatting might be the problem here.
     history_str = ""
     for i in reversed(range(len(history))):  # reverse order to place the current turn closer to the [CLS]
         if i % 2 == 0:

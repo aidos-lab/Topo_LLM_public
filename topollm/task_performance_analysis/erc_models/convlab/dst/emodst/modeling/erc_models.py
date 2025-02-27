@@ -95,7 +95,10 @@ class ContextBERT_ERToD(nn.Module):
 
         return emotion_logits, valence_logits, elicitor_logits, conduct_logits
 
-    def normalise_input(self, user_utt: str = "", dialog_state_history: list = []) -> tuple:
+    def normalise_input(self, user_utt: str = "", dialog_state_history: list | None = None) -> tuple:
+        if dialog_state_history is None:
+            dialog_state_history = []
+
         history = [utt for role, utt in dialog_state_history[-1]["history"]]
 
         history_str = ""
