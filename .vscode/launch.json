@@ -35,7 +35,7 @@
             ]
         },
         {
-            "name": "Run pipeline - Local debugging -",
+            "name": "Run pipeline - Local debugging - TwoNN; Huggingface dataloaders; RoBERTa, BERT, SentiX, ContextBERT-ERToD_emowoz, GPT-2; - Run pipeline.",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
@@ -64,7 +64,8 @@
                 //
                 // "language_model=roberta-base",
                 // "language_model=bert-base-uncased",
-                "language_model=bert-base-uncased-ContextBERT-ERToD_emowoz",
+                "language_model=bert-base-uncased-SentiX",
+                // "language_model=bert-base-uncased-ContextBERT-ERToD_emowoz",
                 // "language_model=gpt2-medium",
                 //
                 //    >> END: Model options.
@@ -279,7 +280,7 @@
             }
         },
         {
-            "name": "Run pipeline - HHU Hilbert HPC submission - TwoNN; RoBERTa, ContextBERT-ERToD, SetSUMBT or Trippy checkpoints; last layer only - Run pipeline.",
+            "name": "Run pipeline - HHU Hilbert HPC submission - TwoNN; RoBERTa, BERT, ContextBERT-ERToD, SetSUMBT, Trippy checkpoints; last layer only - Run pipeline.",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
@@ -330,7 +331,8 @@
                 // "language_model=roberta-base",
                 //
                 // "language_model=bert-base-uncased",
-                "language_model=bert-base-uncased-ContextBERT-ERToD_emowoz",
+                "language_model=bert-base-uncased-SentiX",
+                // "language_model=bert-base-uncased-ContextBERT-ERToD_emowoz",
                 //
                 // "language_model=roberta-base-setsumbt_multiwoz21",
                 // "language_model.seed=0",
