@@ -1,0 +1,3 @@
+The code in this directory is based on the following part of ConvLab3:
+
+https://gitlab.cs.uni-duesseldorf.de/dsml/convlab/ConvLab3/-/tree/emoUS_v2/convlab/dst/emodst
