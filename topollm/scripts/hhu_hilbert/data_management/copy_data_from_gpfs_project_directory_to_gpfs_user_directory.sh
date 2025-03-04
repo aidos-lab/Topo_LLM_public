@@ -30,7 +30,10 @@ DATA_DIR_TRIPPY="${GPFS_PROJECT_DIR_DSML}/data/trippy-for-ben"
 USER_REPOSITORY_DIR_TRIPPY="${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_checkpoints"
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# Copy data
+# Copy data.
+#
+# Example one-line copy command:
+# `cp -r /gpfs/project/projects/dsml/data/setsumbt_experiments_new/multiwoz21 /gpfs/project/${USER}/git-source/Topo_LLM/data/models/setsumbt_checkpoints/multiwoz21`
 
 # Check if the target directory already exists, if so, exit
 if [[ -d "${USER_REPOSITORY_DIR_SETSUMBT}" ]]; then
