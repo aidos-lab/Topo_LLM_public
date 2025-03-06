@@ -1,0 +1,15 @@
+defaults:
+  - tokenizer_modifier: bert
+  - _self_
+
+
+checkpoint_no: 0
+seed: 42
+lm_mode: mlm
+task_type: masked_lm
+# TODO: Update this
+pretrained_model_name_or_path: ${paths.data_dir}/data/models/EmoLoop/output_dir/ep=5/seed=42/extracted_bert_components/ckpt-0
+manual_tokenizer_override_pretrained_model_name_or_path: bert-base-uncased
+
+# TODO: Update this
+short_model_name: bert-base-uncased-ContextBERT-ERToD_emowoz_full_setup_seed-${language_model.seed}_ckpt-${language_model.checkpoint_no}
