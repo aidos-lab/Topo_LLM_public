@@ -212,7 +212,9 @@ hilbert_job_logs_backup/
 hydra_output_dir/
 hydra_plugins/
 
-# Temporary files (if no directory in Huggingface Trainer is specified)
+# Temporary files:
+temp/
+# - This directory is created if no directory in Huggingface Trainer is specified
 tmp_trainer/
 
 # Weights and Biases (wandb)

@@ -35,7 +35,7 @@
             ]
         },
         {
-            "name": "Run pipeline - Local debugging -",
+            "name": "Run pipeline - Local debugging - TwoNN; Huggingface dataloaders; RoBERTa, BERT, SentiX, ContextBERT-ERToD_emowoz, GPT-2; - Run pipeline.",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
@@ -64,8 +64,13 @@
                 //
                 // "language_model=roberta-base",
                 // "language_model=bert-base-uncased",
+                // "language_model=bert-base-uncased-SentiX",
                 // "language_model=gpt2-medium",
-                "language_model=bert-base-uncased-ContextBERT-ERToD_emowoz",
+                //
+                "language_model=bert-base-uncased-ContextBERT-ERToD_emowoz_basic_setup",
+                "language_model.seed=42",
+                // "language_model.checkpoint_no=0",
+                "language_model.checkpoint_no=1,2",
                 //
                 //    >> END: Model options.
                 //
@@ -279,7 +284,7 @@
             }
         },
         {
-            "name": "Run pipeline - HHU Hilbert HPC submission - TwoNN; RoBERTa, ContextBERT-ERToD, SetSUMBT or Trippy checkpoints; last layer only - Run pipeline.",
+            "name": "Run pipeline - HHU Hilbert HPC submission - TwoNN; RoBERTa, BERT, ContextBERT-ERToD, SetSUMBT, Trippy checkpoints; last layer only - Run pipeline.",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
@@ -314,10 +319,10 @@
                 //
                 // "data.data_subsampling.split=train",
                 // "data.data_subsampling.split=dev",
-                // "data.data_subsampling.split=validation",
+                "data.data_subsampling.split=validation",
                 // "data.data_subsampling.split=test",
                 // "data.data_subsampling.split=train,dev,test",
-                "data.data_subsampling.split=train,validation,test",
+                // "data.data_subsampling.split=train,validation,test",
                 //
                 "data.data_subsampling.sampling_mode=random",
                 "data.data_subsampling.number_of_samples=10000",
@@ -330,7 +335,13 @@
                 // "language_model=roberta-base",
                 //
                 // "language_model=bert-base-uncased",
-                "language_model=bert-base-uncased-ContextBERT-ERToD_emowoz",
+                // "language_model=bert-base-uncased-SentiX",
+                //
+                "language_model=bert-base-uncased-ContextBERT-ERToD_emowoz_basic_setup",
+                // "language_model.seed=42",
+                "language_model.seed=43,44",
+                // "language_model.checkpoint_no=0",
+                "language_model.checkpoint_no=0,1,2,3,4",
                 //
                 // "language_model=roberta-base-setsumbt_multiwoz21",
                 // "language_model.seed=0",
@@ -1956,13 +1967,13 @@
             ]
         },
         {
-            "name": "Load model and log model info; SetSUMBT and Trippy - Local debugging -",
+            "name": "Load model and log model info - Local debugging - RoBERTa, ContextBERT-ERToD, SetSUMBT, Trippy;",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/inspection/load_model_and_log_model_info.py",
             "console": "integratedTerminal",
             "args": [
-                // >>>> START: Hydra options
+                //   >> START: Hydra options
                 "--multirun",
                 "hydra/sweeper=basic",
                 "hydra/launcher=basic",
@@ -1973,12 +1984,16 @@
                 // "hydra.launcher.ncpus=4",
                 // "hydra.launcher.ngpus=1",
                 // "hydra.launcher.walltime=00:10:00", // <-- The logging script should run very quickly.
-                // >>>> END: Hydra options
+                //   >> END: Hydra options
+                //
                 "tokenizer.add_prefix_space=False", // "tokenizer.add_prefix_space=True" is necessary to use the tokenizer with input split into words
                 //
                 //    >> START: Model options.
                 //
                 // "language_model=roberta-base",
+                // "language_model=bert-base-uncased",
+                "language_model=bert-base-uncased-SentiX",
+                // "language_model=bert-base-uncased-ContextBERT-ERToD_emowoz",
                 //
                 // "language_model=roberta-base-setsumbt_multiwoz21",
                 // "++language_model.seed=0",
@@ -1986,12 +2001,12 @@
                 // "++language_model.checkpoint_no=2813,5626,8439",
                 // "++language_model.checkpoint_no=2813,5626,8439,11252,14065,16878,19691,25317,33756,36569,39382,42195,50634,56260,70325,90016,109707,115333,126585",
                 //
-                "language_model=roberta-base-trippy_multiwoz21",
-                "++language_model.seed=42",
+                // "language_model=roberta-base-trippy_multiwoz21",
+                // "++language_model.seed=42",
                 // "++language_model.checkpoint_no=3549",
                 // "++language_model.checkpoint_no=7098",
                 // "++language_model.checkpoint_no=10647",
-                "++language_model.checkpoint_no=3549,7098,10647,14196,17745,21294,24843,28392,31941,35490",
+                // "++language_model.checkpoint_no=3549,7098,10647,14196,17745,21294,24843,28392,31941,35490",
                 //
                 //    >> END: Model options.
             ],

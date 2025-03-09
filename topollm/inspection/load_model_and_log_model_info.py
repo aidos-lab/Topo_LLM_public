@@ -166,7 +166,7 @@ def main(
     # When loading a model from disk, make sure that the correct model loading class is used,
     # so that you do not accidentally load only a partial model
     # where certain weights are missing and thus not initialized.
-    average_l2_norm_of_model_parameters = compute_average_l2_norm_of_model_parameters(
+    average_l2_norm_of_model_parameters: float = compute_average_l2_norm_of_model_parameters(
         model=model,
         verbosity=verbosity,
         logger=logger,
