@@ -1,0 +1,16 @@
+defaults:
+  - data_splitting: do_nothing
+  - data_subsampling: train_split_and_random
+  - _self_
+
+column_name: text
+context: dataset_entry
+
+# We include the dataset_seed in the dataset_description_string,
+# so that it can be used to identify the correct embeddings and local estimates.
+dataset_description_string: ertod_emowoz_${data.dataset_seed}
+dataset_path: csv
+
+data_dir: ${paths.data_dir}/models/EmoLoop/output_dir/ep=5/seed=${data.dataset_seed}/data_dfs
+
+dataset_seed: 42
