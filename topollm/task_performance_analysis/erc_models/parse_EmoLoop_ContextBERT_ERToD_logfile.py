@@ -1,3 +1,32 @@
+# Copyright 2024-2025
+# Heinrich Heine University Dusseldorf,
+# Faculty of Mathematics and Natural Sciences,
+# Computer Science Department
+#
+# Authors:
+# Benjamin Ruppik (mail@ruppik.net)
+# Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
+#
+# Code generation tools and workflows:
+# First versions of this code were potentially generated
+# with the help of AI writing assistants including
+# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
+# Afterwards, the generated segments were manually reviewed and edited.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""Parse the log file of EmoLoop's ContextBERT ERToD model training run and plot F1 scores."""
+
 import json
 import os
 import pathlib
@@ -8,7 +37,7 @@ import matplotlib.pyplot as plt
 from topollm.config_classes.constants import TOPO_LLM_REPOSITORY_BASE_PATH
 
 # Define metric names corresponding to the six scores in each f1_scores list.
-METRIC_NAMES = [
+METRIC_NAMES: list[str] = [
     "Micro F1 (w/o Neutral)",
     "Macro F1 (w/o Neutral)",
     "Weighted F1 (w/o Neutral)",
@@ -80,20 +109,6 @@ def save_scores_to_json(
         json.dump(scores, f, indent=4)
 
 
-def read_scores_from_json(file_path: str) -> dict[int, dict[str, list[float]]]:
-    """Read the scores from a JSON file and converts keys back to int.
-
-    Args:
-        file_path: Path to the JSON file.
-
-    Returns:
-        A dictionary mapping epoch numbers (as ints) to F1 score data.
-    """
-    with open(file_path, "r") as f:
-        raw_data = json.load(f)
-    return {int(epoch): data for epoch, data in raw_data.items()}
-
-
 def compute_combined(scores: list[float], start: int, end: int) -> float:
     """Compute the arithmetic mean of a sub-range of scores.
 
@@ -112,8 +127,11 @@ def compute_combined(scores: list[float], start: int, end: int) -> float:
 def plot_f1_scores(
     epoch_data: dict[int, dict[str, list[float]]],
     set_type: str = "validation",
+    plots_output_dir: pathlib.Path | None = None,
+    y_axis_range: tuple[float, float] = (0.5, 1.0),
     *,
     plot_combined: bool = True,
+    show_plot: bool = False,
 ) -> None:
     """Plot the aggregated F1 scores over epochs for each metric and the combined scores.
 
@@ -151,31 +169,74 @@ def plot_f1_scores(
 
     plt.xlabel("Epoch")
     plt.ylabel("F1 Score")
+
+    plt.ylim(y_axis_range)
+    plt.xticks(epochs)
+
     plt.title(f"{set_type.capitalize()} Aggregated F1 Scores over Epochs")
-    plt.legend()
+
+    plt.legend(loc="center left", bbox_to_anchor=(1, 0.5))
+
     plt.grid(True)
     plt.tight_layout()
-    plt.show()
+
+    if plots_output_dir:
+        plots_output_dir.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+        plot_file_path = plots_output_dir / f"{set_type}_f1_scores.pdf"
+        plt.savefig(
+            plot_file_path,
+        )
+        print(f"Plot saved to {plot_file_path = }")
+
+    if show_plot:
+        plt.show()
 
 
 def main() -> None:
     # # # #
     # Define the file paths.
-    model_training_run_parent_dir = pathlib.Path(
+    model_training_runs_output_dir: pathlib.Path = pathlib.Path(
         TOPO_LLM_REPOSITORY_BASE_PATH,
-        "data/models/EmoLoop/output_dir/ep=5/seed=42",
+        "data/models/EmoLoop/output_dir",
     )
 
+    for seed in range(42, 47):
+        single_training_run_parent_dir = pathlib.Path(
+            model_training_runs_output_dir,
+            f"ep=5/seed={seed}",
+        )
+
+        process_log_file_of_single_model_training_run(
+            single_training_run_parent_dir=single_training_run_parent_dir,
+        )
+
+
+def process_log_file_of_single_model_training_run(
+    single_training_run_parent_dir: os.PathLike,
+) -> None:
     log_file_path: pathlib.Path = pathlib.Path(
-        model_training_run_parent_dir,
+        single_training_run_parent_dir,
         "log.txt",
     )
 
     json_output_path: pathlib.Path = pathlib.Path(
-        model_training_run_parent_dir,
+        single_training_run_parent_dir,
         "scores.json",
     )
 
+    plots_output_dir: pathlib.Path = pathlib.Path(
+        single_training_run_parent_dir,
+        "plots",
+    )
+    plots_output_dir.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    # # # #
     # Parse the log file from disk.
     scores_data: dict[int, dict[str, list[float]]] = parse_log(
         file_path=log_file_path,
@@ -186,11 +247,13 @@ def main() -> None:
 
     # Save the extracted scores to a JSON file.
     save_scores_to_json(
-        scores_data,
-        json_output_path,
+        scores=scores_data,
+        output_file=json_output_path,
     )
 
-    print(f"Scores saved to {json_output_path}")
+    print(
+        f"Scores saved to {json_output_path = }",
+    )
 
     # Compute and print combined validation F1 scores per epoch.
     print("Combined validation F1 scores per epoch:")
@@ -205,14 +268,18 @@ def main() -> None:
     plot_f1_scores(
         epoch_data=scores_data,
         set_type="validation",
+        plots_output_dir=plots_output_dir,
         plot_combined=True,
+        show_plot=False,
     )
 
     # Plot the test F1 scores.
     plot_f1_scores(
         epoch_data=scores_data,
         set_type="test",
+        plots_output_dir=plots_output_dir,
         plot_combined=True,
+        show_plot=False,
     )
 
 
