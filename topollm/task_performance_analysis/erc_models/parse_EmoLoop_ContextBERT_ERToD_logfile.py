@@ -131,6 +131,7 @@ def plot_f1_scores(
     y_axis_range: tuple[float, float] = (0.5, 1.0),
     *,
     plot_combined: bool = True,
+    mark_best: bool = False,
     show_plot: bool = False,
 ) -> None:
     """Plot the aggregated F1 scores over epochs for each metric and the combined scores.
@@ -155,6 +156,13 @@ def plot_f1_scores(
         label = METRIC_NAMES[i] if i < len(METRIC_NAMES) else f"Metric {i}"
         scores = [epoch_data[epoch][set_type][i] for epoch in epochs if set_type in epoch_data[epoch]]
         plt.plot(epochs, scores, marker="o", label=label)
+
+        # Mark best value if required.
+        if mark_best and scores:
+            best_value = max(scores)
+            best_epoch = epochs[scores.index(best_value)]
+            plt.scatter(best_epoch, best_value, marker="*", color="gold", s=150, zorder=5)
+            plt.annotate(f"{best_value:.3f}", (best_epoch, best_value), textcoords="offset points", xytext=(5, 5))
 
     # Plot the combined scores.
     if plot_combined:
@@ -269,6 +277,7 @@ def process_log_file_of_single_model_training_run(
         epoch_data=scores_data,
         set_type="validation",
         plots_output_dir=plots_output_dir,
+        mark_best=True,
         plot_combined=True,
         show_plot=False,
     )
@@ -278,6 +287,7 @@ def process_log_file_of_single_model_training_run(
         epoch_data=scores_data,
         set_type="test",
         plots_output_dir=plots_output_dir,
+        mark_best=True,
         plot_combined=True,
         show_plot=False,
     )
