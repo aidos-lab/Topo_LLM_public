@@ -314,17 +314,19 @@
                 // "data=sgd",
                 // "data=one-year-of-tsla-on-reddit",
                 // "data=sgd,one-year-of-tsla-on-reddit",
-                "data=multiwoz21,sgd,one-year-of-tsla-on-reddit",
+                // "data=multiwoz21,sgd,one-year-of-tsla-on-reddit",
+                "data=ertod_emowoz",
+                "data.dataset_seed=42",
                 //
                 // "data=setsumbt_dataloaders_processed",
                 // "data.dataset_seed=0",
                 //
                 // "data.data_subsampling.split=train",
                 // "data.data_subsampling.split=dev",
-                "data.data_subsampling.split=validation",
+                // "data.data_subsampling.split=validation",
                 // "data.data_subsampling.split=test",
                 // "data.data_subsampling.split=train,dev,test",
-                // "data.data_subsampling.split=train,validation,test",
+                "data.data_subsampling.split=train,validation,test",
                 //
                 "data.data_subsampling.sampling_mode=random",
                 "data.data_subsampling.number_of_samples=10000",
