@@ -566,12 +566,20 @@ def create_distribution_plots_over_model_checkpoints(
             )
             continue
 
-        # TODO: Select this based on the given model family
-
         # The identifier of the base model.
         # This value will be used to select the models for the correlation analysis
         # and add the estimates of the base model for the model checkpoint analysis.
-        base_model_model_partial_name = "model=roberta-base"
+        model_partial_name = filter_key_value_pairs["model_partial_name"]
+        if "model=roberta-base" in model_partial_name:
+            # This model is derived from a roberta-base model.
+            base_model_model_partial_name = "model=roberta-base"
+        elif "model=bert-base-uncased" in model_partial_name:
+            # This model is derived from a bert-base-uncased model.
+            base_model_model_partial_name = "model=bert-base-uncased"
+        else:
+            # This model partial name does not match any known model.
+            # Use the roberta-base model as the base model.
+            base_model_model_partial_name = "model=roberta-base"
 
         filtered_data_with_added_base_model: list[dict] = add_base_model_data(
             loaded_data=loaded_data,
@@ -605,38 +613,14 @@ def create_distribution_plots_over_model_checkpoints(
             logger=logger,
         )
 
+        # Save the sorted data list of dicts with the arrays to a pickle file.
         if save_sorted_data_list_of_dicts_with_arrays:
-            # Save the sorted data list of dicts with the arrays to a pickle file.
-            data_to_save: list[dict] = sorted_data
-
-            sorted_data_output_file_path: pathlib.Path = pathlib.Path(
-                plots_output_dir,
-                "sorted_data_list_of_dicts_with_arrays.pkl",
+            write_sorted_data_to_disk(
+                sorted_data=sorted_data,
+                plots_output_dir=plots_output_dir,
+                verbosity=verbosity,
+                logger=logger,
             )
-
-            # Create the directory if it does not exist.
-            sorted_data_output_file_path.parent.mkdir(
-                parents=True,
-                exist_ok=True,
-            )
-
-            if verbosity >= Verbosity.NORMAL:
-                logger.info(
-                    msg=f"Saving sorted data to {sorted_data_output_file_path = } ...",  # noqa: G004 - low overhead
-                )
-
-            with sorted_data_output_file_path.open(
-                mode="wb",
-            ) as file:
-                pickle.dump(
-                    obj=data_to_save,
-                    file=file,
-                )
-
-            if verbosity >= Verbosity.NORMAL:
-                logger.info(
-                    msg=f"Saving sorted data to {sorted_data_output_file_path = } DONE",  # noqa: G004 - low overhead
-                )
 
         ticks_and_labels: TicksAndLabels = TicksAndLabels(
             xlabel="checkpoints",
@@ -670,6 +654,45 @@ def create_distribution_plots_over_model_checkpoints(
                 verbosity=verbosity,
                 logger=logger,
             )
+
+
+def write_sorted_data_to_disk(
+    sorted_data: list[dict],
+    plots_output_dir: pathlib.Path,
+    verbosity: Verbosity,
+    logger: logging.Logger,
+) -> None:
+    """Write the sorted data to disk."""
+    data_to_save: list[dict] = sorted_data
+
+    sorted_data_output_file_path: pathlib.Path = pathlib.Path(
+        plots_output_dir,
+        "sorted_data_list_of_dicts_with_arrays.pkl",
+    )
+
+    # Create the directory if it does not exist.
+    sorted_data_output_file_path.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Saving sorted data to {sorted_data_output_file_path = } ...",  # noqa: G004 - low overhead
+        )
+
+    with sorted_data_output_file_path.open(
+        mode="wb",
+    ) as file:
+        pickle.dump(
+            obj=data_to_save,
+            file=file,
+        )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Saving sorted data to {sorted_data_output_file_path = } DONE",  # noqa: G004 - low overhead
+        )
 
 
 def construct_plots_over_checkpoints_output_dir_from_filter_key_value_pairs(
