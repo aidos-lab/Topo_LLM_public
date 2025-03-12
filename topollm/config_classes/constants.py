@@ -142,7 +142,14 @@ NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS: dict[
     str,
 ] = {
     # Data parameters
+    "data": "data_dataset_name",
+    "dataset_seed": "data_dataset_seed",
+    "data_debug": "data_debug",
+    "use_context": "data_use_context",
     "rm-empty": "data_filtering_remove_empty_sequences",
+    "spl-mode": "data_splitting_mode",
+    "data_ctxt": "data_context",
+    "feat-col": "data_feature_column",
     # Model parameters
     "model_ckpt": "model_checkpoint",
     "model_seed": "model_seed",

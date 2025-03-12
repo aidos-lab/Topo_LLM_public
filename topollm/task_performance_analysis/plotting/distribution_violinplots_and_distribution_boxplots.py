@@ -81,7 +81,7 @@ def make_distribution_violinplots_from_extracted_arrays(
         label="Violin plot",
     )
 
-    # adding horizontal grid lines
+    # Adding horizontal grid lines
     ax.yaxis.grid(
         visible=True,
     )

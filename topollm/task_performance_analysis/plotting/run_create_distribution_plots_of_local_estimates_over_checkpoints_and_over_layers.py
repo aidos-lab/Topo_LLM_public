@@ -149,7 +149,7 @@ def main(
         (
             "**/"
             "data=ertod_emowoz_*/"
-            "split=*_samples=10000_sampling=random_sampling-seed=778/"
+            "split=validation_samples=10000_sampling=random_sampling-seed=778/"
             "edh-mode=regular_lvl=token/"
             "add-prefix-space=False_max-len=512/"
             "**/"
@@ -513,6 +513,7 @@ def create_distribution_plots_over_model_checkpoints(
         fixed_keys = [
             "data_full",
             "data_subsampling_full",
+            "data_dataset_seed",
             "model_layer",  # model_layer needs to be an integer
             "model_partial_name",
             "model_seed",
@@ -705,6 +706,8 @@ def add_base_model_data(
     logger: logging.Logger = default_logger,
 ) -> list[dict]:
     """Add the base model data to the list of data to plot."""
+    filtered_data_with_added_base_model: list[dict] = filtered_data.copy()
+
     # Build the dictionary which matches the same parameters as in the filter
     # but has the model_partial_name from the base model.
     filter_key_value_pairs_base_model: dict = {
@@ -729,7 +732,7 @@ def add_base_model_data(
         )
         filtered_data_base_model_dict: dict = filtered_data_base_model[0]
         # Add the base model data to the list of data to plot.
-        filtered_data.append(
+        filtered_data_with_added_base_model.append(
             filtered_data_base_model_dict,
         )
     elif len(filtered_data_base_model) > 1:
@@ -742,11 +745,11 @@ def add_base_model_data(
         )
         filtered_data_base_model_dict: dict = filtered_data_base_model[0]
         # Add the base model data to the list of data to plot.
-        filtered_data.append(
+        filtered_data_with_added_base_model.append(
             filtered_data_base_model_dict,
         )
 
-    return filtered_data
+    return filtered_data_with_added_base_model
 
 
 if __name__ == "__main__":
