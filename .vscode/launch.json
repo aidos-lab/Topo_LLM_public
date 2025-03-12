@@ -55,7 +55,9 @@
                 // "data=sgd",
                 // "data=one-year-of-tsla-on-reddit",
                 "data=ertod_emowoz",
-                "data.dataset_seed=42",
+                // "data.dataset_seed=42",
+                "data.use_context=False",
+                "data.dataset_seed=50",
                 //
                 "data.data_subsampling.sampling_mode=random",
                 "data.data_subsampling.number_of_samples=512",
@@ -72,7 +74,9 @@
                 "language_model=bert-base-uncased-ContextBERT-ERToD_emowoz_basic_setup",
                 "language_model.seed=42",
                 // "language_model.checkpoint_no=0",
-                "language_model.checkpoint_no=1,2",
+                "language_model.checkpoint_no=1",
+                // "language_model.checkpoint_no=1,2",
+                "language_model.use_context=True", // <-- This is the debugging model we might have saved locally
                 //
                 //    >> END: Model options.
                 //
@@ -215,6 +219,7 @@
                 "local_estimates.compute_global_estimates=true",
                 "local_estimates.pointwise.n_neighbors_mode=absolute_size",
                 "local_estimates.pointwise.absolute_n_neighbors=128",
+                //
                 //    >> START: Feature flags.
                 "feature_flags.analysis.create_plots_in_local_estimates_worker=true",
                 //    >> END: Feature flags.
@@ -277,6 +282,7 @@
                 "local_estimates.compute_global_estimates=true",
                 "local_estimates.pointwise.n_neighbors_mode=absolute_size",
                 "local_estimates.pointwise.absolute_n_neighbors=128",
+                //
                 //    >> START: Feature flags.
                 "feature_flags.analysis.create_plots_in_local_estimates_worker=true",
                 //    >> END: Feature flags.
@@ -316,7 +322,9 @@
                 // "data=sgd,one-year-of-tsla-on-reddit",
                 // "data=multiwoz21,sgd,one-year-of-tsla-on-reddit",
                 "data=ertod_emowoz",
-                "data.dataset_seed=42",
+                // "data.dataset_seed=42",
+                // "data.dataset_seed=43,44",
+                "data.dataset_seed=50,51,52",
                 //
                 // "data=setsumbt_dataloaders_processed",
                 // "data.dataset_seed=0",
@@ -340,10 +348,13 @@
                 //
                 // "language_model=bert-base-uncased",
                 // "language_model=bert-base-uncased-SentiX",
+                // "language_model=roberta-base,bert-base-uncased,bert-base-uncased-SentiX",
                 //
                 "language_model=bert-base-uncased-ContextBERT-ERToD_emowoz_basic_setup",
                 // "language_model.seed=42",
-                "language_model.seed=43,44",
+                // "language_model.seed=43,44",
+                // "language_model.seed=43,44,45",
+                "language_model.seed=50,51,52",
                 // "language_model.checkpoint_no=0",
                 "language_model.checkpoint_no=0,1,2,3,4",
                 //
@@ -2037,6 +2048,7 @@
                 // "hydra.launcher.ngpus=1",
                 // "hydra.launcher.walltime=00:10:00", // <-- The logging script should run very quickly.
                 // >>>> END: Hydra options
+                //
                 "tokenizer.add_prefix_space=False",
                 //
                 //    >> START: Model options.
@@ -2179,13 +2191,12 @@
                 "--multirun",
                 "hydra/sweeper=basic",
                 "hydra/launcher=basic",
-                // "hydra/launcher=hpc_submission",
-                // "hydra.launcher.queue=CUDA",
-                // "hydra.launcher.template=RTX6000",
+                // ===== CPU-machine =====
+                // "hydra.launcher.queue=DEFAULT",
+                // "hydra.launcher.template=CPU",
                 // "hydra.launcher.memory=32",
-                // "hydra.launcher.ncpus=4",
-                // "hydra.launcher.ngpus=1",
-                // "hydra.launcher.walltime=01:00:00",
+                // "hydra.launcher.ncpus=6",
+                // "hydra.launcher.ngpus=0",
                 // >>>> END: Hydra options
                 //
                 "tokenizer.add_prefix_space=False",
@@ -2196,14 +2207,18 @@
                 // "data=sgd",
                 // "data=one-year-of-tsla-on-reddit",
                 // "data=sgd,one-year-of-tsla-on-reddit",
-                "data=multiwoz21,sgd,one-year-of-tsla-on-reddit",
+                // "data=multiwoz21,sgd,one-year-of-tsla-on-reddit",
+                "data=ertod_emowoz",
+                // "data.dataset_seed=42",
+                "data.dataset_seed=43,44",
+                // "data.dataset_seed=42,43,44",
                 //
                 // "data.data_subsampling.split=train",
                 "data.data_subsampling.split=validation",
                 // "data.data_subsampling.split=test",
                 // "data.data_subsampling.split=train,dev,test",
                 //
-                // SetSUMBT dataloaders:
+                // >>> SetSUMBT dataloaders:
                 // "data=setsumbt_dataloaders_processed",
                 // "data.dataset_seed=0",
                 // "data.data_subsampling.split=dev",
@@ -2216,7 +2231,8 @@
                 //
                 //    >> START: Model options.
                 //
-                "language_model=roberta-base",
+                // "language_model=roberta-base",
+                "language_model=bert-base-uncased",
                 //
                 // "language_model=roberta-base-setsumbt_multiwoz21",
                 // "language_model.seed=0",
@@ -2228,6 +2244,13 @@
                 // "language_model.seed=42",
                 // "language_model.checkpoint_no=3549,7098,10647,14196,17745,21294,24843,28392,31941,35490",
                 // "language_model.checkpoint_no=3549",
+                //
+                // "language_model=bert-base-uncased-ContextBERT-ERToD_emowoz_basic_setup",
+                // "language_model.seed=42",
+                // "language_model.seed=43,44",
+                // "language_model.seed=43,44,45",
+                // "language_model.checkpoint_no=0",
+                // "language_model.checkpoint_no=0,1,2,3,4",
                 //
                 //    >> END: Model options.
                 //

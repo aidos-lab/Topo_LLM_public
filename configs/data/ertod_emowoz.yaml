@@ -8,9 +8,12 @@ context: dataset_entry
 
 # We include the dataset_seed in the dataset_description_string,
 # so that it can be used to identify the correct embeddings and local estimates.
-dataset_description_string: ertod_emowoz_${data.dataset_seed}
+dataset_description_string: ertod_emowoz_dataset_seed=${data.dataset_seed}_debug=${data.debug_truncation_size}_use_context=${data.use_context}
 dataset_path: csv
 
-data_dir: ${paths.data_dir}/models/EmoLoop/output_dir/ep=5/seed=${data.dataset_seed}/data_dfs
+data_dir: ${paths.data_dir}/models/EmoLoop/output_dir/debug=${data.debug_truncation_size}/use_context=${data.use_context}/ep=5/seed=${data.dataset_seed}/data_dfs
 
 dataset_seed: 42
+# Specific model parameters
+debug_truncation_size: -1
+use_context: False
