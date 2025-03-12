@@ -121,49 +121,59 @@ def main(
 
     patterns_to_iterate_over: list[str] = [
         # > Splits for the SetSUMBT saved dataloaders
+        # (
+        #     "**/"
+        #     "split=train_samples=10000_sampling=random_sampling-seed=778/"
+        #     "edh-mode=regular_lvl=token/"
+        #     "add-prefix-space=False_max-len=512/"
+        #     "**/"
+        #     "local_estimates_pointwise_array.npy"
+        # ),
+        # (
+        #     "**/"
+        #     "split=dev_samples=10000_sampling=random_sampling-seed=778/"
+        #     "edh-mode=regular_lvl=token/"
+        #     "add-prefix-space=False_max-len=512/"
+        #     "**/"
+        #     "local_estimates_pointwise_array.npy"
+        # ),
+        # (
+        #     "**/"
+        #     "split=test_samples=10000_sampling=random_sampling-seed=778/"
+        #     "edh-mode=regular_lvl=token/"
+        #     "add-prefix-space=False_max-len=512/"
+        #     "**/"
+        #     "local_estimates_pointwise_array.npy"
+        # ),
+        # > Splits for saved ERC model dataloaders
         (
             "**/"
-            "split=train_samples=10000_sampling=random_sampling-seed=778/"
-            "edh-mode=regular_lvl=token/"
-            "add-prefix-space=False_max-len=512/"
-            "**/"
-            "local_estimates_pointwise_array.npy"
-        ),
-        (
-            "**/"
-            "split=dev_samples=10000_sampling=random_sampling-seed=778/"
-            "edh-mode=regular_lvl=token/"
-            "add-prefix-space=False_max-len=512/"
-            "**/"
-            "local_estimates_pointwise_array.npy"
-        ),
-        (
-            "**/"
-            "split=test_samples=10000_sampling=random_sampling-seed=778/"
+            "data=ertod_emowoz_*/"
+            "split=*_samples=10000_sampling=random_sampling-seed=778/"
             "edh-mode=regular_lvl=token/"
             "add-prefix-space=False_max-len=512/"
             "**/"
             "local_estimates_pointwise_array.npy"
         ),
         # > Splits for the Huggingface datasets
-        (
-            "**/"
-            "split=validation_samples=10000_sampling=random_sampling-seed=778/"
-            "edh-mode=regular_lvl=token/"
-            "add-prefix-space=False_max-len=512/"
-            "**/"
-            "local_estimates_pointwise_array.npy"
-        ),
-        # > Other selected datasets and splits
-        (
-            "**/"
-            "data=sgd_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/"
-            "split=validation_samples=10000_sampling=random_sampling-seed=777/"
-            "edh-mode=masked_token_lvl=token/"
-            "add-prefix-space=False_max-len=512/"
-            "**/"
-            "local_estimates_pointwise_array.npy"
-        ),
+        # (
+        #     "**/"
+        #     "split=validation_samples=10000_sampling=random_sampling-seed=778/"
+        #     "edh-mode=regular_lvl=token/"
+        #     "add-prefix-space=False_max-len=512/"
+        #     "**/"
+        #     "local_estimates_pointwise_array.npy"
+        # ),
+        # # > Other selected datasets and splits
+        # (
+        #     "**/"
+        #     "data=sgd_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/"
+        #     "split=validation_samples=10000_sampling=random_sampling-seed=777/"
+        #     "edh-mode=masked_token_lvl=token/"
+        #     "add-prefix-space=False_max-len=512/"
+        #     "**/"
+        #     "local_estimates_pointwise_array.npy"
+        # ),
     ]
 
     for pattern in tqdm(
@@ -198,11 +208,6 @@ def create_plots_for_given_pattern(
         verbosity=verbosity,
         logger=logger,
     )
-
-    # The identifier of the base model.
-    # This value will be used to filter the DataFrame
-    # for the correlation analysis and for the model checkpoint analysis.
-    base_model_model_partial_name = "model=roberta-base"
 
     # # # #
     # Choose which comparisons to make
@@ -254,7 +259,6 @@ def create_plots_for_given_pattern(
             )
         create_distribution_plots_over_model_checkpoints(
             loaded_data=loaded_data,
-            base_model_model_partial_name=base_model_model_partial_name,
             array_key_name=array_key_name,
             output_root_dir=output_root_dir,
             plot_size_configs_list=plot_size_configs_list,
@@ -487,7 +491,6 @@ def create_distribution_plots_over_model_layers(
 
 def create_distribution_plots_over_model_checkpoints(
     loaded_data: list[dict],
-    base_model_model_partial_name: str,
     array_key_name: str,
     output_root_dir: pathlib.Path,
     plot_size_configs_list: list[PlotSizeConfig],
@@ -562,7 +565,14 @@ def create_distribution_plots_over_model_checkpoints(
             )
             continue
 
-        filtered_data = add_base_model_data(
+        # TODO: Select this based on the given model family
+
+        # The identifier of the base model.
+        # This value will be used to select the models for the correlation analysis
+        # and add the estimates of the base model for the model checkpoint analysis.
+        base_model_model_partial_name = "model=roberta-base"
+
+        filtered_data_with_added_base_model = add_base_model_data(
             loaded_data=loaded_data,
             base_model_model_partial_name=base_model_model_partial_name,
             filter_key_value_pairs=filter_key_value_pairs,
@@ -573,12 +583,12 @@ def create_distribution_plots_over_model_checkpoints(
         # Sort the arrays by increasing model checkpoint.
         # Then from this point, the list of arrays and list of extracted checkpoints will be in the correct order.
         # 1. Step: Replace None model checkpoints with -1.
-        for single_dict in filtered_data:
+        for single_dict in filtered_data_with_added_base_model:
             if single_dict["model_checkpoint"] is None:
                 single_dict["model_checkpoint"] = -1
         # 2. Step: Call sorting function.
         sorted_data: list[dict] = sorted(
-            filtered_data,
+            filtered_data_with_added_base_model,
             key=lambda single_dict: int(single_dict["model_checkpoint"]),
         )
 
