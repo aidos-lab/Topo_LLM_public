@@ -120,60 +120,60 @@ def main(
     )
 
     patterns_to_iterate_over: list[str] = [
-        # > Splits for the SetSUMBT saved dataloaders
-        # (
-        #     "**/"
-        #     "split=train_samples=10000_sampling=random_sampling-seed=778/"
-        #     "edh-mode=regular_lvl=token/"
-        #     "add-prefix-space=False_max-len=512/"
-        #     "**/"
-        #     "local_estimates_pointwise_array.npy"
-        # ),
-        # (
-        #     "**/"
-        #     "split=dev_samples=10000_sampling=random_sampling-seed=778/"
-        #     "edh-mode=regular_lvl=token/"
-        #     "add-prefix-space=False_max-len=512/"
-        #     "**/"
-        #     "local_estimates_pointwise_array.npy"
-        # ),
-        # (
-        #     "**/"
-        #     "split=test_samples=10000_sampling=random_sampling-seed=778/"
-        #     "edh-mode=regular_lvl=token/"
-        #     "add-prefix-space=False_max-len=512/"
-        #     "**/"
-        #     "local_estimates_pointwise_array.npy"
-        # ),
-        # > Splits for saved ERC model dataloaders
+        # # > Splits for the SetSUMBT saved dataloaders
+        (
+            "**/"
+            "split=train_samples=10000_sampling=random_sampling-seed=778/"
+            "edh-mode=regular_lvl=token/"
+            "add-prefix-space=False_max-len=512/"
+            "**/"
+            "local_estimates_pointwise_array.npy"
+        ),
+        (
+            "**/"
+            "split=dev_samples=10000_sampling=random_sampling-seed=778/"
+            "edh-mode=regular_lvl=token/"
+            "add-prefix-space=False_max-len=512/"
+            "**/"
+            "local_estimates_pointwise_array.npy"
+        ),
+        (
+            "**/"
+            "split=test_samples=10000_sampling=random_sampling-seed=778/"
+            "edh-mode=regular_lvl=token/"
+            "add-prefix-space=False_max-len=512/"
+            "**/"
+            "local_estimates_pointwise_array.npy"
+        ),
+        # # > Splits for saved ERC model dataloaders
         (
             "**/"
             "data=ertod_emowoz_*/"
+            "split=*_samples=10000_sampling=random_sampling-seed=778/"
+            "edh-mode=regular_lvl=token/"
+            "add-prefix-space=False_max-len=512/"
+            "**/"
+            "local_estimates_pointwise_array.npy"
+        ),
+        # # > Splits for the Huggingface datasets
+        (
+            "**/"
             "split=validation_samples=10000_sampling=random_sampling-seed=778/"
             "edh-mode=regular_lvl=token/"
             "add-prefix-space=False_max-len=512/"
             "**/"
             "local_estimates_pointwise_array.npy"
         ),
-        # > Splits for the Huggingface datasets
-        # (
-        #     "**/"
-        #     "split=validation_samples=10000_sampling=random_sampling-seed=778/"
-        #     "edh-mode=regular_lvl=token/"
-        #     "add-prefix-space=False_max-len=512/"
-        #     "**/"
-        #     "local_estimates_pointwise_array.npy"
-        # ),
         # # > Other selected datasets and splits
-        # (
-        #     "**/"
-        #     "data=sgd_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/"
-        #     "split=validation_samples=10000_sampling=random_sampling-seed=777/"
-        #     "edh-mode=masked_token_lvl=token/"
-        #     "add-prefix-space=False_max-len=512/"
-        #     "**/"
-        #     "local_estimates_pointwise_array.npy"
-        # ),
+        (
+            "**/"
+            "data=sgd_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/"
+            "split=validation_samples=10000_sampling=random_sampling-seed=777/"
+            "edh-mode=masked_token_lvl=token/"
+            "add-prefix-space=False_max-len=512/"
+            "**/"
+            "local_estimates_pointwise_array.npy"
+        ),
     ]
 
     for pattern in tqdm(
