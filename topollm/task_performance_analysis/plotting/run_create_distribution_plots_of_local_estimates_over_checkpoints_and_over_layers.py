@@ -573,7 +573,7 @@ def create_distribution_plots_over_model_checkpoints(
         # and add the estimates of the base model for the model checkpoint analysis.
         base_model_model_partial_name = "model=roberta-base"
 
-        filtered_data_with_added_base_model = add_base_model_data(
+        filtered_data_with_added_base_model: list[dict] = add_base_model_data(
             loaded_data=loaded_data,
             base_model_model_partial_name=base_model_model_partial_name,
             filter_key_value_pairs=filter_key_value_pairs,
@@ -650,9 +650,11 @@ def create_distribution_plots_over_model_checkpoints(
             make_distribution_violinplots_from_extracted_arrays(
                 extracted_arrays=extracted_arrays,
                 ticks_and_labels=ticks_and_labels,
-                fixed_params_text=fixed_params_text,
-                plots_output_dir=plots_output_dir,
                 plot_size_config=plot_size_config,
+                print_means_and_medians_and_stds=True,
+                fixed_params_text=fixed_params_text,
+                base_model_model_partial_name=base_model_model_partial_name,
+                plots_output_dir=plots_output_dir,
                 verbosity=verbosity,
                 logger=logger,
             )
