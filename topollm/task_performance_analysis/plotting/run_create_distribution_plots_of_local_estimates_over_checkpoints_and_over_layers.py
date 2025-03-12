@@ -120,7 +120,7 @@ def main(
     )
 
     patterns_to_iterate_over: list[str] = [
-        # > Splits for the SetSUMBT saved dataloaders
+        # # > Splits for the SetSUMBT saved dataloaders
         (
             "**/"
             "split=train_samples=10000_sampling=random_sampling-seed=778/"
@@ -145,7 +145,17 @@ def main(
             "**/"
             "local_estimates_pointwise_array.npy"
         ),
-        # > Splits for the Huggingface datasets
+        # # > Splits for saved ERC model dataloaders
+        (
+            "**/"
+            "data=ertod_emowoz_*/"
+            "split=*_samples=10000_sampling=random_sampling-seed=778/"
+            "edh-mode=regular_lvl=token/"
+            "add-prefix-space=False_max-len=512/"
+            "**/"
+            "local_estimates_pointwise_array.npy"
+        ),
+        # # > Splits for the Huggingface datasets
         (
             "**/"
             "split=validation_samples=10000_sampling=random_sampling-seed=778/"
@@ -154,7 +164,7 @@ def main(
             "**/"
             "local_estimates_pointwise_array.npy"
         ),
-        # > Other selected datasets and splits
+        # # > Other selected datasets and splits
         (
             "**/"
             "data=sgd_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/"
@@ -198,11 +208,6 @@ def create_plots_for_given_pattern(
         verbosity=verbosity,
         logger=logger,
     )
-
-    # The identifier of the base model.
-    # This value will be used to filter the DataFrame
-    # for the correlation analysis and for the model checkpoint analysis.
-    base_model_model_partial_name = "model=roberta-base"
 
     # # # #
     # Choose which comparisons to make
@@ -254,7 +259,6 @@ def create_plots_for_given_pattern(
             )
         create_distribution_plots_over_model_checkpoints(
             loaded_data=loaded_data,
-            base_model_model_partial_name=base_model_model_partial_name,
             array_key_name=array_key_name,
             output_root_dir=output_root_dir,
             plot_size_configs_list=plot_size_configs_list,
@@ -487,7 +491,6 @@ def create_distribution_plots_over_model_layers(
 
 def create_distribution_plots_over_model_checkpoints(
     loaded_data: list[dict],
-    base_model_model_partial_name: str,
     array_key_name: str,
     output_root_dir: pathlib.Path,
     plot_size_configs_list: list[PlotSizeConfig],
@@ -510,6 +513,7 @@ def create_distribution_plots_over_model_checkpoints(
         fixed_keys = [
             "data_full",
             "data_subsampling_full",
+            "data_dataset_seed",
             "model_layer",  # model_layer needs to be an integer
             "model_partial_name",
             "model_seed",
@@ -562,7 +566,22 @@ def create_distribution_plots_over_model_checkpoints(
             )
             continue
 
-        filtered_data = add_base_model_data(
+        # The identifier of the base model.
+        # This value will be used to select the models for the correlation analysis
+        # and add the estimates of the base model for the model checkpoint analysis.
+        model_partial_name = filter_key_value_pairs["model_partial_name"]
+        if "model=roberta-base" in model_partial_name:
+            # This model is derived from a roberta-base model.
+            base_model_model_partial_name = "model=roberta-base"
+        elif "model=bert-base-uncased" in model_partial_name:
+            # This model is derived from a bert-base-uncased model.
+            base_model_model_partial_name = "model=bert-base-uncased"
+        else:
+            # This model partial name does not match any known model.
+            # Use the roberta-base model as the base model.
+            base_model_model_partial_name = "model=roberta-base"
+
+        filtered_data_with_added_base_model: list[dict] = add_base_model_data(
             loaded_data=loaded_data,
             base_model_model_partial_name=base_model_model_partial_name,
             filter_key_value_pairs=filter_key_value_pairs,
@@ -573,12 +592,12 @@ def create_distribution_plots_over_model_checkpoints(
         # Sort the arrays by increasing model checkpoint.
         # Then from this point, the list of arrays and list of extracted checkpoints will be in the correct order.
         # 1. Step: Replace None model checkpoints with -1.
-        for single_dict in filtered_data:
+        for single_dict in filtered_data_with_added_base_model:
             if single_dict["model_checkpoint"] is None:
                 single_dict["model_checkpoint"] = -1
         # 2. Step: Call sorting function.
         sorted_data: list[dict] = sorted(
-            filtered_data,
+            filtered_data_with_added_base_model,
             key=lambda single_dict: int(single_dict["model_checkpoint"]),
         )
 
@@ -594,38 +613,14 @@ def create_distribution_plots_over_model_checkpoints(
             logger=logger,
         )
 
+        # Save the sorted data list of dicts with the arrays to a pickle file.
         if save_sorted_data_list_of_dicts_with_arrays:
-            # Save the sorted data list of dicts with the arrays to a pickle file.
-            data_to_save: list[dict] = sorted_data
-
-            sorted_data_output_file_path: pathlib.Path = pathlib.Path(
-                plots_output_dir,
-                "sorted_data_list_of_dicts_with_arrays.pkl",
+            write_sorted_data_to_disk(
+                sorted_data=sorted_data,
+                plots_output_dir=plots_output_dir,
+                verbosity=verbosity,
+                logger=logger,
             )
-
-            # Create the directory if it does not exist.
-            sorted_data_output_file_path.parent.mkdir(
-                parents=True,
-                exist_ok=True,
-            )
-
-            if verbosity >= Verbosity.NORMAL:
-                logger.info(
-                    msg=f"Saving sorted data to {sorted_data_output_file_path = } ...",  # noqa: G004 - low overhead
-                )
-
-            with sorted_data_output_file_path.open(
-                mode="wb",
-            ) as file:
-                pickle.dump(
-                    obj=data_to_save,
-                    file=file,
-                )
-
-            if verbosity >= Verbosity.NORMAL:
-                logger.info(
-                    msg=f"Saving sorted data to {sorted_data_output_file_path = } DONE",  # noqa: G004 - low overhead
-                )
 
         ticks_and_labels: TicksAndLabels = TicksAndLabels(
             xlabel="checkpoints",
@@ -639,9 +634,11 @@ def create_distribution_plots_over_model_checkpoints(
             make_distribution_violinplots_from_extracted_arrays(
                 extracted_arrays=extracted_arrays,
                 ticks_and_labels=ticks_and_labels,
-                fixed_params_text=fixed_params_text,
-                plots_output_dir=plots_output_dir,
                 plot_size_config=plot_size_config,
+                print_means_and_medians_and_stds=True,
+                fixed_params_text=fixed_params_text,
+                base_model_model_partial_name=base_model_model_partial_name,
+                plots_output_dir=plots_output_dir,
                 verbosity=verbosity,
                 logger=logger,
             )
@@ -657,6 +654,45 @@ def create_distribution_plots_over_model_checkpoints(
                 verbosity=verbosity,
                 logger=logger,
             )
+
+
+def write_sorted_data_to_disk(
+    sorted_data: list[dict],
+    plots_output_dir: pathlib.Path,
+    verbosity: Verbosity,
+    logger: logging.Logger,
+) -> None:
+    """Write the sorted data to disk."""
+    data_to_save: list[dict] = sorted_data
+
+    sorted_data_output_file_path: pathlib.Path = pathlib.Path(
+        plots_output_dir,
+        "sorted_data_list_of_dicts_with_arrays.pkl",
+    )
+
+    # Create the directory if it does not exist.
+    sorted_data_output_file_path.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Saving sorted data to {sorted_data_output_file_path = } ...",  # noqa: G004 - low overhead
+        )
+
+    with sorted_data_output_file_path.open(
+        mode="wb",
+    ) as file:
+        pickle.dump(
+            obj=data_to_save,
+            file=file,
+        )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Saving sorted data to {sorted_data_output_file_path = } DONE",  # noqa: G004 - low overhead
+        )
 
 
 def construct_plots_over_checkpoints_output_dir_from_filter_key_value_pairs(
@@ -695,6 +731,8 @@ def add_base_model_data(
     logger: logging.Logger = default_logger,
 ) -> list[dict]:
     """Add the base model data to the list of data to plot."""
+    filtered_data_with_added_base_model: list[dict] = filtered_data.copy()
+
     # Build the dictionary which matches the same parameters as in the filter
     # but has the model_partial_name from the base model.
     filter_key_value_pairs_base_model: dict = {
@@ -719,7 +757,7 @@ def add_base_model_data(
         )
         filtered_data_base_model_dict: dict = filtered_data_base_model[0]
         # Add the base model data to the list of data to plot.
-        filtered_data.append(
+        filtered_data_with_added_base_model.append(
             filtered_data_base_model_dict,
         )
     elif len(filtered_data_base_model) > 1:
@@ -732,11 +770,11 @@ def add_base_model_data(
         )
         filtered_data_base_model_dict: dict = filtered_data_base_model[0]
         # Add the base model data to the list of data to plot.
-        filtered_data.append(
+        filtered_data_with_added_base_model.append(
             filtered_data_base_model_dict,
         )
 
-    return filtered_data
+    return filtered_data_with_added_base_model
 
 
 if __name__ == "__main__":

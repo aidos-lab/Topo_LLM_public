@@ -257,14 +257,27 @@ def parse_data_info(
 
     parsed_info: dict = {}
 
-    # Matches and parses data information including dataset name, split, context, number of samples, and feature column,
-    # e.g., "data-multiwoz21_split-validation_ctxt-dataset_entry_samples-3000_feat-col-ner_tags"
+    # Matches and parses data information including:
+    # - dataset name,
+    # - split,
+    # - context,
+    # - number of samples,
+    # - and feature column,
+    #
+    # e.g.:
+    # > "data=wikitext-103-v1_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags"
+    # > "data=ertod_emowoz_dataset_seed=51_debug=-1_use_context=False_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags"
+    #
+    # Regex pattern explanation:
     # - data=(\w+): Match the dataset name.
     # - spl-mode=([a-zA-Z0-9_]+): Match the data splitting mode.
     # - ctxt=([a-zA-Z0-9_]+): Match the context type (e.g., "dataset_entry").
     # - feat-col=([a-zA-Z0-9_]+): Match the feature column.
     regex = (
-        r"data=([\w-]+)"  # Dataset name
+        r"data=([a-zA-Z0-9_-]+)"  # Dataset name
+        r"(?:_dataset_seed=(\d+))?"  # Optional dataset seed
+        r"(?:_debug=(-?\d+))?"  # Optional debug mode accepting a positive or negative integer
+        r"(?:_use_context=(False|True))?"  # Optional use context
         r"(?:_rm-empty=([a-zA-Z0-9_]+))?"  # Optional remove empty
         r"_spl-mode=([a-zA-Z0-9_]+)"  # Splitting mode
         r"(?:_spl-[a-zA-Z0-9_=.-]+)*"  # Optional splitting parameters
@@ -277,11 +290,16 @@ def parse_data_info(
     )
     if data_match:
         parsed_info["data_full"] = data_match.group(0)  # Full matched string
-        parsed_info["data_dataset_name"] = data_match.group(1)
-        parsed_info[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["rm-empty"]] = data_match.group(2)
-        parsed_info["data_splitting_mode"] = data_match.group(3)
-        parsed_info["data_context"] = data_match.group(4)
-        parsed_info["data_feature_column"] = data_match.group(5)
+        parsed_info[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["data"]] = data_match.group(1)
+        parsed_info[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["dataset_seed"]] = (
+            int(data_match.group(2)) if data_match.group(2) else None
+        )
+        parsed_info[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["data_debug"]] = data_match.group(3)
+        parsed_info[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["use_context"]] = data_match.group(4)
+        parsed_info[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["rm-empty"]] = data_match.group(5)
+        parsed_info[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["spl-mode"]] = data_match.group(6)
+        parsed_info[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["data_ctxt"]] = data_match.group(7)
+        parsed_info[NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["feat-col"]] = data_match.group(8)
     return parsed_info
 
 

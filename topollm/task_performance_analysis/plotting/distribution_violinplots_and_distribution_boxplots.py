@@ -55,7 +55,10 @@ def make_distribution_violinplots_from_extracted_arrays(
     extracted_arrays: list[np.ndarray],
     ticks_and_labels: TicksAndLabels,
     plot_size_config: PlotSizeConfig,
+    *,
+    print_means_and_medians_and_stds: bool = True,
     fixed_params_text: str | None = None,
+    base_model_model_partial_name: str | None = None,
     plots_output_dir: pathlib.Path | None = None,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
@@ -71,17 +74,52 @@ def make_distribution_violinplots_from_extracted_arrays(
         ),
     )
 
+    # # # #
     # Plot violin plot
     ax.violinplot(
         dataset=extracted_arrays,
         showmeans=True,
+        showextrema=True,
         showmedians=True,
     )
     ax.set_title(
         label="Violin plot",
     )
 
-    # adding horizontal grid lines
+    # Add text to the plot with means and medians
+    if print_means_and_medians_and_stds:
+        for i, extracted_array in enumerate(extracted_arrays):
+            mean: np.floating = np.mean(extracted_array)
+            median: np.floating = np.median(extracted_array)
+            std: np.floating = np.std(extracted_array)
+
+            ax.text(
+                x=i + 1,
+                y=float(mean),
+                s=f"Mean: {mean:.2f}\nMedian: {median:.2f}\nStd: {std:.2f}",
+                fontsize=6,
+                verticalalignment="bottom",
+                horizontalalignment="center",
+            )
+
+    # Add info about the base model if available into the bottom left corner of the plot
+    if base_model_model_partial_name is not None:
+        ax.text(
+            x=0.01,
+            y=0.01,
+            s=f"{base_model_model_partial_name=}",
+            transform=plt.gca().transAxes,
+            fontsize=6,
+            verticalalignment="bottom",
+            horizontalalignment="left",
+            bbox={
+                "boxstyle": "round",
+                "facecolor": "wheat",
+                "alpha": 0.3,
+            },
+        )
+
+    # Adding horizontal grid lines
     ax.yaxis.grid(
         visible=True,
     )

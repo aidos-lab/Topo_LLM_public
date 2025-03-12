@@ -87,9 +87,7 @@ def compare_result_and_expected_result(
 
     # Assert that the result matches the expected result
     assert result == expected_result, (  # noqa: S101 - pytest assertion
-        f"Parsing failed.\n"
-        f"Expected:\n{pprint.pformat(object=expected_result)}\n"
-        f"Got:\n{pprint.pformat(object=result)}"
+        f"Parsing failed.\nExpected:\n{pprint.pformat(object=expected_result)}\nGot:\n{pprint.pformat(object=result)}"
     )
 
 
@@ -119,6 +117,9 @@ def test_parse_path_info_full_sampling_random(
         "data_dataset_name": "one-year-of-tsla-on-reddit",
         "data_feature_column": "ner_tags",
         "data_full": "data=one-year-of-tsla-on-reddit_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags",
+        "data_use_context": None,
+        "data_debug": None,
+        "data_dataset_seed": None,
         "data_filtering_remove_empty_sequences": None,
         "data_prep_sampling_method": "random",
         "data_prep_sampling_samples": 100000,
@@ -262,48 +263,65 @@ def test_parse_data_info(
     logger_fixture: logging.Logger,
 ) -> None:
     """Example usage of parse_data_info function."""
-    # # # # # # # #
-    # Test case 1:
-    # With data filtering description
-    example_path_str = pathlib.Path(
-        "example_prefix",
-        "data=wikitext-103-v1_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags",
-        "split=validation_samples=10000_sampling=random_sampling-seed=780",
-        "example_suffix",
-    )
+    instances_and_expected_results: list[tuple] = [
+        # # # # # # # #
+        # Test case 1:
+        # With data filtering description
+        (
+            pathlib.Path(
+                "example_prefix",
+                "data=wikitext-103-v1_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags",
+                "split=validation_samples=10000_sampling=random_sampling-seed=780",
+                "example_suffix",
+            ),
+            {
+                # The order here is alphabetically ordered by the true values of the keys.
+                NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["data_ctxt"]: "dataset_entry",
+                NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["data"]: "wikitext-103-v1",
+                NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["dataset_seed"]: None,
+                NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["data_debug"]: None,
+                NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["feat-col"]: "ner_tags",
+                NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["rm-empty"]: "True",
+                "data_full": "data=wikitext-103-v1_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags",
+                NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["spl-mode"]: "proportions",
+                NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["use_context"]: None,
+            },
+        ),
+        (
+            pathlib.Path(
+                "example_prefix",
+                "data=ertod_emowoz_dataset_seed=51_debug=-1_use_context=False_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags",
+                "split=train_samples=10000_sampling=random_sampling-seed=778",
+                "example_suffix",
+            ),
+            {
+                NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["data_ctxt"]: "dataset_entry",
+                NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["data"]: "ertod_emowoz",
+                NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["dataset_seed"]: 51,
+                NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["data_debug"]: "-1",
+                NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["feat-col"]: "ner_tags",
+                NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["rm-empty"]: "True",
+                "data_full": "data=ertod_emowoz_dataset_seed=51_debug=-1_use_context=False_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags",
+                NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["spl-mode"]: "do_nothing",
+                NAME_PREFIXES_TO_FULL_AUGMENTED_DESCRIPTIONS["use_context"]: "False",
+            },
+        ),
+    ]
 
-    expected_result: dict = {
-        "data_context": "dataset_entry",
-        "data_dataset_name": "wikitext-103-v1",
-        "data_feature_column": "ner_tags",
-        "data_filtering_remove_empty_sequences": "True",
-        "data_full": "data=wikitext-103-v1_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags",
-        "data_splitting_mode": "proportions",
-    }
+    for example_path_str, expected_result in instances_and_expected_results:
+        logger_fixture.info(
+            msg=f"example_path_str:\n{example_path_str}",  # noqa: G004 - low overhead
+        )
 
-    data_info: dict = parse_data_info(
-        path=example_path_str,
-    )
+        parsed_info: dict = parse_data_info(
+            path=example_path_str,
+        )
 
-    logger_fixture.info(
-        msg=f"example_path_str:\n{example_path_str}",  # noqa: G004 - low overhead
-    )
-    logger_fixture.info(
-        msg=f"data_info:\n{pprint.pformat(object=data_info)}",  # noqa: G004 - low overhead
-    )
-
-    # Check that result is a valid dictionary
-    assert isinstance(  # noqa: S101 - pytest assertion
-        data_info,
-        dict,
-    )
-
-    # Assert that the result matches the expected result
-    assert data_info == expected_result, (  # noqa: S101 - pytest assertion
-        f"Parsing failed for {example_path_str = }\n"
-        f"Expected:\n{pprint.pformat(object=expected_result)}\n"
-        f"Got:\n{pprint.pformat(object=data_info)}"
-    )
+        compare_result_and_expected_result(
+            result=parsed_info,
+            expected_result=expected_result,
+            logger=logger_fixture,
+        )
 
 
 def test_parse_local_estimates_info(
