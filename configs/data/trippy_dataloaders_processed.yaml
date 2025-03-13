@@ -15,8 +15,7 @@ dataset_description_string: trippy_dataloaders_processed_${data.dataset_selectio
 
 dataset_selection_description_string: multiwoz21
 
-# TODO: Update this to the correct Trippy type later
-dataset_type: setsumbt_dataloaders_processed
+dataset_type: trippy_dataloaders_processed
 
 # data_dir is currently unused for the setsumbt_dataloaders_processed dataset
 data_dir: ${paths.data_dir}/models/trippy_checkpoints/post_processed_cached_features/${data.dataset_selection_description_string}
