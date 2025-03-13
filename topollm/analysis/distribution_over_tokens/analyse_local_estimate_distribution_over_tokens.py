@@ -57,6 +57,13 @@ from topollm.task_performance_analysis.plotting.distribution_violinplots_and_dis
 )
 from topollm.typing.enums import Verbosity
 
+try:
+    from hydra_plugins import hpc_submission_launcher
+
+    hpc_submission_launcher.register_plugin()
+except ImportError:
+    pass
+
 if TYPE_CHECKING:
     from topollm.analysis.local_estimates_handling.saving.local_estimates_containers import LocalEstimatesContainer
     from topollm.config_classes.main_config import MainConfig
@@ -122,10 +129,10 @@ def main(
         )
     )
     local_estimates_container: LocalEstimatesContainer = local_estimates_saving_manager.load_local_estimates()
-    local_estimates_container.log_info(
-        verbosity=verbosity,
-        logger=logger,
-    )
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"local_estimates_container:\n{local_estimates_container.get_summary_string()}",  # noqa: G004 - low overhead
+        )
 
     if local_estimates_container.pointwise_results_meta_frame is None:
         msg = "No metadata for the pointwise results available."

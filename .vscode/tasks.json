@@ -212,6 +212,21 @@
             }
         },
         {
+            "label": "Local - Sync from HHU Hilbert to local - (MEDIUM-LARGE) - 'data/saved_plots/local_estimates_distribution_over_tokens/' directory",
+            "detail": "rsync from HHU Hilbert: 'data/saved_plots/local_estimates_distribution_over_tokens/'.",
+            "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/saved_plots/local_estimates_distribution_over_tokens/' --file-type 'all'",
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": false
+            }
+        },
+        {
             "label": "Local - Sync from HHU Hilbert to local - ONLY .npy file types 'analysis/local_estimates' directory",
             "command": "poetry run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/local_estimates/' --file-type 'npy'",
             "type": "shell",
