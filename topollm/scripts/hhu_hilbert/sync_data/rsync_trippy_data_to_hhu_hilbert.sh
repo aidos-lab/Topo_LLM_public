@@ -57,7 +57,7 @@ for VARIABLE_NAME in "${VARIABLES_TO_LOG_LIST[@]}"; do
     echo "💡 ${VARIABLE_NAME}=${!VARIABLE_NAME}"
 done
 
-echo ">>> Starting rsync ..."
+echo "🔁 Starting rsync ..."
 
 # Following rsync instructions from:
 # https://wiki.hhu.de/pages/viewpage.action?pageId=55725648
@@ -65,10 +65,10 @@ rsync \
     -avhz \
     --progress \
     ${DRY_RUN_FLAG} \
-    "${REMOTE_HOST}:${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_checkpoints/" \
-    "${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_checkpoints/"
+    "${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_checkpoints/post_processed_cached_features/" \
+    "${REMOTE_HOST}:${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_checkpoints/post_processed_cached_features/"
 
-echo ">>> rsync completed."
+echo "🔁 rsync completed."
 
 # Exit with the exit code of the rsync command
 exit $?

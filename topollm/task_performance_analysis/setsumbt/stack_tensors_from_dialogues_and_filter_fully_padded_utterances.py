@@ -101,27 +101,27 @@ def stack_tensors_from_dialogues_and_filter_fully_padded_utterances(
             msg=f"{len(dialogue_ids_to_concatenate) = }",  # noqa: G004 - low overhead
         )
 
-    # Stack the tensors of the individual turns
-    input_ids_concatenated: torch.Tensor = torch.stack(
+    # Stack the tensors of the individual turns into a single tensor.
+    input_ids_stacked: torch.Tensor = torch.stack(
         tensors=input_ids_to_stack,
         dim=0,
     )
-    attention_masks_concatenated: torch.Tensor = torch.stack(
+    attention_masks_stacked: torch.Tensor = torch.stack(
         tensors=attention_masks_to_stack,
         dim=0,
     )
 
     if verbosity >= Verbosity.NORMAL:
         logger.info(
-            msg=f"{input_ids_concatenated.shape = }",  # noqa: G004 - low overhead
+            msg=f"{input_ids_stacked.shape = }",  # noqa: G004 - low overhead
         )
         logger.info(
-            msg=f"{attention_masks_concatenated.shape = }",  # noqa: G004 - low overhead
+            msg=f"{attention_masks_stacked.shape = }",  # noqa: G004 - low overhead
         )
 
     result: dict[str, torch.Tensor | list] = {
-        "input_ids": input_ids_concatenated,
-        "attention_mask": attention_masks_concatenated,
+        "input_ids": input_ids_stacked,
+        "attention_mask": attention_masks_stacked,
         "dialogue_ids": dialogue_ids_to_concatenate,
     }
 
