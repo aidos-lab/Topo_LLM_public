@@ -323,8 +323,8 @@
                 "hydra/launcher=basic",
                 "hydra/launcher=hpc_submission",
                 "hydra.launcher.queue=CUDA",
-                "hydra.launcher.template=RTX6000",
-                // "hydra.launcher.template=GTX1080",
+                // "hydra.launcher.template=RTX6000",
+                "hydra.launcher.template=GTX1080",
                 "hydra.launcher.memory=32",
                 "hydra.launcher.ncpus=4",
                 "hydra.launcher.ngpus=1",
@@ -340,20 +340,26 @@
                 // "data=one-year-of-tsla-on-reddit",
                 // "data=sgd,one-year-of-tsla-on-reddit",
                 // "data=multiwoz21,sgd,one-year-of-tsla-on-reddit",
-                "data=ertod_emowoz",
+                //
+                // >>>> ERC datasets
+                // "data=ertod_emowoz",
                 // "data.dataset_seed=42",
                 // "data.dataset_seed=43,44",
-                "data.dataset_seed=50,51,52",
+                // "data.dataset_seed=50,51,52",
                 //
+                // >>>> SetSUMBT datasets
                 // "data=setsumbt_dataloaders_processed",
                 // "data.dataset_seed=0",
+                //
+                // >>>> Trippy datasets
+                "data=trippy_dataloaders_processed",
                 //
                 // "data.data_subsampling.split=train",
                 // "data.data_subsampling.split=dev",
                 // "data.data_subsampling.split=validation",
                 // "data.data_subsampling.split=test",
-                // "data.data_subsampling.split=train,dev,test",
-                "data.data_subsampling.split=train,validation,test",
+                "data.data_subsampling.split=train,dev,test",
+                // "data.data_subsampling.split=train,validation,test",
                 //
                 "data.data_subsampling.sampling_mode=random",
                 "data.data_subsampling.number_of_samples=10000",
@@ -369,13 +375,13 @@
                 // "language_model=bert-base-uncased-SentiX",
                 // "language_model=roberta-base,bert-base-uncased,bert-base-uncased-SentiX",
                 //
-                "language_model=bert-base-uncased-ContextBERT-ERToD_emowoz_basic_setup",
+                // "language_model=bert-base-uncased-ContextBERT-ERToD_emowoz_basic_setup",
                 // "language_model.seed=42",
                 // "language_model.seed=43,44",
                 // "language_model.seed=43,44,45",
-                "language_model.seed=50,51,52",
+                // "language_model.seed=50,51,52",
                 // "language_model.checkpoint_no=0",
-                "language_model.checkpoint_no=0,1,2,3,4",
+                // "language_model.checkpoint_no=0,1,2,3,4",
                 //
                 // "language_model=roberta-base-setsumbt_multiwoz21",
                 // "language_model.seed=0",
@@ -386,11 +392,11 @@
                 // "language_model.seed=2",
                 // "language_model.checkpoint_no=2813,5626,8439,11252,14065,16878,19691,22504,28130,30943,33756,42195,50634,67512,106894,126585", // <-- checkpoints for "language_model.seed=2"
                 //
-                // "language_model=roberta-base-trippy_multiwoz21",
-                // "++language_model.seed=42",
+                "language_model=roberta-base-trippy_multiwoz21",
+                "++language_model.seed=42",
                 // "++language_model.checkpoint_no=3549",
                 // "++language_model.checkpoint_no=3549,7098",
-                // "++language_model.checkpoint_no=3549,7098,10647,14196,17745,21294,24843,28392,31941,35490",
+                "++language_model.checkpoint_no=3549,7098,10647,14196,17745,21294,24843,28392,31941,35490",
                 //
                 //    >> END: Model options.
                 //
