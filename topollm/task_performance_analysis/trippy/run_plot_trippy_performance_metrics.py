@@ -31,9 +31,10 @@ import json
 import logging
 import pathlib
 import pickle
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import hydra
+import matplotlib.pyplot as plt
 import numpy as np
 import omegaconf
 import pandas as pd
@@ -148,6 +149,31 @@ def main(
             msg=f"Error reading log file: {e}",  # noqa: G004 - low overhead
         )
         return
+
+    # # # # # # # # # # # # # # #
+    # Convert loaded data
+
+    # Create the joined DataFrame
+    df: pd.DataFrame = create_evaluation_dataframe(
+        loaded_logfile_data=loaded_logfile_data,
+    )
+
+    # Filter to keep only rows where global_step is numeric
+    df = df[df["global_step"].apply(lambda x: str(x).isdigit())].copy()
+
+    # Convert global_step to integer and sort by it
+    df["global_step"] = df["global_step"].astype(
+        dtype=int,
+    )
+    df = df.sort_values(
+        by="global_step",
+    )
+
+    # Plot using the default configuration
+    dummy_plot_evaluation_metrics(
+        df=df,
+        filename="plot.pdf",
+    )
 
     # ================================================== #
     # Optional:
@@ -275,6 +301,148 @@ def main(
     logger.info(
         msg="Running script DONE",
     )
+
+
+def create_evaluation_dataframe(
+    loaded_logfile_data: dict[str, Any],
+) -> pd.DataFrame:
+    """Create a merged evaluation DataFrame from dev and test logs.
+
+    The function assumes that loaded_logfile_data is a dictionary with keys 'dev' and 'test',
+    where each value is a list of evaluation dictionaries. Each dictionary must have a 'global_step' key.
+    It checks that the set of global steps in both splits match, prefixes the metric columns
+    with 'dev_' or 'test_' as appropriate, and merges the DataFrames on 'global_step'.
+
+    Args:
+        loaded_logfile_data:
+            Dictionary with keys 'dev' and 'test' containing
+            lists of evaluation dictionaries.
+
+    Returns:
+        pd.DataFrame: A DataFrame with one row per global step and prefixed metric columns.
+
+    Raises:
+        ValueError: If the global steps do not match between the dev and test splits.
+
+    """
+    # Convert each list of dictionaries into a DataFrame
+    df_dev = pd.DataFrame(
+        data=loaded_logfile_data["dev"],
+    )
+    df_test = pd.DataFrame(
+        data=loaded_logfile_data["test"],
+    )
+
+    # Check that the same global steps exist in both splits
+    steps_dev = set(df_dev["global_step"])
+    steps_test = set(df_test["global_step"])
+    if steps_dev != steps_test:
+        msg = "Global steps do not match between dev and test splits."
+        raise ValueError(msg)
+
+    # Rename columns for dev: add prefix 'dev_' to every column except 'global_step'
+    df_dev_renamed: pd.DataFrame = df_dev.rename(
+        columns=lambda col: f"dev_{col}" if col != "global_step" else col,
+    )
+    # Rename columns for test: add prefix 'test_' to every column except 'global_step'
+    df_test_renamed: pd.DataFrame = df_test.rename(
+        columns=lambda col: f"test_{col}" if col != "global_step" else col,
+    )
+
+    # Merge on 'global_step'
+    merged_df: pd.DataFrame = df_dev_renamed.merge(
+        right=df_test_renamed,
+        on="global_step",
+        how="inner",
+    )
+
+    return merged_df
+
+
+def dummy_plot_evaluation_metrics(
+    df: pd.DataFrame,
+    plot_config: list[dict[str, Any]] | None = None,
+    filename: str = "plot.pdf",
+) -> None:
+    """Plot evaluation metrics based on a configurable plot specification.
+
+    This function is designed for quickly visualizing the loaded metrics.
+    For the actual plotting, we use our more general function plot_performance_metrics,
+    which in addition to the metrics plots the local estimates distributions.
+
+    The function assumes that the DataFrame 'df' has a numeric 'global_step' column.
+    The plot_config argument allows you to specify multiple subplots. Each configuration
+    dictionary should contain:
+      - 'title': Title of the subplot.
+      - 'ylabel': Label for the y-axis.
+      - 'columns': A list of tuples, each tuple containing (column_name, label) to be plotted.
+
+    By default, it plots 'dev_loss' vs 'global_step' and 'test_loss' vs 'global_step' in one subplot,
+    and 'dev_eval_accuracy_goal' vs 'global_step' and 'test_eval_accuracy_goal' vs 'global_step' in another subplot.
+
+    Args:
+        df (pd.DataFrame): Merged evaluation DataFrame with a numeric 'global_step' column.
+        plot_config (Optional[List[Dict[str, Any]]]): Configuration for the subplots.
+            Defaults to plotting losses and eval_accuracy_goal.
+        filename (str): Filename to save the plot. Default is 'plot.png'.
+
+    Returns:
+        None: The plot is saved to disk and displayed.
+
+    """
+    # Define default configuration if none provided
+    if plot_config is None:
+        plot_config = [
+            {
+                "title": "Loss vs Global Step",
+                "ylabel": "Loss",
+                "columns": [("dev_loss", "dev_loss"), ("test_loss", "test_loss")],
+            },
+            {
+                "title": "Eval Accuracy Goal vs Global Step",
+                "ylabel": "Eval Accuracy Goal",
+                "columns": [
+                    ("dev_eval_accuracy_goal", "dev_eval_accuracy_goal"),
+                    ("test_eval_accuracy_goal", "test_eval_accuracy_goal"),
+                ],
+            },
+        ]
+
+    n_plots = len(plot_config)
+    (
+        fig,
+        axes,
+    ) = plt.subplots(
+        1,
+        n_plots,
+        figsize=(7 * n_plots, 6),
+    )
+
+    # Ensure axes is a list (even if only one subplot is created)
+    if n_plots == 1:
+        axes = [axes]
+
+    for ax, config in zip(
+        axes,
+        plot_config,
+        strict=True,
+    ):
+        for col, label in config["columns"]:
+            ax.plot(
+                df["global_step"],
+                df[col],
+                label=label,
+                marker="o",
+            )
+        ax.set_xlabel("Global Step")
+        ax.set_ylabel(config["ylabel"])
+        ax.set_title(config["title"])
+        ax.legend()
+
+    plt.tight_layout()
+    plt.savefig(filename)
+
+    plt.show()
 
 
 if __name__ == "__main__":
