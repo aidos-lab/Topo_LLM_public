@@ -373,6 +373,9 @@ def save_cluster_data(
             num_samples=num_samples,
         ),
     }
+    # Note:
+    # We do not log the `data_to_save` because this will lead to very large logfiles.
+    # The data will be saved to a JSON file instead.
 
     save_file_path = pathlib.Path(
         output_dir,
@@ -394,11 +397,6 @@ def save_cluster_data(
     if verbosity >= Verbosity.NORMAL:
         logger.info(
             msg=f"Saving cluster data to {save_file_path = } DONE",  # noqa: G004 - low overhead
-        )
-
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            msg=f"data_to_save:\n{pprint.pformat(data_to_save)}",  # noqa: G004 - low overhead
         )
 
 
