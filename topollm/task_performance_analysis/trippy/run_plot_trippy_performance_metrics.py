@@ -154,25 +154,42 @@ def main(
     # Convert loaded data
 
     # Create the joined DataFrame
-    df: pd.DataFrame = create_evaluation_dataframe(
+    logfile_data_df: pd.DataFrame = create_evaluation_dataframe(
         loaded_logfile_data=loaded_logfile_data,
     )
 
     # Filter to keep only rows where global_step is numeric
-    df = df[df["global_step"].apply(lambda x: str(x).isdigit())].copy()
+    logfile_data_df = logfile_data_df[
+        logfile_data_df["global_step"].apply(
+            func=lambda x: str(x).isdigit(),
+        )
+    ].copy()
 
     # Convert global_step to integer and sort by it
-    df["global_step"] = df["global_step"].astype(
+    logfile_data_df["global_step"] = logfile_data_df["global_step"].astype(
         dtype=int,
     )
-    df = df.sort_values(
+    logfile_data_df = logfile_data_df.sort_values(
         by="global_step",
     )
 
-    # Plot using the default configuration
-    dummy_plot_evaluation_metrics(
-        df=df,
-        filename="plot.pdf",
+    if logfile_data_df.empty:
+        global_logger.warning(
+            msg="The processed logfile_data_df is empty after filtering.",
+        )
+
+    # Create a debug plot and save to the log file directory.
+    # This is useful for quickly checking the loaded data.
+    debug_plot_save_file_path: pathlib.Path = pathlib.Path(
+        main_config.language_model.model_log_file_path,
+        "plots",
+        "debug_plot_evaluation_metrics.pdf",
+    )
+    debug_plot_evaluation_metrics(
+        df=logfile_data_df,
+        plot_config=None,
+        show_plot=False,
+        save_file_path=debug_plot_save_file_path,
     )
 
     # ================================================== #
@@ -359,10 +376,12 @@ def create_evaluation_dataframe(
     return merged_df
 
 
-def dummy_plot_evaluation_metrics(
+def debug_plot_evaluation_metrics(
     df: pd.DataFrame,
     plot_config: list[dict[str, Any]] | None = None,
-    filename: str = "plot.pdf",
+    *,
+    show_plot: bool = False,
+    save_file_path: pathlib.Path | None = None,
 ) -> None:
     """Plot evaluation metrics based on a configurable plot specification.
 
@@ -413,8 +432,8 @@ def dummy_plot_evaluation_metrics(
         fig,
         axes,
     ) = plt.subplots(
-        1,
-        n_plots,
+        nrows=1,
+        ncols=n_plots,
         figsize=(7 * n_plots, 6),
     )
 
@@ -440,9 +459,18 @@ def dummy_plot_evaluation_metrics(
         ax.legend()
 
     plt.tight_layout()
-    plt.savefig(filename)
 
-    plt.show()
+    if save_file_path is not None:
+        save_file_path.parent.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+        plt.savefig(
+            save_file_path,
+        )
+
+    if show_plot:
+        plt.show()
 
 
 if __name__ == "__main__":
