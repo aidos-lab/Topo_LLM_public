@@ -48,7 +48,7 @@ def get_convert_dataset_entry_to_features_function(
             dataset_entry_to_features_function = convert_dataset_entry_to_features
         case DatasetType.HUGGINGFACE_DATASET_NAMED_ENTITY:
             dataset_entry_to_features_function = convert_dataset_entry_to_features_named_entity
-        case DatasetType.SETSUMBT_DATALOADERS_PROCESSED:
+        case DatasetType.SETSUMBT_DATALOADERS_PROCESSED | DatasetType.TRIPPY_DATALOADERS_PROCESSED:
             # In this mode, the dataset entries are already tokenized and can be directly used as features.
             dataset_entry_to_features_function = convert_dataset_entry_to_features_do_nothing
         case _:

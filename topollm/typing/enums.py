@@ -77,9 +77,11 @@ class JobRunMode(StrEnum):
 class DatasetType(StrEnum):
     """The different types of datasets."""
 
-    SETSUMBT_DATALOADERS_PROCESSED = auto()
     HUGGINGFACE_DATASET = auto()
     HUGGINGFACE_DATASET_NAMED_ENTITY = auto()
+
+    SETSUMBT_DATALOADERS_PROCESSED = auto()
+    TRIPPY_DATALOADERS_PROCESSED = auto()
 
 
 # ==============================

@@ -35,6 +35,7 @@ from topollm.data_handling.dataset_filtering.factory import get_dataset_filter
 from topollm.data_handling.dataset_preparer import (
     dataset_preparer_huggingface,
     dataset_preparer_setsumbt_dataloaders_processed,
+    dataset_preparer_trippy_dataloaders_processed,
 )
 from topollm.data_handling.dataset_preparer.protocol import DatasetPreparer
 from topollm.data_handling.dataset_splitter.factory import get_dataset_splitter
@@ -106,10 +107,24 @@ def get_dataset_preparer(
                 verbosity=verbosity,
                 logger=logger,
             )
+        case DatasetType.TRIPPY_DATALOADERS_PROCESSED:
+            result = dataset_preparer_trippy_dataloaders_processed.DatasetPreparerTrippyDataloadersProcessed(
+                data_config=data_config,
+                dataset_filter=dataset_filter,
+                dataset_splitter=dataset_splitter,
+                dataset_subsampler=dataset_subsampler,
+                verbosity=verbosity,
+                logger=logger,
+            )
         case _:
             msg: str = f"Unsupported {data_config.dataset_type = }"
             raise ValueError(
                 msg,
             )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Using {result.__class__.__name__ = } as dataset preparer.",  # noqa: G004 - low overhead
+        )
 
     return result

@@ -42,7 +42,7 @@ def stack_tensors_from_dialogues_and_filter_fully_padded_utterances(
     dataloader_processed: dict,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
-) -> dict:
+) -> dict[str, torch.Tensor | list]:
     """Concatenate the tensors of the individual dialogues and filter fully padded utterances.
 
     This function also replicates the dialogue-ids so that each utterance has a dialogue-id from which it originates.
@@ -57,7 +57,7 @@ def stack_tensors_from_dialogues_and_filter_fully_padded_utterances(
     # We want to iterate over the first dimension (8438),
     # then for each dialogue over the second dimension (12) with the turns,
     # and select only those utterances where the attention mask is non-zero.
-    for index, (
+    for _index, (
         dialogue_id,
         input_ids_dialogue,
         attention_mask,
@@ -69,7 +69,7 @@ def stack_tensors_from_dialogues_and_filter_fully_padded_utterances(
             strict=True,
         ),
     ):
-        for turn_index, (
+        for _turn_index, (
             input_ids_turn,
             attention_mask_turn,
         ) in enumerate(
@@ -101,27 +101,27 @@ def stack_tensors_from_dialogues_and_filter_fully_padded_utterances(
             msg=f"{len(dialogue_ids_to_concatenate) = }",  # noqa: G004 - low overhead
         )
 
-    # Stack the tensors of the individual turns
-    input_ids_concatenated: torch.Tensor = torch.stack(
+    # Stack the tensors of the individual turns into a single tensor.
+    input_ids_stacked: torch.Tensor = torch.stack(
         tensors=input_ids_to_stack,
         dim=0,
     )
-    attention_masks_concatenated: torch.Tensor = torch.stack(
+    attention_masks_stacked: torch.Tensor = torch.stack(
         tensors=attention_masks_to_stack,
         dim=0,
     )
 
     if verbosity >= Verbosity.NORMAL:
         logger.info(
-            msg=f"{input_ids_concatenated.shape = }",  # noqa: G004 - low overhead
+            msg=f"{input_ids_stacked.shape = }",  # noqa: G004 - low overhead
         )
         logger.info(
-            msg=f"{attention_masks_concatenated.shape = }",  # noqa: G004 - low overhead
+            msg=f"{attention_masks_stacked.shape = }",  # noqa: G004 - low overhead
         )
 
-    result = {
-        "input_ids": input_ids_concatenated,
-        "attention_mask": attention_masks_concatenated,
+    result: dict[str, torch.Tensor | list] = {
+        "input_ids": input_ids_stacked,
+        "attention_mask": attention_masks_stacked,
         "dialogue_ids": dialogue_ids_to_concatenate,
     }
 
