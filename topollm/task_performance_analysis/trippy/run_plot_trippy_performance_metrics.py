@@ -25,8 +25,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Parse a SETSUMBT JSONL log file and create a plot of performance metrics versus checkpoints."""
+"""Create plots of the Trippy performance metrics."""
 
+import json
 import logging
 import pathlib
 import pickle
@@ -45,9 +46,6 @@ from topollm.path_management.embeddings.factory import get_embeddings_path_manag
 from topollm.task_performance_analysis.plotting.plot_performance_metrics import plot_performance_metrics
 from topollm.task_performance_analysis.plotting.run_create_distribution_plots_of_local_estimates_over_checkpoints_and_over_layers import (
     construct_plots_over_checkpoints_output_dir_from_filter_key_value_pairs,
-)
-from topollm.task_performance_analysis.setsumbt.parse_setsumbt_run_jsonl_log_file import (
-    parse_setsumbt_run_jsonl_log_file,
 )
 from topollm.typing.enums import DescriptionType, Verbosity
 
@@ -100,23 +98,51 @@ def main(
     array_key_name: str = "file_data"
 
     # ================================================== #
-    # Parse the SetSUMBT log file and print a summary of the DataFrame.
+    # Load performance log files
     # ================================================== #
 
     if main_config.language_model.model_log_file_path is None:
         logger.error(
-            msg="The path to the SETSUMBT log file is not set in the configuration.",
+            msg="The path to the log file is not set in the configuration.",
         )
         return
 
-    log_filepath = pathlib.Path(
-        main_config.language_model.model_log_file_path,
-    )
+    # Construct paths to the log files.
+    # Note: For the Trippy models, we have separate log files
+    # for the dev and test sets.
+    log_filepath_dict: dict[str, pathlib.Path] = {
+        "dev": pathlib.Path(
+            main_config.language_model.model_log_file_path,
+            "eval_res.dev.json",
+        ),
+        "test": pathlib.Path(
+            main_config.language_model.model_log_file_path,
+            "eval_res.test.json",
+        ),
+    }
 
     try:
-        parsed_df: pd.DataFrame = parse_setsumbt_run_jsonl_log_file(
-            file_path=log_filepath,
-        )
+        loaded_logfile_data: dict[str, list[dict]] = {}
+
+        for split_name, log_filepath in log_filepath_dict.items():
+            if verbosity >= Verbosity.NORMAL:
+                logger.info(
+                    msg=f"Loading log file for {split_name = }: {log_filepath = } ...",  # noqa: G004 - low overhead
+                )
+
+            # Load the log file (which is a list of dictionaries).
+            with log_filepath.open(
+                mode="r",
+            ) as f:
+                log_data: list[dict] = json.load(
+                    fp=f,
+                )
+                loaded_logfile_data[split_name] = log_data
+
+            if verbosity >= Verbosity.NORMAL:
+                logger.info(
+                    msg=f"Loading log file for {split_name = }: {log_filepath = } DONE",  # noqa: G004 - low overhead
+                )
     except FileNotFoundError as e:
         logger.exception(
             msg=f"Error reading log file: {e}",  # noqa: G004 - low overhead
@@ -124,36 +150,12 @@ def main(
         return
 
     # ================================================== #
-    # Saved parsed DataFrame
-    # ================================================== #
-
-    output_root_dir: pathlib.Path = pathlib.Path(
-        embeddings_path_manager.saved_plots_dir_absolute_path,
-        "task_performance_analysis",
-        "model_performance_metrics",
-        main_config.language_model.get_config_description(
-            description_type=DescriptionType.LONG,
-        ),
-    )
-    output_root_dir.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
-
-    output_file_path: pathlib.Path = pathlib.Path(
-        output_root_dir,
-        "parsed_setsumbt_run_df.csv",
-    )
-    parsed_df.to_csv(
-        path_or_buf=output_file_path,
-        index=False,
-    )
-
-    # ================================================== #
     # Optional:
     # Load the local estimates distributions
     # which can be added to the performance plots.
     # ================================================== #
+
+    # TODO: Load the correct local estimates distributions
 
     # Note:
     # In the future, we might want to fill in the values in the dict here from the config.
@@ -180,6 +182,7 @@ def main(
         plots_over_checkpoints_output_dir,
         "sorted_data_list_of_dicts_with_arrays.pkl",
     )
+
     if verbosity >= Verbosity.NORMAL:
         logger.info(
             msg=f"Trying to load sorted data from {sorted_data_output_file_path = } ...",  # noqa: G004 - low overhead
@@ -214,6 +217,9 @@ def main(
     # ================================================== #
     # Create plot of the performance
     # ================================================== #
+
+    # TODO: Make the logfile format compatible with our plotting function
+    # TODO: Plot the correct metrics
 
     # Specify which columns to plot on the primary and secondary axes.
     primary_metrics: list[str] = [
