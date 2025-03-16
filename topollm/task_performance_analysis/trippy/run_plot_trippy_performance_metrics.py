@@ -198,17 +198,17 @@ def main(
     # which can be added to the performance plots.
     # ================================================== #
 
-    # TODO: Load the correct local estimates distributions
-
     # Note:
     # In the future, we might want to fill in the values in the dict here from the config.
     filter_key_value_pairs: dict = {
-        "tokenizer_add_prefix_space": "False",
-        "data_full": "data=setsumbt_dataloaders_processed_0_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags",
+        "data_full": "data=trippy_dataloaders_processed_multiwoz21_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags",
         "data_subsampling_full": "split=dev_samples=10000_sampling=random_sampling-seed=778",
+        "data_dataset_seed": "None",
         "model_layer": -1,
-        "model_partial_name": "model=roberta-base-setsumbt_multiwoz21",
+        "model_partial_name": "model=roberta-base-trippy_multiwoz21",
         "model_seed": main_config.language_model.seed,
+        "local_estimates_desc_full": "desc=twonn_samples=60000_zerovec=keep_dedup=array_deduplicator_noise=do_nothing",
+        "tokenizer_add_prefix_space": "False",
     }
 
     # We saved the local estimates distributions in the plots over checkpoints directory.
@@ -261,36 +261,29 @@ def main(
     # Create plot of the performance
     # ================================================== #
 
-    # TODO: Make the logfile format compatible with our plotting function
-    # TODO: Plot the correct metrics
-
     # Specify which columns to plot on the primary and secondary axes.
     primary_metrics: list[str] = [
-        "loss",
-        "Joint Goal Accuracy",
-        "Slot F1 Score",
-        "Slot Precision",
-        "Slot Recall",
+        "dev_eval_accuracy_goal",
+        "test_eval_accuracy_goal",
     ]
     secondary_metrics: list[str] = [
-        "Joint Goal ECE",
-        "Joint Goal L2-Error",
-        "Joint Goal L2-Error Ratio",
+        "dev_loss",
+        "test_loss",
     ]
 
     highlight_columns: list[str] = [
-        "Joint Goal Accuracy",
-        "Slot F1 Score",
-        "Slot Precision",
-        "Slot Recall",
+        "dev_eval_accuracy_goal",
+        "test_eval_accuracy_goal",
+        "dev_loss",
+        "test_loss",
     ]
 
     # Call the plotting function.
     # Leave primary_ylim and secondary_ylim as None for auto-scaling,
     # or supply a tuple (min, max) if you want fixed limits.
     plot_performance_metrics(
-        df=parsed_df,
-        x_col="checkpoint",
+        df=logfile_data_df,
+        x_col="global_step",
         primary_y_cols=primary_metrics,
         secondary_y_cols=secondary_metrics,
         title="Development of Performance Metrics through Checkpoints",
@@ -299,7 +292,7 @@ def main(
         secondary_ylabel="Metric (Secondary Scale)",
         primary_ylim=None,  # e.g., None for auto
         secondary_ylim=None,  # e.g., None for auto
-        output_root_dir=output_root_dir,
+        output_root_dir=plots_over_checkpoints_output_dir,
         figsize=(
             20,
             14,
