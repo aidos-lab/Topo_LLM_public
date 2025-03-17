@@ -2155,6 +2155,40 @@
             }
         },
         {
+            "name": "Task performance analysis - Local debugging - Plot Trippy performance metrics",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/task_performance_analysis/trippy/run_plot_trippy_performance_metrics.py",
+            "console": "integratedTerminal",
+            "args": [
+                // >>>> START: Hydra options
+                "--multirun",
+                "hydra/sweeper=basic",
+                "hydra/launcher=basic",
+                // "hydra/launcher=hpc_submission",
+                // "hydra.launcher.queue=CUDA",
+                // "hydra.launcher.template=RTX6000",
+                // "hydra.launcher.memory=32",
+                // "hydra.launcher.ncpus=4",
+                // "hydra.launcher.ngpus=1",
+                // "hydra.launcher.walltime=00:10:00", // <-- The logging script should run very quickly.
+                // >>>> END: Hydra options
+                //
+                "tokenizer.add_prefix_space=False", // "tokenizer.add_prefix_space=True" is necessary to use the tokenizer with input split into words
+                //
+                //    >> START: Model options.
+                //
+                "language_model=roberta-base-trippy_multiwoz21",
+                "language_model.seed=42",
+                // "language_model.checkpoint_no=3549", // Note: The checkpoint_no should not matter for this script. 
+                //
+                //    >> END: Model options.
+            ],
+            "env": {
+                "PYTORCH_ENABLE_MPS_FALLBACK": "1"
+            }
+        },
+        {
             "name": "Load dataloaders - Local debugging - try_out_load_dataloader_processed.py",
             "type": "debugpy",
             "request": "launch",
