@@ -57,6 +57,9 @@ for VARIABLE_NAME in "${VARIABLES_TO_LOG_LIST[@]}"; do
     echo "💡 ${VARIABLE_NAME}=${!VARIABLE_NAME}"
 done
 
+# # # # # # # # # # # # # # # # # # # # # # # # #
+# Sync data using rsync
+
 echo ">>> Starting rsync ..."
 
 # Following rsync instructions from:

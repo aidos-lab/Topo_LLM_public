@@ -1,8 +1,13 @@
 #!/bin/bash
 
+# # # # #
+# This script copies data from the gpfs project directory to the gpfs user directory.
+#
+# Notes:
+# - This script should be run of the storage node on the cluster.
+
 set -e # Exit immediately if a command exits with a non-zero status.
 
-# This script copies data from the gpfs project directory to the gpfs user directory.
 
 # Check if TOPO_LLM_REPOSITORY_BASE_PATH is set
 if [[ -z "${TOPO_LLM_REPOSITORY_BASE_PATH}" ]]; then
