@@ -1,0 +1,23 @@
+defaults:
+  - data_splitting: do_nothing
+  - data_subsampling: train_split_and_random
+  - _self_
+
+data_subsampling:
+  number_of_samples: -1
+  split: train
+
+column_name: input_ids
+context: dataset_entry
+# Notes:
+# - For the Trippy-R dataloaders, we currently do not have a dataset_seed 
+dataset_description_string: trippy_r_dataloaders_processed_${data.dataset_selection_description_string}
+
+dataset_selection_description_string: multiwoz21
+
+dataset_type: trippy_dataloaders_processed
+
+# data_dir is currently unused for the setsumbt_dataloaders_processed dataset
+data_dir: ${paths.data_dir}/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/post_processed_cached_features/${data.dataset_selection_description_string}
+# The dataset_path will be used to load the dataloader from the disk
+dataset_path: ${paths.data_dir}/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/post_processed_cached_features/${data.dataset_selection_description_string}/${data.data_subsampling.split}_processed_cached_features.pt
