@@ -33,24 +33,22 @@ so we need to download the datasets and models to our local machines and then co
 
 import argparse
 import logging
-import os
 import pathlib
-import subprocess
 
 import datasets
 import transformers
 from tqdm import tqdm
 
-from topollm.logging.log_list_info import log_list_info
 from topollm.logging.setup_exception_logging import setup_exception_logging
-from topollm.typing.enums import Verbosity
 
-global_logger = logging.getLogger(__name__)
+global_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 global_logger.setLevel(
-    logging.INFO,
+    level=logging.INFO,
 )
 logging_formatter = logging.Formatter(
-    "%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s",
+    fmt="%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s",
 )
 
 logging_file_path = pathlib.Path(
@@ -59,36 +57,42 @@ logging_file_path = pathlib.Path(
     f"{pathlib.Path(__file__).stem}.log",
 )
 pathlib.Path.mkdir(
-    logging_file_path.parent,
+    self=logging_file_path.parent,
     parents=True,
     exist_ok=True,
 )
 
 logging_file_handler = logging.FileHandler(
-    logging_file_path,
+    filename=logging_file_path,
 )
 logging_file_handler.setFormatter(
-    logging_formatter,
+    fmt=logging_formatter,
 )
 global_logger.addHandler(
-    logging_file_handler,
+    hdlr=logging_file_handler,
 )
 
 logging_console_handler = logging.StreamHandler()
-logging_console_handler.setFormatter(logging_formatter)
-global_logger.addHandler(logging_console_handler)
+logging_console_handler.setFormatter(
+    fmt=logging_formatter,
+)
+global_logger.addHandler(
+    hdlr=logging_console_handler,
+)
 
 
 setup_exception_logging(
     logger=global_logger,
 )
 
-default_logger = logging.getLogger(__name__)
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 def main() -> None:
     """Run through downloads."""
-    logger = global_logger
+    logger: logging.Logger = global_logger
 
     args: argparse.Namespace = get_command_line_arguments()
 
@@ -97,10 +101,23 @@ def main() -> None:
         desc="Iterating over dataset names",
     ):
         logger.info(
-            f"Downloading {dataset_name = } into huggingface transformers cache ...",  # noqa: G004 - low overhead
+            msg=f"Downloading {dataset_name = } into huggingface transformers cache ...",  # noqa: G004 - low overhead
         )
 
-        name = "comments" if dataset_name == "SocialGrep/one-year-of-tsla-on-reddit" else None
+        match dataset_name:
+            case "SocialGrep/one-year-of-tsla-on-reddit":
+                name = "comments"
+            case "wikitext":
+                name = "wikitext-103-v1"
+            case _:
+                name = None
+                logger.info(
+                    msg=f"No specific name necessary, using {name = } for {dataset_name = }.",  # noqa: G004 - low overhead
+                )
+
+        logger.info(
+            msg=f"{dataset_name = }; {name = }",  # noqa: G004 - low overhead
+        )
 
         dataset = datasets.load_dataset(
             path=dataset_name,
@@ -109,11 +126,11 @@ def main() -> None:
             trust_remote_code=True,
         )
         logger.info(
-            dataset,
+            msg=f"dataset:\n{dataset}",  # noqa: G004 - low overhead
         )
 
         logger.info(
-            f"Downloading {dataset_name = } into huggingface transformers cache DONE",  # noqa: G004 - low overhead
+            msg=f"Downloading {dataset_name = } into huggingface transformers cache DONE",  # noqa: G004 - low overhead
         )
 
     for model_name in tqdm(
@@ -121,7 +138,7 @@ def main() -> None:
         desc="Iterating over model names",
     ):
         logger.info(
-            f"Downloading {model_name = } into huggingface transformers cache ...",  # noqa: G004 - low overhead
+            msg=f"Downloading {model_name = } into huggingface transformers cache ...",  # noqa: G004 - low overhead
         )
 
         model = transformers.AutoModel.from_pretrained(
@@ -129,11 +146,11 @@ def main() -> None:
             force_download=True,
         )
         logger.info(
-            model,
+            msg=f"model:\n{model}",  # noqa: G004 - low overhead
         )
 
         logger.info(
-            f"Downloading {model_name = } into huggingface transformers cache DONE",  # noqa: G004 - low overhead
+            msg=f"Downloading {model_name = } into huggingface transformers cache DONE",  # noqa: G004 - low overhead
         )
 
 
@@ -164,7 +181,7 @@ def get_command_line_arguments() -> argparse.Namespace:
         help="Names of the models.",
     )
 
-    args = parser.parse_args()
+    args: argparse.Namespace = parser.parse_args()
     return args
 
 

@@ -28,6 +28,7 @@
 """Parse the log file of EmoLoop's ContextBERT ERToD model training run and plot F1 scores."""
 
 import json
+import logging
 import os
 import pathlib
 import re
@@ -35,6 +36,19 @@ import re
 import matplotlib.pyplot as plt
 
 from topollm.config_classes.constants import TOPO_LLM_REPOSITORY_BASE_PATH
+from topollm.logging.setup_exception_logging import setup_exception_logging
+
+# Logger for this file
+global_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
+
+setup_exception_logging(
+    logger=global_logger,
+)
 
 # Define metric names corresponding to the six scores in each f1_scores list.
 METRIC_NAMES: list[str] = [
@@ -45,6 +59,122 @@ METRIC_NAMES: list[str] = [
     "Macro F1 (with Neutral)",
     "Weighted F1 (with Neutral)",
 ]
+
+
+def main() -> None:
+    """Run main function."""
+    logger: logging.Logger = global_logger
+    logger.info(
+        msg="Running script ...",
+    )
+
+    for use_context in [
+        True,
+        False,
+    ]:
+        # Define the file paths.
+        model_training_runs_output_dir: pathlib.Path = pathlib.Path(
+            TOPO_LLM_REPOSITORY_BASE_PATH,
+            "data/models/EmoLoop/output_dir/debug=-1/",
+            f"use_context={use_context}",
+            "ep=5",
+        )
+
+        match use_context:
+            case True:
+                seed_range = range(42, 47)
+            case False:
+                seed_range = range(50, 54)
+            case _:
+                msg = f"Invalid value: {use_context = }"
+                raise ValueError(
+                    msg,
+                )
+
+        for seed in seed_range:
+            single_training_run_parent_dir = pathlib.Path(
+                model_training_runs_output_dir,
+                f"seed={seed}",
+            )
+
+            process_log_file_of_single_model_training_run(
+                single_training_run_parent_dir=single_training_run_parent_dir,
+            )
+
+    logger.info(
+        msg="Running script DONE",
+    )
+
+
+def process_log_file_of_single_model_training_run(
+    single_training_run_parent_dir: os.PathLike,
+) -> None:
+    log_file_path: pathlib.Path = pathlib.Path(
+        single_training_run_parent_dir,
+        "log.txt",
+    )
+
+    json_output_path: pathlib.Path = pathlib.Path(
+        single_training_run_parent_dir,
+        "scores.json",
+    )
+
+    plots_output_dir: pathlib.Path = pathlib.Path(
+        single_training_run_parent_dir,
+        "plots",
+    )
+    plots_output_dir.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    # # # #
+    # Parse the log file from disk.
+    scores_data: dict[int, dict[str, list[float]]] = parse_log(
+        file_path=log_file_path,
+    )
+    print("Parsed F1 scores per epoch:")
+    for epoch, scores in scores_data.items():
+        print(f"Epoch {epoch}: {scores}")
+
+    # Save the extracted scores to a JSON file.
+    save_scores_to_json(
+        scores=scores_data,
+        output_file=json_output_path,
+    )
+
+    print(
+        f"Scores saved to {json_output_path = }",
+    )
+
+    # Compute and print combined validation F1 scores per epoch.
+    print("Combined validation F1 scores per epoch:")
+    for epoch in sorted(scores_data.keys()):
+        combined_without = compute_combined(scores_data[epoch]["validation"], 0, 3)
+        combined_with = compute_combined(scores_data[epoch]["validation"], 3, 6)
+        print(
+            f"Epoch {epoch}: Combined (w/o Neutral): {combined_without:.4f}, Combined (with Neutral): {combined_with:.4f}"
+        )
+
+    # Plot the validation F1 scores.
+    plot_f1_scores(
+        epoch_data=scores_data,
+        set_type="validation",
+        plots_output_dir=plots_output_dir,
+        mark_best=True,
+        plot_combined=True,
+        show_plot=False,
+    )
+
+    # Plot the test F1 scores.
+    plot_f1_scores(
+        epoch_data=scores_data,
+        set_type="test",
+        plots_output_dir=plots_output_dir,
+        mark_best=True,
+        plot_combined=True,
+        show_plot=False,
+    )
 
 
 def parse_log(
@@ -64,6 +194,8 @@ def parse_log(
     """
     epoch_data: dict[int, dict[str, list[float]]] = {}
     current_epoch: int | None = None
+
+    print(f"Parsing log file: {file_path = }")
 
     with open(file_path, "r") as f:
         for line in f:
@@ -201,96 +333,6 @@ def plot_f1_scores(
 
     if show_plot:
         plt.show()
-
-
-def main() -> None:
-    # # # #
-    # Define the file paths.
-    model_training_runs_output_dir: pathlib.Path = pathlib.Path(
-        TOPO_LLM_REPOSITORY_BASE_PATH,
-        "data/models/EmoLoop/output_dir",
-    )
-
-    for seed in range(42, 47):
-        single_training_run_parent_dir = pathlib.Path(
-            model_training_runs_output_dir,
-            f"ep=5/seed={seed}",
-        )
-
-        process_log_file_of_single_model_training_run(
-            single_training_run_parent_dir=single_training_run_parent_dir,
-        )
-
-
-def process_log_file_of_single_model_training_run(
-    single_training_run_parent_dir: os.PathLike,
-) -> None:
-    log_file_path: pathlib.Path = pathlib.Path(
-        single_training_run_parent_dir,
-        "log.txt",
-    )
-
-    json_output_path: pathlib.Path = pathlib.Path(
-        single_training_run_parent_dir,
-        "scores.json",
-    )
-
-    plots_output_dir: pathlib.Path = pathlib.Path(
-        single_training_run_parent_dir,
-        "plots",
-    )
-    plots_output_dir.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
-
-    # # # #
-    # Parse the log file from disk.
-    scores_data: dict[int, dict[str, list[float]]] = parse_log(
-        file_path=log_file_path,
-    )
-    print("Parsed F1 scores per epoch:")
-    for epoch, scores in scores_data.items():
-        print(f"Epoch {epoch}: {scores}")
-
-    # Save the extracted scores to a JSON file.
-    save_scores_to_json(
-        scores=scores_data,
-        output_file=json_output_path,
-    )
-
-    print(
-        f"Scores saved to {json_output_path = }",
-    )
-
-    # Compute and print combined validation F1 scores per epoch.
-    print("Combined validation F1 scores per epoch:")
-    for epoch in sorted(scores_data.keys()):
-        combined_without = compute_combined(scores_data[epoch]["validation"], 0, 3)
-        combined_with = compute_combined(scores_data[epoch]["validation"], 3, 6)
-        print(
-            f"Epoch {epoch}: Combined (w/o Neutral): {combined_without:.4f}, Combined (with Neutral): {combined_with:.4f}"
-        )
-
-    # Plot the validation F1 scores.
-    plot_f1_scores(
-        epoch_data=scores_data,
-        set_type="validation",
-        plots_output_dir=plots_output_dir,
-        mark_best=True,
-        plot_combined=True,
-        show_plot=False,
-    )
-
-    # Plot the test F1 scores.
-    plot_f1_scores(
-        epoch_data=scores_data,
-        set_type="test",
-        plots_output_dir=plots_output_dir,
-        mark_best=True,
-        plot_combined=True,
-        show_plot=False,
-    )
 
 
 if __name__ == "__main__":
