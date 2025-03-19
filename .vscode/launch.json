@@ -133,7 +133,7 @@
                 //
                 //    >> START: Data options.
                 //
-                // "data=multiwoz21",
+                "data=multiwoz21",
                 // "data=sgd",
                 //
                 "data.data_subsampling.split=validation",
@@ -147,9 +147,13 @@
                 // "++language_model.checkpoint_no=2813",
                 // "++language_model.checkpoint_no=2813,5626,8439",
                 //
-                "language_model=roberta-base-trippy_multiwoz21",
+                // "language_model=roberta-base-trippy_multiwoz21",
+                // "language_model.seed=42",
+                // "language_model.checkpoint_no=3549",
+                //
+                "language_model=roberta-base-trippy_r_multiwoz21",
                 "language_model.seed=42",
-                "language_model.checkpoint_no=3549",
+                "language_model.checkpoint_no=3550",
                 //
                 //    >> END: Model options.
                 //
@@ -174,7 +178,7 @@
             }
         },
         {
-            "name": "Run pipeline - Local debugging - TwoNN; Stored dataloaders, SetSUMBT-dataloaders, Trippy-dataloaders; - Run pipeline.",
+            "name": "Run pipeline - Local debugging - TwoNN; Stored dataloaders: SetSUMBT-dataloaders, Trippy-dataloaders, Trippy-R-dataloaders; - Run pipeline.",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
@@ -203,10 +207,13 @@
                 // "data.data_subsampling.split=dev",
                 // "data.data_subsampling.split=test",
                 //
-                "data=trippy_dataloaders_processed",
+                // "data=trippy_dataloaders_processed",
                 // "data.data_subsampling.split=train",
-                "data.data_subsampling.split=dev",
+                // "data.data_subsampling.split=dev",
                 // "data.data_subsampling.split=test",
+                //
+                "data=trippy_r_dataloaders_processed",
+                "data.data_subsampling.split=train",
                 //
                 "data.data_subsampling.sampling_mode=random",
                 "data.data_subsampling.number_of_samples=512",
@@ -222,9 +229,13 @@
                 // "language_model.checkpoint_no=2813,5626,8439", // <-- locally, we have these checkpoints available for "language_model.seed=0"
                 // "language_model.checkpoint_no=109707", // <-- locally, we have these checkpoints available for "language_model.seed=1"
                 //
-                "language_model=roberta-base-trippy_multiwoz21",
+                // "language_model=roberta-base-trippy_multiwoz21",
+                // "language_model.seed=42",
+                // "language_model.checkpoint_no=3549",
+                //
+                "language_model=roberta-base-trippy_r_multiwoz21",
                 "language_model.seed=42",
-                "language_model.checkpoint_no=3549",
+                "language_model.checkpoint_no=3550",
                 //
                 //    >> END: Model options.
                 //
@@ -311,7 +322,7 @@
             }
         },
         {
-            "name": "Run pipeline - HHU Hilbert HPC submission - TwoNN; RoBERTa, BERT, ContextBERT-ERToD, SetSUMBT, Trippy checkpoints; last layer only - Run pipeline.",
+            "name": "Run pipeline - HHU Hilbert HPC submission - TwoNN; RoBERTa, BERT, ContextBERT-ERToD, SetSUMBT, Trippy, Trippy-R checkpoints; last layer only - Run pipeline.",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
@@ -352,18 +363,22 @@
                 // "data.dataset_seed=0",
                 //
                 // >>>> Trippy datasets
-                "data=trippy_dataloaders_processed",
+                // "data=trippy_dataloaders_processed",
                 //
-                // "data.data_subsampling.split=train",
+                // >>>> Trippy-R datasets
+                "data=trippy_r_dataloaders_processed",
+                //
+                "data.data_subsampling.split=train",
                 // "data.data_subsampling.split=dev",
                 // "data.data_subsampling.split=validation",
                 // "data.data_subsampling.split=test",
-                "data.data_subsampling.split=train,dev,test",
+                // "data.data_subsampling.split=train,dev,test",
                 // "data.data_subsampling.split=train,validation,test",
                 //
                 "data.data_subsampling.sampling_mode=random",
                 "data.data_subsampling.number_of_samples=10000",
-                "data.data_subsampling.sampling_seed=778",
+                // "data.data_subsampling.sampling_seed=778",
+                "data.data_subsampling.sampling_seed=778,779,780",
                 //
                 //    >> END: Data options.
                 //
@@ -392,11 +407,19 @@
                 // "language_model.seed=2",
                 // "language_model.checkpoint_no=2813,5626,8439,11252,14065,16878,19691,22504,28130,30943,33756,42195,50634,67512,106894,126585", // <-- checkpoints for "language_model.seed=2"
                 //
-                "language_model=roberta-base-trippy_multiwoz21",
-                "++language_model.seed=42",
+                // >>>> Trippy models
+                // "language_model=roberta-base-trippy_multiwoz21",
+                // "++language_model.seed=42",
                 // "++language_model.checkpoint_no=3549",
                 // "++language_model.checkpoint_no=3549,7098",
-                "++language_model.checkpoint_no=3549,7098,10647,14196,17745,21294,24843,28392,31941,35490",
+                // "++language_model.checkpoint_no=3549,7098,10647,14196,17745,21294,24843,28392,31941,35490",
+                //
+                // >>>> Trippy-R models
+                "language_model=roberta-base-trippy_r_multiwoz21",
+                "language_model.seed=42",
+                // "language_model.checkpoint_no=1775,3550",
+                "language_model.checkpoint_no=5325,7100,8875,10650,12425,14200,15975,17750,19525,21300,23075,24850,26625,28400,30175,31950,33725,35500",
+                // "language_model.checkpoint_no=1775,3550,5325,7100,8875,10650,12425,14200,15975,17750,19525,21300,23075,24850,26625,28400,30175,31950,33725,35500",
                 //
                 //    >> END: Model options.
                 //
