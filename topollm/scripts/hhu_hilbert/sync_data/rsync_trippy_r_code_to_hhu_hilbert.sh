@@ -34,15 +34,15 @@ fi
 # Check if environment variables are set
 
 if [[ -z "${TOPO_LLM_REPOSITORY_BASE_PATH}" ]]; then
-    echo "❌ Error: TOPO_LLM_REPOSITORY_BASE_PATH is not set."
-    exit 1
+  echo "❌ Error: TOPO_LLM_REPOSITORY_BASE_PATH is not set."
+  exit 1
 fi
 
 source "${TOPO_LLM_REPOSITORY_BASE_PATH}/.env"
 
 if [[ -z "${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}" ]]; then
-    echo "❌ Error: ZIM_TOPO_LLM_REPOSITORY_BASE_PATH is not set."
-    exit 1
+  echo "❌ Error: ZIM_TOPO_LLM_REPOSITORY_BASE_PATH is not set."
+  exit 1
 fi
 
 # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -65,19 +65,17 @@ done
 # - Remember the slash at the end of the source path and the destination path.
 
 SYNC_SRC=(
-    # "${REMOTE_HOST}:${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_checkpoints/"
-    # "${REMOTE_HOST}:${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints_code/"
-    # "${REMOTE_HOST}:${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/"
-    # "${REMOTE_HOST}:${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/not_domain_code/"
-    "${REMOTE_HOST}:${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints_code/"
+    "${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/DO.run_eval"
+    "${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints_code/dataset_config/multiwoz21.json"
+    "${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints_code/dataset_config/unified_multiwoz21.json"
+    "${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints_code/"
 )
 
 SYNC_DEST=(
-    # "${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_checkpoints/"
-    # "${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints_code/"
-    # "${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/"
-    # "${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/not_domain_code/"
-    "${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints_code_new/"
+    "${REMOTE_HOST}:${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/DO.run_eval"
+    "${REMOTE_HOST}:${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints_code/dataset_config/multiwoz21.json"
+    "${REMOTE_HOST}:${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints_code/dataset_config/unified_multiwoz21.json"
+    "${REMOTE_HOST}:${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints_code/"
 )
 
 # Ensure both arrays have the same number of active entries.
