@@ -21,12 +21,26 @@ data/analysis/prepared/
 data/analysis/training_and_evaluation_losses/
 data/embeddings/
 data/analysis/local_estimates/
+
+# Note: 
+# - We exclude the entire data/models/ directory, but also add specific exclusions below.
 data/models/
+
+data/models/EmoLoop/
+data/models/emoUS_v2/
 data/models/finetuned_models/
-# do not add a slash at the end, since then the symlink will be deleted on the remote machine
+# do NOT add a slash at the end of the next line, since then the symlink will be deleted on the remote machine:
 data/models/setsumbt_checkpoints
-# do not add a slash at the end, since then the symlink will be deleted on the remote machine
+
+# Trippy
+# do NOT add a slash at the end of the next line, since then the symlink will be deleted on the remote machine:
 data/models/trippy_checkpoints
+
+# Trippy-R
+data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/
+data/models/trippy_r_checkpoints/multiwoz21/not_domain/
+
+# Plots
 data/saved_plots/
 
 # Log files
