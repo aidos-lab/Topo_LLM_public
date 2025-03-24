@@ -352,7 +352,7 @@
                 // "data=sgd,one-year-of-tsla-on-reddit",
                 // "data=multiwoz21,sgd,one-year-of-tsla-on-reddit",
                 //
-                // >>>> ERC datasets
+                // >>>> EmoLoop ERC datasets
                 // "data=ertod_emowoz",
                 // "data.dataset_seed=42",
                 // "data.dataset_seed=43,44",
@@ -368,17 +368,18 @@
                 // >>>> Trippy-R datasets
                 "data=trippy_r_dataloaders_processed",
                 //
-                "data.data_subsampling.split=train",
+                // "data.data_subsampling.split=train",
                 // "data.data_subsampling.split=dev",
                 // "data.data_subsampling.split=validation",
                 // "data.data_subsampling.split=test",
+                "data.data_subsampling.split=train,test",
                 // "data.data_subsampling.split=train,dev,test",
                 // "data.data_subsampling.split=train,validation,test",
                 //
                 "data.data_subsampling.sampling_mode=random",
                 "data.data_subsampling.number_of_samples=10000",
-                // "data.data_subsampling.sampling_seed=778",
-                "data.data_subsampling.sampling_seed=778,779,780",
+                "data.data_subsampling.sampling_seed=778",
+                // "data.data_subsampling.sampling_seed=778,779,780",
                 //
                 //    >> END: Data options.
                 //
@@ -417,7 +418,9 @@
                 // >>>> Trippy-R models
                 "language_model=roberta-base-trippy_r_multiwoz21",
                 // "language_model.seed=42",
-                "language_model.seed=43,44",
+                // "language_model.seed=43",
+                // "language_model.seed=43,44",
+                "language_model.seed=42,43,44",
                 // "language_model.checkpoint_no=1775,3550",
                 // "language_model.checkpoint_no=5325,7100,8875,10650,12425,14200,15975,17750,19525,21300,23075,24850,26625,28400,30175,31950,33725,35500",
                 "language_model.checkpoint_no=1775,3550,5325,7100,8875,10650,12425,14200,15975,17750,19525,21300,23075,24850,26625,28400,30175,31950,33725,35500",
