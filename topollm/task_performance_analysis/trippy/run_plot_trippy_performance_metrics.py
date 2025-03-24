@@ -44,10 +44,10 @@ from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
-from topollm.task_performance_analysis.plotting.plot_performance_metrics import plot_performance_metrics
-from topollm.task_performance_analysis.plotting.run_create_distribution_plots_of_local_estimates_over_checkpoints_and_over_layers import (
+from topollm.task_performance_analysis.plotting.parameter_combinations_and_loaded_data_handling import (
     construct_plots_over_checkpoints_output_dir_from_filter_key_value_pairs,
 )
+from topollm.task_performance_analysis.plotting.plot_performance_metrics import plot_performance_metrics
 from topollm.typing.enums import DescriptionType, Verbosity
 
 if TYPE_CHECKING:
