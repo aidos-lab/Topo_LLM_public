@@ -139,15 +139,15 @@ def main(
         #     "local_estimates_pointwise_array.npy"
         # ),
         # # # > Splits for the Trippy saved dataloaders
-        # (
-        #     "**/"
-        #     "data=trippy_dataloaders_processed_multiwoz21_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/"
-        #     "split=*_samples=10000_sampling=random_sampling-seed=778/"
-        #     "edh-mode=regular_lvl=token/"
-        #     "add-prefix-space=False_max-len=512/"
-        #     "**/"
-        #     "local_estimates_pointwise_array.npy"
-        # ),
+        (
+            "**/"
+            "data=trippy_dataloaders_processed_multiwoz21_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/"
+            "split=*_samples=10000_sampling=random_sampling-seed=778/"
+            "edh-mode=regular_lvl=token/"
+            "add-prefix-space=False_max-len=512/"
+            "**/"
+            "local_estimates_pointwise_array.npy"
+        ),
         # # > Splits for the Trippy-R saved dataloaders
         (
             "**/"
@@ -168,15 +168,15 @@ def main(
             "local_estimates_pointwise_array.npy"
         ),
         # # # > Splits for saved ERC model dataloaders
-        # (
-        #     "**/"
-        #     "data=ertod_emowoz_*/"
-        #     "split=*_samples=10000_sampling=random_sampling-seed=778/"
-        #     "edh-mode=regular_lvl=token/"
-        #     "add-prefix-space=False_max-len=512/"
-        #     "**/"
-        #     "local_estimates_pointwise_array.npy"
-        # ),
+        (
+            "**/"
+            "data=ertod_emowoz_dataset_seed=*_debug=-1_use_context=False_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/"
+            "split=*_samples=10000_sampling=random_sampling-seed=778/"
+            "edh-mode=regular_lvl=token/"
+            "add-prefix-space=False_max-len=512/"
+            "**/"
+            "local_estimates_pointwise_array.npy"
+        ),
         # # # > Splits for the Huggingface datasets
         # (
         #     "**/"

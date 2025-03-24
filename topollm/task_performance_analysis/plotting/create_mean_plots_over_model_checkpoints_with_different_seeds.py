@@ -229,8 +229,6 @@ def plot_local_estimates(
         ]
     ].copy()
 
-    # TODO: Add the additional code utilizing the function parameters
-
     # Separate the checkpoint -1 data (no seeds associated)
     checkpoint_neg1 = plot_data[plot_data["model_checkpoint"] == -1].iloc[0]
     seeds = plot_data["model_seed"].dropna().unique().astype(int)
@@ -304,6 +302,38 @@ def plot_local_estimates(
             top=plot_size_config.y_max,
         )
 
+    if fixed_params_text is not None:
+        ax1.text(
+            x=1.05,
+            y=0.25,
+            s=f"Fixed Parameters:\n{fixed_params_text}",
+            transform=plt.gca().transAxes,
+            fontsize=6,
+            verticalalignment="top",
+            bbox={
+                "boxstyle": "round",
+                "facecolor": "wheat",
+                "alpha": 0.3,
+            },
+        )
+
+    # Add info about the base model if available into the bottom left corner of the plot
+    if base_model_model_partial_name is not None:
+        ax1.text(
+            x=0.01,
+            y=0.01,
+            s=f"{base_model_model_partial_name=}",
+            transform=plt.gca().transAxes,
+            fontsize=6,
+            verticalalignment="bottom",
+            horizontalalignment="left",
+            bbox={
+                "boxstyle": "round",
+                "facecolor": "wheat",
+                "alpha": 0.3,
+            },
+        )
+
     fig1.tight_layout()
 
     if plots_output_dir is not None:
@@ -333,7 +363,9 @@ def plot_local_estimates(
     # Aggregated over seeds
 
     if "index" in plot_data.columns:
-        plot_data = plot_data.drop(columns=["index"])
+        plot_data = plot_data.drop(
+            columns=["index"],
+        )
 
     # Summary plot with mean and standard deviation
     summary: pd.DataFrame = (
@@ -427,6 +459,38 @@ def plot_local_estimates(
     if plot_size_config.y_max is not None:
         ax2.set_ylim(
             top=plot_size_config.y_max,
+        )
+
+    if fixed_params_text is not None:
+        ax2.text(
+            x=1.05,
+            y=0.25,
+            s=f"Fixed Parameters:\n{fixed_params_text}",
+            transform=plt.gca().transAxes,
+            fontsize=6,
+            verticalalignment="top",
+            bbox={
+                "boxstyle": "round",
+                "facecolor": "wheat",
+                "alpha": 0.3,
+            },
+        )
+
+    # Add info about the base model if available into the bottom left corner of the plot
+    if base_model_model_partial_name is not None:
+        ax2.text(
+            x=0.01,
+            y=0.01,
+            s=f"{base_model_model_partial_name=}",
+            transform=plt.gca().transAxes,
+            fontsize=6,
+            verticalalignment="bottom",
+            horizontalalignment="left",
+            bbox={
+                "boxstyle": "round",
+                "facecolor": "wheat",
+                "alpha": 0.3,
+            },
         )
 
     fig2.tight_layout()
