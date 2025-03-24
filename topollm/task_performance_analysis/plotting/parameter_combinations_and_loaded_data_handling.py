@@ -158,6 +158,31 @@ def construct_plots_over_checkpoints_output_dir_from_filter_key_value_pairs(
     return plots_output_dir
 
 
+def construct_mean_plots_over_model_checkpoints_output_dir_from_filter_key_value_pairs(
+    output_root_dir: pathlib.Path,
+    filter_key_value_pairs: dict[
+        str,
+        str | int,
+    ],
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> pathlib.Path:
+    """Construct the mean plots output directory from the filter key-value pairs."""
+    plots_output_dir: pathlib.Path = pathlib.Path(
+        output_root_dir,
+        "mean_over_checkpoints_for_different_seeds",
+        dictionary_to_partial_path(
+            dictionary=filter_key_value_pairs,
+        ),
+    )
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"{plots_output_dir = }",  # noqa: G004 - low overhead
+        )
+
+    return plots_output_dir
+
+
 def add_base_model_data(
     loaded_data: list[dict],
     base_model_model_partial_name: str,

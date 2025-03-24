@@ -52,6 +52,9 @@ from topollm.task_performance_analysis.plotting.create_distribution_plots_over_m
 from topollm.task_performance_analysis.plotting.create_distribution_plots_over_model_layers import (
     create_distribution_plots_over_model_layers,
 )
+from topollm.task_performance_analysis.plotting.create_mean_plots_over_model_checkpoints_with_different_seeds import (
+    create_mean_plots_over_model_checkpoints_with_different_seeds,
+)
 from topollm.typing.enums import Verbosity
 
 if TYPE_CHECKING:
@@ -294,10 +297,13 @@ def create_plots_for_given_pattern(
                 msg="Creating the mean plots over the model checkpoints ...",
             )
 
-        # TODO: Implement this
-
-        print(
-            "TODO: This needs to be implemented!",
+        create_mean_plots_over_model_checkpoints_with_different_seeds(
+            loaded_data=loaded_data,
+            array_key_name=array_key_name,
+            output_root_dir=output_root_dir,
+            plot_size_configs_list=plot_size_configs_list,
+            verbosity=verbosity,
+            logger=logger,
         )
 
         if verbosity >= Verbosity.NORMAL:
@@ -332,6 +338,8 @@ def create_plots_for_given_pattern(
     logger.info(
         msg="Script finished.",
     )
+
+    # TODO: Implement this
 
 
 if __name__ == "__main__":
