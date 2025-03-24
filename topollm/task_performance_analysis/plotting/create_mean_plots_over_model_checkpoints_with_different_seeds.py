@@ -192,11 +192,27 @@ def create_mean_plots_over_model_checkpoints_with_different_seeds(
             # Create plots
             plot_local_estimates(
                 df=sorted_data_df,
+                ticks_and_labels=ticks_and_labels,
+                plot_size_config=plot_size_config,
+                fixed_params_text=fixed_params_text,
+                base_model_model_partial_name=base_model_model_partial_name,
+                plots_output_dir=plots_output_dir,
+                verbosity=verbosity,
+                logger=logger,
             )
 
 
 def plot_local_estimates(
     df: pd.DataFrame,
+    ticks_and_labels: TicksAndLabels,
+    plot_size_config: PlotSizeConfig,
+    *,
+    fixed_params_text: str | None = None,
+    base_model_model_partial_name: str | None = None,
+    plots_output_dir: pathlib.Path | None = None,
+    show_plots: bool = False,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
 ) -> None:
     """Plot local estimates for each model seed and a summary plot.
 
@@ -212,6 +228,8 @@ def plot_local_estimates(
             "file_data_mean",
         ]
     ].copy()
+
+    # TODO: Add the additional code utilizing the function parameters
 
     # Separate the checkpoint -1 data (no seeds associated)
     checkpoint_neg1 = plot_data[plot_data["model_checkpoint"] == -1].iloc[0]
@@ -231,30 +249,114 @@ def plot_local_estimates(
     plot_data = pd.concat([neg1_data_emulated, plot_data], ignore_index=True)
 
     # Ensure correct types
-    plot_data = plot_data.astype({"model_checkpoint": int, "model_seed": int, "file_data_mean": float})
+    plot_data = plot_data.astype(
+        dtype={
+            "model_checkpoint": int,
+            "model_seed": int,
+            "file_data_mean": float,
+        },
+    )
 
-    # Individual plots by seed
-    plt.figure(figsize=(12, 6))
+    # # # #
+    # Individual plots by seed using a figure and axis
+
+    (
+        fig1,
+        ax1,
+    ) = plt.subplots(
+        figsize=(
+            plot_size_config.output_pdf_width / 100,
+            plot_size_config.output_pdf_height / 100,
+        ),
+    )
+
     for seed in seeds:
         seed_data = plot_data[plot_data["model_seed"] == seed]
-        plt.plot(seed_data["model_checkpoint"], seed_data["file_data_mean"], marker="o", label=f"Seed {seed}")
+        ax1.plot(
+            seed_data["model_checkpoint"],
+            seed_data["file_data_mean"],
+            marker="o",
+            label=f"Seed {seed}",
+        )
 
-    plt.xlabel("Model Checkpoint")
-    plt.ylabel("File Data Mean")
-    plt.title("Local Estimates Over Checkpoints by Model Seed (including checkpoint -1)")
-    plt.legend(title="Model Seed")
-    plt.grid(True)
-    plt.tight_layout()
-    plt.show()
+    ax1.set_xlabel("Model Checkpoint")
+    ax1.set_ylabel("File Data Mean")
+    ax1.set_title("Local Estimates Over Checkpoints by Model Seed (including checkpoint -1)")
+    ax1.legend(title="Model Seed")
+    ax1.grid(
+        visible=True,
+    )
+
+    ax1.set_xlabel(
+        xlabel=ticks_and_labels.xlabel,
+    )
+    ax1.set_ylabel(
+        ylabel=ticks_and_labels.ylabel,
+    )
+
+    # Set the y-axis limits
+    if plot_size_config.y_min is not None:
+        ax1.set_ylim(
+            bottom=plot_size_config.y_min,
+        )
+    if plot_size_config.y_max is not None:
+        ax1.set_ylim(
+            top=plot_size_config.y_max,
+        )
+
+    fig1.tight_layout()
+
+    if plots_output_dir is not None:
+        # Save the figure
+        plot_name: str = f"local_estimates_by_model_seed_{plot_size_config.y_min}_{plot_size_config.y_max}"
+        plot_save_path = pathlib.Path(
+            plots_output_dir,
+            f"{plot_name}.pdf",
+        )
+
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"Saving plot to {plot_save_path = } ...",  # noqa: G004 - low overhead
+            )
+        fig1.savefig(
+            fname=plot_save_path,
+        )
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"Saving plot to {plot_save_path = } DONE",  # noqa: G004 - low overhead
+            )
+
+    if show_plots:
+        plt.show()
+
+    # # # #
+    # Aggregated over seeds
 
     if "index" in plot_data.columns:
         plot_data = plot_data.drop(columns=["index"])
 
     # Summary plot with mean and standard deviation
-    summary = plot_data.groupby("model_checkpoint", as_index=False)["file_data_mean"].agg(["mean", "std"]).reset_index()
+    summary: pd.DataFrame = (
+        plot_data.groupby(
+            by="model_checkpoint",
+            as_index=False,
+        )["file_data_mean"]
+        .agg(
+            func=[
+                "mean",
+                "std",
+            ],
+        )
+        .reset_index()
+    )
 
     if summary.empty:
-        print("No data available for plotting.")
+        logger.warning(
+            msg="No data available for plotting.",
+        )
+        logger.info(
+            msg="Skipping this plot call and returning from function now.",
+        )
         return
 
     if "index" in summary.columns:
@@ -274,14 +376,80 @@ def plot_local_estimates(
     means = summary["mean"].to_numpy()
     stds = summary["std"].to_numpy()
 
-    plt.figure(figsize=(12, 6))
-    plt.plot(checkpoints, means, marker="o", color="blue", label="Mean across seeds")
-    plt.fill_between(checkpoints, means - stds, means + stds, color="blue", alpha=0.2, label="Standard Deviation")
+    # Create a summary figure and axis
+    (
+        fig2,
+        ax2,
+    ) = plt.subplots(
+        figsize=(
+            plot_size_config.output_pdf_width / 100,
+            plot_size_config.output_pdf_height / 100,
+        ),
+    )
+    ax2.plot(
+        checkpoints,
+        means,
+        marker="o",
+        color="blue",
+        label="Mean across seeds",
+    )
+    ax2.fill_between(
+        x=checkpoints,
+        y1=means - stds,
+        y2=means + stds,
+        color="blue",
+        alpha=0.2,
+        label="Standard Deviation",
+    )
 
-    plt.xlabel("Model Checkpoint")
-    plt.ylabel("Mean File Data Mean")
-    plt.title("Mean Local Estimates Over Checkpoints with Standard Deviation Band")
-    plt.legend()
-    plt.grid(True)
-    plt.tight_layout()
-    plt.show()
+    ax2.set_xlabel(xlabel="Model Checkpoint")
+    ax2.set_ylabel(ylabel="Mean File Data Mean")
+    ax2.set_title(
+        label="Mean Local Estimates Over Checkpoints with Standard Deviation Band",
+    )
+    ax2.legend()
+    ax2.grid(
+        visible=True,
+    )
+
+    ax2.set_xlabel(
+        xlabel=ticks_and_labels.xlabel,
+    )
+    ax2.set_ylabel(
+        ylabel=ticks_and_labels.ylabel,
+    )
+
+    # Set the y-axis limits
+    if plot_size_config.y_min is not None:
+        ax2.set_ylim(
+            bottom=plot_size_config.y_min,
+        )
+    if plot_size_config.y_max is not None:
+        ax2.set_ylim(
+            top=plot_size_config.y_max,
+        )
+
+    fig2.tight_layout()
+
+    if plots_output_dir is not None:
+        # Save the figure
+        plot_name: str = f"local_estimates_aggregate_{plot_size_config.y_min}_{plot_size_config.y_max}"
+        plot_save_path = pathlib.Path(
+            plots_output_dir,
+            f"{plot_name}.pdf",
+        )
+
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"Saving plot to {plot_save_path = } ...",  # noqa: G004 - low overhead
+            )
+        fig2.savefig(
+            fname=plot_save_path,
+        )
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"Saving plot to {plot_save_path = } DONE",  # noqa: G004 - low overhead
+            )
+
+    if show_plots:
+        plt.show()

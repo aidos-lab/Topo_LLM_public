@@ -152,6 +152,15 @@ def main(
         (
             "**/"
             "data=trippy_r_dataloaders_processed_multiwoz21_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/"
+            "split=*_samples=7000_sampling=random_sampling-seed=778/"
+            "edh-mode=regular_lvl=token/"
+            "add-prefix-space=False_max-len=512/"
+            "**/"
+            "local_estimates_pointwise_array.npy"
+        ),
+        (
+            "**/"
+            "data=trippy_r_dataloaders_processed_multiwoz21_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/"
             "split=*_samples=10000_sampling=random_sampling-seed=778/"
             "edh-mode=regular_lvl=token/"
             "add-prefix-space=False_max-len=512/"
@@ -263,6 +272,14 @@ def create_plots_for_given_pattern(
             output_pdf_width=2_000,
             output_pdf_height=1_500,
         ),
+        PlotSizeConfig(
+            x_min=None,
+            x_max=None,
+            y_min=1.0,
+            y_max=13.5,
+            output_pdf_width=2_000,
+            output_pdf_height=1_500,
+        ),
     ]
 
     # # # #
@@ -339,8 +356,6 @@ def create_plots_for_given_pattern(
     logger.info(
         msg="Script finished.",
     )
-
-    # TODO: Implement this
 
 
 if __name__ == "__main__":

@@ -92,6 +92,4 @@ def main(
 
 
 if __name__ == "__main__":
-    setup_omega_conf()
-
     main()
