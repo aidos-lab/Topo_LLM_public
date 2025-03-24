@@ -65,21 +65,11 @@ done
 # - Remember the slash at the end of the source path and the destination path.
 
 SYNC_SRC=(
-    # "${REMOTE_HOST}:${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_checkpoints/"
-    # "${REMOTE_HOST}:${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints_code/"
-    # "${REMOTE_HOST}:${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/"
-    # "${REMOTE_HOST}:${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/not_domain_code/"
-    # "${REMOTE_HOST}:${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints_code/"
-    "${REMOTE_HOST}:${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/cached_test_features"
+    "${REMOTE_HOST}:${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/emoUS_v2/output_dir/unify/experiments/language_EmoUS_emowoz+dialmage_0_1/seed=51/"
 )
 
 SYNC_DEST=(
-    # "${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_checkpoints/"
-    # "${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints_code/"
-    # "${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/"
-    # "${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/not_domain_code/"
-    # "${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints_code_new/"
-    "${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/"
+    "${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/emoUS_v2/output_dir/unify/experiments/language_EmoUS_emowoz+dialmage_0_1/seed=51/"
 )
 
 # Ensure both arrays have the same number of active entries.
