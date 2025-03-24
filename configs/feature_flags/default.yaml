@@ -31,6 +31,7 @@ scripts:
 
 task_performance_analysis:
   plotting_create_distribution_plots_over_model_checkpoints: true
+  plotting_create_mean_plots_over_model_checkpoints_with_different_seeds: true
   plotting_create_distribution_plots_over_model_layers: true
 
 wandb:

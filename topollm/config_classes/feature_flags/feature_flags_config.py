@@ -224,6 +224,12 @@ class TaskPerformanceAnalysisFeatureFlagsConfig(ConfigBaseModel):
         description="Whether to create distribution plots over model checkpoints.",
     )
 
+    plotting_create_mean_plots_over_model_checkpoints_with_different_seeds: bool = Field(
+        default=True,
+        title="Create mean plots over model checkpoints with different seeds.",
+        description="Whether to create mean plots over model checkpoints with different seeds.",
+    )
+
     plotting_create_distribution_plots_over_model_layers: bool = Field(
         default=True,
         title="Create distribution plots over model layers.",

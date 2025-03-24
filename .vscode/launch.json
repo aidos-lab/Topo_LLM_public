@@ -2141,7 +2141,43 @@
                 //    >> END: Model options.
                 //
                 "feature_flags.task_performance_analysis.plotting_create_distribution_plots_over_model_checkpoints=True", // Note: Change this to "True" to create the distribution plots
+                "feature_flags.task_performance_analysis.plotting_create_mean_plots_over_model_checkpoints_with_different_seeds=True",
                 "feature_flags.task_performance_analysis.plotting_create_distribution_plots_over_model_layers=True",
+            ],
+            "env": {
+                "PYTORCH_ENABLE_MPS_FALLBACK": "1"
+            }
+        },
+        {
+            "name": "Task performance analysis - Local debugging - Create only plots mean over checkpoints",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/task_performance_analysis/plotting/run_create_distribution_plots_of_local_estimates.py",
+            "console": "integratedTerminal",
+            "args": [
+                // >>>> START: Hydra options
+                "--multirun",
+                "hydra/sweeper=basic",
+                "hydra/launcher=basic",
+                // "hydra/launcher=hpc_submission",
+                // "hydra.launcher.queue=CUDA",
+                // "hydra.launcher.template=RTX6000",
+                // "hydra.launcher.memory=32",
+                // "hydra.launcher.ncpus=4",
+                // "hydra.launcher.ngpus=1",
+                // "hydra.launcher.walltime=00:10:00", // <-- The logging script should run very quickly.
+                // >>>> END: Hydra options
+                "tokenizer.add_prefix_space=False",
+                //
+                //    >> START: Model options.
+                //
+                // "language_model=roberta-base",
+                //
+                //    >> END: Model options.
+                //
+                "feature_flags.task_performance_analysis.plotting_create_distribution_plots_over_model_checkpoints=False",
+                "feature_flags.task_performance_analysis.plotting_create_mean_plots_over_model_checkpoints_with_different_seeds=True",
+                "feature_flags.task_performance_analysis.plotting_create_distribution_plots_over_model_layers=False",
             ],
             "env": {
                 "PYTORCH_ENABLE_MPS_FALLBACK": "1"

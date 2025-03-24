@@ -195,6 +195,7 @@ def main(
             pattern=pattern,
             embeddings_path_manager=embeddings_path_manager,
             do_create_distribution_plots_over_model_checkpoints=main_config.feature_flags.task_performance_analysis.plotting_create_distribution_plots_over_model_checkpoints,
+            do_create_mean_plots_over_model_checkpoints_with_different_seeds=main_config.feature_flags.task_performance_analysis.plotting_create_mean_plots_over_model_checkpoints_with_different_seeds,
             do_create_distribution_plots_over_model_layers=main_config.feature_flags.task_performance_analysis.plotting_create_distribution_plots_over_model_layers,
             verbosity=verbosity,
             logger=logger,
@@ -207,6 +208,7 @@ def create_plots_for_given_pattern(
     embeddings_path_manager: EmbeddingsPathManager,
     *,
     do_create_distribution_plots_over_model_checkpoints: bool = True,
+    do_create_mean_plots_over_model_checkpoints_with_different_seeds: bool = True,
     do_create_distribution_plots_over_model_layers: bool = True,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
@@ -283,6 +285,25 @@ def create_plots_for_given_pattern(
         logger.info(
             msg="Skipping the creation of the distribution plots over the model checkpoints.",
         )
+
+    # # # #
+    # Create plots which show the mean of the local estimates over the checkpoints
+    if do_create_mean_plots_over_model_checkpoints_with_different_seeds:
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg="Creating the mean plots over the model checkpoints ...",
+            )
+
+        # TODO: Implement this
+
+        print(
+            "TODO: This needs to be implemented!",
+        )
+
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg="Creating the mean plots over the model checkpoints DONE",
+            )
 
     # # # #
     # Create plots which show the distribution of the local estimates over different layers of the model
