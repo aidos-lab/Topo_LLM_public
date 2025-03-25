@@ -37,21 +37,19 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 from topollm.config_classes.constants import TOPO_LLM_REPOSITORY_BASE_PATH
+from topollm.logging.create_and_configure_global_logger import create_and_configure_global_logger
 from topollm.logging.log_dataframe_info import log_dataframe_info
-from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.typing.enums import Verbosity
 
 # Logger for this file
-global_logger: logging.Logger = logging.getLogger(
+global_logger: logging.Logger = create_and_configure_global_logger(
     name=__name__,
+    file=__file__,
 )
 default_logger: logging.Logger = logging.getLogger(
     name=__name__,
 )
 
-setup_exception_logging(
-    logger=global_logger,
-)
 
 # Define metric names corresponding to the six scores in each f1_scores list.
 METRIC_NAMES: list[str] = [
@@ -312,7 +310,7 @@ def plot_scores(
     subset_column_name: str = "data_subsampling_split",
     subset_value: str = "validation",
     plots_output_dir: pathlib.Path | None = None,
-    y_axis_range: tuple[float, float] = (0.3, 1.0),
+    y_axis_range: tuple[float, float] = (0.1, 1.0),
     *,
     mark_best: bool = False,
     show_plot: bool = False,
