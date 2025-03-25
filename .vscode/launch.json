@@ -377,15 +377,16 @@
                 // "data.data_subsampling.split=train,validation,test",
                 //
                 "data.data_subsampling.sampling_mode=random",
-                "data.data_subsampling.number_of_samples=10000",
-                "data.data_subsampling.sampling_seed=778",
-                // "data.data_subsampling.sampling_seed=778,779,780",
+                "data.data_subsampling.number_of_samples=7000",
+                // "data.data_subsampling.number_of_samples=10000",
+                // "data.data_subsampling.sampling_seed=778",
+                "data.data_subsampling.sampling_seed=778,779,780",
                 //
                 //    >> END: Data options.
                 //
                 //    >> START: Model options.
                 //
-                // "language_model=roberta-base",
+                "language_model=roberta-base",
                 //
                 // "language_model=bert-base-uncased",
                 // "language_model=bert-base-uncased-SentiX",
@@ -416,14 +417,14 @@
                 // "++language_model.checkpoint_no=3549,7098,10647,14196,17745,21294,24843,28392,31941,35490",
                 //
                 // >>>> Trippy-R models
-                "language_model=roberta-base-trippy_r_multiwoz21",
+                // "language_model=roberta-base-trippy_r_multiwoz21",
                 // "language_model.seed=42",
                 // "language_model.seed=43",
                 // "language_model.seed=43,44",
-                "language_model.seed=42,43,44",
+                // "language_model.seed=42,43,44",
                 // "language_model.checkpoint_no=1775,3550",
                 // "language_model.checkpoint_no=5325,7100,8875,10650,12425,14200,15975,17750,19525,21300,23075,24850,26625,28400,30175,31950,33725,35500",
-                "language_model.checkpoint_no=1775,3550,5325,7100,8875,10650,12425,14200,15975,17750,19525,21300,23075,24850,26625,28400,30175,31950,33725,35500",
+                // "language_model.checkpoint_no=1775,3550,5325,7100,8875,10650,12425,14200,15975,17750,19525,21300,23075,24850,26625,28400,30175,31950,33725,35500",
                 //
                 //    >> END: Model options.
                 //
@@ -2117,7 +2118,7 @@
             "name": "Task performance analysis - Local debugging - Create distribution plots of local estimates over checkpoints and over layers",
             "type": "debugpy",
             "request": "launch",
-            "program": "topollm/task_performance_analysis/plotting/run_create_distribution_plots_of_local_estimates_over_checkpoints_and_over_layers.py",
+            "program": "topollm/task_performance_analysis/plotting/run_create_distribution_plots_of_local_estimates.py",
             "console": "integratedTerminal",
             "args": [
                 // >>>> START: Hydra options
@@ -2141,7 +2142,43 @@
                 //    >> END: Model options.
                 //
                 "feature_flags.task_performance_analysis.plotting_create_distribution_plots_over_model_checkpoints=True", // Note: Change this to "True" to create the distribution plots
+                "feature_flags.task_performance_analysis.plotting_create_mean_plots_over_model_checkpoints_with_different_seeds=True",
                 "feature_flags.task_performance_analysis.plotting_create_distribution_plots_over_model_layers=True",
+            ],
+            "env": {
+                "PYTORCH_ENABLE_MPS_FALLBACK": "1"
+            }
+        },
+        {
+            "name": "Task performance analysis - Local debugging - Create plots: mean for different seeds over checkpoints",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/task_performance_analysis/plotting/run_create_distribution_plots_of_local_estimates.py",
+            "console": "integratedTerminal",
+            "args": [
+                // >>>> START: Hydra options
+                "--multirun",
+                "hydra/sweeper=basic",
+                "hydra/launcher=basic",
+                // "hydra/launcher=hpc_submission",
+                // "hydra.launcher.queue=CUDA",
+                // "hydra.launcher.template=RTX6000",
+                // "hydra.launcher.memory=32",
+                // "hydra.launcher.ncpus=4",
+                // "hydra.launcher.ngpus=1",
+                // "hydra.launcher.walltime=00:10:00", // <-- The logging script should run very quickly.
+                // >>>> END: Hydra options
+                "tokenizer.add_prefix_space=False",
+                //
+                //    >> START: Model options.
+                //
+                // "language_model=roberta-base",
+                //
+                //    >> END: Model options.
+                //
+                "feature_flags.task_performance_analysis.plotting_create_distribution_plots_over_model_checkpoints=False",
+                "feature_flags.task_performance_analysis.plotting_create_mean_plots_over_model_checkpoints_with_different_seeds=True",
+                "feature_flags.task_performance_analysis.plotting_create_distribution_plots_over_model_layers=False",
             ],
             "env": {
                 "PYTORCH_ENABLE_MPS_FALLBACK": "1"

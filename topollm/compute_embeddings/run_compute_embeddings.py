@@ -55,8 +55,6 @@ setup_exception_logging(
     logger=global_logger,
 )
 
-setup_omega_conf()
-
 
 @hydra.main(
     config_path=f"{HYDRA_CONFIGS_BASE_PATH}",

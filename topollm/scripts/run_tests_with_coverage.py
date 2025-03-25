@@ -75,8 +75,8 @@ def main() -> None:
     #   WandbCallback requires wandb to be installed. Run `pip install wandb`.`
 
     # Construct the command
-    command = [
-        "poetry",
+    command: list[str] = [
+        "uv",
         "run",
         "python3",
         "-m",
