@@ -91,7 +91,7 @@ def main() -> None:
             case True:
                 seed_range = range(42, 47)
             case False:
-                seed_range = range(50, 54)
+                seed_range = range(50, 55)
             case _:
                 msg = f"Invalid value: {use_context = }"
                 raise ValueError(
@@ -129,13 +129,27 @@ def process_log_file_of_single_model_training_run(
         "log.txt",
     )
 
-    json_output_path: pathlib.Path = pathlib.Path(
+    parsed_data_output_dir: pathlib.Path = pathlib.Path(
         single_training_run_parent_dir,
-        "scores.json",
+        "parsed_data",
+    )
+
+    parsed_data_raw_data_output_dir: pathlib.Path = pathlib.Path(
+        parsed_data_output_dir,
+        "raw_data",
+    )
+
+    parsed_data_json_output_path: pathlib.Path = pathlib.Path(
+        parsed_data_raw_data_output_dir,
+        "parsed_data.json",
+    )
+    parsed_data_df_output_path: pathlib.Path = pathlib.Path(
+        parsed_data_raw_data_output_dir,
+        "parsed_data.csv",
     )
 
     plots_output_dir: pathlib.Path = pathlib.Path(
-        single_training_run_parent_dir,
+        parsed_data_output_dir,
         "plots",
     )
     plots_output_dir.mkdir(
@@ -151,14 +165,22 @@ def process_log_file_of_single_model_training_run(
         file_path=log_file_path,
     )
 
-    print("Parsed F1 scores per epoch:")
-    for epoch, scores in parsed_data.items():
-        print(f"Epoch {epoch}: {scores}")
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg="Parsed scores per epoch:",
+        )
+        for epoch, scores in parsed_data.items():
+            logger.info(
+                msg=f"{epoch = }: {scores}",  # noqa: G004 - low overhead
+            )
 
-    # Save the extracted scores to a JSON file.
+    # # # #
+    # Save the extracted scores
     save_parsed_data_to_json(
         parsed_data=parsed_data,
-        output_file=json_output_path,
+        output_file=parsed_data_json_output_path,
+        verbosity=verbosity,
+        logger=logger,
     )
 
     parsed_data_df: pd.DataFrame = convert_parsed_data_dict_to_df(
@@ -172,6 +194,13 @@ def process_log_file_of_single_model_training_run(
             df_name="parsed_data_df",
             logger=logger,
         )
+
+    save_parsed_data_df_to_csv(
+        df=parsed_data_df,
+        output_file=parsed_data_df_output_path,
+        verbosity=verbosity,
+        logger=logger,
+    )
 
     # # # # # # # #
     # Plotting
@@ -210,7 +239,11 @@ def parse_log(
 
     score_labels: list[str] = METRIC_NAMES
 
-    with open(file_path, "r") as f:
+    with pathlib.Path(
+        file_path,
+    ).open(
+        mode="r",
+    ) as f:
         for line in f:
             epoch_match = re.search(r"Training for epoch (\d+) out of", line)
             if epoch_match:
@@ -257,9 +290,16 @@ def parse_log(
 
 
 def convert_parsed_data_dict_to_df(
-    parsed_data: dict[int, dict[str, dict[str, float | list[float]]]],
+    parsed_data: dict[
+        int,
+        dict[
+            str,
+            dict[str, float | list[float]],
+        ],
+    ],
     subset_column_name: str = "data_subsampling_split",
 ) -> pd.DataFrame:
+    """Convert the parsed data dictionary to a DataFrame."""
     rows: list = []
     for epoch, data in parsed_data.items():
         # Train data
@@ -273,36 +313,86 @@ def convert_parsed_data_dict_to_df(
         )
         # Validation and Test data
         for split in ["validation", "test"]:
-            rows.append(
-                {
-                    EPOCH_COLUMN_NAME: epoch,
-                    subset_column_name: split,
-                    "train_loss": None,
-                    **data[split],
-                },
-            )
+            new_entry = {
+                EPOCH_COLUMN_NAME: epoch,
+                subset_column_name: split,
+                "train_loss": None,
+                **data[split],
+            }
+            rows.append(new_entry)
 
-    return pd.DataFrame(rows)
+    return pd.DataFrame(
+        data=rows,
+    )
 
 
 def save_parsed_data_to_json(
     parsed_data: dict[int, dict[str, list[float]]],
     output_file: os.PathLike,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
 ) -> None:
     """Save the extracted scores to a JSON file.
 
     Note: JSON keys are converted to strings.
-
-    Args:
-        scores: The dictionary containing F1 scores per epoch.
-        output_file: Path for the output JSON file.
     """
-    print(
-        f"Scores saved to {output_file = }",
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Saving parsed data to {output_file = } ...",  # noqa: G004 - low overhead
+        )
+
+    output_file = pathlib.Path(
+        output_file,
+    )
+    output_file.parent.mkdir(
+        parents=True,
+        exist_ok=True,
     )
 
-    with open(output_file, "w") as f:
-        json.dump(parsed_data, f, indent=4)
+    with output_file.open(
+        mode="w",
+    ) as f:
+        json.dump(
+            obj=parsed_data,
+            fp=f,
+            indent=4,
+        )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Saving parsed data to {output_file = } DONE",  # noqa: G004 - low overhead
+        )
+
+
+def save_parsed_data_df_to_csv(
+    df: pd.DataFrame,
+    output_file: os.PathLike,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
+    """Save the extracted scores to a CSV file."""
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Saving parsed data to {output_file = } ...",  # noqa: G004 - low overhead
+        )
+
+    output_file = pathlib.Path(
+        output_file,
+    )
+    output_file.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    df.to_csv(
+        path_or_buf=output_file,
+        index=False,
+    )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Saving parsed data to {output_file = } DONE",  # noqa: G004 - low overhead
+        )
 
 
 def plot_scores(
@@ -319,7 +409,9 @@ def plot_scores(
 ) -> None:
     """Plot the scores per epoch."""
     if df.empty:
-        print("No data to plot. Skipping this plot creation.")
+        logger.info(
+            msg="No data to plot. Skipping this plot creation.",
+        )
         return
 
     df_subset: pd.DataFrame = df[df[subset_column_name] == subset_value]
@@ -349,11 +441,11 @@ def plot_scores(
         #     plt.scatter(best_epoch, best_value, marker="*", color="gold", s=150, zorder=5)
         #     plt.annotate(f"{best_value:.3f}", (best_epoch, best_value), textcoords="offset points", xytext=(5, 5))
 
-    plt.xlabel(EPOCH_COLUMN_NAME)
-    plt.ylabel("Score")
-    plt.title(f"{subset_value.capitalize()} Scores per Epoch")
+    plt.xlabel(xlabel=EPOCH_COLUMN_NAME)
+    plt.ylabel(ylabel="Score")
+    plt.title(label=f"{subset_value.capitalize()} Scores per Epoch")
     plt.legend(loc="best")
-    plt.grid(True)
+    plt.grid(visible=True)
     plt.ylim(y_axis_range)
     plt.tight_layout()
 
