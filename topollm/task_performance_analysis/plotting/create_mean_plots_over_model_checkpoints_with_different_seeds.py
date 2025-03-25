@@ -130,6 +130,8 @@ def create_mean_plots_over_model_checkpoints_with_different_seeds(
             str(object=single_dict["model_checkpoint"]) for single_dict in sorted_data
         ]
 
+        # TODO: Load the correct model performance data/losses if it is available (we will use a custom protocol class for this)
+
         # # # #
         # Compute means and create dataframe from the data
 
@@ -187,10 +189,10 @@ def create_mean_plots_over_model_checkpoints_with_different_seeds(
             xticks_labels=model_checkpoint_str_list,
         )
 
+        # # # #
+        # Create plots
         for plot_size_config in plot_size_configs_list:
-            # # # #
-            # Create plots
-            plot_local_estimates(
+            plot_local_estimates_for_different_seeds_and_aggregate(
                 df=sorted_data_df,
                 ticks_and_labels=ticks_and_labels,
                 plot_size_config=plot_size_config,
@@ -202,7 +204,7 @@ def create_mean_plots_over_model_checkpoints_with_different_seeds(
             )
 
 
-def plot_local_estimates(
+def plot_local_estimates_for_different_seeds_and_aggregate(
     df: pd.DataFrame,
     ticks_and_labels: TicksAndLabels,
     plot_size_config: PlotSizeConfig,

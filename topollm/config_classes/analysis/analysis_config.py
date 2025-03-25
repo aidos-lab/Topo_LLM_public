@@ -53,6 +53,26 @@ class InvestigateDistancesConfig(ConfigBaseModel):
         return description
 
 
+class PlottingConfig(ConfigBaseModel):
+    """Parameters for plotting configuration."""
+
+    patterns_to_iterate_over: list[str] = Field(
+        default=[],
+        title="Patterns to iterate over.",
+        description="The patterns to iterate over for plotting.",
+    )
+
+
+class TaskPerformanceAnalysisConfig(ConfigBaseModel):
+    """Parameters for the analysis of task performance."""
+
+    plotting: PlottingConfig = Field(
+        default_factory=PlottingConfig,
+        title="Plotting configuration.",
+        description="The configuration for specifying parameters in the plotting.",
+    )
+
+
 class AnalysisConfig(ConfigBaseModel):
     """Parameters for the analysis of results."""
 
@@ -60,4 +80,10 @@ class AnalysisConfig(ConfigBaseModel):
         default_factory=InvestigateDistancesConfig,
         title="Distances investigations configuration.",
         description="The configuration for specifying parameters in the distances investigations.",
+    )
+
+    task_performance_analysis: TaskPerformanceAnalysisConfig = Field(
+        default_factory=TaskPerformanceAnalysisConfig,
+        title="Task performance configuration.",
+        description="The configuration for specifying parameters in the task performance analysis.",
     )
