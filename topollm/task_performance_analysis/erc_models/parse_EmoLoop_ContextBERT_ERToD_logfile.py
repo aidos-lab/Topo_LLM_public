@@ -37,6 +37,7 @@ import matplotlib.pyplot as plt
 
 from topollm.config_classes.constants import TOPO_LLM_REPOSITORY_BASE_PATH
 from topollm.logging.setup_exception_logging import setup_exception_logging
+from topollm.typing.enums import Verbosity
 
 # Logger for this file
 global_logger: logging.Logger = logging.getLogger(
@@ -64,6 +65,8 @@ METRIC_NAMES: list[str] = [
 def main() -> None:
     """Run main function."""
     logger: logging.Logger = global_logger
+    verbosity: Verbosity = Verbosity.NORMAL
+
     logger.info(
         msg="Running script ...",
     )
@@ -282,7 +285,9 @@ def plot_f1_scores(
     epochs = sorted(epoch_data.keys())
     num_metrics = len(epoch_data[epochs[0]][set_type])
 
-    plt.figure(figsize=(10, 6))
+    plt.figure(
+        figsize=(10, 6),
+    )
     # Plot each individual metric.
     for i in range(num_metrics):
         label = METRIC_NAMES[i] if i < len(METRIC_NAMES) else f"Metric {i}"
@@ -304,8 +309,22 @@ def plot_f1_scores(
         combined_with = [
             compute_combined(epoch_data[epoch][set_type], 3, 6) for epoch in epochs if set_type in epoch_data[epoch]
         ]
-        plt.plot(epochs, combined_without, marker="x", linestyle="--", color="black", label="Combined (w/o Neutral)")
-        plt.plot(epochs, combined_with, marker="x", linestyle="--", color="red", label="Combined (with Neutral)")
+        plt.plot(
+            epochs,
+            combined_without,
+            marker="x",
+            linestyle="--",
+            color="black",
+            label="Combined (w/o Neutral)",
+        )
+        plt.plot(
+            epochs,
+            combined_with,
+            marker="x",
+            linestyle="--",
+            color="red",
+            label="Combined (with Neutral)",
+        )
 
     plt.xlabel("Epoch")
     plt.ylabel("F1 Score")
