@@ -122,58 +122,11 @@ def main(
             msg=f"{iteration_root_dir = }",  # noqa: G004 - low overhead
         )
         logger.info(
-            f"{len(patterns_to_iterate_over) = }",  # noqa: G004 - low overhead
+            msg=f"{len(patterns_to_iterate_over) = }",  # noqa: G004 - low overhead
         )
         logger.info(
             msg=f"patterns_to_iterate_over:\n{pprint.pformat(patterns_to_iterate_over)}",  # noqa: G004 - low overhead
         )
-
-    example_list = [
-        # # # > Splits for the Huggingface datasets
-        # (
-        #     "**/"
-        #     "split=validation_samples=10000_sampling=random_sampling-seed=778/"
-        #     "edh-mode=regular_lvl=token/"
-        #     "add-prefix-space=False_max-len=512/"
-        #     "**/"
-        #     "local_estimates_pointwise_array.npy"
-        # ),
-        # # # > Other selected datasets and splits
-        # (
-        #     "**/"
-        #     "data=sgd_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/"
-        #     "split=validation_samples=10000_sampling=random_sampling-seed=777/"
-        #     "edh-mode=masked_token_lvl=token/"
-        #     "add-prefix-space=False_max-len=512/"
-        #     "**/"
-        #     "local_estimates_pointwise_array.npy"
-        # ),
-        # # # > Splits for the SetSUMBT saved dataloaders
-        # (
-        #     "**/"
-        #     "split=train_samples=10000_sampling=random_sampling-seed=778/"
-        #     "edh-mode=regular_lvl=token/"
-        #     "add-prefix-space=False_max-len=512/"
-        #     "**/"
-        #     "local_estimates_pointwise_array.npy"
-        # ),
-        # (
-        #     "**/"
-        #     "split=dev_samples=10000_sampling=random_sampling-seed=778/"
-        #     "edh-mode=regular_lvl=token/"
-        #     "add-prefix-space=False_max-len=512/"
-        #     "**/"
-        #     "local_estimates_pointwise_array.npy"
-        # ),
-        # (
-        #     "**/"
-        #     "split=test_samples=10000_sampling=random_sampling-seed=778/"
-        #     "edh-mode=regular_lvl=token/"
-        #     "add-prefix-space=False_max-len=512/"
-        #     "**/"
-        #     "local_estimates_pointwise_array.npy"
-        # ),
-    ]
 
     for pattern in tqdm(
         iterable=patterns_to_iterate_over,
