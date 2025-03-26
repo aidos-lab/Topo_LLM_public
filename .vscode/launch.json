@@ -2176,6 +2176,14 @@
                 //
                 //    >> END: Model options.
                 //
+                //    >> START: Plotting options.
+                //
+                // "analysis/task_performance_analysis/plotting=trippy_r",
+                "analysis/task_performance_analysis/plotting=ertod",
+                //
+                //    >> END: Plotting options.
+                //
+                //
                 "feature_flags.task_performance_analysis.plotting_create_distribution_plots_over_model_checkpoints=False",
                 "feature_flags.task_performance_analysis.plotting_create_mean_plots_over_model_checkpoints_with_different_seeds=True",
                 "feature_flags.task_performance_analysis.plotting_create_distribution_plots_over_model_layers=False",

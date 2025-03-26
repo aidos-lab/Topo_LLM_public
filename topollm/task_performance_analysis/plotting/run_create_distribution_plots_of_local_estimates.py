@@ -29,6 +29,7 @@
 
 import logging
 import pathlib
+import pprint
 from typing import TYPE_CHECKING
 
 import hydra
@@ -112,91 +113,20 @@ def main(
         embeddings_path_manager.get_local_estimates_root_dir_absolute_path(),
     )
 
-    patterns_to_iterate_over: list[str] = [
-        # # # > Splits for the SetSUMBT saved dataloaders
-        # (
-        #     "**/"
-        #     "split=train_samples=10000_sampling=random_sampling-seed=778/"
-        #     "edh-mode=regular_lvl=token/"
-        #     "add-prefix-space=False_max-len=512/"
-        #     "**/"
-        #     "local_estimates_pointwise_array.npy"
-        # ),
-        # (
-        #     "**/"
-        #     "split=dev_samples=10000_sampling=random_sampling-seed=778/"
-        #     "edh-mode=regular_lvl=token/"
-        #     "add-prefix-space=False_max-len=512/"
-        #     "**/"
-        #     "local_estimates_pointwise_array.npy"
-        # ),
-        # (
-        #     "**/"
-        #     "split=test_samples=10000_sampling=random_sampling-seed=778/"
-        #     "edh-mode=regular_lvl=token/"
-        #     "add-prefix-space=False_max-len=512/"
-        #     "**/"
-        #     "local_estimates_pointwise_array.npy"
-        # ),
-        # # # > Splits for the Trippy saved dataloaders
-        (
-            "**/"
-            "data=trippy_dataloaders_processed_multiwoz21_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/"
-            "split=*_samples=10000_sampling=random_sampling-seed=778/"
-            "edh-mode=regular_lvl=token/"
-            "add-prefix-space=False_max-len=512/"
-            "**/"
-            "local_estimates_pointwise_array.npy"
-        ),
-        # # > Splits for the Trippy-R saved dataloaders
-        (
-            "**/"
-            "data=trippy_r_dataloaders_processed_multiwoz21_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/"
-            "split=*_samples=7000_sampling=random_sampling-seed=778/"
-            "edh-mode=regular_lvl=token/"
-            "add-prefix-space=False_max-len=512/"
-            "**/"
-            "local_estimates_pointwise_array.npy"
-        ),
-        (
-            "**/"
-            "data=trippy_r_dataloaders_processed_multiwoz21_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/"
-            "split=*_samples=10000_sampling=random_sampling-seed=778/"
-            "edh-mode=regular_lvl=token/"
-            "add-prefix-space=False_max-len=512/"
-            "**/"
-            "local_estimates_pointwise_array.npy"
-        ),
-        # # # > Splits for saved ERC model dataloaders
-        (
-            "**/"
-            "data=ertod_emowoz_dataset_seed=*_debug=-1_use_context=False_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/"
-            "split=*_samples=10000_sampling=random_sampling-seed=778/"
-            "edh-mode=regular_lvl=token/"
-            "add-prefix-space=False_max-len=512/"
-            "**/"
-            "local_estimates_pointwise_array.npy"
-        ),
-        # # # > Splits for the Huggingface datasets
-        # (
-        #     "**/"
-        #     "split=validation_samples=10000_sampling=random_sampling-seed=778/"
-        #     "edh-mode=regular_lvl=token/"
-        #     "add-prefix-space=False_max-len=512/"
-        #     "**/"
-        #     "local_estimates_pointwise_array.npy"
-        # ),
-        # # # > Other selected datasets and splits
-        # (
-        #     "**/"
-        #     "data=sgd_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/"
-        #     "split=validation_samples=10000_sampling=random_sampling-seed=777/"
-        #     "edh-mode=masked_token_lvl=token/"
-        #     "add-prefix-space=False_max-len=512/"
-        #     "**/"
-        #     "local_estimates_pointwise_array.npy"
-        # ),
-    ]
+    patterns_to_iterate_over: list[str] = (
+        main_config.analysis.task_performance_analysis.plotting.patterns_to_iterate_over
+    )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"{iteration_root_dir = }",  # noqa: G004 - low overhead
+        )
+        logger.info(
+            msg=f"{len(patterns_to_iterate_over) = }",  # noqa: G004 - low overhead
+        )
+        logger.info(
+            msg=f"patterns_to_iterate_over:\n{pprint.pformat(patterns_to_iterate_over)}",  # noqa: G004 - low overhead
+        )
 
     for pattern in tqdm(
         iterable=patterns_to_iterate_over,

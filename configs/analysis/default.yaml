@@ -1,2 +1,6 @@
+defaults:
+  - task_performance_analysis: default
+  - _self_
+
 investigate_distances:
   array_truncation_size: 5000

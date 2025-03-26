@@ -37,7 +37,6 @@ pipx install uv
 uv install 3.12
 ```
 
-
 ### Project-specific setup
 
 1. Set the correct environment variables used in the project config.

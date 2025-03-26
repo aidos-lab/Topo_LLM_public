@@ -80,8 +80,11 @@ pairs=(
     # "${GPFS_PROJECT_DIR_DSML}/data/trippy_r/:${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/"
     # "${GPFS_PROJECT_DIR_DSML}/data/multiwoz21/:${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/"
     #
-    # Example: Rsync from the snapshots of the project directory to the user directory
-    "${GPFS_PROJECT_DIR_DSML}/.snapshots/day-2025.03.20-23.01.02/data/multiwoz21/:${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/"
+    # > Example: Syncing from user directory to project directory
+    "${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/:${GPFS_PROJECT_DIR_DSML}/data/trippy_r/"
+    #
+    # > Example: Rsync from the snapshots of the project directory to the user directory
+    # "${GPFS_PROJECT_DIR_DSML}/.snapshots/day-2025.03.20-23.01.02/data/multiwoz21/:${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/"
 )
 
 # Iterate over each pair and run rsync for syncing the directories.

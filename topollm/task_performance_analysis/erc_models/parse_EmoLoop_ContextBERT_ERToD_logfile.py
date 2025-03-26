@@ -34,21 +34,22 @@ import pathlib
 import re
 
 import matplotlib.pyplot as plt
+import pandas as pd
 
 from topollm.config_classes.constants import TOPO_LLM_REPOSITORY_BASE_PATH
-from topollm.logging.setup_exception_logging import setup_exception_logging
+from topollm.logging.create_and_configure_global_logger import create_and_configure_global_logger
+from topollm.logging.log_dataframe_info import log_dataframe_info
+from topollm.typing.enums import Verbosity
 
 # Logger for this file
-global_logger: logging.Logger = logging.getLogger(
+global_logger: logging.Logger = create_and_configure_global_logger(
     name=__name__,
+    file=__file__,
 )
 default_logger: logging.Logger = logging.getLogger(
     name=__name__,
 )
 
-setup_exception_logging(
-    logger=global_logger,
-)
 
 # Define metric names corresponding to the six scores in each f1_scores list.
 METRIC_NAMES: list[str] = [
@@ -60,10 +61,16 @@ METRIC_NAMES: list[str] = [
     "Weighted F1 (with Neutral)",
 ]
 
+EPOCH_COLUMN_NAME: str = "epoch"
+
 
 def main() -> None:
     """Run main function."""
     logger: logging.Logger = global_logger
+    verbosity: Verbosity = Verbosity.NORMAL
+
+    do_create_plots: bool = True
+
     logger.info(
         msg="Running script ...",
     )
@@ -84,7 +91,7 @@ def main() -> None:
             case True:
                 seed_range = range(42, 47)
             case False:
-                seed_range = range(50, 54)
+                seed_range = range(50, 55)
             case _:
                 msg = f"Invalid value: {use_context = }"
                 raise ValueError(
@@ -99,6 +106,9 @@ def main() -> None:
 
             process_log_file_of_single_model_training_run(
                 single_training_run_parent_dir=single_training_run_parent_dir,
+                do_create_plots=do_create_plots,
+                verbosity=verbosity,
+                logger=logger,
             )
 
     logger.info(
@@ -108,19 +118,38 @@ def main() -> None:
 
 def process_log_file_of_single_model_training_run(
     single_training_run_parent_dir: os.PathLike,
+    *,
+    do_create_plots: bool = True,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
 ) -> None:
+    """Process the log file of a single model training run."""
     log_file_path: pathlib.Path = pathlib.Path(
         single_training_run_parent_dir,
         "log.txt",
     )
 
-    json_output_path: pathlib.Path = pathlib.Path(
+    parsed_data_output_dir: pathlib.Path = pathlib.Path(
         single_training_run_parent_dir,
-        "scores.json",
+        "parsed_data",
+    )
+
+    parsed_data_raw_data_output_dir: pathlib.Path = pathlib.Path(
+        parsed_data_output_dir,
+        "raw_data",
+    )
+
+    parsed_data_json_output_path: pathlib.Path = pathlib.Path(
+        parsed_data_raw_data_output_dir,
+        "parsed_data.json",
+    )
+    parsed_data_df_output_path: pathlib.Path = pathlib.Path(
+        parsed_data_raw_data_output_dir,
+        "parsed_data.csv",
     )
 
     plots_output_dir: pathlib.Path = pathlib.Path(
-        single_training_run_parent_dir,
+        parsed_data_output_dir,
         "plots",
     )
     plots_output_dir.mkdir(
@@ -130,206 +159,318 @@ def process_log_file_of_single_model_training_run(
 
     # # # #
     # Parse the log file from disk.
-    scores_data: dict[int, dict[str, list[float]]] = parse_log(
+    subset_column_name: str = "data_subsampling_split"
+
+    parsed_data: dict = parse_log(
         file_path=log_file_path,
     )
-    print("Parsed F1 scores per epoch:")
-    for epoch, scores in scores_data.items():
-        print(f"Epoch {epoch}: {scores}")
 
-    # Save the extracted scores to a JSON file.
-    save_scores_to_json(
-        scores=scores_data,
-        output_file=json_output_path,
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg="Parsed scores per epoch:",
+        )
+        for epoch, scores in parsed_data.items():
+            logger.info(
+                msg=f"{epoch = }: {scores}",  # noqa: G004 - low overhead
+            )
+
+    # # # #
+    # Save the extracted scores
+    save_parsed_data_to_json(
+        parsed_data=parsed_data,
+        output_file=parsed_data_json_output_path,
+        verbosity=verbosity,
+        logger=logger,
     )
 
-    print(
-        f"Scores saved to {json_output_path = }",
+    parsed_data_df: pd.DataFrame = convert_parsed_data_dict_to_df(
+        parsed_data=parsed_data,
+        subset_column_name=subset_column_name,
     )
 
-    # Compute and print combined validation F1 scores per epoch.
-    print("Combined validation F1 scores per epoch:")
-    for epoch in sorted(scores_data.keys()):
-        combined_without = compute_combined(scores_data[epoch]["validation"], 0, 3)
-        combined_with = compute_combined(scores_data[epoch]["validation"], 3, 6)
-        print(
-            f"Epoch {epoch}: Combined (w/o Neutral): {combined_without:.4f}, Combined (with Neutral): {combined_with:.4f}"
+    if verbosity >= Verbosity.NORMAL:
+        log_dataframe_info(
+            df=parsed_data_df,
+            df_name="parsed_data_df",
+            logger=logger,
         )
 
-    # Plot the validation F1 scores.
-    plot_f1_scores(
-        epoch_data=scores_data,
-        set_type="validation",
-        plots_output_dir=plots_output_dir,
-        mark_best=True,
-        plot_combined=True,
-        show_plot=False,
+    save_parsed_data_df_to_csv(
+        df=parsed_data_df,
+        output_file=parsed_data_df_output_path,
+        verbosity=verbosity,
+        logger=logger,
     )
 
-    # Plot the test F1 scores.
-    plot_f1_scores(
-        epoch_data=scores_data,
-        set_type="test",
-        plots_output_dir=plots_output_dir,
-        mark_best=True,
-        plot_combined=True,
-        show_plot=False,
-    )
+    # # # # # # # #
+    # Plotting
+
+    if do_create_plots:
+        for subset_value in [
+            "train",
+            "validation",
+            "test",
+        ]:
+            plot_scores(
+                df=parsed_data_df,
+                subset_column_name=subset_column_name,
+                subset_value=subset_value,
+                plots_output_dir=plots_output_dir,
+                mark_best=True,
+                show_plot=False,
+            )
 
 
 def parse_log(
     file_path: os.PathLike,
-) -> dict[int, dict[str, list[float]]]:
-    """Parse the log file to extract aggregated F1 scores per epoch.
-
-    The log file is expected to contain lines that mark the start of an epoch,
-    along with lines that contain 'Validation F1 scores:' and 'Test F1 scores:'.
+) -> dict[int, dict[str, dict[str, float | list[float] | None] | None]]:
+    """Parse the log file to extract training losses and aggregated F1 scores per epoch.
 
     Args:
         file_path: Path to the log file.
 
     Returns:
         A dictionary where keys are epoch numbers (int) and values are dictionaries
-        with keys "validation" and "test", each mapping to a list of six F1 scores.
+        containing "train_loss", and "validation" and "test" dictionaries with named F1 scores.
+
     """
-    epoch_data: dict[int, dict[str, list[float]]] = {}
-    current_epoch: int | None = None
+    epoch_data: dict[int, dict[str, dict[str, float | list[float] | None] | None]] = {}
+    current_epoch: int = -100
 
-    print(f"Parsing log file: {file_path = }")
+    score_labels: list[str] = METRIC_NAMES
 
-    with open(file_path, "r") as f:
+    with pathlib.Path(
+        file_path,
+    ).open(
+        mode="r",
+    ) as f:
         for line in f:
-            # Check for the start of a new epoch.
             epoch_match = re.search(r"Training for epoch (\d+) out of", line)
             if epoch_match:
                 current_epoch = int(epoch_match.group(1))
-                epoch_data[current_epoch] = {}
+                epoch_data[current_epoch] = {
+                    "train_loss": None,
+                    "validation": {},
+                    "test": {},
+                }
                 continue
 
-            # Extract validation F1 scores.
+            loss_match = re.search(r"Training loss:\s*([\d\.]+)", line)
+            if loss_match and current_epoch is not None:
+                epoch_data[current_epoch]["train_loss"] = float(  # type: ignore - problem with dict value typing here
+                    loss_match.group(1),
+                )
+                continue
+
             val_match = re.search(r"Validation F1 scores:\s*\[(.*?)\]", line)
             if val_match and current_epoch is not None:
-                scores_str = val_match.group(1)
-                scores = [float(s.strip()) for s in scores_str.split(",")]
-                epoch_data[current_epoch]["validation"] = scores
+                val_scores = [float(s.strip()) for s in val_match.group(1).split(",")]
+                epoch_data[current_epoch]["validation"] = dict(
+                    zip(
+                        score_labels,
+                        val_scores,
+                        strict=True,
+                    ),
+                )
                 continue
 
-            # Extract test F1 scores.
             test_match = re.search(r"Test F1 scores:\s*\[(.*?)\]", line)
             if test_match and current_epoch is not None:
-                scores_str = test_match.group(1)
-                scores = [float(s.strip()) for s in scores_str.split(",")]
-                epoch_data[current_epoch]["test"] = scores
+                test_scores = [float(s.strip()) for s in test_match.group(1).split(",")]
+                epoch_data[current_epoch]["test"] = dict(
+                    zip(
+                        score_labels,
+                        test_scores,
+                        strict=True,
+                    ),
+                )
                 continue
 
     return epoch_data
 
 
-def save_scores_to_json(
-    scores: dict[int, dict[str, list[float]]],
+def convert_parsed_data_dict_to_df(
+    parsed_data: dict[
+        int,
+        dict[
+            str,
+            dict[str, float | list[float]],
+        ],
+    ],
+    subset_column_name: str = "data_subsampling_split",
+) -> pd.DataFrame:
+    """Convert the parsed data dictionary to a DataFrame."""
+    rows: list = []
+    for epoch, data in parsed_data.items():
+        # Train data
+        rows.append(
+            {
+                EPOCH_COLUMN_NAME: epoch,
+                subset_column_name: "train",
+                "train_loss": data["train_loss"],
+                **dict.fromkeys(data["validation"]),
+            },
+        )
+        # Validation and Test data
+        for split in ["validation", "test"]:
+            new_entry = {
+                EPOCH_COLUMN_NAME: epoch,
+                subset_column_name: split,
+                "train_loss": None,
+                **data[split],
+            }
+            rows.append(new_entry)
+
+    return pd.DataFrame(
+        data=rows,
+    )
+
+
+def save_parsed_data_to_json(
+    parsed_data: dict[int, dict[str, list[float]]],
     output_file: os.PathLike,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
 ) -> None:
     """Save the extracted scores to a JSON file.
 
     Note: JSON keys are converted to strings.
-
-    Args:
-        scores: The dictionary containing F1 scores per epoch.
-        output_file: Path for the output JSON file.
     """
-    with open(output_file, "w") as f:
-        json.dump(scores, f, indent=4)
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Saving parsed data to {output_file = } ...",  # noqa: G004 - low overhead
+        )
+
+    output_file = pathlib.Path(
+        output_file,
+    )
+    output_file.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    with output_file.open(
+        mode="w",
+    ) as f:
+        json.dump(
+            obj=parsed_data,
+            fp=f,
+            indent=4,
+        )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Saving parsed data to {output_file = } DONE",  # noqa: G004 - low overhead
+        )
 
 
-def compute_combined(scores: list[float], start: int, end: int) -> float:
-    """Compute the arithmetic mean of a sub-range of scores.
+def save_parsed_data_df_to_csv(
+    df: pd.DataFrame,
+    output_file: os.PathLike,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
+    """Save the extracted scores to a CSV file."""
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Saving parsed data to {output_file = } ...",  # noqa: G004 - low overhead
+        )
 
-    Args:
-        scores: list of F1 scores.
-        start: Starting index (inclusive).
-        end: Ending index (exclusive).
+    output_file = pathlib.Path(
+        output_file,
+    )
+    output_file.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
 
-    Returns:
-        The arithmetic mean of the specified sub-list.
-    """
-    subset = scores[start:end]
-    return sum(subset) / len(subset) if subset else 0.0
+    df.to_csv(
+        path_or_buf=output_file,
+        index=False,
+    )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Saving parsed data to {output_file = } DONE",  # noqa: G004 - low overhead
+        )
 
 
-def plot_f1_scores(
-    epoch_data: dict[int, dict[str, list[float]]],
-    set_type: str = "validation",
+def plot_scores(
+    df: pd.DataFrame,
+    subset_column_name: str = "data_subsampling_split",
+    subset_value: str = "validation",
     plots_output_dir: pathlib.Path | None = None,
-    y_axis_range: tuple[float, float] = (0.5, 1.0),
+    y_axis_range: tuple[float, float] = (0.1, 1.0),
     *,
-    plot_combined: bool = True,
     mark_best: bool = False,
     show_plot: bool = False,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
 ) -> None:
-    """Plot the aggregated F1 scores over epochs for each metric and the combined scores.
-
-    Args:
-        epoch_data: dictionary mapping epoch numbers to F1 scores.
-        set_type: Which scores to plot ('validation' or 'test').
-        plot_combined: If True, computes and plots combined scores:
-            - Combined (w/o Neutral): Average of indices 0-2.
-            - Combined (with Neutral): Average of indices 3-6.
-    """
-    if not epoch_data:
-        print("No data to plot.")
+    """Plot the scores per epoch."""
+    if df.empty:
+        logger.info(
+            msg="No data to plot. Skipping this plot creation.",
+        )
         return
 
-    epochs = sorted(epoch_data.keys())
-    num_metrics = len(epoch_data[epochs[0]][set_type])
+    df_subset: pd.DataFrame = df[df[subset_column_name] == subset_value]
+    plt.figure(
+        figsize=(10, 6),
+    )
 
-    plt.figure(figsize=(10, 6))
-    # Plot each individual metric.
-    for i in range(num_metrics):
-        label = METRIC_NAMES[i] if i < len(METRIC_NAMES) else f"Metric {i}"
-        scores = [epoch_data[epoch][set_type][i] for epoch in epochs if set_type in epoch_data[epoch]]
-        plt.plot(epochs, scores, marker="o", label=label)
+    plot_columns = df_subset.dropna(
+        axis=1,
+        how="all",
+    ).columns.drop(
+        labels=[EPOCH_COLUMN_NAME, subset_column_name],
+    )
 
-        # Mark best value if required.
-        if mark_best and scores:
-            best_value = max(scores)
-            best_epoch = epochs[scores.index(best_value)]
-            plt.scatter(best_epoch, best_value, marker="*", color="gold", s=150, zorder=5)
-            plt.annotate(f"{best_value:.3f}", (best_epoch, best_value), textcoords="offset points", xytext=(5, 5))
+    for col in plot_columns:
+        plt.plot(
+            df_subset[EPOCH_COLUMN_NAME],
+            df_subset[col],
+            marker="o",
+            label=col,
+        )
 
-    # Plot the combined scores.
-    if plot_combined:
-        combined_without = [
-            compute_combined(epoch_data[epoch][set_type], 0, 3) for epoch in epochs if set_type in epoch_data[epoch]
-        ]
-        combined_with = [
-            compute_combined(epoch_data[epoch][set_type], 3, 6) for epoch in epochs if set_type in epoch_data[epoch]
-        ]
-        plt.plot(epochs, combined_without, marker="x", linestyle="--", color="black", label="Combined (w/o Neutral)")
-        plt.plot(epochs, combined_with, marker="x", linestyle="--", color="red", label="Combined (with Neutral)")
+        # # Mark best value if required.
+        # if mark_best and scores:
+        #     best_value = max(scores)
+        #     best_epoch = epochs[scores.index(best_value)]
+        #     plt.scatter(best_epoch, best_value, marker="*", color="gold", s=150, zorder=5)
+        #     plt.annotate(f"{best_value:.3f}", (best_epoch, best_value), textcoords="offset points", xytext=(5, 5))
 
-    plt.xlabel("Epoch")
-    plt.ylabel("F1 Score")
-
+    plt.xlabel(xlabel=EPOCH_COLUMN_NAME)
+    plt.ylabel(ylabel="Score")
+    plt.title(label=f"{subset_value.capitalize()} Scores per Epoch")
+    plt.legend(loc="best")
+    plt.grid(visible=True)
     plt.ylim(y_axis_range)
-    plt.xticks(epochs)
-
-    plt.title(f"{set_type.capitalize()} Aggregated F1 Scores over Epochs")
-
-    plt.legend(loc="center left", bbox_to_anchor=(1, 0.5))
-
-    plt.grid(True)
     plt.tight_layout()
 
+    if show_plot:
+        plt.show()
+
     if plots_output_dir:
-        plots_output_dir.mkdir(
+        plot_file_path: pathlib.Path = plots_output_dir / f"{subset_value}_f1_scores.pdf"
+
+        plot_file_path.parent.mkdir(
             parents=True,
             exist_ok=True,
         )
-        plot_file_path = plots_output_dir / f"{set_type}_f1_scores.pdf"
+
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"Saving plot to {plot_file_path = } ...",  # noqa: G004
+            )
         plt.savefig(
             plot_file_path,
         )
-        print(f"Plot saved to {plot_file_path = }")
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"Saving plot to {plot_file_path = } DONE",  # noqa: G004
+            )
 
     if show_plot:
         plt.show()

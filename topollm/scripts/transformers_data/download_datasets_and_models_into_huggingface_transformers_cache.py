@@ -1,10 +1,10 @@
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -33,58 +33,17 @@ so we need to download the datasets and models to our local machines and then co
 
 import argparse
 import logging
-import pathlib
 
 import datasets
 import transformers
 from tqdm import tqdm
 
-from topollm.logging.setup_exception_logging import setup_exception_logging
+from topollm.logging.create_and_configure_global_logger import create_and_configure_global_logger
 
-global_logger: logging.Logger = logging.getLogger(
+global_logger: logging.Logger = create_and_configure_global_logger(
     name=__name__,
+    file=__file__,
 )
-global_logger.setLevel(
-    level=logging.INFO,
-)
-logging_formatter = logging.Formatter(
-    fmt="%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s",
-)
-
-logging_file_path = pathlib.Path(
-    pathlib.Path(__file__).parent,
-    "logs",
-    f"{pathlib.Path(__file__).stem}.log",
-)
-pathlib.Path.mkdir(
-    self=logging_file_path.parent,
-    parents=True,
-    exist_ok=True,
-)
-
-logging_file_handler = logging.FileHandler(
-    filename=logging_file_path,
-)
-logging_file_handler.setFormatter(
-    fmt=logging_formatter,
-)
-global_logger.addHandler(
-    hdlr=logging_file_handler,
-)
-
-logging_console_handler = logging.StreamHandler()
-logging_console_handler.setFormatter(
-    fmt=logging_formatter,
-)
-global_logger.addHandler(
-    hdlr=logging_console_handler,
-)
-
-
-setup_exception_logging(
-    logger=global_logger,
-)
-
 default_logger: logging.Logger = logging.getLogger(
     name=__name__,
 )

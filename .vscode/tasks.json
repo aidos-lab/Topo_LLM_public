@@ -300,6 +300,38 @@
             }
         },
         {
+            "label": "Local - Sync from HHU Hilbert HPC to local - ALL file types - Selected local estimates from Trippy-R training.",
+            "detail": "rsync from HHU Hilbert HPC: ALL file types - Selected local estimates from Trippy-R training.",
+            "command": "uv run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/local_estimates/data=trippy_r_dataloaders_processed_multiwoz21_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/split=train_samples=7000_sampling=random_sampling-seed=778/edh-mode=regular_lvl=token/add-prefix-space=False_max-len=512/model=roberta-base_task=masked_lm_dr=defaults/' 'data/analysis/local_estimates/data=trippy_r_dataloaders_processed_multiwoz21_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/split=train_samples=7000_sampling=random_sampling-seed=778/edh-mode=regular_lvl=token/add-prefix-space=False_max-len=512/model=roberta-base-trippy_r_multiwoz21_seed-42_ckpt-1775_task=masked_lm_dr=defaults/' 'data/analysis/local_estimates/data=trippy_r_dataloaders_processed_multiwoz21_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/split=train_samples=7000_sampling=random_sampling-seed=778/edh-mode=regular_lvl=token/add-prefix-space=False_max-len=512/model=roberta-base-trippy_r_multiwoz21_seed-42_ckpt-35500_task=masked_lm_dr=defaults/' --syncing-mode 'all' --file-type 'all'",
+            // Note: You can add more subdirectories by adding more arguments to the command
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": false
+            }
+        },
+        {
+            "label": "Local - Sync from HHU Hilbert HPC to local - ALL file types - Selected local estimates from SetSUMBT training.",
+            "detail": "rsync from HHU Hilbert HPC: ALL file types - Selected local estimates from SetSUMBT training.",
+            "command": "uv run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/local_estimates/data=setsumbt_dataloaders_processed_0_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/split=dev_samples=10000_sampling=random_sampling-seed=778/edh-mode=regular_lvl=token/add-prefix-space=False_max-len=512/model=roberta-base_task=masked_lm_dr=defaults/' 'data/analysis/local_estimates/data=setsumbt_dataloaders_processed_0_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/split=dev_samples=10000_sampling=random_sampling-seed=778/edh-mode=regular_lvl=token/add-prefix-space=False_max-len=512/model=roberta-base-setsumbt_multiwoz21_seed-0_ckpt-2813_task=masked_lm_dr=defaults/' 'data/analysis/local_estimates/data=setsumbt_dataloaders_processed_0_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/split=dev_samples=10000_sampling=random_sampling-seed=778/edh-mode=regular_lvl=token/add-prefix-space=False_max-len=512/model=roberta-base-setsumbt_multiwoz21_seed-0_ckpt-126585_task=masked_lm_dr=defaults/' --syncing-mode 'all' --file-type 'all'",
+            // Note: You can add more subdirectories by adding more arguments to the command
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": false
+            }
+        },
+        {
             "label": "Local - Sync from HHU Hilbert HPC to local - results_arrays, statistics, metadata - Selected local estimates",
             "detail": "rsync from HHU Hilbert HPC: Without array_for_estimator - Selected local estimates directories.",
             "command": "uv run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/local_estimates/data=setsumbt_dataloaders_processed_0_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/split=dev_samples=10000_sampling=random_sampling-seed=778/edh-mode=regular_lvl=token/add-prefix-space=False_max-len=512/' --syncing-mode 'results_array_and_statistics_and_metadata' --file-type 'all'",

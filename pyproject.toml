@@ -50,6 +50,8 @@ dependencies = [
     "wat",
     "numba",
     "networkit",
+    "tensorboardx>=2.6.2.2",
+    "boto3>=1.37.20",
 ]
 
 [project.scripts]
