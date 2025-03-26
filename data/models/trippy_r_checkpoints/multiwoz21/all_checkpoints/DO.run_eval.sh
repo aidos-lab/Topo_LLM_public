@@ -75,7 +75,10 @@ fi
 
 TOOLS_DIR="${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints_code"
 DATASET_CONFIG="${TOOLS_DIR}/dataset_config/unified_multiwoz21.json"
-SEEDS="42"
+
+# SEEDS="42"
+SEEDS="44"
+
 TRAIN_PHASES="-1" # -1: regular training, 0: proto training, 1: tagging, 2: spanless training
 VALUE_MATCHING_WEIGHT=0.0 # When 0.0, value matching is not used
 

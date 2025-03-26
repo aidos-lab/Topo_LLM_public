@@ -17,6 +17,21 @@
                 "focus": false
             }
         },
+        {
+            "label": "Local - Sync from local to HHU Hilbert HPC - Trippy-R code",
+            "command": "./topollm/scripts/hhu_hilbert/sync_data/rsync_trippy_r_code_to_hhu_hilbert.sh",
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": false
+            },
+            "problemMatcher": []
+        },
         // START Weights and Biases related tasks (wandb)
         {
             "label": "Local - Sync from HHU Hilbert HPC to local - (LARGE) - Full 'wandb' directory",
