@@ -1,11 +1,10 @@
-#!/bin/bash
 #PBS -l select=1:ncpus=1:mem=32gb:ngpus=1:accelerator_model=rtx6000
 #PBS -l walltime=47:59:00
 #PBS -A "DialSys"
 #PBS -q "CUDA"
 #PBS -r y
-#PBS -e /gpfs/project/$USER/job_logs
-#PBS -o /gpfs/project/$USER/job_logs
+#PBS -e /gpfs/project/ruppik/job_logs
+#PBS -o /gpfs/project/ruppik/job_logs
 #PBS -N DO.run_eval.sh_trippy_r_checkpoints_multiwoz21
 
 # ======================================================================================================= #
@@ -16,6 +15,7 @@
 # 	- #PBS -l select=1:ncpus=1:mem=32gb:ngpus=1:accelerator_model=a100
 
 # Argument Parsing -----------------------------------------------
+
 echo ">>> [INFO] Parsing arguments ..."
 
 SKIP_RUN_DST="False"
@@ -38,22 +38,45 @@ echo ">>> [INFO] Parsing arguments DONE"
 
 echo ">>> [INFO] Loading environment ..."
 
-# Check if the script is running in a PBS interactive session (this can be found )
-if [[ $- == *i* ]]; then
-	echo ">>> [INFO] Running in interactive mode."
-else
-	echo ">>> [INFO] Running in PBS job mode."
-	# If running via a PBS job, load the environment.
-	# Only run this, if the hostname contains "hilbert" or "hpc"
-	#
-	if [[ $(hostname) == *"hilbert"* || $(hostname) == *"hpc"* ]]; then
-		source ~/.bashrc
-		load_python
-		load_cuda
-	fi
+if [[ $(hostname) == *"hilbert"* || $(hostname) == *"hpc"* ]]; then
+	echo ">>> Sourcing .bashrc ..."
+
+	source /gpfs/project/ruppik/.usr_tls/.bashrc
+	# source ~/.bashrc
+
+	echo ">>> Sourcing .bashrc DONE"
+
+	echo ">>> Loading environment modules ..."
+	
+	# load_python
+	module load Python/3.12.3
+
+	# load_cuda
+	module load CUDA/11.7.1
+
+	echo ">>> Loading environment modules DONE"
+
+	export TOPO_LLM_REPOSITORY_BASE_PATH="/gpfs/project/ruppik/git-source/Topo_LLM"
+	export CONVLAB3_REPOSITORY_BASE_PATH="/gpfs/project/ruppik/git-source/ConvLab3"
 fi
 
 echo ">>> [INFO] Loading environment DONE"
+
+VARIABLES_TO_LOG=(
+    "PBS_ARRAY_INDEX"
+    "TOPO_LLM_REPOSITORY_BASE_PATH"
+    "CONVLAB3_REPOSITORY_BASE_PATH"
+)
+
+echo ""
+echo ">>> -------------------------------------"
+echo ">>> Environment variables:"
+echo ">>> -------------------------------------"
+for var in "${VARIABLES_TO_LOG[@]}"; do
+    echo ">>> $var=${!var}"
+done
+echo ">>> -------------------------------------"
+echo ""
 
 # Check that environment variables are set
 if [ -z "${TOPO_LLM_REPOSITORY_BASE_PATH}" ]; then
@@ -198,7 +221,7 @@ for x in ${SEEDS}; do
 		if [ "$SKIP_RUN_DST" = "False" ]; then
 			echo ">>> [INFO] Running run_dst.py with phase ${phase} and seed ${x}"
 
-			python3 ${TOOLS_DIR}/run_dst.py \
+			uv run python3 ${TOOLS_DIR}/run_dst.py \
 				--task_name="unified" \
 				--data_dir="" \
 				--dataset_config=${DATASET_CONFIG} \
@@ -242,11 +265,11 @@ for x in ${SEEDS}; do
 		confidence="1.0 0.9 0.8 0.7 0.6 0.5"
 	    fi
 	    for dist_conf_threshold in ${confidence}; do
-		python3 ${TOOLS_DIR}/metric_dst.py \
-		    --dataset_config=${DATASET_CONFIG} \
-		    --confidence_threshold=${dist_conf_threshold} \
-		    --file_list="${OUT_DIR}.${x}/pred_res.${step}*json" \
-		    2>&1 | tee ${OUT_DIR}.${x}/eval_pred_${step}.${dist_conf_threshold}.log
+			uv run python3 ${TOOLS_DIR}/metric_dst.py \
+				--dataset_config=${DATASET_CONFIG} \
+				--confidence_threshold=${dist_conf_threshold} \
+				--file_list="${OUT_DIR}.${x}/pred_res.${step}*json" \
+				2>&1 | tee ${OUT_DIR}.${x}/eval_pred_${step}.${dist_conf_threshold}.log
 	    done
 		
 		echo ">>> [INFO] Running metric_dst.py block DONE"
