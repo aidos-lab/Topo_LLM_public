@@ -90,14 +90,16 @@ fi
 
 # If $PBS_ARRAY_INDEX is not set, set it to a default value.
 if [ -z "${PBS_ARRAY_INDEX}" ]; then
-    echo "@@@ Warning: PBS_ARRAY_INDEX is not set. Setting it to 2." >&2
-    PBS_ARRAY_INDEX=2
+    echo "@@@ Warning: PBS_ARRAY_INDEX is not set. Setting it to 0." >&2
+    PBS_ARRAY_INDEX=0
 fi
+
+echo ">>> [INFO] PBS_ARRAY_INDEX: ${PBS_ARRAY_INDEX}"
 
 # Move to project folder
 cd "${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints"
 
-# Pirnt the current directory
+# Print the current directory
 echo ">>> [INFO] Current directory: $(pwd)"
 echo ">>> [INFO] Running on host: $(hostname)"
 echo ">>> [INFO] Running on node: $(hostname -s)"
@@ -185,95 +187,103 @@ SEEDS=(${SEED})
 
 echo ">>> [INFO] SEEDS: ${SEEDS[@]}"
 
-# END: Parameters
-# # # # # # # # # # # # # # # #
-
-
 TRAIN_PHASES="-1" # -1: regular training, 0: proto training, 1: tagging, 2: spanless training
 VALUE_MATCHING_WEIGHT=0.0 # When 0.0, value matching is not used
 
+# Notes:
+# - Uncomment the steps you want to run.
+# - For "dev" and "test", this script will run the evaluation and the metric script.
+STEPS_TO_RUN=(
+	"dev"
+	# "test"
+)
+
+# END: Parameters
+# # # # # # # # # # # # # # # #
+
 for x in ${SEEDS}; do
     mkdir -p ${OUT_DIR}.${x}
-    for step in test; do
-	args_add=""
-        phases="-1"
-	if [ "$step" = "train" ]; then
-	    args_add="--do_train --predict_type=dev --hd=0.1"
-	    phases=${TRAIN_PHASES}
-	elif [ "$step" = "dev" ] || [ "$step" = "test" ]; then
-	    args_add="--do_eval --predict_type=${step}"
-	fi
+    for step in ${STEPS_TO_RUN[@]}; do
+		args_add=""
+		phases="-1"
 
-        for phase in ${phases}; do
-	    args_add_0=""
-	    if [ "$phase" = 0 ]; then
-		args_add_0=""
-	    fi
-	    args_add_1=""
-	    if [ "$phase" = 1 ]; then
-		args_add_1=""
-	    fi
-	    args_add_2=""
-	    if [ "$phase" = 2 ]; then
-		args_add_2=""
-	    fi
-
-		if [ "$SKIP_RUN_DST" = "False" ]; then
-			echo ">>> [INFO] Running run_dst.py with phase ${phase} and seed ${x}"
-
-			uv run python3 ${TOOLS_DIR}/run_dst.py \
-				--task_name="unified" \
-				--data_dir="" \
-				--dataset_config=${DATASET_CONFIG} \
-				--model_type="roberta" \
-				--model_name_or_path="roberta-base" \
-				--seed=${x} \
-				--do_lower_case \
-				--learning_rate=5e-5 \
-				--num_train_epochs=20 \
-				--max_seq_length=180 \
-				--per_gpu_train_batch_size=32 \
-				--per_gpu_eval_batch_size=32 \
-				--output_dir=${OUT_DIR}.${x} \
-				--save_epochs=1 \
-				--patience=-1 \
-				--eval_all_checkpoints \
-				--warmup_proportion=0.05 \
-				--adam_epsilon=1e-6 \
-				--weight_decay=0.01 \
-				--fp16 \
-				--value_matching_weight=${VALUE_MATCHING_WEIGHT} \
-				--none_weight=0.1 \
-				--training_phase=${phase} \
-				--local_files_only \
-				${args_add} \
-				${args_add_0} \
-				${args_add_1} \
-				${args_add_2} \
-				2>&1 | tee ${OUT_DIR}.${x}/${step}.${phase}.log
-		else
-			echo ">>> [INFO] Skipping run_dst.py as per --skip-run-dst flag"
+		if [ "$step" = "train" ]; then
+			args_add="--do_train --predict_type=dev --hd=0.1"
+			phases=${TRAIN_PHASES}
+		elif [ "$step" = "dev" ] || [ "$step" = "test" ]; then
+			args_add="--do_eval --predict_type=${step}"
 		fi
-	done
+
+		for phase in ${phases}; do
+			args_add_0=""
+			if [ "$phase" = 0 ]; then
+			args_add_0=""
+			fi
+			args_add_1=""
+			if [ "$phase" = 1 ]; then
+			args_add_1=""
+			fi
+			args_add_2=""
+			if [ "$phase" = 2 ]; then
+			args_add_2=""
+			fi
+
+			if [ "$SKIP_RUN_DST" = "False" ]; then
+				echo ">>> [INFO] Running run_dst.py with step=${step}, phase=${phase}, seed=${x}."
+
+				uv run python3 ${TOOLS_DIR}/run_dst.py \
+					--task_name="unified" \
+					--data_dir="" \
+					--dataset_config=${DATASET_CONFIG} \
+					--model_type="roberta" \
+					--model_name_or_path="roberta-base" \
+					--seed=${x} \
+					--do_lower_case \
+					--learning_rate=5e-5 \
+					--num_train_epochs=20 \
+					--max_seq_length=180 \
+					--per_gpu_train_batch_size=32 \
+					--per_gpu_eval_batch_size=32 \
+					--output_dir=${OUT_DIR}.${x} \
+					--save_epochs=1 \
+					--patience=-1 \
+					--eval_all_checkpoints \
+					--warmup_proportion=0.05 \
+					--adam_epsilon=1e-6 \
+					--weight_decay=0.01 \
+					--fp16 \
+					--value_matching_weight=${VALUE_MATCHING_WEIGHT} \
+					--none_weight=0.1 \
+					--training_phase=${phase} \
+					--local_files_only \
+					${args_add} \
+					${args_add_0} \
+					${args_add_1} \
+					${args_add_2} \
+					2>&1 | tee ${OUT_DIR}.${x}/${step}.${phase}.log
+			else
+				echo ">>> [INFO] Skipping run_dst.py as per --skip-run-dst flag"
+			fi
+		done
 
 
-	if [ "$step" = "dev" ] || [ "$step" = "test" ]; then
-		echo ">>> [INFO] Running metric_dst.py block ..."
-	    
-		confidence=1.0
-	    if [[ ${VALUE_MATCHING_WEIGHT} > 0.0 ]]; then
-		confidence="1.0 0.9 0.8 0.7 0.6 0.5"
-	    fi
-	    for dist_conf_threshold in ${confidence}; do
-			uv run python3 ${TOOLS_DIR}/metric_dst.py \
-				--dataset_config=${DATASET_CONFIG} \
-				--confidence_threshold=${dist_conf_threshold} \
-				--file_list="${OUT_DIR}.${x}/pred_res.${step}*json" \
-				2>&1 | tee ${OUT_DIR}.${x}/eval_pred_${step}.${dist_conf_threshold}.log
-	    done
-		
-		echo ">>> [INFO] Running metric_dst.py block DONE"
-	fi
+		if [ "$step" = "dev" ] || [ "$step" = "test" ]; then
+			echo ">>> [INFO] Running metric_dst.py block ..."
+			
+			confidence=1.0
+			if [[ ${VALUE_MATCHING_WEIGHT} > 0.0 ]]; then
+			confidence="1.0 0.9 0.8 0.7 0.6 0.5"
+			fi
+			for dist_conf_threshold in ${confidence}; do
+				uv run python3 ${TOOLS_DIR}/metric_dst.py \
+					--dataset_config=${DATASET_CONFIG} \
+					--confidence_threshold=${dist_conf_threshold} \
+					--file_list="${OUT_DIR}.${x}/pred_res.${step}*json" \
+					2>&1 | tee ${OUT_DIR}.${x}/eval_pred_${step}.${dist_conf_threshold}.log
+			done
+			
+			echo ">>> [INFO] Running metric_dst.py block DONE"
+		fi
 
     done
 done
