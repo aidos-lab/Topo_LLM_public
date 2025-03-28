@@ -36,7 +36,7 @@ from topollm.data_processing.dictionary_handling import (
     filter_list_of_dictionaries_by_key_value_pairs,
     generate_fixed_parameters_text_from_dict,
 )
-from topollm.plotting.line_plot_grouped_by_categorical_column import PlotSizeConfig
+from topollm.plotting.plot_size_config import PlotSizeConfigFlat
 from topollm.task_performance_analysis.plotting.distribution_violinplots_and_distribution_boxplots import (
     TicksAndLabels,
     make_distribution_boxplots_from_extracted_arrays,
@@ -60,7 +60,7 @@ def create_distribution_plots_over_model_checkpoints(
     loaded_data: list[dict],
     array_key_name: str,
     output_root_dir: pathlib.Path,
-    plot_size_configs_list: list[PlotSizeConfig],
+    plot_size_configs_list: list[PlotSizeConfigFlat],
     *,
     fixed_keys: list[str] | None = None,
     additional_fixed_params: dict[str, Any] | None = None,

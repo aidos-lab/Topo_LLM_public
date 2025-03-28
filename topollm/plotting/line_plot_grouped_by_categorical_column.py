@@ -30,58 +30,17 @@
 import logging
 import os
 import pathlib
-from dataclasses import dataclass
 
 import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
 import pandas as pd
 
+from topollm.plotting.plot_size_config import PlotColumnsConfig, PlotSizeConfigFlat
 from topollm.typing.enums import Verbosity
 
 default_logger: logging.Logger = logging.getLogger(
     name=__name__,
 )
-
-
-@dataclass
-class PlotSizeConfig:
-    """Configuration for axis limits and output figure dimensions.
-
-    Attributes:
-        x_min: Minimum value for the x-axis (or None to auto-scale).
-        x_max: Maximum value for the x-axis (or None to auto-scale).
-        y_min: Minimum value for the y-axis (or None to auto-scale).
-        y_max: Maximum value for the y-axis (or None to auto-scale).
-        output_pdf_width: Figure width in pixels when saving to PDF.
-        output_pdf_height: Figure height in pixels when saving to PDF.
-
-    """
-
-    x_min: float | None = None
-    x_max: float | None = None
-    y_min: float | None = None
-    y_max: float | None = None
-    output_pdf_width: int = 2500
-    output_pdf_height: int = 1500
-
-
-@dataclass
-class PlotColumnsConfig:
-    """Configuration for column names used in the plot.
-
-    Attributes:
-        x_column: Name of the column for x-axis values.
-        y_column: Name of the column for y-axis values.
-        group_column: Name of the categorical column to group the data.
-        std_column: Optional name of the column for standard deviation values.
-                   If provided and found in the DataFrame, an error band will be plotted.
-
-    """
-
-    x_column: str = "model_checkpoint"
-    y_column: str = "loss_mean"
-    group_column: str = "data_full"
-    std_column: str | None = None
 
 
 def generate_color_mapping(
@@ -104,7 +63,7 @@ def line_plot_grouped_by_categorical_column(
     plot_name: str = "line_plot",
     subtitle_text: str | None = None,
     plot_columns_config: PlotColumnsConfig | None = None,
-    plot_size_config: PlotSizeConfig | None = None,
+    plot_size_config: PlotSizeConfigFlat | None = None,
     color_mapping: dict | None = None,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
@@ -120,7 +79,7 @@ def line_plot_grouped_by_categorical_column(
     if plot_columns_config is None:
         plot_columns_config = PlotColumnsConfig()
     if plot_size_config is None:
-        plot_size_config = PlotSizeConfig()
+        plot_size_config = PlotSizeConfigFlat()
 
     # Ensure x_column exists and fill missing values with -1
     df[plot_columns_config.x_column] = df.get(

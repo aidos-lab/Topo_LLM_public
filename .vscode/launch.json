@@ -2117,7 +2117,7 @@
             }
         },
         {
-            "name": "Task performance analysis - Local debugging - Create distribution plots of local estimates over checkpoints and over layers",
+            "name": "Task performance analysis - Local debugging - Create plots: distribution of local estimates over checkpoints and over layers",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/task_performance_analysis/plotting/run_create_distribution_plots_of_local_estimates.py",
@@ -2229,7 +2229,7 @@
             }
         },
         {
-            "name": "Task performance analysis - Local debugging - Plot Trippy performance metrics",
+            "name": "Task performance analysis - Local debugging - Create plots: Trippy performance metrics",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/task_performance_analysis/trippy/run_plot_trippy_performance_metrics.py",

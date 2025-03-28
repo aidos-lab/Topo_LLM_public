@@ -40,7 +40,7 @@ from topollm.data_processing.dictionary_handling import (
 )
 from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
-from topollm.plotting.line_plot_grouped_by_categorical_column import PlotSizeConfig
+from topollm.plotting.plot_size_config import AxisLimits, OutputDimensions, PlotSizeConfigFlat, PlotSizeConfigNested
 from topollm.task_performance_analysis.plotting.distribution_violinplots_and_distribution_boxplots import TicksAndLabels
 from topollm.task_performance_analysis.plotting.parameter_combinations_and_loaded_data_handling import (
     add_base_model_data,
@@ -60,7 +60,7 @@ def create_mean_plots_over_model_checkpoints_with_different_seeds(
     loaded_data: list[dict],
     array_key_name: str,
     output_root_dir: pathlib.Path,
-    plot_size_configs_list: list[PlotSizeConfig],
+    plot_size_configs_list: list[PlotSizeConfigFlat],
     embeddings_path_manager: EmbeddingsPathManager,
     *,
     fixed_keys: list[str] | None = None,
@@ -299,10 +299,25 @@ def create_mean_plots_over_model_checkpoints_with_different_seeds(
         # # # #
         # Create plots
         for plot_size_config in plot_size_configs_list:
+            # Convert the PlotSizeConfigFlat objects into the new dataclass format.
+            # TODO: We might need to set the secondary axis limits depending on the type of scores loaded
+            # (e.g., for the emotion models the scores might be in a different range than the losses)
+
+            plot_size_config_nested = PlotSizeConfigNested(
+                primary_axis_limits=AxisLimits(
+                    x_min=plot_size_config.x_min,
+                    x_max=plot_size_config.x_max,
+                    y_min=plot_size_config.y_min,
+                    y_max=plot_size_config.y_max,
+                ),
+                secondary_axis_limits=AxisLimits(),
+                output_dimensions=OutputDimensions(),
+            )
+
             plot_local_estimates_for_different_seeds_and_aggregate(
                 local_estimates_df=sorted_data_df,
                 ticks_and_labels=ticks_and_labels,
-                plot_size_config=plot_size_config,
+                plot_size_config_nested=plot_size_config_nested,
                 scores_df=combined_scores_df,
                 scores_columns_to_plot_list=combined_scores_columns_to_plot_list,
                 x_column_name=model_checkpoint_column_name,
@@ -317,7 +332,7 @@ def create_mean_plots_over_model_checkpoints_with_different_seeds(
 def plot_local_estimates_for_different_seeds_and_aggregate(
     local_estimates_df: pd.DataFrame,
     ticks_and_labels: TicksAndLabels,
-    plot_size_config: PlotSizeConfig,
+    plot_size_config_nested: PlotSizeConfigNested,
     scores_df: pd.DataFrame | None = None,
     scores_columns_to_plot_list: list[str] | None = None,
     *,
@@ -390,13 +405,12 @@ def plot_local_estimates_for_different_seeds_and_aggregate(
         ax1,
     ) = plt.subplots(
         figsize=(
-            plot_size_config.output_pdf_width / 100,
-            plot_size_config.output_pdf_height / 100,
+            plot_size_config_nested.output_dimensions.output_pdf_width / 100,
+            plot_size_config_nested.output_dimensions.output_pdf_height / 100,
         ),
     )
 
-    # TODO: Include the plotting of the scores_df data
-
+    # Plot the mean of local estimates
     for seed in seeds:
         seed_data = local_estimates_plot_data_df[local_estimates_plot_data_df["model_seed"] == seed]
         ax1.plot(
@@ -406,15 +420,43 @@ def plot_local_estimates_for_different_seeds_and_aggregate(
             label=f"{seed=}",
         )
 
-        # Plot the additional data if available
-        if scores_df is not None and scores_columns_to_plot_list is not None:
+    # Plot the additional data if available
+    # TODO: Include the plotting of the scores_df data
+
+    # Add second y-axis for scores
+    ax2 = ax1.twinx()
+    ax2_label_plotted = False
+
+    if scores_df is not None and scores_columns_to_plot_list is not None:
+        for seed in seeds:
+            seed_scores = scores_df[scores_df["model_seed"] == seed]
             for column in scores_columns_to_plot_list:
-                ax1.plot(
-                    scores_df[scores_df["model_seed"] == seed][x_column_name],
-                    scores_df[scores_df["model_seed"] == seed][column],
+                ax2.plot(
+                    seed_scores[x_column_name],
+                    seed_scores[column],
+                    linestyle="--",
                     marker="x",
                     label=f"{column} (seed={seed})",
                 )
+
+    # Optional: Set axis label once
+    ax2.set_ylabel("Scores", color="tab:red")  # Customize label and color if desired
+    ax2.tick_params(axis="y", labelcolor="tab:red")
+
+    # Combine legends from both axes
+    (
+        lines_1,
+        labels_1,
+    ) = ax1.get_legend_handles_labels()
+    (
+        lines_2,
+        labels_2,
+    ) = ax2.get_legend_handles_labels()
+    ax1.legend(
+        handles=lines_1 + lines_2,
+        labels=labels_1 + labels_2,
+        title="Legend",
+    )
 
     ax1.set_xlabel(xlabel="Model Checkpoint")
     ax1.set_ylabel(ylabel="File Data Mean")
@@ -432,13 +474,13 @@ def plot_local_estimates_for_different_seeds_and_aggregate(
     )
 
     # Set the y-axis limits
-    if plot_size_config.y_min is not None:
+    if plot_size_config_nested.primary_axis_limits.y_min is not None:
         ax1.set_ylim(
-            bottom=plot_size_config.y_min,
+            bottom=plot_size_config_nested.primary_axis_limits.y_min,
         )
-    if plot_size_config.y_max is not None:
+    if plot_size_config_nested.primary_axis_limits.y_max is not None:
         ax1.set_ylim(
-            top=plot_size_config.y_max,
+            top=plot_size_config_nested.primary_axis_limits.y_max,
         )
 
     if fixed_params_text is not None:
@@ -477,9 +519,14 @@ def plot_local_estimates_for_different_seeds_and_aggregate(
 
     if plots_output_dir is not None:
         # Save the figure
-        plot_name: str = f"local_estimates_by_model_seed_{plot_size_config.y_min}_{plot_size_config.y_max}"
+        plot_name: str = (
+            f"local_estimates_by_model_seed"
+            f"_{plot_size_config_nested.primary_axis_limits.y_min}"
+            f"_{plot_size_config_nested.primary_axis_limits.y_max}"
+        )
         plot_save_path = pathlib.Path(
             plots_output_dir,
+            "separate_seeds",
             f"{plot_name}.pdf",
         )
 
@@ -487,9 +534,15 @@ def plot_local_estimates_for_different_seeds_and_aggregate(
             logger.info(
                 msg=f"Saving plot to {plot_save_path = } ...",  # noqa: G004 - low overhead
             )
+
+        plot_save_path.parent.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
         fig1.savefig(
             fname=plot_save_path,
         )
+
         if verbosity >= Verbosity.NORMAL:
             logger.info(
                 msg=f"Saving plot to {plot_save_path = } DONE",  # noqa: G004 - low overhead
@@ -554,8 +607,8 @@ def plot_local_estimates_for_different_seeds_and_aggregate(
         ax2,
     ) = plt.subplots(
         figsize=(
-            plot_size_config.output_pdf_width / 100,
-            plot_size_config.output_pdf_height / 100,
+            plot_size_config_nested.output_dimensions.output_pdf_width / 100,
+            plot_size_config_nested.output_dimensions.output_pdf_height / 100,
         ),
     )
     ax2.plot(
@@ -573,6 +626,8 @@ def plot_local_estimates_for_different_seeds_and_aggregate(
         alpha=0.2,
         label="Standard Deviation",
     )
+
+    # TODO: Include the plotting of the scores_df data
 
     ax2.set_xlabel(xlabel="Model Checkpoint")
     ax2.set_ylabel(ylabel="Mean File Data Mean")
@@ -592,13 +647,13 @@ def plot_local_estimates_for_different_seeds_and_aggregate(
     )
 
     # Set the y-axis limits
-    if plot_size_config.y_min is not None:
+    if plot_size_config_nested.primary_axis_limits.y_min is not None:
         ax2.set_ylim(
-            bottom=plot_size_config.y_min,
+            bottom=plot_size_config_nested.primary_axis_limits.y_min,
         )
-    if plot_size_config.y_max is not None:
+    if plot_size_config_nested.primary_axis_limits.y_max is not None:
         ax2.set_ylim(
-            top=plot_size_config.y_max,
+            top=plot_size_config_nested.primary_axis_limits.y_max,
         )
 
     if fixed_params_text is not None:
@@ -637,9 +692,14 @@ def plot_local_estimates_for_different_seeds_and_aggregate(
 
     if plots_output_dir is not None:
         # Save the figure
-        plot_name: str = f"local_estimates_aggregate_{plot_size_config.y_min}_{plot_size_config.y_max}"
+        plot_name: str = (
+            f"local_estimates_aggregate"
+            f"_{plot_size_config_nested.primary_axis_limits.y_min}"
+            f"_{plot_size_config_nested.primary_axis_limits.y_max}"
+        )
         plot_save_path = pathlib.Path(
             plots_output_dir,
+            "aggregate",
             f"{plot_name}.pdf",
         )
 
@@ -647,9 +707,15 @@ def plot_local_estimates_for_different_seeds_and_aggregate(
             logger.info(
                 msg=f"Saving plot to {plot_save_path = } ...",  # noqa: G004 - low overhead
             )
+
+        plot_save_path.parent.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
         fig2.savefig(
             fname=plot_save_path,
         )
+
         if verbosity >= Verbosity.NORMAL:
             logger.info(
                 msg=f"Saving plot to {plot_save_path = } DONE",  # noqa: G004 - low overhead

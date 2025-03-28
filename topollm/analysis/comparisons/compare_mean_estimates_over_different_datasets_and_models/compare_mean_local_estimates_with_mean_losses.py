@@ -51,10 +51,9 @@ from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
 from topollm.plotting.create_scatter_plot import create_scatter_plot
 from topollm.plotting.line_plot_grouped_by_categorical_column import (
-    PlotColumnsConfig,
-    PlotSizeConfig,
     line_plot_grouped_by_categorical_column,
 )
+from topollm.plotting.plot_size_config import PlotColumnsConfig, PlotSizeConfigFlat
 from topollm.typing.enums import Verbosity
 
 if TYPE_CHECKING:
@@ -730,7 +729,7 @@ def create_plots_for_individual_splits_individual_models_all_datasets(
         )
 
         for axes_limits in axes_limits_choices:
-            plot_size_config = PlotSizeConfig(
+            plot_size_config = PlotSizeConfigFlat(
                 x_min=axes_limits["x_min"],
                 x_max=axes_limits["x_max"],
                 y_min=axes_limits["y_min"],
