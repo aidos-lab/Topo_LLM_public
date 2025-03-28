@@ -79,7 +79,10 @@ class HardcodedScoreLoader:
         for epoch, splits in self.data.items():
             epoch_num = int(epoch)
             for split, scores in splits.items():
-                record = {"epoch": epoch_num, "split": split}
+                record: dict = {
+                    "epoch": epoch_num,
+                    "split": split,
+                }
                 metrics = [
                     "accuracy",
                     "loss",
@@ -88,11 +91,15 @@ class HardcodedScoreLoader:
                     "recall_macro",
                     "f1_micro",
                 ]
-                for metric, score in zip(metrics, scores):
+                for metric, score in zip(
+                    metrics,
+                    scores,
+                    strict=True,
+                ):
                     record[metric] = score
                 records.append(record)
 
-        return pd.DataFrame(records)
+        return pd.DataFrame(data=records)
 
 
 # Example Usage

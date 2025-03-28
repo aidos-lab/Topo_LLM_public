@@ -249,6 +249,7 @@ def create_plots_for_given_pattern(
             array_key_name=array_key_name,
             output_root_dir=output_root_dir,
             plot_size_configs_list=plot_size_configs_list,
+            embeddings_path_manager=embeddings_path_manager,
             save_plot_raw_data=True,
             verbosity=verbosity,
             logger=logger,

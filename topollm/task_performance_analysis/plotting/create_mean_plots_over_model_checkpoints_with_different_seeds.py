@@ -39,6 +39,7 @@ from topollm.data_processing.dictionary_handling import (
     generate_fixed_parameters_text_from_dict,
 )
 from topollm.logging.log_dataframe_info import log_dataframe_info
+from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 from topollm.plotting.line_plot_grouped_by_categorical_column import PlotSizeConfig
 from topollm.task_performance_analysis.plotting.distribution_violinplots_and_distribution_boxplots import TicksAndLabels
 from topollm.task_performance_analysis.plotting.parameter_combinations_and_loaded_data_handling import (
@@ -47,6 +48,7 @@ from topollm.task_performance_analysis.plotting.parameter_combinations_and_loade
     derive_base_model_partial_name,
     get_fixed_parameter_combinations,
 )
+from topollm.task_performance_analysis.plotting.score_loader.score_loader import EmotionClassificationScoreLoader
 from topollm.typing.enums import Verbosity
 
 default_logger: logging.Logger = logging.getLogger(
@@ -59,6 +61,7 @@ def create_mean_plots_over_model_checkpoints_with_different_seeds(
     array_key_name: str,
     output_root_dir: pathlib.Path,
     plot_size_configs_list: list[PlotSizeConfig],
+    embeddings_path_manager: EmbeddingsPathManager,
     *,
     fixed_keys: list[str] | None = None,
     additional_fixed_params: dict[str, Any] | None = None,
@@ -153,18 +156,60 @@ def create_mean_plots_over_model_checkpoints_with_different_seeds(
             key=lambda single_dict: int(single_dict["model_checkpoint"]),
         )
 
+        sorted_data_df = pd.DataFrame(
+            data=sorted_data,
+        )
+
         model_checkpoint_str_list: list[str] = [
             str(object=single_dict["model_checkpoint"]) for single_dict in sorted_data
         ]
 
+        # ========================================================== #
+        # START: Load the corresponding model performance metrics
+
+        match filter_key_value_pairs["model_partial_name"]:
+            case "model=bert-base-uncased-ContextBERT-ERToD_emowoz_basic_setup_debug=-1_use_context=False":
+                seed_dfs: list[pd.DataFrame] = []
+                for seed in range(50, 55):
+                    parsed_data_path: pathlib.Path = pathlib.Path(
+                        embeddings_path_manager.data_dir,
+                        f"models/EmoLoop/output_dir/debug=-1/use_context=False/ep=5/seed={seed}/parsed_data/raw_data/parsed_data.csv",
+                    )
+
+                    file_loader = EmotionClassificationScoreLoader(
+                        filepath=parsed_data_path,
+                    )
+                    scores_df: pd.DataFrame = file_loader.get_scores()
+                    scores_df["model_seed"] = seed  # Tag the dataframe with the current seed
+                    seed_dfs.append(scores_df)
+
+                # Concatenate all seed dataframes into one
+                combined_scores_df: pd.DataFrame | None = pd.concat(
+                    objs=seed_dfs,
+                    ignore_index=True,
+                )
+
+                pass  # TODO: This is here for setting breakpoints
+            case _:
+                logger.warning(
+                    msg=f"No specific model performance data loader implemented for "  # noqa: G004 - low overhead
+                    f"{filter_key_value_pairs['model_partial_name'] = }.",
+                )
+                logger.info(
+                    f"Setting combined_scores_df to None for this model.",
+                )
+                combined_scores_df: pd.DataFrame | None = None
+
         # TODO: Load the correct model performance data/losses if it is available (we will use a custom protocol class for this)
 
-        # # # #
-        # Compute means and create dataframe from the data
+        pass  # TODO: This is here for setting breakpoints
+        # TODO: We will move this performance metrics loading into a function later
 
-        sorted_data_df = pd.DataFrame(
-            sorted_data,
-        )
+        # END: Load the corresponding model performance metrics
+        # ========================================================== #
+
+        # # # #
+        # Compute means
 
         # Create column with means
         sorted_data_df[f"{array_key_name}_mean"] = sorted_data_df[array_key_name].apply(
