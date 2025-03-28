@@ -27,7 +27,6 @@
 
 """Score loader for model performance metrics."""
 
-import json
 import pathlib
 from typing import Protocol
 
@@ -44,8 +43,18 @@ class ScoreLoader(Protocol):
 
         Returns:
             pd.DataFrame: DataFrame with columns for epochs, dataset splits, and associated metrics.
+
         """
-        ...
+        ...  # pragma: no cover
+
+    def get_columns_to_plot(self) -> list[str]:
+        """Return the columns to plot.
+
+        Returns:
+            list[str]: List of column names to plot.
+
+        """
+        ...  # pragma: no cover
 
 
 class EmotionClassificationScoreLoader:
@@ -64,6 +73,51 @@ class EmotionClassificationScoreLoader:
             mode="r",
         ) as file:
             loaded_df: pd.DataFrame = pd.read_csv(filepath_or_buffer=file)
+
+        post_processed_loaded_df = self.post_process_loaded_df(
+            loaded_df=loaded_df,
+        )
+
+        return post_processed_loaded_df
+
+    def get_columns_to_plot(
+        self,
+    ) -> list[str]:
+        # The dataframe should contain the following columns:
+        # > [
+        # > 'model_checkpoint',
+        # > 'data_subsampling_split',
+        # > 'train_loss',
+        # > 'Micro F1 (w/o Neutral)',
+        # > 'Macro F1 (w/o Neutral)',
+        # > 'Weighted F1 (w/o Neutral)',
+        # > 'Micro F1 (with Neutral)',
+        # > 'Macro F1 (with Neutral)',
+        # > 'Weighted F1 (with Neutral)',
+        # > 'model_seed'
+        # >]
+
+        columns_to_plot: list[str] = [
+            "train_loss",
+            "Macro F1 (w/o Neutral)",
+            "Weighted F1 (w/o Neutral)",
+        ]
+
+        return columns_to_plot
+
+    def post_process_loaded_df(
+        self,
+        loaded_df: pd.DataFrame,
+    ) -> pd.DataFrame:
+        # Rename the 'epoch' column to 'model_checkpoint'
+        loaded_df = loaded_df.rename(
+            columns={
+                "epoch": "model_checkpoint",
+            },
+        )
+
+        # Subtract 1 from the 'model_checkpoint' column to make it zero-based
+        loaded_df["model_checkpoint"] = loaded_df["model_checkpoint"].astype(int) - 1
 
         return loaded_df
 
@@ -100,6 +154,12 @@ class HardcodedScoreLoader:
                 records.append(record)
 
         return pd.DataFrame(data=records)
+
+    def get_columns_to_plot(self) -> list[str]:
+        return [
+            "accuracy",
+            "loss",
+        ]
 
 
 # Example Usage

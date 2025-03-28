@@ -147,13 +147,15 @@ def create_mean_plots_over_model_checkpoints_with_different_seeds(
         # Sort the arrays by increasing model checkpoint.
         # Then from this point, the list of arrays and list of extracted checkpoints will be in the correct order.
         # 1. Step: Replace None model checkpoints with -1.
+        model_checkpoint_column_name = "model_checkpoint"
+
         for single_dict in filtered_data_with_added_base_model:
-            if single_dict["model_checkpoint"] is None:
-                single_dict["model_checkpoint"] = -1
+            if single_dict[model_checkpoint_column_name] is None:
+                single_dict[model_checkpoint_column_name] = -1
         # 2. Step: Call sorting function.
         sorted_data: list[dict] = sorted(
             filtered_data_with_added_base_model,
-            key=lambda single_dict: int(single_dict["model_checkpoint"]),
+            key=lambda single_dict: int(single_dict[model_checkpoint_column_name]),
         )
 
         sorted_data_df = pd.DataFrame(
@@ -161,7 +163,7 @@ def create_mean_plots_over_model_checkpoints_with_different_seeds(
         )
 
         model_checkpoint_str_list: list[str] = [
-            str(object=single_dict["model_checkpoint"]) for single_dict in sorted_data
+            str(object=single_dict[model_checkpoint_column_name]) for single_dict in sorted_data
         ]
 
         # ========================================================== #
@@ -170,6 +172,7 @@ def create_mean_plots_over_model_checkpoints_with_different_seeds(
         match filter_key_value_pairs["model_partial_name"]:
             case "model=bert-base-uncased-ContextBERT-ERToD_emowoz_basic_setup_debug=-1_use_context=False":
                 seed_dfs: list[pd.DataFrame] = []
+                columns_to_plot_set: set[str] = set()
                 for seed in range(50, 55):
                     parsed_data_path: pathlib.Path = pathlib.Path(
                         embeddings_path_manager.data_dir,
@@ -183,26 +186,31 @@ def create_mean_plots_over_model_checkpoints_with_different_seeds(
                     scores_df["model_seed"] = seed  # Tag the dataframe with the current seed
                     seed_dfs.append(scores_df)
 
+                    columns_to_plot: list[str] = file_loader.get_columns_to_plot()
+                    columns_to_plot_set.update(
+                        columns_to_plot,
+                    )
+
                 # Concatenate all seed dataframes into one
                 combined_scores_df: pd.DataFrame | None = pd.concat(
                     objs=seed_dfs,
                     ignore_index=True,
                 )
 
-                pass  # TODO: This is here for setting breakpoints
+                combined_scores_columns_to_plot_list: list[str] | None = list(columns_to_plot_set)
             case _:
                 logger.warning(
                     msg=f"No specific model performance data loader implemented for "  # noqa: G004 - low overhead
                     f"{filter_key_value_pairs['model_partial_name'] = }.",
                 )
                 logger.info(
-                    f"Setting combined_scores_df to None for this model.",
+                    msg="Setting combined_scores_df to None for this model.",
                 )
                 combined_scores_df: pd.DataFrame | None = None
+                combined_scores_columns_to_plot_list: list[str] | None = None
 
         # TODO: Load the correct model performance data/losses if it is available (we will use a custom protocol class for this)
 
-        pass  # TODO: This is here for setting breakpoints
         # TODO: We will move this performance metrics loading into a function later
 
         # END: Load the corresponding model performance metrics
@@ -241,19 +249,46 @@ def create_mean_plots_over_model_checkpoints_with_different_seeds(
                 plots_output_dir,
                 "raw_data",
             )
+            plot_raw_data_save_dir.mkdir(
+                parents=True,
+                exist_ok=True,
+            )
 
             sorted_data_df_save_path = pathlib.Path(
                 plot_raw_data_save_dir,
                 "sorted_data_df.csv",
             )
-            plot_raw_data_save_dir.mkdir(
-                parents=True,
-                exist_ok=True,
-            )
+
+            if verbosity >= Verbosity.NORMAL:
+                logger.info(
+                    msg=f"Saving sorted data to {sorted_data_df_save_path = } ...",  # noqa: G004 - low overhead
+                )
             sorted_data_df.to_csv(
                 path_or_buf=sorted_data_df_save_path,
                 index=False,
             )
+            if verbosity >= Verbosity.NORMAL:
+                logger.info(
+                    msg=f"Saving sorted data to {sorted_data_df_save_path = } DONE",  # noqa: G004 - low overhead
+                )
+
+            if combined_scores_df is not None:
+                combined_scores_df_save_path = pathlib.Path(
+                    plot_raw_data_save_dir,
+                    "combined_scores_df.csv",
+                )
+                if verbosity >= Verbosity.NORMAL:
+                    logger.info(
+                        msg=f"Saving combined scores to {combined_scores_df_save_path = } ...",  # noqa: G004 - low overhead
+                    )
+                combined_scores_df.to_csv(
+                    path_or_buf=combined_scores_df_save_path,
+                    index=False,
+                )
+                if verbosity >= Verbosity.NORMAL:
+                    logger.info(
+                        msg=f"Saving combined scores to {combined_scores_df_save_path = } DONE",  # noqa: G004 - low overhead
+                    )
 
         ticks_and_labels: TicksAndLabels = TicksAndLabels(
             xlabel="checkpoints",
@@ -265,9 +300,12 @@ def create_mean_plots_over_model_checkpoints_with_different_seeds(
         # Create plots
         for plot_size_config in plot_size_configs_list:
             plot_local_estimates_for_different_seeds_and_aggregate(
-                df=sorted_data_df,
+                local_estimates_df=sorted_data_df,
                 ticks_and_labels=ticks_and_labels,
                 plot_size_config=plot_size_config,
+                scores_df=combined_scores_df,
+                scores_columns_to_plot_list=combined_scores_columns_to_plot_list,
+                x_column_name=model_checkpoint_column_name,
                 fixed_params_text=fixed_params_text,
                 base_model_model_partial_name=base_model_model_partial_name,
                 plots_output_dir=plots_output_dir,
@@ -277,10 +315,13 @@ def create_mean_plots_over_model_checkpoints_with_different_seeds(
 
 
 def plot_local_estimates_for_different_seeds_and_aggregate(
-    df: pd.DataFrame,
+    local_estimates_df: pd.DataFrame,
     ticks_and_labels: TicksAndLabels,
     plot_size_config: PlotSizeConfig,
+    scores_df: pd.DataFrame | None = None,
+    scores_columns_to_plot_list: list[str] | None = None,
     *,
+    x_column_name: str = "model_checkpoint",
     fixed_params_text: str | None = None,
     base_model_model_partial_name: str | None = None,
     plots_output_dir: pathlib.Path | None = None,
@@ -292,45 +333,57 @@ def plot_local_estimates_for_different_seeds_and_aggregate(
 
     Args:
         df:
-            Input dataframe with 'model_checkpoint', 'model_seed', and 'file_data_mean' columns.
+            Input dataframe with columns:
+            - 'model_checkpoint',
+            - 'model_seed',
+            - 'file_data_mean'
 
     """
-    plot_data: pd.DataFrame = df[
+    local_estimates_plot_data_df: pd.DataFrame = local_estimates_df[
         [
-            "model_checkpoint",
+            x_column_name,
             "model_seed",
             "file_data_mean",
         ]
     ].copy()
 
     # Separate the checkpoint -1 data (no seeds associated)
-    checkpoint_neg1 = plot_data[plot_data["model_checkpoint"] == -1].iloc[0]
-    seeds = plot_data["model_seed"].dropna().unique().astype(int)
+    checkpoint_neg1 = local_estimates_plot_data_df[local_estimates_plot_data_df[x_column_name] == -1].iloc[0]
+    seeds = local_estimates_plot_data_df["model_seed"].dropna().unique().astype(dtype=int)
 
     # Emulate checkpoint -1 data for each seed
     neg1_data_emulated = pd.DataFrame(
         data={
-            "model_checkpoint": [-1] * len(seeds),
+            x_column_name: [-1] * len(seeds),
             "model_seed": seeds,
             "file_data_mean": [checkpoint_neg1["file_data_mean"]] * len(seeds),
         },
     )
 
     # Drop original -1 checkpoint and append the emulated data
-    plot_data = plot_data[plot_data["model_checkpoint"] != -1].dropna()
-    plot_data = pd.concat([neg1_data_emulated, plot_data], ignore_index=True)
+    local_estimates_plot_data_df = local_estimates_plot_data_df[
+        local_estimates_plot_data_df[x_column_name] != -1
+    ].dropna()
+    local_estimates_plot_data_df = pd.concat(
+        objs=[
+            neg1_data_emulated,
+            local_estimates_plot_data_df,
+        ],
+        ignore_index=True,
+    )
 
     # Ensure correct types
-    plot_data = plot_data.astype(
+    local_estimates_plot_data_df = local_estimates_plot_data_df.astype(
         dtype={
-            "model_checkpoint": int,
+            x_column_name: int,
             "model_seed": int,
             "file_data_mean": float,
         },
     )
 
-    # # # #
-    # Individual plots by seed using a figure and axis
+    # ========================================================= #
+    # Plots: Individual by seed using a figure and axis.
+    # ========================================================= #
 
     (
         fig1,
@@ -342,18 +395,30 @@ def plot_local_estimates_for_different_seeds_and_aggregate(
         ),
     )
 
+    # TODO: Include the plotting of the scores_df data
+
     for seed in seeds:
-        seed_data = plot_data[plot_data["model_seed"] == seed]
+        seed_data = local_estimates_plot_data_df[local_estimates_plot_data_df["model_seed"] == seed]
         ax1.plot(
-            seed_data["model_checkpoint"],
+            seed_data[x_column_name],
             seed_data["file_data_mean"],
             marker="o",
-            label=f"Seed {seed}",
+            label=f"{seed=}",
         )
 
-    ax1.set_xlabel("Model Checkpoint")
-    ax1.set_ylabel("File Data Mean")
-    ax1.set_title("Local Estimates Over Checkpoints by Model Seed (including checkpoint -1)")
+        # Plot the additional data if available
+        if scores_df is not None and scores_columns_to_plot_list is not None:
+            for column in scores_columns_to_plot_list:
+                ax1.plot(
+                    scores_df[scores_df["model_seed"] == seed][x_column_name],
+                    scores_df[scores_df["model_seed"] == seed][column],
+                    marker="x",
+                    label=f"{column} (seed={seed})",
+                )
+
+    ax1.set_xlabel(xlabel="Model Checkpoint")
+    ax1.set_ylabel(ylabel="File Data Mean")
+    ax1.set_title(label="Local Estimates Over Checkpoints by Model Seed (including checkpoint -1)")
     ax1.legend(title="Model Seed")
     ax1.grid(
         visible=True,
@@ -433,18 +498,19 @@ def plot_local_estimates_for_different_seeds_and_aggregate(
     if show_plots:
         plt.show()
 
-    # # # #
-    # Aggregated over seeds
+    # ========================================================= #
+    # Plots: Aggregated over seeds
+    # ========================================================= #
 
-    if "index" in plot_data.columns:
-        plot_data = plot_data.drop(
+    if "index" in local_estimates_plot_data_df.columns:
+        local_estimates_plot_data_df = local_estimates_plot_data_df.drop(
             columns=["index"],
         )
 
     # Summary plot with mean and standard deviation
     summary: pd.DataFrame = (
-        plot_data.groupby(
-            by="model_checkpoint",
+        local_estimates_plot_data_df.groupby(
+            by=x_column_name,
             as_index=False,
         )["file_data_mean"]
         .agg(
@@ -469,7 +535,7 @@ def plot_local_estimates_for_different_seeds_and_aggregate(
         summary = summary.drop(columns=["index"])
 
     summary.columns = [
-        "model_checkpoint",
+        x_column_name,
         "mean",
         "std",
     ]
@@ -478,7 +544,7 @@ def plot_local_estimates_for_different_seeds_and_aggregate(
     summary["std"] = summary["std"].fillna(0)
 
     # Convert to NumPy arrays explicitly for matplotlib
-    checkpoints = summary["model_checkpoint"].to_numpy()
+    checkpoints = summary[x_column_name].to_numpy()
     means = summary["mean"].to_numpy()
     stds = summary["std"].to_numpy()
 
