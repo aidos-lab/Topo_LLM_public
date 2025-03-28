@@ -2,6 +2,8 @@
 
 from dataclasses import dataclass
 
+import matplotlib.axes
+
 
 @dataclass
 class AxisLimits:
@@ -11,6 +13,31 @@ class AxisLimits:
     x_max: float | None = None
     y_min: float | None = None
     y_max: float | None = None
+
+    @property
+    def y_range_description(
+        self,
+    ) -> str:
+        """Return a string describing the y-axis range."""
+        description: str = f"y_min={self.y_min}_y_max={self.y_max}"
+
+        return description
+
+    def set_y_axis_limits(
+        self,
+        axis: matplotlib.axes.Axes,
+    ) -> matplotlib.axes.Axes:
+        """Set y-axis limits on the given axis."""
+        if self.y_min is not None:
+            axis.set_ylim(
+                bottom=self.y_min,
+            )
+        if self.y_max is not None:
+            axis.set_ylim(
+                top=self.y_max,
+            )
+
+        return axis
 
 
 @dataclass
@@ -28,6 +55,18 @@ class PlotSizeConfigNested:
     primary_axis_limits: AxisLimits
     secondary_axis_limits: AxisLimits
     output_dimensions: OutputDimensions
+
+    @property
+    def y_range_description(
+        self,
+    ) -> str:
+        """Return a string describing the y-axis range."""
+        description: str = (
+            f"primary_{self.primary_axis_limits.y_range_description}"
+            f"_secondary_{self.secondary_axis_limits.y_range_description}"
+        )
+
+        return description
 
 
 @dataclass

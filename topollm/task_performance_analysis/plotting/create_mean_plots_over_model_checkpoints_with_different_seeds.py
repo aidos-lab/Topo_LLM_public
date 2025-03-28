@@ -110,10 +110,6 @@ def create_mean_plots_over_model_checkpoints_with_different_seeds(
         total=total_combinations,
         desc="Plotting different choices for model checkpoints",
     ):
-        fixed_params_text: str = generate_fixed_parameters_text_from_dict(
-            filters_dict=filter_key_value_pairs,
-        )
-
         filtered_data: list[dict] = filter_list_of_dictionaries_by_key_value_pairs(
             list_of_dicts=loaded_data,
             key_value_pairs=filter_key_value_pairs,
@@ -209,7 +205,9 @@ def create_mean_plots_over_model_checkpoints_with_different_seeds(
                 combined_scores_df: pd.DataFrame | None = None
                 combined_scores_columns_to_plot_list: list[str] | None = None
 
-        # TODO: Load the correct model performance data/losses if it is available (we will use a custom protocol class for this)
+        # TODO: Load the correct model performance data/losses if it is available:
+        # TODO: Implement this for the Trippy-R models
+        # TODO: Implement this for language models (with performance given by loss)
 
         # TODO: We will move this performance metrics loading into a function later
 
@@ -303,30 +301,39 @@ def create_mean_plots_over_model_checkpoints_with_different_seeds(
             # TODO: We might need to set the secondary axis limits depending on the type of scores loaded
             # (e.g., for the emotion models the scores might be in a different range than the losses)
 
-            plot_size_config_nested = PlotSizeConfigNested(
-                primary_axis_limits=AxisLimits(
-                    x_min=plot_size_config.x_min,
-                    x_max=plot_size_config.x_max,
-                    y_min=plot_size_config.y_min,
-                    y_max=plot_size_config.y_max,
+            secondary_axis_limits_list: list[AxisLimits] = [
+                AxisLimits(),  # Automatic scaling
+                AxisLimits(
+                    y_min=0.0,
+                    y_max=1.1,
                 ),
-                secondary_axis_limits=AxisLimits(),
-                output_dimensions=OutputDimensions(),
-            )
+            ]
 
-            plot_local_estimates_for_different_seeds_and_aggregate(
-                local_estimates_df=sorted_data_df,
-                ticks_and_labels=ticks_and_labels,
-                plot_size_config_nested=plot_size_config_nested,
-                scores_df=combined_scores_df,
-                scores_columns_to_plot_list=combined_scores_columns_to_plot_list,
-                x_column_name=model_checkpoint_column_name,
-                fixed_params_text=fixed_params_text,
-                base_model_model_partial_name=base_model_model_partial_name,
-                plots_output_dir=plots_output_dir,
-                verbosity=verbosity,
-                logger=logger,
-            )
+            for secondary_axis_limits in secondary_axis_limits_list:
+                plot_size_config_nested = PlotSizeConfigNested(
+                    primary_axis_limits=AxisLimits(
+                        x_min=plot_size_config.x_min,
+                        x_max=plot_size_config.x_max,
+                        y_min=plot_size_config.y_min,
+                        y_max=plot_size_config.y_max,
+                    ),
+                    secondary_axis_limits=secondary_axis_limits,
+                    output_dimensions=OutputDimensions(),
+                )
+
+                plot_local_estimates_for_different_seeds_and_aggregate(
+                    local_estimates_df=sorted_data_df,
+                    ticks_and_labels=ticks_and_labels,
+                    plot_size_config_nested=plot_size_config_nested,
+                    scores_df=combined_scores_df,
+                    scores_columns_to_plot_list=combined_scores_columns_to_plot_list,
+                    x_column_name=model_checkpoint_column_name,
+                    filter_key_value_pairs=filter_key_value_pairs,
+                    base_model_model_partial_name=base_model_model_partial_name,
+                    plots_output_dir=plots_output_dir,
+                    verbosity=verbosity,
+                    logger=logger,
+                )
 
 
 def plot_local_estimates_for_different_seeds_and_aggregate(
@@ -337,7 +344,7 @@ def plot_local_estimates_for_different_seeds_and_aggregate(
     scores_columns_to_plot_list: list[str] | None = None,
     *,
     x_column_name: str = "model_checkpoint",
-    fixed_params_text: str | None = None,
+    filter_key_value_pairs: dict,
     base_model_model_partial_name: str | None = None,
     plots_output_dir: pathlib.Path | None = None,
     show_plots: bool = False,
@@ -420,6 +427,21 @@ def plot_local_estimates_for_different_seeds_and_aggregate(
             label=f"{seed=}",
         )
 
+    ax1.set_xlabel(xlabel="Model Checkpoint")
+    ax1.set_ylabel(ylabel="File Data Mean")
+    ax1.set_title(label="Local Estimates Over Checkpoints by Model Seed (including checkpoint -1)")
+
+    ax1.grid(
+        visible=True,
+    )
+
+    ax1.set_xlabel(
+        xlabel=ticks_and_labels.xlabel,
+    )
+    ax1.set_ylabel(
+        ylabel=ticks_and_labels.ylabel,
+    )
+
     # Plot the additional data if available
     # TODO: Include the plotting of the scores_df data
 
@@ -440,8 +462,14 @@ def plot_local_estimates_for_different_seeds_and_aggregate(
                 )
 
     # Optional: Set axis label once
-    ax2.set_ylabel("Scores", color="tab:red")  # Customize label and color if desired
-    ax2.tick_params(axis="y", labelcolor="tab:red")
+    ax2.set_ylabel(
+        ylabel="Scores",
+        color="tab:red",
+    )  # Customize label and color if desired
+    ax2.tick_params(
+        axis="y",
+        labelcolor="tab:red",
+    )
 
     # Combine legends from both axes
     (
@@ -458,30 +486,17 @@ def plot_local_estimates_for_different_seeds_and_aggregate(
         title="Legend",
     )
 
-    ax1.set_xlabel(xlabel="Model Checkpoint")
-    ax1.set_ylabel(ylabel="File Data Mean")
-    ax1.set_title(label="Local Estimates Over Checkpoints by Model Seed (including checkpoint -1)")
-    ax1.legend(title="Model Seed")
-    ax1.grid(
-        visible=True,
-    )
-
-    ax1.set_xlabel(
-        xlabel=ticks_and_labels.xlabel,
-    )
-    ax1.set_ylabel(
-        ylabel=ticks_and_labels.ylabel,
-    )
-
     # Set the y-axis limits
-    if plot_size_config_nested.primary_axis_limits.y_min is not None:
-        ax1.set_ylim(
-            bottom=plot_size_config_nested.primary_axis_limits.y_min,
-        )
-    if plot_size_config_nested.primary_axis_limits.y_max is not None:
-        ax1.set_ylim(
-            top=plot_size_config_nested.primary_axis_limits.y_max,
-        )
+    ax1 = plot_size_config_nested.primary_axis_limits.set_y_axis_limits(
+        axis=ax1,
+    )
+    ax2 = plot_size_config_nested.secondary_axis_limits.set_y_axis_limits(
+        axis=ax2,
+    )
+
+    fixed_params_text: str = generate_fixed_parameters_text_from_dict(
+        filters_dict=filter_key_value_pairs,
+    )
 
     if fixed_params_text is not None:
         ax1.text(
@@ -517,13 +532,9 @@ def plot_local_estimates_for_different_seeds_and_aggregate(
 
     fig1.tight_layout()
 
+    # Save the figure
     if plots_output_dir is not None:
-        # Save the figure
-        plot_name: str = (
-            f"local_estimates_by_model_seed"
-            f"_{plot_size_config_nested.primary_axis_limits.y_min}"
-            f"_{plot_size_config_nested.primary_axis_limits.y_max}"
-        )
+        plot_name: str = f"local_estimates_by_model_seed_{plot_size_config_nested.y_range_description}"
         plot_save_path = pathlib.Path(
             plots_output_dir,
             "separate_seeds",
@@ -690,13 +701,9 @@ def plot_local_estimates_for_different_seeds_and_aggregate(
 
     fig2.tight_layout()
 
+    # Save the figure
     if plots_output_dir is not None:
-        # Save the figure
-        plot_name: str = (
-            f"local_estimates_aggregate"
-            f"_{plot_size_config_nested.primary_axis_limits.y_min}"
-            f"_{plot_size_config_nested.primary_axis_limits.y_max}"
-        )
+        plot_name: str = f"local_estimates_aggregate_{plot_size_config_nested.y_range_description}"
         plot_save_path = pathlib.Path(
             plots_output_dir,
             "aggregate",
