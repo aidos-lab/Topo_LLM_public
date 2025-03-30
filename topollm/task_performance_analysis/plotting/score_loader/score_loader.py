@@ -63,7 +63,8 @@ class EmotionClassificationScoreLoader:
     def __init__(
         self,
         filepath: pathlib.Path,
-    ):
+    ) -> None:
+        """Initialize the loader with a file path."""
         self.filepath: pathlib.Path = filepath
 
     def get_scores(
@@ -172,10 +173,14 @@ if __name__ == "__main__":
         ),
     )
     hardcoded_loader = HardcodedScoreLoader(
-        {
+        data={
             "1": {"test": [0.8, 0.5, 0.75, 0.9, 0.6, 0.85]},
         },
     )
 
-    print(file_loader.get_scores().head())
-    print(hardcoded_loader.get_scores().head())
+    print(  # noqa: T201 - We want this test function to print
+        file_loader.get_scores().head(),
+    )
+    print(  # noqa: T201 - We want this test function to print
+        hardcoded_loader.get_scores().head(),
+    )

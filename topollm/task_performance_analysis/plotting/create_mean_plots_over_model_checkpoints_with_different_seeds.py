@@ -366,8 +366,14 @@ def load_scores(
 ) -> ScoresData:
     match filter_key_value_pairs["model_partial_name"]:
         case "model=bert-base-uncased-ContextBERT-ERToD_emowoz_basic_setup_debug=-1_use_context=False":
+            if verbosity >= Verbosity.NORMAL:
+                logger.info(
+                    msg="Loading scores for EmoLoop emotion models.",
+                )
+
             seed_dfs: list[pd.DataFrame] = []
             columns_to_plot_set: set[str] = set()
+
             for seed in range(50, 55):
                 parsed_data_path: pathlib.Path = pathlib.Path(
                     embeddings_path_manager.data_dir,
@@ -387,14 +393,55 @@ def load_scores(
                 )
 
             # Concatenate all seed dataframes into one
-            combined_scores_df: pd.DataFrame | None = pd.concat(
-                objs=seed_dfs,
-                ignore_index=True,
-            )
+            if len(seed_dfs) == 0:
+                logger.warning(
+                    msg="No seed dataframes found.",
+                )
+                logger.info(
+                    msg="Setting combined_scores_df to None for this model.",
+                )
+                combined_scores_df: pd.DataFrame | None = None
+            else:
+                combined_scores_df: pd.DataFrame | None = pd.concat(
+                    objs=seed_dfs,
+                    ignore_index=True,
+                )
+
+            combined_scores_columns_to_plot_list: list[str] | None = list(columns_to_plot_set)
+        case "model=roberta-base-trippy_r_multiwoz21":
+            seed_dfs: list[pd.DataFrame] = []
+            columns_to_plot_set: set[str] = set()
+
+            # TODO: Implement this for the Trippy-R models
+
+            combined_scores_df = None
+            combined_scores_columns_to_plot_list = None
+
+            for seed in range(42, 44):
+                results_folder_for_given_seed_path: pathlib.Path = pathlib.Path(
+                    embeddings_path_manager.data_dir,
+                    f"data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/results.{seed}",
+                )
+
+                pass  # TODO: this is here for setting breakpoints
+
+            # Concatenate all seed dataframes into one
+            if len(seed_dfs) == 0:
+                logger.warning(
+                    msg="No seed dataframes found.",
+                )
+                logger.info(
+                    msg="Setting combined_scores_df to None for this model.",
+                )
+                combined_scores_df: pd.DataFrame | None = None
+            else:
+                combined_scores_df: pd.DataFrame | None = pd.concat(
+                    objs=seed_dfs,
+                    ignore_index=True,
+                )
 
             combined_scores_columns_to_plot_list: list[str] | None = list(columns_to_plot_set)
 
-        # TODO: Implement this for the Trippy-R models
         # TODO: Implement this for language models (with performance given by loss)
 
         case _:
