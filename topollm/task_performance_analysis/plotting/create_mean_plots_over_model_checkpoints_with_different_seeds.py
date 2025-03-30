@@ -27,6 +27,7 @@
 
 import logging
 import pathlib
+from dataclasses import dataclass, field
 from typing import Any
 
 import matplotlib.pyplot as plt
@@ -54,6 +55,31 @@ from topollm.typing.enums import Verbosity
 default_logger: logging.Logger = logging.getLogger(
     name=__name__,
 )
+
+
+@dataclass
+class PlotInputData:
+    """Container for plot input data."""
+
+    local_estimates_df: pd.DataFrame
+    scores_df: pd.DataFrame | None = None
+    scores_columns_to_plot_list: list[str] | None = None
+
+
+@dataclass
+class PlotConfig:
+    """Container for plot configuration."""
+
+    ticks_and_labels: TicksAndLabels
+    plot_size_config_nested: PlotSizeConfigNested
+    seeds: np.ndarray
+    x_column_name: str = "model_checkpoint"
+    filter_key_value_pairs: dict = field(
+        default_factory=dict,
+    )
+    base_model_model_partial_name: str | None = None
+    plots_output_dir: pathlib.Path | None = None
+    show_plots: bool = False
 
 
 def create_mean_plots_over_model_checkpoints_with_different_seeds(
@@ -321,7 +347,7 @@ def create_mean_plots_over_model_checkpoints_with_different_seeds(
                     output_dimensions=OutputDimensions(),
                 )
 
-                plot_local_estimates_for_different_seeds_and_aggregate(
+                plot_local_estimates_with_individual_seeds_and_aggregated_over_seeds(
                     local_estimates_df=sorted_data_df,
                     ticks_and_labels=ticks_and_labels,
                     plot_size_config_nested=plot_size_config_nested,
@@ -336,7 +362,24 @@ def create_mean_plots_over_model_checkpoints_with_different_seeds(
                 )
 
 
-def plot_local_estimates_for_different_seeds_and_aggregate(
+def get_data_subsampling_split_from_data_subsampling_full(
+    data_subsampling_full: str,
+) -> str:
+    """Extract the split from the full description of the data subsampling.
+
+    For example, from:
+    - 'split=test_samples=10000_sampling=random_sampling-seed=778' we extract 'test'.
+    """
+    split: str = data_subsampling_full.split(
+        sep="_",
+    )[0].split(
+        sep="=",
+    )[1]
+
+    return split
+
+
+def plot_local_estimates_with_individual_seeds_and_aggregated_over_seeds(
     local_estimates_df: pd.DataFrame,
     ticks_and_labels: TicksAndLabels,
     plot_size_config_nested: PlotSizeConfigNested,
@@ -361,6 +404,9 @@ def plot_local_estimates_for_different_seeds_and_aggregate(
             - 'file_data_mean'
 
     """
+    # # # #
+    # Pre-process the local estimates data
+
     local_estimates_plot_data_df: pd.DataFrame = local_estimates_df[
         [
             x_column_name,
@@ -371,7 +417,7 @@ def plot_local_estimates_for_different_seeds_and_aggregate(
 
     # Separate the checkpoint -1 data (no seeds associated)
     checkpoint_neg1 = local_estimates_plot_data_df[local_estimates_plot_data_df[x_column_name] == -1].iloc[0]
-    seeds = local_estimates_plot_data_df["model_seed"].dropna().unique().astype(dtype=int)
+    seeds: np.ndarray = local_estimates_plot_data_df["model_seed"].dropna().unique().astype(dtype=int)
 
     # Emulate checkpoint -1 data for each seed
     neg1_data_emulated = pd.DataFrame(
@@ -403,164 +449,77 @@ def plot_local_estimates_for_different_seeds_and_aggregate(
         },
     )
 
+    # # # #
+    # Pre-process the scores data
+
+    if "data_subsampling_full" not in filter_key_value_pairs:
+        logger.warning(
+            msg="No data_subsampling_full key found in filter_key_value_pairs.",
+        )
+        logger.info(
+            msg="Skipping this plot call and returning from function now.",
+        )
+        return
+
+    data_subsampling_split: str = get_data_subsampling_split_from_data_subsampling_full(
+        data_subsampling_full=filter_key_value_pairs["data_subsampling_full"],
+    )
+
+    if scores_df is not None:
+        if "data_subsampling_split" not in scores_df.columns:
+            logger.warning(
+                msg="No data_subsampling_split column found in scores_df.",
+            )
+            logger.info(
+                msg="Will not modify the scores_df.",
+            )
+        else:
+            if verbosity >= Verbosity.NORMAL:
+                logger.info(
+                    msg=f"Filtering scores_df based on {data_subsampling_split = }",  # noqa: G004 - low overhead
+                )
+                logger.info(
+                    msg=f"Shape before filtering: {scores_df.shape = }",  # noqa: G004 - low overhead
+                )
+
+            # Filter the scores_df based on the data_subsampling_split
+            scores_df = scores_df[scores_df["data_subsampling_split"] == data_subsampling_split]
+
+            if verbosity >= Verbosity.NORMAL:
+                logger.info(
+                    msg=f"Shape after filtering: {scores_df.shape = }",  # noqa: G004 - low overhead
+                )
+
+    # # # #
+    # Create the containers for the plot data and plot configuration
+
+    plot_input_data = PlotInputData(
+        local_estimates_df=local_estimates_plot_data_df,
+        scores_df=scores_df,
+        scores_columns_to_plot_list=scores_columns_to_plot_list,
+    )
+
+    plot_config = PlotConfig(
+        ticks_and_labels=ticks_and_labels,
+        plot_size_config_nested=plot_size_config_nested,
+        seeds=seeds,
+        x_column_name=x_column_name,
+        filter_key_value_pairs=filter_key_value_pairs,
+        base_model_model_partial_name=base_model_model_partial_name,
+        plots_output_dir=plots_output_dir,
+        show_plots=show_plots,
+    )
+
     # ========================================================= #
     # Plots: Individual by seed using a figure and axis.
     # ========================================================= #
 
-    (
-        fig1,
-        ax1,
-    ) = plt.subplots(
-        figsize=(
-            plot_size_config_nested.output_dimensions.output_pdf_width / 100,
-            plot_size_config_nested.output_dimensions.output_pdf_height / 100,
-        ),
+    create_seedwise_estimate_visualization(
+        data=plot_input_data,
+        config=plot_config,
+        verbosity=verbosity,
+        logger=logger,
     )
-
-    # Plot the mean of local estimates
-    for seed in seeds:
-        seed_data = local_estimates_plot_data_df[local_estimates_plot_data_df["model_seed"] == seed]
-        ax1.plot(
-            seed_data[x_column_name],
-            seed_data["file_data_mean"],
-            marker="o",
-            label=f"{seed=}",
-        )
-
-    ax1.set_xlabel(xlabel="Model Checkpoint")
-    ax1.set_ylabel(ylabel="File Data Mean")
-    ax1.set_title(label="Local Estimates Over Checkpoints by Model Seed (including checkpoint -1)")
-
-    ax1.grid(
-        visible=True,
-    )
-
-    ax1.set_xlabel(
-        xlabel=ticks_and_labels.xlabel,
-    )
-    ax1.set_ylabel(
-        ylabel=ticks_and_labels.ylabel,
-    )
-
-    # Plot the additional data if available
-    # TODO: Include the plotting of the scores_df data
-
-    # Add second y-axis for scores
-    ax2 = ax1.twinx()
-    ax2_label_plotted = False
-
-    if scores_df is not None and scores_columns_to_plot_list is not None:
-        for seed in seeds:
-            seed_scores = scores_df[scores_df["model_seed"] == seed]
-            for column in scores_columns_to_plot_list:
-                ax2.plot(
-                    seed_scores[x_column_name],
-                    seed_scores[column],
-                    linestyle="--",
-                    marker="x",
-                    label=f"{column} (seed={seed})",
-                )
-
-    # Optional: Set axis label once
-    ax2.set_ylabel(
-        ylabel="Scores",
-        color="tab:red",
-    )  # Customize label and color if desired
-    ax2.tick_params(
-        axis="y",
-        labelcolor="tab:red",
-    )
-
-    # Combine legends from both axes
-    (
-        lines_1,
-        labels_1,
-    ) = ax1.get_legend_handles_labels()
-    (
-        lines_2,
-        labels_2,
-    ) = ax2.get_legend_handles_labels()
-    ax1.legend(
-        handles=lines_1 + lines_2,
-        labels=labels_1 + labels_2,
-        title="Legend",
-    )
-
-    # Set the y-axis limits
-    ax1 = plot_size_config_nested.primary_axis_limits.set_y_axis_limits(
-        axis=ax1,
-    )
-    ax2 = plot_size_config_nested.secondary_axis_limits.set_y_axis_limits(
-        axis=ax2,
-    )
-
-    fixed_params_text: str = generate_fixed_parameters_text_from_dict(
-        filters_dict=filter_key_value_pairs,
-    )
-
-    if fixed_params_text is not None:
-        ax1.text(
-            x=1.05,
-            y=0.25,
-            s=f"Fixed Parameters:\n{fixed_params_text}",
-            transform=plt.gca().transAxes,
-            fontsize=6,
-            verticalalignment="top",
-            bbox={
-                "boxstyle": "round",
-                "facecolor": "wheat",
-                "alpha": 0.3,
-            },
-        )
-
-    # Add info about the base model if available into the bottom left corner of the plot
-    if base_model_model_partial_name is not None:
-        ax1.text(
-            x=0.01,
-            y=0.01,
-            s=f"{base_model_model_partial_name=}",
-            transform=plt.gca().transAxes,
-            fontsize=6,
-            verticalalignment="bottom",
-            horizontalalignment="left",
-            bbox={
-                "boxstyle": "round",
-                "facecolor": "wheat",
-                "alpha": 0.3,
-            },
-        )
-
-    fig1.tight_layout()
-
-    # Save the figure
-    if plots_output_dir is not None:
-        plot_name: str = f"local_estimates_by_model_seed_{plot_size_config_nested.y_range_description}"
-        plot_save_path = pathlib.Path(
-            plots_output_dir,
-            "separate_seeds",
-            f"{plot_name}.pdf",
-        )
-
-        if verbosity >= Verbosity.NORMAL:
-            logger.info(
-                msg=f"Saving plot to {plot_save_path = } ...",  # noqa: G004 - low overhead
-            )
-
-        plot_save_path.parent.mkdir(
-            parents=True,
-            exist_ok=True,
-        )
-        fig1.savefig(
-            fname=plot_save_path,
-        )
-
-        if verbosity >= Verbosity.NORMAL:
-            logger.info(
-                msg=f"Saving plot to {plot_save_path = } DONE",  # noqa: G004 - low overhead
-            )
-
-    if show_plots:
-        plt.show()
 
     # ========================================================= #
     # Plots: Aggregated over seeds
@@ -667,6 +626,10 @@ def plot_local_estimates_for_different_seeds_and_aggregate(
             top=plot_size_config_nested.primary_axis_limits.y_max,
         )
 
+    fixed_params_text: str = generate_fixed_parameters_text_from_dict(
+        filters_dict=filter_key_value_pairs,
+    )
+
     if fixed_params_text is not None:
         ax2.text(
             x=1.05,
@@ -729,4 +692,167 @@ def plot_local_estimates_for_different_seeds_and_aggregate(
             )
 
     if show_plots:
-        plt.show()
+        fig2.show()
+
+
+def create_seedwise_estimate_visualization(
+    data: PlotInputData,
+    config: PlotConfig,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
+    """Visualize seed-wise estimates over model checkpoints."""
+    (
+        fig1,
+        ax1,
+    ) = plt.subplots(
+        figsize=(
+            config.plot_size_config_nested.output_dimensions.output_pdf_width / 100,
+            config.plot_size_config_nested.output_dimensions.output_pdf_height / 100,
+        ),
+    )
+
+    # # # #
+    # Plot the mean of local estimates
+    for seed in config.seeds:
+        seed_data = data.local_estimates_df[data.local_estimates_df["model_seed"] == seed]
+        ax1.plot(
+            seed_data[config.x_column_name],
+            seed_data["file_data_mean"],
+            marker="o",
+            label=f"{seed=}",
+        )
+
+    ax1.set_xlabel(xlabel="Model Checkpoint")
+    ax1.set_ylabel(ylabel="File Data Mean")
+    ax1.set_title(label="Local Estimates Over Checkpoints by Model Seed (including checkpoint -1)")
+
+    ax1.grid(
+        visible=True,
+    )
+
+    ax1.set_xlabel(
+        xlabel=config.ticks_and_labels.xlabel,
+    )
+    ax1.set_ylabel(
+        ylabel=config.ticks_and_labels.ylabel,
+    )
+
+    # # # #
+    # Plot the additional data if available
+
+    # Add second y-axis for scores
+    ax2 = ax1.twinx()
+
+    if data.scores_df is not None and data.scores_columns_to_plot_list is not None:
+        for seed in config.seeds:
+            seed_scores = data.scores_df[data.scores_df["model_seed"] == seed]
+            for column in data.scores_columns_to_plot_list:
+                ax2.plot(
+                    seed_scores[config.x_column_name],
+                    seed_scores[column],
+                    linestyle="--",
+                    marker="x",
+                    label=f"{column} (seed={seed})",
+                )
+
+    # Optional: Set axis label once
+    ax2.set_ylabel(
+        ylabel="Scores",
+        color="tab:red",
+    )  # Customize label and color if desired
+    ax2.tick_params(
+        axis="y",
+        labelcolor="tab:red",
+    )
+
+    # Combine legends from both axes
+    (
+        lines_1,
+        labels_1,
+    ) = ax1.get_legend_handles_labels()
+    (
+        lines_2,
+        labels_2,
+    ) = ax2.get_legend_handles_labels()
+    ax1.legend(
+        handles=lines_1 + lines_2,
+        labels=labels_1 + labels_2,
+        title="Legend",
+    )
+
+    # Set the y-axis limits
+    ax1 = config.plot_size_config_nested.primary_axis_limits.set_y_axis_limits(
+        axis=ax1,
+    )
+    ax2 = config.plot_size_config_nested.secondary_axis_limits.set_y_axis_limits(
+        axis=ax2,
+    )
+
+    fixed_params_text: str = generate_fixed_parameters_text_from_dict(
+        filters_dict=config.filter_key_value_pairs,
+    )
+
+    if fixed_params_text is not None:
+        ax1.text(
+            x=1.05,
+            y=0.25,
+            s=f"Fixed Parameters:\n{fixed_params_text}",
+            transform=plt.gca().transAxes,
+            fontsize=6,
+            verticalalignment="top",
+            bbox={
+                "boxstyle": "round",
+                "facecolor": "wheat",
+                "alpha": 0.3,
+            },
+        )
+
+    # Add info about the base model if available into the bottom left corner of the plot
+    if config.base_model_model_partial_name is not None:
+        ax1.text(
+            x=0.01,
+            y=0.01,
+            s=f"{config.base_model_model_partial_name=}",
+            transform=plt.gca().transAxes,
+            fontsize=6,
+            verticalalignment="bottom",
+            horizontalalignment="left",
+            bbox={
+                "boxstyle": "round",
+                "facecolor": "wheat",
+                "alpha": 0.3,
+            },
+        )
+
+    fig1.tight_layout()
+
+    # Save the figure
+    if config.plots_output_dir is not None:
+        plot_name: str = f"local_estimates_by_model_seed_{config.plot_size_config_nested.y_range_description}"
+        plot_save_path = pathlib.Path(
+            config.plots_output_dir,
+            "separate_seeds",
+            f"{plot_name}.pdf",
+        )
+
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"Saving plot to {plot_save_path = } ...",  # noqa: G004 - low overhead
+            )
+
+        plot_save_path.parent.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+        fig1.savefig(
+            fname=plot_save_path,
+        )
+
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"Saving plot to {plot_save_path = } DONE",  # noqa: G004 - low overhead
+            )
+
+    if config.show_plots:
+        fig1.show()
