@@ -48,11 +48,10 @@ from topollm.logging.initialize_configuration_and_log import initialize_configur
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
 from topollm.plotting.line_plot_grouped_by_categorical_column import (
-    PlotColumnsConfig,
-    PlotSizeConfig,
     generate_color_mapping,
     line_plot_grouped_by_categorical_column,
 )
+from topollm.plotting.plot_size_config import PlotColumnsConfig, PlotSizeConfigFlat
 
 if TYPE_CHECKING:
     from topollm.config_classes.main_config import MainConfig
@@ -158,8 +157,8 @@ def main(
 
     # # # #
     # Common parameters for all plots
-    plot_size_configs_list: list[PlotSizeConfig] = [
-        PlotSizeConfig(
+    plot_size_configs_list: list[PlotSizeConfigFlat] = [
+        PlotSizeConfigFlat(
             x_min=None,
             x_max=None,
             y_min=None,
@@ -167,7 +166,7 @@ def main(
             output_pdf_width=2_000,
             output_pdf_height=1_500,
         ),
-        PlotSizeConfig(
+        PlotSizeConfigFlat(
             x_min=None,
             x_max=None,
             y_min=1.5,

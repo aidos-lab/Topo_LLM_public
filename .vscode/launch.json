@@ -369,24 +369,26 @@
                 "data=trippy_r_dataloaders_processed",
                 //
                 // "data.data_subsampling.split=train",
-                // "data.data_subsampling.split=dev",
+                "data.data_subsampling.split=dev",
                 // "data.data_subsampling.split=validation",
                 // "data.data_subsampling.split=test",
-                "data.data_subsampling.split=train,test",
+                // "data.data_subsampling.split=train,test",
                 // "data.data_subsampling.split=train,dev,test",
                 // "data.data_subsampling.split=train,validation,test",
                 //
                 "data.data_subsampling.sampling_mode=random",
-                "data.data_subsampling.number_of_samples=7000",
+                // "data.data_subsampling.number_of_samples=7000",
                 // "data.data_subsampling.number_of_samples=10000",
-                // "data.data_subsampling.sampling_seed=778",
-                "data.data_subsampling.sampling_seed=778,779,780",
+                "data.data_subsampling.number_of_samples=7000,10000",
+                // 
+                "data.data_subsampling.sampling_seed=778",
+                // "data.data_subsampling.sampling_seed=778,779,780",
                 //
                 //    >> END: Data options.
                 //
                 //    >> START: Model options.
                 //
-                "language_model=roberta-base",
+                // "language_model=roberta-base",
                 //
                 // "language_model=bert-base-uncased",
                 // "language_model=bert-base-uncased-SentiX",
@@ -417,14 +419,14 @@
                 // "++language_model.checkpoint_no=3549,7098,10647,14196,17745,21294,24843,28392,31941,35490",
                 //
                 // >>>> Trippy-R models
-                // "language_model=roberta-base-trippy_r_multiwoz21",
+                "language_model=roberta-base-trippy_r_multiwoz21",
                 // "language_model.seed=42",
                 // "language_model.seed=43",
                 // "language_model.seed=43,44",
-                // "language_model.seed=42,43,44",
+                "language_model.seed=42,43,44",
                 // "language_model.checkpoint_no=1775,3550",
                 // "language_model.checkpoint_no=5325,7100,8875,10650,12425,14200,15975,17750,19525,21300,23075,24850,26625,28400,30175,31950,33725,35500",
-                // "language_model.checkpoint_no=1775,3550,5325,7100,8875,10650,12425,14200,15975,17750,19525,21300,23075,24850,26625,28400,30175,31950,33725,35500",
+                "language_model.checkpoint_no=1775,3550,5325,7100,8875,10650,12425,14200,15975,17750,19525,21300,23075,24850,26625,28400,30175,31950,33725,35500",
                 //
                 //    >> END: Model options.
                 //
@@ -2115,7 +2117,7 @@
             }
         },
         {
-            "name": "Task performance analysis - Local debugging - Create distribution plots of local estimates over checkpoints and over layers",
+            "name": "Task performance analysis - Local debugging - Create plots: distribution of local estimates over checkpoints and over layers",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/task_performance_analysis/plotting/run_create_distribution_plots_of_local_estimates.py",
@@ -2227,7 +2229,7 @@
             }
         },
         {
-            "name": "Task performance analysis - Local debugging - Plot Trippy performance metrics",
+            "name": "Task performance analysis - Local debugging - Create plots: Trippy performance metrics",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/task_performance_analysis/trippy/run_plot_trippy_performance_metrics.py",

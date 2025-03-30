@@ -50,7 +50,7 @@ from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
-from topollm.plotting.line_plot_grouped_by_categorical_column import PlotSizeConfig
+from topollm.plotting.plot_size_config import PlotSizeConfigFlat
 from topollm.task_performance_analysis.plotting.distribution_violinplots_and_distribution_boxplots import (
     TicksAndLabels,
     make_distribution_violinplots_from_extracted_arrays,
@@ -165,8 +165,8 @@ def main(
 
     # For the violin plots, the local estimates values are plotted on the y-axis
     plot_size_config_violinplot_choices = [
-        PlotSizeConfig(),
-        PlotSizeConfig(
+        PlotSizeConfigFlat(),
+        PlotSizeConfigFlat(
             y_min=0,
             y_max=15,
         ),
@@ -226,8 +226,8 @@ def main(
         # For the histograms, the local estimate values are on the x-axis,
         # and the frequency on the y-axis.
         plot_size_config_cluster_distribution_choices = [
-            PlotSizeConfig(),  # Set axis limits automatically
-            PlotSizeConfig(
+            PlotSizeConfigFlat(),  # Set axis limits automatically
+            PlotSizeConfigFlat(
                 x_min=0.0,
                 x_max=15.0,
                 y_min=0,
@@ -402,7 +402,7 @@ def save_cluster_data(
 
 def plot_cluster_distribution(
     clustered_df: pd.DataFrame,
-    plot_size_config: PlotSizeConfig,
+    plot_size_config: PlotSizeConfigFlat,
     plots_output_dir: pathlib.Path | None = None,
     bins: int = 100,
     num_sample_tokens: int | None = 20,
@@ -525,7 +525,7 @@ def add_plot_for_single_cluster_id(
     cluster_id: int,
     ax: matplotlib.axes.Axes,
     palette: list,
-    plot_size_config: PlotSizeConfig,
+    plot_size_config: PlotSizeConfigFlat,
     num_sample_tokens: int | None,
     num_most_frequent_tokens: int | None,
     random_state: int,

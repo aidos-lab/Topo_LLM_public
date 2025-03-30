@@ -34,7 +34,7 @@ from dataclasses import dataclass
 import matplotlib.pyplot as plt
 import numpy as np
 
-from topollm.plotting.line_plot_grouped_by_categorical_column import PlotSizeConfig
+from topollm.plotting.plot_size_config import PlotSizeConfigFlat
 from topollm.typing.enums import Verbosity
 
 default_logger: logging.Logger = logging.getLogger(
@@ -54,7 +54,7 @@ class TicksAndLabels:
 def make_distribution_violinplots_from_extracted_arrays(
     extracted_arrays: list[np.ndarray],
     ticks_and_labels: TicksAndLabels,
-    plot_size_config: PlotSizeConfig,
+    plot_size_config: PlotSizeConfigFlat,
     *,
     print_means_and_medians_and_stds: bool = True,
     fixed_params_text: str | None = None,
@@ -194,7 +194,7 @@ def make_distribution_boxplots_from_extracted_arrays(
     ticks_and_labels: TicksAndLabels,
     fixed_params_text: str,
     plots_output_dir: pathlib.Path,
-    plot_size_config: PlotSizeConfig,
+    plot_size_config: PlotSizeConfigFlat,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> None:

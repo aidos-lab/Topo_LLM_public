@@ -1,3 +1,30 @@
+# Copyright 2024-2025
+# Heinrich Heine University Dusseldorf,
+# Faculty of Mathematics and Natural Sciences,
+# Computer Science Department
+#
+# Authors:
+# Benjamin Ruppik (mail@ruppik.net)
+# Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
+#
+# Code generation tools and workflows:
+# First versions of this code were potentially generated
+# with the help of AI writing assistants including
+# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
+# Afterwards, the generated segments were manually reviewed and edited.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import logging
 import pathlib
 from typing import Any
@@ -10,7 +37,7 @@ from topollm.data_processing.dictionary_handling import (
     filter_list_of_dictionaries_by_key_value_pairs,
     generate_fixed_parameters_text_from_dict,
 )
-from topollm.plotting.line_plot_grouped_by_categorical_column import PlotSizeConfig
+from topollm.plotting.plot_size_config import PlotSizeConfigFlat
 from topollm.task_performance_analysis.plotting.distribution_violinplots_and_distribution_boxplots import (
     TicksAndLabels,
     make_distribution_boxplots_from_extracted_arrays,
@@ -30,7 +57,7 @@ def create_distribution_plots_over_model_layers(
     loaded_data: list[dict],
     array_key_name: str,
     output_root_dir: pathlib.Path,
-    plot_size_configs_list: list[PlotSizeConfig],
+    plot_size_configs_list: list[PlotSizeConfigFlat],
     *,
     fixed_keys: list[str] | None = None,
     additional_fixed_params: dict[str, Any] | None = None,

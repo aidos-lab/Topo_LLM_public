@@ -44,8 +44,8 @@ from topollm.logging.initialize_configuration_and_log import initialize_configur
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
 from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
-from topollm.plotting.line_plot_grouped_by_categorical_column import (
-    PlotSizeConfig,
+from topollm.plotting.plot_size_config import (
+    PlotSizeConfigFlat,
 )
 from topollm.task_performance_analysis.plotting.create_distribution_plots_over_model_checkpoints import (
     create_distribution_plots_over_model_checkpoints,
@@ -185,8 +185,8 @@ def create_plots_for_given_pattern(
 
     # # # #
     # Common parameters for all plots
-    plot_size_configs_list: list[PlotSizeConfig] = [
-        PlotSizeConfig(
+    plot_size_configs_list: list[PlotSizeConfigFlat] = [
+        PlotSizeConfigFlat(
             x_min=None,
             x_max=None,
             y_min=None,
@@ -194,7 +194,7 @@ def create_plots_for_given_pattern(
             output_pdf_width=2_000,
             output_pdf_height=1_500,
         ),
-        PlotSizeConfig(
+        PlotSizeConfigFlat(
             x_min=None,
             x_max=None,
             y_min=0.0,
@@ -202,7 +202,7 @@ def create_plots_for_given_pattern(
             output_pdf_width=2_000,
             output_pdf_height=1_500,
         ),
-        PlotSizeConfig(
+        PlotSizeConfigFlat(
             x_min=None,
             x_max=None,
             y_min=1.0,
@@ -249,6 +249,7 @@ def create_plots_for_given_pattern(
             array_key_name=array_key_name,
             output_root_dir=output_root_dir,
             plot_size_configs_list=plot_size_configs_list,
+            embeddings_path_manager=embeddings_path_manager,
             save_plot_raw_data=True,
             verbosity=verbosity,
             logger=logger,
