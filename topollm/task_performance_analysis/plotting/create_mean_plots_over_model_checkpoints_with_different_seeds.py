@@ -525,15 +525,30 @@ def plot_local_estimates_with_individual_seeds_and_aggregated_over_seeds(
     # Plots: Aggregated over seeds
     # ========================================================= #
 
-    if "index" in local_estimates_plot_data_df.columns:
-        local_estimates_plot_data_df = local_estimates_plot_data_df.drop(
+    create_aggregate_estimate_visualization(
+        data=plot_input_data,
+        config=plot_config,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+
+def create_aggregate_estimate_visualization(
+    data: PlotInputData,
+    config: PlotConfig,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> None:
+    """Create a plot of the mean local estimates over checkpoints with standard deviation bands."""
+    if "index" in data.local_estimates_df.columns:
+        data.local_estimates_df = data.local_estimates_df.drop(
             columns=["index"],
         )
 
-    # Summary plot with mean and standard deviation
-    summary: pd.DataFrame = (
-        local_estimates_plot_data_df.groupby(
-            by=x_column_name,
+    # Create summary for local estimates with mean and standard deviation
+    summary_local_estimates: pd.DataFrame = (
+        data.local_estimates_df.groupby(
+            by=config.x_column_name,
             as_index=False,
         )["file_data_mean"]
         .agg(
@@ -545,7 +560,7 @@ def plot_local_estimates_with_individual_seeds_and_aggregated_over_seeds(
         .reset_index()
     )
 
-    if summary.empty:
+    if summary_local_estimates.empty:
         logger.warning(
             msg="No data available for plotting.",
         )
@@ -554,41 +569,41 @@ def plot_local_estimates_with_individual_seeds_and_aggregated_over_seeds(
         )
         return
 
-    if "index" in summary.columns:
-        summary = summary.drop(columns=["index"])
+    if "index" in summary_local_estimates.columns:
+        summary_local_estimates = summary_local_estimates.drop(columns=["index"])
 
-    summary.columns = [
-        x_column_name,
+    summary_local_estimates.columns = [
+        config.x_column_name,
         "mean",
         "std",
     ]
 
     # Explicitly handle NaNs in standard deviation (set to 0)
-    summary["std"] = summary["std"].fillna(0)
+    summary_local_estimates["std"] = summary_local_estimates["std"].fillna(0)
 
     # Convert to NumPy arrays explicitly for matplotlib
-    checkpoints = summary[x_column_name].to_numpy()
-    means = summary["mean"].to_numpy()
-    stds = summary["std"].to_numpy()
+    checkpoints = summary_local_estimates[config.x_column_name].to_numpy()
+    means = summary_local_estimates["mean"].to_numpy()
+    stds = summary_local_estimates["std"].to_numpy()
 
     # Create a summary figure and axis
     (
-        fig2,
-        ax2,
+        fig,
+        ax1,
     ) = plt.subplots(
         figsize=(
-            plot_size_config_nested.output_dimensions.output_pdf_width / 100,
-            plot_size_config_nested.output_dimensions.output_pdf_height / 100,
+            config.plot_size_config_nested.output_dimensions.output_pdf_width / 100,
+            config.plot_size_config_nested.output_dimensions.output_pdf_height / 100,
         ),
     )
-    ax2.plot(
+    ax1.plot(
         checkpoints,
         means,
         marker="o",
         color="blue",
         label="Mean across seeds",
     )
-    ax2.fill_between(
+    ax1.fill_between(
         x=checkpoints,
         y1=means - stds,
         y2=means + stds,
@@ -597,41 +612,78 @@ def plot_local_estimates_with_individual_seeds_and_aggregated_over_seeds(
         label="Standard Deviation",
     )
 
-    # TODO: Include the plotting of the scores_df data
-
-    ax2.set_xlabel(xlabel="Model Checkpoint")
-    ax2.set_ylabel(ylabel="Mean File Data Mean")
-    ax2.set_title(
+    ax1.set_title(
         label="Mean Local Estimates Over Checkpoints with Standard Deviation Band",
     )
-    ax2.legend()
-    ax2.grid(
+    ax1.grid(
         visible=True,
     )
 
-    ax2.set_xlabel(
-        xlabel=ticks_and_labels.xlabel,
+    ax1.set_xlabel(
+        xlabel=config.ticks_and_labels.xlabel,
     )
+    ax1.set_ylabel(
+        ylabel=config.ticks_and_labels.ylabel,
+    )
+
+    # # # #
+    # Plot the additional data if available
+
+    # TODO: Include the plotting of the scores_df data
+
+    # Add second y-axis for scores
+    ax2 = ax1.twinx()
+
+    # if data.scores_df is not None and data.scores_columns_to_plot_list is not None:
+    #     seed_scores = data.scores_df[data.scores_df["model_seed"] == seed]
+    #     for column in data.scores_columns_to_plot_list:
+    #         ax2.plot(
+    #             seed_scores[config.x_column_name],
+    #             seed_scores[column],
+    #             linestyle="--",
+    #             marker="x",
+    #             label=f"{column} (seed={seed})",
+    #         )
+
+    # Optional: Set axis label once
     ax2.set_ylabel(
-        ylabel=ticks_and_labels.ylabel,
+        ylabel="Scores",
+        color="tab:red",
+    )  # Customize label and color if desired
+    ax2.tick_params(
+        axis="y",
+        labelcolor="tab:red",
+    )
+
+    # Combine legends from both axes
+    (
+        lines_1,
+        labels_1,
+    ) = ax1.get_legend_handles_labels()
+    (
+        lines_2,
+        labels_2,
+    ) = ax2.get_legend_handles_labels()
+    ax1.legend(
+        handles=lines_1 + lines_2,
+        labels=labels_1 + labels_2,
+        title="Legend",
     )
 
     # Set the y-axis limits
-    if plot_size_config_nested.primary_axis_limits.y_min is not None:
-        ax2.set_ylim(
-            bottom=plot_size_config_nested.primary_axis_limits.y_min,
-        )
-    if plot_size_config_nested.primary_axis_limits.y_max is not None:
-        ax2.set_ylim(
-            top=plot_size_config_nested.primary_axis_limits.y_max,
-        )
+    ax1 = config.plot_size_config_nested.primary_axis_limits.set_y_axis_limits(
+        axis=ax1,
+    )
+    ax2 = config.plot_size_config_nested.secondary_axis_limits.set_y_axis_limits(
+        axis=ax2,
+    )
 
     fixed_params_text: str = generate_fixed_parameters_text_from_dict(
-        filters_dict=filter_key_value_pairs,
+        filters_dict=config.filter_key_value_pairs,
     )
 
     if fixed_params_text is not None:
-        ax2.text(
+        ax1.text(
             x=1.05,
             y=0.25,
             s=f"Fixed Parameters:\n{fixed_params_text}",
@@ -646,11 +698,11 @@ def plot_local_estimates_with_individual_seeds_and_aggregated_over_seeds(
         )
 
     # Add info about the base model if available into the bottom left corner of the plot
-    if base_model_model_partial_name is not None:
-        ax2.text(
+    if config.base_model_model_partial_name is not None:
+        ax1.text(
             x=0.01,
             y=0.01,
-            s=f"{base_model_model_partial_name=}",
+            s=f"{config.base_model_model_partial_name=}",
             transform=plt.gca().transAxes,
             fontsize=6,
             verticalalignment="bottom",
@@ -662,13 +714,13 @@ def plot_local_estimates_with_individual_seeds_and_aggregated_over_seeds(
             },
         )
 
-    fig2.tight_layout()
+    fig.tight_layout()
 
     # Save the figure
-    if plots_output_dir is not None:
-        plot_name: str = f"local_estimates_aggregate_{plot_size_config_nested.y_range_description}"
+    if config.plots_output_dir is not None:
+        plot_name: str = f"local_estimates_aggregate_{config.plot_size_config_nested.y_range_description}"
         plot_save_path = pathlib.Path(
-            plots_output_dir,
+            config.plots_output_dir,
             "aggregate",
             f"{plot_name}.pdf",
         )
@@ -682,7 +734,7 @@ def plot_local_estimates_with_individual_seeds_and_aggregated_over_seeds(
             parents=True,
             exist_ok=True,
         )
-        fig2.savefig(
+        fig.savefig(
             fname=plot_save_path,
         )
 
@@ -691,8 +743,8 @@ def plot_local_estimates_with_individual_seeds_and_aggregated_over_seeds(
                 msg=f"Saving plot to {plot_save_path = } DONE",  # noqa: G004 - low overhead
             )
 
-    if show_plots:
-        fig2.show()
+    if config.show_plots:
+        fig.show()
 
 
 def create_seedwise_estimate_visualization(
