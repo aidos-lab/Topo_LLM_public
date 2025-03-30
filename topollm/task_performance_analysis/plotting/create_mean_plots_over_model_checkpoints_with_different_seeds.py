@@ -58,12 +58,19 @@ default_logger: logging.Logger = logging.getLogger(
 
 
 @dataclass
+class ScoresData:
+    """Container for scores data."""
+
+    df: pd.DataFrame | None
+    columns_to_plot: list[str] | None
+
+
+@dataclass
 class PlotInputData:
     """Container for plot input data."""
 
     local_estimates_df: pd.DataFrame
-    scores_df: pd.DataFrame | None = None
-    scores_columns_to_plot_list: list[str] | None = None
+    scores: ScoresData
 
 
 @dataclass
@@ -231,6 +238,11 @@ def create_mean_plots_over_model_checkpoints_with_different_seeds(
                 combined_scores_df: pd.DataFrame | None = None
                 combined_scores_columns_to_plot_list: list[str] | None = None
 
+        scores_data = ScoresData(
+            df=combined_scores_df,
+            columns_to_plot=combined_scores_columns_to_plot_list,
+        )
+
         # TODO: Load the correct model performance data/losses if it is available:
         # TODO: Implement this for the Trippy-R models
         # TODO: Implement this for language models (with performance given by loss)
@@ -354,8 +366,7 @@ def create_mean_plots_over_model_checkpoints_with_different_seeds(
                     local_estimates_df=sorted_data_df,
                     ticks_and_labels=ticks_and_labels,
                     plot_size_config_nested=plot_size_config_nested,
-                    scores_df=combined_scores_df,
-                    scores_columns_to_plot_list=combined_scores_columns_to_plot_list,
+                    scores_data=scores_data,
                     x_column_name=model_checkpoint_column_name,
                     filter_key_value_pairs=filter_key_value_pairs,
                     base_model_model_partial_name=base_model_model_partial_name,
@@ -386,8 +397,7 @@ def plot_local_estimates_with_individual_seeds_and_aggregated_over_seeds(
     local_estimates_df: pd.DataFrame,
     ticks_and_labels: TicksAndLabels,
     plot_size_config_nested: PlotSizeConfigNested,
-    scores_df: pd.DataFrame | None = None,
-    scores_columns_to_plot_list: list[str] | None = None,
+    scores_data: ScoresData,
     *,
     x_column_name: str = "model_checkpoint",
     filter_key_value_pairs: dict,
@@ -468,10 +478,10 @@ def plot_local_estimates_with_individual_seeds_and_aggregated_over_seeds(
         data_subsampling_full=filter_key_value_pairs["data_subsampling_full"],
     )
 
-    if scores_df is not None:
-        if "data_subsampling_split" not in scores_df.columns:
+    if scores_data.df is not None:
+        if "data_subsampling_split" not in scores_data.df.columns:
             logger.warning(
-                msg="No data_subsampling_split column found in scores_df.",
+                msg="No data_subsampling_split column found in scores_data.df.",
             )
             logger.info(
                 msg="Will not modify the scores_df.",
@@ -482,15 +492,15 @@ def plot_local_estimates_with_individual_seeds_and_aggregated_over_seeds(
                     msg=f"Filtering scores_df based on {data_subsampling_split = }",  # noqa: G004 - low overhead
                 )
                 logger.info(
-                    msg=f"Shape before filtering: {scores_df.shape = }",  # noqa: G004 - low overhead
+                    msg=f"Shape before filtering: {scores_data.df.shape = }",  # noqa: G004 - low overhead
                 )
 
             # Filter the scores_df based on the data_subsampling_split
-            scores_df = scores_df[scores_df["data_subsampling_split"] == data_subsampling_split]
+            scores_data.df = scores_data.df[scores_data.df["data_subsampling_split"] == data_subsampling_split]
 
             if verbosity >= Verbosity.NORMAL:
                 logger.info(
-                    msg=f"Shape after filtering: {scores_df.shape = }",  # noqa: G004 - low overhead
+                    msg=f"Shape after filtering: {scores_data.df.shape = }",  # noqa: G004 - low overhead
                 )
 
     # # # #
@@ -498,8 +508,7 @@ def plot_local_estimates_with_individual_seeds_and_aggregated_over_seeds(
 
     plot_input_data = PlotInputData(
         local_estimates_df=local_estimates_plot_data_df,
-        scores_df=scores_df,
-        scores_columns_to_plot_list=scores_columns_to_plot_list,
+        scores=scores_data,
     )
 
     plot_config = PlotConfig(
@@ -637,14 +646,14 @@ def create_aggregate_estimate_visualization(
     # Add second y-axis for scores
     ax2 = ax1.twinx()
 
-    if data.scores_df is not None and data.scores_columns_to_plot_list is not None:
+    if data.scores.df is not None and data.scores.columns_to_plot is not None:
         # Note:
         # - summary_scores is a DataFrame with a multilevel index
         summary_scores: pd.DataFrame = (
-            data.scores_df.groupby(
+            data.scores.df.groupby(
                 by=config.x_column_name,
                 as_index=False,
-            )[data.scores_columns_to_plot_list]
+            )[data.scores.columns_to_plot]
             .agg(
                 func=[
                     "mean",
@@ -661,16 +670,22 @@ def create_aggregate_estimate_visualization(
                 logger=logger,
             )
 
-        for column in data.scores_columns_to_plot_list:
+        for column in data.scores.columns_to_plot:
             if column not in summary_scores.columns:
                 logger.warning(
-                    msg=f"{column=} not found in summary_scores DataFrame.",
+                    msg=f"{column=} not found in summary_scores DataFrame.",  # noqa: G004
                 )
                 continue
 
             checkpoints = summary_scores[config.x_column_name].to_numpy()
-            means = summary_scores[column, "mean"].to_numpy()
-            stds = summary_scores[column, "std"].to_numpy()
+            means = summary_scores[
+                column,
+                "mean",
+            ].to_numpy()
+            stds = summary_scores[
+                column,
+                "std",
+            ].to_numpy()
 
             ax2.plot(
                 checkpoints,
@@ -837,10 +852,10 @@ def create_seedwise_estimate_visualization(
     # Add second y-axis for scores
     ax2 = ax1.twinx()
 
-    if data.scores_df is not None and data.scores_columns_to_plot_list is not None:
+    if data.scores.df is not None and data.scores.columns_to_plot is not None:
         for seed in config.seeds:
-            seed_scores = data.scores_df[data.scores_df["model_seed"] == seed]
-            for column in data.scores_columns_to_plot_list:
+            seed_scores = data.scores.df[data.scores.df["model_seed"] == seed]
+            for column in data.scores.columns_to_plot:
                 ax2.plot(
                     seed_scores[config.x_column_name],
                     seed_scores[column],
