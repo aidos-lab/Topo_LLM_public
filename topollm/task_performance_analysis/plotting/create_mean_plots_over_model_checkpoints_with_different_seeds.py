@@ -64,6 +64,43 @@ class ScoresData:
     df: pd.DataFrame | None
     columns_to_plot: list[str] | None
 
+    def save_df(
+        self,
+        save_dir: pathlib.Path,
+        verbosity: Verbosity = Verbosity.NORMAL,
+        logger: logging.Logger = default_logger,
+    ) -> None:
+        if self.df is None:
+            logger.warning(
+                msg="No scores data available to save.",
+            )
+            logger.info(
+                msg="Skipping saving scores data.",
+            )
+            return
+
+        scores_df_save_path = pathlib.Path(
+            save_dir,
+            "scores_df.csv",
+        )
+        scores_df_save_path.parent.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"Saving combined scores to {scores_df_save_path = } ...",  # noqa: G004 - low overhead
+            )
+        self.df.to_csv(
+            path_or_buf=scores_df_save_path,
+            index=False,
+        )
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"Saving combined scores to {scores_df_save_path = } DONE",  # noqa: G004 - low overhead
+            )
+
 
 @dataclass
 class PlotInputData:
@@ -198,56 +235,12 @@ def create_mean_plots_over_model_checkpoints_with_different_seeds(
         # ========================================================== #
         # START: Load the corresponding model performance metrics
 
-        match filter_key_value_pairs["model_partial_name"]:
-            case "model=bert-base-uncased-ContextBERT-ERToD_emowoz_basic_setup_debug=-1_use_context=False":
-                seed_dfs: list[pd.DataFrame] = []
-                columns_to_plot_set: set[str] = set()
-                for seed in range(50, 55):
-                    parsed_data_path: pathlib.Path = pathlib.Path(
-                        embeddings_path_manager.data_dir,
-                        f"models/EmoLoop/output_dir/debug=-1/use_context=False/ep=5/seed={seed}/parsed_data/raw_data/parsed_data.csv",
-                    )
-
-                    file_loader = EmotionClassificationScoreLoader(
-                        filepath=parsed_data_path,
-                    )
-                    scores_df: pd.DataFrame = file_loader.get_scores()
-                    scores_df["model_seed"] = seed  # Tag the dataframe with the current seed
-                    seed_dfs.append(scores_df)
-
-                    columns_to_plot: list[str] = file_loader.get_columns_to_plot()
-                    columns_to_plot_set.update(
-                        columns_to_plot,
-                    )
-
-                # Concatenate all seed dataframes into one
-                combined_scores_df: pd.DataFrame | None = pd.concat(
-                    objs=seed_dfs,
-                    ignore_index=True,
-                )
-
-                combined_scores_columns_to_plot_list: list[str] | None = list(columns_to_plot_set)
-            case _:
-                logger.warning(
-                    msg=f"No specific model performance data loader implemented for "  # noqa: G004 - low overhead
-                    f"{filter_key_value_pairs['model_partial_name'] = }.",
-                )
-                logger.info(
-                    msg="Setting combined_scores_df to None for this model.",
-                )
-                combined_scores_df: pd.DataFrame | None = None
-                combined_scores_columns_to_plot_list: list[str] | None = None
-
-        scores_data = ScoresData(
-            df=combined_scores_df,
-            columns_to_plot=combined_scores_columns_to_plot_list,
+        scores_data: ScoresData = load_scores(
+            embeddings_path_manager=embeddings_path_manager,
+            filter_key_value_pairs=filter_key_value_pairs,
+            verbosity=verbosity,
+            logger=logger,
         )
-
-        # TODO: Load the correct model performance data/losses if it is available:
-        # TODO: Implement this for the Trippy-R models
-        # TODO: Implement this for language models (with performance given by loss)
-
-        # TODO: We will move this performance metrics loading into a function later
 
         # END: Load the corresponding model performance metrics
         # ========================================================== #
@@ -308,23 +301,12 @@ def create_mean_plots_over_model_checkpoints_with_different_seeds(
                     msg=f"Saving sorted data to {sorted_data_df_save_path = } DONE",  # noqa: G004 - low overhead
                 )
 
-            if combined_scores_df is not None:
-                combined_scores_df_save_path = pathlib.Path(
-                    plot_raw_data_save_dir,
-                    "combined_scores_df.csv",
-                )
-                if verbosity >= Verbosity.NORMAL:
-                    logger.info(
-                        msg=f"Saving combined scores to {combined_scores_df_save_path = } ...",  # noqa: G004 - low overhead
-                    )
-                combined_scores_df.to_csv(
-                    path_or_buf=combined_scores_df_save_path,
-                    index=False,
-                )
-                if verbosity >= Verbosity.NORMAL:
-                    logger.info(
-                        msg=f"Saving combined scores to {combined_scores_df_save_path = } DONE",  # noqa: G004 - low overhead
-                    )
+            # Save the scores data if available
+            scores_data.save_df(
+                save_dir=plot_raw_data_save_dir,
+                verbosity=verbosity,
+                logger=logger,
+            )
 
         ticks_and_labels: TicksAndLabels = TicksAndLabels(
             xlabel="checkpoints",
@@ -374,6 +356,64 @@ def create_mean_plots_over_model_checkpoints_with_different_seeds(
                     verbosity=verbosity,
                     logger=logger,
                 )
+
+
+def load_scores(
+    embeddings_path_manager: EmbeddingsPathManager,
+    filter_key_value_pairs: dict,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> ScoresData:
+    match filter_key_value_pairs["model_partial_name"]:
+        case "model=bert-base-uncased-ContextBERT-ERToD_emowoz_basic_setup_debug=-1_use_context=False":
+            seed_dfs: list[pd.DataFrame] = []
+            columns_to_plot_set: set[str] = set()
+            for seed in range(50, 55):
+                parsed_data_path: pathlib.Path = pathlib.Path(
+                    embeddings_path_manager.data_dir,
+                    f"models/EmoLoop/output_dir/debug=-1/use_context=False/ep=5/seed={seed}/parsed_data/raw_data/parsed_data.csv",
+                )
+
+                file_loader = EmotionClassificationScoreLoader(
+                    filepath=parsed_data_path,
+                )
+                scores_df: pd.DataFrame = file_loader.get_scores()
+                scores_df["model_seed"] = seed  # Tag the dataframe with the current seed
+                seed_dfs.append(scores_df)
+
+                columns_to_plot: list[str] = file_loader.get_columns_to_plot()
+                columns_to_plot_set.update(
+                    columns_to_plot,
+                )
+
+            # Concatenate all seed dataframes into one
+            combined_scores_df: pd.DataFrame | None = pd.concat(
+                objs=seed_dfs,
+                ignore_index=True,
+            )
+
+            combined_scores_columns_to_plot_list: list[str] | None = list(columns_to_plot_set)
+
+        # TODO: Implement this for the Trippy-R models
+        # TODO: Implement this for language models (with performance given by loss)
+
+        case _:
+            logger.warning(
+                msg=f"No specific model performance data loader implemented for "  # noqa: G004 - low overhead
+                f"{filter_key_value_pairs['model_partial_name'] = }.",
+            )
+            logger.info(
+                msg="Setting combined_scores_df to None for this model.",
+            )
+            combined_scores_df: pd.DataFrame | None = None
+            combined_scores_columns_to_plot_list: list[str] | None = None
+
+    scores_data = ScoresData(
+        df=combined_scores_df,
+        columns_to_plot=combined_scores_columns_to_plot_list,
+    )
+
+    return scores_data
 
 
 def get_data_subsampling_split_from_data_subsampling_full(
