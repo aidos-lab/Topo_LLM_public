@@ -344,7 +344,10 @@ def create_mean_plots_over_model_checkpoints_with_different_seeds(
                         y_max=plot_size_config.y_max,
                     ),
                     secondary_axis_limits=secondary_axis_limits,
-                    output_dimensions=OutputDimensions(),
+                    output_dimensions=OutputDimensions(
+                        output_pdf_width=3_000,
+                        output_pdf_height=1_500,
+                    ),
                 )
 
                 plot_local_estimates_with_individual_seeds_and_aggregated_over_seeds(
@@ -570,7 +573,9 @@ def create_aggregate_estimate_visualization(
         return
 
     if "index" in summary_local_estimates.columns:
-        summary_local_estimates = summary_local_estimates.drop(columns=["index"])
+        summary_local_estimates = summary_local_estimates.drop(
+            columns=["index"],
+        )
 
     summary_local_estimates.columns = [
         config.x_column_name,
@@ -629,21 +634,57 @@ def create_aggregate_estimate_visualization(
     # # # #
     # Plot the additional data if available
 
-    # TODO: Include the plotting of the scores_df data
-
     # Add second y-axis for scores
     ax2 = ax1.twinx()
 
-    # if data.scores_df is not None and data.scores_columns_to_plot_list is not None:
-    #     seed_scores = data.scores_df[data.scores_df["model_seed"] == seed]
-    #     for column in data.scores_columns_to_plot_list:
-    #         ax2.plot(
-    #             seed_scores[config.x_column_name],
-    #             seed_scores[column],
-    #             linestyle="--",
-    #             marker="x",
-    #             label=f"{column} (seed={seed})",
-    #         )
+    if data.scores_df is not None and data.scores_columns_to_plot_list is not None:
+        # Note:
+        # - summary_scores is a DataFrame with a multilevel index
+        summary_scores: pd.DataFrame = (
+            data.scores_df.groupby(
+                by=config.x_column_name,
+                as_index=False,
+            )[data.scores_columns_to_plot_list]
+            .agg(
+                func=[
+                    "mean",
+                    "std",
+                ],
+            )
+            .reset_index()
+        )
+
+        if verbosity >= Verbosity.NORMAL:
+            log_dataframe_info(
+                df=summary_scores,
+                df_name="summary_scores",
+                logger=logger,
+            )
+
+        for column in data.scores_columns_to_plot_list:
+            if column not in summary_scores.columns:
+                logger.warning(
+                    msg=f"{column=} not found in summary_scores DataFrame.",
+                )
+                continue
+
+            checkpoints = summary_scores[config.x_column_name].to_numpy()
+            means = summary_scores[column, "mean"].to_numpy()
+            stds = summary_scores[column, "std"].to_numpy()
+
+            ax2.plot(
+                checkpoints,
+                means,
+                linestyle="--",
+                marker="x",
+                label=f"{column} (mean)",
+            )
+            ax2.fill_between(
+                x=checkpoints,
+                y1=means - stds,
+                y2=means + stds,
+                alpha=0.2,
+            )
 
     # Optional: Set axis label once
     ax2.set_ylabel(
