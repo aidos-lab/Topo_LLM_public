@@ -49,7 +49,10 @@ from topollm.task_performance_analysis.plotting.parameter_combinations_and_loade
     derive_base_model_partial_name,
     get_fixed_parameter_combinations,
 )
-from topollm.task_performance_analysis.plotting.score_loader.score_loader import EmotionClassificationScoreLoader
+from topollm.task_performance_analysis.plotting.score_loader.score_loader import (
+    EmotionClassificationScoreLoader,
+    TrippyRScoreLoader,
+)
 from topollm.typing.enums import Verbosity
 
 default_logger: logging.Logger = logging.getLogger(
@@ -412,18 +415,29 @@ def load_scores(
             seed_dfs: list[pd.DataFrame] = []
             columns_to_plot_set: set[str] = set()
 
-            # TODO: Implement this for the Trippy-R models
-
             combined_scores_df = None
             combined_scores_columns_to_plot_list = None
 
-            for seed in range(42, 44):
+            for seed in range(42, 45):
                 results_folder_for_given_seed_path: pathlib.Path = pathlib.Path(
                     embeddings_path_manager.data_dir,
-                    f"data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/results.{seed}",
+                    f"models/trippy_r_checkpoints/multiwoz21/all_checkpoints/results.{seed}",
                 )
 
-                pass  # TODO: this is here for setting breakpoints
+                file_loader = TrippyRScoreLoader(
+                    results_folder_for_given_seed_path=results_folder_for_given_seed_path,
+                    verbosity=verbosity,
+                    logger=logger,
+                )
+
+                scores_df: pd.DataFrame = file_loader.get_scores()
+                scores_df["model_seed"] = seed  # Tag the dataframe with the current seed
+                seed_dfs.append(scores_df)
+
+                columns_to_plot: list[str] = file_loader.get_columns_to_plot()
+                columns_to_plot_set.update(
+                    columns_to_plot,
+                )
 
             # Concatenate all seed dataframes into one
             if len(seed_dfs) == 0:

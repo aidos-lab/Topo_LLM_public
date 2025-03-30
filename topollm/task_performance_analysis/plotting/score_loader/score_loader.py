@@ -27,12 +27,20 @@
 
 """Score loader for model performance metrics."""
 
+import json
+import logging
 import pathlib
 from typing import Protocol
 
 import pandas as pd
 
 from topollm.config_classes.constants import TOPO_LLM_REPOSITORY_BASE_PATH
+from topollm.logging.log_dataframe_info import log_dataframe_info
+from topollm.typing.enums import Verbosity
+
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 class ScoreLoader(Protocol):
@@ -57,6 +65,101 @@ class ScoreLoader(Protocol):
         ...  # pragma: no cover
 
 
+class TrippyRScoreLoader:
+    """Concrete implementation loading TrippyR model scores from the output directory."""
+
+    def __init__(
+        self,
+        results_folder_for_given_seed_path: pathlib.Path,
+        verbosity: Verbosity = Verbosity.NORMAL,
+        logger: logging.Logger = default_logger,
+    ) -> None:
+        """Initialize the loader."""
+        self.results_folder_for_given_seed_path: pathlib.Path = results_folder_for_given_seed_path
+
+        self.verbosity: Verbosity = verbosity
+        self.logger: logging.Logger = logger
+
+    def get_scores(
+        self,
+    ) -> pd.DataFrame:
+        scores_df_list = []
+
+        for split in [
+            "dev",
+            "test",
+        ]:
+            eval_res_json_path = pathlib.Path(
+                self.results_folder_for_given_seed_path,
+                f"eval_res.{split}.json",
+            )
+
+            if not eval_res_json_path.exists():
+                self.logger.warning(
+                    msg=f"Evaluation results file for {split = } does not exist: {eval_res_json_path = }",  # noqa: G004 - low overhead
+                )
+                continue
+
+            with eval_res_json_path.open(
+                mode="r",
+            ) as file:
+                eval_res_json_loaded = json.load(
+                    fp=file,
+                )
+
+                eval_res_df = pd.DataFrame(
+                    data=eval_res_json_loaded,
+                )
+
+                # Tag the current split
+                eval_res_df["data_subsampling_split"] = split
+
+                # The entries in the "checkpoint_name" column have the form: "checkpoint-10650".
+                # We need to extract the checkpoint number from the string and add it as a new column "model_checkpoint".
+
+                checkpoint_name_df = eval_res_df["checkpoint_name"].str.extract(r"checkpoint-(\d+)")
+                eval_res_df["model_checkpoint"] = checkpoint_name_df[0].astype(int)
+
+                # Sort the DataFrame by the "model_checkpoint" column
+                eval_res_df: pd.DataFrame = eval_res_df.sort_values(
+                    by="model_checkpoint",
+                )
+
+                # Append the DataFrame to the list
+                scores_df_list.append(
+                    eval_res_df,
+                )
+
+                # TODO: Implement the following scores:
+                # TODO: - JGA from the log files
+
+        # Concatenate all DataFrames in the list into a single DataFrame
+        scores_df = pd.concat(
+            objs=scores_df_list,
+            axis=0,
+            ignore_index=True,
+        )
+
+        if self.verbosity >= Verbosity.NORMAL:
+            log_dataframe_info(
+                df=scores_df,
+                df_name="scores_df",
+                logger=self.logger,
+            )
+
+        return scores_df
+
+    def get_columns_to_plot(
+        self,
+    ) -> list[str]:
+        columns_to_plot: list[str] = [
+            "loss",
+            # TODO: Add more of the columns that we can load from the files
+        ]
+
+        return columns_to_plot
+
+
 class EmotionClassificationScoreLoader:
     """Concrete implementation loading emotion classification model scores from a JSON file."""
 
@@ -73,9 +176,11 @@ class EmotionClassificationScoreLoader:
         with self.filepath.open(
             mode="r",
         ) as file:
-            loaded_df: pd.DataFrame = pd.read_csv(filepath_or_buffer=file)
+            loaded_df: pd.DataFrame = pd.read_csv(
+                filepath_or_buffer=file,
+            )
 
-        post_processed_loaded_df = self.post_process_loaded_df(
+        post_processed_loaded_df: pd.DataFrame = self.post_process_loaded_df(
             loaded_df=loaded_df,
         )
 
