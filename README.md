@@ -34,7 +34,13 @@ pipx install uv
 1. Install python version with `uv`:
 
 ```bash
-uv install 3.12
+uv python install 3.12
+```
+
+1. You can check the installed python versions with:
+
+```bash
+uv python list
 ```
 
 ### Project-specific setup
