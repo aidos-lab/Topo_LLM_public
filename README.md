@@ -29,7 +29,7 @@ pipx ensurepath
 pipx install uv
 ```
 
-### Installation instructions with poetry
+### Installation instructions with uv
 
 1. Install python version with `uv`:
 
@@ -41,6 +41,18 @@ uv python install 3.12
 
 ```bash
 uv python list
+```
+
+1. Lock the dependencies with `uv`:
+
+```bash
+uv lock
+```
+
+1. Start a python interpreter with the local environment:
+
+```bash
+uv run python3
 ```
 
 ### Project-specific setup

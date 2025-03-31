@@ -29,7 +29,6 @@ dependencies = [
     "peft",
     "python-dotenv",
     "graphriccicurvature",
-    "networkx",
     "pyyaml",
     "hydra-colorlog",
     "wandb>=0.16.0,<0.17",
@@ -37,7 +36,6 @@ dependencies = [
     "evaluate",
     "seqeval",
     "nltk>=3.8.1,<4",
-    "kaleido",
     "annotated-types",
     "pydantic-core",
     "click",
@@ -49,9 +47,10 @@ dependencies = [
     "markupsafe",
     "wat",
     "numba",
-    "networkit",
+    "networkit<=11",
     "tensorboardx>=2.6.2.2",
     "boto3>=1.37.20",
+    "kaleido<=0.2.0",
 ]
 
 [project.scripts]
@@ -91,10 +90,16 @@ max-args = 7
 [tool.uv]
 default-groups = ["dev", "cpu", "gpu"]
 
-[[tool.uv.index]]
-name = "hhu"
-url = "http://pypi.repo.test.hhu.de/simple/"
-default = true
+# Note: 
+# The following section is needed on the HHU Hilbert HPC cluster to use the PyPI mirror,
+# since we do not have internet access on the cluster.
+# This should be removed when using the package outside of the cluster,
+# and before the package is released.
+#
+# [[tool.uv.index]]
+# name = "hhu"
+# url = "http://pypi.repo.test.hhu.de/simple/"
+# default = true
 
 [build-system]
 requires = ["hatchling"]
