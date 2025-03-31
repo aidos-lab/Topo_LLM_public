@@ -182,7 +182,7 @@ class TrippyRScoreLoader:
         Args:
             filename: The path to the log file.
 
-        Retuargs=args=args=rns:
+        Returns:
             A list of lines matching the pattern.
 
         """
