@@ -30,6 +30,8 @@
 import json
 import logging
 import pathlib
+import re
+import subprocess
 from typing import Protocol
 
 import pandas as pd
@@ -89,6 +91,8 @@ class TrippyRScoreLoader:
             "dev",
             "test",
         ]:
+            # # # #
+            # Load the evaluation results from the JSON file
             eval_res_json_path = pathlib.Path(
                 self.results_folder_for_given_seed_path,
                 f"eval_res.{split}.json",
@@ -125,13 +129,33 @@ class TrippyRScoreLoader:
                     by="model_checkpoint",
                 )
 
-                # Append the DataFrame to the list
-                scores_df_list.append(
-                    eval_res_df,
-                )
+            # # # #
+            # Load the joint goal accuracy from the log file
+            eval_res_log_path = pathlib.Path(
+                self.results_folder_for_given_seed_path,
+                f"eval_pred_{split}.1.0.log",
+            )
 
-                # TODO: Implement the following scores:
-                # TODO: - JGA from the log files
+            jga_lines = self.extract_jga_lines_grep(
+                filename=str(eval_res_log_path),
+            )
+
+            jga_df = self.parse_log_lines_to_df(
+                log_lines=jga_lines,
+            )
+
+            # Merge the JGA DataFrame with the evaluation results DataFrame on the "model_checkpoint" column
+            merged_df = eval_res_df.merge(
+                right=jga_df,
+                how="left",
+                on="model_checkpoint",
+            )
+
+            # # # #
+            # Append the DataFrame to the list
+            scores_df_list.append(
+                merged_df,
+            )
 
         # Concatenate all DataFrames in the list into a single DataFrame
         scores_df = pd.concat(
@@ -149,12 +173,78 @@ class TrippyRScoreLoader:
 
         return scores_df
 
+    def extract_jga_lines_grep(
+        self,
+        filename: str,
+    ) -> list[str]:
+        """Extract lines starting with 'Joint goal acc:' using grep.
+
+        Args:
+            filename: The path to the log file.
+
+        Retuargs=args=args=rns:
+            A list of lines matching the pattern.
+
+        """
+        result = subprocess.run(
+            args=[
+                "grep",
+                "^Joint goal acc:",
+                filename,
+            ],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+
+        return result.stdout.splitlines()
+
+    def parse_log_lines_to_df(
+        self,
+        log_lines: list[str],
+    ) -> pd.DataFrame:
+        """Parse log lines to extract checkpoint numbers and JGA scores.
+
+        Args:
+            log_lines: A sequence of log lines, each containing a JGA score and checkpoint path.
+
+        Returns:
+            A pandas DataFrame with 'checkpoint' and 'jga' columns, sorted by checkpoint.
+
+        """
+        data: list[tuple[int, float]] = []
+
+        pattern = re.compile(
+            pattern=r"Joint goal acc:\s*([\d.]+),.*?checkpoint-(\d+)\.json",
+        )
+
+        for line in log_lines:
+            match = pattern.search(line)
+            if match:
+                jga = float(match.group(1))
+                checkpoint = int(match.group(2))
+                data.append((checkpoint, jga))
+            else:
+                msg: str = f"Line does not match expected format: {line}"
+                raise ValueError(msg)
+
+        df = pd.DataFrame(
+            data=data,
+            columns=[
+                "model_checkpoint",
+                "jga",
+            ],
+        )
+        df_sorted = df.sort_values(by="model_checkpoint").reset_index(drop=True)
+
+        return df_sorted
+
     def get_columns_to_plot(
         self,
     ) -> list[str]:
         columns_to_plot: list[str] = [
             "loss",
-            # TODO: Add more of the columns that we can load from the files
+            "jga",
         ]
 
         return columns_to_plot

@@ -321,8 +321,6 @@ def create_mean_plots_over_model_checkpoints_with_different_seeds(
         # Create plots
         for plot_size_config in plot_size_configs_list:
             # Convert the PlotSizeConfigFlat objects into the new dataclass format.
-            # TODO: We might need to set the secondary axis limits depending on the type of scores loaded
-            # (e.g., for the emotion models the scores might be in a different range than the losses)
 
             secondary_axis_limits_list: list[AxisLimits] = [
                 AxisLimits(),  # Automatic scaling
