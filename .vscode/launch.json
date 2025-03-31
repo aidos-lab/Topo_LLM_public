@@ -2180,8 +2180,8 @@
                 //
                 //    >> START: Plotting options.
                 //
-                // "analysis/task_performance_analysis/plotting=trippy_r",
-                "analysis/task_performance_analysis/plotting=ertod",
+                "analysis/task_performance_analysis/plotting=trippy_r",
+                // "analysis/task_performance_analysis/plotting=ertod",
                 //
                 //    >> END: Plotting options.
                 //
