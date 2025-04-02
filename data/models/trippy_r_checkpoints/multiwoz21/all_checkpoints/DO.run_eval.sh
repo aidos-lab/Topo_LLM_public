@@ -58,6 +58,7 @@ if [[ $(hostname) == *"hilbert"* || $(hostname) == *"hpc"* ]]; then
 
 	echo ">>> Loading environment modules ..."
 	
+	# Modules ---------------------------------------------------------
 	# load_python
 	module load Python/3.12.3
 
@@ -68,7 +69,17 @@ if [[ $(hostname) == *"hilbert"* || $(hostname) == *"hpc"* ]]; then
 
 	export TOPO_LLM_REPOSITORY_BASE_PATH="/gpfs/project/ruppik/git-source/Topo_LLM"
 	export CONVLAB3_REPOSITORY_BASE_PATH="/gpfs/project/ruppik/git-source/ConvLab3"
+
+	# >>> Setup in Michael's environment:
+
+	# module load Python/3.8.3
+	# module load APEX/0.1
+
+	# export PYTHONPATH=/gpfs/project/$USER/tools/ConvLab3/:$PYTHONPATH
 fi
+
+# >>> Setup on my machine:
+export PYTHONPATH=/gpfs/project/$USER/git-source/ConvLab3/:$PYTHONPATH
 
 echo ">>> [INFO] Loading environment DONE"
 
@@ -127,18 +138,7 @@ copy_cached=1 # 0|1
 #    exit
 #fi
 
-# Modules ---------------------------------------------------------
 
-# >>> Setup in Michael's environment:
-
-# module load Python/3.8.3
-# module load APEX/0.1
-
-# export PYTHONPATH=/gpfs/project/$USER/tools/ConvLab3/:$PYTHONPATH
-
-
-# >>> Setup on my machine:
-export PYTHONPATH=/gpfs/project/$USER/git-source/ConvLab3/:$PYTHONPATH
 
 # Project paths ---------------------------------------------------
 

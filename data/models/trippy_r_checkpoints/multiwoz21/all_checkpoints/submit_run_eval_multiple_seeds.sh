@@ -12,12 +12,12 @@ echo ">>> Submitting job array ..."
 # > Submit job array via PBS with 4 jobs.
 # > Note that the SEED in the train.sh script is selected via the PBS_ARRAY_INDEX.
 #
-# qsub -J 0-2 $SCRIPT_PATH
+qsub -J 0-2 $SCRIPT_PATH
 
 # > Submit with a single job.
 # > Note that you cannot use the `-J` option with a single job. 
 #
-qsub $SCRIPT_PATH
+# qsub $SCRIPT_PATH
 
 echo ">>> Job array submitted."
 
