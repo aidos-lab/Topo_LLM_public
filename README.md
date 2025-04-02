@@ -43,10 +43,11 @@ uv python install 3.12
 uv python list
 ```
 
-1. Lock the dependencies with `uv`:
+1. Lock the dependencies with `uv` and sync the environment:
 
 ```bash
 uv lock
+uv sync
 ```
 
 1. Start a python interpreter with the local environment:
