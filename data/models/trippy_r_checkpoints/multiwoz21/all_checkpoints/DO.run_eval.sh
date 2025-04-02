@@ -1,4 +1,4 @@
-#PBS -l select=1:ncpus=1:mem=32gb:ngpus=1:accelerator_model=rtx6000
+#PBS -l select=1:ncpus=2:mem=64gb:ngpus=1:accelerator_model=rtx6000
 #PBS -l walltime=47:59:00
 #PBS -A "DialSys"
 #PBS -q "CUDA"
@@ -14,22 +14,32 @@
 # - For training, use the following configuration:
 # 	- #PBS -l select=1:ncpus=1:mem=32gb:ngpus=1:accelerator_model=a100
 
+contains() {
+    local seeking="$1"; shift
+    for element; do
+        if [[ "$element" == "$seeking" ]]; then
+            return 0
+        fi
+    done
+    return 1
+}
+
 # Argument Parsing -----------------------------------------------
 
 echo ">>> [INFO] Parsing arguments ..."
 
-SKIP_RUN_DST="False"
+DO_TRAINING="False"
 
 for arg in "$@"; do
     case $arg in
-        --skip-run-dst)
-        SKIP_RUN_DST="True"
+        --do-training)
+        DO_TRAINING="True"
         shift
         ;;
     esac
 done
 
-echo ">>> [INFO] SKIP_RUN_DST: ${SKIP_RUN_DST}"
+echo ">>> [INFO] DO_TRAINING: ${DO_TRAINING}"
 
 echo ">>> [INFO] Parsing arguments DONE"
 
@@ -191,9 +201,23 @@ TRAIN_PHASES="-1" # -1: regular training, 0: proto training, 1: tagging, 2: span
 VALUE_MATCHING_WEIGHT=0.0 # When 0.0, value matching is not used
 
 # Notes:
-# - Uncomment the steps you want to run.
-# - For "dev" and "test", this script will run the evaluation and the metric script.
-STEPS_TO_RUN=(
+# - Uncomment the steps you want to run for each individual part of the pipeline.
+# - The loop will run over all the steps in the outer loop array, and for each step,
+#   it will call the inner scripts for the steps you want to run.
+STEPS_TO_RUN_IN_OUTER_LOOP=(
+	"train"
+	"dev"
+	"test"
+)
+
+STEPS_TO_RUN_FOR_EVALUATION=(
+	# "train"
+	"dev"
+	# "test"
+)
+
+STEPS_TO_RUN_FOR_METRIC_DST=(
+	# "train"
 	"dev"
 	# "test"
 )
@@ -201,35 +225,59 @@ STEPS_TO_RUN=(
 # END: Parameters
 # # # # # # # # # # # # # # # #
 
+args_add=""
+phases="-1"
+
 for x in ${SEEDS}; do
+	echo ">>> [INFO] Running seed loop with seed ${x} ..."
     mkdir -p ${OUT_DIR}.${x}
-    for step in ${STEPS_TO_RUN[@]}; do
-		args_add=""
-		phases="-1"
 
-		if [ "$step" = "train" ]; then
-			args_add="--do_train --predict_type=dev --hd=0.1"
-			phases=${TRAIN_PHASES}
-		elif [ "$step" = "dev" ] || [ "$step" = "test" ]; then
-			args_add="--do_eval --predict_type=${step}"
-		fi
+	# # # #
+	# Call the run_dst.py script for the training.
+	if [ "$DO_TRAINING" = "True" ]; then
+		echo ">>> [INFO] Running training ..."
 
-		for phase in ${phases}; do
-			args_add_0=""
-			if [ "$phase" = 0 ]; then
-			args_add_0=""
-			fi
-			args_add_1=""
-			if [ "$phase" = 1 ]; then
-			args_add_1=""
-			fi
-			args_add_2=""
-			if [ "$phase" = 2 ]; then
-			args_add_2=""
-			fi
+		args_add="--do_train --predict_type=dev --hd=0.1"
+		phases=${TRAIN_PHASES}
 
-			if [ "$SKIP_RUN_DST" = "False" ]; then
-				echo ">>> [INFO] Running run_dst.py with step=${step}, phase=${phase}, seed=${x}."
+		echo ">>> NOTE: TRAINING CALL NOT YET IMPLEMENTED"
+
+		# TODO: Call the training here
+
+		echo ">>> [INFO] Running training DONE"
+	fi
+
+	# # # #
+	# Run over all steps in the outer loop and call the selected parts of the pipeline for each step.
+    for step in ${STEPS_TO_RUN_IN_OUTER_LOOP[@]}; do
+		echo ">>> [INFO] Running outer loop for step ${step} ..."
+
+		# Set the arguments for the run_dst.py script for evaluation.
+		args_add="--do_eval --predict_type=${step}"
+
+
+		if contains "$step" "${STEPS_TO_RUN_FOR_EVALUATION[@]}"; then
+			echo ">>> [INFO] Running evaluation via run_dst.py with step=${step} ..."
+
+			for phase in ${phases}; do
+				echo ">>> [INFO] Running run_dst.py with step=${step}; phase=${phase}; seed=${x} ..."
+				args_add_0=""
+				if [ "$phase" = 0 ]; then
+				args_add_0=""
+				fi
+				args_add_1=""
+				if [ "$phase" = 1 ]; then
+				args_add_1=""
+				fi
+				args_add_2=""
+				if [ "$phase" = 2 ]; then
+				args_add_2=""
+				fi
+
+				echo "args_add: ${args_add}"
+				echo "args_add_0: ${args_add_0}"
+				echo "args_add_1: ${args_add_1}"
+				echo "args_add_2: ${args_add_2}"
 
 				uv run python3 ${TOOLS_DIR}/run_dst.py \
 					--task_name="unified" \
@@ -261,19 +309,23 @@ for x in ${SEEDS}; do
 					${args_add_1} \
 					${args_add_2} \
 					2>&1 | tee ${OUT_DIR}.${x}/${step}.${phase}.log
-			else
-				echo ">>> [INFO] Skipping run_dst.py as per --skip-run-dst flag"
-			fi
-		done
+
+				echo ">>> [INFO] Running run_dst.py with step=${step}; phase=${phase}; seed=${x} DONE"
+			done
+			echo ">>> [INFO] Running evaluation via run_dst.py with step=${step} DONE"
+		else
+			echo ">>> [INFO] Skipping evaluation via run_dst.py with step=${step}."
+		fi
 
 
-		if [ "$step" = "dev" ] || [ "$step" = "test" ]; then
-			echo ">>> [INFO] Running metric_dst.py block ..."
+		if contains "$step" "${STEPS_TO_RUN_FOR_METRIC_DST[@]}"; then
+			echo ">>> [INFO] Running metric_dst.py block for step ${step} ..."
 			
 			confidence=1.0
 			if [[ ${VALUE_MATCHING_WEIGHT} > 0.0 ]]; then
 			confidence="1.0 0.9 0.8 0.7 0.6 0.5"
 			fi
+
 			for dist_conf_threshold in ${confidence}; do
 				uv run python3 ${TOOLS_DIR}/metric_dst.py \
 					--dataset_config=${DATASET_CONFIG} \
@@ -282,10 +334,14 @@ for x in ${SEEDS}; do
 					2>&1 | tee ${OUT_DIR}.${x}/eval_pred_${step}.${dist_conf_threshold}.log
 			done
 			
-			echo ">>> [INFO] Running metric_dst.py block DONE"
+			echo ">>> [INFO] Running metric_dst.py block for step ${step} DONE"
+		else
+			echo ">>> [INFO] Skipping metric_dst.py block for step ${step}."
 		fi
 
+		echo ">>> [INFO] Running outer loop for step ${step} DONE"
     done
+	echo ">>> [INFO] Running seed loop with seed ${x} DONE"
 done
 
 if [ "$mode" = "scratch" ]; then
@@ -293,3 +349,6 @@ if [ "$mode" = "scratch" ]; then
     mv ${SCRATCH_FOLDER}/cached_* .
     ./DO.cleanUp ${PBS_JOBID}
 fi
+
+echo ">>> [INFO] Job ${PBS_JOBID} finished. Exiting."
+exit 0

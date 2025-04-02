@@ -13,7 +13,7 @@ dependencies = [
     "datasets",
     "hydra-core",
     "gitpython",
-    "gudhi<=3.12",
+    "gudhi<=3.10",            # `gudhi` (v3.11.0) is not available on the HHU Hilbert HPC cluster
     "pandas",
     "pydantic",
     "scikit-learn",
