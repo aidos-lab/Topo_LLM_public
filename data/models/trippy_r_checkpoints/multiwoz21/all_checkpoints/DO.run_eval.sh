@@ -211,14 +211,14 @@ STEPS_TO_RUN_IN_OUTER_LOOP=(
 )
 
 STEPS_TO_RUN_FOR_EVALUATION=(
-	# "train"
-	"dev"
+	"train"
+	# "dev"
 	# "test"
 )
 
 STEPS_TO_RUN_FOR_METRIC_DST=(
-	# "train"
-	"dev"
+	"train"
+	# "dev"
 	# "test"
 )
 
@@ -259,6 +259,7 @@ for x in ${SEEDS}; do
 		if contains "$step" "${STEPS_TO_RUN_FOR_EVALUATION[@]}"; then
 			echo ">>> [INFO] Running evaluation via run_dst.py with step=${step} ..."
 
+			# START: THIS SHOULD BE A FUNCTION
 			for phase in ${phases}; do
 				echo ">>> [INFO] Running run_dst.py with step=${step}; phase=${phase}; seed=${x} ..."
 				args_add_0=""
@@ -312,6 +313,8 @@ for x in ${SEEDS}; do
 
 				echo ">>> [INFO] Running run_dst.py with step=${step}; phase=${phase}; seed=${x} DONE"
 			done
+			# END: THIS SHOULD BE A FUNCTION
+			
 			echo ">>> [INFO] Running evaluation via run_dst.py with step=${step} DONE"
 		else
 			echo ">>> [INFO] Skipping evaluation via run_dst.py with step=${step}."
