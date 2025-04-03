@@ -458,19 +458,18 @@
             "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
             "console": "integratedTerminal",
             "args": [
-                // TODO: Update this
                 //    >> START: Hydra options
                 "--multirun",
                 "hydra/sweeper=basic",
                 "hydra/launcher=basic",
-                // "hydra/launcher=hpc_submission",
-                // "hydra.launcher.queue=CUDA",
-                // // "hydra.launcher.template=RTX6000",
-                // "hydra.launcher.template=GTX1080",
-                // "hydra.launcher.memory=32",
-                // "hydra.launcher.ncpus=4",
-                // "hydra.launcher.ngpus=1",
-                // "hydra.launcher.walltime=01:30:00", // <-- The pipeline run for regular embeddings should only take a few minutes.
+                "hydra/launcher=hpc_submission",
+                "hydra.launcher.queue=CUDA",
+                // "hydra.launcher.template=RTX6000",
+                "hydra.launcher.template=GTX1080",
+                "hydra.launcher.memory=32",
+                "hydra.launcher.ncpus=4",
+                "hydra.launcher.ngpus=1",
+                "hydra.launcher.walltime=01:30:00", // <-- The pipeline run for regular embeddings should only take a few minutes.
                 //    >> END: Hydra options
                 //
                 "tokenizer.add_prefix_space=False", // "tokenizer.add_prefix_space=True" is necessary to use the tokenizer with input split into words
@@ -497,7 +496,8 @@
                 // >>>> Trippy datasets
                 // "data=trippy_dataloaders_processed",
                 //
-                // >>>> Trippy-R datasets
+                // >>>> Trippy-R datasets.
+                // Note: The splits for Trippy-R are called train,dev,test
                 "data=trippy_r_dataloaders_processed",
                 //
                 // "data.data_subsampling.split=train",
@@ -518,7 +518,7 @@
                 //
                 //    >> START: Model options.
                 //
-                "language_model=roberta-base",
+                // "language_model=roberta-base",
                 //
                 // "language_model=bert-base-uncased",
                 // "language_model=bert-base-uncased-SentiX",
@@ -544,19 +544,29 @@
                 // "++language_model.checkpoint_no=3549,7098,10647,14196,17745,21294,24843,28392,31941,35490",
                 //
                 // >>>> Trippy-R models
-                // "language_model=roberta-base-trippy_r_multiwoz21",
+                "language_model=roberta-base-trippy_r_multiwoz21",
                 // "language_model.checkpoint_no=1775,3550",
                 // "language_model.checkpoint_no=5325,7100,8875,10650,12425,14200,15975,17750,19525,21300,23075,24850,26625,28400,30175,31950,33725,35500",
-                // "language_model.checkpoint_no=1775,3550,5325,7100,8875,10650,12425,14200,15975,17750,19525,21300,23075,24850,26625,28400,30175,31950,33725,35500",
+                "language_model.checkpoint_no=1775,3550,5325,7100,8875,10650,12425,14200,15975,17750,19525,21300,23075,24850,26625,28400,30175,31950,33725,35500",
                 //
                 //    >> END: Model options.
                 //
                 //    >> START: Seed selection.
                 // 
-                "global_seed=42",
-                "language_model.seed=42",
-                "data.data_subsampling.sampling_seed=42",
-                "embeddings_data_prep.sampling.seed=42",
+                // >>> NOTE: Locally, we use the omegaConf value extrapolation to set the language model and subsampling seeds from the global seed.
+                // >>> But via the hpc run command, this does not appear to work.
+                // "global_seed=42,43",
+                //
+                // >!!!> START NOTE: Use the following when running locally (i.e., do not escape the $ sign).
+                // "language_model.seed=${global_seed}",
+                // "data.data_subsampling.sampling_seed=${global_seed}",
+                // "embeddings_data_prep.sampling.seed=${global_seed}",
+                // >!!!> END NOTE: Use the following when running locally (i.e., do not escape the $ sign).
+                // >!!!> START NOTE: There is a problem when running via 'hpc run' (i.e., We do not manage to escape the $ sign, so that it is not evaluated in the bash script, which leads to empty arguments)
+                "global_seed=44",
+                "language_model.seed=44",
+                "data.data_subsampling.sampling_seed=44",
+                "embeddings_data_prep.sampling.seed=44",
                 //
                 //    >> END: Seed selection.
                 //
