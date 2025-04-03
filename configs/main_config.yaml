@@ -17,7 +17,7 @@ defaults:
   - _self_
 
 n_jobs: 1
-seed: 1111 # The main_config seed is currently not used, but it is here for future use
+global_seed: 1111 # The main_config global seed is currently rarely used, as we have separate seeds for the subsampling and finetuning.
 verbosity: 1
 preferred_torch_backend: auto
 
@@ -36,7 +36,7 @@ hydra:
     dir: ${paths.repository_base_path}/hydra_output_dir/run/${hydra.job.name}/${now:%Y-%m-%d}/${now:%H-%M-%S}/${sanitize_override_dirname:${hydra.job.override_dirname}}/seed=${seed}/
   sweep:
     dir: ${paths.repository_base_path}/hydra_output_dir/multirun/${hydra.job.name}/${now:%Y-%m-%d}/${now:%H-%M-%S}/
-    subdir: ${sanitize_override_dirname:${hydra.job.override_dirname}}/seed=${seed}
+    subdir: ${sanitize_override_dirname:${hydra.job.override_dirname}}/seed=${global_seed}
   job:
     chdir: False
     env_set:

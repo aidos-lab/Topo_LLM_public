@@ -6,3 +6,6 @@ lm_mode: mlm
 
 pretrained_model_name_or_path: roberta-base
 short_model_name: ${language_model.pretrained_model_name_or_path}
+
+# Note: The seed is unused for the base model. This is here to allow overriding the value without creating an error.
+seed: -1
