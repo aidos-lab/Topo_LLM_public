@@ -90,6 +90,7 @@ class TrippyRScoreLoader:
         for split in [
             "dev",
             "test",
+            "train",
         ]:
             # # # #
             # Load the evaluation results from the JSON file
