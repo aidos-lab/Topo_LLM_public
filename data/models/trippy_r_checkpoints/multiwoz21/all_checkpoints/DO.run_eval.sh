@@ -36,6 +36,12 @@ for arg in "$@"; do
         DO_TRAINING="True"
         shift
         ;;
+		# Print an error and exit if an unknown argument is passed
+		*)
+		echo ">>> [ERROR] Unknown argument: $arg"
+		echo ">>> [ERROR] Usage: $0 [--do-training]"
+		exit 1
+		;;
     esac
 done
 
@@ -242,6 +248,76 @@ STEPS_TO_RUN_FOR_METRIC_DST=(
 # END: Parameters
 # # # # # # # # # # # # # # # #
 
+# ------------------------ Function Definition ------------------------ #
+# run_dst_phase:
+#   Runs the run_dst.py script for a given seed, step, phase, and additional arguments.
+#
+# Arguments:
+#   $1: seed
+#   $2: step (e.g., train, dev, test)
+#   $3: phase (training phase identifier)
+#   $4: additional arguments (if any)
+#
+# The function uses global variables:
+#   TOOLS_DIR, DATASET_CONFIG, OUT_DIR, VALUE_MATCHING_WEIGHT
+run_dst_phase() {
+    local seed="$1"
+    local step="$2"
+    local phase="$3"
+    local args_add="$4"
+
+    # Set phase-specific additional arguments.
+    # (Currently these are empty but can be modified as needed.)
+    local args_add_0=""
+    local args_add_1=""
+    local args_add_2=""
+
+    if [ "$phase" = "0" ]; then
+        args_add_0=""
+    elif [ "$phase" = "1" ]; then
+        args_add_1=""
+    elif [ "$phase" = "2" ]; then
+        args_add_2=""
+    fi
+
+    echo "args_add: ${args_add}"
+    echo "args_add_0: ${args_add_0}"
+    echo "args_add_1: ${args_add_1}"
+    echo "args_add_2: ${args_add_2}"
+
+    uv run python3 "${TOOLS_DIR}/run_dst.py" \
+        --task_name="unified" \
+        --data_dir="" \
+        --dataset_config="${DATASET_CONFIG}" \
+        --model_type="roberta" \
+        --model_name_or_path="roberta-base" \
+        --seed="${seed}" \
+        --do_lower_case \
+        --learning_rate=5e-5 \
+        --num_train_epochs=20 \
+        --max_seq_length=180 \
+        --per_gpu_train_batch_size=32 \
+        --per_gpu_eval_batch_size=32 \
+        --output_dir="${OUT_DIR}.${seed}" \
+        --save_epochs=1 \
+        --patience=-1 \
+        --eval_all_checkpoints \
+        --warmup_proportion=0.05 \
+        --adam_epsilon=1e-6 \
+        --weight_decay=0.01 \
+        --fp16 \
+        --value_matching_weight="${VALUE_MATCHING_WEIGHT}" \
+        --none_weight=0.1 \
+        --training_phase="${phase}" \
+        --local_files_only \
+        ${args_add} \
+        ${args_add_0} \
+        ${args_add_1} \
+        ${args_add_2} \
+        2>&1 | tee "${OUT_DIR}.${seed}/${step}.${phase}.log"
+}
+# ---------------------- End of Function Definition --------------------- #
+
 args_add=""
 phases="-1"
 
@@ -257,9 +333,11 @@ for x in ${SEEDS}; do
 		args_add="--do_train --predict_type=dev --hd=0.1"
 		phases=${TRAIN_PHASES}
 
-		echo ">>> NOTE: TRAINING CALL NOT YET IMPLEMENTED"
-
-		# TODO: Call the training here
+		for phase in ${phases}; do
+            echo ">>> [INFO] Running training for phase=${phase}; seed=${x} ..."
+            run_dst_phase "${x}" "train" "${phase}" "${args_add}"
+            echo ">>> [INFO] Running training for phase=${phase}; seed=${x} DONE"
+        done
 
 		echo ">>> [INFO] Running training DONE"
 	fi
@@ -276,61 +354,11 @@ for x in ${SEEDS}; do
 		if contains "$step" "${STEPS_TO_RUN_FOR_EVALUATION[@]}"; then
 			echo ">>> [INFO] Running evaluation via run_dst.py with step=${step} ..."
 
-			# START: THIS SHOULD BE A FUNCTION
 			for phase in ${phases}; do
 				echo ">>> [INFO] Running run_dst.py with step=${step}; phase=${phase}; seed=${x} ..."
-				args_add_0=""
-				if [ "$phase" = 0 ]; then
-				args_add_0=""
-				fi
-				args_add_1=""
-				if [ "$phase" = 1 ]; then
-				args_add_1=""
-				fi
-				args_add_2=""
-				if [ "$phase" = 2 ]; then
-				args_add_2=""
-				fi
-
-				echo "args_add: ${args_add}"
-				echo "args_add_0: ${args_add_0}"
-				echo "args_add_1: ${args_add_1}"
-				echo "args_add_2: ${args_add_2}"
-
-				uv run python3 ${TOOLS_DIR}/run_dst.py \
-					--task_name="unified" \
-					--data_dir="" \
-					--dataset_config=${DATASET_CONFIG} \
-					--model_type="roberta" \
-					--model_name_or_path="roberta-base" \
-					--seed=${x} \
-					--do_lower_case \
-					--learning_rate=5e-5 \
-					--num_train_epochs=20 \
-					--max_seq_length=180 \
-					--per_gpu_train_batch_size=32 \
-					--per_gpu_eval_batch_size=32 \
-					--output_dir=${OUT_DIR}.${x} \
-					--save_epochs=1 \
-					--patience=-1 \
-					--eval_all_checkpoints \
-					--warmup_proportion=0.05 \
-					--adam_epsilon=1e-6 \
-					--weight_decay=0.01 \
-					--fp16 \
-					--value_matching_weight=${VALUE_MATCHING_WEIGHT} \
-					--none_weight=0.1 \
-					--training_phase=${phase} \
-					--local_files_only \
-					${args_add} \
-					${args_add_0} \
-					${args_add_1} \
-					${args_add_2} \
-					2>&1 | tee ${OUT_DIR}.${x}/${step}.${phase}.log
-
-				echo ">>> [INFO] Running run_dst.py with step=${step}; phase=${phase}; seed=${x} DONE"
+                run_dst_phase "${x}" "${step}" "${phase}" "${args_add}"
+                echo ">>> [INFO] Running run_dst.py with step=${step}; phase=${phase}; seed=${x} DONE"
 			done
-			# END: THIS SHOULD BE A FUNCTION
 			
 			echo ">>> [INFO] Running evaluation via run_dst.py with step=${step} DONE"
 		else
