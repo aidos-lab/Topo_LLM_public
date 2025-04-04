@@ -1,5 +1,5 @@
 #PBS -l select=1:ncpus=2:mem=64gb:ngpus=1:accelerator_model=rtx6000
-#PBS -l walltime=47:59:00
+#PBS -l walltime=59:59:00
 #PBS -A "DialSys"
 #PBS -q "CUDA"
 #PBS -r y
@@ -78,13 +78,27 @@ if [[ $(hostname) == *"hilbert"* || $(hostname) == *"hpc"* ]]; then
 	# export PYTHONPATH=/gpfs/project/$USER/tools/ConvLab3/:$PYTHONPATH
 fi
 
-# >>> Setup on my machine:
-export PYTHONPATH=/gpfs/project/$USER/git-source/ConvLab3/:$PYTHONPATH
+echo ">>> [INFO] Python path before any modifications:PYTHONPATH=${PYTHONPATH}"
+
+CONVLAB3_PATH_LOCALTION_TO_ADD_TO_PYTHONPATH=(
+	"${CONVLAB3_REPOSITORY_BASE_PATH}"
+	# This is the path to the ConvLab3 repository on the HPC
+	"/gpfs/project/${USER}/git-source/ConvLab3/"
+)
+
+# Add the ConvLab3 repository to the PYTHONPATH
+for path in "${CONVLAB3_PATH_LOCALTION_TO_ADD_TO_PYTHONPATH[@]}"; do
+	echo ">>> [INFO] Adding ${path} to PYTHONPATH"
+    export PYTHONPATH="${path}:$PYTHONPATH"
+done
+
+
 
 echo ">>> [INFO] Loading environment DONE"
 
 VARIABLES_TO_LOG=(
     "PBS_ARRAY_INDEX"
+	"PYTHONPATH"
     "TOPO_LLM_REPOSITORY_BASE_PATH"
     "CONVLAB3_REPOSITORY_BASE_PATH"
 )
@@ -111,7 +125,7 @@ fi
 
 # If $PBS_ARRAY_INDEX is not set, set it to a default value.
 if [ -z "${PBS_ARRAY_INDEX}" ]; then
-    echo "@@@ Warning: PBS_ARRAY_INDEX is not set. Setting it to 0." >&2
+    echo "@@@ Note: PBS_ARRAY_INDEX is not set. Setting it to 0." >&2
     PBS_ARRAY_INDEX=0
 fi
 
@@ -121,7 +135,7 @@ echo ">>> [INFO] PBS_ARRAY_INDEX: ${PBS_ARRAY_INDEX}"
 cd "${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints"
 
 # Print the current directory
-echo ">>> [INFO] Current directory: $(pwd)"
+echo ">>> [INFO] Current working directory: $(pwd)"
 echo ">>> [INFO] Running on host: $(hostname)"
 echo ">>> [INFO] Running on node: $(hostname -s)"
 echo ">>> [INFO] Running on job ID: ${PBS_JOBID}"
@@ -185,6 +199,9 @@ DATASET_CONFIG="${TOOLS_DIR}/dataset_config/unified_multiwoz21.json"
 
 # Select seed via PBS_ARRAY_INDEX
 SEEDS_SELECTION=(
+	1111 # The first element is the default seed with which the script is run
+	40
+	41
     42
 	43
 	44
@@ -211,15 +228,15 @@ STEPS_TO_RUN_IN_OUTER_LOOP=(
 )
 
 STEPS_TO_RUN_FOR_EVALUATION=(
-	"train"
-	# "dev"
-	# "test"
+	# "train"
+	"dev"
+	"test"
 )
 
 STEPS_TO_RUN_FOR_METRIC_DST=(
-	"train"
-	# "dev"
-	# "test"
+	# "train"
+	"dev"
+	"test"
 )
 
 # END: Parameters
