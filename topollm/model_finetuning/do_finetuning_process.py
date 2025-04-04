@@ -124,13 +124,13 @@ def do_finetuning_process(
         log_selected_dataset_elements_info(
             dataset=train_dataset,
             dataset_name="train_dataset",
-            seed=main_config.seed,
+            seed=main_config.global_seed,
             logger=logger,
         )
         log_selected_dataset_elements_info(
             dataset=eval_dataset,
             dataset_name="eval_dataset",
-            seed=main_config.seed,
+            seed=main_config.global_seed,
             logger=logger,
         )
 
@@ -238,7 +238,7 @@ def do_finetuning_process(
         log_selected_dataset_elements_info(
             dataset=train_dataset_mapped,
             dataset_name="train_dataset_mapped_selected_elements",
-            seed=main_config.seed,
+            seed=main_config.global_seed,
             logger=logger,
         )
 
@@ -250,7 +250,7 @@ def do_finetuning_process(
         log_selected_dataset_elements_info(
             dataset=eval_dataset_mapped,
             dataset_name="eval_dataset_mapped_selected_elements",
-            seed=main_config.seed,
+            seed=main_config.global_seed,
             logger=logger,
         )
 

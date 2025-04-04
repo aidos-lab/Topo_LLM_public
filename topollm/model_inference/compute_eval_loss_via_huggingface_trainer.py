@@ -201,7 +201,7 @@ def main(
         log_selected_dataset_elements_info(
             dataset=dataset_mapped,
             dataset_name="dataset_mapped",
-            seed=main_config.seed,
+            seed=main_config.global_seed,
             logger=logger,
         )
 

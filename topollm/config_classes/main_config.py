@@ -147,10 +147,11 @@ class MainConfig(ConfigBaseModel):
         description="The preferred torch backend.",
     )
 
-    seed: int = Field(
+    global_seed: int = Field(
         default=1234,
-        title="Seed.",
-        description="The random seed.",
+        title="Global seed.",
+        description="Global seed. Currently the global seed is rarely used, "
+        "since we have specific seeds for the individual sampling steps and for the finetuning.",
     )
 
     storage: StorageConfig = Field(
