@@ -136,11 +136,11 @@ class TrippyRScoreLoader:
                 f"eval_pred_{split}.1.0.log",
             )
 
-            jga_lines = self.extract_jga_lines_grep(
-                filename=str(eval_res_log_path),
+            jga_lines: list[str] = self.extract_jga_lines_grep(
+                filename=str(object=eval_res_log_path),
             )
 
-            jga_df = self.parse_log_lines_to_df(
+            jga_df: pd.DataFrame = self.parse_log_lines_to_df(
                 log_lines=jga_lines,
             )
 
@@ -186,18 +186,33 @@ class TrippyRScoreLoader:
             A list of lines matching the pattern.
 
         """
-        result = subprocess.run(
-            args=[
-                "grep",
-                "^Joint goal acc:",
-                filename,
-            ],
-            capture_output=True,
-            text=True,
-            check=True,
-        )
+        result = None
+        try:
+            result = subprocess.run(
+                args=[
+                    "grep",
+                    "Joint goal acc:",
+                    filename,
+                ],
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+            lines = result.stdout.splitlines()
+        except subprocess.CalledProcessError:
+            # Log an error if grep fails
+            self.logger.exception(
+                msg=f"Error running grep on file: {filename}",  # noqa: G004
+            )
+            self.logger.warning(
+                msg=f"subprocess.run result: {result}",  # noqa: G004
+            )
+            self.logger.warning(
+                msg="Will return empty list.",
+            )
 
-        return result.stdout.splitlines()
+            lines = []
+        return lines
 
     def parse_log_lines_to_df(
         self,
