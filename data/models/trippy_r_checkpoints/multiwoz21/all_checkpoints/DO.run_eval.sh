@@ -29,7 +29,8 @@ contains() {
 
 echo ">>> [INFO] Parsing arguments ..."
 
-DO_TRAINING="False"
+# Note: We currently set this to "True" by default, to allow easier submission of jobs on the cluster.
+DO_TRAINING="True"
 
 for arg in "$@"; do
     case $arg in
@@ -37,10 +38,14 @@ for arg in "$@"; do
         DO_TRAINING="True"
         shift
         ;;
+    --no-training)
+        DO_TRAINING="False"
+        shift
+        ;;
     # Print an error and exit if an unknown argument is passed
     *)
-        echo ">>> [ERROR] Unknown argument: $arg"
-        echo ">>> [ERROR] Usage: $0 [--do-training]"
+        echo -e "\033[1;31m>>> [ERROR] Unknown argument: $arg\033[0m"
+        echo -e "\033[1;31m>>> [ERROR] Usage: $0 [--do-training]\033[0m"
         exit 1
         ;;
     esac
@@ -102,6 +107,7 @@ done
 echo ">>> [INFO] Loading environment DONE"
 
 VARIABLES_TO_LOG=(
+    "USER"
     "PBS_ARRAY_INDEX"
     "PYTHONPATH"
     "TOPO_LLM_REPOSITORY_BASE_PATH"
@@ -130,7 +136,7 @@ fi
 
 # If $PBS_ARRAY_INDEX is not set, set it to a default value.
 if [ -z "${PBS_ARRAY_INDEX}" ]; then
-    echo "@@@ Note: PBS_ARRAY_INDEX is not set. Setting it to 0." >&2
+    echo -e "\033[1;33m@@@ Note: PBS_ARRAY_INDEX is not set. Setting it to 0.\033[0m" >&2
     PBS_ARRAY_INDEX=0
 fi
 
@@ -324,9 +330,9 @@ for x in ${SEEDS}; do
     # # # #
     # Call the run_dst.py script for the training.
     if [ "$DO_TRAINING" = "True" ]; then
-        echo "########################################################################"
-        echo "###                Starting Training Execution                       ###"
-        echo "########################################################################"
+        echo -e "\033[1;32m########################################################################\033[0m"
+        echo -e "\033[1;32m###                Starting Training Execution                       ###\033[0m"
+        echo -e "\033[1;32m########################################################################\033[0m"
 
         args_add="--do_train --predict_type=dev --hd=0.1"
         phases=${TRAIN_PHASES}
@@ -337,13 +343,13 @@ for x in ${SEEDS}; do
             echo ">>> [TRAINING] Phase ${phase} completed for seed ${x}."
         done
 
-        echo "########################################################################"
-        echo "###              Training Execution Completed                        ###"
-        echo "########################################################################"
+        echo -e "\033[1;32m########################################################################\033[0m"
+        echo -e "\033[1;32m###              Training Execution Completed                        ###\033[0m"
+        echo -e "\033[1;32m########################################################################\033[0m"
     else
-        echo "************************************************************************"
-        echo "*****              SKIPPING Training Execution                     *****"
-        echo "************************************************************************"
+        echo -e "\033[1;33m************************************************************************\033[0m"
+        echo -e "\033[1;33m*****              SKIPPING Training Execution                     *****\033[0m"
+        echo -e "\033[1;33m************************************************************************\033[0m"
     fi
 
     # # # #
@@ -355,7 +361,7 @@ for x in ${SEEDS}; do
         args_add="--do_eval --predict_type=${step}"
 
         if contains "$step" "${STEPS_TO_RUN_FOR_EVALUATION[@]}"; then
-            echo ">>> [EVALUATION] Running evaluation via run_dst.py with step=${step} ..."
+            echo -e "\033[1;32m>>> [EVALUATION] Running evaluation via run_dst.py with step=${step} ...\033[0m"
 
             for phase in ${phases}; do
                 echo ">>> [EVALUATION] Running run_dst.py with step=${step}; phase=${phase}; seed=${x} ..."
@@ -363,13 +369,13 @@ for x in ${SEEDS}; do
                 echo ">>> [EVALUATION] Running run_dst.py with step=${step}; phase=${phase}; seed=${x} DONE"
             done
 
-            echo ">>> [EVALUATION] Running evaluation via run_dst.py with step=${step} DONE"
+            echo -e "\033[1;32m>>> [EVALUATION] Running evaluation via run_dst.py with step=${step} DONE\033[0m"
         else
-            echo ">>> [EVALUATION] Skipping evaluation via run_dst.py with step=${step}."
+            echo -e "\033[1;33m>>> [EVALUATION] Skipping evaluation via run_dst.py with step=${step}.\033[0m"
         fi
 
         if contains "$step" "${STEPS_TO_RUN_FOR_METRIC_DST[@]}"; then
-            echo ">>> [METRIC] Running metric_dst.py block for step ${step} ..."
+            echo -e "\033[1;32m>>> [METRIC] Running metric_dst.py block for step ${step} ...\033[0m"
 
             confidence=1.0
             if [[ ${VALUE_MATCHING_WEIGHT} > 0.0 ]]; then
@@ -384,9 +390,9 @@ for x in ${SEEDS}; do
                     2>&1 | tee ${OUT_DIR}.${x}/eval_pred_${step}.${dist_conf_threshold}.log
             done
 
-            echo ">>> [METRIC] Running metric_dst.py block for step ${step} DONE"
+            echo -e "\033[1;32m>>> [METRIC] Running metric_dst.py block for step ${step} DONE\033[0m"
         else
-            echo ">>> [METRIC] Skipping metric_dst.py block for step ${step}."
+            echo -e "\033[1;33m>>> [METRIC] Skipping metric_dst.py block for step ${step}.\033[0m"
         fi
 
         echo ">>> [INFO] Running outer loop for step ${step} DONE"
