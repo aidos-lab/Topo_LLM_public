@@ -1,0 +1,24 @@
+{
+  "class_types": [
+    "none",
+    "dontcare",
+    "copy_value",
+    "inform"
+  ],
+  "slots": {
+    "category": "the category of the restaurant",
+    "rating": "the rating of the restaurant",
+    "num_people": "the amount of people to book the restaurant for",
+    "location": "the location of the restaurant",
+    "restaurant_name": "the name of the restaurant",
+    "time": "the time for which to book the restaurant",
+    "date": "the date for which to book the restaurant",
+    "price_range": "the price range of the restaurant",
+    "meal": "the food type of the restaurant"
+  },
+  "noncategorical": [
+    "restaurant_name"
+  ],
+  "boolean": [],
+  "label_maps": {}
+}
