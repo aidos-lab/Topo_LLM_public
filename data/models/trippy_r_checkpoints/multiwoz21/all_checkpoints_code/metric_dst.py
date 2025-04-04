@@ -46,7 +46,7 @@ def tokenize(text):
     else:
         text = re.sub(" ##", "", text)
     text = text.strip()
-    return " ".join([tok for tok in map(str.strip, re.split("(\W+)", text)) if len(tok) > 0])
+    return " ".join([tok for tok in map(str.strip, re.split(r"(\W+)", text)) if len(tok) > 0])
 
 
 def filter_sequences(seqs, mode="first"):
@@ -77,8 +77,8 @@ def filter_sequences(seqs, mode="first"):
 
 def is_in_list(tok, value):
     found = False
-    tok_list = [item for item in map(str.strip, re.split("(\W+)", tok)) if len(item) > 0]
-    value_list = [item for item in map(str.strip, re.split("(\W+)", value)) if len(item) > 0]
+    tok_list = [item for item in map(str.strip, re.split(r"(\W+)", tok)) if len(item) > 0]
+    value_list = [item for item in map(str.strip, re.split(r"(\W+)", value)) if len(item) > 0]
     tok_len = len(tok_list)
     value_len = len(value_list)
     for i in range(tok_len + 1 - value_len):

@@ -15,7 +15,8 @@
 # 	- #PBS -l select=1:ncpus=1:mem=32gb:ngpus=1:accelerator_model=a100
 
 contains() {
-    local seeking="$1"; shift
+    local seeking="$1"
+    shift
     for element; do
         if [[ "$element" == "$seeking" ]]; then
             return 0
@@ -32,16 +33,16 @@ DO_TRAINING="False"
 
 for arg in "$@"; do
     case $arg in
-        --do-training)
+    --do-training)
         DO_TRAINING="True"
         shift
         ;;
-		# Print an error and exit if an unknown argument is passed
-		*)
-		echo ">>> [ERROR] Unknown argument: $arg"
-		echo ">>> [ERROR] Usage: $0 [--do-training]"
-		exit 1
-		;;
+    # Print an error and exit if an unknown argument is passed
+    *)
+        echo ">>> [ERROR] Unknown argument: $arg"
+        echo ">>> [ERROR] Usage: $0 [--do-training]"
+        exit 1
+        ;;
     esac
 done
 
@@ -55,56 +56,54 @@ echo ">>> [INFO] Parsing arguments DONE"
 echo ">>> [INFO] Loading environment ..."
 
 if [[ $(hostname) == *"hilbert"* || $(hostname) == *"hpc"* ]]; then
-	echo ">>> Sourcing .bashrc ..."
+    echo ">>> Sourcing .bashrc ..."
 
-	source /gpfs/project/ruppik/.usr_tls/.bashrc
-	# source ~/.bashrc
+    source /gpfs/project/ruppik/.usr_tls/.bashrc
+    # source ~/.bashrc
 
-	echo ">>> Sourcing .bashrc DONE"
+    echo ">>> Sourcing .bashrc DONE"
 
-	echo ">>> Loading environment modules ..."
-	
-	# Modules ---------------------------------------------------------
-	# load_python
-	module load Python/3.12.3
+    echo ">>> Loading environment modules ..."
 
-	# load_cuda
-	module load CUDA/11.7.1
+    # Modules ---------------------------------------------------------
+    # load_python
+    module load Python/3.12.3
 
-	echo ">>> Loading environment modules DONE"
+    # load_cuda
+    module load CUDA/11.7.1
 
-	export TOPO_LLM_REPOSITORY_BASE_PATH="/gpfs/project/ruppik/git-source/Topo_LLM"
-	export CONVLAB3_REPOSITORY_BASE_PATH="/gpfs/project/ruppik/git-source/ConvLab3"
+    echo ">>> Loading environment modules DONE"
 
-	# >>> Setup in Michael's environment:
+    export TOPO_LLM_REPOSITORY_BASE_PATH="/gpfs/project/ruppik/git-source/Topo_LLM"
+    export CONVLAB3_REPOSITORY_BASE_PATH="/gpfs/project/ruppik/git-source/ConvLab3"
 
-	# module load Python/3.8.3
-	# module load APEX/0.1
+    # >>> Setup in Michael's environment:
 
-	# export PYTHONPATH=/gpfs/project/$USER/tools/ConvLab3/:$PYTHONPATH
+    # module load Python/3.8.3
+    # module load APEX/0.1
+
+    # export PYTHONPATH=/gpfs/project/$USER/tools/ConvLab3/:$PYTHONPATH
 fi
 
 echo ">>> [INFO] Python path before any modifications:PYTHONPATH=${PYTHONPATH}"
 
 CONVLAB3_PATH_LOCALTION_TO_ADD_TO_PYTHONPATH=(
-	"${CONVLAB3_REPOSITORY_BASE_PATH}"
-	# This is the path to the ConvLab3 repository on the HPC
-	"/gpfs/project/${USER}/git-source/ConvLab3/"
+    "${CONVLAB3_REPOSITORY_BASE_PATH}/"
+    # This is the path to the ConvLab3 repository on the HPC
+    "/gpfs/project/${USER}/git-source/ConvLab3/"
 )
 
 # Add the ConvLab3 repository to the PYTHONPATH
 for path in "${CONVLAB3_PATH_LOCALTION_TO_ADD_TO_PYTHONPATH[@]}"; do
-	echo ">>> [INFO] Adding ${path} to PYTHONPATH"
+    echo ">>> [INFO] Adding ${path} to PYTHONPATH"
     export PYTHONPATH="${path}:$PYTHONPATH"
 done
-
-
 
 echo ">>> [INFO] Loading environment DONE"
 
 VARIABLES_TO_LOG=(
     "PBS_ARRAY_INDEX"
-	"PYTHONPATH"
+    "PYTHONPATH"
     "TOPO_LLM_REPOSITORY_BASE_PATH"
     "CONVLAB3_REPOSITORY_BASE_PATH"
 )
@@ -147,9 +146,8 @@ echo ">>> [INFO] Running on node: $(hostname -s)"
 echo ">>> [INFO] Running on job ID: ${PBS_JOBID}"
 
 # mode=scratch # scratch|local
-mode=local # scratch|local
+mode=local    # scratch|local
 copy_cached=1 # 0|1
-
 
 #echo "CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES}."
 #if [ "${CUDA_VISIBLE_DEVICES}" -lt "2" ]; then
@@ -158,13 +156,11 @@ copy_cached=1 # 0|1
 #    exit
 #fi
 
-
-
 # Project paths ---------------------------------------------------
 
 if [ -z ${PROJECT_FOLDER} ]; then
-    PROJECT_FOLDER=`realpath $0`
-    PROJECT_FOLDER=`dirname ${PROJECT_FOLDER}`
+    PROJECT_FOLDER=$(realpath $0)
+    PROJECT_FOLDER=$(dirname ${PROJECT_FOLDER})
 fi
 
 SCRATCH_FOLDER=/gpfs/scratch/${USER}/${PBS_JOBID}
@@ -190,8 +186,8 @@ else
     OUT_DIR=${SCRATCH_FOLDER}/${RES_DIR}
     ln -s ${SCRATCH_FOLDER} scratch.${PBS_JOBID}
     if [ "$copy_cached" = "1" ]; then
-	mkdir -p ${SCRATCH_FOLDER}
-	cp cached_* ${SCRATCH_FOLDER}
+        mkdir -p ${SCRATCH_FOLDER}
+        cp cached_* ${SCRATCH_FOLDER}
     fi
 fi
 
@@ -205,12 +201,12 @@ DATASET_CONFIG="${TOOLS_DIR}/dataset_config/unified_multiwoz21.json"
 
 # Select seed via PBS_ARRAY_INDEX
 SEEDS_SELECTION=(
-	1111 # The first element is the default seed with which the script is run
-	40
-	41
+    1111 # The first element is the default seed with which the script is run
+    40
+    41
     42
-	43
-	44
+    43
+    44
 )
 SEED=${SEEDS_SELECTION[$((PBS_ARRAY_INDEX))]}
 
@@ -220,7 +216,7 @@ SEEDS=(${SEED})
 
 echo ">>> [INFO] SEEDS: ${SEEDS[@]}"
 
-TRAIN_PHASES="-1" # -1: regular training, 0: proto training, 1: tagging, 2: spanless training
+TRAIN_PHASES="-1"         # -1: regular training, 0: proto training, 1: tagging, 2: spanless training
 VALUE_MATCHING_WEIGHT=0.0 # When 0.0, value matching is not used
 
 # Notes:
@@ -228,21 +224,21 @@ VALUE_MATCHING_WEIGHT=0.0 # When 0.0, value matching is not used
 # - The loop will run over all the steps in the outer loop array, and for each step,
 #   it will call the inner scripts for the steps you want to run.
 STEPS_TO_RUN_IN_OUTER_LOOP=(
-	"train"
-	"dev"
-	"test"
+    "train"
+    "dev"
+    "test"
 )
 
 STEPS_TO_RUN_FOR_EVALUATION=(
-	# "train"
-	"dev"
-	"test"
+    # "train"
+    "dev"
+    "test"
 )
 
 STEPS_TO_RUN_FOR_METRIC_DST=(
-	# "train"
-	"dev"
-	"test"
+    # "train"
+    "dev"
+    "test"
 )
 
 # END: Parameters
@@ -322,74 +318,80 @@ args_add=""
 phases="-1"
 
 for x in ${SEEDS}; do
-	echo ">>> [INFO] Running seed loop with seed ${x} ..."
+    echo ">>> [INFO] Running seed loop with seed ${x} ..."
     mkdir -p ${OUT_DIR}.${x}
 
-	# # # #
-	# Call the run_dst.py script for the training.
-	if [ "$DO_TRAINING" = "True" ]; then
-		echo ">>> [INFO] Running training ..."
+    # # # #
+    # Call the run_dst.py script for the training.
+    if [ "$DO_TRAINING" = "True" ]; then
+        echo "########################################################################"
+        echo "###                Starting Training Execution                       ###"
+        echo "########################################################################"
 
-		args_add="--do_train --predict_type=dev --hd=0.1"
-		phases=${TRAIN_PHASES}
+        args_add="--do_train --predict_type=dev --hd=0.1"
+        phases=${TRAIN_PHASES}
 
-		for phase in ${phases}; do
-            echo ">>> [INFO] Running training for phase=${phase}; seed=${x} ..."
+        for phase in ${phases}; do
+            echo ">>> [TRAINING] Phase ${phase} initiated for seed ${x} ..."
             run_dst_phase "${x}" "train" "${phase}" "${args_add}"
-            echo ">>> [INFO] Running training for phase=${phase}; seed=${x} DONE"
+            echo ">>> [TRAINING] Phase ${phase} completed for seed ${x}."
         done
 
-		echo ">>> [INFO] Running training DONE"
-	fi
+        echo "########################################################################"
+        echo "###              Training Execution Completed                        ###"
+        echo "########################################################################"
+    else
+        echo "************************************************************************"
+        echo "*****              SKIPPING Training Execution                     *****"
+        echo "************************************************************************"
+    fi
 
-	# # # #
-	# Run over all steps in the outer loop and call the selected parts of the pipeline for each step.
+    # # # #
+    # Run over all steps in the outer loop and call the selected parts of the pipeline for each step.
     for step in ${STEPS_TO_RUN_IN_OUTER_LOOP[@]}; do
-		echo ">>> [INFO] Running outer loop for step ${step} ..."
+        echo ">>> [INFO] Running outer loop for step ${step} ..."
 
-		# Set the arguments for the run_dst.py script for evaluation.
-		args_add="--do_eval --predict_type=${step}"
+        # Set the arguments for the run_dst.py script for evaluation.
+        args_add="--do_eval --predict_type=${step}"
 
+        if contains "$step" "${STEPS_TO_RUN_FOR_EVALUATION[@]}"; then
+            echo ">>> [EVALUATION] Running evaluation via run_dst.py with step=${step} ..."
 
-		if contains "$step" "${STEPS_TO_RUN_FOR_EVALUATION[@]}"; then
-			echo ">>> [INFO] Running evaluation via run_dst.py with step=${step} ..."
-
-			for phase in ${phases}; do
-				echo ">>> [INFO] Running run_dst.py with step=${step}; phase=${phase}; seed=${x} ..."
+            for phase in ${phases}; do
+                echo ">>> [EVALUATION] Running run_dst.py with step=${step}; phase=${phase}; seed=${x} ..."
                 run_dst_phase "${x}" "${step}" "${phase}" "${args_add}"
-                echo ">>> [INFO] Running run_dst.py with step=${step}; phase=${phase}; seed=${x} DONE"
-			done
-			
-			echo ">>> [INFO] Running evaluation via run_dst.py with step=${step} DONE"
-		else
-			echo ">>> [INFO] Skipping evaluation via run_dst.py with step=${step}."
-		fi
+                echo ">>> [EVALUATION] Running run_dst.py with step=${step}; phase=${phase}; seed=${x} DONE"
+            done
 
+            echo ">>> [EVALUATION] Running evaluation via run_dst.py with step=${step} DONE"
+        else
+            echo ">>> [EVALUATION] Skipping evaluation via run_dst.py with step=${step}."
+        fi
 
-		if contains "$step" "${STEPS_TO_RUN_FOR_METRIC_DST[@]}"; then
-			echo ">>> [INFO] Running metric_dst.py block for step ${step} ..."
-			
-			confidence=1.0
-			if [[ ${VALUE_MATCHING_WEIGHT} > 0.0 ]]; then
-			confidence="1.0 0.9 0.8 0.7 0.6 0.5"
-			fi
+        if contains "$step" "${STEPS_TO_RUN_FOR_METRIC_DST[@]}"; then
+            echo ">>> [METRIC] Running metric_dst.py block for step ${step} ..."
 
-			for dist_conf_threshold in ${confidence}; do
-				uv run python3 ${TOOLS_DIR}/metric_dst.py \
-					--dataset_config=${DATASET_CONFIG} \
-					--confidence_threshold=${dist_conf_threshold} \
-					--file_list="${OUT_DIR}.${x}/pred_res.${step}*json" \
-					2>&1 | tee ${OUT_DIR}.${x}/eval_pred_${step}.${dist_conf_threshold}.log
-			done
-			
-			echo ">>> [INFO] Running metric_dst.py block for step ${step} DONE"
-		else
-			echo ">>> [INFO] Skipping metric_dst.py block for step ${step}."
-		fi
+            confidence=1.0
+            if [[ ${VALUE_MATCHING_WEIGHT} > 0.0 ]]; then
+                confidence="1.0 0.9 0.8 0.7 0.6 0.5"
+            fi
 
-		echo ">>> [INFO] Running outer loop for step ${step} DONE"
+            for dist_conf_threshold in ${confidence}; do
+                uv run python3 ${TOOLS_DIR}/metric_dst.py \
+                    --dataset_config=${DATASET_CONFIG} \
+                    --confidence_threshold=${dist_conf_threshold} \
+                    --file_list="${OUT_DIR}.${x}/pred_res.${step}*json" \
+                    2>&1 | tee ${OUT_DIR}.${x}/eval_pred_${step}.${dist_conf_threshold}.log
+            done
+
+            echo ">>> [METRIC] Running metric_dst.py block for step ${step} DONE"
+        else
+            echo ">>> [METRIC] Skipping metric_dst.py block for step ${step}."
+        fi
+
+        echo ">>> [INFO] Running outer loop for step ${step} DONE"
     done
-	echo ">>> [INFO] Running seed loop with seed ${x} DONE"
+    echo ">>> [INFO] Running seed loop with seed ${x} DONE"
 done
 
 if [ "$mode" = "scratch" ]; then
