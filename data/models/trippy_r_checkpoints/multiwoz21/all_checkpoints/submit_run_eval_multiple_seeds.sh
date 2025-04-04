@@ -27,17 +27,20 @@ echo ">>> Submitting job array ..."
 # > Submit job array via PBS with multiple jobs.
 # > Note that the SEED in the train.sh script is selected via the PBS_ARRAY_INDEX.
 #
-# qsub -J 1-2 $SCRIPT_PATH
+qsub -J 3-5 $SCRIPT_PATH
 
 # > Submit with a single job.
 # > Note that you cannot use the `-J` option with a single job.
 #
 # qsub $SCRIPT_PATH
 
-# > Submit with a single job and specified PBS_ARRAY_INDEX:
+# > Submit with a single job and specified PBS_ARRAY_INDEX.
+# > Notes:
+# > - The `-v` flag is used to pass environment variables to the job.
+# > - We need to set the environment variable `PBS_ARRAY_INDEX` to the desired value first.
 #
-export PBS_ARRAY_INDEX=1
-qsub -v PBS_ARRAY_INDEX $SCRIPT_PATH
+# export PBS_ARRAY_INDEX=3
+# qsub -v PBS_ARRAY_INDEX $SCRIPT_PATH
 
 echo ">>> Job array submitted."
 

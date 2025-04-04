@@ -29,8 +29,10 @@ contains() {
 
 echo ">>> [INFO] Parsing arguments ..."
 
-# Note: We currently set this to "True" by default, to allow easier submission of jobs on the cluster.
-DO_TRAINING="True"
+# Note:
+# - You should set DO_TRAINING to "True" by default, to allow easier submission of jobs on the cluster.
+#
+DO_TRAINING="False"
 
 for arg in "$@"; do
     case $arg in
@@ -237,12 +239,12 @@ STEPS_TO_RUN_IN_OUTER_LOOP=(
 
 STEPS_TO_RUN_FOR_EVALUATION=(
     # "train"
-    "dev"
-    "test"
+    # "dev"
+    # "test"
 )
 
 STEPS_TO_RUN_FOR_METRIC_DST=(
-    # "train"
+    "train"
     "dev"
     "test"
 )
