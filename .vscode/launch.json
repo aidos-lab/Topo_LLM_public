@@ -322,7 +322,7 @@
             }
         },
         {
-            "name": "Run pipeline - HHU Hilbert HPC submission - TwoNN - RoBERTa, BERT, ContextBERT-ERToD, SetSUMBT, Trippy, Trippy-R checkpoints; last layer only - Run pipeline.",
+            "name": "Run pipeline - HHU Hilbert HPC submission - TwoNN - Fixed subsampling seed - RoBERTa, BERT, ContextBERT-ERToD, SetSUMBT, Trippy, Trippy-R checkpoints; last layer only - Run pipeline.",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
@@ -366,20 +366,21 @@
                 // "data=trippy_dataloaders_processed",
                 //
                 // >>>> Trippy-R datasets
+                // >> Note: The splits for Trippy-R are called: train,dev,test
                 "data=trippy_r_dataloaders_processed",
                 //
                 // "data.data_subsampling.split=train",
-                "data.data_subsampling.split=dev",
+                // "data.data_subsampling.split=dev",
                 // "data.data_subsampling.split=validation",
                 // "data.data_subsampling.split=test",
                 // "data.data_subsampling.split=train,test",
-                // "data.data_subsampling.split=train,dev,test",
+                "data.data_subsampling.split=train,dev,test",
                 // "data.data_subsampling.split=train,validation,test",
                 //
                 "data.data_subsampling.sampling_mode=random",
-                // "data.data_subsampling.number_of_samples=7000",
+                "data.data_subsampling.number_of_samples=7000",
                 // "data.data_subsampling.number_of_samples=10000",
-                "data.data_subsampling.number_of_samples=7000,10000",
+                // "data.data_subsampling.number_of_samples=7000,10000",
                 // 
                 "data.data_subsampling.sampling_seed=778",
                 // "data.data_subsampling.sampling_seed=778,779,780",
@@ -420,12 +421,16 @@
                 //
                 // >>>> Trippy-R models
                 "language_model=roberta-base-trippy_r_multiwoz21",
+                //
                 // "language_model.seed=42",
                 // "language_model.seed=43",
                 // "language_model.seed=43,44",
-                "language_model.seed=42,43,44",
+                // "language_model.seed=42,43,44",
+                "language_model.seed=1111,40,41",
+                //
                 // "language_model.checkpoint_no=1775,3550",
                 // "language_model.checkpoint_no=5325,7100,8875,10650,12425,14200,15975,17750,19525,21300,23075,24850,26625,28400,30175,31950,33725,35500",
+                // >> Note: The following line contains all the checkpoints available for a full Trippy-R training run:
                 "language_model.checkpoint_no=1775,3550,5325,7100,8875,10650,12425,14200,15975,17750,19525,21300,23075,24850,26625,28400,30175,31950,33725,35500",
                 //
                 //    >> END: Model options.
@@ -497,7 +502,7 @@
                 // "data=trippy_dataloaders_processed",
                 //
                 // >>>> Trippy-R datasets.
-                // Note: The splits for Trippy-R are called: train,dev,test
+                // >> Note: The splits for Trippy-R are called: train,dev,test
                 "data=trippy_r_dataloaders_processed",
                 //
                 // "data.data_subsampling.split=train",
@@ -549,7 +554,7 @@
                 // "language_model.checkpoint_no=1775",
                 // "language_model.checkpoint_no=1775,3550",
                 // "language_model.checkpoint_no=5325,7100,8875,10650,12425,14200,15975,17750,19525,21300,23075,24850,26625,28400,30175,31950,33725,35500",
-                // > The following line contains all the checkpoints available for a full Trippy-R training run:
+                // >> Note: The following line contains all the checkpoints available for a full Trippy-R training run:
                 "language_model.checkpoint_no=1775,3550,5325,7100,8875,10650,12425,14200,15975,17750,19525,21300,23075,24850,26625,28400,30175,31950,33725,35500",
                 //
                 //    >> END: Model options.
