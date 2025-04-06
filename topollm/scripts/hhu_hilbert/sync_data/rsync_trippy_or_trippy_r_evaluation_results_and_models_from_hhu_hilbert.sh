@@ -76,7 +76,14 @@ SYNC_SRC=(
 )
 
 # Extend the SYNC_SRC array with additional files for each seed
-SEEDS=(1111 40 41 42 43 44)
+SEEDS=(
+    1111
+    40
+    41
+    42
+    43
+    44
+)
 
 for SEED in "${SEEDS[@]}"; do
     SYNC_SRC+=(
@@ -129,11 +136,27 @@ fi
 
 echo ">>> Starting rsync operations ..."
 
+# Optional: Add a delay between operations to avoid overwhelming the server
+DELAY_BETWEEN_OPERATIONS=1
+DELAY_IF_ERROR=3
+
+# Initialize the single operation return code to 0
+rc=0
 overall_exit=0
 
 for i in "${!SYNC_SRC[@]}"; do
     SRC="${SYNC_SRC[i]}"
     DEST="${SYNC_DEST[i]}"
+
+    # Optional: Add a delay between operations
+    echo "💡 Adding a delay of ${DELAY_BETWEEN_OPERATIONS} seconds before the next operation ..."
+    sleep $DELAY_BETWEEN_OPERATIONS
+
+    # If the last operation failed, add a longer delay
+    if [[ $rc -ne 0 ]]; then
+        echo "💡 Last operation failed. Adding a longer delay of ${DELAY_IF_ERROR} seconds ..."
+        sleep $DELAY_IF_ERROR
+    fi
 
     echo "===================================================="
     echo "🔄 Syncing: '${SRC}' -> '${DEST}'"
