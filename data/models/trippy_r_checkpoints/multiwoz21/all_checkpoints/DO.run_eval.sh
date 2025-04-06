@@ -209,7 +209,7 @@ DATASET_CONFIG="${TOOLS_DIR}/dataset_config/unified_multiwoz21.json"
 
 # Select seed via PBS_ARRAY_INDEX
 SEEDS_SELECTION=(
-    1111 # The first element is the default seed with which the script is run
+    1111 # The zeroth element is the default seed with which the script is run
     40
     41
     42
@@ -239,12 +239,12 @@ STEPS_TO_RUN_IN_OUTER_LOOP=(
 
 STEPS_TO_RUN_FOR_EVALUATION=(
     # "train"
-    # "dev"
-    # "test"
+    "dev"
+    "test"
 )
 
 STEPS_TO_RUN_FOR_METRIC_DST=(
-    "train"
+    # "train"
     "dev"
     "test"
 )

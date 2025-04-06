@@ -632,7 +632,7 @@ def predict_and_format(
         else:
             text = re.sub(" ##", "", text)
         text = text.strip()
-        return " ".join([tok for tok in map(str.strip, re.split("(\W+)", text)) if len(tok) > 0])
+        return " ".join([tok for tok in map(str.strip, re.split(r"(\W+)", text)) if len(tok) > 0])
 
     per_slot_class_logits = outputs[8]
     per_slot_start_logits = outputs[9]

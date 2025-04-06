@@ -33,7 +33,6 @@ from dst_tag import tag_values
 from dst_train import evaluate, train
 from modeling_dst import TransformerForDST
 from transformers import (
-    WEIGHTS_NAME,
     BertConfig,
     BertTokenizer,
     ElectraConfig,
@@ -42,6 +41,13 @@ from transformers import (
     RobertaTokenizer,
 )
 from utils_run import load_and_cache_examples, print_header, set_seed
+
+# Note:
+# - We are removing the import of WEIGHTS_NAME from transformers and are setting it manually here.
+# - "pytorch_model.bin" was used in older versions of transformers.
+# > WEIGHTS_NAME = "pytorch_model.bin"
+# Note: "model.safetensors" is used in our current setup.
+WEIGHTS_NAME = "model.safetensors"
 
 logger = logging.getLogger(__name__)
 
@@ -551,15 +557,28 @@ def main():
     # Evaluation - we can ask to evaluate all the checkpoints (sub-directories) in a directory
     results = []
     if args.do_eval and args.local_rank in [-1, 0]:
-        dataset = load_and_cache_examples(args, model, tokenizer, processor, dset=args.predict_type, evaluate=True)
+        dataset = load_and_cache_examples(
+            args,
+            model,
+            tokenizer,
+            processor,
+            dset=args.predict_type,
+            evaluate=True,
+        )
         dataset.compute_vectors()
 
         output_eval_file = os.path.join(args.output_dir, "eval_res%s.%s.json" % (args.cache_suffix, args.predict_type))
         checkpoints = [args.output_dir]
         if args.eval_all_checkpoints:
-            checkpoints = list(
-                os.path.dirname(c) for c in sorted(glob.glob(args.output_dir + "/**/" + WEIGHTS_NAME, recursive=True))
+            model_file_pattern_to_look_for = args.output_dir + "/**/" + WEIGHTS_NAME
+
+            logger.info(
+                msg=f"Selected to run evaluation on all checkpoints. "
+                f"Looking for pattern {model_file_pattern_to_look_for = }",
             )
+            checkpoints = [
+                os.path.dirname(c) for c in sorted(glob.glob(model_file_pattern_to_look_for, recursive=True))
+            ]
             logging.getLogger("pytorch_transformers.modeling_utils").setLevel(logging.WARN)  # Reduce model loading logs
 
         logger.info("Evaluate the following checkpoints: %s", checkpoints)
