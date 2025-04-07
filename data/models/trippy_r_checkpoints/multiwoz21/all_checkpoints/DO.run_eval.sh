@@ -238,15 +238,15 @@ STEPS_TO_RUN_IN_OUTER_LOOP=(
 )
 
 STEPS_TO_RUN_FOR_EVALUATION=(
-    # "train"
-    "dev"
-    "test"
+    "train"
+    # "dev"
+    # "test"
 )
 
 STEPS_TO_RUN_FOR_METRIC_DST=(
-    # "train"
-    "dev"
-    "test"
+    "train"
+    # "dev"
+    # "test"
 )
 
 # END: Parameters

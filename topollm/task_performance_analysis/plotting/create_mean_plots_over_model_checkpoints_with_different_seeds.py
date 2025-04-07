@@ -420,7 +420,7 @@ def load_scores(
             combined_scores_df = None
             combined_scores_columns_to_plot_list = None
 
-            for seed in range(42, 45):
+            for seed in range(40, 45):
                 results_folder_for_given_seed_path: pathlib.Path = pathlib.Path(
                     embeddings_path_manager.data_dir,
                     f"models/trippy_r_checkpoints/multiwoz21/all_checkpoints/results.{seed}",
