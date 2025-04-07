@@ -146,7 +146,11 @@ def create_mean_plots_over_model_checkpoints_with_different_seeds(
     if fixed_keys is None:
         fixed_keys = [
             "data_full",
-            "data_subsampling_full",
+            # "data_subsampling_full", # TODO: Iterate over both options
+            # > Example: 'split=test_samples=7000_sampling=random_sampling-seed=41'
+            "data_subsampling_split",  # TODO: Iterate over both options
+            # > Example: 'test'
+            # - If you want plots that combine estimates for different data subsamplings, you need to remove "data_subsampling_full" from the fixed_keys list and add only the split.
             "data_dataset_seed",
             "model_layer",  # model_layer needs to be an integer
             "model_partial_name",
@@ -416,7 +420,7 @@ def load_scores(
             combined_scores_df = None
             combined_scores_columns_to_plot_list = None
 
-            for seed in range(42, 45):
+            for seed in range(40, 45):
                 results_folder_for_given_seed_path: pathlib.Path = pathlib.Path(
                     embeddings_path_manager.data_dir,
                     f"models/trippy_r_checkpoints/multiwoz21/all_checkpoints/results.{seed}",
@@ -564,18 +568,34 @@ def plot_local_estimates_with_individual_seeds_and_aggregated_over_seeds(
     # # # #
     # Pre-process the scores data
 
-    if "data_subsampling_full" not in filter_key_value_pairs:
+    if "data_subsampling_split" in filter_key_value_pairs:
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                "Getting data_subsampling_split directly from filter_key_value_pairs.",
+            )
+        data_subsampling_split: str = filter_key_value_pairs["data_subsampling_split"]
+    elif "data_subsampling_full" in filter_key_value_pairs:
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                "Deriving data_subsampling_split from data_subsampling_full.",
+            )
+        data_subsampling_split: str = get_data_subsampling_split_from_data_subsampling_full(
+            data_subsampling_full=filter_key_value_pairs["data_subsampling_full"],
+        )
+    else:
         logger.warning(
-            msg="No data_subsampling_full key found in filter_key_value_pairs.",
+            msg="No 'data_subsampling_split' key found in filter_key_value_pairs "
+            "and cannot be derived from 'data_subsampling_full'.",
         )
         logger.info(
             msg="Skipping this plot call and returning from function now.",
         )
         return
 
-    data_subsampling_split: str = get_data_subsampling_split_from_data_subsampling_full(
-        data_subsampling_full=filter_key_value_pairs["data_subsampling_full"],
-    )
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Filtering scores_df based on {data_subsampling_split = } ...",  # noqa: G004 - low overhead
+        )
 
     if scores_data.df is not None:
         if "data_subsampling_split" not in scores_data.df.columns:
@@ -601,6 +621,11 @@ def plot_local_estimates_with_individual_seeds_and_aggregated_over_seeds(
                 logger.info(
                     msg=f"Shape after filtering: {scores_data.df.shape = }",  # noqa: G004 - low overhead
                 )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Filtering scores_df based on {data_subsampling_split = } DONE",  # noqa: G004 - low overhead
+        )
 
     # # # #
     # Create the containers for the plot data and plot configuration

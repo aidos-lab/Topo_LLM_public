@@ -9,15 +9,38 @@ SCRIPT_PATH="${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/m
 
 echo ">>> Submitting job array ..."
 
-# > Submit job array via PBS with 4 jobs.
+# Note: Currently, the PBS_ARRAY_INDEX is mapped to a seed in the following way:
+#
+# # Select seed via PBS_ARRAY_INDEX
+# SEEDS_SELECTION=(
+#     1111 # The first element is the default seed with which the script is run
+#     40
+#     41
+#     42
+#     43
+#     44
+# )
+# SEED=${SEEDS_SELECTION[$((PBS_ARRAY_INDEX))]}
+#
+# E.g., submitting an array with the `-J 1-2` option will select the seeds 40 and 41.
+
+# > Submit job array via PBS with multiple jobs.
 # > Note that the SEED in the train.sh script is selected via the PBS_ARRAY_INDEX.
 #
 qsub -J 0-2 $SCRIPT_PATH
 
 # > Submit with a single job.
-# > Note that you cannot use the `-J` option with a single job. 
+# > Note that you cannot use the `-J` option with a single job.
 #
 # qsub $SCRIPT_PATH
+
+# > Submit with a single job and specified PBS_ARRAY_INDEX.
+# > Notes:
+# > - The `-v` flag is used to pass environment variables to the job.
+# > - We need to set the environment variable `PBS_ARRAY_INDEX` to the desired value first.
+#
+# export PBS_ARRAY_INDEX=3
+# qsub -v PBS_ARRAY_INDEX $SCRIPT_PATH
 
 echo ">>> Job array submitted."
 
