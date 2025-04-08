@@ -35,7 +35,6 @@ import hydra.core.hydra_config
 import omegaconf
 
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
-from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.pipeline_scripts.worker_for_pipeline import worker_for_pipeline
@@ -43,12 +42,6 @@ from topollm.pipeline_scripts.worker_for_pipeline import worker_for_pipeline
 if TYPE_CHECKING:
     from topollm.config_classes.main_config import MainConfig
 
-try:
-    from hydra_plugins import hpc_submission_launcher
-
-    hpc_submission_launcher.register_plugin()
-except ImportError:
-    pass
 
 # Logger for this file
 global_logger: logging.Logger = logging.getLogger(
