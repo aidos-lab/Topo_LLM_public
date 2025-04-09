@@ -64,10 +64,12 @@ def train(
             msg=f"Using PBS_ARRAY_INDEX={pbs_array_index} to make logdir unique",  # noqa: G004 - low overhead
         )
 
+        comment: str = f"_pbs_array_index={str(object=pbs_array_index)}"
+
+        # Note:
+        # - Make sure that `comment` is a string, and not None, otherwise this might lead to errors in the string concatenation
         tb_writer = SummaryWriter(
-            comment=str(
-                pbs_array_index,
-            ),  # Note: If pbs_array_index is None, this will lead to a problem in the string concatenation, thus we pass it as a string.
+            comment=comment,
         )
 
     model.eval()  # No dropout
@@ -208,7 +210,12 @@ def train(
                 loss = loss / args.gradient_accumulation_steps
 
             epoch_iterator.set_postfix(
-                {"loss": loss.item(), "cl": cl_loss.item(), "tk": tk_loss.item(), "tp": tp_loss.item()}
+                {
+                    "loss": loss.item(),
+                    "cl": cl_loss.item(),
+                    "tk": tk_loss.item(),
+                    "tp": tp_loss.item(),
+                },
             )
 
             tr_loss += loss.item()
@@ -224,8 +231,16 @@ def train(
 
                 # Log metrics
                 if args.local_rank in [-1, 0] and args.logging_steps > 0 and global_step % args.logging_steps == 0:
-                    tb_writer.add_scalar("lr", scheduler.get_last_lr()[0], global_step)
-                    tb_writer.add_scalar("loss", (tr_loss - logging_loss) / args.logging_steps, global_step)
+                    tb_writer.add_scalar(
+                        "lr",
+                        scheduler.get_last_lr()[0],
+                        global_step,
+                    )
+                    tb_writer.add_scalar(
+                        "loss",
+                        (tr_loss - logging_loss) / args.logging_steps,
+                        global_step,
+                    )
                     logging_loss = tr_loss
 
                 # Save model checkpoint
