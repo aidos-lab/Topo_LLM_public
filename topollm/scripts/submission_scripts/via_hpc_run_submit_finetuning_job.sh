@@ -2,7 +2,11 @@
 
 # https://hydra.cc/docs/tutorials/basic/running_your_app/multi-run/
 
+<<<<<<< HEAD
 echo ">>> TOPO_LLM_REPOSITORY_BASE_PATH=${TOPO_LLM_REPOSITORY_BASE_PATH}"
+=======
+echo "TOPO_LLM_REPOSITORY_BASE_PATH=${TOPO_LLM_REPOSITORY_BASE_PATH}"
+>>>>>>> dec81652c (PH)
 
 PYTHON_SCRIPT_NAME="run_finetune_language_model_on_huggingface_dataset.py"
 RELATIVE_PYTHON_SCRIPT_PATH="topollm/model_finetuning/${PYTHON_SCRIPT_NAME}"
@@ -21,8 +25,13 @@ EVAL_STEPS="100"
 
 FINETUNING_DATASETS_LIST="train_and_eval_on_wikitext_train-samples-small"
 
+<<<<<<< HEAD
 # LR_SCHEDULER_TYPE="linear"
 LR_SCHEDULER_TYPE="constant"
+=======
+LR_SCHEDULER_TYPE="linear"
+# LR_SCHEDULER_TYPE="constant"
+>>>>>>> dec81652c (PH)
 
 # PEFT_LIST="lora"
 PEFT_LIST="standard"
@@ -68,6 +77,7 @@ hpc run \
     finetuning.batch_sizes.train="${BATCH_SIZE_TRAIN}" \
     finetuning.batch_sizes.eval="${BATCH_SIZE_EVAL}" \
     finetuning/finetuning_datasets="${FINETUNING_DATASETS_LIST}" \
+<<<<<<< HEAD
     finetuning/peft="${PEFT_LIST}" \
     finetuning/gradient_modifier="${GRADIENT_MODIFIER_LIST}" \
     finetuning.seed="42" \
@@ -76,6 +86,14 @@ hpc run \
 #    finetuning.finetuning_datasets.train_dataset.data_subsampling.number_of_samples=3000 \
 #    finetuning.finetuning_datasets.eval_dataset.data_subsampling.number_of_samples=200 \
 
+=======
+    finetuning.finetuning_datasets.train_dataset.data_subsampling.number_of_samples=3000 \
+    finetuning.finetuning_datasets.eval_dataset.data_subsampling.number_of_samples=200 \
+    finetuning/peft="${PEFT_LIST}" \
+    finetuning/gradient_modifier="${GRADIENT_MODIFIER_LIST}" \
+    $ADDITIONAL_OVERRIDES"
+
+>>>>>>> dec81652c (PH)
 # Optional settings (for wandb):
 #    +finetuning.trainer_modifier.mode=ADD_WANDB_PREDICTION_PROGRESS_CALLBACK \
 #    +finetuning.trainer_modifier.frequency=100 \

@@ -201,7 +201,11 @@ def main(
         log_selected_dataset_elements_info(
             dataset=dataset_mapped,
             dataset_name="dataset_mapped",
+<<<<<<< HEAD
             seed=main_config.global_seed,
+=======
+            seed=main_config.seed,
+>>>>>>> dec81652c (PH)
             logger=logger,
         )
 

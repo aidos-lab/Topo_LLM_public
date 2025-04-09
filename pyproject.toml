@@ -13,7 +13,7 @@ dependencies = [
     "datasets",
     "hydra-core",
     "gitpython",
-    "gudhi<=3.10",            # `gudhi` (v3.11.0) is not available on the HHU Hilbert HPC cluster
+    "gudhi<=3.10",
     "pandas",
     "pydantic",
     "scikit-learn",
@@ -66,12 +66,26 @@ sync_gc_data = "topollm.scripts.google_cloud.gsutil_rsync_directory_to_and_from_
 all_perplexity_analysis_steps = "topollm.model_inference.perplexity.saved_perplexity_processing.run_all_perplexity_analysis_steps.py:main"
 compare_sampling_methods = "topollm.analysis.compare_sampling_methods.run_general_comparisons:main"
 
+[tool.ruff]
+# extend = "$HOME/.config/ruff.toml"
+target-version = "py312"
+# Set the maximum line length.
+line-length = 120
+
+select = ["ALL"]
+# Add the `line-too-long` rule to the enforced rule set. By default, Ruff omits rules that
+# overlap with the use of a formatter, like Black, but we can override this behavior by
+# explicitly adding the rule.
+# extend-select = ["E501"]
+ignore = ["RET504", "D102"]
 
 [dependency-groups]
 dev = ["hypothesis", "pytest", "pytest-cov", "ipykernel"]
 cpu = []
 gpu = ["gpustat"]
 
+[tool.ruff.lint.pylint]
+max-args = 7
 
 [tool.uv]
 default-groups = ["dev", "cpu", "gpu"]
@@ -90,22 +104,6 @@ default-groups = ["dev", "cpu", "gpu"]
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
-
-[tool.ruff]
-# extend = "$HOME/.config/ruff.toml"
-target-version = "py312"
-# Set the maximum line length.
-line-length = 120
-
-select = ["ALL"]
-# Add the `line-too-long` rule to the enforced rule set. By default, Ruff omits rules that
-# overlap with the use of a formatter, like Black, but we can override this behavior by
-# explicitly adding the rule.
-# extend-select = ["E501"]
-ignore = ["RET504", "D102"]
-
-[tool.ruff.lint.pylint]
-max-args = 7
 
 [tool.ruff.format]
 quote-style = "double"

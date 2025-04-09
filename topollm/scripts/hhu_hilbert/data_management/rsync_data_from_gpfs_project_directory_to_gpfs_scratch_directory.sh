@@ -28,9 +28,14 @@ GPFS_SCRATCH_PREFIX="/gpfs/scratch"
 # Note: Remember to add trailing slashes '/' to the directories.
 RELATIVE_DIRS_TO_PROCESS_LIST=(
     # "ruppik/git-source/Topo_LLM/data/analysis/twonn.backup.2025-01-08/"
+<<<<<<< HEAD
     # "ruppik/git-source/Topo_LLM/data/embeddings/arrays/"
     # "ruppik/git-source/Topo_LLM/data/embeddings/metadata/"
     "ruppik/git-source/Topo_LLM/data/models/"
+=======
+    "ruppik/git-source/Topo_LLM/data/embeddings/arrays/"
+    "ruppik/git-source/Topo_LLM/data/embeddings/metadata/"
+>>>>>>> dec81652c (PH)
 )
 
 for RELATIVE_DIR_TO_PROCESS in "${RELATIVE_DIRS_TO_PROCESS_LIST[@]}"; do

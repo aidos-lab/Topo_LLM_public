@@ -18,7 +18,10 @@
     "peacock.color": "#0b2016",
     "peacock.remoteColor": "#0c274c",
     "cSpell.enabled": false,
+<<<<<<< HEAD
     // Copilot settings
     "chat.agent.enabled": true,
     "github.copilot.nextEditSuggestions.enabled": true,
+=======
+>>>>>>> dec81652c (PH)
 }
