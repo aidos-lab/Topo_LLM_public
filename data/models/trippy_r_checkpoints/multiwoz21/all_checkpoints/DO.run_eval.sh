@@ -38,12 +38,16 @@ echo ">>> [INFO] Parsing arguments ..."
 #
 DO_TRAINING="True"
 
-NUM_TRAIN_EPOCHS=20
+# NUM_TRAIN_EPOCHS=20
+NUM_TRAIN_EPOCHS=50
 
 # Set the warmup proportion based on the number of training epochs:
 # We want the warmup to occur for the first epoch, so we set it to 1 / NUM_TRAIN_EPOCHS.
 # Round this to 3 decimal places.
 WARMUP_PROPORTION=$(awk "BEGIN {printf \"%.3f\", 1 / ${NUM_TRAIN_EPOCHS}}")
+
+# LR_SCHEDULER_TYPE="linear_schedule_with_warmup"
+LR_SCHEDULER_TYPE="constant_schedule_with_warmup"
 
 # Notes:
 # - Uncomment the steps you want to run for each individual part of the pipeline.
@@ -95,7 +99,8 @@ done
 
 CURRENT_SETUP_DESCRIPTION_DIR="model_output/"
 CURRENT_SETUP_DESCRIPTION_DIR+="num_train_epochs=${NUM_TRAIN_EPOCHS}/"
-CURRENT_SETUP_DESCRIPTION_DIR+="warmup_proportion=${WARMUP_PROPORTION}"
+CURRENT_SETUP_DESCRIPTION_DIR+="warmup_proportion=${WARMUP_PROPORTION}/"
+CURRENT_SETUP_DESCRIPTION_DIR+="lr_scheduler_type=${LR_SCHEDULER_TYPE}"
 
 echo ">>> [INFO] DO_TRAINING=${DO_TRAINING}"
 echo ">>> [INFO] CURRENT_SETUP_DESCRIPTION_DIR=${CURRENT_SETUP_DESCRIPTION_DIR}"
@@ -356,6 +361,7 @@ run_dst_phase() {
         --patience=-1 \
         --eval_all_checkpoints \
         --warmup_proportion="${WARMUP_PROPORTION}" \
+        --lr_scheduler_type="${LR_SCHEDULER_TYPE}" \
         --adam_epsilon=1e-6 \
         --weight_decay=0.01 \
         --fp16 \

@@ -27,15 +27,18 @@ import re
 
 import numpy as np
 import torch
+from dst_enums import LrSchedulerType
 from tensorboardX import SummaryWriter
 from torch.optim import AdamW
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from torch.utils.data.distributed import DistributedSampler
 from tqdm import tqdm, trange
-from transformers import get_linear_schedule_with_warmup
+from transformers import get_constant_schedule_with_warmup, get_linear_schedule_with_warmup
 from utils_run import dilate_and_erode, from_device, load_and_cache_examples, save_checkpoint, set_seed, to_device
 
-logger = logging.getLogger(__name__)
+logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 def train(
@@ -47,7 +50,7 @@ def train(
     tokenizer,
     processor,
 ):
-    """Train the model"""
+    """Train the model."""
     if args.local_rank in [-1, 0]:
         # Note:
         # `comment` is added to the logdir to make it unique and avoid a problem with PBS job arrays
@@ -97,13 +100,38 @@ def train(
         },
         {"params": [p for n, p in model.named_parameters() if any(nd in n for nd in no_decay)], "weight_decay": 0.0},
     ]
-    optimizer = AdamW(optimizer_grouped_parameters, lr=args.learning_rate, eps=args.adam_epsilon)
-
-    # TODO: Implement choice between linear schedule with warmup and `get_constant_schedule_with_warmup`
-
-    scheduler = get_linear_schedule_with_warmup(
-        optimizer, num_warmup_steps=num_warmup_steps, num_training_steps=t_total
+    optimizer = AdamW(
+        optimizer_grouped_parameters,
+        lr=args.learning_rate,
+        eps=args.adam_epsilon,
     )
+
+    match args.lr_scheduler_type:
+        case LrSchedulerType.LINEAR_SCHEDULE_WITH_WARMUP:
+            logger.info(
+                msg="Using linear schedule with warmup.",
+            )
+            scheduler = get_linear_schedule_with_warmup(
+                optimizer=optimizer,
+                num_warmup_steps=num_warmup_steps,
+                num_training_steps=t_total,
+            )
+        case LrSchedulerType.CONSTANT_SCHEDULE_WITH_WARMUP:
+            logger.info(
+                msg="Using constant schedule with warmup.",
+            )
+            scheduler = get_constant_schedule_with_warmup(
+                optimizer=optimizer,
+                num_warmup_steps=num_warmup_steps,
+            )
+        case _:
+            msg: str = f"Unknown learning rate scheduler type: {args.lr_scheduler_type = }."
+            raise ValueError(msg)
+
+    logger.info(
+        msg=f"Using {args.lr_scheduler_type} as learning rate scheduler:\n{scheduler = }",  # noqa: G004 - low overhead
+    )
+
     scaler = torch.cuda.amp.GradScaler()
     if "cuda" in args.device.type:
         autocast = torch.cuda.amp.autocast(enabled=args.fp16)
@@ -262,7 +290,16 @@ def train(
     return global_step, tr_loss / global_step
 
 
-def evaluate(args, dataset, model, tokenizer, processor, no_print=False, no_output=False, prefix=""):
+def evaluate(
+    args,
+    dataset,
+    model,
+    tokenizer,
+    processor,
+    no_print=False,
+    no_output=False,
+    prefix="",
+):
     if not os.path.exists(args.output_dir) and args.local_rank in [-1, 0]:
         os.makedirs(args.output_dir)
 
