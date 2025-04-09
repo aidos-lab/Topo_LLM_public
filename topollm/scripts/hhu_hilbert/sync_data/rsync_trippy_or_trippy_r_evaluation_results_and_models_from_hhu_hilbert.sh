@@ -6,11 +6,15 @@
 DRY_RUN_FLAG=""
 REMOTE_HOST="HilbertStorage"
 
-# Define RSYNC_EXCLUDES_COMMANDS as an array
+# Define RSYNC_EXCLUDES_COMMANDS as an array.
+# Notes:
+# - We need to include the specific '*training_args.bin' files first (with the prefix path),
+#   the subsequent exclude rules will not affect them.
 RSYNC_EXCLUDES_COMMANDS=(
+    --include='*/'
+    --include='*training_args.bin'
     --exclude='*.bin'
     --exclude='*.safetensors'
-    --include='training_args.bin'
 )
 
 # END: Default values
@@ -79,10 +83,12 @@ done
 
 SYNC_SRC=(
     "${REMOTE_HOST}:${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/model_output/"
+    "${REMOTE_HOST}:${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/runs/"
 )
 
 SYNC_DEST=(
     "${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/model_output/"
+    "${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/runs/"
 )
 
 # SYNC_SRC=(
