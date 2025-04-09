@@ -172,6 +172,8 @@ for i in "${!SYNC_SRC[@]}"; do
         ${DRY_RUN_FLAG} \
         "$SRC" \
         "$DEST"
+
+    # Check the return code of the rsync command
     rc=$?
 
     if [[ $rc -ne 0 ]]; then

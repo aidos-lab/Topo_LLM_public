@@ -1,4 +1,4 @@
-#PBS -l select=1:ncpus=2:mem=64gb:ngpus=1:accelerator_model=rtx6000
+#PBS -l select=1:ncpus=2:mem=64gb:ngpus=1:accelerator_model=rtx8000
 #PBS -l walltime=59:59:00
 #PBS -A "DialSys"
 #PBS -q "CUDA"
@@ -11,8 +11,11 @@
 # Notes:
 # - PBS cannot submit non-rerunable Array Jobs, thus we need to set the rerunable flag to "-r y" in the PBS header.
 #
-# - For training, use the following configuration:
-# 	- #PBS -l select=1:ncpus=1:mem=32gb:ngpus=1:accelerator_model=a100
+# - For training, we need a GPU with enough memory,
+#   since 12GB does not appear to be enough for the training.
+#   The following configurations have been tested and should work:
+#   - #PBS -l select=1:ncpus=2:mem=64gb:ngpus=1:accelerator_model=rtx6000
+#   - #PBS -l select=1:ncpus=2:mem=64gb:ngpus=1:accelerator_model=a100
 
 contains() {
     local seeking="$1"
@@ -46,8 +49,8 @@ NUM_TRAIN_EPOCHS=50
 # Round this to 3 decimal places.
 WARMUP_PROPORTION=$(awk "BEGIN {printf \"%.3f\", 1 / ${NUM_TRAIN_EPOCHS}}")
 
-# LR_SCHEDULER_TYPE="linear_schedule_with_warmup"
-LR_SCHEDULER_TYPE="constant_schedule_with_warmup"
+LR_SCHEDULER_TYPE="linear_schedule_with_warmup"
+# LR_SCHEDULER_TYPE="constant_schedule_with_warmup"
 
 # Notes:
 # - Uncomment the steps you want to run for each individual part of the pipeline.
