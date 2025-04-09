@@ -4,14 +4,15 @@ import numpy as np
 from gtda.homology import VietorisRipsPersistence
 from gtda.plotting import plot_diagram
 import matplotlib.pyplot as plt
+from sklearn.neighbors import NearestNeighbors  # Added for nearest neighbor computation
 
 # Create directories to save plots
 save_dir = "persistence_plots"
 
 # Determine subdirectory based on model_name
 #model_name = "model=roberta-base_task=masked_lm_dr=defaults"
-model_name = "model=roberta-base-trippy_r_multiwoz21_seed-42_ckpt-1775_task=masked_lm_dr=defaults"
-#model_name = "model=roberta-base-trippy_r_multiwoz21_seed-42_ckpt-35500_task=masked_lm_dr=defaults"
+#model_name = "model=roberta-base-trippy_r_multiwoz21_seed-42_ckpt-1775_task=masked_lm_dr=defaults"
+model_name = "model=roberta-base-trippy_r_multiwoz21_seed-42_ckpt-35500_task=masked_lm_dr=defaults"
 
 if "ckpt" in model_name:
     # Look for the pattern "ckpt-" followed by one or more digits.
@@ -31,16 +32,17 @@ if not os.path.exists(base_dir):
     os.makedirs(base_dir)
 
 # === Load your data ===
-#path = "./data=trippy_r_dataloaders_processed_multiwoz21_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/split=train_samples=7000_sampling=random_sampling-seed=778/edh-mode=regular_lvl=token/add-prefix-space=False_max-len=512/"+model_name+"/layer=-1_agg=mean/norm=None/sampling=random_seed=42_samples=150000/desc=twonn_samples=60000_zerovec=keep_dedup=array_deduplicator_noise=do_nothing/array_for_estimator.npy"
-path = "./data=setsumbt_dataloaders_processed_0_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/split=train_samples=512_sampling=take_first/edh-mode=regular_lvl=token/add-prefix-space=False_max-len=512/"+model_name+"/layer=-1_agg=mean/norm=None/sampling=random_seed=42_samples=3000/desc=twonn_samples=500_zerovec=keep_dedup=array_deduplicator_noise=do_nothing/array_for_estimator.npy"
+path = "./data=trippy_r_dataloaders_processed_multiwoz21_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/split=train_samples=7000_sampling=random_sampling-seed=778/edh-mode=regular_lvl=token/add-prefix-space=False_max-len=512/"+model_name+"/layer=-1_agg=mean/norm=None/sampling=random_seed=42_samples=150000/desc=twonn_samples=60000_zerovec=keep_dedup=array_deduplicator_noise=do_nothing/array_for_estimator.npy"
+#path = "./data=setsumbt_dataloaders_processed_0_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/split=train_samples=512_sampling=take_first/edh-mode=regular_lvl=token/add-prefix-space=False_max-len=512/" + model_name + "/layer=-1_agg=mean/norm=None/sampling=random_seed=42_samples=3000/desc=twonn_samples=500_zerovec=keep_dedup=array_deduplicator_noise=do_nothing/array_for_estimator.npy"
 
 X = np.load(path)
-sample_size = 500
+sample_size = 1000
 X = X[np.random.choice(len(X), size=sample_size, replace=False)]
 
 # === Compute persistent homology up to dimension 3 ===
 VR = VietorisRipsPersistence(homology_dimensions=[0, 1, 2], n_jobs=-1)
 diagrams = VR.fit_transform([X])  # Input must be 3D: (n_samples, n_features) → shape (1, n_samples, n_features)
+
 
 def plot_persistence_diagrams(diagrams):
     """Plot persistence diagrams for each present homology dimension (starting axes at 0) and save the figure."""
@@ -76,7 +78,8 @@ def plot_persistence_diagrams(diagrams):
     # Save the figure with sample_size included in the name, inside the designated subdirectory.
     filename = os.path.join(base_dir, f"persistence_diagrams_sample_size{sample_size}.png")
     plt.savefig(filename, dpi=300)
-    #plt.show()
+    # plt.show()
+
 
 def plot_persistence_distributions(diagram):
     """Plot and save histograms of birth times, death times, and lifetimes for each homology dimension."""
@@ -109,7 +112,31 @@ def plot_persistence_distributions(diagram):
         # Save each distribution plot with sample_size and the dimension in the filename.
         filename = os.path.join(base_dir, f"persistence_distribution_H{dim}_sample_size{sample_size}.png")
         plt.savefig(filename, dpi=300)
-        #plt.show()
+        # plt.show()
+
+
+def plot_nearest_neighbor_distances(X):
+    """Compute and plot the distribution of the nearest neighbor distances in the dataset."""
+    # Fit a nearest neighbor model; here we use 2 neighbors since the closest neighbor is the point itself.
+    nn_model = NearestNeighbors(n_neighbors=2, metric='euclidean')
+    nn_model.fit(X)
+    distances, _ = nn_model.kneighbors(X)
+    # Take the second column, as the first column is the zero distance to itself.
+    nn_distances = distances[:, 1]
+
+    plt.figure(figsize=(8, 6))
+    plt.hist(nn_distances, bins=30, alpha=0.75, edgecolor='black')
+    plt.xlabel("Nearest Neighbor Distance")
+    plt.ylabel("Frequency")
+    plt.title("Histogram of Nearest Neighbor Distances")
+    plt.grid(True)
+
+    # Save the figure with sample_size included in the name.
+    filename = os.path.join(base_dir, f"nearest_neighbor_distance_sample_size{sample_size}.png")
+    plt.savefig(filename, dpi=300)
+    # Optionally, display the plot interactively:
+    # plt.show()
+
 
 print(diagrams[0])
 
@@ -118,3 +145,6 @@ plot_persistence_diagrams(diagrams[0])
 
 # --- Plot and save distributions of birth times, death times, and lifetimes ---
 plot_persistence_distributions(diagrams[0])
+
+# --- Plot and save the nearest neighbor distance distribution ---
+plot_nearest_neighbor_distances(X)
