@@ -3,7 +3,7 @@
 # # # # # # # # # # # # # # # # # # # # # # # # #
 # Default values
 DRY_RUN_FLAG=""
-REMOTE_HOST="Hilbert-Storage"
+REMOTE_HOST="HilbertStorage"
 
 # # # # # # # # # # # # # # # # # # # # # # # # #
 # Function to print usage

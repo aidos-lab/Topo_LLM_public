@@ -3,7 +3,7 @@
 # # # # # # # # # # # # # # # # # # # # # # # # #
 # Default values
 DRY_RUN_FLAG=""
-REMOTE_HOST="Hilbert-Storage"
+REMOTE_HOST="HilbertStorage"
 
 # # # # # # # # # # # # # # # # # # # # # # # # #
 # Function to print usage
@@ -20,13 +20,13 @@ fi
 
 if [[ $# -eq 1 ]]; then
     case "$1" in
-        --dry-run)
-            DRY_RUN_FLAG="--dry-run"
-            ;;
-        *)
-            echo "❌ Error: Invalid option $1"
-            usage
-            ;;
+    --dry-run)
+        DRY_RUN_FLAG="--dry-run"
+        ;;
+    *)
+        echo "❌ Error: Invalid option $1"
+        usage
+        ;;
     esac
 fi
 
@@ -74,8 +74,8 @@ SYNC_DEST=(
 
 # Ensure both arrays have the same number of active entries.
 if [[ ${#SYNC_SRC[@]} -ne ${#SYNC_DEST[@]} ]]; then
-  echo "❌ Error: The number of source paths and destination paths do not match."
-  exit 1
+    echo "❌ Error: The number of source paths and destination paths do not match."
+    exit 1
 fi
 
 echo ">>> Starting rsync operations ..."
