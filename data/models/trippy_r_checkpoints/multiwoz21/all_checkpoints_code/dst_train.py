@@ -62,7 +62,9 @@ def train(
         )
 
         tb_writer = SummaryWriter(
-            comment=pbs_array_index,
+            comment=str(
+                pbs_array_index,
+            ),  # Note: If pbs_array_index is None, this will lead to a problem in the string concatenation, thus we pass it as a string.
         )
 
     model.eval()  # No dropout
@@ -96,6 +98,9 @@ def train(
         {"params": [p for n, p in model.named_parameters() if any(nd in n for nd in no_decay)], "weight_decay": 0.0},
     ]
     optimizer = AdamW(optimizer_grouped_parameters, lr=args.learning_rate, eps=args.adam_epsilon)
+
+    # TODO: Implement choice between linear schedule with warmup and `get_constant_schedule_with_warmup`
+
     scheduler = get_linear_schedule_with_warmup(
         optimizer, num_warmup_steps=num_warmup_steps, num_training_steps=t_total
     )
