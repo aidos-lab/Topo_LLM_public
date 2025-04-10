@@ -6,8 +6,7 @@
 # # # # # # # # # # # # # # # # # # # # # # # # #
 # Default values
 DRY_RUN_FLAG=""
-REMOTE_HOST="Hilbert-Storage"
-
+REMOTE_HOST="HilbertStorage"
 
 # # # # # # # # # # # # # # # # # # # # # # # # #
 # Function to print usage
@@ -24,21 +23,21 @@ fi
 
 if [[ $# -eq 1 ]]; then
     case "$1" in
-        --dry-run)
-            DRY_RUN_FLAG="--dry-run"
-            ;;
-        *)
-            echo "❌ Error: Invalid option $1"
-            usage
-            ;;
+    --dry-run)
+        DRY_RUN_FLAG="--dry-run"
+        ;;
+    *)
+        echo "❌ Error: Invalid option $1"
+        usage
+        ;;
     esac
 fi
 
 # # # # # # # # # # # # # # # # # # # # # # # # #
 # Check if TOPO_LLM_REPOSITORY_BASE_PATH is set
 if [[ -z "${TOPO_LLM_REPOSITORY_BASE_PATH}" ]]; then
-  echo "❌ Error: TOPO_LLM_REPOSITORY_BASE_PATH is not set."
-  exit 1
+    echo "❌ Error: TOPO_LLM_REPOSITORY_BASE_PATH is not set."
+    exit 1
 fi
 
 # Load environment variables
@@ -69,8 +68,8 @@ echo "Sync completed."
 # Capture the exit code of rsync
 RSYNC_EXIT_CODE=$?
 if [[ ${RSYNC_EXIT_CODE} -ne 0 ]]; then
-  echo "❌ Error: rsync failed with exit code ${RSYNC_EXIT_CODE}"
-  exit ${RSYNC_EXIT_CODE}
+    echo "❌ Error: rsync failed with exit code ${RSYNC_EXIT_CODE}"
+    exit ${RSYNC_EXIT_CODE}
 fi
 
 # ======================================================================================== #

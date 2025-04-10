@@ -3,7 +3,7 @@
 # # # # # # # # # # # # # # # # # # # # # # # # #
 # Default values
 DRY_RUN_FLAG=""
-REMOTE_HOST="Hilbert-Storage"
+REMOTE_HOST="HilbertStorage"
 
 # # # # # # # # # # # # # # # # # # # # # # # # #
 # Function to print usage
@@ -20,13 +20,13 @@ fi
 
 if [[ $# -eq 1 ]]; then
     case "$1" in
-        --dry-run)
-            DRY_RUN_FLAG="--dry-run"
-            ;;
-        *)
-            echo "❌ Error: Invalid option $1"
-            usage
-            ;;
+    --dry-run)
+        DRY_RUN_FLAG="--dry-run"
+        ;;
+    *)
+        echo "❌ Error: Invalid option $1"
+        usage
+        ;;
     esac
 fi
 
@@ -34,15 +34,15 @@ fi
 # Check if environment variables are set
 
 if [[ -z "${TOPO_LLM_REPOSITORY_BASE_PATH}" ]]; then
-  echo "❌ Error: TOPO_LLM_REPOSITORY_BASE_PATH is not set."
-  exit 1
+    echo "❌ Error: TOPO_LLM_REPOSITORY_BASE_PATH is not set."
+    exit 1
 fi
 
 source "${TOPO_LLM_REPOSITORY_BASE_PATH}/.env"
 
 if [[ -z "${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}" ]]; then
-  echo "❌ Error: ZIM_TOPO_LLM_REPOSITORY_BASE_PATH is not set."
-  exit 1
+    echo "❌ Error: ZIM_TOPO_LLM_REPOSITORY_BASE_PATH is not set."
+    exit 1
 fi
 
 # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -65,21 +65,23 @@ done
 # - Remember the slash at the end of the source path and the destination path.
 
 SYNC_SRC=(
-    "${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/DO.run_eval.sh"
+    "${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/DO.run_train_and_run_eval.sh"
     "${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/submit_run_eval_multiple_seeds.sh"
+    "${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/start_tensorboard.sh"
     "${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints_code/"
 )
 
 SYNC_DEST=(
-    "${REMOTE_HOST}:${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/DO.run_eval.sh"
+    "${REMOTE_HOST}:${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/DO.run_train_and_run_eval.sh"
     "${REMOTE_HOST}:${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/submit_run_eval_multiple_seeds.sh"
+    "${REMOTE_HOST}:${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/start_tensorboard.sh"
     "${REMOTE_HOST}:${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints_code/"
 )
 
 # Ensure both arrays have the same number of active entries.
 if [[ ${#SYNC_SRC[@]} -ne ${#SYNC_DEST[@]} ]]; then
-  echo "❌ Error: The number of source paths and destination paths do not match."
-  exit 1
+    echo "❌ Error: The number of source paths and destination paths do not match."
+    exit 1
 fi
 
 echo ">>> Starting rsync operations ..."

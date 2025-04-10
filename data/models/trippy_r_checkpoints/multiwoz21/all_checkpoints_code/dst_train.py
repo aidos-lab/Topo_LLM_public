@@ -27,15 +27,18 @@ import re
 
 import numpy as np
 import torch
+from dst_enums import LrSchedulerType
 from tensorboardX import SummaryWriter
 from torch.optim import AdamW
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from torch.utils.data.distributed import DistributedSampler
 from tqdm import tqdm, trange
-from transformers import get_linear_schedule_with_warmup
+from transformers import get_constant_schedule_with_warmup, get_linear_schedule_with_warmup
 from utils_run import dilate_and_erode, from_device, load_and_cache_examples, save_checkpoint, set_seed, to_device
 
-logger = logging.getLogger(__name__)
+logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 def train(
@@ -47,7 +50,7 @@ def train(
     tokenizer,
     processor,
 ):
-    """Train the model"""
+    """Train the model."""
     if args.local_rank in [-1, 0]:
         # Note:
         # `comment` is added to the logdir to make it unique and avoid a problem with PBS job arrays
@@ -61,8 +64,12 @@ def train(
             msg=f"Using PBS_ARRAY_INDEX={pbs_array_index} to make logdir unique",  # noqa: G004 - low overhead
         )
 
+        comment: str = f"_pbs_array_index={str(object=pbs_array_index)}"
+
+        # Note:
+        # - Make sure that `comment` is a string, and not None, otherwise this might lead to errors in the string concatenation
         tb_writer = SummaryWriter(
-            comment=pbs_array_index,
+            comment=comment,
         )
 
     model.eval()  # No dropout
@@ -95,10 +102,38 @@ def train(
         },
         {"params": [p for n, p in model.named_parameters() if any(nd in n for nd in no_decay)], "weight_decay": 0.0},
     ]
-    optimizer = AdamW(optimizer_grouped_parameters, lr=args.learning_rate, eps=args.adam_epsilon)
-    scheduler = get_linear_schedule_with_warmup(
-        optimizer, num_warmup_steps=num_warmup_steps, num_training_steps=t_total
+    optimizer = AdamW(
+        optimizer_grouped_parameters,
+        lr=args.learning_rate,
+        eps=args.adam_epsilon,
     )
+
+    match args.lr_scheduler_type:
+        case LrSchedulerType.LINEAR_SCHEDULE_WITH_WARMUP:
+            logger.info(
+                msg="Using linear schedule with warmup.",
+            )
+            scheduler = get_linear_schedule_with_warmup(
+                optimizer=optimizer,
+                num_warmup_steps=num_warmup_steps,
+                num_training_steps=t_total,
+            )
+        case LrSchedulerType.CONSTANT_SCHEDULE_WITH_WARMUP:
+            logger.info(
+                msg="Using constant schedule with warmup.",
+            )
+            scheduler = get_constant_schedule_with_warmup(
+                optimizer=optimizer,
+                num_warmup_steps=num_warmup_steps,
+            )
+        case _:
+            msg: str = f"Unknown learning rate scheduler type: {args.lr_scheduler_type = }."
+            raise ValueError(msg)
+
+    logger.info(
+        msg=f"Using {args.lr_scheduler_type} as learning rate scheduler:\n{scheduler = }",  # noqa: G004 - low overhead
+    )
+
     scaler = torch.cuda.amp.GradScaler()
     if "cuda" in args.device.type:
         autocast = torch.cuda.amp.autocast(enabled=args.fp16)
@@ -175,7 +210,12 @@ def train(
                 loss = loss / args.gradient_accumulation_steps
 
             epoch_iterator.set_postfix(
-                {"loss": loss.item(), "cl": cl_loss.item(), "tk": tk_loss.item(), "tp": tp_loss.item()}
+                {
+                    "loss": loss.item(),
+                    "cl": cl_loss.item(),
+                    "tk": tk_loss.item(),
+                    "tp": tp_loss.item(),
+                },
             )
 
             tr_loss += loss.item()
@@ -191,8 +231,16 @@ def train(
 
                 # Log metrics
                 if args.local_rank in [-1, 0] and args.logging_steps > 0 and global_step % args.logging_steps == 0:
-                    tb_writer.add_scalar("lr", scheduler.get_last_lr()[0], global_step)
-                    tb_writer.add_scalar("loss", (tr_loss - logging_loss) / args.logging_steps, global_step)
+                    tb_writer.add_scalar(
+                        "lr",
+                        scheduler.get_last_lr()[0],
+                        global_step,
+                    )
+                    tb_writer.add_scalar(
+                        "loss",
+                        (tr_loss - logging_loss) / args.logging_steps,
+                        global_step,
+                    )
                     logging_loss = tr_loss
 
                 # Save model checkpoint
@@ -257,7 +305,16 @@ def train(
     return global_step, tr_loss / global_step
 
 
-def evaluate(args, dataset, model, tokenizer, processor, no_print=False, no_output=False, prefix=""):
+def evaluate(
+    args,
+    dataset,
+    model,
+    tokenizer,
+    processor,
+    no_print=False,
+    no_output=False,
+    prefix="",
+):
     if not os.path.exists(args.output_dir) and args.local_rank in [-1, 0]:
         os.makedirs(args.output_dir)
 

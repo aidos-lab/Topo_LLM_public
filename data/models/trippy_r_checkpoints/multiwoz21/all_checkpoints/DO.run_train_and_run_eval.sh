@@ -1,4 +1,4 @@
-#PBS -l select=1:ncpus=2:mem=64gb:ngpus=1:accelerator_model=rtx6000
+#PBS -l select=1:ncpus=2:mem=64gb:ngpus=1:accelerator_model=rtx8000
 #PBS -l walltime=59:59:00
 #PBS -A "DialSys"
 #PBS -q "CUDA"
@@ -11,8 +11,11 @@
 # Notes:
 # - PBS cannot submit non-rerunable Array Jobs, thus we need to set the rerunable flag to "-r y" in the PBS header.
 #
-# - For training, use the following configuration:
-# 	- #PBS -l select=1:ncpus=1:mem=32gb:ngpus=1:accelerator_model=a100
+# - For training, we need a GPU with enough memory,
+#   since 12GB does not appear to be enough for the training.
+#   The following configurations have been tested and should work:
+#   - #PBS -l select=1:ncpus=2:mem=64gb:ngpus=1:accelerator_model=rtx6000
+#   - #PBS -l select=1:ncpus=2:mem=64gb:ngpus=1:accelerator_model=a100
 
 contains() {
     local seeking="$1"
@@ -29,10 +32,51 @@ contains() {
 
 echo ">>> [INFO] Parsing arguments ..."
 
-# Note:
+# =================================================================== #
+# START: Global Variables
+# =================================================================== #
+
+# Notes:
 # - You should set DO_TRAINING to "True" by default, to allow easier submission of jobs on the cluster.
 #
-DO_TRAINING="False"
+DO_TRAINING="True"
+
+# NUM_TRAIN_EPOCHS=20
+NUM_TRAIN_EPOCHS=50
+
+# Set the warmup proportion based on the number of training epochs:
+# We want the warmup to occur for the first epoch, so we set it to 1 / NUM_TRAIN_EPOCHS.
+# Round this to 3 decimal places.
+WARMUP_PROPORTION=$(awk "BEGIN {printf \"%.3f\", 1 / ${NUM_TRAIN_EPOCHS}}")
+
+LR_SCHEDULER_TYPE="linear_schedule_with_warmup"
+# LR_SCHEDULER_TYPE="constant_schedule_with_warmup"
+
+# Notes:
+# - Uncomment the steps you want to run for each individual part of the pipeline.
+# - The loop will run over all the steps in the outer loop array, and for each step,
+#   it will call the inner scripts for the steps you want to run.
+STEPS_TO_RUN_IN_OUTER_LOOP=(
+    "train"
+    "dev"
+    "test"
+)
+
+STEPS_TO_RUN_FOR_EVALUATION=(
+    # "train"
+    "dev"
+    "test"
+)
+
+STEPS_TO_RUN_FOR_METRIC_DST=(
+    # "train"
+    "dev"
+    "test"
+)
+
+# =================================================================== #
+# END: Global Variables
+# =================================================================== #
 
 for arg in "$@"; do
     case $arg in
@@ -53,9 +97,20 @@ for arg in "$@"; do
     esac
 done
 
-echo ">>> [INFO] DO_TRAINING: ${DO_TRAINING}"
+# # # #
+# Set the current setup description directory based on the parameters
+
+CURRENT_SETUP_DESCRIPTION_DIR="model_output/"
+CURRENT_SETUP_DESCRIPTION_DIR+="num_train_epochs=${NUM_TRAIN_EPOCHS}/"
+CURRENT_SETUP_DESCRIPTION_DIR+="warmup_proportion=${WARMUP_PROPORTION}/"
+CURRENT_SETUP_DESCRIPTION_DIR+="lr_scheduler_type=${LR_SCHEDULER_TYPE}"
+
+echo ">>> [INFO] DO_TRAINING=${DO_TRAINING}"
+echo ">>> [INFO] CURRENT_SETUP_DESCRIPTION_DIR=${CURRENT_SETUP_DESCRIPTION_DIR}"
 
 echo ">>> [INFO] Parsing arguments DONE"
+
+# Argument Parsing -----------------------------------------------
 
 # # # # # # # # # # # # # # # #
 # Load environment
@@ -187,11 +242,11 @@ fi
 # cd "${PBS_O_WORKDIR}"
 
 mkdir -p logs
-RES_DIR=results
+
 if [ "$mode" = "local" ]; then
-    OUT_DIR=${RES_DIR}
+    OUT_DIR=${CURRENT_SETUP_DESCRIPTION_DIR}
 else
-    OUT_DIR=${SCRATCH_FOLDER}/${RES_DIR}
+    OUT_DIR=${SCRATCH_FOLDER}/${CURRENT_SETUP_DESCRIPTION_DIR}
     ln -s ${SCRATCH_FOLDER} scratch.${PBS_JOBID}
     if [ "$copy_cached" = "1" ]; then
         mkdir -p ${SCRATCH_FOLDER}
@@ -227,30 +282,28 @@ echo ">>> [INFO] SEEDS: ${SEEDS[@]}"
 TRAIN_PHASES="-1"         # -1: regular training, 0: proto training, 1: tagging, 2: spanless training
 VALUE_MATCHING_WEIGHT=0.0 # When 0.0, value matching is not used
 
-# Notes:
-# - Uncomment the steps you want to run for each individual part of the pipeline.
-# - The loop will run over all the steps in the outer loop array, and for each step,
-#   it will call the inner scripts for the steps you want to run.
-STEPS_TO_RUN_IN_OUTER_LOOP=(
-    "train"
-    "dev"
-    "test"
-)
-
-STEPS_TO_RUN_FOR_EVALUATION=(
-    "train"
-    # "dev"
-    # "test"
-)
-
-STEPS_TO_RUN_FOR_METRIC_DST=(
-    "train"
-    # "dev"
-    # "test"
-)
-
 # END: Parameters
 # # # # # # # # # # # # # # # #
+
+VARIABLES_TO_LOG=(
+    "TOOLS_DIR"
+    "DATASET_CONFIG"
+    "SEEDS"
+    "NUM_TRAIN_EPOCHS"
+    "WARMUP_PROPORTION"
+    "CURRENT_SETUP_DESCRIPTION_DIR"
+    "OUT_DIR"
+)
+
+echo ""
+echo ">>> -------------------------------------"
+echo ">>> Parameters:"
+echo ">>> -------------------------------------"
+for var in "${VARIABLES_TO_LOG[@]}"; do
+    echo ">>> $var=${!var}"
+done
+echo ">>> -------------------------------------"
+echo ""
 
 # ------------------------ Function Definition ------------------------ #
 # run_dst_phase:
@@ -284,10 +337,14 @@ run_dst_phase() {
         args_add_2=""
     fi
 
+    CURRENT_SEED_DIR="${OUT_DIR}/results.${seed}"
+
     echo "args_add: ${args_add}"
     echo "args_add_0: ${args_add_0}"
     echo "args_add_1: ${args_add_1}"
     echo "args_add_2: ${args_add_2}"
+
+    echo -e "\033[1;32mCURRENT_SEED_DIR=${CURRENT_SEED_DIR}\033[0m"
 
     uv run python3 "${TOOLS_DIR}/run_dst.py" \
         --task_name="unified" \
@@ -298,15 +355,16 @@ run_dst_phase() {
         --seed="${seed}" \
         --do_lower_case \
         --learning_rate=5e-5 \
-        --num_train_epochs=20 \
+        --num_train_epochs="${NUM_TRAIN_EPOCHS}" \
         --max_seq_length=180 \
         --per_gpu_train_batch_size=32 \
         --per_gpu_eval_batch_size=32 \
-        --output_dir="${OUT_DIR}.${seed}" \
+        --output_dir="${CURRENT_SEED_DIR}" \
         --save_epochs=1 \
         --patience=-1 \
         --eval_all_checkpoints \
-        --warmup_proportion=0.05 \
+        --warmup_proportion="${WARMUP_PROPORTION}" \
+        --lr_scheduler_type="${LR_SCHEDULER_TYPE}" \
         --adam_epsilon=1e-6 \
         --weight_decay=0.01 \
         --fp16 \
@@ -318,7 +376,7 @@ run_dst_phase() {
         ${args_add_0} \
         ${args_add_1} \
         ${args_add_2} \
-        2>&1 | tee "${OUT_DIR}.${seed}/${step}.${phase}.log"
+        2>&1 | tee "${CURRENT_SEED_DIR}/${step}.${phase}.log"
 }
 # ---------------------- End of Function Definition --------------------- #
 
@@ -327,7 +385,10 @@ phases="-1"
 
 for x in ${SEEDS}; do
     echo ">>> [INFO] Running seed loop with seed ${x} ..."
-    mkdir -p ${OUT_DIR}.${x}
+
+    CURRENT_SEED_DIR="${OUT_DIR}/results.${x}"
+    mkdir -p "${CURRENT_SEED_DIR}"
+    echo -e "\033[1;32mCURRENT_SEED_DIR=${CURRENT_SEED_DIR}\033[0m"
 
     # # # #
     # Call the run_dst.py script for the training.
@@ -388,8 +449,8 @@ for x in ${SEEDS}; do
                 uv run python3 ${TOOLS_DIR}/metric_dst.py \
                     --dataset_config=${DATASET_CONFIG} \
                     --confidence_threshold=${dist_conf_threshold} \
-                    --file_list="${OUT_DIR}.${x}/pred_res.${step}*json" \
-                    2>&1 | tee ${OUT_DIR}.${x}/eval_pred_${step}.${dist_conf_threshold}.log
+                    --file_list="${CURRENT_SEED_DIR}/pred_res.${step}*json" \
+                    2>&1 | tee "${CURRENT_SEED_DIR}/eval_pred_${step}.${dist_conf_threshold}.log"
             done
 
             echo -e "\033[1;32m>>> [METRIC] Running metric_dst.py block for step ${step} DONE\033[0m"

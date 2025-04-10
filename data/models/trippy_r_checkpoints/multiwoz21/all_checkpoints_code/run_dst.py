@@ -28,6 +28,7 @@ import pickle
 
 import torch
 from data_processors import PROCESSORS
+from dst_enums import LrSchedulerType
 from dst_proto import evaluate_proto, train_proto
 from dst_tag import tag_values
 from dst_train import evaluate, train
@@ -177,7 +178,18 @@ def main():
 
     parser.add_argument("--per_gpu_train_batch_size", default=8, type=int, help="Batch size per GPU/CPU for training.")
     parser.add_argument("--per_gpu_eval_batch_size", default=8, type=int, help="Batch size per GPU/CPU for evaluation.")
-    parser.add_argument("--learning_rate", default=5e-5, type=float, help="The initial learning rate for Adam.")
+    parser.add_argument(
+        "--learning_rate",
+        default=5e-5,
+        type=float,
+        help="The initial learning rate for Adam.",
+    )
+    parser.add_argument(
+        "--lr_scheduler_type",
+        type=LrSchedulerType,
+        default=LrSchedulerType.LINEAR_SCHEDULE_WITH_WARMUP,
+        help="The scheduler type to use.",
+    )
     parser.add_argument(
         "--gradient_accumulation_steps",
         type=int,

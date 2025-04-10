@@ -1,13 +1,13 @@
 #!/bin/bash
 
 # # # # # # # # # # # # # # # # # # # # # # # # #
-# NOTE: 
+# NOTE:
 # This script syncs selected local estimates metadata from the HHU Hilbert server to the local machine.
 
 # # # # # # # # # # # # # # # # # # # # # # # # #
 # Default values
 DRY_RUN_FLAG=""
-REMOTE_HOST="Hilbert-Storage"
+REMOTE_HOST="HilbertStorage"
 
 # Example path to one of the local estimates metadata files:
 # 'data/analysis/local_estimates/data=multiwoz21_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/split=validation_samples=10000_sampling=random_sampling-seed=778/edh-mode=regular_lvl=token/add-prefix-space=False_max-len=512/model=roberta-base-trippy_multiwoz21_seed-42_ckpt-3549_task=masked_lm_dr=defaults/layer=-1_agg=mean/norm=None/sampling=random_seed=42_samples=150000/desc=twonn_samples=60000_zerovec=keep_dedup=array_deduplicator_noise=do_nothing/n-neighbors-mode=absolute_size_n-neighbors=128/local_estimates_pointwise_array.npy
@@ -35,21 +35,21 @@ fi
 
 if [[ $# -eq 1 ]]; then
     case "$1" in
-        --dry-run)
-            DRY_RUN_FLAG="--dry-run"
-            ;;
-        *)
-            echo "❌ Error: Invalid option $1"
-            usage
-            ;;
+    --dry-run)
+        DRY_RUN_FLAG="--dry-run"
+        ;;
+    *)
+        echo "❌ Error: Invalid option $1"
+        usage
+        ;;
     esac
 fi
 
 # # # # # # # # # # # # # # # # # # # # # # # # #
 # Check if TOPO_LLM_REPOSITORY_BASE_PATH is set
 if [[ -z "${TOPO_LLM_REPOSITORY_BASE_PATH}" ]]; then
-  echo "❌ Error: TOPO_LLM_REPOSITORY_BASE_PATH is not set."
-  exit 1
+    echo "❌ Error: TOPO_LLM_REPOSITORY_BASE_PATH is not set."
+    exit 1
 fi
 
 # Load environment variables
@@ -58,12 +58,12 @@ source "${TOPO_LLM_REPOSITORY_BASE_PATH}/.env"
 # # # # # # # # # # # # # # # # # # # # # # # # #
 # Print variables
 variables_to_log=(
-  "TOPO_LLM_REPOSITORY_BASE_PATH"
-  "ZIM_TOPO_LLM_REPOSITORY_BASE_PATH"
-  "REMOTE_HOST"
-  "REMOTE_BASE_DIR"
-  "PATH_TO_MATCH"
-  "TARGET_DIR"
+    "TOPO_LLM_REPOSITORY_BASE_PATH"
+    "ZIM_TOPO_LLM_REPOSITORY_BASE_PATH"
+    "REMOTE_HOST"
+    "REMOTE_BASE_DIR"
+    "PATH_TO_MATCH"
+    "TARGET_DIR"
 )
 
 echo "📝 Printing bash script variables:"
@@ -136,12 +136,11 @@ echo "$MATCHED_FILES" | rsync \
 
 echo "🔁 rsync command completed."
 
-
 # Capture the exit code of rsync
 RSYNC_EXIT_CODE=$?
 if [[ ${RSYNC_EXIT_CODE} -ne 0 ]]; then
-  echo "❌ Error: rsync failed with exit code ${RSYNC_EXIT_CODE}"
-  exit ${RSYNC_EXIT_CODE}
+    echo "❌ Error: rsync failed with exit code ${RSYNC_EXIT_CODE}"
+    exit ${RSYNC_EXIT_CODE}
 fi
 
 # ======================================================================================== #
