@@ -15,6 +15,8 @@ RSYNC_EXCLUDES_COMMANDS=(
     --include='*training_args.bin'
     --exclude='*.bin'
     --exclude='*.safetensors'
+    --exclude='*pred_res.*.checkpoint-*.json'
+    --exclude='*encoded_*.pickle'
 )
 
 # END: Default values
@@ -175,16 +177,6 @@ for i in "${!SYNC_SRC[@]}"; do
     SRC="${SYNC_SRC[i]}"
     DEST="${SYNC_DEST[i]}"
 
-    # Optional: Add a delay between operations
-    echo "💡 Adding a delay of ${DELAY_BETWEEN_OPERATIONS} seconds before the next operation ..."
-    sleep $DELAY_BETWEEN_OPERATIONS
-
-    # If the last operation failed, add a longer delay
-    if [[ $rc -ne 0 ]]; then
-        echo "💡 Last operation failed. Adding a longer delay of ${DELAY_IF_ERROR} seconds ..."
-        sleep $DELAY_IF_ERROR
-    fi
-
     echo "===================================================="
     echo "🔄 Syncing: '${SRC}' -> '${DEST}'"
 
@@ -210,6 +202,16 @@ for i in "${!SYNC_SRC[@]}"; do
     fi
 
     echo "===================================================="
+
+    # Optional: Add a delay between operations
+    echo "💡 Adding a delay of ${DELAY_BETWEEN_OPERATIONS} seconds before the next operation ..."
+    sleep $DELAY_BETWEEN_OPERATIONS
+
+    # If the last operation failed, add a longer delay
+    if [[ $rc -ne 0 ]]; then
+        echo "💡 Last operation failed. Adding a longer delay of ${DELAY_IF_ERROR} seconds ..."
+        sleep $DELAY_IF_ERROR
+    fi
 done
 
 echo ">>> All rsync operations completed."
