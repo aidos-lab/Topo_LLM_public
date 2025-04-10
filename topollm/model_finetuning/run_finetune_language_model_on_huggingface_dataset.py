@@ -40,7 +40,6 @@ from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
 from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
-from topollm.logging.setup_transformers_logger import setup_transformers_logger
 from topollm.model_finetuning.create_finetuned_language_model_config import create_finetuned_language_model_config
 from topollm.model_finetuning.do_finetuning_process import do_finetuning_process
 from topollm.model_finetuning.initialize_wandb import initialize_wandb
@@ -56,7 +55,7 @@ except ImportError:
 if TYPE_CHECKING:
     from topollm.config_classes.main_config import MainConfig
 
-# Increase the wandb service wait time to prevent errors on HHU Hilbert.
+# Increase the wandb service wait time to prevent errors on HHU Hilbert HPC.
 # https://github.com/wandb/wandb/issues/5214
 os.environ["WANDB__SERVICE_WAIT"] = "300"
 
@@ -75,7 +74,6 @@ setup_exception_logging(
 )
 
 
-setup_transformers_logger()
 setup_omega_conf()
 
 
