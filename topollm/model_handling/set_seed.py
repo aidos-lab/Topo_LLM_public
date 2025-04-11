@@ -1,12 +1,10 @@
-# coding=utf-8
-#
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 #
 # Code generation tools and workflows:
 # First versions of this code were potentially generated
@@ -33,7 +31,9 @@ import numpy as np
 import torch
 import torch.backends.cudnn
 
-default_logger = logging.getLogger(__name__)
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 def set_seed(
@@ -44,7 +44,10 @@ def set_seed(
 
     Args:
     ----
-        seed (int): The seed for the random number generator.
+        seed:
+            The seed for the random number generator.
+        logger:
+            The logger to use for logging messages.
 
     Notes:
     -----
@@ -61,18 +64,34 @@ def set_seed(
            reproducibility across multiple runs.
 
     """
-    random.seed(seed)  # Set the seed for Python's built-in random module
+    # Set the seed for Python's built-in random module
+    random.seed(
+        a=seed,
+    )
 
-    np.random.seed(seed)  # Set the seed for numpy random number generator
+    # Set the seed for numpy random number generator
+    np.random.seed(  # noqa: NPY002 - we set the seed here for reproducibility
+        seed=seed,
+    )
 
-    torch.manual_seed(seed)  # Set the seed for CPU operations
+    # Set the seed for CPU operations
+    torch.manual_seed(
+        seed=seed,
+    )
 
+    # Set the seed for all GPU devices and accelarators if available
     if torch.cuda.is_available():
-        torch.cuda.manual_seed_all(seed)  # Set the seed for all GPU devices
+        torch.cuda.manual_seed_all(
+            seed=seed,
+        )
+    if torch.backends.mps.is_available():
+        torch.mps.manual_seed(
+            seed=seed,
+        )
 
     torch.backends.cudnn.deterministic = True  # Disable nondeterministic algorithms
     torch.backends.cudnn.benchmark = False  # Disable hardware optimizations
 
     logger.info(
-        f"seed set to {seed = }.",  # noqa: G004 - low overhead
+        msg=f"seed set to {seed = }.",  # noqa: G004 - low overhead
     )

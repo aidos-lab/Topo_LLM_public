@@ -59,7 +59,10 @@ class ArrayDeduplicator:
         input_array = prepared_data.array
         input_meta_frame = prepared_data.meta_df
 
-        unique_vectors, indices_of_original_array = np.unique(
+        (
+            unique_vectors,
+            indices_of_original_array,
+        ) = np.unique(
             ar=input_array,
             axis=0,
             return_index=True,
