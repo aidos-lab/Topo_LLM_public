@@ -41,7 +41,6 @@ from tqdm import tqdm
 
 from topollm.analysis.correlation.compute_correlations_with_count import compute_correlations_with_count
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
-from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.data_processing.iteration_over_directories.load_json_dicts_from_folder_structure_into_df import (
     load_json_dicts_from_folder_structure_into_df,
 )
@@ -796,6 +795,4 @@ def create_plots_for_individual_splits_individual_models_all_datasets(
 
 
 if __name__ == "__main__":
-    setup_omega_conf()
-
     main()

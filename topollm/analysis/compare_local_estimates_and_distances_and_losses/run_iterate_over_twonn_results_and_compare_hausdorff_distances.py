@@ -44,7 +44,6 @@ from topollm.analysis.local_estimates_handling.saving.local_estimates_saving_man
 from topollm.config_classes.constants import (
     HYDRA_CONFIGS_BASE_PATH,
 )
-from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
@@ -61,13 +60,6 @@ if TYPE_CHECKING:
     from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 
 
-try:
-    from hydra_plugins import hpc_submission_launcher
-
-    hpc_submission_launcher.register_plugin()
-except ImportError:
-    pass
-
 # Logger for this file
 global_logger: logging.Logger = logging.getLogger(
     name=__name__,
@@ -79,8 +71,6 @@ default_logger: logging.Logger = logging.getLogger(
 setup_exception_logging(
     logger=global_logger,
 )
-
-setup_omega_conf()
 
 
 def iterate_and_collect_data(

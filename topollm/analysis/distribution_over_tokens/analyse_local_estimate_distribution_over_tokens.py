@@ -30,7 +30,6 @@
 import json
 import logging
 import pathlib
-import pprint
 from collections import Counter
 from typing import TYPE_CHECKING
 
@@ -46,7 +45,6 @@ from tqdm import tqdm
 
 from topollm.analysis.local_estimates_handling.saving.local_estimates_saving_manager import LocalEstimatesSavingManager
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
-from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
@@ -56,13 +54,6 @@ from topollm.task_performance_analysis.plotting.distribution_violinplots_and_dis
     make_distribution_violinplots_from_extracted_arrays,
 )
 from topollm.typing.enums import Verbosity
-
-try:
-    from hydra_plugins import hpc_submission_launcher
-
-    hpc_submission_launcher.register_plugin()
-except ImportError:
-    pass
 
 if TYPE_CHECKING:
     from topollm.analysis.local_estimates_handling.saving.local_estimates_containers import LocalEstimatesContainer
@@ -802,6 +793,4 @@ def get_tokens_with_extreme_estimate_value(
 
 
 if __name__ == "__main__":
-    setup_omega_conf()
-
     main()

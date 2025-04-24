@@ -31,14 +31,12 @@ import logging
 from typing import TYPE_CHECKING
 
 import hydra
-import hydra.core.hydra_config
 import omegaconf
 
 from topollm.analysis.local_estimates_computation.global_and_pointwise_local_estimates_worker import (
     global_and_pointwise_local_estimates_worker,
 )
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
-from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.model_handling.get_torch_device import get_torch_device
@@ -61,8 +59,6 @@ global_logger: logging.Logger = logging.getLogger(
 setup_exception_logging(
     logger=global_logger,
 )
-
-setup_omega_conf()
 
 
 @hydra.main(

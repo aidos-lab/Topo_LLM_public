@@ -49,7 +49,6 @@ from topollm.config_classes.constants import (
     HYDRA_CONFIGS_BASE_PATH,
 )
 from topollm.config_classes.main_config import MainConfig
-from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.model_handling.loaded_model_container import LoadedModelContainer
@@ -63,12 +62,6 @@ from topollm.typing.enums import Verbosity
 if TYPE_CHECKING:
     pass
 
-try:
-    from hydra_plugins import hpc_submission_launcher
-
-    hpc_submission_launcher.register_plugin()
-except ImportError:
-    pass
 
 # logger for this file
 global_logger: logging.Logger = logging.getLogger(
@@ -81,8 +74,6 @@ default_logger: logging.Logger = logging.getLogger(
 setup_exception_logging(
     logger=global_logger,
 )
-
-setup_omega_conf()
 
 
 @dataclass

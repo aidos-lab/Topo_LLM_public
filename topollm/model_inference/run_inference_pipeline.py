@@ -34,7 +34,6 @@ import hydra
 import hydra.core.hydra_config
 import omegaconf
 
-from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.model_inference.do_inference import do_inference
@@ -49,8 +48,6 @@ global_logger: logging.Logger = logging.getLogger(
 setup_exception_logging(
     logger=global_logger,
 )
-
-setup_omega_conf()
 
 
 @hydra.main(

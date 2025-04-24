@@ -27,17 +27,13 @@
 
 
 import logging
-from functools import partial
 from typing import TYPE_CHECKING
 
 import datasets
 import hydra
-import hydra.core.hydra_config
 import omegaconf
-import transformers
 
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
-from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.data_handling.dataset_preparer.factory import get_dataset_preparer
 from topollm.data_handling.dataset_preparer.protocol import DatasetPreparer
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
@@ -47,12 +43,6 @@ from topollm.typing.enums import Verbosity
 if TYPE_CHECKING:
     from topollm.config_classes.main_config import MainConfig
 
-try:
-    from hydra_plugins import hpc_submission_launcher
-
-    hpc_submission_launcher.register_plugin()
-except ImportError:
-    pass
 
 # Logger for this file
 global_logger: logging.Logger = logging.getLogger(
@@ -62,8 +52,6 @@ global_logger: logging.Logger = logging.getLogger(
 setup_exception_logging(
     logger=global_logger,
 )
-
-setup_omega_conf()
 
 
 @hydra.main(

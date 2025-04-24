@@ -34,14 +34,12 @@ from itertools import product
 from typing import TYPE_CHECKING
 
 import hydra
-import hydra.core.hydra_config
 import numpy as np
 import omegaconf
 import pandas as pd
 from tqdm import tqdm
 
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
-from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
@@ -51,12 +49,6 @@ if TYPE_CHECKING:
     from topollm.config_classes.main_config import MainConfig
     from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 
-try:
-    from hydra_plugins import hpc_submission_launcher
-
-    hpc_submission_launcher.register_plugin()
-except ImportError:
-    pass
 
 # logger for this file
 global_logger: logging.Logger = logging.getLogger(
@@ -69,8 +61,6 @@ default_logger: logging.Logger = logging.getLogger(
 setup_exception_logging(
     logger=global_logger,
 )
-
-setup_omega_conf()
 
 
 @hydra.main(

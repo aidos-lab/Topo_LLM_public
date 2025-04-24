@@ -1,12 +1,11 @@
-# coding=utf-8
-#
-# Copyright 2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
+# Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
 # First versions of this code were potentially generated
@@ -26,35 +25,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
+"""Truncate the length of the description string if it is too long."""
 
-# System imports
 import logging
 
-# External imports
-
-# Local imports
 from topollm.config_classes.constants import FILE_NAME_TRUNCATION_LENGTH
 
-# END Imports
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 def truncate_length_of_desc(
     desc: str,
     truncation_length: int = FILE_NAME_TRUNCATION_LENGTH,
-    logger: logging.Logger = logging.getLogger(__name__),
-):
-    """
-    Truncate the length of the description string if it is too long.
-    """
+    logger: logging.Logger = default_logger,
+) -> str:
+    """Truncate the length of the description string if it is too long."""
     if len(desc) > truncation_length:
         logger.warning(
-            f"Too long:\n"
-            f"{desc = }\n"
-            f"{len(desc) = }\n"
-            f"Will be truncated to {truncation_length = } characters.",
+            msg=f"Too long:\n{desc = }\n{len(desc) = }\nWill be truncated to {truncation_length = } characters.",  # noqa: G004 - low overhead
         )
         desc = desc[:truncation_length]
 

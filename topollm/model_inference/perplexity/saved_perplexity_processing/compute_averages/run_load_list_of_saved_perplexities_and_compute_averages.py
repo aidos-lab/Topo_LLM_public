@@ -38,7 +38,6 @@ import torch
 
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
 from topollm.config_classes.get_data_dir import get_data_dir
-from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.model_inference.perplexity.saved_perplexity_processing.compute_averages.compute_averages_over_loaded_data_list import (
@@ -55,16 +54,19 @@ from topollm.typing.enums import PerplexityContainerSaveFormat, Verbosity
 if TYPE_CHECKING:
     from topollm.config_classes.main_config import MainConfig
 
-default_device = torch.device("cpu")
-default_logger = logging.getLogger(__name__)
-global_logger = logging.getLogger(__name__)
+default_device = torch.device(
+    device="cpu",
+)
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
+global_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 setup_exception_logging(
     logger=global_logger,
 )
-
-
-setup_omega_conf()
 
 
 @hydra.main(
