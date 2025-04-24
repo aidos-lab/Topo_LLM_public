@@ -40,7 +40,7 @@ import transformers
 from topollm.config_classes.constants import (
     HYDRA_CONFIGS_BASE_PATH,
 )
-from topollm.config_classes.setup_OmegaConf import setup_omega_conf
+from topollm.config_classes.setup_omega_conf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.log_list_info import log_list_info
 from topollm.logging.log_recursive_dict_info import log_recursive_dict_info
@@ -59,13 +59,6 @@ if TYPE_CHECKING:
     from topollm.model_handling.loaded_model_container import LoadedModelContainer
     from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 
-
-try:
-    from hydra_plugins import hpc_submission_launcher
-
-    hpc_submission_launcher.register_plugin()
-except ImportError:
-    pass
 
 # logger for this file
 global_logger: logging.Logger = logging.getLogger(
@@ -381,6 +374,4 @@ def decode_and_log_sequence(
 
 
 if __name__ == "__main__":
-    setup_omega_conf()
-
     main()

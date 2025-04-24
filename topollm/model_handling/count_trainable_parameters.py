@@ -1,12 +1,10 @@
-# coding=utf-8
-#
-# Copyright 2023-2024
+# Copyright 2024-2025
 # Heinrich Heine University Dusseldorf,
 # Faculty of Mathematics and Natural Sciences,
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Ruppik (mail@ruppik.net)
 #
 # Code generation tools and workflows:
 # First versions of this code were potentially generated
@@ -26,19 +24,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Count the number of trainable parameters in a PyTorch model."""
+
 from torch import nn
 
 
 def count_trainable_parameters(
     model: nn.Module,
 ) -> int:
-    """
-    Count the number of trainable parameters in a PyTorch model.
+    """Count the number of trainable parameters in a PyTorch model.
 
     Args:
         model (nn.Module): The PyTorch model.
 
     Returns:
         int: The number of trainable parameters.
+
     """
     return sum(p.numel() for p in model.parameters() if p.requires_grad)

@@ -40,7 +40,6 @@ from topollm.analysis.comparisons.compare_mean_estimates_over_different_datasets
     generate_selected_data_for_individual_splits_individual_models_all_datasets,
 )
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
-from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.data_processing.iteration_over_directories.load_json_dicts_from_folder_structure_into_df import (
     load_json_dicts_from_folder_structure_into_df,
 )
@@ -229,6 +228,4 @@ def main(
 
 
 if __name__ == "__main__":
-    setup_omega_conf()
-
     main()

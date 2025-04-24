@@ -34,13 +34,11 @@ from enum import StrEnum, auto, unique
 from typing import TYPE_CHECKING
 
 import hydra
-import hydra.core.hydra_config
 import omegaconf
 import torch
 import transformers
 
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
-from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.log_model_info import log_model_info
 from topollm.logging.setup_exception_logging import setup_exception_logging
@@ -55,13 +53,6 @@ if TYPE_CHECKING:
     from topollm.config_classes.main_config import MainConfig
     from topollm.model_handling.loaded_model_container import LoadedModelContainer
 
-try:
-    from hydra_plugins import hpc_submission_launcher
-
-    hpc_submission_launcher.register_plugin()
-except ImportError:
-    pass
-
 # Logger for this file
 default_logger: logging.Logger = logging.getLogger(
     name=__name__,
@@ -73,8 +64,6 @@ global_logger: logging.Logger = logging.getLogger(
 setup_exception_logging(
     logger=global_logger,
 )
-
-setup_omega_conf()
 
 
 @unique

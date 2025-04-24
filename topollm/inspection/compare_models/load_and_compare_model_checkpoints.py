@@ -35,11 +35,9 @@ import pathlib
 from typing import TYPE_CHECKING
 
 import hydra
-import hydra.core.hydra_config
 import omegaconf
 import transformers
 
-from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.log_model_info import log_model_info
 from topollm.logging.setup_exception_logging import setup_exception_logging
@@ -217,6 +215,4 @@ def compare_model_components(
 
 
 if __name__ == "__main__":
-    setup_omega_conf()
-
     main()

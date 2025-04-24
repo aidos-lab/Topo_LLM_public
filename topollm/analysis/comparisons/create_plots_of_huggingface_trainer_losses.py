@@ -27,10 +27,8 @@
 
 """Create plots of the Huggingface Trainer evaluation losses."""
 
-import itertools
 import logging
 import pathlib
-from collections.abc import Generator
 from typing import TYPE_CHECKING
 
 import hydra
@@ -42,18 +40,17 @@ from topollm.analysis.comparisons.compare_mean_estimates_over_different_datasets
     generate_selected_data_for_individual_splits_individual_models_all_datasets,
 )
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
-from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.data_processing.iteration_over_directories.load_json_dicts_from_folder_structure_into_df import (
     load_json_dicts_from_folder_structure_into_df,
 )
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
-from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
 from topollm.plotting.line_plot_grouped_by_categorical_column import (
     generate_color_mapping,
     line_plot_grouped_by_categorical_column,
 )
+from topollm.plotting.plot_size_config import PlotColumnsConfig, PlotSizeConfigFlat
 from topollm.typing.enums import Verbosity
 
 if TYPE_CHECKING:
@@ -212,10 +209,14 @@ def main(
                 plot_name=plot_name,
                 subtitle_text=selected_data.subtitle_text,
                 color_mapping=color_mapping,
-                x_column=line_plot_x_column_name,
-                y_column=line_plot_y_column_name,
-                group_column="data_full",
-                **axes_limits,
+                plot_columns_config=PlotColumnsConfig(
+                    x_column=line_plot_x_column_name,
+                    y_column=line_plot_y_column_name,
+                    group_column="data_full",
+                ),
+                plot_size_config=PlotSizeConfigFlat(
+                    **axes_limits,
+                ),
                 verbosity=verbosity,
                 logger=logger,
             )
@@ -226,6 +227,4 @@ def main(
 
 
 if __name__ == "__main__":
-    setup_omega_conf()
-
     main()

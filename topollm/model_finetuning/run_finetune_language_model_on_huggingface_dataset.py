@@ -32,12 +32,10 @@ import os
 from typing import TYPE_CHECKING
 
 import hydra
-import hydra.core.hydra_config
 import omegaconf
 
 import wandb
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
-from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.model_finetuning.create_finetuned_language_model_config import create_finetuned_language_model_config
@@ -72,9 +70,6 @@ global_logger: logging.Logger = logging.getLogger(
 setup_exception_logging(
     logger=global_logger,
 )
-
-
-setup_omega_conf()
 
 
 @hydra.main(

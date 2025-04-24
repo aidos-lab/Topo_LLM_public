@@ -37,7 +37,6 @@ import hydra.core.hydra_config
 import omegaconf
 import zarr
 
-from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
 
@@ -45,12 +44,13 @@ if TYPE_CHECKING:
     from topollm.config_classes.main_config import MainConfig
 
 
-global_logger = logging.getLogger(__name__)
+global_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 setup_exception_logging(
     logger=global_logger,
 )
-setup_omega_conf()
 
 
 @hydra.main(

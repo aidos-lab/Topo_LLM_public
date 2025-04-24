@@ -31,26 +31,26 @@ import os
 import pathlib
 
 import hydra
-import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 import numpy as np
 import omegaconf
 import pandas as pd
+from matplotlib import cm
 from tqdm import tqdm
 
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH, TOPO_LLM_REPOSITORY_BASE_PATH
-from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.setup_exception_logging import setup_exception_logging
 
-global_logger = logging.getLogger(__name__)
-default_logger = logging.getLogger(__name__)
+global_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 setup_exception_logging(
     logger=global_logger,
 )
-
-
-setup_omega_conf()
 
 
 def create_color_map(unique_models):

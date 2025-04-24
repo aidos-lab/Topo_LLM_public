@@ -36,17 +36,9 @@ import omegaconf
 import torch
 
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
-from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.model_inference.perplexity.do_perplexity_processing import do_perplexity_computation
-
-try:
-    from hydra_plugins import hpc_submission_launcher
-
-    hpc_submission_launcher.register_plugin()
-except ImportError:
-    pass
 
 if TYPE_CHECKING:
     from topollm.config_classes.main_config import MainConfig
@@ -61,9 +53,6 @@ setup_exception_logging(
 )
 
 
-setup_omega_conf()
-
-
 @hydra.main(
     config_path=f"{HYDRA_CONFIGS_BASE_PATH}",
     config_name="main_config",
@@ -73,7 +62,7 @@ def main(
     config: omegaconf.DictConfig,
 ) -> None:
     """Run the script."""
-    logger = global_logger
+    logger: logging.Logger = global_logger
     logger.info("Running script ...")
 
     main_config: MainConfig = initialize_configuration(

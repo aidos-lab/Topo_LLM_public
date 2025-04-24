@@ -38,7 +38,6 @@ import omegaconf
 import pandas as pd
 
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
-from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.path_management.embeddings.factory import get_embeddings_path_manager
@@ -273,7 +272,4 @@ def main(
 
 if __name__ == "__main__":
     # Note: See the VSCode launch configurations for an example of how to run this script.
-
-    setup_omega_conf()
-
     main()

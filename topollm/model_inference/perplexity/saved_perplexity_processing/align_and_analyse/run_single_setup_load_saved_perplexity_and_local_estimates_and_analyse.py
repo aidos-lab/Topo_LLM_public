@@ -36,7 +36,6 @@ import omegaconf
 import torch
 
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
-from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.model_inference.perplexity.saved_perplexity_processing.align_and_analyse.load_perplexity_and_local_estimates_and_align import (
@@ -49,16 +48,18 @@ if TYPE_CHECKING:
         AlignedLocalEstimatesDataContainer,
     )
 
-default_device = torch.device("cpu")
-default_logger = logging.getLogger(__name__)
+default_device = torch.device(device="cpu")
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
-global_logger = logging.getLogger(__name__)
+global_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 setup_exception_logging(
     logger=global_logger,
 )
-
-setup_omega_conf()
 
 
 @hydra.main(

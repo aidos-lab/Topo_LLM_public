@@ -43,15 +43,12 @@ import logging
 from typing import TYPE_CHECKING
 
 import hydra
-import hydra.core.hydra_config
 import omegaconf
 
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
-from topollm.config_classes.setup_OmegaConf import setup_omega_conf
 from topollm.embeddings_data_prep.embeddings_data_prep_worker import embeddings_data_prep_worker
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
-from topollm.model_handling.get_torch_device import get_torch_device
 
 if TYPE_CHECKING:
     from topollm.config_classes.main_config import MainConfig
@@ -65,8 +62,6 @@ setup_exception_logging(
     logger=global_logger,
 )
 
-setup_omega_conf()
-
 
 @hydra.main(
     config_path=f"{HYDRA_CONFIGS_BASE_PATH}",
@@ -77,26 +72,20 @@ def main(
     config: omegaconf.DictConfig,
 ) -> None:
     """Run the script."""
-    global_logger.info("Running script ...")
+    global_logger.info(msg="Running script ...")
 
     main_config: MainConfig = initialize_configuration(
         config=config,
         logger=global_logger,
     )
 
-    device = get_torch_device(
-        preferred_torch_backend=main_config.preferred_torch_backend,
-        logger=global_logger,
-    )
-
     embeddings_data_prep_worker(
         main_config=main_config,
-        device=device,
         verbosity=main_config.verbosity,
         logger=global_logger,
     )
 
-    global_logger.info("Script finished.")
+    global_logger.info(msg="Script finished.")
 
 
 if __name__ == "__main__":
