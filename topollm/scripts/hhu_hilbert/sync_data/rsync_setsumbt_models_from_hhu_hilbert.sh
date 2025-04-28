@@ -17,13 +17,13 @@ fi
 
 if [[ $# -eq 1 ]]; then
   case "$1" in
-    --dry-run)
-      DRY_RUN_FLAG="--dry-run"
-      ;;
-    *)
-      echo ">>> Error: Invalid option $1"
-      usage
-      ;;
+  --dry-run)
+    DRY_RUN_FLAG="--dry-run"
+    ;;
+  *)
+    echo ">>> Error: Invalid option $1"
+    usage
+    ;;
   esac
 fi
 
@@ -36,15 +36,23 @@ fi
 
 source "${TOPO_LLM_REPOSITORY_BASE_PATH}/.env"
 
-if [[ -z "${GPFS_PROJECT_DIR_DSML}" ]]; then
-  echo ">>> Error: GPFS_PROJECT_DIR_DSML is not set."
-  exit 1
-fi
-
 # # # # # # # # # # # # # # # # # # # # # # # # #
-# Print variables
-echo ">>> TOPO_LLM_REPOSITORY_BASE_PATH=$TOPO_LLM_REPOSITORY_BASE_PATH"
-echo ">>> GPFS_PROJECT_DIR_DSML=$GPFS_PROJECT_DIR_DSML"
+# Check if variables are set
+check_variable() {
+  local var_name="$1"
+  local var_value="${!var_name}"
+  if [[ -z "${var_value}" ]]; then
+    echo "❌ Error: ${var_name} is not set."
+    exit 1
+  else
+    echo "✅ ${var_name}=${var_value}"
+  fi
+}
+
+check_variable "TOPO_LLM_REPOSITORY_BASE_PATH"
+check_variable "REMOTE_HOST"
+check_variable "ZIM_USERNAME"
+check_variable "GPFS_PROJECT_DIR_DSML"
 
 # # # #
 # NOTE: This script is only syncing a subset of the models from the HHU Hilbert server,
@@ -55,7 +63,7 @@ echo ">>> GPFS_PROJECT_DIR_DSML=$GPFS_PROJECT_DIR_DSML"
 # SELECTED_SUBFOLDER="multiwoz21/roberta/setsumbt/gru/cosine/labelsmoothing/0.05/seed0/"
 SELECTED_SUBFOLDER="data/"
 
-SOURCE_DIR="Hilbert-Storage:${GPFS_PROJECT_DIR_DSML}/${SELECTED_SUBFOLDER}"
+SOURCE_DIR="${REMOTE_HOST}:${GPFS_PROJECT_DIR_DSML}/${SELECTED_SUBFOLDER}"
 # Create the target directory if it doesn't exist
 TARGET_DIR="${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/setsumbt_checkpoints/${SELECTED_SUBFOLDER}"
 mkdir -p "$TARGET_DIR"

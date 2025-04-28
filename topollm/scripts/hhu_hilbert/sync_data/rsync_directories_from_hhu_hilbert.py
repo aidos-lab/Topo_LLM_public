@@ -58,7 +58,7 @@ def sync_directories(
     # > rsync \
     # >     -avz --progress --dry-run
     # >     --include="*/" --include="*.npy" --exclude="*"
-    # >     Hilbert-Storage:/gpfs/project/$USER/git-source/Topo_LLM/data/analysis/twonn/
+    # >     ${REMOTE_HOST}:/gpfs/project/$USER/git-source/Topo_LLM/data/analysis/twonn/
     # >     /Users/$USER/git-source/Topo_LLM/data/analysis/twonn/`
     #
     # Note:
@@ -229,6 +229,7 @@ def execute_single_directory_sync(
     directory: str,
     zim_topo_llm_repository_base_path: str,
     target_base_path: str,
+    remote_host: str = "HilbertStorage",
     dry_run_option: str = "",
     include_and_exclude_pattern: list[str] | None = None,
 ) -> None:
@@ -236,7 +237,7 @@ def execute_single_directory_sync(
     if include_and_exclude_pattern is None:
         include_and_exclude_pattern = []
 
-    src: str = f"Hilbert-Storage:{zim_topo_llm_repository_base_path}/{directory}"
+    src: str = f"{remote_host}:{zim_topo_llm_repository_base_path}/{directory}"
     dest: str = f"{target_base_path}/{directory}"
 
     rsync_command = [

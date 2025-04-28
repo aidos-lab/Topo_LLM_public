@@ -1,29 +1,37 @@
 #!/bin/bash
 
-# Following rsync instructions from:
-# https://wiki.hhu.de/pages/viewpage.action?pageId=55725648
-
 echo "TOPO_LLM_REPOSITORY_BASE_PATH=$TOPO_LLM_REPOSITORY_BASE_PATH"
 
 source "${TOPO_LLM_REPOSITORY_BASE_PATH}/.env"
 
-# Check if the LOCAL_HUGGINGFACE_CACHE_PATH variable is set
-if [ -z "$LOCAL_HUGGINGFACE_CACHE_PATH" ]; then
-    echo "Error: LOCAL_HUGGINGFACE_CACHE_PATH is not set."
-    exit 1
-fi
-# Check if the ZIM_USERNAME variable is set
-if [ -z "$ZIM_USERNAME" ]; then
-    echo "Error: ZIM_USERNAME is not set."
-    exit 1
-fi
+# # # # # # # # # # # # # # # # # # # # # # # # #
+# Check if variables are set
+check_variable() {
+    local var_name="$1"
+    local var_value="${!var_name}"
+    if [[ -z "${var_value}" ]]; then
+        echo "❌ Error: ${var_name} is not set."
+        exit 1
+    else
+        echo "✅ ${var_name}=${var_value}"
+    fi
+}
+
+check_variable "TOPO_LLM_REPOSITORY_BASE_PATH"
+check_variable "LOCAL_HUGGINGFACE_CACHE_PATH"
+check_variable "REMOTE_HOST"
+check_variable "ZIM_TOPO_LLM_REPOSITORY_BASE_PATH"
+check_variable "ZIM_USERNAME"
 
 SOURCE_PATH="${LOCAL_HUGGINGFACE_CACHE_PATH}"
-TARGET_PATH="${ZIM_USERNAME}@Hilbert-Storage:/gpfs/project/${ZIM_USERNAME}/models/"
+TARGET_PATH="${ZIM_USERNAME}@${REMOTE_HOST}:/gpfs/project/${ZIM_USERNAME}/models/"
 
 echo "Syncing from ${SOURCE_PATH} to ${TARGET_PATH} ..."
 
-rsync -avhz --delete --progress \
+# Following rsync instructions from:
+# https://wiki.hhu.de/pages/viewpage.action?pageId=55725648
+rsync \
+    -avhz --delete --progress \
     "${SOURCE_PATH}" \
     "${TARGET_PATH}"
 

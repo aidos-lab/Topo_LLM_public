@@ -7,7 +7,6 @@
 # # # # # # # # # # # # # # # # # # # # # # # # #
 # Default values
 DRY_RUN_FLAG=""
-REMOTE_HOST="HilbertStorage"
 
 # Example path to one of the local estimates metadata files:
 # 'data/analysis/local_estimates/data=multiwoz21_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/split=validation_samples=10000_sampling=random_sampling-seed=778/edh-mode=regular_lvl=token/add-prefix-space=False_max-len=512/model=roberta-base-trippy_multiwoz21_seed-42_ckpt-3549_task=masked_lm_dr=defaults/layer=-1_agg=mean/norm=None/sampling=random_seed=42_samples=150000/desc=twonn_samples=60000_zerovec=keep_dedup=array_deduplicator_noise=do_nothing/n-neighbors-mode=absolute_size_n-neighbors=128/local_estimates_pointwise_array.npy
@@ -52,8 +51,24 @@ if [[ -z "${TOPO_LLM_REPOSITORY_BASE_PATH}" ]]; then
     exit 1
 fi
 
-# Load environment variables
 source "${TOPO_LLM_REPOSITORY_BASE_PATH}/.env"
+
+# # # # # # # # # # # # # # # # # # # # # # # # #
+# Check if variables are set
+check_variable() {
+    local var_name="$1"
+    local var_value="${!var_name}"
+    if [[ -z "${var_value}" ]]; then
+        echo "❌ Error: ${var_name} is not set."
+        exit 1
+    else
+        echo "✅ ${var_name}=${var_value}"
+    fi
+}
+
+check_variable "TOPO_LLM_REPOSITORY_BASE_PATH"
+check_variable "REMOTE_HOST"
+check_variable "ZIM_TOPO_LLM_REPOSITORY_BASE_PATH"
 
 # # # # # # # # # # # # # # # # # # # # # # # # #
 # Print variables

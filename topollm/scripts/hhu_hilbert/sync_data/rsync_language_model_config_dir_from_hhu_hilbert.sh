@@ -2,16 +2,30 @@
 
 source "${TOPO_LLM_REPOSITORY_BASE_PATH}/.env"
 
-# Print variables
-echo "TOPO_LLM_REPOSITORY_BASE_PATH=$TOPO_LLM_REPOSITORY_BASE_PATH"
-echo "ZIM_TOPO_LLM_REPOSITORY_BASE_PATH=$ZIM_TOPO_LLM_REPOSITORY_BASE_PATH"
+# # # # # # # # # # # # # # # # # # # # # # # # #
+# Check if variables are set
+check_variable() {
+    local var_name="$1"
+    local var_value="${!var_name}"
+    if [[ -z "${var_value}" ]]; then
+        echo "❌ Error: ${var_name} is not set."
+        exit 1
+    else
+        echo "✅ ${var_name}=${var_value}"
+    fi
+}
+
+check_variable "TOPO_LLM_REPOSITORY_BASE_PATH"
+check_variable "REMOTE_HOST"
+check_variable "ZIM_USERNAME"
+check_variable "ZIM_TOPO_LLM_REPOSITORY_BASE_PATH"
 
 REPOSITORY_SUBDIRECTORY_PATH="configs/language_model/"
 
 # Following rsync instructions from:
 # https://wiki.hhu.de/pages/viewpage.action?pageId=55725648
 rsync -avhz --progress \
-    "Hilbert-Storage:${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}/${REPOSITORY_SUBDIRECTORY_PATH}" \
+    "${REMOTE_HOST}:${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}/${REPOSITORY_SUBDIRECTORY_PATH}" \
     "${TOPO_LLM_REPOSITORY_BASE_PATH}/${REPOSITORY_SUBDIRECTORY_PATH}"
 
 # Exit with the exit code of the rsync command

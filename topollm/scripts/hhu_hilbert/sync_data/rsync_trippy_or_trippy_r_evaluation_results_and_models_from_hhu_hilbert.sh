@@ -4,7 +4,6 @@
 # START: Default values
 
 DRY_RUN_FLAG=""
-REMOTE_HOST="HilbertStorage"
 
 # Define RSYNC_EXCLUDES_COMMANDS as an array.
 # Notes:
@@ -57,10 +56,22 @@ fi
 
 source "${TOPO_LLM_REPOSITORY_BASE_PATH}/.env"
 
-if [[ -z "${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}" ]]; then
-    echo "❌ Error: ZIM_TOPO_LLM_REPOSITORY_BASE_PATH is not set."
-    exit 1
-fi
+# # # # # # # # # # # # # # # # # # # # # # # # #
+# Check if variables are set
+check_variable() {
+    local var_name="$1"
+    local var_value="${!var_name}"
+    if [[ -z "${var_value}" ]]; then
+        echo "❌ Error: ${var_name} is not set."
+        exit 1
+    else
+        echo "✅ ${var_name}=${var_value}"
+    fi
+}
+
+check_variable "TOPO_LLM_REPOSITORY_BASE_PATH"
+check_variable "REMOTE_HOST"
+check_variable "ZIM_TOPO_LLM_REPOSITORY_BASE_PATH"
 
 # # # # # # # # # # # # # # # # # # # # # # # # #
 # Log variables
@@ -92,70 +103,6 @@ SYNC_DEST=(
     "${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/model_output/"
     "${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/runs/"
 )
-
-# SYNC_SRC=(
-#     # "${REMOTE_HOST}:${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_checkpoints/"
-#     # "${REMOTE_HOST}:${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints_code/"
-#     # "${REMOTE_HOST}:${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/"
-#     # "${REMOTE_HOST}:${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/not_domain_code/"
-#     # "${REMOTE_HOST}:/gpfs/project/projects/dsml/data/multiwoz21/all_checkpoints_code/"
-#     # "${REMOTE_HOST}:/gpfs/project/projects/dsml/data/multiwoz21/all_checkpoints/results.42/"
-#     # "${REMOTE_HOST}:${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/cached_dev_features"
-#     # "${REMOTE_HOST}:${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/cached_test_features"
-# )
-#
-# # Extend the SYNC_SRC array with additional files for each seed
-# SEEDS=(
-#     1111
-#     40
-#     41
-#     42
-#     43
-#     44
-# )
-
-# for SEED in "${SEEDS[@]}"; do
-#     SYNC_SRC+=(
-#         "${REMOTE_HOST}:${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/results.${SEED}/dev.-1.log"
-#         "${REMOTE_HOST}:${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/results.${SEED}/test.-1.log"
-#         "${REMOTE_HOST}:${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/results.${SEED}/train.-1.log"
-#         "${REMOTE_HOST}:${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/results.${SEED}/eval_res.dev.json"
-#         "${REMOTE_HOST}:${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/results.${SEED}/eval_res.test.json"
-#         "${REMOTE_HOST}:${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/results.${SEED}/eval_res.train.json"
-#         "${REMOTE_HOST}:${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/results.${SEED}/eval_pred_dev.1.0.log"
-#         "${REMOTE_HOST}:${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/results.${SEED}/eval_pred_test.1.0.log"
-#         "${REMOTE_HOST}:${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/results.${SEED}/eval_pred_train.1.0.log"
-#     )
-# done
-
-# SYNC_DEST=(
-#     # "${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_checkpoints/"
-#     # "${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints_code/"
-#     # "${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/"
-#     # "${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/not_domain_code/"
-#     # "${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints_code/"
-#     # "${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/results.42_downloaded_from_michael/"
-#     # "${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/" # No target file name here, to place the files in the same directory
-#     # "${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/" # No target file name here, to place the files in the same directory
-# )
-
-# # Extend the SYNC_DEST array with additional files for each seed
-# for SEED in "${SEEDS[@]}"; do
-#     # Notes:
-#     # - No target file names here, to place the files in the same directory
-#     # - There should be the same number of source and destination paths
-#     SYNC_DEST+=(
-#         "${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/results.${SEED}/"
-#         "${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/results.${SEED}/"
-#         "${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/results.${SEED}/"
-#         "${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/results.${SEED}/"
-#         "${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/results.${SEED}/"
-#         "${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/results.${SEED}/"
-#         "${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/results.${SEED}/"
-#         "${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/results.${SEED}/"
-#         "${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/results.${SEED}/"
-#     )
-# done
 
 # Ensure both arrays have the same number of active entries.
 if [[ ${#SYNC_SRC[@]} -ne ${#SYNC_DEST[@]} ]]; then

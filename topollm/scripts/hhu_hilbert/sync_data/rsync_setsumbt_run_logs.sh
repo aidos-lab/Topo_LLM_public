@@ -2,11 +2,23 @@
 
 source "${TOPO_LLM_REPOSITORY_BASE_PATH}/.env"
 
-# Print variables
-echo ">>> TOPO_LLM_REPOSITORY_BASE_PATH=$TOPO_LLM_REPOSITORY_BASE_PATH"
-echo ">>> ZIM_TOPO_LLM_REPOSITORY_BASE_PATH=$ZIM_TOPO_LLM_REPOSITORY_BASE_PATH"
+# # # # # # # # # # # # # # # # # # # # # # # # #
+# Check if variables are set
+check_variable() {
+    local var_name="$1"
+    local var_value="${!var_name}"
+    if [[ -z "${var_value}" ]]; then
+        echo "❌ Error: ${var_name} is not set."
+        exit 1
+    else
+        echo "✅ ${var_name}=${var_value}"
+    fi
+}
 
-
+check_variable "TOPO_LLM_REPOSITORY_BASE_PATH"
+check_variable "REMOTE_HOST"
+check_variable "ZIM_USERNAME"
+check_variable "ZIM_TOPO_LLM_REPOSITORY_BASE_PATH"
 
 SELECTED_FILE_PATH_LIST=(
     "data/models/setsumbt_checkpoints/multiwoz21/roberta/setsumbt/gru/cosine/labelsmoothing/0.05/seed0/latest-run/run.log"
@@ -17,9 +29,8 @@ SELECTED_FILE_PATH_LIST=(
     "data/models/setsumbt_checkpoints/multiwoz21/roberta/setsumbt/gru/cosine/labelsmoothing/0.05/seed2/latest-run/run.jsonl"
 )
 
-
 for SELECTED_FILE_PATH in "${SELECTED_FILE_PATH_LIST[@]}"; do
-    SOURCE_FILE_PATH="Hilbert-Storage:${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}/$SELECTED_FILE_PATH"
+    SOURCE_FILE_PATH="${REMOTE_HOST}:${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}/$SELECTED_FILE_PATH"
     TARGET_FILE_PATH="${TOPO_LLM_REPOSITORY_BASE_PATH}/$SELECTED_FILE_PATH"
 
     echo ">>> SELECTED_FILE_PATH=$SELECTED_FILE_PATH"
@@ -37,5 +48,5 @@ for SELECTED_FILE_PATH in "${SELECTED_FILE_PATH_LIST[@]}"; do
         --progress \
         "${SOURCE_FILE_PATH}" \
         "${TARGET_FILE_PATH}"
-    
+
 done

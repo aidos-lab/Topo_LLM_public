@@ -1,6 +1,9 @@
 #!/bin/bash
 
+# # # #
 # This command synchronizes only the log.txt files from the remote machine.
+
+source "${TOPO_LLM_REPOSITORY_BASE_PATH}/.env"
 
 # The rsync command uses the following options:
 #   - '-a': Archive mode to preserve file permissions, timestamps, and symbolic links.
@@ -20,5 +23,5 @@ rsync -avz \
     --include='*/' \
     --include='log.txt' \
     --exclude='*' \
-    Hilbert-Storage:"${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/EmoLoop/output_dir/" \
+    "${REMOTE_HOST}:${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/EmoLoop/output_dir/" \
     "${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/EmoLoop/output_dir/"

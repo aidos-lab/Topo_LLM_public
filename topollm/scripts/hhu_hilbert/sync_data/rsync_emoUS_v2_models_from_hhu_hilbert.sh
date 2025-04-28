@@ -3,7 +3,6 @@
 # # # # # # # # # # # # # # # # # # # # # # # # #
 # Default values
 DRY_RUN_FLAG=""
-REMOTE_HOST="HilbertStorage"
 
 # # # # # # # # # # # # # # # # # # # # # # # # #
 # Function to print usage
@@ -40,10 +39,23 @@ fi
 
 source "${TOPO_LLM_REPOSITORY_BASE_PATH}/.env"
 
-if [[ -z "${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}" ]]; then
-    echo "❌ Error: ZIM_TOPO_LLM_REPOSITORY_BASE_PATH is not set."
-    exit 1
-fi
+# # # # # # # # # # # # # # # # # # # # # # # # #
+# Check if variables are set
+check_variable() {
+    local var_name="$1"
+    local var_value="${!var_name}"
+    if [[ -z "${var_value}" ]]; then
+        echo "❌ Error: ${var_name} is not set."
+        exit 1
+    else
+        echo "✅ ${var_name}=${var_value}"
+    fi
+}
+
+check_variable "TOPO_LLM_REPOSITORY_BASE_PATH"
+check_variable "REMOTE_HOST"
+check_variable "ZIM_USERNAME"
+check_variable "ZIM_TOPO_LLM_REPOSITORY_BASE_PATH"
 
 # # # # # # # # # # # # # # # # # # # # # # # # #
 # Log variables

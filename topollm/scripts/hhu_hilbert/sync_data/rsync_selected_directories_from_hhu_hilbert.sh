@@ -6,13 +6,24 @@
 # You can specify the list of subfolders to sync using the --folders option.
 # You can also specify a file containing the list of subfolders to sync using the --file option.
 #
+# Notes:
+# - Do not forget the trailing slash in the folder names, if you want to sync the contents of the folder.
+#   If the trailing slash is missing, the folder itself will be placed in the target directory.
+#
 # > Example calls:
 #
-# ./rsync_selected_directories_from_hhu_hilbert.sh --dry-run --folders "data/models/setsumbt_checkpoints/multiwoz21/roberta/setsumbt/gru/cosine/labelsmoothing/0.05/seed1/" 
-# ./rsync_selected_directories_from_hhu_hilbert.sh --dry-run --folders "data/analysis/local_estimates/data=setsumbt_dataloaders_processed_0_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/split=dev_samples=10000_sampling=random_sampling-seed=778/edh-mode=regular_lvl=token/add-prefix-space=False_max-len=512/model=roberta-base-setsumbt_multiwoz21_seed-0_ckpt-2813_task=masked_lm_dr=defaults/layer=-1_agg=mean/norm=None/sampling=random_seed=42_samples=150000/desc=twonn_samples=60000_zerovec=keep_dedup=array_deduplicator_noise=do_nothing/"
-# ./rsync_selected_directories_from_hhu_hilbert.sh --dry-run --folders "data/models/EmoLoop/output_dir/ep=5/seed=42/"
+# ${TOPO_LLM_REPOSITORY_BASE_PATH}/topollm/scripts/hhu_hilbert/sync_data/rsync_selected_directories_from_hhu_hilbert.sh --dry-run --folders "data/models/setsumbt_checkpoints/multiwoz21/roberta/setsumbt/gru/cosine/labelsmoothing/0.05/seed1/"
 #
+# ${TOPO_LLM_REPOSITORY_BASE_PATH}/topollm/scripts/hhu_hilbert/sync_data/rsync_selected_directories_from_hhu_hilbert.sh --dry-run --folders "data/analysis/local_estimates/data=setsumbt_dataloaders_processed_0_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/split=dev_samples=10000_sampling=random_sampling-seed=778/edh-mode=regular_lvl=token/add-prefix-space=False_max-len=512/model=roberta-base-setsumbt_multiwoz21_seed-0_ckpt-2813_task=masked_lm_dr=defaults/layer=-1_agg=mean/norm=None/sampling=random_seed=42_samples=150000/desc=twonn_samples=60000_zerovec=keep_dedup=array_deduplicator_noise=do_nothing/"
+#
+# ${TOPO_LLM_REPOSITORY_BASE_PATH}/topollm/scripts/hhu_hilbert/sync_data/rsync_selected_directories_from_hhu_hilbert.sh --dry-run --folders "data/models/EmoLoop/output_dir/ep=5/seed=42/"
+#
+#
+# >>> Example: Selected local estimates directory
 # ${TOPO_LLM_REPOSITORY_BASE_PATH}/topollm/scripts/hhu_hilbert/sync_data/rsync_selected_directories_from_hhu_hilbert.sh --folders "data/analysis/local_estimates/data=ertod_emowoz_dataset_seed=50_debug=-1_use_context=False_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/split=validation_samples=10000_sampling=random_sampling-seed=778/edh-mode=regular_lvl=token/add-prefix-space=False_max-len=512/model=bert-base-uncased-ContextBERT-ERToD_emowoz_basic_setup_debug=-1_use_context=False_seed-50_ckpt-0_task=masked_lm_dr=defaults/layer=-1_agg=mean/norm=None/sampling=random_seed=42_samples=150000/desc=twonn_samples=60000_zerovec=keep_dedup=array_deduplicator_noise=do_nothing/"
+#
+# >>> Example: Selected Trippy-R checkpoint from the long training runs
+# ${TOPO_LLM_REPOSITORY_BASE_PATH}/topollm/scripts/hhu_hilbert/sync_data/rsync_selected_directories_from_hhu_hilbert.sh --folders "data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/model_output/num_train_epochs=50/warmup_proportion=0.020/lr_scheduler_type=constant_schedule_with_warmup/results.1111/checkpoint-1775/"
 #
 # # # # # # # # # # # # # # # # # # # # # # # # #
 
@@ -23,7 +34,8 @@ usage() {
     exit 1
 }
 
-# Default value for dry_run option
+# # # # # # # # # # # # # # # # # # # # # # # # #
+# Default values
 DRY_RUN_FLAG=""
 SELECTED_SUBFOLDERS_LIST=()
 
@@ -31,27 +43,27 @@ SELECTED_SUBFOLDERS_LIST=()
 # Parse command-line options
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --dry-run)
+    --dry-run)
         DRY_RUN_FLAG="--dry-run"
         shift
         ;;
-        --folders)
+    --folders)
         shift
         while [[ $# -gt 0 && $1 != --* ]]; do
             SELECTED_SUBFOLDERS_LIST+=("$1")
             shift
         done
         ;;
-        --file)
+    --file)
         shift
         if [[ $# -gt 0 ]]; then
             if [[ -f $1 ]]; then
-            while IFS= read -r line; do
-                SELECTED_SUBFOLDERS_LIST+=("$line")
-            done < "$1"
+                while IFS= read -r line; do
+                    SELECTED_SUBFOLDERS_LIST+=("$line")
+                done <"$1"
             else
-            echo "@@@ Error: File $1 not found."
-            exit 1
+                echo "@@@ Error: File $1 not found."
+                exit 1
             fi
             shift
         else
@@ -59,7 +71,7 @@ while [[ $# -gt 0 ]]; do
             usage
         fi
         ;;
-        *)
+    *)
         echo "@@@ Error: Invalid option $1"
         usage
         ;;
@@ -80,9 +92,22 @@ fi
 
 source "${TOPO_LLM_REPOSITORY_BASE_PATH}/.env"
 
-# Print variables
-echo ">>> TOPO_LLM_REPOSITORY_BASE_PATH=$TOPO_LLM_REPOSITORY_BASE_PATH"
-echo ">>> ZIM_TOPO_LLM_REPOSITORY_BASE_PATH=$ZIM_TOPO_LLM_REPOSITORY_BASE_PATH"
+# # # # # # # # # # # # # # # # # # # # # # # # #
+# Check if variables are set
+check_variable() {
+    local var_name="$1"
+    local var_value="${!var_name}"
+    if [[ -z "${var_value}" ]]; then
+        echo "❌ Error: ${var_name} is not set."
+        exit 1
+    else
+        echo "✅ ${var_name}=${var_value}"
+    fi
+}
+
+check_variable "TOPO_LLM_REPOSITORY_BASE_PATH"
+check_variable "REMOTE_HOST"
+check_variable "ZIM_TOPO_LLM_REPOSITORY_BASE_PATH"
 
 # Print the list of selected subfolders
 echo ">>> Selected subfolders:"
@@ -99,7 +124,7 @@ for SELECTED_SUBFOLDER in "${SELECTED_SUBFOLDERS_LIST[@]}"; do
     echo ">>> Processing subfolder with index $SELECTED_SUBFOLDER_INDEX"
     echo ">>> Selected subfolder: $SELECTED_SUBFOLDER"
 
-    SOURCE_DIR="Hilbert-Storage:${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}/$SELECTED_SUBFOLDER"
+    SOURCE_DIR="${REMOTE_HOST}:${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}/$SELECTED_SUBFOLDER"
     TARGET_DIR="${TOPO_LLM_REPOSITORY_BASE_PATH}/$SELECTED_SUBFOLDER"
 
     # Create the target directory if it does not exist
