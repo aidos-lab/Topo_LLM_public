@@ -208,8 +208,10 @@ data/saved_plots/
 data/test_output.txt
 
 hilbert_job_logs/
+hilbert_job_logs.backup.*
 hilbert_job_logs_backup/
 hydra_output_dir/
+hydra_output_dir.backup.*
 hydra_plugins/
 
 # Temporary files:
@@ -219,4 +221,5 @@ tmp_trainer/
 
 # Weights and Biases (wandb)
 wandb_output_dir/
+wandb_output_dir.backup.*
 wandb/

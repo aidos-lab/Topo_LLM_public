@@ -78,9 +78,9 @@
         },
         {
             "label": "wandb - sync selected wandb runs to cloud",
-            // "command": "./wandb_output_dir/sync_wandb_runs.sh --wandb-project-dir-name 'Topo_LLM_gpt2_finetuning_from_submission_script_for_5_epochs_and_linear_lr_schedule'",
-            // "command": "./wandb_output_dir/sync_wandb_runs.sh --wandb-project-dir-name 'Topo_LLM_roberta-base_finetuning_from_submission_script_for_5_epochs_and_linear_lr_schedule_freeze_lm_head'",
-            "command": "./wandb_output_dir/sync_wandb_runs.sh --wandb-project-dir-name 'Topo_LLM_roberta-base_finetuning_for_ep-5_lr-linear_no_freeze_different_data_subsampling_seeds'",
+            // "command": "./topollm/scripts/monitoring/sync_wandb_runs.sh --wandb-project-dir-name 'Topo_LLM_gpt2_finetuning_from_submission_script_for_5_epochs_and_linear_lr_schedule'",
+            // "command": "./topollm/scripts/monitoring/sync_wandb_runs.sh --wandb-project-dir-name 'Topo_LLM_roberta-base_finetuning_from_submission_script_for_5_epochs_and_linear_lr_schedule_freeze_lm_head'",
+            "command": "./topollm/scripts/monitoring/sync_wandb_runs.sh --wandb-project-dir-name 'Topo_LLM_roberta-base_finetuning_for_ep-5_lr-linear_no_freeze_different_data_subsampling_seeds'",
             "type": "shell",
             "group": {
                 "kind": "build",

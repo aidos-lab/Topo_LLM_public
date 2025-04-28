@@ -7,7 +7,7 @@ __pycache__
 # Python virtual environments
 .venv
 # Names for backup virtual environments
-.venv.*
+.venv.backup.*
 
 .coverage
 .coverage.*
@@ -22,7 +22,7 @@ data/analysis/training_and_evaluation_losses/
 data/embeddings/
 data/analysis/local_estimates/
 
-# Note: 
+# Note:
 # - We exclude the entire data/models/ directory, but also add specific exclusions below.
 data/models/
 
@@ -46,17 +46,21 @@ data/saved_plots/
 # Log files
 logs/
 hilbert_job_logs/
+hilbert_job_logs.backup.*
 hilbert_job_logs_backup/
 hydra_output_dir/
 hydra_output_dir.backup.*
+
+# Weights and Biases (wandb) files
 wandb_output_dir/
+wandb_output_dir.backup.*
 
 tmp_trainer/
 
 # OSX files
 .DS_Store
 
-# Exclude the pyproject.toml to prevent overwriting the HPC pip configuration 
+# Exclude the pyproject.toml to prevent overwriting the HPC pip configuration
 #
 # pyproject.toml
 poetry.lock
