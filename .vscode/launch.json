@@ -327,10 +327,12 @@
                 "hydra.launcher.queue=CUDA",
                 // "hydra.launcher.template=RTX6000",
                 "hydra.launcher.template=GTX1080",
-                "hydra.launcher.memory=32",
+                // "hydra.launcher.memory=32", // <-- 32GB of RAM is enough for the Trippy-R pipeline runs to succeed, but we should check whether we can decrease this
+                "hydra.launcher.memory=16", // 16 GB of RAM also appears to work for the Trippy-R pipeline runs
                 "hydra.launcher.ncpus=2", // <-- Make sure not to use more than 2 CPUs per GPU on the GTX1080TI and RTX6000 nodes.
                 "hydra.launcher.ngpus=1",
-                "hydra.launcher.walltime=01:30:00", // <-- The pipeline run for regular embeddings should only take a few minutes.
+                // "hydra.launcher.walltime=01:30:00", // <-- The pipeline run for regular embeddings should only take a few minutes.
+                "hydra.launcher.walltime=02:30:00", // <-- Note: Since the startup of the computation sometimes takes a long time, we set a longer walltime.
                 //    >> END: Hydra options
                 //
                 "tokenizer.add_prefix_space=False", // "tokenizer.add_prefix_space=True" is necessary to use the tokenizer with input split into words
@@ -420,18 +422,19 @@
                 // "language_model.checkpoint_no=5325,7100,8875,10650,12425,14200,15975,17750,19525,21300,23075,24850,26625,28400,30175,31950,33725,35500",
                 //
                 // >>>>>> Long Trippy-R runs
-                // TODO: Check whether the long runs succeeded
                 "language_model=roberta-base-trippy_r_multiwoz21_long_runs",
                 "language_model.lr_scheduler_type=constant_schedule_with_warmup,linear_schedule_with_warmup",
                 // Note: You can generate the comma-separated list of checkpoints for the long Trippy-R runs with the following python command:
                 // >>> ','.join(list(map(str, range(1775,88751,1775))))
-                // "language_model.checkpoint_no=1775,3550,5325,7100,8875,10650,12425,14200,15975,17750,19525,21300,23075,24850,26625,28400,30175,31950,33725,35500,37275,39050,40825,42600,44375,46150,47925,49700,51475,53250,55025,56800,58575,60350,62125,63900,65675,67450,69225,71000,72775,74550,76325,78100,79875,81650,83425,85200,86975,88750",
+                "language_model.checkpoint_no=1775,3550,5325,7100,8875,10650,12425,14200,15975,17750,19525,21300,23075,24850,26625,28400,30175,31950,33725,35500,37275,39050,40825,42600,44375,46150,47925,49700,51475,53250,55025,56800,58575,60350,62125,63900,65675,67450,69225,71000,72775,74550,76325,78100,79875,81650,83425,85200,86975,88750",
                 // "language_model.checkpoint_no=1775,3550",
                 // "language_model.checkpoint_no=5325",
-                "language_model.checkpoint_no=7100,8875,10650,12425,14200,15975,17750,19525,21300,23075,24850,26625,28400,30175,31950,33725,35500,37275,39050,40825,42600,44375,46150,47925,49700,51475,53250,55025,56800,58575,60350,62125,63900,65675,67450,69225,71000,72775,74550,76325,78100,79875,81650,83425,85200,86975,88750",
+                // "language_model.checkpoint_no=7100,8875,10650,12425,14200,15975,17750,19525,21300,23075,24850,26625,28400,30175,31950,33725,35500,37275,39050,40825,42600,44375,46150,47925,49700,51475,53250,55025,56800,58575,60350,62125,63900,65675,67450,69225,71000,72775,74550,76325,78100,79875,81650,83425,85200,86975,88750",
                 //
-                "language_model.seed=1111",
-                // "language_model.seed=42",
+                // "language_model.seed=1111",
+                // "language_model.seed=40", // TODO: 40 is currently running
+                "language_model.seed=41", // TODO: 41 is currently running
+                // "language_model.seed=42", // TODO: Still need to run seeds 41, 42, 43, 44
                 // "language_model.seed=43",
                 // "language_model.seed=43,44",
                 // "language_model.seed=42,43,44",
@@ -454,7 +457,7 @@
                 "local_estimates.pointwise.absolute_n_neighbors=128",
                 //
                 //    >> START: Feature flags.
-                "feature_flags.analysis.create_plots_in_local_estimates_worker=true", // <-- Decide whether to create plots in the local estimates worker.
+                "feature_flags.analysis.create_plots_in_local_estimates_worker=false", // <-- Decide whether to create plots in the local estimates worker.
                 //    >> END: Feature flags.
             ],
             "env": {
