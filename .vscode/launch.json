@@ -120,13 +120,6 @@
                 "--multirun",
                 "hydra/sweeper=basic",
                 "hydra/launcher=basic",
-                // "hydra/launcher=hpc_submission",
-                // "hydra.launcher.queue=CUDA",
-                // "hydra.launcher.template=RTX6000",
-                // "hydra.launcher.memory=32",
-                // "hydra.launcher.ncpus=4",
-                // "hydra.launcher.ngpus=1",
-                // "hydra.launcher.walltime=01:00:00", // <-- The pipeline run for regular embeddings should only take a few minutes.
                 // >>>> END: Hydra options
                 //
                 "tokenizer.add_prefix_space=False", // "tokenizer.add_prefix_space=True" is necessary to use the tokenizer with input split into words
@@ -188,13 +181,6 @@
                 "--multirun",
                 "hydra/sweeper=basic",
                 "hydra/launcher=basic",
-                // "hydra/launcher=hpc_submission",
-                // "hydra.launcher.queue=CUDA",
-                // "hydra.launcher.template=RTX6000",
-                // "hydra.launcher.memory=32",
-                // "hydra.launcher.ncpus=4",
-                // "hydra.launcher.ngpus=1",
-                // "hydra.launcher.walltime=01:00:00", // <-- The pipeline run for regular embeddings should only take a few minutes.
                 // >>>> END: Hydra options
                 //
                 "tokenizer.add_prefix_space=False", // "tokenizer.add_prefix_space=True" is necessary to use the tokenizer with input split into words
@@ -274,13 +260,6 @@
                 "--multirun",
                 "hydra/sweeper=basic",
                 "hydra/launcher=basic",
-                // "hydra/launcher=hpc_submission",
-                // "hydra.launcher.queue=CUDA",
-                // "hydra.launcher.template=RTX6000",
-                // "hydra.launcher.memory=32",
-                // "hydra.launcher.ncpus=4",
-                // "hydra.launcher.ngpus=1",
-                // "hydra.launcher.walltime=01:00:00", // <-- The pipeline run for regular embeddings should only take a few minutes.
                 // >>>> END: Hydra options
                 //
                 "tokenizer.add_prefix_space=False", // "tokenizer.add_prefix_space=True" is necessary to use the tokenizer with input split into words
@@ -326,6 +305,13 @@
                 "PYTORCH_ENABLE_MPS_FALLBACK": "1"
             }
         },
+        // Notes: 
+        // - Even though this page claims that the maximum duration of a GPU-Job is 47:59:59, 
+        //   we can sucessfully submit jobs with a duration of 59:00:00.
+        //   https://wiki.hhu.de/display/HPC/Besonderheiten
+        //   On the DSML queue, we can even start jobs with a duration of 72:00:00.
+        // - The GTX1080TI and RTX6000 nodes have 20 CPU-Cores and 10 GPUs each, 
+        //   thus per GPU you should not use more than 2 CPUs.
         {
             "name": "Run pipeline - HHU Hilbert HPC submission - TwoNN - Fixed subsampling seed - RoBERTa, BERT, ContextBERT-ERToD, SetSUMBT, Trippy, Trippy-R checkpoints; last layer only - Run pipeline.",
             "type": "debugpy",
@@ -342,7 +328,7 @@
                 // "hydra.launcher.template=RTX6000",
                 "hydra.launcher.template=GTX1080",
                 "hydra.launcher.memory=32",
-                "hydra.launcher.ncpus=4",
+                "hydra.launcher.ncpus=2", // <-- Make sure not to use more than 2 CPUs per GPU on the GTX1080TI and RTX6000 nodes.
                 "hydra.launcher.ngpus=1",
                 "hydra.launcher.walltime=01:30:00", // <-- The pipeline run for regular embeddings should only take a few minutes.
                 //    >> END: Hydra options
@@ -489,7 +475,7 @@
                 // "hydra.launcher.template=RTX6000",
                 "hydra.launcher.template=GTX1080",
                 "hydra.launcher.memory=32",
-                "hydra.launcher.ncpus=4",
+                "hydra.launcher.ncpus=2", // <-- Make sure not to use more than 2 CPUs per GPU on the GTX1080TI and RTX6000 nodes.
                 "hydra.launcher.ngpus=1",
                 "hydra.launcher.walltime=01:30:00", // <-- The pipeline run for regular embeddings should only take a few minutes.
                 //    >> END: Hydra options
@@ -640,7 +626,7 @@
                 // "hydra.launcher.queue=CUDA",
                 // "hydra.launcher.template=GTX1080",
                 // "hydra.launcher.memory=32",
-                // "hydra.launcher.ncpus=4",
+                // "hydra.launcher.ncpus=2",  // <-- Make sure not to use more than 2 CPUs per GPU on the GTX1080TI and RTX6000 nodes.
                 // "hydra.launcher.ngpus=1",
                 // ===== CPU-machine =====
                 "hydra.launcher.queue=DEFAULT",
@@ -739,7 +725,7 @@
                 // "hydra.launcher.template=RTX6000",
                 "hydra.launcher.template=GTX1080",
                 "hydra.launcher.memory=32",
-                "hydra.launcher.ncpus=4",
+                "hydra.launcher.ncpus=2", // <-- Make sure not to use more than 2 CPUs per GPU on the GTX1080TI and RTX6000 nodes.
                 "hydra.launcher.ngpus=1",
                 "hydra.launcher.walltime=01:00:00", // <-- The pipeline run for regular embeddings should only take a few minutes.
                 // >>>> END: Hydra options
@@ -919,7 +905,7 @@
                 "hydra.launcher.queue=CUDA",
                 "hydra.launcher.template=RTX6000",
                 "hydra.launcher.memory=32",
-                "hydra.launcher.ncpus=4",
+                "hydra.launcher.ncpus=2", // <-- Make sure not to use more than 2 CPUs per GPU on the GTX1080TI and RTX6000 nodes.
                 "hydra.launcher.ngpus=1",
                 "hydra.launcher.walltime=00:30:00", // <-- The evaluation should not take more than a few minutes
                 // >>>> END: Hydra options
@@ -1416,7 +1402,7 @@
                 "hydra.launcher.queue=CUDA",
                 "hydra.launcher.template=RTX6000",
                 "hydra.launcher.memory=32",
-                "hydra.launcher.ncpus=4",
+                "hydra.launcher.ncpus=2", // <-- Make sure not to use more than 2 CPUs per GPU on the GTX1080TI and RTX6000 nodes.
                 "hydra.launcher.ngpus=1",
                 "hydra.launcher.walltime=00:20:00", // For 60000 samples and one dataset and model, a forward pass takes only a few minutes on an RTX 6000
                 // >>>> END: Hydra options
@@ -1481,7 +1467,7 @@
                 "hydra.launcher.queue=CUDA",
                 "hydra.launcher.template=RTX6000",
                 "hydra.launcher.memory=32",
-                "hydra.launcher.ncpus=4",
+                "hydra.launcher.ncpus=2", // <-- Make sure not to use more than 2 CPUs per GPU on the GTX1080TI and RTX6000 nodes.
                 "hydra.launcher.ngpus=1",
                 "hydra.launcher.walltime=02:00:00", // For 60000 samples and one dataset and model, a forward pass takes only a few minutes on an RTX 6000
                 // >>>> END: Hydra options
@@ -1546,7 +1532,7 @@
                 // "hydra.launcher.queue=DSML",
                 // "hydra.launcher.template=DSML",
                 "hydra.launcher.memory=32",
-                "hydra.launcher.ncpus=4",
+                "hydra.launcher.ncpus=2", // <-- Make sure not to use more than 2 CPUs per GPU on the GTX1080TI and RTX6000 nodes.
                 "hydra.launcher.ngpus=1",
                 "hydra.launcher.walltime=00:30:00", // For 60000 samples and one dataset and model, a forward pass takes only a few minutes on an RTX6000-24GB (CUDA queue) or an GTX2080-8GB (DSML queue)
                 //
@@ -2222,7 +2208,7 @@
                 // "hydra.launcher.queue=CUDA",
                 // "hydra.launcher.template=RTX6000",
                 // "hydra.launcher.memory=32",
-                // "hydra.launcher.ncpus=4",
+                // "hydra.launcher.ncpus=2",  // <-- Make sure not to use more than 2 CPUs per GPU on the GTX1080TI and RTX6000 nodes.
                 // "hydra.launcher.ngpus=1",
                 // "hydra.launcher.walltime=00:10:00", // <-- The logging script should run very quickly.
                 //   >> END: Hydra options
@@ -2270,7 +2256,7 @@
                 // "hydra.launcher.queue=CUDA",
                 // "hydra.launcher.template=RTX6000",
                 // "hydra.launcher.memory=32",
-                // "hydra.launcher.ncpus=4",
+                // "hydra.launcher.ncpus=2",  // <-- Make sure not to use more than 2 CPUs per GPU on the GTX1080TI and RTX6000 nodes.
                 // "hydra.launcher.ngpus=1",
                 // "hydra.launcher.walltime=00:10:00", // <-- The logging script should run very quickly.
                 // >>>> END: Hydra options
@@ -2302,7 +2288,7 @@
                 // "hydra.launcher.queue=CUDA",
                 // "hydra.launcher.template=RTX6000",
                 // "hydra.launcher.memory=32",
-                // "hydra.launcher.ncpus=4",
+                // "hydra.launcher.ncpus=2",  // <-- Make sure not to use more than 2 CPUs per GPU on the GTX1080TI and RTX6000 nodes.
                 // "hydra.launcher.ngpus=1",
                 // "hydra.launcher.walltime=00:10:00", // <-- The logging script should run very quickly.
                 // >>>> END: Hydra options
@@ -2337,7 +2323,7 @@
                 // "hydra.launcher.queue=CUDA",
                 // "hydra.launcher.template=RTX6000",
                 // "hydra.launcher.memory=32",
-                // "hydra.launcher.ncpus=4",
+                // "hydra.launcher.ncpus=2",  // <-- Make sure not to use more than 2 CPUs per GPU on the GTX1080TI and RTX6000 nodes.
                 // "hydra.launcher.ngpus=1",
                 // "hydra.launcher.walltime=00:10:00", // <-- The logging script should run very quickly.
                 // >>>> END: Hydra options
@@ -2382,7 +2368,7 @@
                 // "hydra.launcher.queue=CUDA",
                 // "hydra.launcher.template=RTX6000",
                 // "hydra.launcher.memory=32",
-                // "hydra.launcher.ncpus=4",
+                // "hydra.launcher.ncpus=2",  // <-- Make sure not to use more than 2 CPUs per GPU on the GTX1080TI and RTX6000 nodes.
                 // "hydra.launcher.ngpus=1",
                 // "hydra.launcher.walltime=00:10:00", // <-- The logging script should run very quickly.
                 // >>>> END: Hydra options
@@ -2416,7 +2402,7 @@
                 // "hydra.launcher.queue=CUDA",
                 // "hydra.launcher.template=RTX6000",
                 // "hydra.launcher.memory=32",
-                // "hydra.launcher.ncpus=4",
+                // "hydra.launcher.ncpus=2",  // <-- Make sure not to use more than 2 CPUs per GPU on the GTX1080TI and RTX6000 nodes.
                 // "hydra.launcher.ngpus=1",
                 // "hydra.launcher.walltime=00:10:00", // <-- The logging script should run very quickly.
                 // >>>> END: Hydra options
@@ -2450,7 +2436,7 @@
                 // "hydra.launcher.queue=CUDA",
                 // "hydra.launcher.template=RTX6000",
                 // "hydra.launcher.memory=32",
-                // "hydra.launcher.ncpus=4",
+                // "hydra.launcher.ncpus=2",  // <-- Make sure not to use more than 2 CPUs per GPU on the GTX1080TI and RTX6000 nodes.
                 // "hydra.launcher.ngpus=1",
                 // "hydra.launcher.walltime=01:00:00", // <-- The pipeline run for regular embeddings should only take a few minutes.
                 // >>>> END: Hydra options
