@@ -50,8 +50,15 @@ dependencies = [
     "networkit<=11",
     "tensorboardx>=2.6.2.2",
     "boto3>=1.37.20",
-    "kaleido<=0.2.0",
+    "kaleido==0.2.1",         # There is an error on MacOS with ARM chip when installing one of the post versions of kaleido
 ]
+# Comments on pinned versions.
+#
+# - Problem with kaleido on MacOS with ARM chip:
+#   error: Distribution `kaleido==0.2.1.post1 @ registry+https://pypi.org/simple` can't be installed because it doesn't have a source distribution or wheel for the current platform
+#   hint: You're on macOS (`macosx_15_0_arm64`), but `kaleido` (v0.2.1.post1) only has wheels for the following platform: `manylinux2014_armv7l`
+#   Current solution: Pinning the version to 0.2.1 
+#   https://github.com/astral-sh/uv/issues/12032
 
 [project.scripts]
 tests = "topollm.scripts.run_tests_with_coverage:main"

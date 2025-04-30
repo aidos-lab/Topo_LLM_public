@@ -1,0 +1,24 @@
+checkpoint_no: 1775
+lm_mode: trippy
+task_type: masked_lm
+
+# Training run parameters
+seed: 42
+num_train_epochs: 50
+# We use a string here so that the trailing zero (which is part of the file paths)
+# is not lost when the config is loaded and in the omegaConf value extrapolation.
+warmup_proportion: "0.020"
+lr_scheduler_type: constant_schedule_with_warmup
+
+manual_tokenizer_override_pretrained_model_name_or_path: roberta-base
+
+this_single_run_root_directory: ${paths.data_dir}/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/model_output/num_train_epochs=${language_model.num_train_epochs}/warmup_proportion=${language_model.warmup_proportion}/lr_scheduler_type=${language_model.lr_scheduler_type}/results.${language_model.seed}
+pretrained_model_name_or_path: ${language_model.this_single_run_root_directory}/checkpoint-${language_model.checkpoint_no}
+# For the Trippy-R models, the model_log_file_path is the parent directory which contains
+# the "eval_res.dev.json" and "eval_res.test.json" files.
+model_log_file_path: ${language_model.this_single_run_root_directory}
+short_model_name: roberta-base-trippy_r_multiwoz21_${language_model.num_train_epochs}-${language_model.warmup_proportion}-${language_model.lr_scheduler_type}_seed-${language_model.seed}_ckpt-${language_model.checkpoint_no}
+
+tokenizer_modifier:
+  mode: do_nothing
+  padding_token: "<pad>"
