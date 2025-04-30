@@ -5,6 +5,8 @@ task_type: masked_lm
 # Training run parameters
 seed: 42
 num_train_epochs: 50
+# We use a string here so that the trailing zero (which is part of the file paths)
+# is not lost when the config is loaded and in the omegaConf value extrapolation.
 warmup_proportion: "0.020"
 lr_scheduler_type: constant_schedule_with_warmup
 
@@ -19,4 +21,4 @@ short_model_name: roberta-base-trippy_r_multiwoz21_${language_model.num_train_ep
 
 tokenizer_modifier:
   mode: do_nothing
-  padding_token: <pad>
+  padding_token: "<pad>"
