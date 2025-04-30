@@ -145,18 +145,20 @@ def create_mean_plots_over_model_checkpoints_with_different_seeds(
     """Create mean plots over model checkpoints with different seeds."""
     if fixed_keys is None:
         fixed_keys = [
+            # Notes:
+            # - Do NOT fix the model seed, as we want to plot the mean over different seeds.
+            # - If you want plots that combine estimates for different data subsamplings,
+            #   you need to remove "data_subsampling_full" from the fixed_keys list and add only the split.
+            #   # TODO: Automatically iterate over both options
             "data_full",
-            # "data_subsampling_full", # TODO: Iterate over both options
-            # > Example: 'split=test_samples=7000_sampling=random_sampling-seed=41'
-            "data_subsampling_split",  # TODO: Iterate over both options
-            # > Example: 'test'
-            # - If you want plots that combine estimates for different data subsamplings, you need to remove "data_subsampling_full" from the fixed_keys list and add only the split.
+            # > Example value for "data_subsampling_full": 'split=test_samples=7000_sampling=random_sampling-seed=41'
+            # "data_subsampling_full",
+            # > Example value for "data_subsampling_split": 'test'
+            "data_subsampling_split",
             "data_dataset_seed",
             "model_layer",  # model_layer needs to be an integer
             "model_partial_name",
             "local_estimates_desc_full",
-            # Note:
-            # - Do NOT fix the model seed, as we want to plot the mean over different seeds.
         ]
 
     if additional_fixed_params is None:
@@ -382,7 +384,8 @@ def load_scores(
             for seed in range(50, 55):
                 parsed_data_path: pathlib.Path = pathlib.Path(
                     embeddings_path_manager.data_dir,
-                    f"models/EmoLoop/output_dir/debug=-1/use_context=False/ep=5/seed={seed}/parsed_data/raw_data/parsed_data.csv",
+                    f"models/EmoLoop/output_dir/debug=-1/use_context=False/"
+                    f"ep=5/seed={seed}/parsed_data/raw_data/parsed_data.csv",
                 )
 
                 file_loader = EmotionClassificationScoreLoader(
@@ -457,9 +460,100 @@ def load_scores(
                 )
 
             combined_scores_columns_to_plot_list: list[str] | None = list(columns_to_plot_set)
+        case "model=roberta-base-trippy_r_multiwoz21_50-0.020-constant_schedule_with_warmup":
+            seed_dfs: list[pd.DataFrame] = []
+            columns_to_plot_set: set[str] = set()
 
-        # TODO: Implement this for language models (with performance given by loss)
+            combined_scores_df = None
+            combined_scores_columns_to_plot_list = None
 
+            for seed in range(40, 45):
+                results_folder_for_given_seed_path: pathlib.Path = pathlib.Path(
+                    embeddings_path_manager.data_dir,
+                    "models/trippy_r_checkpoints/multiwoz21/all_checkpoints/",
+                    "model_output/num_train_epochs=50/warmup_proportion=0.020/lr_scheduler_type=constant_schedule_with_warmup",
+                    f"results.{seed}",
+                )
+
+                file_loader = TrippyRScoreLoader(
+                    results_folder_for_given_seed_path=results_folder_for_given_seed_path,
+                    verbosity=verbosity,
+                    logger=logger,
+                )
+
+                scores_df: pd.DataFrame = file_loader.get_scores()
+                scores_df["model_seed"] = seed  # Tag the dataframe with the current seed
+                seed_dfs.append(scores_df)
+
+                columns_to_plot: list[str] = file_loader.get_columns_to_plot()
+                columns_to_plot_set.update(
+                    columns_to_plot,
+                )
+
+            # Concatenate all seed dataframes into one
+            if len(seed_dfs) == 0:
+                logger.warning(
+                    msg="No seed dataframes found.",
+                )
+                logger.info(
+                    msg="Setting combined_scores_df to None for this model.",
+                )
+                combined_scores_df: pd.DataFrame | None = None
+            else:
+                combined_scores_df: pd.DataFrame | None = pd.concat(
+                    objs=seed_dfs,
+                    ignore_index=True,
+                )
+
+            combined_scores_columns_to_plot_list: list[str] | None = list(columns_to_plot_set)
+        case "model=roberta-base-trippy_r_multiwoz21_50-0.020-linear_schedule_with_warmup":
+            seed_dfs: list[pd.DataFrame] = []
+            columns_to_plot_set: set[str] = set()
+
+            combined_scores_df = None
+            combined_scores_columns_to_plot_list = None
+
+            for seed in range(40, 45):
+                results_folder_for_given_seed_path: pathlib.Path = pathlib.Path(
+                    embeddings_path_manager.data_dir,
+                    "models/trippy_r_checkpoints/multiwoz21/all_checkpoints/",
+                    "model_output/num_train_epochs=50/warmup_proportion=0.020/lr_scheduler_type=linear_schedule_with_warmup",
+                    f"results.{seed}",
+                )
+
+                file_loader = TrippyRScoreLoader(
+                    results_folder_for_given_seed_path=results_folder_for_given_seed_path,
+                    verbosity=verbosity,
+                    logger=logger,
+                )
+
+                scores_df: pd.DataFrame = file_loader.get_scores()
+                scores_df["model_seed"] = seed  # Tag the dataframe with the current seed
+                seed_dfs.append(scores_df)
+
+                columns_to_plot: list[str] = file_loader.get_columns_to_plot()
+                columns_to_plot_set.update(
+                    columns_to_plot,
+                )
+
+            # Concatenate all seed dataframes into one
+            if len(seed_dfs) == 0:
+                logger.warning(
+                    msg="No seed dataframes found.",
+                )
+                logger.info(
+                    msg="Setting combined_scores_df to None for this model.",
+                )
+                combined_scores_df: pd.DataFrame | None = None
+            else:
+                combined_scores_df: pd.DataFrame | None = pd.concat(
+                    objs=seed_dfs,
+                    ignore_index=True,
+                )
+
+            combined_scores_columns_to_plot_list: list[str] | None = list(columns_to_plot_set)
+
+        # TODO: Implement score loading for language models (with performance given by loss)
         case _:
             logger.warning(
                 msg=f"No specific model performance data loader implemented for "  # noqa: G004 - low overhead
