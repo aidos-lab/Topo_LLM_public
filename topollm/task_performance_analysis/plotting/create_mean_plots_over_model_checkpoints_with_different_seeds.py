@@ -25,9 +25,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Plots of local estimates over model checkpoints with different seeds."""
+
 import logging
 import pathlib
 from dataclasses import dataclass, field
+from itertools import chain
 from typing import Any
 
 import matplotlib.pyplot as plt
@@ -467,7 +470,10 @@ def load_scores(
             combined_scores_df = None
             combined_scores_columns_to_plot_list = None
 
-            for seed in range(40, 45):
+            for seed in chain(
+                range(40, 45),
+                [1111],
+            ):
                 results_folder_for_given_seed_path: pathlib.Path = pathlib.Path(
                     embeddings_path_manager.data_dir,
                     "models/trippy_r_checkpoints/multiwoz21/all_checkpoints/",
@@ -513,7 +519,10 @@ def load_scores(
             combined_scores_df = None
             combined_scores_columns_to_plot_list = None
 
-            for seed in range(40, 45):
+            for seed in chain(
+                range(40, 45),
+                [1111],
+            ):
                 results_folder_for_given_seed_path: pathlib.Path = pathlib.Path(
                     embeddings_path_manager.data_dir,
                     "models/trippy_r_checkpoints/multiwoz21/all_checkpoints/",
@@ -552,8 +561,6 @@ def load_scores(
                 )
 
             combined_scores_columns_to_plot_list: list[str] | None = list(columns_to_plot_set)
-
-        # TODO: Implement score loading for language models (with performance given by loss)
         case _:
             logger.warning(
                 msg=f"No specific model performance data loader implemented for "  # noqa: G004 - low overhead
@@ -564,6 +571,7 @@ def load_scores(
             )
             combined_scores_df: pd.DataFrame | None = None
             combined_scores_columns_to_plot_list: list[str] | None = None
+        # TODO: Implement score loading for language models (with performance given by loss)
 
     scores_data = ScoresData(
         df=combined_scores_df,
