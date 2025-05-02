@@ -337,6 +337,10 @@ def create_mean_plots_over_model_checkpoints_with_different_seeds(
                     y_min=0.0,
                     y_max=1.1,
                 ),
+                AxisLimits(
+                    y_min=0.0,
+                    y_max=0.8,
+                ),
             ]
 
             for secondary_axis_limits in secondary_axis_limits_list:
