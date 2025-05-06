@@ -379,6 +379,8 @@ def load_scores(
     logger: logging.Logger = default_logger,
 ) -> ScoresData:
     match filter_key_value_pairs["model_partial_name"]:
+        # Notes:
+        # - For the EmoLoop models, you need to have prepared the parsed_data files
         case "model=bert-base-uncased-ContextBERT-ERToD_emowoz_basic_setup_debug=-1_use_context=False":
             if verbosity >= Verbosity.NORMAL:
                 logger.info(

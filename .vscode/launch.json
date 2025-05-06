@@ -398,8 +398,8 @@
                 //
                 "language_model=bert-base-uncased-ContextBERT-ERToD_emowoz_basic_setup",
                 // "language_model.seed=50", // Note: Seed 50 already submitted.
-                "language_model.seed=51",
-                // "language_model.seed=51,52,53,54", // TODO: Submit seeds 51, 52, 53, 54
+                // "language_model.seed=51",
+                "language_model.seed=52,53,54", // Note: Waiting for seeds 51, 52, 53, 54 to finish running
                 // "language_model.seed=50,51,52,53,54",
                 //
                 // >> Note: For the ERC models the checkpoints are given by the epoch numbers

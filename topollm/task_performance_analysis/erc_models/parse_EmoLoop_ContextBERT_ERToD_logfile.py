@@ -27,6 +27,7 @@
 
 """Parse the log file of EmoLoop's ContextBERT ERToD model training run and plot F1 scores."""
 
+import itertools
 import json
 import logging
 import os
@@ -75,16 +76,41 @@ def main() -> None:
         msg="Running script ...",
     )
 
-    for use_context in [
+    # Define which options we want to iterate over to process the log files.
+    debug_truncation_size_options: list[int] = [
+        -1,
+        60,
+    ]
+    use_context_options: list[bool] = [
         True,
         False,
-    ]:
+    ]
+    num_train_epochs_options: list[int] = [
+        5,
+        50,
+    ]
+
+    combinations = itertools.product(
+        debug_truncation_size_options,
+        use_context_options,
+        num_train_epochs_options,
+    )
+
+    for (
+        debug_truncation_size,
+        use_context,
+        num_train_epochs,
+    ) in combinations:
         # Define the file paths.
         model_training_runs_output_dir: pathlib.Path = pathlib.Path(
             TOPO_LLM_REPOSITORY_BASE_PATH,
-            "data/models/EmoLoop/output_dir/debug=-1/",
+            "data",
+            "models",
+            "EmoLoop",
+            "output_dir",
+            f"debug={debug_truncation_size}",
             f"use_context={use_context}",
-            "ep=5",
+            f"ep={num_train_epochs}",
         )
 
         match use_context:
@@ -103,6 +129,12 @@ def main() -> None:
                 model_training_runs_output_dir,
                 f"seed={seed}",
             )
+
+            if not single_training_run_parent_dir.exists():
+                logger.warning(
+                    msg=f"Path {single_training_run_parent_dir = } does not exist. Skipping this training run.",  # noqa: G004 - low overhead
+                )
+                continue
 
             process_log_file_of_single_model_training_run(
                 single_training_run_parent_dir=single_training_run_parent_dir,
