@@ -224,12 +224,14 @@ def create_mean_plots_over_model_checkpoints_with_different_seeds(
 
         # Sort the arrays by increasing model checkpoint.
         # Then from this point, the list of arrays and list of extracted checkpoints will be in the correct order.
+
         # 1. Step: Replace None model checkpoints with -1.
         model_checkpoint_column_name = "model_checkpoint"
 
         for single_dict in filtered_data_with_added_base_model:
             if single_dict[model_checkpoint_column_name] is None:
                 single_dict[model_checkpoint_column_name] = -1
+
         # 2. Step: Call sorting function.
         sorted_data: list[dict] = sorted(
             filtered_data_with_added_base_model,
@@ -381,20 +383,41 @@ def load_scores(
     match filter_key_value_pairs["model_partial_name"]:
         # Notes:
         # - For the EmoLoop models, you need to have prepared the parsed_data files
-        case "model=bert-base-uncased-ContextBERT-ERToD_emowoz_basic_setup_debug=-1_use_context=False":
+        case (
+            "model=bert-base-uncased-ContextBERT-ERToD_emowoz_basic_setup_debug=-1_use_context=False"
+            | "model=bert-base-uncased-ContextBERT-ERToD_emowoz_basic_setup_debug--1_ep-50_use_context-False"
+        ):
             if verbosity >= Verbosity.NORMAL:
                 logger.info(
                     msg="Loading scores for EmoLoop emotion models.",
                 )
+
+            match filter_key_value_pairs["model_partial_name"]:
+                case "model=bert-base-uncased-ContextBERT-ERToD_emowoz_basic_setup_debug=-1_use_context=False":
+                    base_directory = pathlib.Path(
+                        embeddings_path_manager.data_dir,
+                        "models/EmoLoop/output_dir/",
+                        "debug=-1/use_context=False/ep=5/",
+                    )
+                case "model=bert-base-uncased-ContextBERT-ERToD_emowoz_basic_setup_debug--1_ep-50_use_context-False":
+                    base_directory = pathlib.Path(
+                        embeddings_path_manager.data_dir,
+                        "models/EmoLoop/output_dir/",
+                        "debug=-1/use_context=False/ep=50/",
+                    )
+                case _:
+                    raise ValueError(
+                        msg=f"Unknown model_partial_name: {filter_key_value_pairs['model_partial_name']}",
+                    )
 
             seed_dfs: list[pd.DataFrame] = []
             columns_to_plot_set: set[str] = set()
 
             for seed in range(50, 55):
                 parsed_data_path: pathlib.Path = pathlib.Path(
-                    embeddings_path_manager.data_dir,
-                    f"models/EmoLoop/output_dir/debug=-1/use_context=False/"
-                    f"ep=5/seed={seed}/parsed_data/raw_data/parsed_data.csv",
+                    base_directory,
+                    f"seed={seed}/",
+                    "parsed_data/raw_data/parsed_data.csv",
                 )
 
                 file_loader = EmotionClassificationScoreLoader(
