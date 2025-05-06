@@ -636,19 +636,30 @@ def plot_local_estimates_with_individual_seeds_and_aggregated_over_seeds(
             "file_data_mean",
         ]
     ].copy()
-
-    # Separate the checkpoint -1 data (no seeds associated)
-    checkpoint_neg1 = local_estimates_plot_data_df[local_estimates_plot_data_df[x_column_name] == -1].iloc[0]
     seeds: np.ndarray = local_estimates_plot_data_df["model_seed"].dropna().unique().astype(dtype=int)
 
-    # Emulate checkpoint -1 data for each seed
-    neg1_data_emulated = pd.DataFrame(
-        data={
-            x_column_name: [-1] * len(seeds),
-            "model_seed": seeds,
-            "file_data_mean": [checkpoint_neg1["file_data_mean"]] * len(seeds),
-        },
-    )
+    # Separate the checkpoint -1 data (no seeds associated)
+    checkpoint_neg1_selected_rows = local_estimates_plot_data_df[local_estimates_plot_data_df[x_column_name] == -1]
+
+    if checkpoint_neg1_selected_rows.empty:
+        logger.warning(
+            msg="No checkpoint -1 data found in the local estimates DataFrame.",
+        )
+        logger.warning(
+            msg="We will not add any checkpoint -1 data to the plot.",
+        )
+        neg1_data_emulated = None
+    else:
+        checkpoint_neg1 = checkpoint_neg1_selected_rows.iloc[0]
+
+        # Emulate checkpoint -1 data for each seed
+        neg1_data_emulated = pd.DataFrame(
+            data={
+                x_column_name: [-1] * len(seeds),
+                "model_seed": seeds,
+                "file_data_mean": [checkpoint_neg1["file_data_mean"]] * len(seeds),
+            },
+        )
 
     # Drop original -1 checkpoint and append the emulated data
     local_estimates_plot_data_df = local_estimates_plot_data_df[

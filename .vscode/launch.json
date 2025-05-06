@@ -398,7 +398,8 @@
                 //
                 "language_model=bert-base-uncased-ContextBERT-ERToD_emowoz_basic_setup",
                 // "language_model.seed=50", // Note: Seed 50 already submitted.
-                "language_model.seed=51,52,53,54", // TODO: Submit seeds 51, 52, 53, 54
+                "language_model.seed=51",
+                // "language_model.seed=51,52,53,54", // TODO: Submit seeds 51, 52, 53, 54
                 // "language_model.seed=50,51,52,53,54",
                 //
                 // >> Note: For the ERC models the checkpoints are given by the epoch numbers
@@ -2361,8 +2362,8 @@
                 //    >> START: Plotting options.
                 //
                 // "analysis/task_performance_analysis/plotting=all",
-                // "analysis/task_performance_analysis/plotting=ertod",
-                "analysis/task_performance_analysis/plotting=trippy_r_same_data_subsampling",
+                "analysis/task_performance_analysis/plotting=ertod",
+                // "analysis/task_performance_analysis/plotting=trippy_r_same_data_subsampling",
                 // "analysis/task_performance_analysis/plotting=trippy_r_different_sample_for_different_models",
                 //
                 //    >> END: Plotting options.
