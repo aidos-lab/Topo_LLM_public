@@ -327,8 +327,8 @@
                 "hydra.launcher.queue=CUDA",
                 // "hydra.launcher.template=RTX6000",
                 "hydra.launcher.template=GTX1080",
-                // "hydra.launcher.memory=32", // <-- 32GB of RAM is enough for the Trippy-R pipeline runs to succeed, but we should check whether we can decrease this
-                "hydra.launcher.memory=16", // 16 GB of RAM also appears to work for the Trippy-R pipeline runs
+                "hydra.launcher.memory=32", // <-- 32GB of RAM is enough for the Trippy-R pipeline runs to succeed, but we should check whether we can decrease this
+                // "hydra.launcher.memory=16", // 16 GB of RAM also appears to work for the Trippy-R pipeline runs, but is not enough for the ERC pipeline runs
                 "hydra.launcher.ncpus=2", // <-- Make sure not to use more than 2 CPUs per GPU on the GTX1080TI and RTX6000 nodes.
                 "hydra.launcher.ngpus=1",
                 // "hydra.launcher.walltime=01:30:00", // <-- The pipeline run for regular embeddings should only take a few minutes.
@@ -346,7 +346,10 @@
                 // "data=multiwoz21,sgd,one-year-of-tsla-on-reddit",
                 //
                 // >>>> EmoLoop ERC datasets
-                // "data=ertod_emowoz",
+                // >> Note: The splits for the ERC datasets are called: train,validation,test
+                "data=ertod_emowoz",
+                "data.data_subsampling.split=train,validation,test",
+                "data.dataset_seed=50",
                 // "data.dataset_seed=42",
                 // "data.dataset_seed=43,44",
                 // "data.dataset_seed=50,51,52",
@@ -356,18 +359,21 @@
                 // "data.dataset_seed=0",
                 //
                 // >>>> Trippy datasets
+                // >> Note: The splits for Trippy-R are called: train,dev,test
                 // "data=trippy_dataloaders_processed",
+                // "data.data_subsampling.split=train,dev,test",
                 //
                 // >>>> Trippy-R datasets
                 // >> Note: The splits for Trippy-R are called: train,dev,test
-                "data=trippy_r_dataloaders_processed",
+                // "data=trippy_r_dataloaders_processed",
+                // "data.data_subsampling.split=train,dev,test",
                 //
                 // "data.data_subsampling.split=train",
                 // "data.data_subsampling.split=dev",
                 // "data.data_subsampling.split=validation",
                 // "data.data_subsampling.split=test",
                 // "data.data_subsampling.split=train,test",
-                "data.data_subsampling.split=train,dev,test",
+                // "data.data_subsampling.split=train,dev,test",
                 // "data.data_subsampling.split=train,validation,test",
                 //
                 "data.data_subsampling.sampling_mode=random",
@@ -385,17 +391,28 @@
                 // "language_model=roberta-base",
                 //
                 // "language_model=bert-base-uncased",
+                //
+                // >>>> ERC models
                 // "language_model=bert-base-uncased-SentiX",
                 // "language_model=roberta-base,bert-base-uncased,bert-base-uncased-SentiX",
                 //
-                // "language_model=bert-base-uncased-ContextBERT-ERToD_emowoz_basic_setup",
-                // "language_model.seed=42",
-                // "language_model.seed=43,44",
-                // "language_model.seed=43,44,45",
-                // "language_model.seed=50,51,52",
+                "language_model=bert-base-uncased-ContextBERT-ERToD_emowoz_basic_setup",
+                // "language_model.seed=50", // Note: Seed 50 already submitted.
+                "language_model.seed=51,52,53,54", // TODO: Submit seeds 51, 52, 53, 54
+                // "language_model.seed=50,51,52,53,54",
+                //
+                // >> Note: For the ERC models the checkpoints are given by the epoch numbers
+                // "language_model.num_train_epochs=5",
                 // "language_model.checkpoint_no=0",
                 // "language_model.checkpoint_no=0,1,2,3,4",
                 //
+                "language_model.num_train_epochs=50",
+                // "language_model.checkpoint_no=0",
+                // Note: You can generate the comma-separated list of checkpoints for the long ERC runs with the following python command:
+                // >>> ','.join(list(map(str, range(0,50,1))))
+                "language_model.checkpoint_no=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49",
+                //
+                // >>>> SetSUMBT models
                 // "language_model=roberta-base-setsumbt_multiwoz21",
                 // "language_model.seed=0",
                 // "language_model.checkpoint_no=2813",
@@ -422,12 +439,12 @@
                 // "language_model.checkpoint_no=5325,7100,8875,10650,12425,14200,15975,17750,19525,21300,23075,24850,26625,28400,30175,31950,33725,35500",
                 //
                 // >>>>>> Long Trippy-R runs
-                "language_model=roberta-base-trippy_r_multiwoz21_long_runs",
-                "language_model.lr_scheduler_type=constant_schedule_with_warmup,linear_schedule_with_warmup",
+                // "language_model=roberta-base-trippy_r_multiwoz21_long_runs",
+                // "language_model.lr_scheduler_type=constant_schedule_with_warmup,linear_schedule_with_warmup",
                 // "language_model.lr_scheduler_type=linear_schedule_with_warmup",
                 // Note: You can generate the comma-separated list of checkpoints for the long Trippy-R runs with the following python command:
                 // >>> ','.join(list(map(str, range(1775,88751,1775))))
-                "language_model.checkpoint_no=1775,3550,5325,7100,8875,10650,12425,14200,15975,17750,19525,21300,23075,24850,26625,28400,30175,31950,33725,35500,37275,39050,40825,42600,44375,46150,47925,49700,51475,53250,55025,56800,58575,60350,62125,63900,65675,67450,69225,71000,72775,74550,76325,78100,79875,81650,83425,85200,86975,88750",
+                // "language_model.checkpoint_no=1775,3550,5325,7100,8875,10650,12425,14200,15975,17750,19525,21300,23075,24850,26625,28400,30175,31950,33725,35500,37275,39050,40825,42600,44375,46150,47925,49700,51475,53250,55025,56800,58575,60350,62125,63900,65675,67450,69225,71000,72775,74550,76325,78100,79875,81650,83425,85200,86975,88750",
                 // "language_model.checkpoint_no=1775,3550",
                 // "language_model.checkpoint_no=5325",
                 // "language_model.checkpoint_no=7100,8875,10650,12425,14200,15975,17750,19525,21300,23075,24850,26625,28400,30175,31950,33725,35500,37275,39050,40825,42600,44375,46150,47925,49700,51475,53250,55025,56800,58575,60350,62125,63900,65675,67450,69225,71000,72775,74550,76325,78100,79875,81650,83425,85200,86975,88750",
@@ -436,7 +453,7 @@
                 // "language_model.seed=40",
                 // "language_model.seed=41",
                 // "language_model.seed=42", // Note: seed=42 is already submitted
-                "language_model.seed=43", // TODO: Seed 43 is submitted
+                // "language_model.seed=43",
                 // "language_model.seed=43,44", // TODO: Still need to run seeds 44
                 // "language_model.seed=42,43,44",
                 // "language_model.seed=1111,40,41",

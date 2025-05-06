@@ -6,11 +6,12 @@ checkpoint_no: 0
 seed: 42
 lm_mode: mlm
 task_type: masked_lm
-pretrained_model_name_or_path: ${paths.data_dir}/models/EmoLoop/output_dir/debug=${language_model.debug_truncation_size}/use_context=${language_model.use_context}/ep=5/seed=${language_model.seed}/extracted_bert_components/ckpt-${language_model.checkpoint_no}
+pretrained_model_name_or_path: ${paths.data_dir}/models/EmoLoop/output_dir/debug=${language_model.debug_truncation_size}/use_context=${language_model.use_context}/ep=${language_model.num_train_epochs}/seed=${language_model.seed}/extracted_bert_components/ckpt-${language_model.checkpoint_no}
 manual_tokenizer_override_pretrained_model_name_or_path: bert-base-uncased
 
-short_model_name: bert-base-uncased-ContextBERT-ERToD_emowoz_basic_setup_debug=${language_model.debug_truncation_size}_use_context=${language_model.use_context}_seed-${language_model.seed}_ckpt-${language_model.checkpoint_no}
+short_model_name: bert-base-uncased-ContextBERT-ERToD_emowoz_basic_setup_debug-${language_model.debug_truncation_size}_ep-${language_model.num_train_epochs}_use_context-${language_model.use_context}_seed-${language_model.seed}_ckpt-${language_model.checkpoint_no}
 
 # Specific model parameters
 debug_truncation_size: -1
 use_context: False
+num_train_epochs: 5
