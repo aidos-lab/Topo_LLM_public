@@ -670,6 +670,7 @@ def plot_local_estimates_with_individual_seeds_and_aggregated_over_seeds(
             local_estimates_plot_data_df[model_seed_column_name].isin(
                 values=restrict_to_model_seeds,
             )
+            | local_estimates_plot_data_df[model_seed_column_name].isna()
         ]
 
     seeds: np.ndarray = local_estimates_plot_data_df[model_seed_column_name].dropna().unique().astype(dtype=int)
