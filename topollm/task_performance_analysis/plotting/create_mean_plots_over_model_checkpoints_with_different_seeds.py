@@ -633,6 +633,7 @@ def plot_local_estimates_with_individual_seeds_and_aggregated_over_seeds(
     plot_size_config_nested: PlotSizeConfigNested,
     scores_data: ScoresData,
     *,
+    restrict_to_model_seeds: list[int] | None = None,
     x_column_name: str = "model_checkpoint",
     filter_key_value_pairs: dict,
     base_model_model_partial_name: str | None = None,
@@ -651,17 +652,27 @@ def plot_local_estimates_with_individual_seeds_and_aggregated_over_seeds(
             - 'file_data_mean'
 
     """
+    model_seed_column_name = "model_seed"
     # # # #
     # Pre-process the local estimates data
 
     local_estimates_plot_data_df: pd.DataFrame = local_estimates_df[
         [
             x_column_name,
-            "model_seed",
+            model_seed_column_name,
             "file_data_mean",
         ]
     ].copy()
-    seeds: np.ndarray = local_estimates_plot_data_df["model_seed"].dropna().unique().astype(dtype=int)
+
+    if restrict_to_model_seeds is not None:
+        # Restrict the data to the given model seeds
+        local_estimates_plot_data_df = local_estimates_plot_data_df[
+            local_estimates_plot_data_df[model_seed_column_name].isin(
+                values=restrict_to_model_seeds,
+            )
+        ]
+
+    seeds: np.ndarray = local_estimates_plot_data_df[model_seed_column_name].dropna().unique().astype(dtype=int)
 
     # Separate the checkpoint -1 data (no seeds associated)
     checkpoint_neg1_selected_rows = local_estimates_plot_data_df[local_estimates_plot_data_df[x_column_name] == -1]
@@ -681,7 +692,7 @@ def plot_local_estimates_with_individual_seeds_and_aggregated_over_seeds(
         neg1_data_emulated = pd.DataFrame(
             data={
                 x_column_name: [-1] * len(seeds),
-                "model_seed": seeds,
+                model_seed_column_name: seeds,
                 "file_data_mean": [checkpoint_neg1["file_data_mean"]] * len(seeds),
             },
         )
@@ -702,7 +713,7 @@ def plot_local_estimates_with_individual_seeds_and_aggregated_over_seeds(
     local_estimates_plot_data_df = local_estimates_plot_data_df.astype(
         dtype={
             x_column_name: int,
-            "model_seed": int,
+            model_seed_column_name: int,
             "file_data_mean": float,
         },
     )
