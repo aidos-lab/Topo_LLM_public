@@ -224,12 +224,14 @@ def create_mean_plots_over_model_checkpoints_with_different_seeds(
 
         # Sort the arrays by increasing model checkpoint.
         # Then from this point, the list of arrays and list of extracted checkpoints will be in the correct order.
+
         # 1. Step: Replace None model checkpoints with -1.
         model_checkpoint_column_name = "model_checkpoint"
 
         for single_dict in filtered_data_with_added_base_model:
             if single_dict[model_checkpoint_column_name] is None:
                 single_dict[model_checkpoint_column_name] = -1
+
         # 2. Step: Call sorting function.
         sorted_data: list[dict] = sorted(
             filtered_data_with_added_base_model,
@@ -379,20 +381,43 @@ def load_scores(
     logger: logging.Logger = default_logger,
 ) -> ScoresData:
     match filter_key_value_pairs["model_partial_name"]:
-        case "model=bert-base-uncased-ContextBERT-ERToD_emowoz_basic_setup_debug=-1_use_context=False":
+        # Notes:
+        # - For the EmoLoop models, you need to have prepared the parsed_data files
+        case (
+            "model=bert-base-uncased-ContextBERT-ERToD_emowoz_basic_setup_debug=-1_use_context=False"
+            | "model=bert-base-uncased-ContextBERT-ERToD_emowoz_basic_setup_debug--1_ep-50_use_context-False"
+        ):
             if verbosity >= Verbosity.NORMAL:
                 logger.info(
                     msg="Loading scores for EmoLoop emotion models.",
                 )
+
+            match filter_key_value_pairs["model_partial_name"]:
+                case "model=bert-base-uncased-ContextBERT-ERToD_emowoz_basic_setup_debug=-1_use_context=False":
+                    base_directory = pathlib.Path(
+                        embeddings_path_manager.data_dir,
+                        "models/EmoLoop/output_dir/",
+                        "debug=-1/use_context=False/ep=5/",
+                    )
+                case "model=bert-base-uncased-ContextBERT-ERToD_emowoz_basic_setup_debug--1_ep-50_use_context-False":
+                    base_directory = pathlib.Path(
+                        embeddings_path_manager.data_dir,
+                        "models/EmoLoop/output_dir/",
+                        "debug=-1/use_context=False/ep=50/",
+                    )
+                case _:
+                    raise ValueError(
+                        msg=f"Unknown model_partial_name: {filter_key_value_pairs['model_partial_name']}",
+                    )
 
             seed_dfs: list[pd.DataFrame] = []
             columns_to_plot_set: set[str] = set()
 
             for seed in range(50, 55):
                 parsed_data_path: pathlib.Path = pathlib.Path(
-                    embeddings_path_manager.data_dir,
-                    f"models/EmoLoop/output_dir/debug=-1/use_context=False/"
-                    f"ep=5/seed={seed}/parsed_data/raw_data/parsed_data.csv",
+                    base_directory,
+                    f"seed={seed}/",
+                    "parsed_data/raw_data/parsed_data.csv",
                 )
 
                 file_loader = EmotionClassificationScoreLoader(
@@ -608,6 +633,7 @@ def plot_local_estimates_with_individual_seeds_and_aggregated_over_seeds(
     plot_size_config_nested: PlotSizeConfigNested,
     scores_data: ScoresData,
     *,
+    restrict_to_model_seeds: list[int] | None = None,
     x_column_name: str = "model_checkpoint",
     filter_key_value_pairs: dict,
     base_model_model_partial_name: str | None = None,
@@ -626,29 +652,51 @@ def plot_local_estimates_with_individual_seeds_and_aggregated_over_seeds(
             - 'file_data_mean'
 
     """
+    model_seed_column_name = "model_seed"
     # # # #
     # Pre-process the local estimates data
 
     local_estimates_plot_data_df: pd.DataFrame = local_estimates_df[
         [
             x_column_name,
-            "model_seed",
+            model_seed_column_name,
             "file_data_mean",
         ]
     ].copy()
 
-    # Separate the checkpoint -1 data (no seeds associated)
-    checkpoint_neg1 = local_estimates_plot_data_df[local_estimates_plot_data_df[x_column_name] == -1].iloc[0]
-    seeds: np.ndarray = local_estimates_plot_data_df["model_seed"].dropna().unique().astype(dtype=int)
+    if restrict_to_model_seeds is not None:
+        # Restrict the data to the given model seeds
+        local_estimates_plot_data_df = local_estimates_plot_data_df[
+            local_estimates_plot_data_df[model_seed_column_name].isin(
+                values=restrict_to_model_seeds,
+            )
+            | local_estimates_plot_data_df[model_seed_column_name].isna()
+        ]
 
-    # Emulate checkpoint -1 data for each seed
-    neg1_data_emulated = pd.DataFrame(
-        data={
-            x_column_name: [-1] * len(seeds),
-            "model_seed": seeds,
-            "file_data_mean": [checkpoint_neg1["file_data_mean"]] * len(seeds),
-        },
-    )
+    seeds: np.ndarray = local_estimates_plot_data_df[model_seed_column_name].dropna().unique().astype(dtype=int)
+
+    # Separate the checkpoint -1 data (no seeds associated)
+    checkpoint_neg1_selected_rows = local_estimates_plot_data_df[local_estimates_plot_data_df[x_column_name] == -1]
+
+    if checkpoint_neg1_selected_rows.empty:
+        logger.warning(
+            msg="No checkpoint -1 data found in the local estimates DataFrame.",
+        )
+        logger.warning(
+            msg="We will not add any checkpoint -1 data to the plot.",
+        )
+        neg1_data_emulated = None
+    else:
+        checkpoint_neg1 = checkpoint_neg1_selected_rows.iloc[0]
+
+        # Emulate checkpoint -1 data for each seed
+        neg1_data_emulated = pd.DataFrame(
+            data={
+                x_column_name: [-1] * len(seeds),
+                model_seed_column_name: seeds,
+                "file_data_mean": [checkpoint_neg1["file_data_mean"]] * len(seeds),
+            },
+        )
 
     # Drop original -1 checkpoint and append the emulated data
     local_estimates_plot_data_df = local_estimates_plot_data_df[
@@ -666,7 +714,7 @@ def plot_local_estimates_with_individual_seeds_and_aggregated_over_seeds(
     local_estimates_plot_data_df = local_estimates_plot_data_df.astype(
         dtype={
             x_column_name: int,
-            "model_seed": int,
+            model_seed_column_name: int,
             "file_data_mean": float,
         },
     )
