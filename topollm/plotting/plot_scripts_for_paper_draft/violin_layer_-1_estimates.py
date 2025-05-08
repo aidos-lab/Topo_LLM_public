@@ -1,21 +1,32 @@
-import numpy as np
 import os
+from collections import defaultdict
+
 import matplotlib.pyplot as plt
+import numpy as np
 import seaborn as sns
 
 # Define the dataset names and masked levels
 dataset_names = [
     "data=multiwoz21_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags",
     "data=wikitext-103-v1_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags",
-    "data=one-year-of-tsla-on-reddit_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags"
+    "data=one-year-of-tsla-on-reddit_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags",
 ]
 masked_levels = ["regular_lvl", "masked_token_lvl"]
 
 # List of second models and corresponding labels
 second_models_and_labels = [
-    ("model=roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5_seed-1234_ckpt-2800_task=masked_lm_dr=defaults", "RoBERTa fine-tuned on Multiwoz"),
-    ("model=roberta-base-masked_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5_seed-1234_ckpt-2800_task=masked_lm_dr=defaults", "RoBERTa fine-tuned on Reddit"),
-    ("model=roberta-base-masked_lm-defaults_wikitext-103-v1-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5_seed-1234_ckpt-2800_task=masked_lm_dr=defaults", "RoBERTa fine-tuned on Wikitext")
+    (
+        "model=roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5_seed-1234_ckpt-2800_task=masked_lm_dr=defaults",
+        "RoBERTa fine-tuned on Multiwoz",
+    ),
+    (
+        "model=roberta-base-masked_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5_seed-1234_ckpt-2800_task=masked_lm_dr=defaults",
+        "RoBERTa fine-tuned on Reddit",
+    ),
+    (
+        "model=roberta-base-masked_lm-defaults_wikitext-103-v1-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5_seed-1234_ckpt-2800_task=masked_lm_dr=defaults",
+        "RoBERTa fine-tuned on Wikitext",
+    ),
 ]
 
 # second_models_and_labels = [
@@ -34,12 +45,12 @@ for dataset_name in dataset_names:
             # Define the base directories dynamically using the dataset name, masked level, and second model
             base_directory_1 = os.path.join(
                 dataset_name,
-                f"split=validation_samples=10000_sampling=random_sampling-seed=777/edh-mode={masked_level}=token/add-prefix-space=True_max-len=512/model=roberta-base_task=masked_lm_dr=defaults/layer=-1_agg=mean/norm=None/sampling=random_seed=42_samples=150000/desc=twonn_samples=60000_zerovec=keep_dedup=array_deduplicator_noise=do_nothing/n-neighbors-mode=absolute_size_n-neighbors=128"
+                f"split=validation_samples=10000_sampling=random_sampling-seed=777/edh-mode={masked_level}=token/add-prefix-space=True_max-len=512/model=roberta-base_task=masked_lm_dr=defaults/layer=-1_agg=mean/norm=None/sampling=random_seed=42_samples=150000/desc=twonn_samples=60000_zerovec=keep_dedup=array_deduplicator_noise=do_nothing/n-neighbors-mode=absolute_size_n-neighbors=128",
             )
 
             base_directory_2 = os.path.join(
                 dataset_name,
-                f"split=validation_samples=10000_sampling=random_sampling-seed=777/edh-mode={masked_level}=token/add-prefix-space=True_max-len=512/{second_model}/layer=-1_agg=mean/norm=None/sampling=random_seed=42_samples=150000/desc=twonn_samples=60000_zerovec=keep_dedup=array_deduplicator_noise=do_nothing/n-neighbors-mode=absolute_size_n-neighbors=128"
+                f"split=validation_samples=10000_sampling=random_sampling-seed=777/edh-mode={masked_level}=token/add-prefix-space=True_max-len=512/{second_model}/layer=-1_agg=mean/norm=None/sampling=random_seed=42_samples=150000/desc=twonn_samples=60000_zerovec=keep_dedup=array_deduplicator_noise=do_nothing/n-neighbors-mode=absolute_size_n-neighbors=128",
             )
 
             # Specify the file paths
@@ -70,12 +81,14 @@ for dataset_name in dataset_names:
                 import matplotlib.patches as mpatches
 
                 # Retrieve colors for each violin from the plot
-                colors = [violin.get_facecolor().mean(axis=0) for violin in plt.gca().collections[:len(data_combined)]]
+                colors = [violin.get_facecolor().mean(axis=0) for violin in plt.gca().collections[: len(data_combined)]]
 
                 # Create custom legend handles with correct colors
                 legend_handles = [
-                    mpatches.Patch(color=colors[i],
-                                   label=f"Mean={np.mean(data_combined[i]):.2f}, Median={np.median(data_combined[i]):.2f}, Std={np.std(data_combined[i]):.2f}")
+                    mpatches.Patch(
+                        color=colors[i],
+                        label=f"Mean={np.mean(data_combined[i]):.2f}, Median={np.median(data_combined[i]):.2f}, Std={np.std(data_combined[i]):.2f}",
+                    )
                     for i in range(len(labels))
                 ]
 
@@ -89,7 +102,7 @@ for dataset_name in dataset_names:
                 save_dir = os.path.join(
                     masked_level,
                     second_model.replace("=", "-").replace("/", "_"),
-                    dataset_name.replace("=", "-").replace("/", "_")
+                    dataset_name.replace("=", "-").replace("/", "_"),
                 )
                 os.makedirs(save_dir, exist_ok=True)
                 save_path = os.path.join(save_dir, "violin_plot.pdf")
@@ -100,11 +113,14 @@ for dataset_name in dataset_names:
                 plt.close()
 
             except FileNotFoundError as e:
-                print(f"File not found for Dataset: {dataset_name}, Masked Level: {masked_level}, Second Model: {second_model}: {e}")
+                print(
+                    f"File not found for Dataset: {dataset_name}, Masked Level: {masked_level}, Second Model: {second_model}: {e}"
+                )
             except Exception as e:
-                print(f"An error occurred for Dataset: {dataset_name}, Masked Level: {masked_level}, Second Model: {second_model}: {e}")
+                print(
+                    f"An error occurred for Dataset: {dataset_name}, Masked Level: {masked_level}, Second Model: {second_model}: {e}"
+                )
 
-from collections import defaultdict
 
 # Group the relative paths by the second_model component
 grouped_paths = defaultdict(list)
