@@ -10,6 +10,8 @@ import wandb
 from tqdm.auto import tqdm
 
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH, TOPO_LLM_REPOSITORY_BASE_PATH
+from topollm.config_classes.main_config import MainConfig
+from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.typing.enums import Verbosity
 
@@ -36,36 +38,52 @@ def main(
 ) -> None:
     """Run main function."""
     logger: logging.Logger = global_logger
-    verbosity: Verbosity = Verbosity.NORMAL
     logger.info(
         msg="Running script ...",
     )
+
+    # ================================================== #
+    # Load configuration
+    # ================================================== #
+
+    main_config: MainConfig = initialize_configuration(
+        config=config,
+        logger=logger,
+    )
+    verbosity: Verbosity = main_config.verbosity
+
+    # ================================================== #
+    # WandB API
+    # ================================================== #
 
     api = wandb.Api()
 
     use_scan_history = False
 
     # Project is specified by <entity/project-name>
-    # dialgroup-hhu/grokking_replica_HHU_Hilbert_HPC_runs_different_dataset_portions_long_large_p_new_topological_analysis
-    wandb_id: str = "dialgroup-hhu"
-    project_name: str = (
-        "grokking_replica_HHU_Hilbert_HPC_runs_different_dataset_portions_long_large_p_new_topological_analysis"
-    )
+    wandb_id: str = main_config.analysis.wandb_export.wandb_id
+    project_name: str = main_config.analysis.wandb_export.project_name
 
-    wandb_filters: dict | None = {
-        "$or": [
-            {"config.dataset.frac_train": 0.3},
-            {"config.dataset.frac_train": 0.15},  # TODO: There appears to be a problem with the values 0.1 and 0.15
-        ],
-    }
-    # wandb_filters = None
+    (
+        wandb_filters,
+        wandb_filters_desc,
+    ) = (
+        {
+            "$or": [
+                {"config.dataset.frac_train": 0.3},
+                {"config.dataset.frac_train": 0.15},  # TODO: There appears to be a problem with the values 0.1 and 0.15
+            ],
+        },
+        "selected_frac_train",
+    )
+    # wandb_filters, wandb_filters_desc = None, "None"
 
     runs = api.runs(
         path=f"{wandb_id}/{project_name}",
         filters=wandb_filters,
     )
 
-    samples = 5_000
+    samples: int = main_config.analysis.wandb_export.samples
 
     save_root_dir: pathlib.Path = pathlib.Path(
         TOPO_LLM_REPOSITORY_BASE_PATH,
@@ -73,15 +91,17 @@ def main(
         "saved_plots",
         "wandb",
         f"{project_name=}",
+        f"{wandb_filters_desc=}",
         f"{use_scan_history=}",
         f"{samples=}",
     )
 
-    x_axis_name = "step"
-    x_range_step_max = 15_000
+    concatenated_df_save_path: pathlib.Path = pathlib.Path(
+        save_root_dir,
+        "concatenated_df.csv",
+    )
 
-    metric_name = "val.accuracy"
-
+    concatenated_df: pd.DataFrame = pd.DataFrame()
     match use_scan_history:
         case False:
             history_list: list[pd.DataFrame] = []
@@ -104,51 +124,17 @@ def main(
                 history_list.append(history)
 
             concatenated_df: pd.DataFrame = pd.concat(
-                history_list,
+                objs=history_list,
                 ignore_index=True,
             )
-
-            concatenated_df_save_path: pathlib.Path = pathlib.Path(
-                save_root_dir,
-                "concatenated_df.csv",
-            )
-
-            if verbosity >= Verbosity.NORMAL:
-                logger.info(
-                    msg=f"Saving concatenated_df to {concatenated_df_save_path=} ...",  # noqa: G004 - low overhead
-                )
-            concatenated_df_save_path.parent.mkdir(
-                parents=True,
-                exist_ok=True,
-            )
-            concatenated_df.to_csv(
-                path_or_buf=concatenated_df_save_path,
-                index=False,
-            )
-            if verbosity >= Verbosity.NORMAL:
-                logger.info(
-                    msg=f"Saving concatenated_df to {concatenated_df_save_path=} DONE",  # noqa: G004 - low overhead
-                )
-
-            # # # #
-            # Select a specific subset of the data and create corresponding plots
-
-            # Restrict the x-axis to a certain range
-            plot_df = concatenated_df[concatenated_df[x_axis_name] < x_range_step_max]
-
-            sns.lineplot(
-                x=x_axis_name,
-                y=metric_name,
-                hue="name",
-                data=plot_df,
-            )
-            plt.show()
 
             pass  # TODO: This is here for setting breakpoints
         case True:
             for run in runs:
                 run_name = run.name
-                print(f"{run_name=}")
+                logger.info(
+                    msg=f"{run_name=}",  # noqa: G004 - low overhead
+                )
 
                 # When you pull data from history, by default it's sampled to 500 points.
                 # Get all the logged data points using run.scan_history().
@@ -156,15 +142,63 @@ def main(
                 #
                 history = run.scan_history()
 
-                metrics_list = [
-                    (
-                        row[x_axis_name],
-                        row[metric_name],
-                    )
-                    for row in tqdm(history)
-                ]
+                # metrics_list = [
+                #     (
+                #         row[x_axis_name],
+                #         row[metric_name],
+                #     )
+                #     for row in tqdm(history)
+                # ]
+
+                concatenated_df = pd.DataFrame()  # TODO: This is a placeholder
 
                 pass  # TODO: This is here for setting breakpoints
+        case _:
+            msg: str = f"Unknown value for use_scan_history: {use_scan_history=}"
+            raise ValueError(
+                msg,
+            )
+
+    if concatenated_df.empty:
+        msg: str = f"Concatenated DataFrame is empty. {concatenated_df=}"
+        raise ValueError(
+            msg,
+        )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Saving concatenated_df to {concatenated_df_save_path=} ...",  # noqa: G004 - low overhead
+        )
+    concatenated_df_save_path.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+    concatenated_df.to_csv(
+        path_or_buf=concatenated_df_save_path,
+        index=False,
+    )
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Saving concatenated_df to {concatenated_df_save_path=} DONE",  # noqa: G004 - low overhead
+        )
+
+    # # # #
+    # Select a specific subset of the data and create corresponding plots
+    x_axis_name = "step"
+    x_range_step_max = 15_000
+
+    metric_name = "val.accuracy"
+
+    # Restrict the x-axis to a certain range
+    plot_df = concatenated_df[concatenated_df[x_axis_name] < x_range_step_max]
+
+    sns.lineplot(
+        x=x_axis_name,
+        y=metric_name,
+        hue="name",
+        data=plot_df,
+    )
+    plt.show()
 
     logger.info(
         msg="Running script DONE",

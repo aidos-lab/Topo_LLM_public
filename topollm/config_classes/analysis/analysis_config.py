@@ -73,6 +73,28 @@ class TaskPerformanceAnalysisConfig(ConfigBaseModel):
     )
 
 
+class WandbExportConfig(ConfigBaseModel):
+    """Config to specify what needs to be modified to pick out the comparison data."""
+
+    wandb_id: str = Field(
+        default="debug_id",
+        title="WandB ID.",
+        description="The WandB ID for the project.",
+    )
+
+    project_name: str = Field(
+        default="debug_name",
+        title="Project name.",
+        description="The name of the project in WandB.",
+    )
+
+    samples: int = Field(
+        default=5_000,
+        title="Samples.",
+        description="The number of samples to use for the analysis.",
+    )
+
+
 class AnalysisConfig(ConfigBaseModel):
     """Parameters for the analysis of results."""
 
@@ -86,4 +108,10 @@ class AnalysisConfig(ConfigBaseModel):
         default_factory=TaskPerformanceAnalysisConfig,
         title="Task performance configuration.",
         description="The configuration for specifying parameters in the task performance analysis.",
+    )
+
+    wandb_export: WandbExportConfig = Field(
+        default_factory=WandbExportConfig,
+        title="WandB export configuration.",
+        description="The configuration for specifying parameters in the WandB export.",
     )
