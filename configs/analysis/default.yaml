@@ -8,5 +8,5 @@ investigate_distances:
 wandb_export:
   wandb_id: "dialgroup-hhu"
   project_name: "grokking_replica_HHU_Hilbert_HPC_runs_different_dataset_portions_long_large_p_new_topological_analysis"
-  samples: 5000
+  samples: 50000
   use_saved_concatenated_df: False

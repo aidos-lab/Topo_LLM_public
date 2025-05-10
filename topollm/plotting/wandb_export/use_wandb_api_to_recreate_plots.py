@@ -1,3 +1,4 @@
+import itertools
 import logging
 import pathlib
 
@@ -89,7 +90,7 @@ def main(
         TOPO_LLM_REPOSITORY_BASE_PATH,
         "data",
         "saved_plots",
-        "wandb",
+        "wandb_export",
         f"{project_name=}",
         f"{wandb_filters_desc=}",
         f"{use_scan_history=}",
@@ -204,21 +205,72 @@ def main(
 
     # # # #
     # Select a specific subset of the data and create corresponding plots
-    x_axis_name = "step"
-    x_range_step_max = 15_000
+    x_axis_name_options: list[str] = [
+        "step",
+    ]
+    x_range_step_max_options: list[int] = [
+        15_000,
+        60_000,
+    ]
 
-    metric_name = "val.accuracy"
+    metric_name_options: list[str] = [
+        "train.accuracy",
+        "val.accuracy",
+        "train.take_all.desc=twonn_samples=3000_zerovec=keep_dedup=array_deduplicator_noise=do_nothing.n-neighbors-mode=absolute_size_n-neighbors=64.mean",
+    ]
 
-    # Restrict the x-axis to a certain range
-    plot_df = concatenated_df[concatenated_df[x_axis_name] < x_range_step_max]
+    for (
+        x_axis_name,
+        x_range_step_max,
+        metric_name,
+    ) in itertools.product(
+        x_axis_name_options,
+        x_range_step_max_options,
+        metric_name_options,
+    ):
+        # Restrict the x-axis to a certain range
+        plot_df: pd.DataFrame = concatenated_df[concatenated_df[x_axis_name] < x_range_step_max]
 
-    sns.lineplot(
-        x=x_axis_name,
-        y=metric_name,
-        hue="name",
-        data=plot_df,
-    )
-    plt.show()
+        figure = plt.figure(figsize=(12, 8))  # Set the figure size
+
+        sns.lineplot(
+            x=x_axis_name,
+            y=metric_name,
+            hue="name",
+            data=plot_df,
+        )
+        plt.title(f"{metric_name} vs {x_axis_name}")
+        plt.xlabel(x_axis_name)
+        plt.ylabel(metric_name)
+        plt.legend(title="Run Name")
+        plt.tight_layout()
+
+        plot_output_directory: pathlib.Path = pathlib.Path(
+            save_root_dir,
+            f"{x_axis_name=}",
+            f"{x_range_step_max=}",
+            f"{metric_name=}",
+        )
+
+        plot_output_path = pathlib.Path(
+            plot_output_directory,
+            "plot.pdf",
+        )
+        plot_output_directory.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"Saving plot to {plot_output_path=} ...",  # noqa: G004 - low overhead
+            )
+        plt.savefig(
+            plot_output_path,
+        )
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"Saving plot to {plot_output_path=} DONE",  # noqa: G004 - low overhead
+            )
 
     logger.info(
         msg="Running script DONE",
