@@ -39,10 +39,6 @@ def main() -> None:
             f"model=roberta-base-masked_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5_seed-1234_ckpt-{checkpoint_no}_task=masked_lm_dr=defaults",
             "RoBERTa fine-tuned on Reddit",
         ),
-        (
-            f"model=roberta-base-masked_lm-defaults_wikitext-103-v1-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5_seed-1234_ckpt-{checkpoint_no}_task=masked_lm_dr=defaults",
-            "RoBERTa fine-tuned on Wikitext",
-        ),
     ]
 
     # second_models_and_labels = [
@@ -136,7 +132,7 @@ def main() -> None:
                     plt.figure(figsize=(8.5, 2.5))  # Adjust figure size for ICML one-column format
                     sns.violinplot(
                         data=data_combined,
-                        scale="width",
+                        density_norm="width",
                         inner="quartile",
                         split=True,
                     )
