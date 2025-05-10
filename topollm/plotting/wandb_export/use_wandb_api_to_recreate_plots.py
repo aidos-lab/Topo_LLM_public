@@ -63,19 +63,25 @@ def main(
     wandb_id: str = main_config.analysis.wandb_export.wandb_id
     project_name: str = main_config.analysis.wandb_export.project_name
 
+    # (
+    #     wandb_filters,
+    #     wandb_filters_desc,
+    # ) = (
+    #     {
+    #         "$or": [
+    #             {"config.dataset.frac_train": 0.15},
+    #             {"config.dataset.frac_train": 0.3},
+    #         ],
+    #     },
+    #     "selected_frac_train",
+    # )
     (
         wandb_filters,
         wandb_filters_desc,
     ) = (
-        {
-            "$or": [
-                {"config.dataset.frac_train": 0.3},
-                {"config.dataset.frac_train": 0.15},  # TODO: There appears to be a problem with the values 0.1 and 0.15
-            ],
-        },
-        "selected_frac_train",
+        None,
+        "None",
     )
-    # wandb_filters, wandb_filters_desc = None, "None"
 
     samples: int = main_config.analysis.wandb_export.samples
 
@@ -261,6 +267,11 @@ def main(
         ) = plt.subplots(figsize=(12, 8))  # creates both Figure and Axes objects
 
         # ---------- 3. Draw the lines ----------
+        match add_legend:
+            case False:
+                sns_legend = False
+            case True:
+                sns_legend = "auto"
 
         match group_by_column_name:
             case None:
@@ -274,7 +285,7 @@ def main(
                     units="name",  # keep individual runs separate
                     estimator=None,  # no mean/CI aggregation
                     alpha=0.9,
-                    legend="auto",
+                    legend=sns_legend,
                     ax=ax,  # <-- draw on *this* Axes, not the implicit one
                 )
             case _:
@@ -289,7 +300,7 @@ def main(
                     estimator="mean",
                     errorbar=("ci", 95),
                     alpha=0.9,
-                    legend="auto",
+                    legend=sns_legend,
                     ax=ax,  # <-- draw on *this* Axes, not the implicit one
                 )
 
@@ -304,7 +315,13 @@ def main(
         match add_legend:
             case False:
                 # Remove legend if this is set.
-                pass  # TODO: Add or remove the legend depending on this argument
+                ax.legend().remove()
+            case True:
+                # Change the title of the legend
+                ax.legend(
+                    title="Training data fraction",
+                    fontsize=12,
+                )
 
         # ---------- 6. Layout ----------
         fig.tight_layout()
