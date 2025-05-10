@@ -57,8 +57,6 @@ def main(
     # WandB API
     # ================================================== #
 
-    api = wandb.Api()
-
     use_scan_history = False
 
     # Project is specified by <entity/project-name>
@@ -78,11 +76,6 @@ def main(
         "selected_frac_train",
     )
     # wandb_filters, wandb_filters_desc = None, "None"
-
-    runs = api.runs(
-        path=f"{wandb_id}/{project_name}",
-        filters=wandb_filters,
-    )
 
     samples: int = main_config.analysis.wandb_export.samples
 
@@ -104,6 +97,12 @@ def main(
 
     match main_config.analysis.wandb_export.use_saved_concatenated_df:
         case False:
+            api = wandb.Api()
+            runs = api.runs(
+                path=f"{wandb_id}/{project_name}",
+                filters=wandb_filters,
+            )
+
             concatenated_df: pd.DataFrame = pd.DataFrame()
             match use_scan_history:
                 case False:
@@ -208,6 +207,10 @@ def main(
     x_axis_name_options: list[str] = [
         "step",
     ]
+    x_axis_name_to_short_description: dict[str, str] = {
+        "step": "Step",
+    }
+
     x_range_step_max_options: list[int] = [
         15_000,
         60_000,
@@ -219,42 +222,107 @@ def main(
         "train.take_all.desc=twonn_samples=3000_zerovec=keep_dedup=array_deduplicator_noise=do_nothing.n-neighbors-mode=absolute_size_n-neighbors=64.mean",
     ]
 
+    metric_to_short_description: dict[str, str] = {
+        "train.accuracy": "Training Accuracy",
+        "val.accuracy": "Validation Accuracy",
+        "train.take_all.desc=twonn_samples=3000_zerovec=keep_dedup=array_deduplicator_noise=do_nothing.n-neighbors-mode=absolute_size_n-neighbors=64.mean": "Mean local dimension (N=3000; L=64)",
+    }
+
+    group_by_column_name_options: list[str | None] = [
+        None,
+        "dataset.frac_train",
+    ]
+
+    add_legend_options: list[bool] = [
+        False,
+        True,
+    ]
+
     for (
         x_axis_name,
         x_range_step_max,
         metric_name,
+        add_legend,
+        group_by_column_name,
     ) in itertools.product(
         x_axis_name_options,
         x_range_step_max_options,
         metric_name_options,
+        add_legend_options,
+        group_by_column_name_options,
     ):
-        # Restrict the x-axis to a certain range
+        # ---------- Prepare data ----------
         plot_df: pd.DataFrame = concatenated_df[concatenated_df[x_axis_name] < x_range_step_max]
 
-        figure = plt.figure(figsize=(12, 8))  # Set the figure size
+        # ---------- OO figure/axes ----------
+        (
+            fig,
+            ax,
+        ) = plt.subplots(figsize=(12, 8))  # creates both Figure and Axes objects
 
-        sns.lineplot(
-            x=x_axis_name,
-            y=metric_name,
-            hue="name",
-            data=plot_df,
+        # ---------- 3. Draw the lines ----------
+
+        match group_by_column_name:
+            case None:
+                # - In this case, draw the curves for different runs separately.
+                # - Still, color the curves with the same training data fraction with the same color.
+                sns.lineplot(
+                    data=plot_df,
+                    x=x_axis_name,
+                    y=metric_name,
+                    hue="dataset.frac_train",  # colour chosen by frac_train
+                    units="name",  # keep individual runs separate
+                    estimator=None,  # no mean/CI aggregation
+                    alpha=0.9,
+                    legend="auto",
+                    ax=ax,  # <-- draw on *this* Axes, not the implicit one
+                )
+            case _:
+                # - Group the runs with the same value in the group_by_column_name
+                # - Draw standard deviation bands.
+                sns.lineplot(
+                    data=plot_df,
+                    x=x_axis_name,
+                    y=metric_name,
+                    hue="dataset.frac_train",  # colour chosen by frac_train
+                    units=None,
+                    estimator="mean",
+                    errorbar=("ci", 95),
+                    alpha=0.9,
+                    legend="auto",
+                    ax=ax,  # <-- draw on *this* Axes, not the implicit one
+                )
+
+        # ---------- 4. Axis cosmetics ----------
+        ax.set(
+            title=None,  # No title, since we add this in the TeX
+            xlabel=x_axis_name_to_short_description[x_axis_name],
+            ylabel=metric_to_short_description[metric_name],
         )
-        plt.title(f"{metric_name} vs {x_axis_name}")
-        plt.xlabel(x_axis_name)
-        plt.ylabel(metric_name)
-        plt.legend(title="Run Name")
-        plt.tight_layout()
+
+        # ---------- 5. Custom legend ----------
+        match add_legend:
+            case False:
+                # Remove legend if this is set.
+                pass  # TODO: Add or remove the legend depending on this argument
+
+        # ---------- 6. Layout ----------
+        fig.tight_layout()
+
+        # # # #
+        # Save plots to disk
 
         plot_output_directory: pathlib.Path = pathlib.Path(
             save_root_dir,
             f"{x_axis_name=}",
             f"{x_range_step_max=}",
             f"{metric_name=}",
+            f"{group_by_column_name=}",
         )
 
         plot_output_path = pathlib.Path(
             plot_output_directory,
-            "plot.pdf",
+            f"plot_{add_legend=}.pdf",
         )
         plot_output_directory.mkdir(
             parents=True,
