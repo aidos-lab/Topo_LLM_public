@@ -2630,5 +2630,29 @@
                 "PYTORCH_ENABLE_MPS_FALLBACK": "1"
             }
         },
+        {
+            "name": "wandb plots recreation - Local debugging - ",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/plotting/wandb_export/use_wandb_api_to_recreate_plots.py",
+            "console": "integratedTerminal",
+            "args": [
+                // >>>> START: Hydra options
+                "--multirun",
+                "hydra/sweeper=basic",
+                "hydra/launcher=basic",
+                // "hydra/launcher=hpc_submission",
+                // "hydra.launcher.queue=CUDA",
+                // "hydra.launcher.template=RTX6000",
+                // "hydra.launcher.memory=32",
+                // "hydra.launcher.ncpus=2",  // <-- Make sure not to use more than 2 CPUs per GPU on the GTX1080TI and RTX6000 nodes.
+                // "hydra.launcher.ngpus=1",
+                // "hydra.launcher.walltime=00:10:00", // <-- The logging script should run very quickly.
+                // >>>> END: Hydra options
+            ],
+            "env": {
+                "PYTORCH_ENABLE_MPS_FALLBACK": "1"
+            }
+        },
     ]
 }
