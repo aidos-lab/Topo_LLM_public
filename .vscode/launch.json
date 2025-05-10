@@ -2650,9 +2650,10 @@
                 // "hydra.launcher.walltime=00:10:00", // <-- The logging script should run very quickly.
                 // >>>> END: Hydra options
                 //
-                "analysis.wandb_export.samples=100000", // <-- 100k
-                "analysis.wandb_export.use_saved_concatenated_df=false",
-                // "analysis.wandb_export.use_saved_concatenated_df=true",
+                "analysis.wandb_export.samples=50000", // <-- 50k. Note: 50k is already enough to get all points for the runs we have
+                // "analysis.wandb_export.samples=100000", // <-- 100k. Note: 50k is already enough to get all points for the runs we have
+                // "analysis.wandb_export.use_saved_concatenated_df=false",
+                "analysis.wandb_export.use_saved_concatenated_df=true",
             ],
             "env": {
                 "PYTORCH_ENABLE_MPS_FALLBACK": "1"

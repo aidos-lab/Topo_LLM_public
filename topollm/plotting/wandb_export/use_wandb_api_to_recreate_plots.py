@@ -101,6 +101,8 @@ def main(
         "concatenated_df.csv",
     )
 
+    frac_train_column_name: str = "dataset.frac_train"
+
     match main_config.analysis.wandb_export.use_saved_concatenated_df:
         case False:
             api = wandb.Api()
@@ -127,7 +129,7 @@ def main(
                         )
 
                         history["name"] = run.name
-                        history["dataset.frac_train"] = run.config["dataset"]["frac_train"]
+                        history[frac_train_column_name] = run.config["dataset"]["frac_train"]
 
                         history_list.append(history)
 
@@ -135,8 +137,6 @@ def main(
                         objs=history_list,
                         ignore_index=True,
                     )
-
-                    pass  # TODO: This is here for setting breakpoints
                 case True:
                     for run in runs:
                         run_name = run.name
@@ -158,9 +158,12 @@ def main(
                         #     for row in tqdm(history)
                         # ]
 
-                        concatenated_df = pd.DataFrame()  # TODO: This is a placeholder
+                        concatenated_df = pd.DataFrame()  # Note: This is a placeholder
 
-                        pass  # TODO: This is here for setting breakpoints
+                        msg = "This part is not implemented yet."
+                        raise NotImplementedError(
+                            msg,
+                        )
                 case _:
                     msg: str = f"Unknown value for use_scan_history: {use_scan_history=}"
                     raise ValueError(
@@ -236,13 +239,20 @@ def main(
 
     group_by_column_name_options: list[str | None] = [
         None,
-        "dataset.frac_train",
+        frac_train_column_name,
     ]
 
     add_legend_options: list[bool] = [
         False,
         True,
     ]
+
+    # The frac_train_column_name contains float values;
+    # convert them to string (and round to 2 decimal places),
+    # to avoid problem with the grouping and the figure legend.
+    concatenated_df[frac_train_column_name] = concatenated_df[frac_train_column_name].apply(
+        lambda x: f"{x:.2f}",
+    )
 
     for (
         x_axis_name,
@@ -273,6 +283,8 @@ def main(
             case True:
                 sns_legend = "auto"
 
+        hue_order = sorted(plot_df[frac_train_column_name].unique())
+
         match group_by_column_name:
             case None:
                 # - In this case, draw the curves for different runs separately.
@@ -281,10 +293,11 @@ def main(
                     data=plot_df,
                     x=x_axis_name,
                     y=metric_name,
-                    hue="dataset.frac_train",  # colour chosen by frac_train
+                    hue=frac_train_column_name,  # colour chosen by the training fraction
+                    hue_order=hue_order,
                     units="name",  # keep individual runs separate
                     estimator=None,  # no mean/CI aggregation
-                    alpha=0.9,
+                    alpha=0.6,
                     legend=sns_legend,
                     ax=ax,  # <-- draw on *this* Axes, not the implicit one
                 )
@@ -295,7 +308,8 @@ def main(
                     data=plot_df,
                     x=x_axis_name,
                     y=metric_name,
-                    hue="dataset.frac_train",  # colour chosen by frac_train
+                    hue=frac_train_column_name,  # colour chosen by the training fraction
+                    hue_order=hue_order,
                     units=None,
                     estimator="mean",
                     errorbar=("ci", 95),
