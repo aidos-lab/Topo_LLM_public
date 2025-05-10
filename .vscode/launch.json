@@ -54,12 +54,13 @@
                 // "data=multiwoz21",
                 // "data=sgd",
                 // "data=one-year-of-tsla-on-reddit",
+                "data=wikitext-103-v1",
                 //
                 // >>>> ERC datasets
-                "data=ertod_emowoz",
+                // "data=ertod_emowoz",
                 // "data.dataset_seed=42",
-                "data.use_context=False",
-                "data.dataset_seed=50",
+                // "data.use_context=False",
+                // "data.dataset_seed=50",
                 //
                 //
                 "data.data_subsampling.sampling_mode=random",
@@ -69,20 +70,21 @@
                 //    >> END: Data options.
                 //    >> START: Model options.
                 //
-                // "language_model=roberta-base",
+                "language_model=roberta-base",
                 // "language_model=bert-base-uncased",
                 // "language_model=bert-base-uncased-SentiX",
                 // "language_model=gpt2-medium",
                 //
-                "language_model=bert-base-uncased-ContextBERT-ERToD_emowoz_basic_setup",
-                "language_model.seed=42",
+                // "language_model=bert-base-uncased-ContextBERT-ERToD_emowoz_basic_setup",
+                // "language_model.seed=42",
                 // "language_model.checkpoint_no=0",
-                "language_model.checkpoint_no=1",
+                // "language_model.checkpoint_no=1",
                 // "language_model.checkpoint_no=1,2",
-                "language_model.use_context=True", // <-- This is the debugging model we might have saved locally
+                // "language_model.use_context=True", // <-- This is the debugging model we might have saved locally
                 //
                 //    >> END: Model options.
                 //
+                // "embeddings.embedding_data_handler.mode=masked_token",
                 "embeddings.embedding_extraction.layer_indices=[-1]",
                 "embeddings_data_prep.sampling.num_samples=3000",
                 "embeddings_data_prep.sampling.sampling_mode=random",
@@ -344,12 +346,13 @@
                 // "data=one-year-of-tsla-on-reddit",
                 // "data=sgd,one-year-of-tsla-on-reddit",
                 // "data=multiwoz21,sgd,one-year-of-tsla-on-reddit",
+                "data=wikitext-103-v1",
                 //
                 // >>>> EmoLoop ERC datasets
                 // >> Note: The splits for the ERC datasets are called: train,validation,test
-                "data=ertod_emowoz",
-                "data.data_subsampling.split=train,validation,test",
-                "data.dataset_seed=50",
+                // "data=ertod_emowoz",
+                // "data.data_subsampling.split=train,validation,test",
+                // "data.dataset_seed=50",
                 // "data.dataset_seed=42",
                 // "data.dataset_seed=43,44",
                 // "data.dataset_seed=50,51,52",
@@ -374,11 +377,12 @@
                 // "data.data_subsampling.split=test",
                 // "data.data_subsampling.split=train,test",
                 // "data.data_subsampling.split=train,dev,test",
-                // "data.data_subsampling.split=train,validation,test",
+                "data.data_subsampling.split=train,validation,test",
                 //
-                "data.data_subsampling.sampling_mode=random",
-                "data.data_subsampling.number_of_samples=7000",
-                // "data.data_subsampling.number_of_samples=10000",
+                // "data.data_subsampling.sampling_mode=random",
+                "data.data_subsampling.sampling_mode=take_first,random",
+                // "data.data_subsampling.number_of_samples=7000",
+                "data.data_subsampling.number_of_samples=10000",
                 // "data.data_subsampling.number_of_samples=7000,10000",
                 // 
                 "data.data_subsampling.sampling_seed=778",
@@ -388,18 +392,31 @@
                 //
                 //    >> START: Model options.
                 //
+                // >>>> Base models
                 // "language_model=roberta-base",
                 //
                 // "language_model=bert-base-uncased",
+                //
+                // >>>> Fine-tuned models
+                // Individual:
+                // "language_model=roberta-base-masked_lm-defaults_iclr_2024_submissions-rm-empty-True-do_nothing-ner_tags_train-5000-take_first-111_standard-None_5e-05-linear-0.01-5",
+                // "language_model=roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+                // "language_model=roberta-base-masked_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+                "language_model=roberta-base-masked_lm-defaults_wikitext-103-v1-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+                // Multiple:
+                // "language_model=roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,roberta-base-masked_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,roberta-base-masked_lm-defaults_wikitext-103-v1-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+                //
+                // "++language_model.checkpoint_no=400,800,1200,1600,2000,2400,2800",
+                "++language_model.checkpoint_no=2800",
                 //
                 // >>>> ERC models
                 // "language_model=bert-base-uncased-SentiX",
                 // "language_model=roberta-base,bert-base-uncased,bert-base-uncased-SentiX",
                 //
-                "language_model=bert-base-uncased-ContextBERT-ERToD_emowoz_basic_setup",
+                // "language_model=bert-base-uncased-ContextBERT-ERToD_emowoz_basic_setup",
                 // "language_model.seed=50", // Note: Seed 50 already submitted.
                 // "language_model.seed=51",
-                "language_model.seed=52,53,54", // Note: Waiting for seeds 51, 52, 53, 54 to finish running
+                // "language_model.seed=52,53,54", // Note: Waiting for seeds 51, 52, 53, 54 to finish running
                 // "language_model.seed=50,51,52,53,54",
                 //
                 // >> Note: For the ERC models the checkpoints are given by the epoch numbers
@@ -407,11 +424,11 @@
                 // "language_model.checkpoint_no=0",
                 // "language_model.checkpoint_no=0,1,2,3,4",
                 //
-                "language_model.num_train_epochs=50",
+                // "language_model.num_train_epochs=50",
                 // "language_model.checkpoint_no=0",
                 // Note: You can generate the comma-separated list of checkpoints for the long ERC runs with the following python command:
                 // >>> ','.join(list(map(str, range(0,50,1))))
-                "language_model.checkpoint_no=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49",
+                // "language_model.checkpoint_no=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49",
                 //
                 // >>>> SetSUMBT models
                 // "language_model=roberta-base-setsumbt_multiwoz21",
@@ -455,14 +472,16 @@
                 // "language_model.seed=41",
                 // "language_model.seed=42", // Note: seed=42 is already submitted
                 // "language_model.seed=43",
-                // "language_model.seed=43,44", // TODO: Still need to run seeds 44
+                // "language_model.seed=43,44", // TODO: Still need to run seeds 44 for the long Trippy-R models
                 // "language_model.seed=42,43,44",
                 // "language_model.seed=1111,40,41",
                 //
                 //
                 //    >> END: Model options.
                 //
-                "embeddings.embedding_data_handler.mode=regular",
+                // "embeddings.embedding_data_handler.mode=regular",
+                // "embeddings.embedding_data_handler.mode=masked_token",
+                "embeddings.embedding_data_handler.mode=regular,masked_token",
                 "embeddings.embedding_extraction.layer_indices=[-1]",
                 "embeddings_data_prep.sampling.num_samples=150000",
                 "embeddings_data_prep.sampling.sampling_mode=random",
