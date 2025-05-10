@@ -2649,6 +2649,9 @@
                 // "hydra.launcher.ngpus=1",
                 // "hydra.launcher.walltime=00:10:00", // <-- The logging script should run very quickly.
                 // >>>> END: Hydra options
+                //
+                // "analysis.wandb_export.use_saved_concatenated_df=false",
+                "analysis.wandb_export.use_saved_concatenated_df=true",
             ],
             "env": {
                 "PYTORCH_ENABLE_MPS_FALLBACK": "1"

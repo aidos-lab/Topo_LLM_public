@@ -101,86 +101,106 @@ def main(
         "concatenated_df.csv",
     )
 
-    concatenated_df: pd.DataFrame = pd.DataFrame()
-    match use_scan_history:
+    match main_config.analysis.wandb_export.use_saved_concatenated_df:
         case False:
-            history_list: list[pd.DataFrame] = []
+            concatenated_df: pd.DataFrame = pd.DataFrame()
+            match use_scan_history:
+                case False:
+                    history_list: list[pd.DataFrame] = []
 
-            for run in tqdm(
-                runs,
-                desc="Iterating through runs",
-            ):
+                    for run in tqdm(
+                        runs,
+                        desc="Iterating through runs",
+                    ):
+                        logger.info(
+                            msg=f"{run.name=}",  # noqa: G004 - low overhead
+                        )
+                        # Default value: `samples=500`
+                        history: pd.DataFrame = run.history(
+                            samples=samples,
+                        )
+
+                        history["name"] = run.name
+                        history["dataset.frac_train"] = run.config["dataset"]["frac_train"]
+
+                        history_list.append(history)
+
+                    concatenated_df: pd.DataFrame = pd.concat(
+                        objs=history_list,
+                        ignore_index=True,
+                    )
+
+                    pass  # TODO: This is here for setting breakpoints
+                case True:
+                    for run in runs:
+                        run_name = run.name
+                        logger.info(
+                            msg=f"{run_name=}",  # noqa: G004 - low overhead
+                        )
+
+                        # When you pull data from history, by default it's sampled to 500 points.
+                        # Get all the logged data points using run.scan_history().
+                        # Here's an example downloading all the loss data points logged in history.
+                        #
+                        history = run.scan_history()
+
+                        # metrics_list = [
+                        #     (
+                        #         row[x_axis_name],
+                        #         row[metric_name],
+                        #     )
+                        #     for row in tqdm(history)
+                        # ]
+
+                        concatenated_df = pd.DataFrame()  # TODO: This is a placeholder
+
+                        pass  # TODO: This is here for setting breakpoints
+                case _:
+                    msg: str = f"Unknown value for use_scan_history: {use_scan_history=}"
+                    raise ValueError(
+                        msg,
+                    )
+
+            if concatenated_df.empty:
+                msg: str = f"Concatenated DataFrame is empty. {concatenated_df=}"
+                raise ValueError(
+                    msg,
+                )
+
+            if verbosity >= Verbosity.NORMAL:
                 logger.info(
-                    msg=f"{run.name=}",  # noqa: G004 - low overhead
+                    msg=f"Saving concatenated_df to {concatenated_df_save_path=} ...",  # noqa: G004 - low overhead
                 )
-                # Default value: `samples=500`
-                history: pd.DataFrame = run.history(
-                    samples=samples,
-                )
-
-                history["name"] = run.name
-                history["dataset.frac_train"] = run.config["dataset"]["frac_train"]
-
-                history_list.append(history)
-
-            concatenated_df: pd.DataFrame = pd.concat(
-                objs=history_list,
-                ignore_index=True,
+            concatenated_df_save_path.parent.mkdir(
+                parents=True,
+                exist_ok=True,
             )
-
-            pass  # TODO: This is here for setting breakpoints
+            concatenated_df.to_csv(
+                path_or_buf=concatenated_df_save_path,
+                index=False,
+            )
+            if verbosity >= Verbosity.NORMAL:
+                logger.info(
+                    msg=f"Saving concatenated_df to {concatenated_df_save_path=} DONE",  # noqa: G004 - low overhead
+                )
         case True:
-            for run in runs:
-                run_name = run.name
+            if verbosity >= Verbosity.NORMAL:
                 logger.info(
-                    msg=f"{run_name=}",  # noqa: G004 - low overhead
+                    msg=f"Loading concatenated_df from {concatenated_df_save_path=} ...",  # noqa: G004 - low overhead
+                )
+            if not concatenated_df_save_path.exists():
+                msg: str = f"Concatenated DataFrame does not exist. {concatenated_df_save_path=}"
+                raise FileNotFoundError(
+                    msg,
                 )
 
-                # When you pull data from history, by default it's sampled to 500 points.
-                # Get all the logged data points using run.scan_history().
-                # Here's an example downloading all the loss data points logged in history.
-                #
-                history = run.scan_history()
-
-                # metrics_list = [
-                #     (
-                #         row[x_axis_name],
-                #         row[metric_name],
-                #     )
-                #     for row in tqdm(history)
-                # ]
-
-                concatenated_df = pd.DataFrame()  # TODO: This is a placeholder
-
-                pass  # TODO: This is here for setting breakpoints
-        case _:
-            msg: str = f"Unknown value for use_scan_history: {use_scan_history=}"
-            raise ValueError(
-                msg,
+            concatenated_df = pd.read_csv(
+                filepath_or_buffer=concatenated_df_save_path,
             )
-
-    if concatenated_df.empty:
-        msg: str = f"Concatenated DataFrame is empty. {concatenated_df=}"
-        raise ValueError(
-            msg,
-        )
-
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            msg=f"Saving concatenated_df to {concatenated_df_save_path=} ...",  # noqa: G004 - low overhead
-        )
-    concatenated_df_save_path.parent.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
-    concatenated_df.to_csv(
-        path_or_buf=concatenated_df_save_path,
-        index=False,
-    )
-    if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            msg=f"Saving concatenated_df to {concatenated_df_save_path=} DONE",  # noqa: G004 - low overhead
-        )
+            if verbosity >= Verbosity.NORMAL:
+                logger.info(
+                    msg=f"Loading concatenated_df from {concatenated_df_save_path=} DONE",  # noqa: G004 - low overhead
+                )
 
     # # # #
     # Select a specific subset of the data and create corresponding plots

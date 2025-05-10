@@ -94,6 +94,12 @@ class WandbExportConfig(ConfigBaseModel):
         description="The number of samples to use for the analysis.",
     )
 
+    use_saved_concatenated_df: bool = Field(
+        default=False,
+        title="Use saved concatenated DataFrame.",
+        description="Whether to use the saved concatenated DataFrame or not.",
+    )
+
 
 class AnalysisConfig(ConfigBaseModel):
     """Parameters for the analysis of results."""
