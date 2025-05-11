@@ -5,7 +5,7 @@ defaults:
 
 column_name: text
 context: dataset_entry
-dataset_description_string: wikitext-103-v1
+dataset_description_string: wikitext-103-v1_strip-${data.normalization.apply_string_strip}
 dataset_path: wikitext
 dataset_name: wikitext-103-v1
 
@@ -13,3 +13,6 @@ filtering:
   remove_sequences_with_starting_segment_in_this_blocklist: [
     " = ",
   ]
+
+normalization:
+  apply_string_strip: True

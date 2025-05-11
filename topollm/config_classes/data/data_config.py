@@ -39,6 +39,16 @@ from topollm.config_classes.data.data_subsampling_config import DataSubsamplingC
 from topollm.typing.enums import DatasetType, DescriptionType
 
 
+class DataNormalizationConfig(ConfigBaseModel):
+    """Configuration for normalizing data."""
+
+    apply_string_strip: bool = Field(
+        default=False,
+        title="Apply string.strip().",
+        description="Apply string.strip() to the data.",
+    )
+
+
 class DataConfig(ConfigBaseModel):
     """Configuration for specifying data."""
 
@@ -105,6 +115,12 @@ class DataConfig(ConfigBaseModel):
         description="The data filtering configuration.",
     )
 
+    normalization: DataNormalizationConfig = Field(
+        default_factory=DataNormalizationConfig,
+        title="Data normalization configuration.",
+        description="The data normalization configuration.",
+    )
+
     feature_column_name: str = Field(
         default="ner_tags",
         title="Feature column name, will be used when finetuning a model on a specific tagging or classification task.",
@@ -133,13 +149,17 @@ class DataConfig(ConfigBaseModel):
             f"{KV_SEP}"
             f"{self.dataset_description_string}"
             f"{ITEM_SEP}"
-            f"{self.filtering.get_config_description(
-                description_type=DescriptionType.LONG,
-            )}"  # Description of the data filtering configuration
+            f"{
+                self.filtering.get_config_description(
+                    description_type=DescriptionType.LONG,
+                )
+            }"  # Description of the data filtering configuration
             f"{ITEM_SEP}"
-            f"{self.data_splitting.get_config_description(
-                description_type=DescriptionType.LONG,
-            )}"  # Description of the data splitting configuration
+            f"{
+                self.data_splitting.get_config_description(
+                    description_type=DescriptionType.LONG,
+                )
+            }"  # Description of the data splitting configuration
             f"{ITEM_SEP}"
             f"{NAME_PREFIXES['context']}"
             f"{KV_SEP}"

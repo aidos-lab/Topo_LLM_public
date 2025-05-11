@@ -196,4 +196,20 @@ class DatasetPreparerHuggingface:
             dataset_dict=dataset_dict_filtered,
         )
 
-        return dataset
+        # Apply the dataset normalizer
+        if self.data_config.normalization.apply_string_strip:
+            dataset_normalized: datasets.Dataset = dataset.map(
+                function=lambda x: {self.data_config.column_name: x[self.data_config.column_name].strip()},
+                batched=False,
+            )
+        else:
+            dataset_normalized: datasets.Dataset = dataset
+
+        if self.verbosity >= Verbosity.NORMAL:
+            log_huggingface_dataset_info(
+                dataset=dataset_normalized,
+                dataset_name="dataset_normalized",
+                logger=self.logger,
+            )
+
+        return dataset_normalized
