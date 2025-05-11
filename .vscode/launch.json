@@ -2385,8 +2385,8 @@
                 //    >> START: Plotting options.
                 //
                 // "analysis/task_performance_analysis/plotting=all",
-                // "analysis/task_performance_analysis/plotting=ertod",
-                "analysis/task_performance_analysis/plotting=trippy_r_same_data_subsampling",
+                "analysis/task_performance_analysis/plotting=ertod",
+                // "analysis/task_performance_analysis/plotting=trippy_r_same_data_subsampling",
                 // "analysis/task_performance_analysis/plotting=trippy_r_different_sample_for_different_models",
                 //
                 "analysis.task_performance_analysis.plotting.publication_ready=True",

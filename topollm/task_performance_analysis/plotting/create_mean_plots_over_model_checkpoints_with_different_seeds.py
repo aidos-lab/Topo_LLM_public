@@ -352,7 +352,11 @@ def create_mean_plots_over_model_checkpoints_with_different_seeds(
                 AxisLimits(
                     y_min=0.0,
                     y_max=0.8,
-                ),
+                ),  # This is for the measures in the Trippy-R setup
+                AxisLimits(
+                    y_min=0.45,
+                    y_max=0.8,
+                ),  # This is for the measures in the Emotion setup
             ]
 
             for secondary_axis_limits in secondary_axis_limits_list:
