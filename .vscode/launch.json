@@ -55,6 +55,8 @@
                 // "data=sgd",
                 // "data=one-year-of-tsla-on-reddit",
                 "data=wikitext-103-v1",
+                "data.normalization.apply_string_strip=True",
+                // "data.normalization.apply_string_strip=False",
                 //
                 // >>>> ERC datasets
                 // "data=ertod_emowoz",
@@ -96,15 +98,15 @@
                 // "local_estimates.estimator.lpca_ver=Fan",
                 //
                 "local_estimates.filtering.num_samples=500",
-                "local_estimates.compute_global_estimates=true",
+                "local_estimates.compute_global_estimates=True",
                 "local_estimates.pointwise.n_neighbors_mode=absolute_size",
                 "local_estimates.pointwise.absolute_n_neighbors=128",
                 //
                 //    >> START: Feature flags.
                 //    >> NOTE: Only skip the embedding computation if the embeddings are already available.
-                "feature_flags.compute_and_store_embeddings.skip_compute_and_store_embeddings_in_pipeline=false", // <-- Only set this to true if the embeddings are available
-                "feature_flags.embeddings_data_prep.skip_embeddings_data_prep_in_pipeline=false",
-                "feature_flags.analysis.create_plots_in_local_estimates_worker=true",
+                "feature_flags.compute_and_store_embeddings.skip_compute_and_store_embeddings_in_pipeline=False", // <-- Only set this to true if the embeddings are available
+                "feature_flags.embeddings_data_prep.skip_embeddings_data_prep_in_pipeline=False",
+                "feature_flags.analysis.create_plots_in_local_estimates_worker=True",
                 //    >> END: Feature flags.
             ],
             "env": {
@@ -160,12 +162,12 @@
                 "local_estimates=twonn",
                 //
                 "local_estimates.filtering.num_samples=500",
-                "local_estimates.compute_global_estimates=true",
+                "local_estimates.compute_global_estimates=True",
                 "local_estimates.pointwise.n_neighbors_mode=absolute_size",
                 "local_estimates.pointwise.absolute_n_neighbors=128",
                 //
                 //    >> START: Feature flags.
-                "feature_flags.analysis.create_plots_in_local_estimates_worker=true",
+                "feature_flags.analysis.create_plots_in_local_estimates_worker=True",
                 //    >> END: Feature flags.
             ],
             "env": {
@@ -239,12 +241,12 @@
                 "local_estimates=twonn",
                 //
                 "local_estimates.filtering.num_samples=500",
-                "local_estimates.compute_global_estimates=true",
+                "local_estimates.compute_global_estimates=True",
                 "local_estimates.pointwise.n_neighbors_mode=absolute_size",
                 "local_estimates.pointwise.absolute_n_neighbors=128",
                 //
                 //    >> START: Feature flags.
-                "feature_flags.analysis.create_plots_in_local_estimates_worker=true",
+                "feature_flags.analysis.create_plots_in_local_estimates_worker=True",
                 //    >> END: Feature flags.
             ],
             "env": {
@@ -295,12 +297,12 @@
                 "local_estimates.estimator.lpca_ver=FO",
                 // "local_estimates.estimator.lpca_ver=Fan",
                 "local_estimates.filtering.num_samples=500",
-                "local_estimates.compute_global_estimates=true",
+                "local_estimates.compute_global_estimates=True",
                 "local_estimates.pointwise.n_neighbors_mode=absolute_size",
                 "local_estimates.pointwise.absolute_n_neighbors=128",
                 //
                 //    >> START: Feature flags.
-                "feature_flags.analysis.create_plots_in_local_estimates_worker=true",
+                "feature_flags.analysis.create_plots_in_local_estimates_worker=True",
                 //    >> END: Feature flags.
             ],
             "env": {
@@ -495,7 +497,7 @@
                 "local_estimates.pointwise.absolute_n_neighbors=128",
                 //
                 //    >> START: Feature flags.
-                "feature_flags.analysis.create_plots_in_local_estimates_worker=false", // <-- Decide whether to create plots in the local estimates worker.
+                "feature_flags.analysis.create_plots_in_local_estimates_worker=False", // <-- Decide whether to create plots in the local estimates worker.
                 //    >> END: Feature flags.
             ],
             "env": {
@@ -645,7 +647,7 @@
                 "local_estimates.pointwise.absolute_n_neighbors=128",
                 //
                 //    >> START: Feature flags.
-                "feature_flags.analysis.create_plots_in_local_estimates_worker=true", // <-- Decide whether to create plots in the local estimates worker.
+                "feature_flags.analysis.create_plots_in_local_estimates_worker=True", // <-- Decide whether to create plots in the local estimates worker.
                 //    >> END: Feature flags.
             ],
             "env": {
@@ -743,9 +745,9 @@
                 //
                 //    >> START: Feature flags.
                 //    >> NOTE: Only skip the embedding computation if the embeddings are already available.
-                "feature_flags.compute_and_store_embeddings.skip_compute_and_store_embeddings_in_pipeline=true", // <-- Only set this to true if the embeddings are available
-                "feature_flags.embeddings_data_prep.skip_embeddings_data_prep_in_pipeline=false",
-                "feature_flags.analysis.create_plots_in_local_estimates_worker=false", // <-- Decide whether to create plots in the local estimates worker.
+                "feature_flags.compute_and_store_embeddings.skip_compute_and_store_embeddings_in_pipeline=True", // <-- Only set this to true if the embeddings are available
+                "feature_flags.embeddings_data_prep.skip_embeddings_data_prep_in_pipeline=False",
+                "feature_flags.analysis.create_plots_in_local_estimates_worker=False", // <-- Decide whether to create plots in the local estimates worker.
                 //    >> END: Feature flags.
             ],
             "env": {
@@ -819,7 +821,7 @@
                 "local_estimates.pointwise.absolute_n_neighbors=128",
                 //
                 //    >> START: Feature flags.
-                "feature_flags.analysis.create_plots_in_local_estimates_worker=false", // <-- Decide whether to create plots in the local estimates worker.
+                "feature_flags.analysis.create_plots_in_local_estimates_worker=False", // <-- Decide whether to create plots in the local estimates worker.
                 //    >> END: Feature flags.
             ],
             "env": {
@@ -844,11 +846,11 @@
                 "embeddings_data_prep.sampling.num_samples=3000",
                 "embeddings_data_prep.sampling.sampling_mode=random",
                 "local_estimates.filtering.num_samples=300",
-                "local_estimates.compute_global_estimates=true",
+                "local_estimates.compute_global_estimates=True",
                 "local_estimates.pointwise.n_neighbors_mode=absolute_size",
                 "local_estimates.pointwise.absolute_n_neighbors=256",
                 "local_estimates.pointwise.relative_n_neighbors=0.3",
-                "feature_flags.analysis.create_plots_in_local_estimates_worker=true",
+                "feature_flags.analysis.create_plots_in_local_estimates_worker=True",
             ]
         },
         {
@@ -871,12 +873,12 @@
                 "local_estimates.filtering.num_samples=5000",
                 // "local_estimates.filtering.deduplication_mode=identity",
                 "local_estimates.filtering.deduplication_mode=array_deduplicator",
-                "local_estimates.compute_global_estimates=true",
+                "local_estimates.compute_global_estimates=True",
                 "local_estimates.pointwise.n_neighbors_mode=absolute_size",
                 "local_estimates.pointwise.relative_n_neighbors=0.3",
                 // "local_estimates.pointwise.absolute_n_neighbors=64",
                 "local_estimates.pointwise.absolute_n_neighbors=128",
-                "feature_flags.analysis.create_plots_in_local_estimates_worker=false"
+                "feature_flags.analysis.create_plots_in_local_estimates_worker=False"
             ]
         },
         {
@@ -893,7 +895,7 @@
                 "data.data_subsampling.sampling_mode=random",
                 "data.data_subsampling.sampling_seed=777",
                 "data.data_subsampling.split=validation",
-                "feature_flags.wandb.use_wandb=false",
+                "feature_flags.wandb.use_wandb=False",
                 "wandb.project=Topo_LLM_DEBUG",
             ]
         },
@@ -929,7 +931,7 @@
                 "language_model=roberta-base",
                 // "language_model=gpt2-medium",
                 //
-                "feature_flags.wandb.use_wandb=false",
+                "feature_flags.wandb.use_wandb=False",
                 "wandb.project=Topo_LLM_DEBUG",
             ],
             "env": {}
@@ -985,7 +987,7 @@
                 //
                 //    >> END Model options.
                 //
-                "feature_flags.wandb.use_wandb=false",
+                "feature_flags.wandb.use_wandb=False",
                 "wandb.project=Topo_LLM_DEBUG",
             ],
             "env": {}
@@ -997,8 +999,8 @@
             "program": "topollm/model_finetuning/run_finetune_language_model_on_huggingface_dataset.py",
             "console": "integratedTerminal",
             "args": [
-                "feature_flags.finetuning.skip_finetuning=true",
-                "feature_flags.finetuning.use_wandb=false",
+                "feature_flags.finetuning.skip_finetuning=True",
+                "feature_flags.finetuning.use_wandb=False",
             ]
         },
         {
@@ -1014,7 +1016,7 @@
                 "finetuning.eval_steps=2",
                 "finetuning.trainer_modifier.mode=add_wandb_prediction_progress_callback",
                 "finetuning.trainer_modifier.frequency=4",
-                "feature_flags.wandb.use_wandb=false",
+                "feature_flags.wandb.use_wandb=False",
                 "wandb.project=Topo_LLM_finetuning_for_token_classification_DEBUG",
             ]
         },
@@ -1048,7 +1050,7 @@
                 // "finetuning/gradient_modifier=freeze_lm_head_bert-style-models",
                 // "finetuning/gradient_modifier=freeze_lm_head_and_word_embeddings_bert-style-models",
                 // >> END Optional: Change gradient modifier
-                "feature_flags.wandb.use_wandb=true",
+                "feature_flags.wandb.use_wandb=True",
                 "wandb.project=Topo_LLM_finetuning_for_language_modeling_DEBUG",
             ]
         },
@@ -1065,7 +1067,7 @@
                 "finetuning.eval_steps=2",
                 "finetuning.trainer_modifier.mode=add_wandb_prediction_progress_callback",
                 "finetuning.trainer_modifier.frequency=4",
-                "feature_flags.wandb.use_wandb=false",
+                "feature_flags.wandb.use_wandb=False",
                 "wandb.project=Topo_LLM_finetuning_for_language_modeling_DEBUG",
             ]
         },
@@ -1083,7 +1085,7 @@
                 "data=multiwoz21_validation",
                 // "data=sgd_test",
                 // "data.data_splitting.data_splitting_mode=proportions",
-                // "data.data_splitting.split_shuffle=true",
+                // "data.data_splitting.split_shuffle=True",
                 // "data.data_splitting.split_seed=123",
                 // "data.data_split.split_seed=null", // 'null' in the Hydra config is mapped to `None` in the Python code, and then no seed is set for the split
                 "data.data_subsampling.number_of_samples=128",
@@ -1097,11 +1099,11 @@
                 "embeddings_data_prep.sampling.num_samples=3000",
                 "embeddings_data_prep.sampling.sampling_mode=random",
                 "local_estimates.filtering.num_samples=300",
-                "local_estimates.compute_global_estimates=true",
+                "local_estimates.compute_global_estimates=True",
                 "local_estimates.pointwise.n_neighbors_mode=absolute_size",
                 "local_estimates.pointwise.absolute_n_neighbors=256",
                 //    >> START: Feature flags.
-                "feature_flags.analysis.create_plots_in_local_estimates_worker=true",
+                "feature_flags.analysis.create_plots_in_local_estimates_worker=True",
                 //    >> END: Feature flags.
             ]
         },
@@ -1124,7 +1126,7 @@
                 "embeddings_data_prep.sampling.num_samples=3000",
                 "embeddings_data_prep.sampling.sampling_mode=random",
                 "local_estimates.filtering.num_samples=300",
-                "local_estimates.compute_global_estimates=true",
+                "local_estimates.compute_global_estimates=True",
                 "local_estimates.pointwise.n_neighbors_mode=absolute_size",
                 "local_estimates.pointwise.absolute_n_neighbors=256",
                 "local_estimates.noise.artificial_noise_mode=gaussian",
@@ -1132,7 +1134,7 @@
                 "local_estimates.noise.distortion_parameter=0.001",
                 "local_estimates.noise.seed=2",
                 //    >> START: Feature flags.
-                "feature_flags.analysis.create_plots_in_local_estimates_worker=true",
+                "feature_flags.analysis.create_plots_in_local_estimates_worker=True",
                 //    >> END: Feature flags.
             ]
         },
@@ -1156,10 +1158,10 @@
                 "embeddings_data_prep.sampling.num_samples=3000",
                 "embeddings_data_prep.sampling.sampling_mode=random",
                 "local_estimates.filtering.num_samples=1000",
-                "local_estimates.compute_global_estimates=true",
+                "local_estimates.compute_global_estimates=True",
                 "local_estimates.pointwise.n_neighbors_mode=absolute_size",
                 "local_estimates.pointwise.absolute_n_neighbors=256",
-                "feature_flags.analysis.create_plots_in_local_estimates_worker=true",
+                "feature_flags.analysis.create_plots_in_local_estimates_worker=True",
             ]
         },
         {
@@ -2506,10 +2508,10 @@
                 "embeddings_data_prep.sampling.num_samples=3000",
                 "embeddings_data_prep.sampling.sampling_mode=random",
                 "local_estimates.filtering.num_samples=500",
-                "local_estimates.compute_global_estimates=true",
+                "local_estimates.compute_global_estimates=True",
                 "local_estimates.pointwise.n_neighbors_mode=absolute_size",
                 "local_estimates.pointwise.absolute_n_neighbors=128",
-                "feature_flags.analysis.create_plots_in_local_estimates_worker=true",
+                "feature_flags.analysis.create_plots_in_local_estimates_worker=True",
             ],
             "env": {
                 "PYTORCH_ENABLE_MPS_FALLBACK": "1"
@@ -2652,8 +2654,8 @@
                 //
                 "analysis.wandb_export.samples=50000", // <-- 50k. Note: 50k is already enough to get all points for the runs we have
                 // "analysis.wandb_export.samples=100000", // <-- 100k. Note: 50k is already enough to get all points for the runs we have
-                // "analysis.wandb_export.use_saved_concatenated_df=false",
-                "analysis.wandb_export.use_saved_concatenated_df=true",
+                // "analysis.wandb_export.use_saved_concatenated_df=False",
+                "analysis.wandb_export.use_saved_concatenated_df=True",
             ],
             "env": {
                 "PYTORCH_ENABLE_MPS_FALLBACK": "1"
