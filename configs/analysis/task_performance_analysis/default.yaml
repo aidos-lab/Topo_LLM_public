@@ -1,3 +1,7 @@
 defaults:
   - plotting: all
   - _self_
+
+plotting:
+  publication_ready: False
+  add_legend: True
