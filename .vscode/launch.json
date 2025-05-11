@@ -336,7 +336,8 @@
                 "hydra.launcher.ncpus=2", // <-- Make sure not to use more than 2 CPUs per GPU on the GTX1080TI and RTX6000 nodes.
                 "hydra.launcher.ngpus=1",
                 // "hydra.launcher.walltime=01:30:00", // <-- The pipeline run for regular embeddings should only take a few minutes.
-                "hydra.launcher.walltime=02:30:00", // <-- Note: Since the startup of the computation sometimes takes a long time, we set a longer walltime.
+                // "hydra.launcher.walltime=02:30:00", // <-- Note: Since the startup of the computation sometimes takes a long time, we set a longer walltime.
+                "hydra.launcher.walltime=08:00:00", // <-- For the masked version, take a longer walltime
                 //    >> END: Hydra options
                 //
                 "tokenizer.add_prefix_space=False", // "tokenizer.add_prefix_space=True" is necessary to use the tokenizer with input split into words
@@ -396,8 +397,8 @@
                 //
                 // >>>> Base models
                 // "language_model=roberta-base",
-                //
                 // "language_model=bert-base-uncased",
+                "++language_model.checkpoint_no=-1", // <-- checkpoint_no not necessary for the base models
                 //
                 // >>>> Fine-tuned models
                 // Individual:
