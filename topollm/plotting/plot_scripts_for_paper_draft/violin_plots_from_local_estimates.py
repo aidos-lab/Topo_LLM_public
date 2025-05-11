@@ -1,4 +1,3 @@
-import os
 import pathlib
 from collections import defaultdict
 
@@ -11,6 +10,8 @@ from topollm.config_classes.constants import TOPO_LLM_REPOSITORY_BASE_PATH
 
 def main() -> None:
     """Generate violin plots for local estimates from different models."""
+    save_arrays_in_output_dir: bool = True
+
     # Define the dataset names and masked levels
     dataset_names: list[str] = [
         "data=iclr_2024_submissions_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags",
@@ -98,10 +99,10 @@ def main() -> None:
                     base_directory_2,
                     "local_estimates_pointwise_array.npy",
                 )
-                print(
+                print(  # noqa: T201 - we want this script to print
                     f"file_path_1:\n{file_path_1}",
                 )
-                print(
+                print(  # noqa: T201 - we want this script to print
                     f"file_path_2:\n{file_path_2}",
                 )
 
@@ -119,6 +120,7 @@ def main() -> None:
                         data_array_1,
                         data_array_2,
                     ]
+
                     # labels = [
                     #     "GPT-2",
                     #     second_label,
@@ -171,7 +173,11 @@ def main() -> None:
                     ]
 
                     # Add the legend with custom handles
-                    plt.legend(handles=legend_handles, loc="upper right", fontsize=12)
+                    plt.legend(
+                        handles=legend_handles,
+                        loc="upper right",
+                        fontsize=12,
+                    )
 
                     # Reduce whitespace around the plot for compactness
                     plt.tight_layout(pad=0.1)
@@ -187,8 +193,8 @@ def main() -> None:
                         second_model.replace("=", "-").replace("/", "_"),
                         dataset_name.replace("=", "-").replace("/", "_"),
                     )
-                    os.makedirs(
-                        save_dir,
+                    save_dir.mkdir(
+                        parents=True,
                         exist_ok=True,
                     )
                     save_path = pathlib.Path(
@@ -201,18 +207,40 @@ def main() -> None:
                         format="pdf",
                         bbox_inches="tight",
                     )  # Save for submission
-                    relative_paths.append(save_path)  # Add the relative path to the list
-
                     plt.close()
 
+                    if save_arrays_in_output_dir:
+                        data_array_1_output_path = pathlib.Path(
+                            save_dir,
+                            "local_estimates_pointwise_array_1.npy",
+                        )
+                        data_array_2_output_path = pathlib.Path(
+                            save_dir,
+                            "local_estimates_pointwise_array_2.npy",
+                        )
+                        print(  # noqa: T201 - we want this script to print
+                            f"Saving data arrays to:\n{data_array_1_output_path=}\n{data_array_2_output_path=}",
+                        )
+
+                        np.save(
+                            file=data_array_1_output_path,
+                            arr=data_array_1,
+                        )
+                        np.save(
+                            file=data_array_2_output_path,
+                            arr=data_array_2,
+                        )
+
+                    relative_paths.append(save_path)  # Add the relative path to the list
+
                 except FileNotFoundError as e:
-                    print(
+                    print(  # noqa: T201 - we want this script to print
                         f"File not found for Dataset: {dataset_name}; "
                         f"Masked Level: {edh_mode}; "
                         f"Second Model: {second_model}: {e}",
                     )
                 except Exception as e:
-                    print(
+                    print(  # noqa: T201 - we want this script to print
                         f"An error occurred for Dataset: {dataset_name}; "
                         f"Masked Level: {edh_mode}; "
                         f"Second Model: {second_model}: {e}",
@@ -230,7 +258,9 @@ def main() -> None:
                 break
 
     # Print the grouped relative paths
-    print("\nRelative paths of saved plots (grouped by second_model):")
+    print(  # noqa: T201 - we want this script to print
+        "\nRelative paths of saved plots (grouped by second_model):",
+    )
     for (
         second_model,
         paths,
