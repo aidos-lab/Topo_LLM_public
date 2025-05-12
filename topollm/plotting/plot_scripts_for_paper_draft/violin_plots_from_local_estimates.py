@@ -33,6 +33,15 @@ def main() -> None:
         "data=wikitext-103-v1_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags",
         "data=wikitext-103-v1_strip-True_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags",
     ]
+    split_choices: list[str] = [
+        "train",
+        "validation",
+        "test",
+    ]
+    sampling_mode_choices: list[str] = [
+        "random",
+        "take_first",
+    ]
     edh_mode_choices: list[str] = [
         "masked_token",
         "regular",
@@ -43,10 +52,10 @@ def main() -> None:
 
     for base_model_mode in BaseModelMode:
         # List of second models and corresponding labels
-        checkpoint_no: int = 2800
 
         match base_model_mode:
             case BaseModelMode.ROBERTA_BASE:
+                checkpoint_no: int = 2800
                 first_label = "RoBERTa"
                 first_model_path: str = "model=roberta-base_task=masked_lm_dr=defaults"
                 second_models_and_labels: list[tuple[str, str]] = [
@@ -64,6 +73,7 @@ def main() -> None:
                     ),
                 ]
             case BaseModelMode.GPT2_MEDIUM:
+                checkpoint_no: int = 1200
                 first_label = "GPT-2"
                 first_model_path = "model=gpt2-medium_task=masked_lm_dr=defaults"
                 second_models_and_labels = [
@@ -99,6 +109,8 @@ def main() -> None:
         # Iterate over different choices
         for (
             dataset_name,
+            split,
+            sampling_mode,
             edh_mode,
             (
                 second_model,
@@ -106,14 +118,32 @@ def main() -> None:
             ),
         ) in itertools.product(
             dataset_name_choices,
+            split_choices,
+            sampling_mode_choices,
             edh_mode_choices,
             second_models_and_labels,
         ):
+            match sampling_mode:
+                case "random":
+                    split_and_subsample_path = (
+                        f"split={split}"
+                        f"_samples=10000"
+                        f"_sampling={sampling_mode}"
+                        f"_sampling-seed={data_subsampling_sampling_seed}"
+                    )
+                case "take_first":
+                    split_and_subsample_path = f"split={split}_samples=10000_sampling={sampling_mode}"
+                case _:
+                    msg: str = f"Unsupported sampling mode: {sampling_mode}"
+                    raise ValueError(
+                        msg,
+                    )
+
             # Define the base directories dynamically using the dataset name, masked level, and second model
             base_directory_1 = pathlib.Path(
                 local_estimates_directory,
                 dataset_name,
-                f"split=validation_samples=10000_sampling=random_sampling-seed={data_subsampling_sampling_seed}",
+                split_and_subsample_path,
                 f"edh-mode={edh_mode}_lvl=token",
                 f"add-prefix-space={add_prefix_space}_max-len=512",
                 first_model_path,
@@ -126,7 +156,7 @@ def main() -> None:
             base_directory_2 = pathlib.Path(
                 local_estimates_directory,
                 dataset_name,
-                f"split=validation_samples=10000_sampling=random_sampling-seed={data_subsampling_sampling_seed}",
+                split_and_subsample_path,
                 f"edh-mode={edh_mode}_lvl=token",
                 f"add-prefix-space={add_prefix_space}_max-len=512",
                 f"{second_model}",
@@ -235,6 +265,7 @@ def main() -> None:
                     "violin_plots",
                     f"add-prefix-space={add_prefix_space}",
                     f"edh-mode={edh_mode}",
+                    split_and_subsample_path,
                     second_model.replace("=", "-").replace("/", "_"),
                     dataset_name.replace("=", "-").replace("/", "_"),
                 )

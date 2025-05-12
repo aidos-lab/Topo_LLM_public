@@ -931,7 +931,7 @@ def label_every_n(
     locator = FixedLocator(
         tick_positions,  # type: ignore - problem with type
     )
-    formatter = FuncFormatter(lambda value, pos: f"{value:g}" if pos % keep_every == 0 else "")
+    formatter = FuncFormatter(lambda value, pos: f"{value:g}" if (pos is None) or (pos % keep_every == 0) else "")
 
     target_axis = ax.xaxis if axis == "x" else ax.yaxis
     target_axis.set_major_locator(locator)
@@ -959,6 +959,13 @@ def create_aggregate_estimate_visualization(
             raise ValueError(
                 msg=f"Unknown value for {config.publication_ready = }",
             )
+
+    # Set the marker size depending on the number of values on the x-axis
+    if len(data.local_estimates_df[config.x_column_name].unique()) > 30:
+        # If there are more than 20 unique values, use a smaller marker size
+        markersize: int = 4
+    else:
+        markersize: int = 6
 
     if "index" in data.local_estimates_df.columns:
         data.local_estimates_df = data.local_estimates_df.drop(
@@ -1022,6 +1029,7 @@ def create_aggregate_estimate_visualization(
         checkpoints,
         means,
         marker="o",
+        markersize=markersize,
         color="blue",
         label=local_estimates_label,
     )
@@ -1124,6 +1132,7 @@ def create_aggregate_estimate_visualization(
                 means,
                 linestyle="--",
                 marker="x",
+                markersize=markersize,
                 label=label,
                 color=color,
             )
