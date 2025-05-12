@@ -316,6 +316,7 @@
         //   On the DSML queue, we can even start jobs with a duration of 72:00:00.
         // - The GTX1080TI and RTX6000 nodes have 20 CPU-Cores and 10 GPUs each, 
         //   thus per GPU you should not use more than 2 CPUs.
+        // - For the gpt2-medium embeddings, the 12GB GPUs are not enough
         {
             "name": "Run pipeline - HHU Hilbert HPC submission - TwoNN - Fixed subsampling seed - RoBERTa, BERT, ContextBERT-ERToD, SetSUMBT, Trippy, Trippy-R checkpoints; last layer only - Run pipeline.",
             "type": "debugpy",
@@ -329,27 +330,30 @@
                 "hydra/launcher=basic",
                 "hydra/launcher=hpc_submission",
                 "hydra.launcher.queue=CUDA",
-                // "hydra.launcher.template=RTX6000",
-                "hydra.launcher.template=GTX1080",
+                "hydra.launcher.template=RTX6000",
+                // "hydra.launcher.template=GTX1080",
                 "hydra.launcher.memory=32", // <-- 32GB of RAM is enough for the Trippy-R pipeline runs to succeed, but we should check whether we can decrease this
                 // "hydra.launcher.memory=16", // 16 GB of RAM also appears to work for the Trippy-R pipeline runs, but is not enough for the ERC pipeline runs
                 "hydra.launcher.ncpus=2", // <-- Make sure not to use more than 2 CPUs per GPU on the GTX1080TI and RTX6000 nodes.
                 "hydra.launcher.ngpus=1",
                 // "hydra.launcher.walltime=01:30:00", // <-- The pipeline run for regular embeddings should only take a few minutes.
-                // "hydra.launcher.walltime=02:30:00", // <-- Note: Since the startup of the computation sometimes takes a long time, we set a longer walltime.
-                "hydra.launcher.walltime=08:00:00", // <-- For the masked version, take a longer walltime
+                "hydra.launcher.walltime=02:30:00", // <-- Note: Since the startup of the computation sometimes takes a long time, we set a longer walltime.
+                // "hydra.launcher.walltime=08:00:00", // <-- For the masked version, take a longer walltime
                 //    >> END: Hydra options
                 //
                 "tokenizer.add_prefix_space=False", // "tokenizer.add_prefix_space=True" is necessary to use the tokenizer with input split into words
                 //
                 //    >> START: Data options.
                 //
-                // "data=multiwoz21",
+                // >> Single dataset:
+                "data=multiwoz21",
                 // "data=sgd",
                 // "data=one-year-of-tsla-on-reddit",
+                // "data=wikitext-103-v1",
+                // >> Multiple datasets:
                 // "data=sgd,one-year-of-tsla-on-reddit",
                 // "data=multiwoz21,sgd,one-year-of-tsla-on-reddit",
-                "data=wikitext-103-v1",
+                // "data=sgd,one-year-of-tsla-on-reddit,wikitext-103-v1,iclr_2024_submissions",
                 //
                 // >>>> EmoLoop ERC datasets
                 // >> Note: The splits for the ERC datasets are called: train,validation,test
@@ -398,19 +402,21 @@
                 // >>>> Base models
                 // "language_model=roberta-base",
                 // "language_model=bert-base-uncased",
-                "++language_model.checkpoint_no=-1", // <-- checkpoint_no not necessary for the base models
+                "language_model=gpt2-medium",
+                //
+                "++language_model.checkpoint_no=-1", // <-- checkpoint_no not necessary for the base models, setting it to '-1' to skip unnecessary iterations over different choices
                 //
                 // >>>> Fine-tuned models
                 // Individual:
                 // "language_model=roberta-base-masked_lm-defaults_iclr_2024_submissions-rm-empty-True-do_nothing-ner_tags_train-5000-take_first-111_standard-None_5e-05-linear-0.01-5",
                 // "language_model=roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
                 // "language_model=roberta-base-masked_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
-                "language_model=roberta-base-masked_lm-defaults_wikitext-103-v1-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+                // "language_model=roberta-base-masked_lm-defaults_wikitext-103-v1-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
                 // Multiple:
                 // "language_model=roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,roberta-base-masked_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,roberta-base-masked_lm-defaults_wikitext-103-v1-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
                 //
                 // "++language_model.checkpoint_no=400,800,1200,1600,2000,2400,2800",
-                "++language_model.checkpoint_no=2800",
+                // "++language_model.checkpoint_no=2800",
                 //
                 // >>>> ERC models
                 // "language_model=bert-base-uncased-SentiX",
@@ -482,9 +488,10 @@
                 //
                 //    >> END: Model options.
                 //
-                // "embeddings.embedding_data_handler.mode=regular",
+                "embeddings.embedding_data_handler.mode=regular",
                 // "embeddings.embedding_data_handler.mode=masked_token",
-                "embeddings.embedding_data_handler.mode=regular,masked_token",
+                // "embeddings.embedding_data_handler.mode=regular,masked_token",
+                //
                 "embeddings.embedding_extraction.layer_indices=[-1]",
                 "embeddings_data_prep.sampling.num_samples=150000",
                 "embeddings_data_prep.sampling.sampling_mode=random",
@@ -506,7 +513,107 @@
             }
         },
         {
-            "name": "Run pipeline - HHU Hilbert HPC submission - TwoNN - Different subsampling seed for each model seed - RoBERTa, BERT, ContextBERT-ERToD, SetSUMBT, Trippy, Trippy-R checkpoints; last layer only - Run pipeline.",
+            "name": "Run pipeline - HHU Hilbert HPC submission - TwoNN - Fixed subsampling seed - Autoregressive: GPT-2; last layer only - Run pipeline.",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
+            "console": "integratedTerminal",
+            "args": [
+                //    >> START: Hydra options
+                "--multirun",
+                "hydra/sweeper=basic",
+                "hydra/launcher=basic",
+                "hydra/launcher=hpc_submission",
+                "hydra.launcher.queue=CUDA",
+                "hydra.launcher.template=RTX6000",
+                // "hydra.launcher.template=GTX1080", // Note: 12 GB of GPU memory appears to not be enough for the GPT-2 pipeline
+                "hydra.launcher.memory=32", // <-- 32GB of RAM is enough for the Trippy-R pipeline runs to succeed, but we should check whether we can decrease this
+                // "hydra.launcher.memory=16", // 16 GB of RAM also appears to work for the Trippy-R pipeline runs, but is not enough for the ERC pipeline runs
+                "hydra.launcher.ncpus=2", // <-- Make sure not to use more than 2 CPUs per GPU on the GTX1080TI and RTX6000 nodes.
+                "hydra.launcher.ngpus=1",
+                // "hydra.launcher.walltime=01:30:00", // <-- The pipeline run for regular embeddings should only take a few minutes.
+                "hydra.launcher.walltime=02:30:00", // <-- Note: Since the startup of the computation sometimes takes a long time, we set a longer walltime.
+                // "hydra.launcher.walltime=08:00:00", // <-- For the masked version, take a longer walltime
+                //    >> END: Hydra options
+                //
+                "tokenizer.add_prefix_space=False", // "tokenizer.add_prefix_space=True" is necessary to use the tokenizer with input split into words
+                //
+                //    >> START: Data options.
+                //
+                // >> Single dataset:
+                // "data=multiwoz21",
+                // "data=sgd",
+                // "data=one-year-of-tsla-on-reddit",
+                // "data=wikitext-103-v1",
+                // >> Multiple datasets:
+                // "data=sgd,one-year-of-tsla-on-reddit",
+                // "data=multiwoz21,sgd,one-year-of-tsla-on-reddit",
+                // "data=sgd,one-year-of-tsla-on-reddit,wikitext-103-v1,iclr_2024_submissions",
+                "data=multiwoz21,sgd,one-year-of-tsla-on-reddit,wikitext-103-v1,iclr_2024_submissions",
+                //
+                //
+                // "data.data_subsampling.split=train",
+                // "data.data_subsampling.split=dev",
+                // "data.data_subsampling.split=validation",
+                // "data.data_subsampling.split=test",
+                // "data.data_subsampling.split=train,test",
+                // "data.data_subsampling.split=train,dev,test",
+                "data.data_subsampling.split=train,validation,test",
+                //
+                // "data.data_subsampling.sampling_mode=random",
+                "data.data_subsampling.sampling_mode=take_first,random",
+                // "data.data_subsampling.number_of_samples=7000",
+                "data.data_subsampling.number_of_samples=10000",
+                // "data.data_subsampling.number_of_samples=7000,10000",
+                // 
+                "data.data_subsampling.sampling_seed=778",
+                // "data.data_subsampling.sampling_seed=778,779,780",
+                //
+                //    >> END: Data options.
+                //
+                //    >> START: Model options.
+                //
+                // >>>> Base models
+                // "language_model=gpt2-medium",
+                //
+                // "++language_model.checkpoint_no=-1", // <-- checkpoint_no not necessary for the base models, setting it to '-1' to skip unnecessary iterations over different choices
+                //
+                // >>>> Fine-tuned models
+                // Individual:
+                "language_model=gpt2-medium-causal_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5.yaml",
+                // Multiple:
+                // "language_model=roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,roberta-base-masked_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,roberta-base-masked_lm-defaults_wikitext-103-v1-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+                //
+                // "++language_model.checkpoint_no=400,800,1200,1600,2000,2400,2800",
+                // "++language_model.checkpoint_no=2800",
+                //
+                //
+                //    >> END: Model options.
+                //
+                "embeddings.embedding_data_handler.mode=regular", // 'masked_token' does not make sense for autoregressive models
+                //
+                "embeddings.embedding_extraction.layer_indices=[-1]",
+                "embeddings_data_prep.sampling.num_samples=150000",
+                "embeddings_data_prep.sampling.sampling_mode=random",
+                "embeddings_data_prep.sampling.seed=42",
+                //
+                "local_estimates=twonn",
+                //
+                "local_estimates.pointwise.n_neighbors_mode=absolute_size",
+                "local_estimates.filtering.deduplication_mode=array_deduplicator",
+                "local_estimates.filtering.num_samples=60000",
+                "local_estimates.pointwise.absolute_n_neighbors=128",
+                //
+                //    >> START: Feature flags.
+                "feature_flags.analysis.create_plots_in_local_estimates_worker=False", // <-- Decide whether to create plots in the local estimates worker.
+                //    >> END: Feature flags.
+            ],
+            "env": {
+                "PYTORCH_ENABLE_MPS_FALLBACK": "1"
+            }
+        },
+        {
+            "name": "Run pipeline - HHU Hilbert HPC submission - TwoNN - Different subsampling seed for each model seed - RoBERTa, BERT, GPT-2, ContextBERT-ERToD, SetSUMBT, Trippy, Trippy-R checkpoints; last layer only - Run pipeline.",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
