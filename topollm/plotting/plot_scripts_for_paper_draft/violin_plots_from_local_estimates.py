@@ -1,12 +1,23 @@
+"""Generate violin plots for local estimates from different models."""
+
 import itertools
 import pathlib
 from collections import defaultdict
+from enum import StrEnum, auto, unique
 
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 
 from topollm.config_classes.constants import TOPO_LLM_REPOSITORY_BASE_PATH
+
+
+@unique
+class BaseModelMode(StrEnum):
+    """The different modes for base models."""
+
+    ROBERTA_BASE = auto()
+    GPT2_MEDIUM = auto()
 
 
 def main() -> None:
@@ -27,238 +38,262 @@ def main() -> None:
         "regular",
     ]
 
-    # List of second models and corresponding labels
-    checkpoint_no: int = 2800
-    second_models_and_labels = [
-        (
-            f"model=roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5_seed-1234_ckpt-{checkpoint_no}_task=masked_lm_dr=defaults",
-            "RoBERTa fine-tuned on MultiWOZ",
-        ),
-        (
-            f"model=roberta-base-masked_lm-defaults_wikitext-103-v1-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5_seed-1234_ckpt-{checkpoint_no}_task=masked_lm_dr=defaults",
-            "RoBERTa fine-tuned on Wikitext",
-        ),
-        (
-            f"model=roberta-base-masked_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5_seed-1234_ckpt-{checkpoint_no}_task=masked_lm_dr=defaults",
-            "RoBERTa fine-tuned on Reddit",
-        ),
-    ]
-
-    # second_models_and_labels = [
-    #     ("model=gpt2-medium-causal_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5_seed-1234_ckpt-1200_task=causal_lm_dr=defaults", "GPT-2 fine-tuned on Multiwoz"),
-    #     ("model=gpt2-medium-causal_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5_seed-1234_ckpt-1200_task=causal_lm_dr=defaults", "GPT-2 fine-tuned on Reddit"),
-    #     ("model=gpt2-medium-causal_lm-defaults_wikitext-103-v1-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5_seed-1234_ckpt-1200_task=causal_lm_dr=defaults", "GPT-2 fine-tuned on Wikitext")
-    # ]
-
-    data_subsampling_sampling_seed: int = 778
-    add_prefix_space: bool = False
-
     # List to store all relative paths
     relative_paths: list[pathlib.Path] = []
 
-    local_estimates_directory: pathlib.Path = pathlib.Path(
-        TOPO_LLM_REPOSITORY_BASE_PATH,
-        "data",
-        "analysis",
-        "local_estimates",
-    )
+    for base_model_mode in BaseModelMode:
+        # List of second models and corresponding labels
+        checkpoint_no: int = 2800
 
-    # Iterate over different choices
-    for (
-        dataset_name,
-        edh_mode,
-        (
-            second_model,
-            second_label,
-        ),
-    ) in itertools.product(
-        dataset_name_choices,
-        edh_mode_choices,
-        second_models_and_labels,
-    ):
-        # Define the base directories dynamically using the dataset name, masked level, and second model
-        base_directory_1 = pathlib.Path(
-            local_estimates_directory,
+        match base_model_mode:
+            case BaseModelMode.ROBERTA_BASE:
+                first_label = "RoBERTa"
+                first_model_path: str = "model=roberta-base_task=masked_lm_dr=defaults"
+                second_models_and_labels: list[tuple[str, str]] = [
+                    (
+                        f"model=roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5_seed-1234_ckpt-{checkpoint_no}_task=masked_lm_dr=defaults",
+                        "RoBERTa fine-tuned on MultiWOZ",
+                    ),
+                    (
+                        f"model=roberta-base-masked_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5_seed-1234_ckpt-{checkpoint_no}_task=masked_lm_dr=defaults",
+                        "RoBERTa fine-tuned on Reddit",
+                    ),
+                    (
+                        f"model=roberta-base-masked_lm-defaults_wikitext-103-v1-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5_seed-1234_ckpt-{checkpoint_no}_task=masked_lm_dr=defaults",
+                        "RoBERTa fine-tuned on Wikitext",
+                    ),
+                ]
+            case BaseModelMode.GPT2_MEDIUM:
+                first_label = "GPT-2"
+                first_model_path = "model=gpt2-medium_task=masked_lm_dr=defaults"
+                second_models_and_labels = [
+                    (
+                        f"model=gpt2-medium-causal_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5_seed-1234_ckpt-{checkpoint_no}_task=causal_lm_dr=defaults",
+                        "GPT-2 fine-tuned on MultiWOZ",
+                    ),
+                    (
+                        f"model=gpt2-medium-causal_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5_seed-1234_ckpt-{checkpoint_no}_task=causal_lm_dr=defaults",
+                        "GPT-2 fine-tuned on Reddit",
+                    ),
+                    (
+                        f"model=gpt2-medium-causal_lm-defaults_wikitext-103-v1-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5_seed-1234_ckpt-{checkpoint_no}_task=causal_lm_dr=defaults",
+                        "GPT-2 fine-tuned on Wikitext",
+                    ),
+                ]
+            case _:
+                msg: str = f"Unsupported base model mode: {base_model_mode}"
+                raise ValueError(
+                    msg,
+                )
+
+        data_subsampling_sampling_seed: int = 778
+        add_prefix_space: bool = False
+
+        local_estimates_directory: pathlib.Path = pathlib.Path(
+            TOPO_LLM_REPOSITORY_BASE_PATH,
+            "data",
+            "analysis",
+            "local_estimates",
+        )
+
+        # Iterate over different choices
+        for (
             dataset_name,
-            f"split=validation_samples=10000_sampling=random_sampling-seed={data_subsampling_sampling_seed}",
-            f"edh-mode={edh_mode}_lvl=token",
-            f"add-prefix-space={add_prefix_space}_max-len=512",
-            "model=roberta-base_task=masked_lm_dr=defaults",
-            "layer=-1_agg=mean/norm=None/",
-            "sampling=random_seed=42_samples=150000",
-            "desc=twonn_samples=60000_zerovec=keep_dedup=array_deduplicator_noise=do_nothing/n-neighbors-mode=absolute_size_n-neighbors=128",
-        )
-
-        base_directory_2 = pathlib.Path(
-            local_estimates_directory,
-            dataset_name,
-            f"split=validation_samples=10000_sampling=random_sampling-seed={data_subsampling_sampling_seed}",
-            f"edh-mode={edh_mode}_lvl=token",
-            f"add-prefix-space={add_prefix_space}_max-len=512",
-            f"{second_model}",
-            "layer=-1_agg=mean/norm=None/",
-            "sampling=random_seed=42_samples=150000",
-            "desc=twonn_samples=60000_zerovec=keep_dedup=array_deduplicator_noise=do_nothing/n-neighbors-mode=absolute_size_n-neighbors=128",
-        )
-
-        # Specify the file paths
-        file_path_1: pathlib.Path = pathlib.Path(
-            base_directory_1,
-            "local_estimates_pointwise_array.npy",
-        )
-        file_path_2: pathlib.Path = pathlib.Path(
-            base_directory_2,
-            "local_estimates_pointwise_array.npy",
-        )
-        print(  # noqa: T201 - we want this script to print
-            f"file_path_1:\n{file_path_1}",
-        )
-        print(  # noqa: T201 - we want this script to print
-            f"file_path_2:\n{file_path_2}",
-        )
-
-        try:
-            # Load the .npy files
-            data_array_1 = np.load(
-                file=file_path_1,
-            )
-            data_array_2 = np.load(
-                file=file_path_2,
-            )
-
-            # Combine the data into a single dataset with labels
-            data_combined: list[np.ndarray] = [
-                data_array_1,
-                data_array_2,
-            ]
-
-            # labels = [
-            #     "GPT-2",
-            #     second_label,
-            # ]
-            labels: list[str] = [
-                "RoBERTa",
+            edh_mode,
+            (
+                second_model,
                 second_label,
-            ]
-
-            # Create a violin plot with adjusted font size
-            plt.figure(figsize=(8.5, 2.5))  # Adjust figure size for ICML one-column format
-            sns.violinplot(
-                data=data_combined,
-                density_norm="width",
-                inner="quartile",
-                split=True,
+            ),
+        ) in itertools.product(
+            dataset_name_choices,
+            edh_mode_choices,
+            second_models_and_labels,
+        ):
+            # Define the base directories dynamically using the dataset name, masked level, and second model
+            base_directory_1 = pathlib.Path(
+                local_estimates_directory,
+                dataset_name,
+                f"split=validation_samples=10000_sampling=random_sampling-seed={data_subsampling_sampling_seed}",
+                f"edh-mode={edh_mode}_lvl=token",
+                f"add-prefix-space={add_prefix_space}_max-len=512",
+                first_model_path,
+                "layer=-1_agg=mean",
+                "norm=None",
+                "sampling=random_seed=42_samples=150000",
+                "desc=twonn_samples=60000_zerovec=keep_dedup=array_deduplicator_noise=do_nothing/n-neighbors-mode=absolute_size_n-neighbors=128",
             )
 
-            fontsize = 18
-
-            # Add title and labels with smaller font size
-            plt.ylabel(
-                ylabel="TwoNN",
-                fontsize=fontsize,
+            base_directory_2 = pathlib.Path(
+                local_estimates_directory,
+                dataset_name,
+                f"split=validation_samples=10000_sampling=random_sampling-seed={data_subsampling_sampling_seed}",
+                f"edh-mode={edh_mode}_lvl=token",
+                f"add-prefix-space={add_prefix_space}_max-len=512",
+                f"{second_model}",
+                "layer=-1_agg=mean",
+                "norm=None",
+                "sampling=random_seed=42_samples=150000",
+                "desc=twonn_samples=60000_zerovec=keep_dedup=array_deduplicator_noise=do_nothing/n-neighbors-mode=absolute_size_n-neighbors=128",
             )
-            plt.xticks(
-                ticks=range(len(labels)),
-                labels=labels,
-                fontsize=fontsize,
+
+            # Specify the file paths
+            file_path_1: pathlib.Path = pathlib.Path(
+                base_directory_1,
+                "local_estimates_pointwise_array.npy",
             )
-            plt.yticks(fontsize=fontsize)
+            file_path_2: pathlib.Path = pathlib.Path(
+                base_directory_2,
+                "local_estimates_pointwise_array.npy",
+            )
+            print(  # noqa: T201 - we want this script to print
+                f"file_path_1:\n{file_path_1}",
+            )
+            print(  # noqa: T201 - we want this script to print
+                f"file_path_2:\n{file_path_2}",
+            )
 
-            import matplotlib.patches as mpatches
-
-            # Retrieve colors for each violin from the plot
-            colors = [
-                violin.get_facecolor().mean(axis=0)  # type: ignore - problem with the color type
-                for violin in plt.gca().collections[: len(data_combined)]
-            ]
-
-            # Create custom legend handles with correct colors
-            legend_handles = [
-                mpatches.Patch(
-                    color=colors[i],
-                    label=f"Mean={np.mean(data_combined[i]):.2f}; "
-                    f"Median={np.median(data_combined[i]):.2f}; "
-                    f"Std={np.std(data_combined[i]):.2f}",
+            try:
+                # Load the .npy files
+                data_array_1 = np.load(
+                    file=file_path_1,
                 )
-                for i in range(len(labels))
-            ]
+                data_array_2 = np.load(
+                    file=file_path_2,
+                )
 
-            # Add the legend with custom handles
-            plt.legend(
-                handles=legend_handles,
-                loc="upper right",
-                fontsize=12,
-            )
+                # Combine the data into a single dataset with labels
+                data_combined: list[np.ndarray] = [
+                    data_array_1,
+                    data_array_2,
+                ]
 
-            # Reduce whitespace around the plot for compactness
-            plt.tight_layout(pad=0.1)
+                labels: list[str] = [
+                    first_label,
+                    second_label,
+                ]
 
-            # Create directories for saving the plots
-            save_dir = pathlib.Path(
-                TOPO_LLM_REPOSITORY_BASE_PATH,
-                "data",
-                "saved_plots",
-                "violin_plots",
-                f"add-prefix-space={add_prefix_space}",
-                f"edh-mode={edh_mode}",
-                second_model.replace("=", "-").replace("/", "_"),
-                dataset_name.replace("=", "-").replace("/", "_"),
-            )
-            save_dir.mkdir(
-                parents=True,
-                exist_ok=True,
-            )
-            save_path = pathlib.Path(
-                save_dir,
-                "violin_plot.pdf",
-            )
+                # Create a violin plot with adjusted font size
+                plt.figure(
+                    figsize=(7.5, 2.5),
+                )  # Adjust figure size for paper format
 
-            plt.savefig(
-                save_path,
-                format="pdf",
-                bbox_inches="tight",
-            )  # Save for submission
-            plt.close()
+                sns.violinplot(
+                    data=data_combined,
+                    density_norm="width",
+                    inner="quartile",
+                    split=True,
+                )
 
-            if save_arrays_in_output_dir:
-                data_array_1_output_path = pathlib.Path(
+                fontsize = 18
+
+                # Add title and labels with smaller font size
+                plt.ylabel(
+                    ylabel="TwoNN",
+                    fontsize=fontsize,
+                )
+                plt.xticks(
+                    ticks=range(len(labels)),
+                    labels=labels,
+                    fontsize=fontsize,
+                )
+                plt.yticks(fontsize=fontsize)
+
+                import matplotlib.patches as mpatches
+
+                # Retrieve colors for each violin from the plot
+                colors = [
+                    violin.get_facecolor().mean(axis=0)  # type: ignore - problem with the color type
+                    for violin in plt.gca().collections[: len(data_combined)]
+                ]
+
+                # Create custom legend handles with correct colors
+                legend_handles = [
+                    mpatches.Patch(
+                        color=colors[i],
+                        label=f"Mean={np.mean(data_combined[i]):.2f}; "
+                        f"Median={np.median(data_combined[i]):.2f}; "
+                        f"Std={np.std(data_combined[i]):.2f}",
+                    )
+                    for i in range(len(labels))
+                ]
+
+                # Add the legend with custom handles
+                plt.legend(
+                    handles=legend_handles,
+                    loc="upper right",
+                    fontsize=12,
+                )
+
+                # Reduce whitespace around the plot for compactness
+                plt.tight_layout(pad=0.1)
+
+                # Create directories for saving the plots
+                save_dir = pathlib.Path(
+                    TOPO_LLM_REPOSITORY_BASE_PATH,
+                    "data",
+                    "saved_plots",
+                    "violin_plots",
+                    f"add-prefix-space={add_prefix_space}",
+                    f"edh-mode={edh_mode}",
+                    second_model.replace("=", "-").replace("/", "_"),
+                    dataset_name.replace("=", "-").replace("/", "_"),
+                )
+                save_dir.mkdir(
+                    parents=True,
+                    exist_ok=True,
+                )
+                save_path = pathlib.Path(
                     save_dir,
-                    "local_estimates_pointwise_array_1.npy",
+                    "violin_plot.pdf",
                 )
-                data_array_2_output_path = pathlib.Path(
-                    save_dir,
-                    "local_estimates_pointwise_array_2.npy",
-                )
+
+                plt.savefig(
+                    save_path,
+                    format="pdf",
+                    bbox_inches="tight",
+                )  # Save for submission
+                plt.close()
+
+                if save_arrays_in_output_dir:
+                    data_array_1_output_path = pathlib.Path(
+                        save_dir,
+                        "local_estimates_pointwise_array_1.npy",
+                    )
+                    data_array_2_output_path = pathlib.Path(
+                        save_dir,
+                        "local_estimates_pointwise_array_2.npy",
+                    )
+                    print(  # noqa: T201 - we want this script to print
+                        f"Saving data arrays to:\n{data_array_1_output_path=}\n{data_array_2_output_path=}",
+                    )
+
+                    np.save(
+                        file=data_array_1_output_path,
+                        arr=data_array_1,
+                    )
+                    np.save(
+                        file=data_array_2_output_path,
+                        arr=data_array_2,
+                    )
+
+                relative_paths.append(save_path)  # Add the relative path to the list
+
+            except FileNotFoundError as e:
                 print(  # noqa: T201 - we want this script to print
-                    f"Saving data arrays to:\n{data_array_1_output_path=}\n{data_array_2_output_path=}",
+                    f"File not found for Dataset: {dataset_name}; "
+                    f"Masked Level: {edh_mode}; "
+                    f"Second Model: {second_model}: {e}",
                 )
-
-                np.save(
-                    file=data_array_1_output_path,
-                    arr=data_array_1,
+            except Exception as e:  # noqa: BLE001 - we want the script to continue in case of other exceptions
+                print(  # noqa: T201 - we want this script to print
+                    f"An error occurred for Dataset: {dataset_name}; "
+                    f"Masked Level: {edh_mode}; "
+                    f"Second Model: {second_model}: {e}",
                 )
-                np.save(
-                    file=data_array_2_output_path,
-                    arr=data_array_2,
-                )
-
-            relative_paths.append(save_path)  # Add the relative path to the list
-
-        except FileNotFoundError as e:
-            print(  # noqa: T201 - we want this script to print
-                f"File not found for Dataset: {dataset_name}; "
-                f"Masked Level: {edh_mode}; "
-                f"Second Model: {second_model}: {e}",
-            )
-        except Exception as e:
-            print(  # noqa: T201 - we want this script to print
-                f"An error occurred for Dataset: {dataset_name}; "
-                f"Masked Level: {edh_mode}; "
-                f"Second Model: {second_model}: {e}",
-            )
 
     # Group the relative paths by the second_model component
     grouped_paths = defaultdict(list)
+
     for path in relative_paths:
         # Extract the second_model name from the path
         # Assumes the structure where second_model is part of the path
@@ -276,9 +311,13 @@ def main() -> None:
         second_model,
         paths,
     ) in grouped_paths.items():
-        print(f"\nPaths for {second_model}:")
+        print(  # noqa: T201 - we want this script to print
+            f"\nPaths for {second_model}:",
+        )
         for path in paths:
-            print("data/twonn_violin_plots/" + str(path))
+            print(  # noqa: T201 - we want this script to print
+                "data/twonn_violin_plots/" + str(path),
+            )
 
 
 if __name__ == "__main__":
