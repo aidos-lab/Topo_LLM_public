@@ -29,6 +29,7 @@
 
 import logging
 import pathlib
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from itertools import chain, cycle
 from typing import Any
@@ -37,6 +38,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from matplotlib import rcParams
+from matplotlib.ticker import FixedLocator, FuncFormatter
 from tqdm import tqdm
 
 from topollm.data_processing.dictionary_handling import (
@@ -75,6 +77,14 @@ METRIC_COLORS: dict[str, str] = {
     "recall": "#d62728",  # red
 }
 
+COLUMN_NAMES_TO_LEGEND_LABEL: dict[str, str] = {
+    "loss": "Loss",
+    "jga": "Joint Goal Accuracy",
+    # TODO: Add the labels for the ERC performance measures
+    "accuracy": "Accuracy",
+    "recall": "Recall",
+}
+
 # Build a repeatable fallback cycle from Matplotlib's default prop-cycle
 _fallback_cycle = cycle(rcParams["axes.prop_cycle"].by_key()["color"])
 
@@ -86,6 +96,16 @@ def get_metric_color(
     return METRIC_COLORS.get(  # type: ignore - we always return a non-none value
         metric,
         next(_fallback_cycle),
+    )
+
+
+def get_metric_legend_label(
+    metric: str,
+) -> str:
+    """Return a fixed legend label for `metric`, or a deterministic fallback."""
+    return COLUMN_NAMES_TO_LEGEND_LABEL.get(  # type: ignore - we always return a non-none value
+        metric,
+        metric,
     )
 
 
@@ -400,8 +420,8 @@ def create_mean_plots_over_model_checkpoints_with_different_seeds(
                         output_pdf_width,
                         output_pdf_height,
                     ) = (
-                        600,
-                        350,
+                        500,
+                        300,
                     )
 
             for secondary_axis_limits in secondary_axis_limits_list:
@@ -897,6 +917,27 @@ def plot_local_estimates_with_individual_seeds_and_aggregated_over_seeds(
     )
 
 
+def label_every_n(
+    ax,  # noqa: ANN001 - problem with plt.Axes type
+    axis: str = "x",
+    keep_every: int = 2,
+    *,
+    tick_positions: Sequence[float] | None = None,
+) -> None:
+    """Show a label on every `keep_every`-th major tick."""
+    if tick_positions is None:
+        tick_positions = ax.get_xticks() if axis == "x" else ax.get_yticks()
+
+    locator = FixedLocator(
+        tick_positions,  # type: ignore - problem with type
+    )
+    formatter = FuncFormatter(lambda value, pos: f"{value:g}" if pos % keep_every == 0 else "")
+
+    target_axis = ax.xaxis if axis == "x" else ax.yaxis
+    target_axis.set_major_locator(locator)
+    target_axis.set_major_formatter(formatter)
+
+
 def create_aggregate_estimate_visualization(
     data: PlotInputData,
     config: PlotConfig,
@@ -904,6 +945,21 @@ def create_aggregate_estimate_visualization(
     logger: logging.Logger = default_logger,
 ) -> None:
     """Create a plot of the mean local estimates over checkpoints with standard deviation bands."""
+    # Set parameters based on draft or publication mode
+    match config.publication_ready:
+        case False:
+            grid_alpha: float = 1.0
+            local_estimates_label = "Mean file_data_mean across seeds"
+            legend_title = "Legend"
+        case True:
+            grid_alpha: float = 0.25  # Make the grid weaker in publication-ready mode
+            local_estimates_label = "Mean local dim."
+            legend_title = None
+        case _:
+            raise ValueError(
+                msg=f"Unknown value for {config.publication_ready = }",
+            )
+
     if "index" in data.local_estimates_df.columns:
         data.local_estimates_df = data.local_estimates_df.drop(
             columns=["index"],
@@ -967,7 +1023,7 @@ def create_aggregate_estimate_visualization(
         means,
         marker="o",
         color="blue",
-        label="Mean across seeds",
+        label=local_estimates_label,
     )
     ax1.fill_between(
         x=checkpoints,
@@ -975,7 +1031,7 @@ def create_aggregate_estimate_visualization(
         y2=means + stds,
         color="blue",
         alpha=0.2,
-        label="Standard Deviation",
+        # No label for the standard deviation
     )
 
     match config.publication_ready:
@@ -983,14 +1039,11 @@ def create_aggregate_estimate_visualization(
             ax1.set_title(
                 label="Mean Local Estimates Over Checkpoints with Standard Deviation Band",
             )
-            grid_alpha: float = 1.0
         case True:
             if verbosity >= Verbosity.NORMAL:
                 logger.info(
                     msg="Skipping the title in the plot for publication-ready mode.",
                 )
-            # Make the grid weaker in publication-ready mode
-            grid_alpha: float = 0.25
         case _:
             raise ValueError(
                 msg=f"Unknown value for {config.publication_ready = }",
@@ -1058,13 +1111,20 @@ def create_aggregate_estimate_visualization(
             color = get_metric_color(
                 metric=column,
             )
+            match config.publication_ready:
+                case False:
+                    label: str = f"{column} (mean)"
+                case True:
+                    label = get_metric_legend_label(
+                        metric=column,
+                    )
 
             ax2.plot(
                 checkpoints,
                 means,
                 linestyle="--",
                 marker="x",
-                label=f"{column} (mean)",
+                label=label,
                 color=color,
             )
             ax2.fill_between(
@@ -1073,6 +1133,7 @@ def create_aggregate_estimate_visualization(
                 y2=means + stds,
                 alpha=0.2,
                 color=color,
+                # No label for the standard deviation
             )
 
     # Optional: Set axis label once
@@ -1084,6 +1145,17 @@ def create_aggregate_estimate_visualization(
         axis="y",
         labelcolor="tab:red",
     )
+
+    match config.publication_ready:
+        case False:
+            if verbosity >= Verbosity.NORMAL:
+                logger.info(
+                    msg="Will not modify the axes labels in the debug mode.",
+                )
+        case True:
+            label_every_n(ax=ax1, axis="x", keep_every=2)  # show every 2-nd x-label
+            label_every_n(ax=ax1, axis="y", keep_every=2)  # show every 2-nd y-label
+            label_every_n(ax=ax2, axis="y", keep_every=2)  # show every 2-nd y-label
 
     match config.add_legend:
         case True:
@@ -1099,7 +1171,7 @@ def create_aggregate_estimate_visualization(
             ax1.legend(
                 handles=lines_1 + lines_2,
                 labels=labels_1 + labels_2,
-                title="Legend",
+                title=legend_title,
             )
         case False:
             if verbosity >= Verbosity.NORMAL:
