@@ -109,7 +109,7 @@
             }
         },
         {
-            "label": "rsync from local to Dropbox - 'data/analysis/twonn.only_small_files/' directory",
+            "label": "rsync from local to Dropbox - Local estimates only small files directory",
             "command": "./topollm/scripts/data_handling/sync_folders_script.sh ./topollm/scripts/data_handling/pairs_files/sync_small_files_data_analysis_to_dropbox.txt",
             "type": "shell",
             "group": {

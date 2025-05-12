@@ -30,12 +30,13 @@
 import logging
 import pathlib
 from dataclasses import dataclass, field
-from itertools import chain
+from itertools import chain, cycle
 from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from matplotlib import rcParams
 from tqdm import tqdm
 
 from topollm.data_processing.dictionary_handling import (
@@ -61,6 +62,30 @@ from topollm.typing.enums import Verbosity
 default_logger: logging.Logger = logging.getLogger(
     name=__name__,
 )
+
+# --------------------------------------------------------------------------- #
+# Color palette for secondary-axis metrics.
+# Keys must match the strings in `scores_data.columns_to_plot`.
+# --------------------------------------------------------------------------- #
+METRIC_COLORS: dict[str, str] = {
+    "loss": "#2ca02c",  # green
+    "jga": "#ff7f0e",  # orange
+    "accuracy": "#1f77b4",  # blue
+    "recall": "#d62728",  # red
+}
+
+# Build a repeatable fallback cycle from Matplotlib's default prop-cycle
+_fallback_cycle = cycle(rcParams["axes.prop_cycle"].by_key()["color"])
+
+
+def get_metric_color(
+    metric: str,
+) -> str:
+    """Return a fixed colour for `metric`, or a deterministic fallback."""
+    return METRIC_COLORS.get(  # type: ignore - we always return a non-none value
+        metric,
+        next(_fallback_cycle),
+    )
 
 
 @dataclass

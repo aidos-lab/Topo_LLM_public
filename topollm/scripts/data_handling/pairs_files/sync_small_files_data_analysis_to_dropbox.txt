@@ -1,1 +1,1 @@
-"/Users/ruppik/git-source/Topo_LLM/data/analysis/twonn.only_small_files/" "/Users/ruppik/Library/CloudStorage/Dropbox/05_Sharing/Project - Topo_LLM - TDA in LLMs - Shared Folder/data/analysis/twonn.only_small_files/"
+"/Users/ruppik/git-source/Topo_LLM/data/analysis/local_estimates.only_small_files/" "/Users/ruppik/Library/CloudStorage/Dropbox/05_Sharing/Project - Topo_LLM - TDA in LLMs - Shared Folder/data/analysis/local_estimates.only_small_files/"
