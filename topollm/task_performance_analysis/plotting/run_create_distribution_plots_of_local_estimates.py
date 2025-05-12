@@ -189,46 +189,48 @@ def create_plots_for_given_pattern(
 
     # # # #
     # Common parameters for all plots
+    common_output_pdf_width: int = 650
+    common_output_pdf_height: int = 300
     plot_size_configs_list: list[PlotSizeConfigFlat] = [
         PlotSizeConfigFlat(
             x_min=None,
             x_max=None,
             y_min=None,
             y_max=None,
-            output_pdf_width=2_000,
-            output_pdf_height=1_500,
+            output_pdf_width=common_output_pdf_width,
+            output_pdf_height=common_output_pdf_height,
         ),
         PlotSizeConfigFlat(
             x_min=None,
             x_max=None,
             y_min=0.0,
             y_max=10.5,
-            output_pdf_width=2_000,
-            output_pdf_height=1_500,
+            output_pdf_width=common_output_pdf_width,
+            output_pdf_height=common_output_pdf_height,
         ),
         PlotSizeConfigFlat(
             x_min=None,
             x_max=None,
             y_min=4.0,
-            y_max=11.0,
-            output_pdf_width=2_000,
-            output_pdf_height=1_500,
+            y_max=11.5,
+            output_pdf_width=common_output_pdf_width,
+            output_pdf_height=common_output_pdf_height,
         ),
         PlotSizeConfigFlat(
             x_min=None,
             x_max=None,
             y_min=5.0,
             y_max=9.0,
-            output_pdf_width=2_000,
-            output_pdf_height=1_500,
+            output_pdf_width=common_output_pdf_width,
+            output_pdf_height=common_output_pdf_height,
         ),
         PlotSizeConfigFlat(
             x_min=None,
             x_max=None,
             y_min=1.0,
             y_max=13.5,
-            output_pdf_width=2_000,
-            output_pdf_height=1_500,
+            output_pdf_width=common_output_pdf_width,
+            output_pdf_height=common_output_pdf_height,
         ),
     ]
 

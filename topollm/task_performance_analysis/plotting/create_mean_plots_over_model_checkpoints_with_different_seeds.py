@@ -68,8 +68,9 @@ default_logger: logging.Logger = logging.getLogger(
 # Keys must match the strings in `scores_data.columns_to_plot`.
 # --------------------------------------------------------------------------- #
 METRIC_COLORS: dict[str, str] = {
-    "loss": "#2ca02c",  # green
-    "jga": "#ff7f0e",  # orange
+    "loss": "#2ca02c",  # green - used consistently for losses
+    "jga": "#ff7f0e",  # orange - used for performance measures
+    # TODO: Add the colors for the ERC performance measures
     "accuracy": "#1f77b4",  # blue
     "recall": "#d62728",  # red
 }
@@ -384,6 +385,25 @@ def create_mean_plots_over_model_checkpoints_with_different_seeds(
                 ),  # This is for the measures in the Emotion setup
             ]
 
+            # For publication ready plots, make the dimensions smaller so that the text is easier to read.
+            match publication_ready:
+                case False:
+                    (
+                        output_pdf_width,
+                        output_pdf_height,
+                    ) = (
+                        2_500,
+                        1_500,
+                    )
+                case True:
+                    (
+                        output_pdf_width,
+                        output_pdf_height,
+                    ) = (
+                        600,
+                        350,
+                    )
+
             for secondary_axis_limits in secondary_axis_limits_list:
                 plot_size_config_nested = PlotSizeConfigNested(
                     primary_axis_limits=AxisLimits(
@@ -394,8 +414,8 @@ def create_mean_plots_over_model_checkpoints_with_different_seeds(
                     ),
                     secondary_axis_limits=secondary_axis_limits,
                     output_dimensions=OutputDimensions(
-                        output_pdf_width=1_200,
-                        output_pdf_height=700,
+                        output_pdf_width=output_pdf_width,
+                        output_pdf_height=output_pdf_height,
                     ),
                 )
 
@@ -1035,19 +1055,24 @@ def create_aggregate_estimate_visualization(
                 "std",
             ].to_numpy()
 
-            # TODO: Set a fixed color for different kinds of estimates, so that this is consistent between different plots
+            color = get_metric_color(
+                metric=column,
+            )
+
             ax2.plot(
                 checkpoints,
                 means,
                 linestyle="--",
                 marker="x",
                 label=f"{column} (mean)",
+                color=color,
             )
             ax2.fill_between(
                 x=checkpoints,
                 y1=means - stds,
                 y2=means + stds,
                 alpha=0.2,
+                color=color,
             )
 
     # Optional: Set axis label once
