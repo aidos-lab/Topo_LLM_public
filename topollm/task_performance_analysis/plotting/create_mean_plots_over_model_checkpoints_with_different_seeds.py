@@ -1010,6 +1010,7 @@ def create_aggregate_estimate_visualization(
                 "std",
             ].to_numpy()
 
+            # TODO: Set a fixed color for different kinds of estimates, so that this is consistent between different plots
             ax2.plot(
                 checkpoints,
                 means,
