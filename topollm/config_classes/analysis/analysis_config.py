@@ -62,6 +62,18 @@ class PlottingConfig(ConfigBaseModel):
         description="The patterns to iterate over for plotting.",
     )
 
+    publication_ready: bool = Field(
+        default=False,
+        title="Publication ready.",
+        description="Whether the plots should be publication ready or not.",
+    )
+
+    add_legend: bool = Field(
+        default=True,
+        title="Add legend.",
+        description="Whether to add a legend to the plots or not.",
+    )
+
 
 class TaskPerformanceAnalysisConfig(ConfigBaseModel):
     """Parameters for the analysis of task performance."""

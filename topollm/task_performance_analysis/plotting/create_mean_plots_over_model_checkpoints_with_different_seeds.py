@@ -29,13 +29,16 @@
 
 import logging
 import pathlib
+from collections.abc import Sequence
 from dataclasses import dataclass, field
-from itertools import chain
+from itertools import chain, cycle
 from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from matplotlib import rcParams
+from matplotlib.ticker import FixedLocator, FuncFormatter
 from tqdm import tqdm
 
 from topollm.data_processing.dictionary_handling import (
@@ -61,6 +64,49 @@ from topollm.typing.enums import Verbosity
 default_logger: logging.Logger = logging.getLogger(
     name=__name__,
 )
+
+# --------------------------------------------------------------------------- #
+# Color palette for secondary-axis metrics.
+# Keys must match the strings in `scores_data.columns_to_plot`.
+# --------------------------------------------------------------------------- #
+METRIC_COLORS: dict[str, str] = {
+    "loss": "#2ca02c",  # green - used consistently for losses
+    "jga": "#ff7f0e",  # orange - used for performance measures
+    # TODO: Add the colors for the ERC performance measures
+    "accuracy": "#1f77b4",  # blue
+    "recall": "#d62728",  # red
+}
+
+COLUMN_NAMES_TO_LEGEND_LABEL: dict[str, str] = {
+    "loss": "Loss",
+    "jga": "Joint Goal Accuracy",
+    # TODO: Add the labels for the ERC performance measures
+    "accuracy": "Accuracy",
+    "recall": "Recall",
+}
+
+# Build a repeatable fallback cycle from Matplotlib's default prop-cycle
+_fallback_cycle = cycle(rcParams["axes.prop_cycle"].by_key()["color"])
+
+
+def get_metric_color(
+    metric: str,
+) -> str:
+    """Return a fixed colour for `metric`, or a deterministic fallback."""
+    return METRIC_COLORS.get(  # type: ignore - we always return a non-none value
+        metric,
+        next(_fallback_cycle),
+    )
+
+
+def get_metric_legend_label(
+    metric: str,
+) -> str:
+    """Return a fixed legend label for `metric`, or a deterministic fallback."""
+    return COLUMN_NAMES_TO_LEGEND_LABEL.get(  # type: ignore - we always return a non-none value
+        metric,
+        metric,
+    )
 
 
 @dataclass
@@ -131,6 +177,9 @@ class PlotConfig:
     plots_output_dir: pathlib.Path | None = None
     show_plots: bool = False
 
+    add_legend: bool = True  # Add legend to the plot
+    publication_ready: bool = False  # Exclude additional debug information in the publication ready version
+
 
 def create_mean_plots_over_model_checkpoints_with_different_seeds(
     loaded_data: list[dict],
@@ -142,6 +191,8 @@ def create_mean_plots_over_model_checkpoints_with_different_seeds(
     fixed_keys: list[str] | None = None,
     additional_fixed_params: dict[str, Any] | None = None,
     save_plot_raw_data: bool = True,
+    publication_ready: bool = False,
+    add_legend: bool = True,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> None:
@@ -322,9 +373,14 @@ def create_mean_plots_over_model_checkpoints_with_different_seeds(
                 logger=logger,
             )
 
+        match publication_ready:
+            case False:
+                ylabel = array_key_name
+            case True:
+                ylabel = "Mean local dimension"
         ticks_and_labels: TicksAndLabels = TicksAndLabels(
-            xlabel="checkpoints",
-            ylabel=array_key_name,
+            xlabel="Steps",
+            ylabel=ylabel,
             xticks_labels=model_checkpoint_str_list,
         )
 
@@ -342,8 +398,31 @@ def create_mean_plots_over_model_checkpoints_with_different_seeds(
                 AxisLimits(
                     y_min=0.0,
                     y_max=0.8,
-                ),
+                ),  # This is for the measures in the Trippy-R setup
+                AxisLimits(
+                    y_min=0.45,
+                    y_max=0.8,
+                ),  # This is for the measures in the Emotion setup
             ]
+
+            # For publication ready plots, make the dimensions smaller so that the text is easier to read.
+            match publication_ready:
+                case False:
+                    (
+                        output_pdf_width,
+                        output_pdf_height,
+                    ) = (
+                        2_500,
+                        1_500,
+                    )
+                case True:
+                    (
+                        output_pdf_width,
+                        output_pdf_height,
+                    ) = (
+                        500,
+                        300,
+                    )
 
             for secondary_axis_limits in secondary_axis_limits_list:
                 plot_size_config_nested = PlotSizeConfigNested(
@@ -355,8 +434,8 @@ def create_mean_plots_over_model_checkpoints_with_different_seeds(
                     ),
                     secondary_axis_limits=secondary_axis_limits,
                     output_dimensions=OutputDimensions(
-                        output_pdf_width=3_000,
-                        output_pdf_height=1_500,
+                        output_pdf_width=output_pdf_width,
+                        output_pdf_height=output_pdf_height,
                     ),
                 )
 
@@ -369,6 +448,8 @@ def create_mean_plots_over_model_checkpoints_with_different_seeds(
                     filter_key_value_pairs=filter_key_value_pairs,
                     base_model_model_partial_name=base_model_model_partial_name,
                     plots_output_dir=plots_output_dir,
+                    publication_ready=publication_ready,
+                    add_legend=add_legend,
                     verbosity=verbosity,
                     logger=logger,
                 )
@@ -638,6 +719,8 @@ def plot_local_estimates_with_individual_seeds_and_aggregated_over_seeds(
     filter_key_value_pairs: dict,
     base_model_model_partial_name: str | None = None,
     plots_output_dir: pathlib.Path | None = None,
+    publication_ready: bool = False,
+    add_legend: bool = True,
     show_plots: bool = False,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
@@ -782,6 +865,15 @@ def plot_local_estimates_with_individual_seeds_and_aggregated_over_seeds(
         )
 
     # # # #
+    # Add additional information to the output path
+    if plots_output_dir is not None:
+        plots_output_dir = pathlib.Path(
+            plots_output_dir,
+            f"{publication_ready=}",
+            f"{add_legend=}",
+        )
+
+    # # # #
     # Create the containers for the plot data and plot configuration
 
     plot_input_data = PlotInputData(
@@ -798,6 +890,8 @@ def plot_local_estimates_with_individual_seeds_and_aggregated_over_seeds(
         base_model_model_partial_name=base_model_model_partial_name,
         plots_output_dir=plots_output_dir,
         show_plots=show_plots,
+        add_legend=add_legend,
+        publication_ready=publication_ready,
     )
 
     # ========================================================= #
@@ -823,6 +917,27 @@ def plot_local_estimates_with_individual_seeds_and_aggregated_over_seeds(
     )
 
 
+def label_every_n(
+    ax,  # noqa: ANN001 - problem with plt.Axes type
+    axis: str = "x",
+    keep_every: int = 2,
+    *,
+    tick_positions: Sequence[float] | None = None,
+) -> None:
+    """Show a label on every `keep_every`-th major tick."""
+    if tick_positions is None:
+        tick_positions = ax.get_xticks() if axis == "x" else ax.get_yticks()
+
+    locator = FixedLocator(
+        tick_positions,  # type: ignore - problem with type
+    )
+    formatter = FuncFormatter(lambda value, pos: f"{value:g}" if (pos is None) or (pos % keep_every == 0) else "")
+
+    target_axis = ax.xaxis if axis == "x" else ax.yaxis
+    target_axis.set_major_locator(locator)
+    target_axis.set_major_formatter(formatter)
+
+
 def create_aggregate_estimate_visualization(
     data: PlotInputData,
     config: PlotConfig,
@@ -830,6 +945,28 @@ def create_aggregate_estimate_visualization(
     logger: logging.Logger = default_logger,
 ) -> None:
     """Create a plot of the mean local estimates over checkpoints with standard deviation bands."""
+    # Set parameters based on draft or publication mode
+    match config.publication_ready:
+        case False:
+            grid_alpha: float = 1.0
+            local_estimates_label = "Mean file_data_mean across seeds"
+            legend_title = "Legend"
+        case True:
+            grid_alpha: float = 0.25  # Make the grid weaker in publication-ready mode
+            local_estimates_label = "Mean local dim."
+            legend_title = None
+        case _:
+            raise ValueError(
+                msg=f"Unknown value for {config.publication_ready = }",
+            )
+
+    # Set the marker size depending on the number of values on the x-axis
+    if len(data.local_estimates_df[config.x_column_name].unique()) > 30:
+        # If there are more than 20 unique values, use a smaller marker size
+        markersize: int = 4
+    else:
+        markersize: int = 6
+
     if "index" in data.local_estimates_df.columns:
         data.local_estimates_df = data.local_estimates_df.drop(
             columns=["index"],
@@ -892,8 +1029,9 @@ def create_aggregate_estimate_visualization(
         checkpoints,
         means,
         marker="o",
+        markersize=markersize,
         color="blue",
-        label="Mean across seeds",
+        label=local_estimates_label,
     )
     ax1.fill_between(
         x=checkpoints,
@@ -901,14 +1039,27 @@ def create_aggregate_estimate_visualization(
         y2=means + stds,
         color="blue",
         alpha=0.2,
-        label="Standard Deviation",
+        # No label for the standard deviation
     )
 
-    ax1.set_title(
-        label="Mean Local Estimates Over Checkpoints with Standard Deviation Band",
-    )
+    match config.publication_ready:
+        case False:
+            ax1.set_title(
+                label="Mean Local Estimates Over Checkpoints with Standard Deviation Band",
+            )
+        case True:
+            if verbosity >= Verbosity.NORMAL:
+                logger.info(
+                    msg="Skipping the title in the plot for publication-ready mode.",
+                )
+        case _:
+            raise ValueError(
+                msg=f"Unknown value for {config.publication_ready = }",
+            )
+
     ax1.grid(
         visible=True,
+        alpha=grid_alpha,
     )
 
     ax1.set_xlabel(
@@ -965,23 +1116,38 @@ def create_aggregate_estimate_visualization(
                 "std",
             ].to_numpy()
 
+            color = get_metric_color(
+                metric=column,
+            )
+            match config.publication_ready:
+                case False:
+                    label: str = f"{column} (mean)"
+                case True:
+                    label = get_metric_legend_label(
+                        metric=column,
+                    )
+
             ax2.plot(
                 checkpoints,
                 means,
                 linestyle="--",
                 marker="x",
-                label=f"{column} (mean)",
+                markersize=markersize,
+                label=label,
+                color=color,
             )
             ax2.fill_between(
                 x=checkpoints,
                 y1=means - stds,
                 y2=means + stds,
                 alpha=0.2,
+                color=color,
+                # No label for the standard deviation
             )
 
     # Optional: Set axis label once
     ax2.set_ylabel(
-        ylabel="Scores",
+        ylabel="Evaluation measures",
         color="tab:red",
     )  # Customize label and color if desired
     ax2.tick_params(
@@ -989,20 +1155,38 @@ def create_aggregate_estimate_visualization(
         labelcolor="tab:red",
     )
 
-    # Combine legends from both axes
-    (
-        lines_1,
-        labels_1,
-    ) = ax1.get_legend_handles_labels()
-    (
-        lines_2,
-        labels_2,
-    ) = ax2.get_legend_handles_labels()
-    ax1.legend(
-        handles=lines_1 + lines_2,
-        labels=labels_1 + labels_2,
-        title="Legend",
-    )
+    match config.publication_ready:
+        case False:
+            if verbosity >= Verbosity.NORMAL:
+                logger.info(
+                    msg="Will not modify the axes labels in the debug mode.",
+                )
+        case True:
+            label_every_n(ax=ax1, axis="x", keep_every=2)  # show every 2-nd x-label
+            label_every_n(ax=ax1, axis="y", keep_every=2)  # show every 2-nd y-label
+            label_every_n(ax=ax2, axis="y", keep_every=2)  # show every 2-nd y-label
+
+    match config.add_legend:
+        case True:
+            # Combine legends from both axes
+            (
+                lines_1,
+                labels_1,
+            ) = ax1.get_legend_handles_labels()
+            (
+                lines_2,
+                labels_2,
+            ) = ax2.get_legend_handles_labels()
+            ax1.legend(
+                handles=lines_1 + lines_2,
+                labels=labels_1 + labels_2,
+                title=legend_title,
+            )
+        case False:
+            if verbosity >= Verbosity.NORMAL:
+                logger.info(
+                    msg="Skipping the legend in the plot.",
+                )
 
     # Set the y-axis limits
     ax1 = config.plot_size_config_nested.primary_axis_limits.set_y_axis_limits(
@@ -1017,36 +1201,51 @@ def create_aggregate_estimate_visualization(
     )
 
     if fixed_params_text is not None:
-        ax1.text(
-            x=1.05,
-            y=0.25,
-            s=f"Fixed Parameters:\n{fixed_params_text}",
-            transform=plt.gca().transAxes,
-            fontsize=6,
-            verticalalignment="top",
-            bbox={
-                "boxstyle": "round",
-                "facecolor": "wheat",
-                "alpha": 0.3,
-            },
-        )
+        match config.publication_ready:
+            case False:
+                # Add information about the fixed parameters into the plot
+                ax1.text(
+                    x=1.05,
+                    y=0.25,
+                    s=f"Fixed Parameters:\n{fixed_params_text}",
+                    transform=plt.gca().transAxes,
+                    fontsize=6,
+                    verticalalignment="top",
+                    bbox={
+                        "boxstyle": "round",
+                        "facecolor": "wheat",
+                        "alpha": 0.3,
+                    },
+                )
+            case True:
+                if verbosity >= Verbosity.NORMAL:
+                    logger.info(
+                        msg="Skipping the fixed parameters text in the plot for publication-ready mode.",
+                    )
 
     # Add info about the base model if available into the bottom left corner of the plot
     if config.base_model_model_partial_name is not None:
-        ax1.text(
-            x=0.01,
-            y=0.01,
-            s=f"{config.base_model_model_partial_name=}",
-            transform=plt.gca().transAxes,
-            fontsize=6,
-            verticalalignment="bottom",
-            horizontalalignment="left",
-            bbox={
-                "boxstyle": "round",
-                "facecolor": "wheat",
-                "alpha": 0.3,
-            },
-        )
+        match config.publication_ready:
+            case False:
+                ax1.text(
+                    x=0.01,
+                    y=0.01,
+                    s=f"{config.base_model_model_partial_name=}",
+                    transform=plt.gca().transAxes,
+                    fontsize=6,
+                    verticalalignment="bottom",
+                    horizontalalignment="left",
+                    bbox={
+                        "boxstyle": "round",
+                        "facecolor": "wheat",
+                        "alpha": 0.3,
+                    },
+                )
+            case True:
+                if verbosity >= Verbosity.NORMAL:
+                    logger.info(
+                        msg="Skipping the information about the base model in publication-ready mode.",
+                    )
 
     fig.tight_layout()
 
@@ -1109,8 +1308,12 @@ def create_seedwise_estimate_visualization(
             label=f"{seed=}",
         )
 
-    ax1.set_xlabel(xlabel="Model Checkpoint")
-    ax1.set_ylabel(ylabel="File Data Mean")
+    ax1.set_xlabel(
+        xlabel=config.ticks_and_labels.xlabel,
+    )
+    ax1.set_ylabel(
+        ylabel=config.ticks_and_labels.ylabel,
+    )
     ax1.set_title(label="Local Estimates Over Checkpoints by Model Seed (including checkpoint -1)")
 
     ax1.grid(

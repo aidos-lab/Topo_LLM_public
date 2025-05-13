@@ -139,6 +139,8 @@ def main(
             do_create_distribution_plots_over_model_checkpoints=main_config.feature_flags.task_performance_analysis.plotting_create_distribution_plots_over_model_checkpoints,
             do_create_mean_plots_over_model_checkpoints_with_different_seeds=main_config.feature_flags.task_performance_analysis.plotting_create_mean_plots_over_model_checkpoints_with_different_seeds,
             do_create_distribution_plots_over_model_layers=main_config.feature_flags.task_performance_analysis.plotting_create_distribution_plots_over_model_layers,
+            publication_ready=main_config.analysis.task_performance_analysis.plotting.publication_ready,
+            add_legend=main_config.analysis.task_performance_analysis.plotting.add_legend,
             verbosity=verbosity,
             logger=logger,
         )
@@ -152,6 +154,8 @@ def create_plots_for_given_pattern(
     do_create_distribution_plots_over_model_checkpoints: bool = True,
     do_create_mean_plots_over_model_checkpoints_with_different_seeds: bool = True,
     do_create_distribution_plots_over_model_layers: bool = True,
+    publication_ready: bool = False,
+    add_legend: bool = True,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> None:
@@ -185,30 +189,48 @@ def create_plots_for_given_pattern(
 
     # # # #
     # Common parameters for all plots
+    common_output_pdf_width: int = 650
+    common_output_pdf_height: int = 300
     plot_size_configs_list: list[PlotSizeConfigFlat] = [
         PlotSizeConfigFlat(
             x_min=None,
             x_max=None,
             y_min=None,
             y_max=None,
-            output_pdf_width=2_000,
-            output_pdf_height=1_500,
+            output_pdf_width=common_output_pdf_width,
+            output_pdf_height=common_output_pdf_height,
         ),
         PlotSizeConfigFlat(
             x_min=None,
             x_max=None,
             y_min=0.0,
             y_max=10.5,
-            output_pdf_width=2_000,
-            output_pdf_height=1_500,
+            output_pdf_width=common_output_pdf_width,
+            output_pdf_height=common_output_pdf_height,
+        ),
+        PlotSizeConfigFlat(
+            x_min=None,
+            x_max=None,
+            y_min=4.0,
+            y_max=11.5,
+            output_pdf_width=common_output_pdf_width,
+            output_pdf_height=common_output_pdf_height,
+        ),
+        PlotSizeConfigFlat(
+            x_min=None,
+            x_max=None,
+            y_min=5.0,
+            y_max=9.0,
+            output_pdf_width=common_output_pdf_width,
+            output_pdf_height=common_output_pdf_height,
         ),
         PlotSizeConfigFlat(
             x_min=None,
             x_max=None,
             y_min=1.0,
             y_max=13.5,
-            output_pdf_width=2_000,
-            output_pdf_height=1_500,
+            output_pdf_width=common_output_pdf_width,
+            output_pdf_height=common_output_pdf_height,
         ),
     ]
 
@@ -251,6 +273,8 @@ def create_plots_for_given_pattern(
             plot_size_configs_list=plot_size_configs_list,
             embeddings_path_manager=embeddings_path_manager,
             save_plot_raw_data=True,
+            publication_ready=publication_ready,
+            add_legend=add_legend,
             verbosity=verbosity,
             logger=logger,
         )
