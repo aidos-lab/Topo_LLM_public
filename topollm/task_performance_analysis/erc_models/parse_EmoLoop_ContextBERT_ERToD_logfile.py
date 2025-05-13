@@ -117,7 +117,7 @@ def main() -> None:
             case True:
                 seed_range = range(42, 47)
             case False:
-                seed_range = range(50, 55)
+                seed_range = range(49, 55)
             case _:
                 msg = f"Invalid value: {use_context = }"
                 raise ValueError(
@@ -239,7 +239,7 @@ def process_log_file_of_single_model_training_run(
 
     if do_create_plots:
         for subset_value in [
-            "train",
+            "training",
             "validation",
             "test",
         ]:
@@ -277,46 +277,53 @@ def parse_log(
         mode="r",
     ) as f:
         for line in f:
-            epoch_match = re.search(r"Training for epoch (\d+) out of", line)
+            epoch_match = re.search(
+                pattern=r"Training for epoch (\d+) out of",
+                string=line,
+            )
             if epoch_match:
                 current_epoch = int(epoch_match.group(1))
                 epoch_data[current_epoch] = {
-                    "train_loss": None,
+                    "training_loss": None,
+                    "validation_loss": None,
+                    "test_loss": None,
+                    "training": {},
                     "validation": {},
                     "test": {},
                 }
                 continue
 
-            loss_match = re.search(r"Training loss:\s*([\d\.]+)", line)
-            if loss_match and current_epoch is not None:
-                epoch_data[current_epoch]["train_loss"] = float(  # type: ignore - problem with dict value typing here
-                    loss_match.group(1),
-                )
-                continue
+            for split in [
+                "training",
+                "validation",
+                "test",
+            ]:
+                loss_match = re.search(rf"{split.capitalize()} loss:\s*([\d\.]+)", line)
+                if loss_match and current_epoch is not None:
+                    epoch_data[current_epoch][f"{split}_loss"] = float(  # type: ignore - problem with dict value typing here
+                        loss_match.group(1),
+                    )
+                    continue
 
-            val_match = re.search(r"Validation F1 scores:\s*\[(.*?)\]", line)
-            if val_match and current_epoch is not None:
-                val_scores = [float(s.strip()) for s in val_match.group(1).split(",")]
-                epoch_data[current_epoch]["validation"] = dict(
-                    zip(
-                        score_labels,
-                        val_scores,
-                        strict=True,
-                    ),
+            for split in [
+                "training",
+                "validation",
+                "test",
+            ]:
+                match = re.search(
+                    pattern=rf"{split.capitalize()} F1 scores:\s*\[(.*?)\]",
+                    string=line,
                 )
-                continue
-
-            test_match = re.search(r"Test F1 scores:\s*\[(.*?)\]", line)
-            if test_match and current_epoch is not None:
-                test_scores = [float(s.strip()) for s in test_match.group(1).split(",")]
-                epoch_data[current_epoch]["test"] = dict(
-                    zip(
-                        score_labels,
-                        test_scores,
-                        strict=True,
-                    ),
-                )
-                continue
+                if match and current_epoch is not None:
+                    scores = [float(s.strip()) for s in match.group(1).split(",")]
+                    epoch_data[current_epoch][split] = dict(
+                        zip(
+                            score_labels,
+                            scores,
+                            strict=True,
+                        ),
+                    )
+                    continue
 
     return epoch_data
 
@@ -334,21 +341,15 @@ def convert_parsed_data_dict_to_df(
     """Convert the parsed data dictionary to a DataFrame."""
     rows: list = []
     for epoch, data in parsed_data.items():
-        # Train data
-        rows.append(
-            {
-                EPOCH_COLUMN_NAME: epoch,
-                subset_column_name: "train",
-                "train_loss": data["train_loss"],
-                **dict.fromkeys(data["validation"]),
-            },
-        )
-        # Validation and Test data
-        for split in ["validation", "test"]:
+        for split in [
+            "training",
+            "validation",
+            "test",
+        ]:
             new_entry = {
                 EPOCH_COLUMN_NAME: epoch,
                 subset_column_name: split,
-                "train_loss": None,
+                f"{split}_loss": data[f"{split}_loss"],
                 **data[split],
             }
             rows.append(new_entry)
@@ -446,16 +447,21 @@ def plot_scores(
         )
         return
 
-    df_subset: pd.DataFrame = df[df[subset_column_name] == subset_value]
+    # Figure dimensions
     plt.figure(
         figsize=(10, 6),
     )
+
+    df_subset: pd.DataFrame = df[df[subset_column_name] == subset_value]
 
     plot_columns = df_subset.dropna(
         axis=1,
         how="all",
     ).columns.drop(
-        labels=[EPOCH_COLUMN_NAME, subset_column_name],
+        labels=[
+            EPOCH_COLUMN_NAME,
+            subset_column_name,
+        ],
     )
 
     for col in plot_columns:
