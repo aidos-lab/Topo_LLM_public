@@ -58,6 +58,7 @@ def main(
     # ================================================== #
 
     use_scan_history = False
+    grid_alpha: float = 0.25
 
     # Project is specified by <entity/project-name>
     wandb_id: str = main_config.analysis.wandb_export.wandb_id
@@ -234,7 +235,9 @@ def main(
     metric_to_short_description: dict[str, str] = {
         "train.accuracy": "Training Accuracy",
         "val.accuracy": "Validation Accuracy",
-        "train.take_all.desc=twonn_samples=3000_zerovec=keep_dedup=array_deduplicator_noise=do_nothing.n-neighbors-mode=absolute_size_n-neighbors=64.mean": "Mean local dimension (N=3000; L=64)",
+        "train.take_all.desc=twonn_samples=3000_zerovec=keep_dedup=array_deduplicator_noise=do_nothing."
+        "n-neighbors-mode=absolute_size_n-neighbors=64.mean": "Mean local dimension",
+        # > "Mean local dimension (N=3000; L=64)",
     }
 
     group_by_column_name_options: list[str | None] = [
@@ -270,13 +273,18 @@ def main(
         # ---------- Prepare data ----------
         plot_df: pd.DataFrame = concatenated_df[concatenated_df[x_axis_name] < x_range_step_max]
 
-        # ---------- OO figure/axes ----------
+        # ---------- Figure/Axes ----------
         (
             fig,
             ax,
-        ) = plt.subplots(figsize=(12, 8))  # creates both Figure and Axes objects
+        ) = plt.subplots(
+            figsize=(
+                5,
+                3,
+            ),
+        )  # creates both Figure and Axes objects
 
-        # ---------- 3. Draw the lines ----------
+        # ---------- Draw the lines ----------
         match add_legend:
             case False:
                 sns_legend = False
@@ -318,14 +326,14 @@ def main(
                     ax=ax,  # <-- draw on *this* Axes, not the implicit one
                 )
 
-        # ---------- 4. Axis cosmetics ----------
+        # ---------- Axis cosmetics ----------
         ax.set(
             title=None,  # No title, since we add this in the TeX
             xlabel=x_axis_name_to_short_description[x_axis_name],
             ylabel=metric_to_short_description[metric_name],
         )
 
-        # ---------- 5. Custom legend ----------
+        # ---------- Custom legend ----------
         match add_legend:
             case False:
                 # Remove legend if this is set.
@@ -333,11 +341,18 @@ def main(
             case True:
                 # Change the title of the legend
                 ax.legend(
-                    title="Training data fraction",
+                    title="Training fraction",
                     fontsize=12,
+                    ncols=2,
                 )
 
-        # ---------- 6. Layout ----------
+        # ---------- Grid ----------
+        ax.grid(
+            visible=True,
+            alpha=grid_alpha,
+        )
+
+        # ---------- Layout ----------
         fig.tight_layout()
 
         # # # #
