@@ -71,16 +71,30 @@ default_logger: logging.Logger = logging.getLogger(
 # --------------------------------------------------------------------------- #
 METRIC_COLORS: dict[str, str] = {
     "loss": "#2ca02c",  # green - used consistently for losses
-    "jga": "#ff7f0e",  # orange - used for performance measures
-    # TODO: Add the colors for the ERC performance measures
+    "train_loss": "#2ca02c",  # green - used consistently for losses
+    "validation_loss": "#2ca02c",  # green - used consistently for losses
+    "test_loss": "#2ca02c",  # green - used consistently for losses
+    # Colors for the Trippy-R performance measures:
+    "jga": "#ff7f0e",  # orange - used for performance measures (which are used for model selection)
+    # Colors for the ERC performance measures:
+    "Macro F1 (w/o Neutral)": "#ff7f0e",  # orange - used for performance measures (which are used for model selection)
+    "Weighted F1 (w/o Neutral)": "#d62728",  # red
+    # Other:
     "accuracy": "#1f77b4",  # blue
     "recall": "#d62728",  # red
 }
 
 COLUMN_NAMES_TO_LEGEND_LABEL: dict[str, str] = {
     "loss": "Loss",
+    "train_loss": "Loss",
+    "validation_loss": "Loss",
+    "test_loss": "Loss",
+    # Labels for the Trippy-R performance measures:
     "jga": "Joint Goal Accuracy",
-    # TODO: Add the labels for the ERC performance measures
+    # Labels for the ERC performance measures:
+    "Weighted F1 (w/o Neutral)": "Weighted F1",
+    "Macro F1 (w/o Neutral)": "Macro F1",
+    # Other:
     "accuracy": "Accuracy",
     "recall": "Recall",
 }
