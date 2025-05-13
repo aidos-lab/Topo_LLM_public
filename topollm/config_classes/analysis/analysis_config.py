@@ -68,6 +68,12 @@ class PlottingConfig(ConfigBaseModel):
         description="The model seeds to restrict the analysis to.",
     )
 
+    maximum_x_value: int | None = Field(
+        default=None,
+        title="Maximum X value.",
+        description="The maximum X value for the plots.",
+    )
+
     publication_ready: bool = Field(
         default=False,
         title="Publication ready.",

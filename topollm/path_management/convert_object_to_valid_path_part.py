@@ -24,21 +24,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
 import warnings
 
 from topollm.path_management.validate_path_part import validate_path_part
 
-if sys.version_info >= (3, 11):
-    from enum import StrEnum
-else:
-    # Fallback to the strenum package for Python 3.10 and below.
-    # Run `python3 -m pip install strenum` for python < 3.11
-    from strenum import StrEnum
-
 
 def convert_list_to_path_part(
-    input_list: list,
+    input_list: list | None,
     delimiter: str = "_",
 ) -> str:
     """Convert a list to a string suitable for file paths.
@@ -55,6 +47,9 @@ def convert_list_to_path_part(
         str: A string suitable for file paths.
 
     """
+    if input_list is None:
+        return "None"
+
     # Convert the elements of the list to strings
     input_list_with_string_values: list[str] = [str(object=item) for item in input_list]
     # Join the string values with the specified delimiter

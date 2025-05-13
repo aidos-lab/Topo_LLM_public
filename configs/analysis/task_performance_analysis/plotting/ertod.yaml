@@ -8,3 +8,5 @@ restrict_to_model_seeds:
   - 51
   - 52
   - 53
+
+maximum_x_value: 6

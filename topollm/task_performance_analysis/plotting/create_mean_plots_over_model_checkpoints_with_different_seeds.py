@@ -46,6 +46,7 @@ from topollm.data_processing.dictionary_handling import (
     generate_fixed_parameters_text_from_dict,
 )
 from topollm.logging.log_dataframe_info import log_dataframe_info
+from topollm.path_management.convert_object_to_valid_path_part import convert_list_to_path_part
 from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 from topollm.plotting.plot_size_config import AxisLimits, OutputDimensions, PlotSizeConfigFlat, PlotSizeConfigNested
 from topollm.task_performance_analysis.plotting.distribution_violinplots_and_distribution_boxplots import TicksAndLabels
@@ -203,6 +204,7 @@ def create_mean_plots_over_model_checkpoints_with_different_seeds(
     embeddings_path_manager: EmbeddingsPathManager,
     *,
     restrict_to_model_seeds: list[int] | None = None,
+    maximum_x_value: int | None = None,
     fixed_keys: list[str] | None = None,
     additional_fixed_params: dict[str, Any] | None = None,
     save_plot_raw_data: bool = True,
@@ -415,7 +417,7 @@ def create_mean_plots_over_model_checkpoints_with_different_seeds(
                     y_max=0.8,
                 ),  # This is for the measures in the Trippy-R setup
                 AxisLimits(
-                    y_min=0.45,
+                    y_min=0.4,
                     y_max=0.8,
                 ),  # This is for the measures in the Emotion setup
             ]
@@ -460,6 +462,7 @@ def create_mean_plots_over_model_checkpoints_with_different_seeds(
                     plot_size_config_nested=plot_size_config_nested,
                     scores_data=scores_data,
                     restrict_to_model_seeds=restrict_to_model_seeds,
+                    maximum_x_value=maximum_x_value,
                     x_column_name=model_checkpoint_column_name,
                     filter_key_value_pairs=filter_key_value_pairs,
                     base_model_model_partial_name=base_model_model_partial_name,
@@ -510,7 +513,7 @@ def load_scores(
             seed_dfs: list[pd.DataFrame] = []
             columns_to_plot_set: set[str] = set()
 
-            for seed in range(50, 55):
+            for seed in range(50, 54):
                 parsed_data_path: pathlib.Path = pathlib.Path(
                     base_directory,
                     f"seed={seed}/",
@@ -731,6 +734,7 @@ def plot_local_estimates_with_individual_seeds_and_aggregated_over_seeds(
     scores_data: ScoresData,
     *,
     restrict_to_model_seeds: list[int] | None = None,
+    maximum_x_value: int | None = None,
     x_column_name: str = "model_checkpoint",
     filter_key_value_pairs: dict,
     base_model_model_partial_name: str | None = None,
@@ -881,12 +885,27 @@ def plot_local_estimates_with_individual_seeds_and_aggregated_over_seeds(
         )
 
     # # # #
+    # Restrict the scores data to the given model seeds
+    if restrict_to_model_seeds is not None and scores_data.df is not None:
+        scores_data.df = scores_data.df[scores_data.df["model_seed"].isin(restrict_to_model_seeds)]
+
+    # # # #
+    # Set the maximum x value for the plot
+    if maximum_x_value is not None:
+        local_estimates_plot_data_df = local_estimates_plot_data_df[
+            local_estimates_plot_data_df[x_column_name] <= maximum_x_value
+        ]
+    if scores_data.df is not None:
+        scores_data.df = scores_data.df[scores_data.df[x_column_name] <= maximum_x_value]
+
+    # # # #
     # Add additional information to the output path
     if plots_output_dir is not None:
         plots_output_dir = pathlib.Path(
             plots_output_dir,
             f"{publication_ready=}",
             f"{add_legend=}",
+            f"restrict_to_model_seeds={convert_list_to_path_part(input_list=restrict_to_model_seeds)}",
         )
 
     # # # #
@@ -1179,8 +1198,8 @@ def create_aggregate_estimate_visualization(
                 )
         case True:
             label_every_n(ax=ax1, axis="x", keep_every=2)  # show every 2-nd x-label
-            label_every_n(ax=ax1, axis="y", keep_every=2)  # show every 2-nd y-label
-            label_every_n(ax=ax2, axis="y", keep_every=2)  # show every 2-nd y-label
+            # label_every_n(ax=ax1, axis="y", keep_every=2)  # show every 2-nd y-label
+            # label_every_n(ax=ax2, axis="y", keep_every=2)  # show every 2-nd y-label
 
     match config.add_legend:
         case True:
