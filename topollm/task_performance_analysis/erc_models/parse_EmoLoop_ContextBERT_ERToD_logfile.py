@@ -62,6 +62,30 @@ METRIC_NAMES: list[str] = [
     "Weighted F1 (with Neutral)",
 ]
 
+# Define a fixed colormap for consistent coloring
+COLORMAP: dict[str, str] = {
+    "training_loss": "green",
+    "validation_loss": "green",
+    "test_loss": "green",
+    "Micro F1 (w/o Neutral)": "orange",
+    "Macro F1 (w/o Neutral)": "purple",
+    "Weighted F1 (w/o Neutral)": "brown",
+    "Micro F1 (with Neutral)": "red",
+    "Macro F1 (with Neutral)": "blue",
+    "Weighted F1 (with Neutral)": "black",
+}
+
+
+def get_color_from_colormap(
+    metric_name: str,
+) -> str:
+    """Get color from colormap for a given metric name."""
+    return COLORMAP.get(
+        metric_name,
+        "black",  # Default color if not found
+    )
+
+
 EPOCH_COLUMN_NAME: str = "epoch"
 
 
@@ -470,6 +494,9 @@ def plot_scores(
             df_subset[col],
             marker="o",
             label=col,
+            color=get_color_from_colormap(
+                metric_name=col,
+            ),
         )
 
         # # Mark best value if required.
