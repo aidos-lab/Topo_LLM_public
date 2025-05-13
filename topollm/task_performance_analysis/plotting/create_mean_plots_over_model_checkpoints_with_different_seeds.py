@@ -395,11 +395,23 @@ def create_mean_plots_over_model_checkpoints_with_different_seeds(
                 ylabel = array_key_name
             case True:
                 ylabel = "Mean local dimension"
-        ticks_and_labels: TicksAndLabels = TicksAndLabels(
-            xlabel="Steps",
-            ylabel=ylabel,
-            xticks_labels=model_checkpoint_str_list,
-        )
+
+        match model_partial_name:
+            case (
+                "model=bert-base-uncased-ContextBERT-ERToD_emowoz_basic_setup_debug=-1_use_context=False"
+                | "model=bert-base-uncased-ContextBERT-ERToD_emowoz_basic_setup_debug--1_ep-50_use_context-False"
+            ):
+                ticks_and_labels: TicksAndLabels = TicksAndLabels(
+                    xlabel="Epoch",
+                    ylabel=ylabel,
+                    xticks_labels=model_checkpoint_str_list,
+                )
+            case _:
+                ticks_and_labels: TicksAndLabels = TicksAndLabels(
+                    xlabel="Steps",
+                    ylabel=ylabel,
+                    xticks_labels=model_checkpoint_str_list,
+                )
 
         # # # #
         # Create plots
@@ -994,6 +1006,13 @@ def create_aggregate_estimate_visualization(
             raise ValueError(
                 msg=f"Unknown value for {config.publication_ready = }",
             )
+
+    # TODO: Increase epoch number by 1 for the ERC models on the x-axis labels
+    # # Increase the numerical value in each entry in model_checkpoint_str_list by one
+    # model_checkpoint_str_list_updated: list[str] = [
+    #     str(int(single_model_checkpoint_str) + 1)
+    #     for single_model_checkpoint_str in model_checkpoint_str_list
+    # ]
 
     # Set the marker size depending on the number of values on the x-axis
     if len(data.local_estimates_df[config.x_column_name].unique()) > 30:
