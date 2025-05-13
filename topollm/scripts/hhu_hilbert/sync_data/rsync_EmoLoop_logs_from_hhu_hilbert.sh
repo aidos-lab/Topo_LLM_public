@@ -22,6 +22,10 @@ source "${TOPO_LLM_REPOSITORY_BASE_PATH}/.env"
 rsync -avz \
     --include='*/' \
     --include='log.txt' \
+    --include='losses.txt' \
+    --include='losses_df.csv' \
+    --include='*_results.txt' \
+    --include='*_results_df.csv' \
     --exclude='*' \
     "${REMOTE_HOST}:${ZIM_TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/EmoLoop/output_dir/" \
     "${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/EmoLoop/output_dir/"

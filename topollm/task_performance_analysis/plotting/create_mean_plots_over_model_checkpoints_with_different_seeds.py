@@ -78,8 +78,8 @@ METRIC_COLORS: dict[str, str] = {
     # Colors for the Trippy-R performance measures:
     "jga": "#ff7f0e",  # orange - used for performance measures (which are used for model selection)
     # Colors for the ERC performance measures:
-    "Macro F1 (w/o Neutral)": "#ff7f0e",  # orange - used for performance measures (which are used for model selection)
-    "Weighted F1 (w/o Neutral)": "#d62728",  # red
+    "Macro F1 (w/o Neutral)": "#d62728",  # red
+    "Weighted F1 (w/o Neutral)": "#ff7f0e",  # orange - used for performance measures
     # Other:
     "accuracy": "#1f77b4",  # blue
     "recall": "#d62728",  # red
@@ -424,14 +424,20 @@ def create_mean_plots_over_model_checkpoints_with_different_seeds(
                     y_min=0.0,
                     y_max=1.1,
                 ),
+                # This is for the measures in the Trippy-R setup
                 AxisLimits(
                     y_min=0.0,
                     y_max=0.8,
-                ),  # This is for the measures in the Trippy-R setup
+                ),
+                # This is for the measures in the Emotion setup:
+                AxisLimits(
+                    y_min=0.7,
+                    y_max=0.8,
+                ),
                 AxisLimits(
                     y_min=0.4,
                     y_max=0.8,
-                ),  # This is for the measures in the Emotion setup
+                ),
             ]
 
             # For publication ready plots, make the dimensions smaller so that the text is easier to read.
