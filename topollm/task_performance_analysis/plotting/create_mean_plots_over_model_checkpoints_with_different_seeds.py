@@ -764,6 +764,7 @@ def plot_local_estimates_with_individual_seeds_and_aggregated_over_seeds(
     plots_output_dir: pathlib.Path | None = None,
     publication_ready: bool = False,
     add_legend: bool = True,
+    do_create_seedwise_estimate_visualization: bool = False,
     show_plots: bool = False,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
@@ -927,7 +928,8 @@ def plot_local_estimates_with_individual_seeds_and_aggregated_over_seeds(
     if scores_data.df is not None:
         scores_data.df = scores_data.df[scores_data.df[x_column_name] <= maximum_x_value]
 
-    # TODO: Increase epoch number by 1 for the ERC models on the x-axis labels
+    # Increase epoch number by 1 for the ERC models on the x-axis labels
+    # (so that the first epoch is 1 instead of 0)
     model_partial_name = filter_key_value_pairs["model_partial_name"]
     match model_partial_name:
         case (
@@ -981,13 +983,13 @@ def plot_local_estimates_with_individual_seeds_and_aggregated_over_seeds(
     # ========================================================= #
     # Plots: Individual by seed using a figure and axis.
     # ========================================================= #
-
-    create_seedwise_estimate_visualization(
-        data=plot_input_data,
-        config=plot_config,
-        verbosity=verbosity,
-        logger=logger,
-    )
+    if do_create_seedwise_estimate_visualization:
+        create_seedwise_estimate_visualization(
+            data=plot_input_data,
+            config=plot_config,
+            verbosity=verbosity,
+            logger=logger,
+        )
 
     # ========================================================= #
     # Plots: Aggregated over seeds
@@ -1261,10 +1263,40 @@ def create_aggregate_estimate_visualization(
                 lines_2,
                 labels_2,
             ) = ax2.get_legend_handles_labels()
-            ax1.legend(
-                handles=lines_1 + lines_2,
-                labels=labels_1 + labels_2,
+
+            # This is adds the legend without de-duplication of the labels:
+            # ax1.legend(
+            #     handles=lines_1 + lines_2,
+            #     labels=labels_1 + labels_2,
+            #     title=legend_title,
+            # )
+
+            # If a label occurs multiple times, remove it from the legend.
+            # This for example might happen for the losses, if you have
+            # "train_loss", "validation_loss", "test_loss"
+            handles = lines_1 + lines_2
+            labels = labels_1 + labels_2
+            by_label = dict(
+                zip(
+                    labels,
+                    handles,
+                    strict=True,
+                ),
+            )
+            # Place the legend on the second axis, so that it is drawn on top of potential curves
+            legend = ax2.legend(
+                handles=by_label.values(),
+                labels=by_label.keys(),
                 title=legend_title,
+            )
+            legend.set_zorder(
+                level=200,  # Bring legend to the front
+            )
+            legend.get_frame().set_facecolor(
+                color="white",
+            )
+            legend.get_frame().set_alpha(
+                alpha=0.5,
             )
         case False:
             if verbosity >= Verbosity.NORMAL:
