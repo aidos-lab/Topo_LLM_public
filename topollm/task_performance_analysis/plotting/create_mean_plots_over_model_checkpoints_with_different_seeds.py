@@ -72,7 +72,7 @@ default_logger: logging.Logger = logging.getLogger(
 # --------------------------------------------------------------------------- #
 METRIC_COLORS: dict[str, str] = {
     "loss": "#2ca02c",  # green - used consistently for losses
-    "train_loss": "#2ca02c",  # green - used consistently for losses
+    "training_loss": "#2ca02c",  # green - used consistently for losses
     "validation_loss": "#2ca02c",  # green - used consistently for losses
     "test_loss": "#2ca02c",  # green - used consistently for losses
     # Colors for the Trippy-R performance measures:
@@ -87,7 +87,7 @@ METRIC_COLORS: dict[str, str] = {
 
 COLUMN_NAMES_TO_LEGEND_LABEL: dict[str, str] = {
     "loss": "Loss",
-    "train_loss": "Loss",
+    "training_loss": "Loss",
     "validation_loss": "Loss",
     "test_loss": "Loss",
     # Labels for the Trippy-R performance measures:
@@ -916,6 +916,31 @@ def plot_local_estimates_with_individual_seeds_and_aggregated_over_seeds(
     if scores_data.df is not None:
         scores_data.df = scores_data.df[scores_data.df[x_column_name] <= maximum_x_value]
 
+    # TODO: Increase epoch number by 1 for the ERC models on the x-axis labels
+    # # Increase the numerical value in each entry in model_checkpoint_str_list by one
+    # model_checkpoint_str_list_updated: list[str] = [
+    #     str(int(single_model_checkpoint_str) + 1)
+    #     for single_model_checkpoint_str in model_checkpoint_str_list
+    # ]
+    model_partial_name = filter_key_value_pairs["model_partial_name"]
+    match model_partial_name:
+        case (
+            "model=bert-base-uncased-ContextBERT-ERToD_emowoz_basic_setup_debug=-1_use_context=False"
+            | "model=bert-base-uncased-ContextBERT-ERToD_emowoz_basic_setup_debug--1_ep-50_use_context-False"
+        ):
+            if verbosity >= Verbosity.NORMAL:
+                logger.info(
+                    msg="Increasing x-axis values by 1 for ERC models.",
+                )
+            local_estimates_plot_data_df[x_column_name] = local_estimates_plot_data_df[x_column_name] + 1
+            if scores_data.df is not None:
+                scores_data.df[x_column_name] = scores_data.df[x_column_name] + 1
+        case _:
+            if verbosity >= Verbosity.NORMAL:
+                logger.info(
+                    msg="Using default x-axis labels.",
+                )
+
     # # # #
     # Add additional information to the output path
     if plots_output_dir is not None:
@@ -925,13 +950,6 @@ def plot_local_estimates_with_individual_seeds_and_aggregated_over_seeds(
             f"{add_legend=}",
             f"restrict_to_model_seeds={convert_list_to_path_part(input_list=restrict_to_model_seeds)}",
         )
-
-    # TODO: Increase epoch number by 1 for the ERC models on the x-axis labels
-    # # Increase the numerical value in each entry in model_checkpoint_str_list by one
-    # model_checkpoint_str_list_updated: list[str] = [
-    #     str(int(single_model_checkpoint_str) + 1)
-    #     for single_model_checkpoint_str in model_checkpoint_str_list
-    # ]
 
     # # # #
     # Create the containers for the plot data and plot configuration

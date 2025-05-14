@@ -311,7 +311,6 @@ class EmotionClassificationScoreLoader:
         # > 'model_seed'
         # >]
 
-        # TODO: Currently, we only select the Weighted F1 score (w/o Neutral) for plotting.
         columns_to_plot: list[str] = [
             "training_loss",
             "validation_loss",
