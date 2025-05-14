@@ -926,6 +926,13 @@ def plot_local_estimates_with_individual_seeds_and_aggregated_over_seeds(
             f"restrict_to_model_seeds={convert_list_to_path_part(input_list=restrict_to_model_seeds)}",
         )
 
+    # TODO: Increase epoch number by 1 for the ERC models on the x-axis labels
+    # # Increase the numerical value in each entry in model_checkpoint_str_list by one
+    # model_checkpoint_str_list_updated: list[str] = [
+    #     str(int(single_model_checkpoint_str) + 1)
+    #     for single_model_checkpoint_str in model_checkpoint_str_list
+    # ]
+
     # # # #
     # Create the containers for the plot data and plot configuration
 
@@ -1012,13 +1019,6 @@ def create_aggregate_estimate_visualization(
             raise ValueError(
                 msg=f"Unknown value for {config.publication_ready = }",
             )
-
-    # TODO: Increase epoch number by 1 for the ERC models on the x-axis labels
-    # # Increase the numerical value in each entry in model_checkpoint_str_list by one
-    # model_checkpoint_str_list_updated: list[str] = [
-    #     str(int(single_model_checkpoint_str) + 1)
-    #     for single_model_checkpoint_str in model_checkpoint_str_list
-    # ]
 
     # Set the marker size depending on the number of values on the x-axis
     if len(data.local_estimates_df[config.x_column_name].unique()) > 30:
