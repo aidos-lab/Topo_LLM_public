@@ -64,7 +64,7 @@ METRIC_NAMES: list[str] = [
 
 # Define a fixed colormap for consistent coloring
 COLORMAP: dict[str, str] = {
-    "training_loss": "green",
+    "train_loss": "green",
     "validation_loss": "green",
     "test_loss": "green",
     "Micro F1 (w/o Neutral)": "orange",
@@ -87,6 +87,12 @@ def get_color_from_colormap(
 
 
 EPOCH_COLUMN_NAME: str = "epoch"
+
+SPLITS_TO_PROCESS = [
+    "train",
+    "validation",
+    "test",
+]
 
 
 def main() -> None:
@@ -262,11 +268,7 @@ def process_log_file_of_single_model_training_run(
     # Plotting
 
     if do_create_plots:
-        for subset_value in [
-            "training",
-            "validation",
-            "test",
-        ]:
+        for subset_value in SPLITS_TO_PROCESS:
             plot_scores(
                 df=parsed_data_df,
                 subset_column_name=subset_column_name,
@@ -308,34 +310,30 @@ def parse_log(
             if epoch_match:
                 current_epoch = int(epoch_match.group(1))
                 epoch_data[current_epoch] = {
-                    "training_loss": None,
+                    "train_loss": None,
                     "validation_loss": None,
                     "test_loss": None,
-                    "training": {},
+                    "train": {},
                     "validation": {},
                     "test": {},
                 }
                 continue
 
-            for split in [
-                "training",
-                "validation",
-                "test",
-            ]:
-                loss_match = re.search(rf"{split.capitalize()} loss:\s*([\d\.]+)", line)
+            for split in SPLITS_TO_PROCESS:
+                split_name_in_log = "training" if split == "train" else split
+
+                loss_match = re.search(rf"{split_name_in_log.capitalize()} loss:\s*([\d\.]+)", line)
                 if loss_match and current_epoch is not None:
                     epoch_data[current_epoch][f"{split}_loss"] = float(  # type: ignore - problem with dict value typing here
                         loss_match.group(1),
                     )
                     continue
 
-            for split in [
-                "training",
-                "validation",
-                "test",
-            ]:
+            for split in SPLITS_TO_PROCESS:
+                split_name_in_log = "training" if split == "train" else split
+
                 match = re.search(
-                    pattern=rf"{split.capitalize()} F1 scores:\s*\[(.*?)\]",
+                    pattern=rf"{split_name_in_log.capitalize()} F1 scores:\s*\[(.*?)\]",
                     string=line,
                 )
                 if match and current_epoch is not None:
@@ -365,12 +363,8 @@ def convert_parsed_data_dict_to_df(
     """Convert the parsed data dictionary to a DataFrame."""
     rows: list = []
     for epoch, data in parsed_data.items():
-        for split in [
-            "training",
-            "validation",
-            "test",
-        ]:
-            new_entry = {
+        for split in SPLITS_TO_PROCESS:
+            new_entry: dict = {
                 EPOCH_COLUMN_NAME: epoch,
                 subset_column_name: split,
                 f"{split}_loss": data[f"{split}_loss"],

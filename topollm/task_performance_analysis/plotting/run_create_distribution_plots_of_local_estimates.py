@@ -231,6 +231,14 @@ def create_plots_for_given_pattern(
         PlotSizeConfigFlat(
             x_min=None,
             x_max=None,
+            y_min=7.0,
+            y_max=10.25,
+            output_pdf_width=common_output_pdf_width,
+            output_pdf_height=common_output_pdf_height,
+        ),
+        PlotSizeConfigFlat(
+            x_min=None,
+            x_max=None,
             y_min=1.0,
             y_max=13.5,
             output_pdf_width=common_output_pdf_width,

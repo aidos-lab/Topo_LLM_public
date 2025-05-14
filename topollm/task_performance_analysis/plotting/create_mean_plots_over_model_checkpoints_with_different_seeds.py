@@ -27,6 +27,7 @@
 
 """Plots of local estimates over model checkpoints with different seeds."""
 
+import copy
 import logging
 import pathlib
 from collections.abc import Sequence
@@ -72,7 +73,7 @@ default_logger: logging.Logger = logging.getLogger(
 # --------------------------------------------------------------------------- #
 METRIC_COLORS: dict[str, str] = {
     "loss": "#2ca02c",  # green - used consistently for losses
-    "training_loss": "#2ca02c",  # green - used consistently for losses
+    "train_loss": "#2ca02c",  # green - used consistently for losses
     "validation_loss": "#2ca02c",  # green - used consistently for losses
     "test_loss": "#2ca02c",  # green - used consistently for losses
     # Colors for the Trippy-R performance measures:
@@ -87,7 +88,7 @@ METRIC_COLORS: dict[str, str] = {
 
 COLUMN_NAMES_TO_LEGEND_LABEL: dict[str, str] = {
     "loss": "Loss",
-    "training_loss": "Loss",
+    "train_loss": "Loss",
     "validation_loss": "Loss",
     "test_loss": "Loss",
     # Labels for the Trippy-R performance measures:
@@ -435,7 +436,11 @@ def create_mean_plots_over_model_checkpoints_with_different_seeds(
                     y_max=0.8,
                 ),
                 AxisLimits(
-                    y_min=0.4,
+                    y_min=0.1,
+                    y_max=0.95,
+                ),
+                AxisLimits(
+                    y_min=0.25,
                     y_max=0.8,
                 ),
             ]
@@ -774,6 +779,12 @@ def plot_local_estimates_with_individual_seeds_and_aggregated_over_seeds(
 
     """
     model_seed_column_name = "model_seed"
+
+    # # # #
+    # Make deep copies of the plotting data so that we do not modify the original data
+    local_estimates_df = local_estimates_df.copy(deep=True)
+    scores_data = copy.deepcopy(scores_data)
+
     # # # #
     # Pre-process the local estimates data
 
@@ -783,7 +794,7 @@ def plot_local_estimates_with_individual_seeds_and_aggregated_over_seeds(
             model_seed_column_name,
             "file_data_mean",
         ]
-    ].copy()
+    ]
 
     if restrict_to_model_seeds is not None:
         # Restrict the data to the given model seeds
@@ -917,11 +928,6 @@ def plot_local_estimates_with_individual_seeds_and_aggregated_over_seeds(
         scores_data.df = scores_data.df[scores_data.df[x_column_name] <= maximum_x_value]
 
     # TODO: Increase epoch number by 1 for the ERC models on the x-axis labels
-    # # Increase the numerical value in each entry in model_checkpoint_str_list by one
-    # model_checkpoint_str_list_updated: list[str] = [
-    #     str(int(single_model_checkpoint_str) + 1)
-    #     for single_model_checkpoint_str in model_checkpoint_str_list
-    # ]
     model_partial_name = filter_key_value_pairs["model_partial_name"]
     match model_partial_name:
         case (
@@ -1327,6 +1333,10 @@ def create_aggregate_estimate_visualization(
 
     fig.tight_layout()
 
+    # Make sure everything is written to the plot
+    fig.canvas.draw()
+    fig.canvas.flush_events()
+
     # Save the figure
     if config.plots_output_dir is not None:
         plot_name: str = f"local_estimates_aggregate_{config.plot_size_config_nested.y_range_description}"
@@ -1356,6 +1366,9 @@ def create_aggregate_estimate_visualization(
 
     if config.show_plots:
         fig.show()
+
+    # Close the figure
+    plt.close(fig)
 
 
 def create_seedwise_estimate_visualization(
