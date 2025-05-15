@@ -234,7 +234,7 @@ def main(
     # Remove runs with these names
     names_to_remove: list[str] = [
         # We want to remove this run,
-        # because otherwise we would have 6 runs with 'dataset.frac_train' == 0.15
+        # because otherwise we would have 6 runs with 'dataset.frac_train' == 0.1
         "celestial-monkey-1",
     ]
     concatenated_df = concatenated_df[~concatenated_df["name"].isin(names_to_remove)]
@@ -371,7 +371,7 @@ def main(
             case None:
                 # - In this case, draw the curves for different runs separately.
                 # - Still, color the curves with the same training data fraction with the same color.
-                sns.lineplot(
+                ax = sns.lineplot(
                     data=plot_df,
                     x=x_axis_name,
                     y=metric_name,
@@ -386,7 +386,7 @@ def main(
             case _:
                 # - Group the runs with the same value in the group_by_column_name
                 # - Draw standard deviation bands.
-                sns.lineplot(
+                ax = sns.lineplot(
                     data=plot_df,
                     x=x_axis_name,
                     y=metric_name,
@@ -406,29 +406,35 @@ def main(
                 f"{x_axis_name=}; {x_range_step_max=}; {metric_name=}; {add_legend=}; {group_by_column_name=} DONE",
             )
 
-        # Make certain hues dashed
-        # TODO: This currently makes ALL lines dashed.
-        dashed_hues: set[str] = {
-            "0.10",
-            "0.15",
-        }
-        for line, label in zip(
-            ax.lines,
-            ax.lines,
-            # hue_order, # TODO: Fix this
-            strict=True,
-        ):
-            if label in dashed_hues:
-                line.set_linestyle("--")
-            else:
-                line.set_linestyle("--")
-
         # ---------- Axis cosmetics ----------
         ax.set(
             title=None,  # No title, since we add this in the TeX
             xlabel=x_axis_name_to_short_description[x_axis_name],
             ylabel=metric_to_short_description[metric_name],
         )
+
+        # ---------- Make certain hues dashed ----------
+        # Build hue->color mapping
+        palette = sns.color_palette(None, len(hue_order))
+        hue_to_color = dict(zip(hue_order, palette, strict=False))
+        dashed_hues = {"0.10", "0.15"}
+
+        for line in ax.lines:
+            line_color = tuple(
+                round(
+                    c,  # type: ignore - c is a float
+                    3,
+                )
+                for c in line.get_color()[0:3]
+            )
+            for hue, pal_color in hue_to_color.items():
+                pal_color_rounded = tuple(round(c, 3) for c in pal_color)
+                if line_color == pal_color_rounded:
+                    if hue in dashed_hues:
+                        line.set_linestyle("--")
+                    else:
+                        line.set_linestyle("-")
+                    break
 
         # ---------- Custom legend ----------
         match add_legend:
@@ -442,6 +448,8 @@ def main(
                     fontsize=12,
                     ncols=2,
                 )
+
+        # TODO: Fix this
 
         # ---------- Grid ----------
         ax.grid(
