@@ -4,6 +4,7 @@ import pathlib
 
 import hydra
 import matplotlib.pyplot as plt
+import numpy as np
 import omegaconf
 import pandas as pd
 import seaborn as sns
@@ -60,7 +61,8 @@ def main(
 
     use_scan_history = False
     grid_alpha: float = 0.25
-    number_of_samples_for_machine_learning_metrics: int | None = 3000
+    number_of_samples_for_machine_learning_metrics: int | None = 100
+    # number_of_samples_for_machine_learning_metrics: int | None = 3000
 
     # (
     #     errorbar,
@@ -300,15 +302,18 @@ def main(
             plot_df = plot_df[plot_df[metric_name].notna()]
 
             if number_of_samples_for_machine_learning_metrics is not None:
-                # Sample from the possible steps, then take all the rows which match these steps.
-                sampled_steps = (
-                    plot_df[x_axis_name]
-                    .sample(
-                        n=number_of_samples_for_machine_learning_metrics,
-                        random_state=42,
-                    )
-                    .unique()
+                # Take evenly spaced steps from the x axis range, then select all rows matching these steps.
+                x_min = plot_df[x_axis_name].min()
+                x_max = plot_df[x_axis_name].max()
+                # Generate evenly spaced values between min and max (inclusive)
+                sampled_steps = np.linspace(
+                    x_min,
+                    x_max,
+                    num=number_of_samples_for_machine_learning_metrics,
                 )
+                # Round to nearest multiple of 10
+                sampled_steps = (np.round(sampled_steps / 10) * 10).astype(int)
+                sampled_steps = pd.Series(sampled_steps).unique()
                 plot_df = plot_df[plot_df[x_axis_name].isin(sampled_steps)]
 
         if verbosity >= Verbosity.NORMAL:
@@ -385,6 +390,23 @@ def main(
                 msg=f"Calling sns.lineplot() for "  # noqa: G004 - low overhead
                 f"{x_axis_name=}; {x_range_step_max=}; {metric_name=}; {add_legend=}; {group_by_column_name=} DONE",
             )
+
+        # Make certain hues dashed
+        # TODO: This currently makes ALL lines dashed.
+        dashed_hues: set[str] = {
+            "0.10",
+            "0.15",
+        }
+        for line, label in zip(
+            ax.lines,
+            ax.lines,
+            # hue_order, # TODO: Fix this
+            strict=True,
+        ):
+            if label in dashed_hues:
+                line.set_linestyle("--")
+            else:
+                line.set_linestyle("--")
 
         # ---------- Axis cosmetics ----------
         ax.set(
