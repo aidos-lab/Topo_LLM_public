@@ -1,11 +1,12 @@
-import numpy as np
 import os
+
+import numpy as np
 
 # Define the dataset names and masked levels
 dataset_names = [
     "data=one-year-of-tsla-on-reddit_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags",
     "data=wikitext-103-v1_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags",
-"data=multiwoz21_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags"
+    "data=multiwoz21_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags",
 ]
 
 dataset_name = dataset_names[0]
@@ -27,7 +28,7 @@ for layer_index, layer in enumerate(range(-23, 0, 2), start=1):
 
         # Compute the average and standard deviation
         avg = np.mean(data_array)
-        std = np.std(data_array)
+        std = np.std(data_array, ddof=1)
         means.append((layer_index, avg))
         stds.append((layer_index, std))
     except FileNotFoundError:

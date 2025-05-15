@@ -224,6 +224,7 @@ def main(
                 ),
                 "std": np.std(
                     local_estimates_array,
+                    ddof=1,
                 ),
             }
             loaded_estimates_list.append(

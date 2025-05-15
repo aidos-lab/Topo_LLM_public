@@ -66,7 +66,7 @@ def summarize_value(
 
         # If the array is one-dimensional, also compute the mean and standard deviation
         if len(value.shape) == 1:
-            value_str += f"\n\t\tnp.mean: {np.mean(a=value):.3f}; np.std: {np.std(a=value):.3f}"
+            value_str += f"\n\t\tnp.mean: {np.mean(a=value):.3f}; np.std(ddof=1): {np.std(a=value, ddof=1):.3f}"
     elif isinstance(
         value,
         pd.DataFrame,

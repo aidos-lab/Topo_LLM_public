@@ -119,7 +119,10 @@ def global_and_pointwise_local_estimates_computation(
             msg=f"{pointwise_results_array_np.mean() = }",  # noqa: G004 - low overhead
         )
         logger.info(
-            msg=f"{pointwise_results_array_np.std() = }",  # noqa: G004 - low overhead
+            msg=f"{pointwise_results_array_np.std(ddof=0) = }",  # noqa: G004 - low overhead
+        )
+        logger.info(
+            msg=f"{pointwise_results_array_np.std(ddof=1) = }",  # noqa: G004 - low overhead
         )
 
     # # # #
