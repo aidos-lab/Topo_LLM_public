@@ -62,6 +62,21 @@ def main(
     grid_alpha: float = 0.25
     number_of_samples_for_machine_learning_metrics: int | None = 3000
 
+    (
+        errorbar,
+        errorbar_description,
+    ) = (
+        "sd",
+        "sd",
+    )
+    # (
+    #     errorbar,
+    #     errorbar_description,
+    # ) = (
+    #     ("ci", 95),
+    #     "ci_95",
+    # )
+
     # Project is specified by <entity/project-name>
     wandb_id: str = main_config.analysis.wandb_export.wandb_id
     project_name: str = main_config.analysis.wandb_export.project_name
@@ -359,7 +374,7 @@ def main(
                     hue_order=hue_order,
                     units=None,
                     estimator="mean",
-                    errorbar=("ci", 95),
+                    errorbar=errorbar,
                     alpha=0.9,
                     legend=sns_legend,
                     ax=ax,  # <-- draw on *this* Axes, not the implicit one
@@ -410,6 +425,7 @@ def main(
             f"{number_of_samples_for_machine_learning_metrics=}",
             f"{metric_name=}",
             f"{group_by_column_name=}",
+            f"{errorbar_description=}",
         )
 
         plot_output_path = pathlib.Path(
