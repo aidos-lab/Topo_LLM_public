@@ -22,7 +22,8 @@ class BaseModelMode(StrEnum):
 
 def main() -> None:
     """Generate violin plots for local estimates from different models."""
-    save_arrays_in_output_dir: bool = True
+    ddof = 1  # Delta degrees of freedom for standard deviation calculation
+    save_arrays_in_output_dir: bool = False
 
     # Define the dataset names and masked levels
     dataset_name_choices: list[str] = [
@@ -150,7 +151,8 @@ def main() -> None:
                 "layer=-1_agg=mean",
                 "norm=None",
                 "sampling=random_seed=42_samples=150000",
-                "desc=twonn_samples=60000_zerovec=keep_dedup=array_deduplicator_noise=do_nothing/n-neighbors-mode=absolute_size_n-neighbors=128",
+                "desc=twonn_samples=60000_zerovec=keep_dedup=array_deduplicator_noise=do_nothing",
+                "n-neighbors-mode=absolute_size_n-neighbors=128",
             )
 
             base_directory_2 = pathlib.Path(
@@ -163,7 +165,8 @@ def main() -> None:
                 "layer=-1_agg=mean",
                 "norm=None",
                 "sampling=random_seed=42_samples=150000",
-                "desc=twonn_samples=60000_zerovec=keep_dedup=array_deduplicator_noise=do_nothing/n-neighbors-mode=absolute_size_n-neighbors=128",
+                "desc=twonn_samples=60000_zerovec=keep_dedup=array_deduplicator_noise=do_nothing",
+                "n-neighbors-mode=absolute_size_n-neighbors=128",
             )
 
             # Specify the file paths
@@ -204,7 +207,7 @@ def main() -> None:
 
                 # Create a violin plot with adjusted font size
                 plt.figure(
-                    figsize=(7.5, 2.5),
+                    figsize=(7.0, 2.5),
                 )  # Adjust figure size for paper format
 
                 sns.violinplot(
@@ -242,7 +245,7 @@ def main() -> None:
                         color=colors[i],
                         label=f"Mean={np.mean(data_combined[i]):.2f}; "
                         f"Median={np.median(data_combined[i]):.2f}; "
-                        f"Std={np.std(data_combined[i]):.2f}",
+                        f"Std={np.std(a=data_combined[i], ddof=ddof):.2f}",
                     )
                     for i in range(len(labels))
                 ]
@@ -263,6 +266,7 @@ def main() -> None:
                     "data",
                     "saved_plots",
                     "violin_plots",
+                    f"{ddof=}",
                     f"add-prefix-space={add_prefix_space}",
                     f"edh-mode={edh_mode}",
                     split_and_subsample_path,

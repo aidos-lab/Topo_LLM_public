@@ -27,6 +27,7 @@
 
 """Plots of local estimates over model checkpoints with different seeds."""
 
+import copy
 import logging
 import pathlib
 from collections.abc import Sequence
@@ -46,6 +47,7 @@ from topollm.data_processing.dictionary_handling import (
     generate_fixed_parameters_text_from_dict,
 )
 from topollm.logging.log_dataframe_info import log_dataframe_info
+from topollm.path_management.convert_object_to_valid_path_part import convert_list_to_path_part
 from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 from topollm.plotting.plot_size_config import AxisLimits, OutputDimensions, PlotSizeConfigFlat, PlotSizeConfigNested
 from topollm.task_performance_analysis.plotting.distribution_violinplots_and_distribution_boxplots import TicksAndLabels
@@ -71,16 +73,30 @@ default_logger: logging.Logger = logging.getLogger(
 # --------------------------------------------------------------------------- #
 METRIC_COLORS: dict[str, str] = {
     "loss": "#2ca02c",  # green - used consistently for losses
-    "jga": "#ff7f0e",  # orange - used for performance measures
-    # TODO: Add the colors for the ERC performance measures
+    "train_loss": "#2ca02c",  # green - used consistently for losses
+    "validation_loss": "#2ca02c",  # green - used consistently for losses
+    "test_loss": "#2ca02c",  # green - used consistently for losses
+    # Colors for the Trippy-R performance measures:
+    "jga": "#ff7f0e",  # orange - used for performance measures (which are used for model selection)
+    # Colors for the ERC performance measures:
+    "Macro F1 (w/o Neutral)": "#d62728",  # red
+    "Weighted F1 (w/o Neutral)": "#ff7f0e",  # orange - used for performance measures
+    # Other:
     "accuracy": "#1f77b4",  # blue
     "recall": "#d62728",  # red
 }
 
 COLUMN_NAMES_TO_LEGEND_LABEL: dict[str, str] = {
     "loss": "Loss",
+    "train_loss": "Loss",
+    "validation_loss": "Loss",
+    "test_loss": "Loss",
+    # Labels for the Trippy-R performance measures:
     "jga": "Joint Goal Accuracy",
-    # TODO: Add the labels for the ERC performance measures
+    # Labels for the ERC performance measures:
+    "Weighted F1 (w/o Neutral)": "Weighted F1",
+    "Macro F1 (w/o Neutral)": "Macro F1",
+    # Other:
     "accuracy": "Accuracy",
     "recall": "Recall",
 }
@@ -188,6 +204,8 @@ def create_mean_plots_over_model_checkpoints_with_different_seeds(
     plot_size_configs_list: list[PlotSizeConfigFlat],
     embeddings_path_manager: EmbeddingsPathManager,
     *,
+    restrict_to_model_seeds: list[int] | None = None,
+    maximum_x_value: int | None = None,
     fixed_keys: list[str] | None = None,
     additional_fixed_params: dict[str, Any] | None = None,
     save_plot_raw_data: bool = True,
@@ -378,11 +396,23 @@ def create_mean_plots_over_model_checkpoints_with_different_seeds(
                 ylabel = array_key_name
             case True:
                 ylabel = "Mean local dimension"
-        ticks_and_labels: TicksAndLabels = TicksAndLabels(
-            xlabel="Steps",
-            ylabel=ylabel,
-            xticks_labels=model_checkpoint_str_list,
-        )
+
+        match model_partial_name:
+            case (
+                "model=bert-base-uncased-ContextBERT-ERToD_emowoz_basic_setup_debug=-1_use_context=False"
+                | "model=bert-base-uncased-ContextBERT-ERToD_emowoz_basic_setup_debug--1_ep-50_use_context-False"
+            ):
+                ticks_and_labels: TicksAndLabels = TicksAndLabels(
+                    xlabel="Epoch",
+                    ylabel=ylabel,
+                    xticks_labels=model_checkpoint_str_list,
+                )
+            case _:
+                ticks_and_labels: TicksAndLabels = TicksAndLabels(
+                    xlabel="Steps",
+                    ylabel=ylabel,
+                    xticks_labels=model_checkpoint_str_list,
+                )
 
         # # # #
         # Create plots
@@ -395,14 +425,24 @@ def create_mean_plots_over_model_checkpoints_with_different_seeds(
                     y_min=0.0,
                     y_max=1.1,
                 ),
+                # This is for the measures in the Trippy-R setup
                 AxisLimits(
                     y_min=0.0,
                     y_max=0.8,
-                ),  # This is for the measures in the Trippy-R setup
+                ),
+                # This is for the measures in the Emotion setup:
                 AxisLimits(
-                    y_min=0.45,
+                    y_min=0.7,
                     y_max=0.8,
-                ),  # This is for the measures in the Emotion setup
+                ),
+                AxisLimits(
+                    y_min=0.1,
+                    y_max=0.95,
+                ),
+                AxisLimits(
+                    y_min=0.25,
+                    y_max=0.8,
+                ),
             ]
 
             # For publication ready plots, make the dimensions smaller so that the text is easier to read.
@@ -444,6 +484,8 @@ def create_mean_plots_over_model_checkpoints_with_different_seeds(
                     ticks_and_labels=ticks_and_labels,
                     plot_size_config_nested=plot_size_config_nested,
                     scores_data=scores_data,
+                    restrict_to_model_seeds=restrict_to_model_seeds,
+                    maximum_x_value=maximum_x_value,
                     x_column_name=model_checkpoint_column_name,
                     filter_key_value_pairs=filter_key_value_pairs,
                     base_model_model_partial_name=base_model_model_partial_name,
@@ -494,7 +536,7 @@ def load_scores(
             seed_dfs: list[pd.DataFrame] = []
             columns_to_plot_set: set[str] = set()
 
-            for seed in range(50, 55):
+            for seed in range(50, 54):
                 parsed_data_path: pathlib.Path = pathlib.Path(
                     base_directory,
                     f"seed={seed}/",
@@ -715,12 +757,14 @@ def plot_local_estimates_with_individual_seeds_and_aggregated_over_seeds(
     scores_data: ScoresData,
     *,
     restrict_to_model_seeds: list[int] | None = None,
+    maximum_x_value: int | None = None,
     x_column_name: str = "model_checkpoint",
     filter_key_value_pairs: dict,
     base_model_model_partial_name: str | None = None,
     plots_output_dir: pathlib.Path | None = None,
     publication_ready: bool = False,
     add_legend: bool = True,
+    do_create_seedwise_estimate_visualization: bool = False,
     show_plots: bool = False,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
@@ -736,6 +780,12 @@ def plot_local_estimates_with_individual_seeds_and_aggregated_over_seeds(
 
     """
     model_seed_column_name = "model_seed"
+
+    # # # #
+    # Make deep copies of the plotting data so that we do not modify the original data
+    local_estimates_df = local_estimates_df.copy(deep=True)
+    scores_data = copy.deepcopy(scores_data)
+
     # # # #
     # Pre-process the local estimates data
 
@@ -745,7 +795,7 @@ def plot_local_estimates_with_individual_seeds_and_aggregated_over_seeds(
             model_seed_column_name,
             "file_data_mean",
         ]
-    ].copy()
+    ]
 
     if restrict_to_model_seeds is not None:
         # Restrict the data to the given model seeds
@@ -865,12 +915,48 @@ def plot_local_estimates_with_individual_seeds_and_aggregated_over_seeds(
         )
 
     # # # #
+    # Restrict the scores data to the given model seeds
+    if restrict_to_model_seeds is not None and scores_data.df is not None:
+        scores_data.df = scores_data.df[scores_data.df["model_seed"].isin(restrict_to_model_seeds)]
+
+    # # # #
+    # Set the maximum x value for the plot
+    if maximum_x_value is not None:
+        local_estimates_plot_data_df = local_estimates_plot_data_df[
+            local_estimates_plot_data_df[x_column_name] <= maximum_x_value
+        ]
+    if scores_data.df is not None:
+        scores_data.df = scores_data.df[scores_data.df[x_column_name] <= maximum_x_value]
+
+    # Increase epoch number by 1 for the ERC models on the x-axis labels
+    # (so that the first epoch is 1 instead of 0)
+    model_partial_name = filter_key_value_pairs["model_partial_name"]
+    match model_partial_name:
+        case (
+            "model=bert-base-uncased-ContextBERT-ERToD_emowoz_basic_setup_debug=-1_use_context=False"
+            | "model=bert-base-uncased-ContextBERT-ERToD_emowoz_basic_setup_debug--1_ep-50_use_context-False"
+        ):
+            if verbosity >= Verbosity.NORMAL:
+                logger.info(
+                    msg="Increasing x-axis values by 1 for ERC models.",
+                )
+            local_estimates_plot_data_df[x_column_name] = local_estimates_plot_data_df[x_column_name] + 1
+            if scores_data.df is not None:
+                scores_data.df[x_column_name] = scores_data.df[x_column_name] + 1
+        case _:
+            if verbosity >= Verbosity.NORMAL:
+                logger.info(
+                    msg="Using default x-axis labels.",
+                )
+
+    # # # #
     # Add additional information to the output path
     if plots_output_dir is not None:
         plots_output_dir = pathlib.Path(
             plots_output_dir,
             f"{publication_ready=}",
             f"{add_legend=}",
+            f"restrict_to_model_seeds={convert_list_to_path_part(input_list=restrict_to_model_seeds)}",
         )
 
     # # # #
@@ -897,13 +983,13 @@ def plot_local_estimates_with_individual_seeds_and_aggregated_over_seeds(
     # ========================================================= #
     # Plots: Individual by seed using a figure and axis.
     # ========================================================= #
-
-    create_seedwise_estimate_visualization(
-        data=plot_input_data,
-        config=plot_config,
-        verbosity=verbosity,
-        logger=logger,
-    )
+    if do_create_seedwise_estimate_visualization:
+        create_seedwise_estimate_visualization(
+            data=plot_input_data,
+            config=plot_config,
+            verbosity=verbosity,
+            logger=logger,
+        )
 
     # ========================================================= #
     # Plots: Aggregated over seeds
@@ -1163,8 +1249,8 @@ def create_aggregate_estimate_visualization(
                 )
         case True:
             label_every_n(ax=ax1, axis="x", keep_every=2)  # show every 2-nd x-label
-            label_every_n(ax=ax1, axis="y", keep_every=2)  # show every 2-nd y-label
-            label_every_n(ax=ax2, axis="y", keep_every=2)  # show every 2-nd y-label
+            # label_every_n(ax=ax1, axis="y", keep_every=2)  # show every 2-nd y-label
+            # label_every_n(ax=ax2, axis="y", keep_every=2)  # show every 2-nd y-label
 
     match config.add_legend:
         case True:
@@ -1177,10 +1263,40 @@ def create_aggregate_estimate_visualization(
                 lines_2,
                 labels_2,
             ) = ax2.get_legend_handles_labels()
-            ax1.legend(
-                handles=lines_1 + lines_2,
-                labels=labels_1 + labels_2,
+
+            # This is adds the legend without de-duplication of the labels:
+            # ax1.legend(
+            #     handles=lines_1 + lines_2,
+            #     labels=labels_1 + labels_2,
+            #     title=legend_title,
+            # )
+
+            # If a label occurs multiple times, remove it from the legend.
+            # This for example might happen for the losses, if you have
+            # "train_loss", "validation_loss", "test_loss"
+            handles = lines_1 + lines_2
+            labels = labels_1 + labels_2
+            by_label = dict(
+                zip(
+                    labels,
+                    handles,
+                    strict=True,
+                ),
+            )
+            # Place the legend on the second axis, so that it is drawn on top of potential curves
+            legend = ax2.legend(
+                handles=by_label.values(),
+                labels=by_label.keys(),
                 title=legend_title,
+            )
+            legend.set_zorder(
+                level=200,  # Bring legend to the front
+            )
+            legend.get_frame().set_facecolor(
+                color="white",
+            )
+            legend.get_frame().set_alpha(
+                alpha=0.5,
             )
         case False:
             if verbosity >= Verbosity.NORMAL:
@@ -1249,6 +1365,10 @@ def create_aggregate_estimate_visualization(
 
     fig.tight_layout()
 
+    # Make sure everything is written to the plot
+    fig.canvas.draw()
+    fig.canvas.flush_events()
+
     # Save the figure
     if config.plots_output_dir is not None:
         plot_name: str = f"local_estimates_aggregate_{config.plot_size_config_nested.y_range_description}"
@@ -1278,6 +1398,9 @@ def create_aggregate_estimate_visualization(
 
     if config.show_plots:
         fig.show()
+
+    # Close the figure
+    plt.close(fig)
 
 
 def create_seedwise_estimate_visualization(

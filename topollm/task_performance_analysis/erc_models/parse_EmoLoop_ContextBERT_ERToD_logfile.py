@@ -62,7 +62,37 @@ METRIC_NAMES: list[str] = [
     "Weighted F1 (with Neutral)",
 ]
 
+# Define a fixed colormap for consistent coloring
+COLORMAP: dict[str, str] = {
+    "train_loss": "green",
+    "validation_loss": "green",
+    "test_loss": "green",
+    "Micro F1 (w/o Neutral)": "orange",
+    "Macro F1 (w/o Neutral)": "purple",
+    "Weighted F1 (w/o Neutral)": "brown",
+    "Micro F1 (with Neutral)": "red",
+    "Macro F1 (with Neutral)": "blue",
+    "Weighted F1 (with Neutral)": "black",
+}
+
+
+def get_color_from_colormap(
+    metric_name: str,
+) -> str:
+    """Get color from colormap for a given metric name."""
+    return COLORMAP.get(
+        metric_name,
+        "black",  # Default color if not found
+    )
+
+
 EPOCH_COLUMN_NAME: str = "epoch"
+
+SPLITS_TO_PROCESS = [
+    "train",
+    "validation",
+    "test",
+]
 
 
 def main() -> None:
@@ -117,7 +147,7 @@ def main() -> None:
             case True:
                 seed_range = range(42, 47)
             case False:
-                seed_range = range(50, 55)
+                seed_range = range(49, 55)
             case _:
                 msg = f"Invalid value: {use_context = }"
                 raise ValueError(
@@ -238,11 +268,7 @@ def process_log_file_of_single_model_training_run(
     # Plotting
 
     if do_create_plots:
-        for subset_value in [
-            "train",
-            "validation",
-            "test",
-        ]:
+        for subset_value in SPLITS_TO_PROCESS:
             plot_scores(
                 df=parsed_data_df,
                 subset_column_name=subset_column_name,
@@ -277,46 +303,49 @@ def parse_log(
         mode="r",
     ) as f:
         for line in f:
-            epoch_match = re.search(r"Training for epoch (\d+) out of", line)
+            epoch_match = re.search(
+                pattern=r"Training for epoch (\d+) out of",
+                string=line,
+            )
             if epoch_match:
                 current_epoch = int(epoch_match.group(1))
                 epoch_data[current_epoch] = {
                     "train_loss": None,
+                    "validation_loss": None,
+                    "test_loss": None,
+                    "train": {},
                     "validation": {},
                     "test": {},
                 }
                 continue
 
-            loss_match = re.search(r"Training loss:\s*([\d\.]+)", line)
-            if loss_match and current_epoch is not None:
-                epoch_data[current_epoch]["train_loss"] = float(  # type: ignore - problem with dict value typing here
-                    loss_match.group(1),
-                )
-                continue
+            for split in SPLITS_TO_PROCESS:
+                split_name_in_log = "training" if split == "train" else split
 
-            val_match = re.search(r"Validation F1 scores:\s*\[(.*?)\]", line)
-            if val_match and current_epoch is not None:
-                val_scores = [float(s.strip()) for s in val_match.group(1).split(",")]
-                epoch_data[current_epoch]["validation"] = dict(
-                    zip(
-                        score_labels,
-                        val_scores,
-                        strict=True,
-                    ),
-                )
-                continue
+                loss_match = re.search(rf"{split_name_in_log.capitalize()} loss:\s*([\d\.]+)", line)
+                if loss_match and current_epoch is not None:
+                    epoch_data[current_epoch][f"{split}_loss"] = float(  # type: ignore - problem with dict value typing here
+                        loss_match.group(1),
+                    )
+                    continue
 
-            test_match = re.search(r"Test F1 scores:\s*\[(.*?)\]", line)
-            if test_match and current_epoch is not None:
-                test_scores = [float(s.strip()) for s in test_match.group(1).split(",")]
-                epoch_data[current_epoch]["test"] = dict(
-                    zip(
-                        score_labels,
-                        test_scores,
-                        strict=True,
-                    ),
+            for split in SPLITS_TO_PROCESS:
+                split_name_in_log = "training" if split == "train" else split
+
+                match = re.search(
+                    pattern=rf"{split_name_in_log.capitalize()} F1 scores:\s*\[(.*?)\]",
+                    string=line,
                 )
-                continue
+                if match and current_epoch is not None:
+                    scores = [float(s.strip()) for s in match.group(1).split(",")]
+                    epoch_data[current_epoch][split] = dict(
+                        zip(
+                            score_labels,
+                            scores,
+                            strict=True,
+                        ),
+                    )
+                    continue
 
     return epoch_data
 
@@ -334,21 +363,11 @@ def convert_parsed_data_dict_to_df(
     """Convert the parsed data dictionary to a DataFrame."""
     rows: list = []
     for epoch, data in parsed_data.items():
-        # Train data
-        rows.append(
-            {
-                EPOCH_COLUMN_NAME: epoch,
-                subset_column_name: "train",
-                "train_loss": data["train_loss"],
-                **dict.fromkeys(data["validation"]),
-            },
-        )
-        # Validation and Test data
-        for split in ["validation", "test"]:
-            new_entry = {
+        for split in SPLITS_TO_PROCESS:
+            new_entry: dict = {
                 EPOCH_COLUMN_NAME: epoch,
                 subset_column_name: split,
-                "train_loss": None,
+                f"{split}_loss": data[f"{split}_loss"],
                 **data[split],
             }
             rows.append(new_entry)
@@ -446,16 +465,21 @@ def plot_scores(
         )
         return
 
-    df_subset: pd.DataFrame = df[df[subset_column_name] == subset_value]
+    # Figure dimensions
     plt.figure(
         figsize=(10, 6),
     )
+
+    df_subset: pd.DataFrame = df[df[subset_column_name] == subset_value]
 
     plot_columns = df_subset.dropna(
         axis=1,
         how="all",
     ).columns.drop(
-        labels=[EPOCH_COLUMN_NAME, subset_column_name],
+        labels=[
+            EPOCH_COLUMN_NAME,
+            subset_column_name,
+        ],
     )
 
     for col in plot_columns:
@@ -464,6 +488,9 @@ def plot_scores(
             df_subset[col],
             marker="o",
             label=col,
+            color=get_color_from_colormap(
+                metric_name=col,
+            ),
         )
 
         # # Mark best value if required.

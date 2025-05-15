@@ -265,6 +265,7 @@ def make_array_statistics_dict(
     )
     array_statistics_dict["np_std"] = np.std(
         a=array,
+        ddof=1,
     )
 
     # Convert into a pandas DataFrame and save the describe() output.

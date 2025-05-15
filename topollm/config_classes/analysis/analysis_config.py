@@ -62,6 +62,18 @@ class PlottingConfig(ConfigBaseModel):
         description="The patterns to iterate over for plotting.",
     )
 
+    restrict_to_model_seeds: list[int] | None = Field(
+        default=None,
+        title="Restrict to model seeds.",
+        description="The model seeds to restrict the analysis to.",
+    )
+
+    maximum_x_value: int | None = Field(
+        default=None,
+        title="Maximum X value.",
+        description="The maximum X value for the plots.",
+    )
+
     publication_ready: bool = Field(
         default=False,
         title="Publication ready.",

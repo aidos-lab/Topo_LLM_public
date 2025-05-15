@@ -13,6 +13,7 @@ from tqdm.auto import tqdm
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH, TOPO_LLM_REPOSITORY_BASE_PATH
 from topollm.config_classes.main_config import MainConfig
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
+from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.typing.enums import Verbosity
 
@@ -59,6 +60,7 @@ def main(
 
     use_scan_history = False
     grid_alpha: float = 0.25
+    number_of_samples_for_machine_learning_metrics: int | None = 3000
 
     # Project is specified by <entity/project-name>
     wandb_id: str = main_config.analysis.wandb_export.wandb_id
@@ -273,6 +275,34 @@ def main(
         # ---------- Prepare data ----------
         plot_df: pd.DataFrame = concatenated_df[concatenated_df[x_axis_name] < x_range_step_max]
 
+        if metric_name in [
+            "train.accuracy",
+            "val.accuracy",
+        ]:
+            # - In this case, we need to filter the data to include only the rows
+            #   where the metric_name is not NaN.
+            # - This is because the accuracy metric is not always logged for all runs.
+            plot_df = plot_df[plot_df[metric_name].notna()]
+
+            if number_of_samples_for_machine_learning_metrics is not None:
+                # Sample from the possible steps, then take all the rows which match these steps.
+                sampled_steps = (
+                    plot_df[x_axis_name]
+                    .sample(
+                        n=number_of_samples_for_machine_learning_metrics,
+                        random_state=42,
+                    )
+                    .unique()
+                )
+                plot_df = plot_df[plot_df[x_axis_name].isin(sampled_steps)]
+
+        if verbosity >= Verbosity.NORMAL:
+            log_dataframe_info(
+                df=plot_df,
+                df_name="plot_df",
+                logger=logger,
+            )
+
         # ---------- Figure/Axes ----------
         (
             fig,
@@ -292,6 +322,15 @@ def main(
                 sns_legend = "auto"
 
         hue_order = sorted(plot_df[frac_train_column_name].unique())
+
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"Calling sns.lineplot() for "  # noqa: G004 - low overhead
+                f"{x_axis_name=}; {x_range_step_max=}; {metric_name=}; {add_legend=}; {group_by_column_name=} ...",
+            )
+            logger.info(
+                msg="This might take a while, depending on the number of runs and the number of points to plot ...",
+            )
 
         match group_by_column_name:
             case None:
@@ -325,6 +364,12 @@ def main(
                     legend=sns_legend,
                     ax=ax,  # <-- draw on *this* Axes, not the implicit one
                 )
+
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"Calling sns.lineplot() for "  # noqa: G004 - low overhead
+                f"{x_axis_name=}; {x_range_step_max=}; {metric_name=}; {add_legend=}; {group_by_column_name=} DONE",
+            )
 
         # ---------- Axis cosmetics ----------
         ax.set(
@@ -362,6 +407,7 @@ def main(
             save_root_dir,
             f"{x_axis_name=}",
             f"{x_range_step_max=}",
+            f"{number_of_samples_for_machine_learning_metrics=}",
             f"{metric_name=}",
             f"{group_by_column_name=}",
         )

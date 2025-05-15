@@ -300,6 +300,8 @@ class EmotionClassificationScoreLoader:
         # > 'model_checkpoint',
         # > 'data_subsampling_split',
         # > 'train_loss',
+        # > 'validation_loss',
+        # > 'test_loss',
         # > 'Micro F1 (w/o Neutral)',
         # > 'Macro F1 (w/o Neutral)',
         # > 'Weighted F1 (w/o Neutral)',
@@ -311,6 +313,8 @@ class EmotionClassificationScoreLoader:
 
         columns_to_plot: list[str] = [
             "train_loss",
+            "validation_loss",
+            "test_loss",
             "Macro F1 (w/o Neutral)",
             "Weighted F1 (w/o Neutral)",
         ]

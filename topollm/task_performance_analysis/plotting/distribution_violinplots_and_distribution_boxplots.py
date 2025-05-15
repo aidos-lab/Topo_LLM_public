@@ -91,12 +91,12 @@ def make_distribution_violinplots_from_extracted_arrays(
         for i, extracted_array in enumerate(extracted_arrays):
             mean: np.floating = np.mean(extracted_array)
             median: np.floating = np.median(extracted_array)
-            std: np.floating = np.std(extracted_array)
+            std: np.floating = np.std(extracted_array, ddof=1)
 
             ax.text(
                 x=i + 1,
                 y=float(mean),
-                s=f"Mean: {mean:.2f}\nMedian: {median:.2f}\nStd: {std:.2f}",
+                s=f"Mean: {mean:.2f}\nMedian: {median:.2f}\nStd(ddof=1): {std:.2f}",
                 fontsize=6,
                 verticalalignment="bottom",
                 horizontalalignment="center",

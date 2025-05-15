@@ -86,14 +86,17 @@ def log_statistics_of_array(
         msg=f"Shape:\t{array.shape = }",  # noqa: G004 - low overhead
     )
     logger.info(
-        msg=f"Min:\t{np.min(array) = }",  # noqa: G004 - low overhead
+        msg=f"np.min:\t{np.min(array) = }",  # noqa: G004 - low overhead
     )
     logger.info(
-        msg=f"Max:\t{np.max(array) = }",  # noqa: G004 - low overhead
+        msg=f"np.max:\t{np.max(array) = }",  # noqa: G004 - low overhead
     )
     logger.info(
-        msg=f"Mean:\t{np.mean(array) = }",  # noqa: G004 - low overhead
+        msg=f"np.mean:\t{np.mean(array) = }",  # noqa: G004 - low overhead
     )
     logger.info(
-        msg=f"Std:\t{np.std(array) = }",  # noqa: G004 - low overhead
+        msg=f"np.std(ddof=0):\t{np.std(array, ddof=0) = }",  # noqa: G004 - low overhead
+    )
+    logger.info(
+        msg=f"np.std(ddof=1):\t{np.std(array, ddof=1) = }",  # noqa: G004 - low overhead
     )

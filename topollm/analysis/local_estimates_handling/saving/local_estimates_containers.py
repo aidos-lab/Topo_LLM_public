@@ -104,6 +104,7 @@ class LocalEstimatesContainer:
         output = np.std(
             a=self.pointwise_results_array_np,
             axis=0,
+            ddof=1,
         )
 
         return output

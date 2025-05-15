@@ -2496,8 +2496,8 @@
                 //    >> START: Plotting options.
                 //
                 // "analysis/task_performance_analysis/plotting=all",
-                // "analysis/task_performance_analysis/plotting=ertod",
-                "analysis/task_performance_analysis/plotting=trippy_r_same_data_subsampling",
+                "analysis/task_performance_analysis/plotting=ertod",
+                // "analysis/task_performance_analysis/plotting=trippy_r_same_data_subsampling",
                 // "analysis/task_performance_analysis/plotting=trippy_r_different_sample_for_different_models",
                 //
                 // "analysis.task_performance_analysis.plotting.publication_ready=False",
@@ -2506,6 +2506,9 @@
                 "analysis.task_performance_analysis.plotting.add_legend=True,False",
                 // "analysis.task_performance_analysis.plotting.add_legend=True",
                 // "analysis.task_performance_analysis.plotting.add_legend=False",
+                //
+                // "analysis.task_performance_analysis.plotting.maximum_x_value=5",
+                "analysis.task_performance_analysis.plotting.maximum_x_value=7",
                 //
                 //    >> END: Plotting options.
                 //

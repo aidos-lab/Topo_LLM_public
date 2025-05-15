@@ -305,7 +305,7 @@ def process_subdirectories(
                     np.mean(current_array_truncated),
                 )
                 std_list.append(
-                    np.std(current_array_truncated),
+                    np.std(current_array_truncated, ddof=1),
                 )
 
     # Create a DataFrame to store results
