@@ -62,20 +62,20 @@ def main(
     grid_alpha: float = 0.25
     number_of_samples_for_machine_learning_metrics: int | None = 3000
 
-    (
-        errorbar,
-        errorbar_description,
-    ) = (
-        "sd",
-        "sd",
-    )
     # (
     #     errorbar,
     #     errorbar_description,
     # ) = (
-    #     ("ci", 95),
-    #     "ci_95",
+    #     "sd",
+    #     "sd",
     # )
+    (
+        errorbar,
+        errorbar_description,
+    ) = (
+        ("ci", 95),
+        "ci_95",
+    )
 
     # Project is specified by <entity/project-name>
     wandb_id: str = main_config.analysis.wandb_export.wandb_id
@@ -440,8 +440,12 @@ def main(
             logger.info(
                 msg=f"Saving plot to {plot_output_path=} ...",  # noqa: G004 - low overhead
             )
+        # Remove whitespace around the plot:
+        # https://stackoverflow.com/questions/11837979/removing-white-space-around-a-saved-image
         plt.savefig(
             plot_output_path,
+            bbox_inches="tight",
+            pad_inches=0,
         )
         if verbosity >= Verbosity.NORMAL:
             logger.info(
