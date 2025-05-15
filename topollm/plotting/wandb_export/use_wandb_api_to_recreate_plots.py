@@ -231,6 +231,21 @@ def main(
                     msg=f"Loading concatenated_df from {concatenated_df_save_path=} DONE",  # noqa: G004 - low overhead
                 )
 
+    # Remove runs with these names
+    names_to_remove: list[str] = [
+        # We want to remove this run,
+        # because otherwise we would have 6 runs with 'dataset.frac_train' == 0.15
+        "celestial-monkey-1",
+    ]
+    concatenated_df = concatenated_df[~concatenated_df["name"].isin(names_to_remove)]
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Remaining run names after removing specified runs:\n{concatenated_df['name'].unique()}",  # noqa: G004 - low overhead
+        )
+        logger.info(
+            msg=f"Number of runs after removing specified runs: {len(concatenated_df['name'].unique())}",  # noqa: G004 - low overhead
+        )
+
     # # # #
     # Select a specific subset of the data and create corresponding plots
     x_axis_name_options: list[str] = [
