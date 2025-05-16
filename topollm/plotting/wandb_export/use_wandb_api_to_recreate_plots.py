@@ -1,6 +1,9 @@
+"""Use WandB API to recreate plots from WandB runs."""
+
 import itertools
 import logging
 import pathlib
+from typing import TYPE_CHECKING
 
 import hydra
 import matplotlib.pyplot as plt
@@ -12,11 +15,13 @@ import wandb
 from tqdm.auto import tqdm
 
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH, TOPO_LLM_REPOSITORY_BASE_PATH
-from topollm.config_classes.main_config import MainConfig
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.typing.enums import Verbosity
+
+if TYPE_CHECKING:
+    from topollm.config_classes.main_config import MainConfig
 
 # Logger for this file
 global_logger: logging.Logger = logging.getLogger(
@@ -61,47 +66,59 @@ def main(
 
     use_scan_history = False
     grid_alpha: float = 0.25
-    number_of_samples_for_machine_learning_metrics: int | None = 100
+
+    # number_of_samples_for_machine_learning_metrics: int | None = 100
+    # number_of_samples_for_machine_learning_metrics: int | None = 200
+    number_of_samples_for_machine_learning_metrics: int | None = 600
     # number_of_samples_for_machine_learning_metrics: int | None = 3000
 
-    # (
-    #     errorbar,
-    #     errorbar_description,
-    # ) = (
-    #     "sd",
-    #     "sd",
-    # )
-    (
-        errorbar,
-        errorbar_description,
-    ) = (
-        ("ci", 95),
-        "ci_95",
-    )
+    errorbar_version = "confidence_interval"
+
+    match errorbar_version:
+        case "confidence_interval":
+            (
+                errorbar,
+                errorbar_description,
+            ) = (
+                ("ci", 95),
+                "ci_95",
+            )
+        case "sd":
+            (
+                errorbar,
+                errorbar_description,
+            ) = (
+                "sd",
+                "sd",
+            )
 
     # Project is specified by <entity/project-name>
     wandb_id: str = main_config.analysis.wandb_export.wandb_id
     project_name: str = main_config.analysis.wandb_export.project_name
 
-    # (
-    #     wandb_filters,
-    #     wandb_filters_desc,
-    # ) = (
-    #     {
-    #         "$or": [
-    #             {"config.dataset.frac_train": 0.15},
-    #             {"config.dataset.frac_train": 0.3},
-    #         ],
-    #     },
-    #     "selected_frac_train",
-    # )
-    (
-        wandb_filters,
-        wandb_filters_desc,
-    ) = (
-        None,
-        "None",
-    )
+    use_wandb_filters: bool = False
+    match use_wandb_filters:
+        case False:
+            (
+                wandb_filters,
+                wandb_filters_desc,
+            ) = (
+                None,
+                "None",
+            )
+        case True:
+            (
+                wandb_filters,
+                wandb_filters_desc,
+            ) = (
+                {
+                    "$or": [
+                        {"config.dataset.frac_train": 0.15},
+                        {"config.dataset.frac_train": 0.3},
+                    ],
+                },
+                "selected_frac_train",
+            )
 
     samples: int = main_config.analysis.wandb_export.samples
 
@@ -170,13 +187,15 @@ def main(
                         #
                         history = run.scan_history()
 
-                        # metrics_list = [
-                        #     (
-                        #         row[x_axis_name],
-                        #         row[metric_name],
-                        #     )
-                        #     for row in tqdm(history)
-                        # ]
+                        # The following example code shows how to iterate through the history:
+                        #
+                        # > metrics_list = [
+                        # >     (
+                        # >         row[x_axis_name],
+                        # >         row[metric_name],
+                        # >     )
+                        # >     for row in tqdm(history)
+                        # > ]
 
                         concatenated_df = pd.DataFrame()  # Note: This is a placeholder
 
@@ -448,8 +467,6 @@ def main(
                     fontsize=12,
                     ncols=2,
                 )
-
-        # TODO: Fix this
 
         # ---------- Grid ----------
         ax.grid(

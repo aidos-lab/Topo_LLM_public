@@ -1264,12 +1264,12 @@ def create_aggregate_estimate_visualization(
                 labels_2,
             ) = ax2.get_legend_handles_labels()
 
-            # This is adds the legend without de-duplication of the labels:
-            # ax1.legend(
-            #     handles=lines_1 + lines_2,
-            #     labels=labels_1 + labels_2,
-            #     title=legend_title,
-            # )
+            # This code would add the legend without de-duplication of the labels:
+            # > ax1.legend(
+            # >     handles=lines_1 + lines_2,
+            # >     labels=labels_1 + labels_2,
+            # >     title=legend_title,
+            # > )
 
             # If a label occurs multiple times, remove it from the legend.
             # This for example might happen for the losses, if you have
@@ -1387,8 +1387,11 @@ def create_aggregate_estimate_visualization(
             parents=True,
             exist_ok=True,
         )
+        # Set `bbox_inches` and `pad_inches` to ensure the plot is saved without extra whitespace
         fig.savefig(
             fname=plot_save_path,
+            bbox_inches="tight",
+            pad_inches=0,
         )
 
         if verbosity >= Verbosity.NORMAL:

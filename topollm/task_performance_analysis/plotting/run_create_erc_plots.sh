@@ -2,8 +2,8 @@
 
 SCRIPT_PATH="topollm/task_performance_analysis/plotting/run_create_distribution_plots_of_local_estimates.py"
 
-add_legend="True"
-# add_legend="True,False"
+# add_legend="True"
+add_legend="True,False"
 
 uv run $SCRIPT_PATH \
     --multirun \
