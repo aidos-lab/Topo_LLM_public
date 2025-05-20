@@ -112,11 +112,40 @@ For compatibility, please make sure that these paths are set correctly and point
 
 ## Usage
 
+### General instructions to run the pipeline
+
+TODO: Add instructions for how to use and configure the uv run commands.
+
 ```bash
 uv run pipeline_local_estimates # This runs the full pipeline embedding -> embeddings_data_prep -> compute local estimates
-uv run compute_perplexity
+```
+
+### Experiments: Fine-Tuning Induces Dataset-Specific Shifts in Heterogeneous Local Dimensions
+
+TODO: Explain how to run these experiments.
+TODO: Add instructions for finetuning the language model.
+TODO: Explain how to compute local estimates for the finetuned models.
+TODO: Explain how to call the violin plot creation script.
+
+```bash
 uv run finetune_language_model
 ```
+
+### Experiments: Local Dimensions Predict Grokking
+
+TODO: Refer to the separate `grokking` repository for instructions on how to run the experiments.
+
+### Experiments: Local Dimensions Detect Exhaustion of Training Capabilities
+
+TODO: Explain how to train the Trippy-R dialogue state tracking models.
+TODO: Explain how to compute local estimates for the Trippy-R models.
+TODO: Explain how to create the plots comparing local dimensions and task performance for the Trippy-R models.
+
+### Experiments: Local Dimensions Detect Overfitting
+
+TODO: Explain how to train the ERC models.
+TODO: Explain how to compute local estimates for the ERC models.
+TODO: Explain how to create the plots comparing local dimensions and task performance for the ERC models.
 
 ### Specific instructions for HHU Hilbert HPC Cluster
 
