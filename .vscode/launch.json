@@ -310,15 +310,14 @@
             }
         },
         // Notes: 
-        // - Even though this page claims that the maximum duration of a GPU-Job is 47:59:59, 
+        // - Even though the documentation of the HPC cluster claims that the maximum duration of a GPU-Job is 47:59:59, 
         //   we can sucessfully submit jobs with a duration of 59:00:00.
-        //   https://wiki.hhu.de/display/HPC/Besonderheiten
         //   On the DSML queue, we can even start jobs with a duration of 72:00:00.
         // - The GTX1080TI and RTX6000 nodes have 20 CPU-Cores and 10 GPUs each, 
         //   thus per GPU you should not use more than 2 CPUs.
         // - For the gpt2-medium embeddings, the 12GB GPUs are not enough
         {
-            "name": "Run pipeline - HHU Hilbert HPC submission - TwoNN - Fixed subsampling seed - RoBERTa, BERT, ContextBERT-ERToD, SetSUMBT, Trippy, Trippy-R checkpoints; last layer only - Run pipeline.",
+            "name": "Run pipeline - HPC cluster submission - TwoNN - Fixed subsampling seed - RoBERTa, BERT, ContextBERT-ERToD, SetSUMBT, Trippy, Trippy-R checkpoints; last layer only - Run pipeline.",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
@@ -513,7 +512,7 @@
             }
         },
         {
-            "name": "Run pipeline - HHU Hilbert HPC submission - TwoNN - Fixed subsampling seed - Autoregressive: GPT-2; last layer only - Run pipeline.",
+            "name": "Run pipeline - HPC cluster submission - TwoNN - Fixed subsampling seed - Autoregressive: GPT-2; last layer only - Run pipeline.",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
@@ -617,7 +616,7 @@
             }
         },
         {
-            "name": "Run pipeline - HHU Hilbert HPC submission - TwoNN - Different subsampling seed for each model seed - RoBERTa, BERT, GPT-2, ContextBERT-ERToD, SetSUMBT, Trippy, Trippy-R checkpoints; last layer only - Run pipeline.",
+            "name": "Run pipeline - HPC cluster submission - TwoNN - Different subsampling seed for each model seed - RoBERTa, BERT, GPT-2, ContextBERT-ERToD, SetSUMBT, Trippy, Trippy-R checkpoints; last layer only - Run pipeline.",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
@@ -767,7 +766,7 @@
             }
         },
         {
-            "name": "Run pipeline - HHU Hilbert HPC submission - lPCA; SetSUMBT or Trippy checkpoints; last layer only - Run pipeline.",
+            "name": "Run pipeline - HPC cluster submission - lPCA; SetSUMBT or Trippy checkpoints; last layer only - Run pipeline.",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
@@ -867,7 +866,7 @@
             }
         },
         {
-            "name": "Run pipeline - HHU Hilbert HPC submission - TwoNN; SetSUMBT or Trippy selected checkpoints; multiple layers - Run pipeline.",
+            "name": "Run pipeline - HPC cluster submission - TwoNN; SetSUMBT or Trippy selected checkpoints; multiple layers - Run pipeline.",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
@@ -1049,7 +1048,7 @@
             "env": {}
         },
         {
-            "name": "Compute eval loss via huggingface transformers Trainer - HHU Hilbert HPC submission -",
+            "name": "Compute eval loss via huggingface transformers Trainer - HPC cluster submission -",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/model_inference/compute_eval_loss_via_huggingface_trainer.py",
@@ -1546,7 +1545,7 @@
             ]
         },
         {
-            "name": "Compare local estimates (loss computation only on base data) - HHU Hilbert HPC submission - for validation or test splits of datasets (random sampling) and models; without comparison (i.e., only computing the losses on the base data)",
+            "name": "Compare local estimates (loss computation only on base data) - HPC cluster submission - for validation or test splits of datasets (random sampling) and models; without comparison (i.e., only computing the losses on the base data)",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/analysis/compare_local_estimates_and_distances_and_losses/run_compare_local_estimates.py",
@@ -1611,7 +1610,7 @@
             ]
         },
         {
-            "name": "Compare local estimates (loss computation only on base data) - HHU Hilbert HPC submission - for different subsampling seeds of validation splits of datasets (random sampling) and models; without comparison (i.e., only computing the losses on the base data)",
+            "name": "Compare local estimates (loss computation only on base data) - HPC cluster submission - for different subsampling seeds of validation splits of datasets (random sampling) and models; without comparison (i.e., only computing the losses on the base data)",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/analysis/compare_local_estimates_and_distances_and_losses/run_compare_local_estimates.py",
@@ -1673,7 +1672,7 @@
             ]
         },
         {
-            "name": "Compare local estimates (loss computation only on base data) - HHU Hilbert HPC submission - for multiple train datasets (take first sampling) and models; without comparison (i.e., only computing the losses on the base data)",
+            "name": "Compare local estimates (loss computation only on base data) - HPC cluster submission - for multiple train datasets (take first sampling) and models; without comparison (i.e., only computing the losses on the base data)",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/analysis/compare_local_estimates_and_distances_and_losses/run_compare_local_estimates.py",
@@ -2694,7 +2693,7 @@
                 "hydra/sweeper=basic",
                 // ===== Local =====
                 // "hydra/launcher=basic",
-                // ===== HHU Hilbert CPU-machine =====
+                // ===== HPC cluster CPU-machine =====
                 "hydra/launcher=hpc_submission",
                 "hydra.launcher.queue=DEFAULT",
                 "hydra.launcher.template=CPU",

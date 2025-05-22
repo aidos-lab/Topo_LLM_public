@@ -124,16 +124,25 @@ TODO: Add instructions for how to use and configure the uv run commands.
 uv run pipeline_local_estimates # This runs the full pipeline embedding -> embeddings_data_prep -> compute local estimates
 ```
 
+```bash
+uv run pipeline_local_estimates data="wikitext-103-v1" 
+```
+
 ### Experiments: Fine-Tuning Induces Dataset-Specific Shifts in Heterogeneous Local Dimensions
+
+#### Fine-tuning the language model
 
 TODO: Explain how to run these experiments.
 TODO: Add instructions for finetuning the language model.
-TODO: Explain how to compute local estimates for the finetuned models.
-TODO: Explain how to call the violin plot creation script.
 
 ```bash
 uv run finetune_language_model
 ```
+
+#### Local estimates computation for the finetuned models
+
+TODO: Explain how to compute local estimates for the finetuned models.
+TODO: Explain how to call the violin plot creation script.
 
 ### Experiments: Local Dimensions Predict Grokking
 
@@ -141,13 +150,23 @@ Refer to the separate `grokking` repository for instructions on how to run these
 
 ### Experiments: Local Dimensions Detect Exhaustion of Training Capabilities
 
+#### Train the Trippy-R dialogue state tracking models
+
 TODO: Explain how to train the Trippy-R dialogue state tracking models.
+
+#### Local estimates computation for the Trippy-R models
+
 TODO: Explain how to compute local estimates for the Trippy-R models.
 TODO: Explain how to create the plots comparing local dimensions and task performance for the Trippy-R models.
 
 ### Experiments: Local Dimensions Detect Overfitting
 
+#### Train the ERC models
+
 TODO: Explain how to train the ERC models.
+
+#### Local estimates computation for the ERC models
+
 TODO: Explain how to compute local estimates for the ERC models.
 TODO: Explain how to create the plots comparing local dimensions and task performance for the ERC models.
 
