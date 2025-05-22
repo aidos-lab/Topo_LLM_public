@@ -481,7 +481,7 @@
                 // "language_model.seed=41",
                 // "language_model.seed=42", // Note: seed=42 is already submitted
                 // "language_model.seed=43",
-                // "language_model.seed=43,44", // TODO: Still need to run seeds 44 for the long Trippy-R models
+                // "language_model.seed=43,44",
                 // "language_model.seed=42,43,44",
                 // "language_model.seed=1111,40,41",
                 //

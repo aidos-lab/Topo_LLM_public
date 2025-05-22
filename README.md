@@ -1,4 +1,4 @@
-# Topo_LLM
+# Less is More: Local Intrinsic Dimensions of Contextual Language Models (Topo_LLM)
 
 ## Overview
 
@@ -56,20 +56,27 @@ uv sync
 uv run python3
 ```
 
+### Specific instructions for HPC Cluster
+
+On some HPC clusters, you might need to pin a torch version in the `pyproject.toml` file, to make the installation of torch and a compatible CUDA version work.
+For example, on our HPC cluster, it currently appears to work when you set the torch version to `2.3.*`:
+
+```toml
+torch = "2.3.*"
+```
+
 ### Project-specific setup
 
 1. Set the correct environment variables used in the project config.
-Edit the script `topollm/scripts/setup_environment.sh` with the correct paths and run it once.
+Edit the script `topollm/setup/setup_environment.sh` with the correct paths and run it once.
 
 ```bash
-./topollm/scripts/setup_environment.sh
+./topollm/setup/setup_environment.sh
 ```
 
-1. If required, e.g. when running jobs on the HHU Hilbert cluster, set the correct environment variables in the `.env` file in the project root directory.
+1. If required, e.g. when running jobs on a HPC cluster, set the correct environment variables in the `.env` file in the project root directory.
 
-1. For setting up the repository to support job submissions to the HHU Hilbert HPC, follow the instructions here: [https://github.com/carelvniekerk/Hydra-HPC-Launcher].
-
-1. Submission scripts are located in the `topollm/scripts/submission_scripts` directory.
+1. For setting up the repository to support job submissions to the a HPC cluster using our custom Hydra launcher, follow the instructions here: [https://github.com/carelvniekerk/Hydra-HPC-Launcher]. Additional submission scripts are located in the `topollm/scripts/submission_scripts` directory.
 
 1. Download the files necessary for `nltk`: Start a python interpreter and run the following:
 
@@ -133,7 +140,7 @@ uv run finetune_language_model
 
 ### Experiments: Local Dimensions Predict Grokking
 
-TODO: Refer to the separate `grokking` repository for instructions on how to run the experiments.
+Refer to the separate `grokking` repository for instructions on how to run these experiments.
 
 ### Experiments: Local Dimensions Detect Exhaustion of Training Capabilities
 
@@ -146,15 +153,6 @@ TODO: Explain how to create the plots comparing local dimensions and task perfor
 TODO: Explain how to train the ERC models.
 TODO: Explain how to compute local estimates for the ERC models.
 TODO: Explain how to create the plots comparing local dimensions and task performance for the ERC models.
-
-### Specific instructions for HHU Hilbert HPC Cluster
-
-On HHU Hilbert HPC, you might need to pin a torch version in the `pyproject.toml` file, to make the installation of torch and a compatible CUDA version work.
-For example, it currently appears to work when you set the torch version to `2.3.*`:
-
-```toml
-torch = "2.3.*"
-```
 
 ### Run tests
 

@@ -25,7 +25,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO This script is under development and not yet finished.
 
 """Load and compare model checkpoints."""
 
@@ -209,9 +208,7 @@ def compare_model_components(
         model_1_parameter = model_1.state_dict()[parameters_to_compare]
         model_2_parameter = model_2.state_dict()[parameters_to_compare]
 
-        # Compare the parameters
-
-    # TODO: Implement this
+        # Note: This is where you would implement your comparison logic
 
 
 if __name__ == "__main__":

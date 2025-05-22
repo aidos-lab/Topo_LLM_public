@@ -128,8 +128,6 @@ def main(
 
     # "pickle_chunked_metadata_storage/chunk_00002.pkl"
 
-    # TODO This script is not finished
-
 
 if __name__ == "__main__":
     main()

@@ -114,6 +114,7 @@ def main(cfg):
 
         def __call__(self, X, max_dim):
             """Calculate persistent homology.
+
             Parameters
             ----------
             X : np.array of shape ``(N, d)``
@@ -130,11 +131,12 @@ def main(cfg):
             if len(barcodes) == 0:
                 return None, -1
 
-            # TODO: Check whether this is *always* a feature of non-zero
-            # persistence.
+            # Note:
+            # Check whether this is *always* a feature of non-zero persistence.
             max_dim = np.max([d for d, _ in barcodes])
 
-            # TODO: We are throwing away dimensionality information; it is
+            # Note:
+            # We are throwing away dimensionality information; it is
             # thus possible that we are matching across different dimensions
             # in any distance calculation.
             barcodes = np.asarray([np.array(x) for _, x in barcodes])
@@ -414,9 +416,10 @@ def main(cfg):
             # No sampling function has been specified. Compare to a fixed
             # annulus with known persistent homology.
             #
-            # TODO: Technically, the single feature should be put into
-            # a persistence diagram of the right dimension. Let us not
-            # do that for now (since we stack diagrams anyway).
+            # Note:
+            # Technically, the single feature should be put into
+            # a persistence diagram of the right dimension.
+            # In the current version, we do not do that for now (since we stack diagrams anyway).
             else:
                 barcodes_euclidean = np.asarray([[0, np.inf], [r, s]])
 

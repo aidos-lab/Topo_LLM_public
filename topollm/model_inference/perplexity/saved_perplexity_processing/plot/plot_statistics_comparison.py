@@ -149,21 +149,19 @@ def plot_statistics_comparison(
 
 
 def plot_statistics_comparison_with_standard_deviation():
-    """
+    """Plot token_perplexity and local_estimate over different checkpoints for different models with standard deviation shading.
 
     Inspired by:
     https://stackoverflow.com/questions/61494278/plotly-how-to-make-a-figure-with-multiple-lines-and-shaded-area-for-standard-de
-
-    # TODO: Replace this with the new script
     """
     # sample data in a pandas dataframe
     np.random.seed(1)
     df = pd.DataFrame(
-        dict(
-            A=np.random.uniform(low=-1, high=2, size=25).tolist(),
-            B=np.random.uniform(low=-4, high=3, size=25).tolist(),
-            C=np.random.uniform(low=-1, high=3, size=25).tolist(),
-        )
+        data={
+            "A": np.random.uniform(low=-1, high=2, size=25).tolist(),
+            "B": np.random.uniform(low=-4, high=3, size=25).tolist(),
+            "C": np.random.uniform(low=-1, high=3, size=25).tolist(),
+        },
     )
     df = df.cumsum()
 
@@ -233,7 +231,3 @@ def plot_statistics_comparison_with_standard_deviation():
             "range": [1, len(df)],
         },
     )
-
-    fig.show()  # TODO: Remove the figure.show()
-
-    # TODO: Save the plot to a file

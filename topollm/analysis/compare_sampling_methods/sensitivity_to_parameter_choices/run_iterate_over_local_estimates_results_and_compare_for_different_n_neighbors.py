@@ -73,9 +73,6 @@ setup_exception_logging(
 )
 
 
-# TODO: This script needs to be updated for the task of creating the plots for different local neighborhood sizes
-
-
 def iterate_and_collect_data(
     base_path: pathlib.Path,
     subdirectory_to_match: str = "n-neighbors-mode=absolute_size_n-neighbors=128",

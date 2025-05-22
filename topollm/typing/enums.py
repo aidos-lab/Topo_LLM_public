@@ -98,7 +98,6 @@ class ArrayStorageType(StrEnum):
 class MetadataStorageType(StrEnum):
     """The different types of metadata storage."""
 
-    XARRAY = auto()
     PICKLE = auto()
 
 

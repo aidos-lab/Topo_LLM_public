@@ -303,7 +303,7 @@ class ComparisonManager:
             msg="Comparison of local estimates between base and comparison data is not implemented yet.",
         )
 
-        # TODO: Implement the comparison methods here
+        # Note: This is where you would implement your comparison logic.
 
 
 @hydra.main(

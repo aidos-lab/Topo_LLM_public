@@ -45,9 +45,9 @@ data/saved_plots/
 
 # Log files
 logs/
-hilbert_job_logs/
-hilbert_job_logs.backup.*
-hilbert_job_logs_backup/
+*_job_logs/
+*_job_logs.backup.*
+*_job_logs_backup/
 hydra_output_dir/
 hydra_output_dir.backup.*
 
@@ -60,7 +60,7 @@ tmp_trainer/
 # OSX files
 .DS_Store
 
-# Exclude the pyproject.toml to prevent overwriting the HPC pip configuration
+# Exclude the pyproject.toml to prevent overwriting the HPC cluster pip configuration
 #
 # pyproject.toml
 poetry.lock
