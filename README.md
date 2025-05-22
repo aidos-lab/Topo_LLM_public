@@ -68,13 +68,13 @@ torch = "2.3.*"
 ### Project-specific setup
 
 1. Set the correct environment variables used in the project config.
-This step can be achieve by running the setup script in the `topollm/setup/` directory once.
+This step can be achieved by running the setup script in the `topollm/setup/` directory once.
 
 ```bash
 ./topollm/setup/setup_environment.sh
 ```
 
-1. If required, e.g. when running jobs on a HPC cluster, set the correct environment variables in the `.env` file in the project root directory.
+1. If required, e.g. when running jobs on an HPC cluster, set the correct environment variables in the `.env` file in the project root directory.
 
 2. For setting up the repository to support job submissions to the a HPC cluster using our custom Hydra launcher, follow the instructions here: [https://github.com/carelvniekerk/Hydra-HPC-Launcher]. Additional submission scripts are located in the `topollm/scripts/submission_scripts` directory.
 
