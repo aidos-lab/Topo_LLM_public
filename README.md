@@ -186,7 +186,7 @@ After the computation, this directory contains the following files:
     └── local_estimates_pointwise_meta.pkl # <-- The metadata of the vector of the pointwise computation
 ```
 
-As a reference, you can also take a look at the file `.vscode/launch.json`, which contains various configurations for running the pipeline in different ways.
+As a reference, you can also take a look at the file (`.vscode/launch.json`), which contains various configurations for running the pipeline in different ways.
 In the following sections, we will explain how to set up the experiments that we present in the paper.
 
 ### Experiments: Fine-Tuning Induces Dataset-Specific Shifts in Heterogeneous Local Dimensions
@@ -199,7 +199,7 @@ TODO: Add instructions for finetuning the language model.
 uv run finetune_language_model
 ```
 
-We provide a script to run the fine-tunings as in the paper here: `topollm/experiments/fine_tuning_induces_dataset_specific_shifts_in_heterogeneous_local_dimensions/run_multiple_finetunings.sh`
+We provide a script to run the fine-tunings with the same parameters as in the paper in (`topollm/experiments/fine_tuning_induces_dataset_specific_shifts_in_heterogeneous_local_dimensions/run_multiple_finetunings.sh`).
 
 By default, the fine-tuned models are saved in the `data/models/finetuned_models` directory, with paths that describe the model and the dataset used for fine-tuning.
 If successful, the fine-tuning script will also save a config file for the fine-tuned model into the `configs/language_model` using the short name of the model.
