@@ -9,7 +9,7 @@ This repository contains code for analyzing the representations produced by cont
 ### Prerequisites
 
 - Python 3.12
-- `uv` package manager
+- [`uv`](https://docs.astral.sh/uv/) package manager
 
 #### MacOS specific instructions
 
@@ -90,14 +90,8 @@ This step can be achieved by running the setup script in the `topollm/setup/` di
 
 ### Config file management
 
-- We use Hydra for the config managment:
-  [https://hydra.cc/docs/patterns/configuring_experiments/]
-
-- Overwrite config variable:
-  `python run.py run.seed=42`
-
-- Multirun example:
-  `python run.py --multirun run.seed=1,2,3,4`
+We use [Hydra](https://hydra.cc/docs/patterns/configuring_experiments/) for the config managment.
+Please see the documentation and the experiments below for examples on how to use the config file and command line overrides.
 
 ### Data directory
 
@@ -107,26 +101,70 @@ Most of the shell scripts use this variable to set the data directory path.
 
 For compatibility, please make sure that these paths are set correctly and point to the same directory.
 
-## Datasets
+### Datasets
 
-- Dialogue data
-  - MultiWOZ
-  - SGD:
-    [https://github.com/google-research-datasets/dstc8-schema-guided-dialogue]
+The following datasets can be used via their config file:
+
+- `multiwoz21.yaml`:
+  MultiWOZ2.1; [HuggingFace](https://huggingface.co/datasets/ConvLab/multiwoz21)
+- `ertod_emowoz.yaml`:
+  EmoWOZ; [HuggingFace](https://huggingface.co/datasets/hhu-dsml/emowoz)
+- `trippy_r_dataloaders_processed.yaml`:
+  TripPy-R training, validation, test data; [GitLab](https://gitlab.cs.uni-duesseldorf.de/general/dsml/trippy-r-public)
+- `sgd.yaml`:
+  SGD; [GitHub](https://github.com/google-research-datasets/dstc8-schema-guided-dialogue), [HuggingFace](https://huggingface.co/datasets/google-research-datasets/schema_guided_dstc8)
+- `wikitext-103-v1.yaml`:
+  Wikipedia; [HuggingFace](https://huggingface.co/datasets/Salesforce/wikitext/viewer/wikitext-103-v1)
+- `one-year-of-tsla-on-reddit.yaml`:
+  Reddit; [HuggingFace](https://huggingface.co/datasets/SocialGrep/one-year-of-tsla-on-reddit)
 
 ## Usage
 
 ### General instructions to run the pipeline
 
+We provide `uv run` commands in the `pyproject.toml` file for the most important entry points of the module.
+Most importantly, the following command runs the full pipeline:
+
+- from computing embeddings,
+- to the embedding data preparation (collecting token embeddings, removing padding token embedding),
+- and finally computing the local estimates (for example, the TwoNN-based local dimension).
+
+```bash
+uv run pipeline_local_estimates
+```
+
 TODO: Add instructions for how to use and configure the uv run commands.
 
 ```bash
-uv run pipeline_local_estimates # This runs the full pipeline embedding -> embeddings_data_prep -> compute local estimates
+uv run pipeline_local_estimates data="wikitext-103-v1" data.data_subsampling.number_of_samples=512 data.data_subsampling.sampling_mode="random" data.data_subsampling.split="validation" data.data_subsampling.sampling_seed=778 language_model="roberta-base" embeddings.embedding_data_handler.mode="regular" embeddings_data_prep.sampling.num_samples=3000 local_estimates=twonn local_estimates.filtering.num_samples=500 local_estimates.pointwise.absolute_n_neighbors=128
 ```
 
+- `data="wikitext-103-v1"`: Compute local estimates for the Wikipedia dataset
+- `data.data_subsampling.number_of_samples=512`: Sample 512 sequences from the dataset (i.e., set `M=512` as size of the text corpus sequence sub-sample)
+
+TODO: Explain the parameters in the call.
+
+The results will be saved in the `data_dir` specified in the config file, and the file path will contain the information about the model and the dataset used, together with additional hyperparameter choices.
+For example, the results for the command above will be saved in the following directory:
+
 ```bash
-uv run pipeline_local_estimates data="wikitext-103-v1" 
+data/analysis/local_estimates/data=wikitext-103-v1_strip-True_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags/split=validation_samples=512_sampling=random_sampling-seed=778/edh-mode=regular_lvl=token/add-prefix-space=False_max-len=512/model=roberta-base_task=masked_lm_dr=defaults/layer=-1_agg=mean/norm=None/sampling=random_seed=42_samples=3000/desc=twonn_samples=500_zerovec=keep_dedup=array_deduplicator_noise=do_nothing/
 ```
+
+This directory contains the following files:
+
+```bash
+.
+├── additional_distance_computations_results.json
+├── array_for_estimator.npy # <-- The array of vectors used for the local estimates computation (optional)
+├── global_estimate.npy # <-- The global estimate (optional)
+└── n-neighbors-mode=absolute_size_n-neighbors=128
+    ├── additional_pointwise_results_statistics.json # <-- The statistics of the pointwise results
+    ├── local_estimates_pointwise_array.npy # <-- The vector of pointwise local estimate results
+    └── local_estimates_pointwise_meta.pkl # <-- The metadata of the vector of the pointwise computation
+```
+
+In general, the file `.vscode/launch.json` contains various configurations for running the pipeline in different environments, which can be used as a reference.
 
 ### Experiments: Fine-Tuning Induces Dataset-Specific Shifts in Heterogeneous Local Dimensions
 
@@ -154,7 +192,12 @@ Refer to the separate `grokking` repository for instructions on how to run these
 
 TODO: Explain how to train the Trippy-R dialogue state tracking models.
 
+To train the dialogue state tracking models for which we compute the local estimates, use the official [TripPy-R](https://gitlab.cs.uni-duesseldorf.de/general/dsml/trippy-r-public) codebase.
+
+
 #### Local estimates computation for the Trippy-R models
+
+- Update the model file paths in the config file `configs/language_model/roberta-base-trippy_r_multiwoz21_short_runs.yaml` to the location where you place the model files.
 
 TODO: Explain how to compute local estimates for the Trippy-R models.
 TODO: Explain how to create the plots comparing local dimensions and task performance for the Trippy-R models.
@@ -163,9 +206,11 @@ TODO: Explain how to create the plots comparing local dimensions and task perfor
 
 #### Train the ERC models
 
+[ConvLab-3](https://github.com/ConvLab/ConvLab-3/tree/master/convlab/dst/emodst/modeling)
 TODO: Explain how to train the ERC models.
 
 #### Local estimates computation for the ERC models
+
 
 TODO: Explain how to compute local estimates for the ERC models.
 TODO: Explain how to create the plots comparing local dimensions and task performance for the ERC models.
