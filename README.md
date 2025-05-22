@@ -133,16 +133,38 @@ Most importantly, the following command runs the full pipeline:
 uv run pipeline_local_estimates
 ```
 
-TODO: Add instructions for how to use and configure the uv run commands.
+Usually, you will want to select a specific dataset and model to run the pipeline on, and change additional hyperparameters.
+You can do this by passing the parameters as command line arguments to the `uv run` command:
 
 ```bash
-uv run pipeline_local_estimates data="wikitext-103-v1" data.data_subsampling.number_of_samples=512 data.data_subsampling.sampling_mode="random" data.data_subsampling.split="validation" data.data_subsampling.sampling_seed=778 language_model="roberta-base" embeddings.embedding_data_handler.mode="regular" embeddings_data_prep.sampling.num_samples=3000 local_estimates=twonn local_estimates.filtering.num_samples=500 local_estimates.pointwise.absolute_n_neighbors=128
+uv run pipeline_local_estimates \
+  data="wikitext-103-v1" \
+  data.data_subsampling.number_of_samples=512 \
+  data.data_subsampling.sampling_mode="random" \
+  data.data_subsampling.split="validation" \
+  data.data_subsampling.sampling_seed=778 \
+  language_model="roberta-base" \
+  embeddings.embedding_data_handler.mode="regular" \
+  embeddings_data_prep.sampling.num_samples=3000 \
+  local_estimates=twonn \
+  local_estimates.filtering.num_samples=500 \
+  local_estimates.pointwise.absolute_n_neighbors=128
 ```
 
-- `data="wikitext-103-v1"`: Compute local estimates for the Wikipedia dataset
-- `data.data_subsampling.number_of_samples=512`: Sample 512 sequences from the dataset (i.e., set `M=512` as size of the text corpus sequence sub-sample)
+The parameters in the command line override the default parameters in the config file.
+Here, we explain the parameters in the example command:
 
-TODO: Explain the parameters in the call.
+- `data="wikitext-103-v1"`: Compute local estimates for the Wikipedia dataset.
+- `data.data_subsampling.number_of_samples=512`: Sample 512 sequences from the dataset (i.e., set `M=512` as size of the text corpus sequence sub-sample).
+- `data.data_subsampling.sampling_mode="random"`: Randomly sample the sequences from the dataset (other option is `take_first` for taking the first `M` sequences).
+- `data.data_subsampling.split="validation"`: Use the validation split of the dataset (other options are `train` and `test` or `dev`, depending on the dataset).
+- `data.data_subsampling.sampling_seed=778`: Set the random seed for the random sequences sampling.
+- `language_model="roberta-base"`: Use the RoBERTa base model for embeddings.
+- `embeddings.embedding_data_handler.mode="regular"`: Use the regular mode for the embeddings (other option is `masked_token` for masked language models).
+- `embeddings_data_prep.sampling.num_samples=3000`: This many non-padding tokens are sampled from the sequences in the embeddings data preparation step.
+- `local_estimates=twonn`: Compute the TwoNN-based local estimates (other options are `lpca` for local PCA based dimension estimates).
+- `local_estimates.filtering.num_samples=500`: This many non-padding tokens are sampled from the tokens (i.e., set `N=500` as size of the token sub-sample).
+- `local_estimates.pointwise.absolute_n_neighbors=128`: Use 128 neighbors for the pointwise local estimates (i.e., set `L=128` as the local neighborhood size).
 
 The results will be saved in the `data_dir` specified in the config file, and the file path will contain the information about the model and the dataset used, together with additional hyperparameter choices.
 For example, the results for the command above will be saved in the following directory:
@@ -151,7 +173,7 @@ For example, the results for the command above will be saved in the following di
 data/analysis/local_estimates/data=wikitext-103-v1_strip-True_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags/split=validation_samples=512_sampling=random_sampling-seed=778/edh-mode=regular_lvl=token/add-prefix-space=False_max-len=512/model=roberta-base_task=masked_lm_dr=defaults/layer=-1_agg=mean/norm=None/sampling=random_seed=42_samples=3000/desc=twonn_samples=500_zerovec=keep_dedup=array_deduplicator_noise=do_nothing/
 ```
 
-This directory contains the following files:
+After the computation, this directory contains the following files:
 
 ```bash
 .
@@ -164,7 +186,8 @@ This directory contains the following files:
     └── local_estimates_pointwise_meta.pkl # <-- The metadata of the vector of the pointwise computation
 ```
 
-In general, the file `.vscode/launch.json` contains various configurations for running the pipeline in different environments, which can be used as a reference.
+As a reference, you can also take a look at the file `.vscode/launch.json`, which contains various configurations for running the pipeline in different ways.
+In the following sections, we will explain how to set up the experiments that we present in the paper.
 
 ### Experiments: Fine-Tuning Induces Dataset-Specific Shifts in Heterogeneous Local Dimensions
 
