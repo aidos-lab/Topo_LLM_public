@@ -91,7 +91,7 @@ This step can be achieved by running the setup script in the `topollm/setup/` di
 ### Config file management
 
 We use [Hydra](https://hydra.cc/docs/patterns/configuring_experiments/) for the config managment.
-Please see the documentation and the experiments below for examples on how to use the config file and command line overrides.
+Please see the documentation and the experiments below for examples on how to use the config files in `configs` and command line overrides.
 
 ### Data directory
 
@@ -103,7 +103,7 @@ For compatibility, please make sure that these paths are set correctly and point
 
 ### Datasets
 
-The following datasets can be used via their config file:
+The following datasets can be used via their config file in `configs/data`:
 
 - `multiwoz21.yaml`:
   MultiWOZ2.1; [HuggingFace](https://huggingface.co/datasets/ConvLab/multiwoz21)
@@ -193,11 +193,20 @@ In the following sections, we will explain how to set up the experiments that we
 
 #### Fine-tuning the language model
 
-TODO: Explain how to run these experiments.
 TODO: Add instructions for finetuning the language model.
 
 ```bash
 uv run finetune_language_model
+```
+
+We provide a script to run the fine-tunings as in the paper here: `topollm/experiments/fine_tuning_induces_dataset_specific_shifts_in_heterogeneous_local_dimensions/run_multiple_finetunings.sh`
+
+By default, the fine-tuned models are saved in the `data/models/finetuned_models` directory, with paths that describe the model and the dataset used for fine-tuning.
+If successful, the fine-tuning script will also save a config file for the fine-tuned model into the `configs/language_model` using the short name of the model.
+For example, the config file of a RoBERTa base model fine-tuned on the first 10000 sequences of the MultiWOZ2.1 train dataset will be saved as:
+
+```bash
+configs/language_model/roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5.yaml
 ```
 
 #### Local estimates computation for the finetuned models
