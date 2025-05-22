@@ -68,7 +68,7 @@ torch = "2.3.*"
 ### Project-specific setup
 
 1. Set the correct environment variables used in the project config.
-Edit the script `topollm/setup/setup_environment.sh` with the correct paths and run it once.
+This step can be achieve by running the setup script in the `topollm/setup/` directory once.
 
 ```bash
 ./topollm/setup/setup_environment.sh
@@ -76,9 +76,9 @@ Edit the script `topollm/setup/setup_environment.sh` with the correct paths and 
 
 1. If required, e.g. when running jobs on a HPC cluster, set the correct environment variables in the `.env` file in the project root directory.
 
-1. For setting up the repository to support job submissions to the a HPC cluster using our custom Hydra launcher, follow the instructions here: [https://github.com/carelvniekerk/Hydra-HPC-Launcher]. Additional submission scripts are located in the `topollm/scripts/submission_scripts` directory.
+2. For setting up the repository to support job submissions to the a HPC cluster using our custom Hydra launcher, follow the instructions here: [https://github.com/carelvniekerk/Hydra-HPC-Launcher]. Additional submission scripts are located in the `topollm/scripts/submission_scripts` directory.
 
-1. Download the files necessary for `nltk`: Start a python interpreter and run the following:
+3. Download the files necessary for `nltk`: Start a python interpreter and run the following:
 
 ```python
 >>> import nltk
@@ -98,9 +98,6 @@ Edit the script `topollm/setup/setup_environment.sh` with the correct paths and 
 
 - Multirun example:
   `python run.py --multirun run.seed=1,2,3,4`
-
-- See the instructions here for the HHU Hilbert HPC launcher:
-  [https://gitlab.cs.uni-duesseldorf.de/dsml/HydraHPCLauncher]
 
 ### Data directory
 

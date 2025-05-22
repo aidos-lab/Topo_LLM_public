@@ -32,24 +32,36 @@ if grep -q "$REPOSITORY_BASE_PATH_VARIABLE_NAME" $HOME/.bashrc; then
 
     echo "@@@ This script will not overwrite the current value."
     echo "@@@ If you want to change the value, please do so manually."
-    echo "@@@ The script will exit now."
-
-    exit 1
 else
     echo ">>> The environment variable is not set in $HOME/.bashrc"
+
+    # These lines add the environment variable to the .bashrc and .zshenv files, so that they contain the following line:
+    # export $REPOSITORY_BASE_PATH_VARIABLE_NAME=$REPOSITORY_BASE_PATH
+
+    LINE_TO_ADD="export $REPOSITORY_BASE_PATH_VARIABLE_NAME=\"$REPOSITORY_BASE_PATH\""
+    echo ">>> The following line will be added to $HOME/.bashrc and $HOME/.zshenv:"
+    echo ">>> $LINE_TO_ADD"
+
+    echo ">>> Writing to $HOME/.bashrc ..."
+    echo $LINE_TO_ADD >>$HOME/.bashrc
+
+    echo ">>> Writing to $HOME/.zshenv ..."
+    echo $LINE_TO_ADD >>$HOME/.zshenv
+
+    echo ">>> Setting up environment variables for repository DONE"
 fi
 
-# These lines add the environment variable to the .bashrc and .zshenv files, so that they contain the following line:
-# export $REPOSITORY_BASE_PATH_VARIABLE_NAME=$REPOSITORY_BASE_PATH
+# Create an empty .env file in the repository base path if it does not exist
+DOT_ENV_FILE="$REPOSITORY_BASE_PATH/.env"
+if [ -f "$DOT_ENV_FILE" ]; then
+    echo ">>> The .env file already exists in the repository base path."
+else
+    echo ">>> Creating an empty .env file in the repository base path ..."
+    touch "$DOT_ENV_FILE"
+fi
 
-LINE_TO_ADD="export $REPOSITORY_BASE_PATH_VARIABLE_NAME=\"$REPOSITORY_BASE_PATH\""
-echo ">>> The following line will be added to $HOME/.bashrc and $HOME/.zshenv:"
-echo ">>> $LINE_TO_ADD"
-
-echo ">>> Writing to $HOME/.bashrc ..."
-echo $LINE_TO_ADD >>$HOME/.bashrc
-
-echo ">>> Writing to $HOME/.zshenv ..."
-echo $LINE_TO_ADD >>$HOME/.zshenv
+echo ">>> End of setup_environment.sh"
+echo ">>> The script will now exit. Please restart your terminal for the changes to take effect."
+exit 0
 
 echo ">>> Setting up environment variables for repository DONE"
