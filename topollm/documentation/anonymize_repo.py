@@ -53,7 +53,6 @@ def process_repo(
             "tests/temp_files",
             "tmp_trainer",
             "outputs",
-            "wandb",
             "wandb_output_dir",
         }
 
@@ -96,7 +95,7 @@ def process_repo(
 def main() -> None:
     """Anonymize a repository."""
     repo_root: pathlib.Path = pathlib.Path(__file__).parent.parent.parent
-    mapping_path: pathlib.Path = repo_root / "grokking" / "documentation" / "anonymization_map.json"
+    mapping_path: pathlib.Path = repo_root / "topollm" / "documentation" / "anonymization_map.json"
 
     print(  # noqa: T201 - we want this script to print
         f"Anonymizing repository at {repo_root=} using mapping file {mapping_path=}",

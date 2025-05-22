@@ -1,11 +1,11 @@
 # Copyright 2024-2025
-# Heinrich Heine University Dusseldorf,
-# Faculty of Mathematics and Natural Sciences,
-# Computer Science Department
+# [ANONYMIZED_INSTITUTION],
+# [ANONYMIZED_FACULTY],
+# [ANONYMIZED_DEPARTMENT]
 #
 # Authors:
-# Benjamin Matthias Ruppik (mail@ruppik.net)
-# Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
+# AUTHOR_1 (author1@example.com)
+# AUTHOR_2 (author2@example.com)
 #
 # Code generation tools and workflows:
 # First versions of this code were potentially generated
@@ -174,7 +174,7 @@ FILE_NAME_TRUNCATION_LENGTH: int = 200
 
 EXTERNAL_DRIVE_TOPO_LLM_REPOSITORY_BASE_PATH: str = os.getenv(
     key="EXTERNAL_DRIVE_TOPO_LLM_REPOSITORY_BASE_PATH",
-    default="/Volumes/ruppik_external/research_data/Topo_LLM",
+    default="/Volumes/${USER}_external/research_data/Topo_LLM",
 )
 TOPO_LLM_REPOSITORY_BASE_PATH: str = os.path.expandvars(
     path=os.getenv(

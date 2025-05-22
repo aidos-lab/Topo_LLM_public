@@ -37,7 +37,7 @@ COMMON_BATCH_SIZE="8"
 BATCH_SIZE_TRAIN="${COMMON_BATCH_SIZE}"
 BATCH_SIZE_EVAL="${COMMON_BATCH_SIZE}"
 
-# Note: Do not set `CUDA_VISIBLE_DEVICES` on HHU Hilbert,
+# Note: Do not set `CUDA_VISIBLE_DEVICES` on HPC cluster,
 # as this will lead to the wrong GPU being used.
 #
 # CUDA_VISIBLE_DEVICES=0
@@ -81,7 +81,6 @@ hpc run \
 #    +finetuning.trainer_modifier.frequency=100 \
 #    feature_flags.wandb.use_wandb=true \
 #    wandb.project=Topo_LLM_finetuning_for_token_classification_debug
-
 
 # Exit with the exit code of the python command
 exit $?

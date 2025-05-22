@@ -44,7 +44,7 @@ REPOSITORY_SUBDIRECTORY_PATH_LIST=(
     "wandb_output_dir/"
 )
 
-SCRIPT_PATH="${TOPO_LLM_REPOSITORY_BASE_PATH}/topollm/scripts/hhu_hilbert/sync_data/rsync_selected_directories_from_hhu_hilbert.sh"
+SCRIPT_PATH="${TOPO_LLM_REPOSITORY_BASE_PATH}/topollm/scripts/cluster_backend/sync_data/rsync_selected_directories_from_cluster_backend.sh"
 
 ${SCRIPT_PATH} \
     ${DRY_RUN_FLAG} \

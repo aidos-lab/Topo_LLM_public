@@ -2,7 +2,7 @@
 
 # # # # # # # # # # # # # # # # # # # # # # # # #
 # NOTE:
-# This script syncs selected local estimates metadata from the HHU Hilbert server to the local machine.
+# This script syncs selected local estimates metadata from the HPC cluster server to the local machine.
 
 # # # # # # # # # # # # # # # # # # # # # # # # #
 # Default values

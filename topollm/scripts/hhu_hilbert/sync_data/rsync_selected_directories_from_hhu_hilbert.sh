@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # # # # # # # # # # # # # # # # # # # # # # # # #
-# This is a general script for syncing data from HHU Hilbert server to local machine.
+# This is a general script for syncing data from HPC cluster server to local machine.
 #
 # You can specify the list of subfolders to sync using the --folders option.
 # You can also specify a file containing the list of subfolders to sync using the --file option.
@@ -12,18 +12,18 @@
 #
 # > Example calls:
 #
-# ${TOPO_LLM_REPOSITORY_BASE_PATH}/topollm/scripts/hhu_hilbert/sync_data/rsync_selected_directories_from_hhu_hilbert.sh --dry-run --folders "data/models/setsumbt_checkpoints/multiwoz21/roberta/setsumbt/gru/cosine/labelsmoothing/0.05/seed1/"
+# ${TOPO_LLM_REPOSITORY_BASE_PATH}/topollm/scripts/cluster_backend/sync_data/rsync_selected_directories_from_cluster_backend.sh --dry-run --folders "data/models/setsumbt_checkpoints/multiwoz21/roberta/setsumbt/gru/cosine/labelsmoothing/0.05/seed1/"
 #
-# ${TOPO_LLM_REPOSITORY_BASE_PATH}/topollm/scripts/hhu_hilbert/sync_data/rsync_selected_directories_from_hhu_hilbert.sh --dry-run --folders "data/analysis/local_estimates/data=setsumbt_dataloaders_processed_0_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/split=dev_samples=10000_sampling=random_sampling-seed=778/edh-mode=regular_lvl=token/add-prefix-space=False_max-len=512/model=roberta-base-setsumbt_multiwoz21_seed-0_ckpt-2813_task=masked_lm_dr=defaults/layer=-1_agg=mean/norm=None/sampling=random_seed=42_samples=150000/desc=twonn_samples=60000_zerovec=keep_dedup=array_deduplicator_noise=do_nothing/"
+# ${TOPO_LLM_REPOSITORY_BASE_PATH}/topollm/scripts/cluster_backend/sync_data/rsync_selected_directories_from_cluster_backend.sh --dry-run --folders "data/analysis/local_estimates/data=setsumbt_dataloaders_processed_0_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/split=dev_samples=10000_sampling=random_sampling-seed=778/edh-mode=regular_lvl=token/add-prefix-space=False_max-len=512/model=roberta-base-setsumbt_multiwoz21_seed-0_ckpt-2813_task=masked_lm_dr=defaults/layer=-1_agg=mean/norm=None/sampling=random_seed=42_samples=150000/desc=twonn_samples=60000_zerovec=keep_dedup=array_deduplicator_noise=do_nothing/"
 #
-# ${TOPO_LLM_REPOSITORY_BASE_PATH}/topollm/scripts/hhu_hilbert/sync_data/rsync_selected_directories_from_hhu_hilbert.sh --dry-run --folders "data/models/EmoLoop/output_dir/ep=5/seed=42/"
+# ${TOPO_LLM_REPOSITORY_BASE_PATH}/topollm/scripts/cluster_backend/sync_data/rsync_selected_directories_from_cluster_backend.sh --dry-run --folders "data/models/EmoLoop/output_dir/ep=5/seed=42/"
 #
 #
 # >>> Example: Selected local estimates directory
-# ${TOPO_LLM_REPOSITORY_BASE_PATH}/topollm/scripts/hhu_hilbert/sync_data/rsync_selected_directories_from_hhu_hilbert.sh --folders "data/analysis/local_estimates/data=ertod_emowoz_dataset_seed=50_debug=-1_use_context=False_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/split=validation_samples=10000_sampling=random_sampling-seed=778/edh-mode=regular_lvl=token/add-prefix-space=False_max-len=512/model=bert-base-uncased-ContextBERT-ERToD_emowoz_basic_setup_debug=-1_use_context=False_seed-50_ckpt-0_task=masked_lm_dr=defaults/layer=-1_agg=mean/norm=None/sampling=random_seed=42_samples=150000/desc=twonn_samples=60000_zerovec=keep_dedup=array_deduplicator_noise=do_nothing/"
+# ${TOPO_LLM_REPOSITORY_BASE_PATH}/topollm/scripts/cluster_backend/sync_data/rsync_selected_directories_from_cluster_backend.sh --folders "data/analysis/local_estimates/data=ertod_emowoz_dataset_seed=50_debug=-1_use_context=False_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/split=validation_samples=10000_sampling=random_sampling-seed=778/edh-mode=regular_lvl=token/add-prefix-space=False_max-len=512/model=bert-base-uncased-ContextBERT-ERToD_emowoz_basic_setup_debug=-1_use_context=False_seed-50_ckpt-0_task=masked_lm_dr=defaults/layer=-1_agg=mean/norm=None/sampling=random_seed=42_samples=150000/desc=twonn_samples=60000_zerovec=keep_dedup=array_deduplicator_noise=do_nothing/"
 #
 # >>> Example: Selected Trippy-R checkpoint from the long training runs
-# ${TOPO_LLM_REPOSITORY_BASE_PATH}/topollm/scripts/hhu_hilbert/sync_data/rsync_selected_directories_from_hhu_hilbert.sh --folders "data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/model_output/num_train_epochs=50/warmup_proportion=0.020/lr_scheduler_type=constant_schedule_with_warmup/results.1111/checkpoint-1775/"
+# ${TOPO_LLM_REPOSITORY_BASE_PATH}/topollm/scripts/cluster_backend/sync_data/rsync_selected_directories_from_cluster_backend.sh --folders "data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/model_output/num_train_epochs=50/warmup_proportion=0.020/lr_scheduler_type=constant_schedule_with_warmup/results.1111/checkpoint-1775/"
 #
 # # # # # # # # # # # # # # # # # # # # # # # # #
 
@@ -132,7 +132,7 @@ for SELECTED_SUBFOLDER in "${SELECTED_SUBFOLDERS_LIST[@]}"; do
 
     # ========================
 
-    echo ">>> Syncing data from HHU Hilbert server to local machine ..."
+    echo ">>> Syncing data from HPC cluster server to local machine ..."
     echo ">>> SOURCE_DIR=$SOURCE_DIR"
     echo ">>> TARGET_DIR=$TARGET_DIR"
 

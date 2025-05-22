@@ -1,11 +1,11 @@
 # Copyright 2024-2025
-# Heinrich Heine University Dusseldorf,
-# Faculty of Mathematics and Natural Sciences,
-# Computer Science Department
+# [ANONYMIZED_INSTITUTION],
+# [ANONYMIZED_FACULTY],
+# [ANONYMIZED_DEPARTMENT]
 #
 # Authors:
-# Benjamin Matthias Ruppik (mail@ruppik.net)
-# Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
+# AUTHOR_1 (author1@example.com)
+# AUTHOR_2 (author2@example.com)
 #
 # Code generation tools and workflows:
 # First versions of this code were potentially generated
@@ -148,7 +148,7 @@ def main() -> None:
         ),
     ]
     dropbox_directory = (
-        "/Users/ruppik/Library/CloudStorage/Dropbox/05_Sharing/Project - Topo_LLM - TDA in LLMs - Shared Folder/results"
+        "/Users/$USER/Library/CloudStorage/Dropbox/05_Sharing/Project - Topo_LLM - TDA in LLMs - Shared Folder/results"
     )
     backup_and_zip_and_copy_list_of_folders(
         folder_paths=input_folders,

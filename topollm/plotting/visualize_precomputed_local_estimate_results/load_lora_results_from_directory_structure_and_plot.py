@@ -1,10 +1,10 @@
 # Copyright 2024
-# Heinrich Heine University Dusseldorf,
-# Faculty of Mathematics and Natural Sciences,
-# Computer Science Department
+# [ANONYMIZED_INSTITUTION],
+# [ANONYMIZED_FACULTY],
+# [ANONYMIZED_DEPARTMENT]
 #
 # Authors:
-# Benjamin Matthias Ruppik (mail@ruppik.net)
+# AUTHOR_1 (author1@example.com)
 #
 # Code generation tools and workflows:
 # First versions of this code were potentially generated
@@ -229,7 +229,7 @@ def main() -> None:
 
     # Base directory
     base_dir = pathlib.Path(
-        "/Volumes/ruppik_external/research_data/",
+        TOPO_LLM_REPOSITORY_BASE_PATH,
         "Topo_LLM",
         "data",
         "analysis",

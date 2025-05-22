@@ -48,7 +48,7 @@ LANGUAGE_MODEL_ARRAY=(
 
 # Loop from 400 to 31200 with a step of 400.
 # This will generate an array of checkpoint numbers from 400 to 31200.
-for ((i=400; i<=31200; i+=400)); do
+for ((i = 400; i <= 31200; i += 400)); do
   CHECKPOINT_NO_ARRAY+=("$i")
 done
 
@@ -57,8 +57,14 @@ done
 
 # # # #
 # Concatenate array elements into a comma-separated string
-LANGUAGE_MODEL_LIST=$(IFS=,; echo "${LANGUAGE_MODEL_ARRAY[*]}")
-CHECKPOINT_NO_LIST=$(IFS=,; echo "${CHECKPOINT_NO_ARRAY[*]}")
+LANGUAGE_MODEL_LIST=$(
+  IFS=,
+  echo "${LANGUAGE_MODEL_ARRAY[*]}"
+)
+CHECKPOINT_NO_LIST=$(
+  IFS=,
+  echo "${CHECKPOINT_NO_ARRAY[*]}"
+)
 
 echo "LANGUAGE_MODEL_ARRAY=${LANGUAGE_MODEL_ARRAY[@]}"
 echo "LANGUAGE_MODEL_LIST=${LANGUAGE_MODEL_LIST}"
@@ -69,7 +75,7 @@ echo "CHECKPOINT_NO_LIST=${CHECKPOINT_NO_LIST}"
 PREFERRED_TORCH_BACKEND="auto"
 # PREFERRED_TORCH_BACKEND="cpu"
 
-# Note: Do not set `CUDA_VISIBLE_DEVICES` on HHU Hilbert,
+# Note: Do not set `CUDA_VISIBLE_DEVICES` on HPC cluster,
 # as this will lead to the wrong GPU being used.
 #
 # CUDA_VISIBLE_DEVICES=0
@@ -90,7 +96,7 @@ COMMAND_ARGS+=" preferred_torch_backend=${PREFERRED_TORCH_BACKEND}"
 
 # Conditionally append the checkpoint number if it is set
 if [[ -n "${CHECKPOINT_NO_LIST}" ]]; then
-    COMMAND_ARGS+=" language_model.checkpoint_no=${CHECKPOINT_NO_LIST}"
+  COMMAND_ARGS+=" language_model.checkpoint_no=${CHECKPOINT_NO_LIST}"
 fi
 
 # Append additional overrides if any
@@ -101,10 +107,10 @@ echo "COMMAND_ARGS=${COMMAND_ARGS}"
 # ==================================================== #
 
 hpc run \
-    -n "run_inference_pipeline" \
-    --template "${TEMPLATE_STRING}" \
-    -s "${RELATIVE_PYTHON_SCRIPT_PATH}" \
-    -a "${COMMAND_ARGS}"
+  -n "run_inference_pipeline" \
+  --template "${TEMPLATE_STRING}" \
+  -s "${RELATIVE_PYTHON_SCRIPT_PATH}" \
+  -a "${COMMAND_ARGS}"
 
 # ==================================================== #
 

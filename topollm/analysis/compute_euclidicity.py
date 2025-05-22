@@ -1,11 +1,11 @@
 # Copyright 2024
-# Heinrich Heine University Dusseldorf,
-# Faculty of Mathematics and Natural Sciences,
-# Computer Science Department
+# [ANONYMIZED_INSTITUTION],
+# [ANONYMIZED_FACULTY],
+# [ANONYMIZED_DEPARTMENT]
 #
 # Authors:
-# Benjamin Matthias Ruppik (mail@ruppik.net)
-# Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
+# AUTHOR_1 (author1@example.com)
+# AUTHOR_2 (author2@example.com)
 #
 # Code generation tools and workflows:
 # First versions of this code were potentially generated
@@ -28,8 +28,7 @@
 ########################################################
 
 # This is a script to calculate and store euclidicity
-# scores (as defined in
-# `https://proceedings.mlr.press/v202/von-rohrscheidt23a.html`)
+# scores (as defined in `https://proceedings.mlr.press/v202/von-rohrscheidt23a.html`)
 # for two given arrays for a comparison
 # of embeddings of a base model and a corresponding
 # fine-tuned variant. To obtain these arrays, the

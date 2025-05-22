@@ -1,11 +1,11 @@
 # Copyright 2024
-# Heinrich Heine University Dusseldorf,
-# Faculty of Mathematics and Natural Sciences,
-# Computer Science Department
+# [ANONYMIZED_INSTITUTION],
+# [ANONYMIZED_FACULTY],
+# [ANONYMIZED_DEPARTMENT]
 #
 # Authors:
-# Benjamin Matthias Ruppik (mail@ruppik.net)
-# Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
+# AUTHOR_1 (author1@example.com)
+# AUTHOR_2 (author2@example.com)
 #
 # Code generation tools and workflows:
 # First versions of this code were potentially generated
@@ -32,6 +32,7 @@ import numpy as np
 import zarr
 
 # Note: In zarr 3, one should not import zarr.core since it is part of the private API
+from topollm.config_classes.constants import TOPO_LLM_REPOSITORY_BASE_PATH
 from topollm.logging.log_array_info import log_array_info
 
 logger: logging.Logger = logging.getLogger(
@@ -81,7 +82,7 @@ def compare_zarr_arrays(
 
 def main() -> None:
     repository_base_path = pathlib.Path(
-        "/home/benjamin_ruppik/git-source/Topo_LLM/",
+        TOPO_LLM_REPOSITORY_BASE_PATH,
     )
 
     # Path to base model embeddings

@@ -2,7 +2,7 @@
 #
 # Copyright 2023 Heinrich Heine University Duesseldorf
 #
-# Authors: Benjamin Matthias Ruppik
+# Authors: AUTHOR_1
 # This code was generated with the help of AI writing assistants
 # including GitHub Copilot, ChatGPT and Bing Chat.
 #
