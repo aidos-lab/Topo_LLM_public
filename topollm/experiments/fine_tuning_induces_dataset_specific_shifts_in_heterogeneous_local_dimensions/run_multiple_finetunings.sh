@@ -20,7 +20,7 @@ NUM_TRAIN_EPOCHS="5"
 SAVE_STEPS="400"
 EVAL_STEPS="100"
 
-FINETUNING_DATASETS_LIST="train_and_eval_on_multiwoz21_train-samples-small,train_and_eval_on_one-year-of-tsla-on-reddit_train-samples-small"
+FINETUNING_DATASETS_LIST="train_and_eval_on_one-year-of-tsla-on-reddit_train-samples-small,train_and_eval_on_multiwoz21_train-samples-small"
 # FINETUNING_DATASETS_LIST="train_and_eval_on_multiwoz21,train_and_eval_on_sgd,train_and_eval_on_wikitext"
 # FINETUNING_DATASETS_LIST="train_and_eval_on_bbc,train_and_eval_on_iclr_2024_submissions,train_and_eval_on_multiwoz21,train_and_eval_on_sgd,train_and_eval_on_wikitext"
 # FINETUNING_DATASETS_LIST="train_and_eval_on_iclr_2024_submissions"

@@ -76,7 +76,8 @@ This step can be achieved by running the setup script in the `topollm/setup/` di
 
 1. If required, e.g. when running jobs on an HPC cluster, set the correct environment variables in the `.env` file in the project root directory.
 
-2. For setting up the repository to support job submissions to the a HPC cluster using our custom Hydra launcher, follow the instructions here: [https://github.com/carelvniekerk/Hydra-HPC-Launcher]. Additional submission scripts are located in the `topollm/scripts/submission_scripts` directory.
+2. For setting up the repository to support job submissions to the a HPC cluster, follow the instructions using our [custom Hydra launcher](https://github.com/carelvniekerk/Hydra-HPC-Launcher).
+   Additional submission scripts are located in the `topollm/scripts/submission_scripts` directory.
 
 3. Download the files necessary for `nltk`: Start a python interpreter and run the following:
 
@@ -117,6 +118,9 @@ The following datasets can be used via their config file in `configs/data`:
   Wikipedia; [HuggingFace](https://huggingface.co/datasets/Salesforce/wikitext/viewer/wikitext-103-v1)
 - `one-year-of-tsla-on-reddit.yaml`:
   Reddit; [HuggingFace](https://huggingface.co/datasets/SocialGrep/one-year-of-tsla-on-reddit)
+
+To prepare the dialogue datasets, which will be saved as `.jsonl` files in the directory `data/datasets/dialogue_datasets`, use the script `topollm/data_processing/prepare_dialogue_data.py`.
+The dialogue dataset preparation requires an installation of [ConvLab-3](https://github.com/ConvLab/ConvLab-3), which is not included in the `uv` environment to avoid version conflicts.
 
 ## Usage
 
@@ -186,7 +190,7 @@ After the computation, this directory contains the following files:
     └── local_estimates_pointwise_meta.pkl # <-- The metadata of the vector of the pointwise computation
 ```
 
-As a reference, you can also take a look at the file (`.vscode/launch.json`), which contains various configurations for running the pipeline in different ways.
+As a reference, you can also take a look at the [VS Code launch configuration](.vscode/launch.json), which contains various configurations for running the pipeline in different ways.
 In the following sections, we will explain how to set up the experiments that we present in the paper.
 
 ### Experiments: Fine-Tuning Induces Dataset-Specific Shifts in Heterogeneous Local Dimensions
@@ -199,7 +203,11 @@ TODO: Add instructions for finetuning the language model.
 uv run finetune_language_model
 ```
 
-We provide a script to run the fine-tunings with the same parameters as in the paper in (`topollm/experiments/fine_tuning_induces_dataset_specific_shifts_in_heterogeneous_local_dimensions/run_multiple_finetunings.sh`).
+We provide a script to run the fine-tunings with the same parameters as in the paper at the following location:
+
+```bash
+./topollm/experiments/fine_tuning_induces_dataset_specific_shifts_in_heterogeneous_local_dimensions/run_multiple_finetunings.sh
+```
 
 By default, the fine-tuned models are saved in the `data/models/finetuned_models` directory, with paths that describe the model and the dataset used for fine-tuning.
 If successful, the fine-tuning script will also save a config file for the fine-tuned model into the `configs/language_model` using the short name of the model.
@@ -212,7 +220,8 @@ configs/language_model/roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-
 #### Local estimates computation for the finetuned models
 
 TODO: Explain how to compute local estimates for the finetuned models.
-TODO: Explain how to call the violin plot creation script.
+
+The violin plots in the paper, which compare the local estimate distribution between base and finetuned models, are created with the script `topollm/plotting/plot_scripts_for_paper_draft/violin_plots_from_local_estimates.py`.
 
 ### Experiments: Local Dimensions Predict Grokking
 
@@ -225,7 +234,6 @@ Refer to the separate `grokking` repository for instructions on how to run these
 TODO: Explain how to train the Trippy-R dialogue state tracking models.
 
 To train the dialogue state tracking models for which we compute the local estimates, use the official [TripPy-R](https://gitlab.cs.uni-duesseldorf.de/general/dsml/trippy-r-public) codebase.
-
 
 #### Local estimates computation for the Trippy-R models
 
