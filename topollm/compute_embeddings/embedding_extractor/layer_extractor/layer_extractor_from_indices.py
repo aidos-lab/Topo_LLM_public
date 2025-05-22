@@ -5,7 +5,7 @@
 #
 # Authors:
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Matthias Ruppik (mail@ruppik.net)
 #
 # This code was generated with the help of AI writing assistants
 # including GitHub Copilot, ChatGPT, Bing Chat.

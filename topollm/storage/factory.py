@@ -4,7 +4,7 @@
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Matthias Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -35,7 +35,6 @@ from topollm.storage.array_storage.protocol import (
 )
 from topollm.storage.metadata_storage import (
     ChunkedMetadataStoragePickle,
-    ChunkedMetadataStorageXarray,
 )
 from topollm.storage.metadata_storage.protocol import (
     ChunkedMetadataStorageProtocol,
@@ -97,12 +96,6 @@ class StorageFactory:
         self,
     ) -> ChunkedMetadataStorageProtocol:
         match self.storage_specification.metadata_storage_type:
-            case MetadataStorageType.XARRAY:
-                storage_backend = ChunkedMetadataStorageXarray.ChunkedMetadataStorageXarray(
-                    array_properties=self.storage_specification.array_properties,
-                    root_storage_path=self.storage_specification.storage_paths.metadata_dir,
-                    logger=self.logger,
-                )
             case MetadataStorageType.PICKLE:
                 storage_backend = ChunkedMetadataStoragePickle.ChunkedMetadataStoragePickle(
                     root_storage_path=self.storage_specification.storage_paths.metadata_dir,

@@ -4,7 +4,7 @@
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Matthias Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -89,9 +89,7 @@ class _ChunkedMetadataStorageProtocol(ABC):
 
         storage.open()
 
-        logger_fixture.info(
-            f"Testing with example_batch:\n" f"{pprint.pformat(example_batch)}\n" f"and\n{chunk_idx = }"
-        )
+        logger_fixture.info(f"Testing with example_batch:\n{pprint.pformat(example_batch)}\nand\n{chunk_idx = }")
 
         chunk_identifier = StorageDataclasses.ChunkIdentifier(
             chunk_idx=chunk_idx,
@@ -138,7 +136,7 @@ class ChunkedMetadataStoragePickleFactory(ChunkedMetadataStorageFactory):
             self.tmp_path,
             "pickle_chunked_metadata_storage_test",
         )
-        self.logger.info(f"Creating ChunkedMetadataStoragePickle storage " f"at {storage_path = }")
+        self.logger.info(f"Creating ChunkedMetadataStoragePickle storage at {storage_path = }")
 
         return ChunkedMetadataStoragePickle.ChunkedMetadataStoragePickle(
             root_storage_path=storage_path,

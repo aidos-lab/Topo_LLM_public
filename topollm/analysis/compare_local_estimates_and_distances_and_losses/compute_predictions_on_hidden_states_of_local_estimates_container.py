@@ -4,7 +4,7 @@
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (mail@ruppik.net)
+# Benjamin Matthias Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -142,7 +142,7 @@ def compute_predictions_on_hidden_states_of_local_estimates_container(
             )
             if "tokens_list" in extracted_metadata:
                 logger.info(
-                    msg=f"tokens_list:\n{extracted_metadata["tokens_list"]}",  # noqa: G004 - low overhead
+                    msg=f"tokens_list:\n{extracted_metadata['tokens_list']}",  # noqa: G004 - low overhead
                 )
 
         # # # #

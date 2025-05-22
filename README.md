@@ -1,4 +1,4 @@
-# Topo_LLM
+# Less is More: Local Intrinsic Dimensions of Contextual Language Models (Topo_LLM)
 
 ## Overview
 
@@ -56,22 +56,29 @@ uv sync
 uv run python3
 ```
 
+### Specific instructions for HPC Cluster
+
+On some HPC clusters, you might need to pin a torch version in the `pyproject.toml` file, to make the installation of torch and a compatible CUDA version work.
+For example, on our HPC cluster, it currently appears to work when you set the torch version to `2.3.*`:
+
+```toml
+torch = "2.3.*"
+```
+
 ### Project-specific setup
 
 1. Set the correct environment variables used in the project config.
-Edit the script `topollm/scripts/setup_environment.sh` with the correct paths and run it once.
+This step can be achieved by running the setup script in the `topollm/setup/` directory once.
 
 ```bash
-./topollm/scripts/setup_environment.sh
+./topollm/setup/setup_environment.sh
 ```
 
-1. If required, e.g. when running jobs on the HHU Hilbert cluster, set the correct environment variables in the `.env` file in the project root directory.
+1. If required, e.g. when running jobs on an HPC cluster, set the correct environment variables in the `.env` file in the project root directory.
 
-1. For setting up the repository to support job submissions to the HHU Hilbert HPC, follow the instructions here: [https://github.com/carelvniekerk/Hydra-HPC-Launcher].
+2. For setting up the repository to support job submissions to the a HPC cluster using our custom Hydra launcher, follow the instructions here: [https://github.com/carelvniekerk/Hydra-HPC-Launcher]. Additional submission scripts are located in the `topollm/scripts/submission_scripts` directory.
 
-1. Submission scripts are located in the `topollm/scripts/submission_scripts` directory.
-
-1. Download the files necessary for `nltk`: Start a python interpreter and run the following:
+3. Download the files necessary for `nltk`: Start a python interpreter and run the following:
 
 ```python
 >>> import nltk
@@ -92,9 +99,6 @@ Edit the script `topollm/scripts/setup_environment.sh` with the correct paths an
 - Multirun example:
   `python run.py --multirun run.seed=1,2,3,4`
 
-- See the instructions here for the HHU Hilbert HPC launcher:
-  [https://gitlab.cs.uni-duesseldorf.de/dsml/HydraHPCLauncher]
-
 ### Data directory
 
 The data directory is set in most of the python scripts via the Hydra config (see the script `topollm/config_classes/get_data_dir.py` for a common function to access the data directory path).
@@ -112,20 +116,40 @@ For compatibility, please make sure that these paths are set correctly and point
 
 ## Usage
 
+### General instructions to run the pipeline
+
+TODO: Add instructions for how to use and configure the uv run commands.
+
 ```bash
 uv run pipeline_local_estimates # This runs the full pipeline embedding -> embeddings_data_prep -> compute local estimates
-uv run compute_perplexity
+```
+
+### Experiments: Fine-Tuning Induces Dataset-Specific Shifts in Heterogeneous Local Dimensions
+
+TODO: Explain how to run these experiments.
+TODO: Add instructions for finetuning the language model.
+TODO: Explain how to compute local estimates for the finetuned models.
+TODO: Explain how to call the violin plot creation script.
+
+```bash
 uv run finetune_language_model
 ```
 
-### Specific instructions for HHU Hilbert HPC Cluster
+### Experiments: Local Dimensions Predict Grokking
 
-On HHU Hilbert HPC, you might need to pin a torch version in the `pyproject.toml` file, to make the installation of torch and a compatible CUDA version work.
-For example, it currently appears to work when you set the torch version to `2.3.*`:
+Refer to the separate `grokking` repository for instructions on how to run these experiments.
 
-```toml
-torch = "2.3.*"
-```
+### Experiments: Local Dimensions Detect Exhaustion of Training Capabilities
+
+TODO: Explain how to train the Trippy-R dialogue state tracking models.
+TODO: Explain how to compute local estimates for the Trippy-R models.
+TODO: Explain how to create the plots comparing local dimensions and task performance for the Trippy-R models.
+
+### Experiments: Local Dimensions Detect Overfitting
+
+TODO: Explain how to train the ERC models.
+TODO: Explain how to compute local estimates for the ERC models.
+TODO: Explain how to create the plots comparing local dimensions and task performance for the ERC models.
 
 ### Run tests
 

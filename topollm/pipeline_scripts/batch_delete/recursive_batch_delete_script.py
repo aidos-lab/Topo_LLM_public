@@ -5,7 +5,7 @@
 #
 # Authors:
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Matthias Ruppik (mail@ruppik.net)
 #
 # This code was generated with the help of AI writing assistants
 # including GitHub Copilot, ChatGPT, Bing Chat.
@@ -110,8 +110,7 @@ def main() -> None:
     """Call the recursive deletion script."""
     # Configuration for the base directory and the matching names.
     base_dir = pathlib.Path(
-        # "/Volumes/ruppik_external/research_data/Topo_LLM/data/analysis/prepared/",
-        "/home/benjamin_ruppik/git-source/Topo_LLM/data/analysis/prepared",
+        "$HOME/git-source/Topo_LLM/data/analysis/prepared",
     )
 
     delete_pattern = "embeddings_token_lvl_*[.pkl|.npy]"

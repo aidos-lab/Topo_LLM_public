@@ -4,7 +4,7 @@
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (mail@ruppik.net)
+# Benjamin Matthias Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:

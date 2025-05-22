@@ -4,7 +4,7 @@
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Matthias Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -83,11 +83,11 @@ def main(cfg):
     arr_no_pad = np.load(path_1)
     arr_no_pad_finetuned = np.load(path_2)
 
-    dataset = pd.DataFrame({f"Column{i+1}": arr_no_pad[:, i] for i in range(arr_no_pad.shape[1])})
+    dataset = pd.DataFrame({f"Column{i + 1}": arr_no_pad[:, i] for i in range(arr_no_pad.shape[1])})
     dataset["class"] = "base"
 
     dataset_finetuned = pd.DataFrame(
-        {f"Column{i+1}": arr_no_pad_finetuned[:, i] for i in range(arr_no_pad_finetuned.shape[1])}
+        {f"Column{i + 1}": arr_no_pad_finetuned[:, i] for i in range(arr_no_pad_finetuned.shape[1])}
     )
     dataset_finetuned["class"] = "finetuned"
 
@@ -100,7 +100,7 @@ def main(cfg):
 
     pca = PCA(n_components=10)
     components = pca.fit_transform(df[features])
-    labels = {str(i): f"PC{i+1}" for i, var in enumerate(pca.explained_variance_ratio_ * 100)}
+    labels = {str(i): f"PC{i + 1}" for i, var in enumerate(pca.explained_variance_ratio_ * 100)}
 
     fig = px.scatter_matrix(components, labels=labels, dimensions=range(10), color=df["class"])
     fig.update_traces(diagonal_visible=False)

@@ -4,7 +4,7 @@
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Matthias Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -106,11 +106,11 @@ def main(
             exist_ok=True,
         )
 
-        global_logger.info(f"Loading convlab dataset:\n" f"{convlab_dataset_identifier = }\n...")
+        global_logger.info(f"Loading convlab dataset:\n{convlab_dataset_identifier = }\n...")
         convlab_dataset_dict = convlab.util.load_dataset(
             dataset_name=convlab_dataset_identifier,
         )
-        global_logger.info(f"Loading convlab dataset:\n" f"{convlab_dataset_identifier = }\nDONE")
+        global_logger.info(f"Loading convlab dataset:\n{convlab_dataset_identifier = }\nDONE")
         global_logger.info(f"{convlab_dataset_dict.keys() = }")
 
         for split in tqdm(
@@ -151,7 +151,7 @@ def write_single_split_to_file(
         save_dir,
         f"{split}.jsonl",
     )
-    global_logger.info(f"Writing the dataset to file:\n" f"{save_file_path = }\n...")
+    global_logger.info(f"Writing the dataset to file:\n{save_file_path = }\n...")
 
     with open(
         save_file_path,
@@ -169,7 +169,7 @@ def write_single_split_to_file(
             )
             file.write("\n")
 
-    global_logger.info(f"Writing the dataset to file:\n" f"{save_file_path = }\nDONE")
+    global_logger.info(f"Writing the dataset to file:\n{save_file_path = }\nDONE")
 
 
 if __name__ == "__main__":

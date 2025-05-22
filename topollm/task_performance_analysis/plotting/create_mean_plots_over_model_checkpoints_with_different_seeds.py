@@ -4,7 +4,7 @@
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (mail@ruppik.net)
+# Benjamin Matthias Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -221,7 +221,6 @@ def create_mean_plots_over_model_checkpoints_with_different_seeds(
             # - Do NOT fix the model seed, as we want to plot the mean over different seeds.
             # - If you want plots that combine estimates for different data subsamplings,
             #   you need to remove "data_subsampling_full" from the fixed_keys list and add only the split.
-            #   # TODO: Automatically iterate over both options
             "data_full",
             # > Example value for "data_subsampling_full": 'split=test_samples=7000_sampling=random_sampling-seed=41'
             # "data_subsampling_full",
@@ -723,7 +722,7 @@ def load_scores(
             )
             combined_scores_df: pd.DataFrame | None = None
             combined_scores_columns_to_plot_list: list[str] | None = None
-        # TODO: Implement score loading for language models (with performance given by loss)
+        # Note: This is where you would implement score loading for language models (with performance given by loss)
 
     scores_data = ScoresData(
         df=combined_scores_df,
@@ -1264,12 +1263,12 @@ def create_aggregate_estimate_visualization(
                 labels_2,
             ) = ax2.get_legend_handles_labels()
 
-            # This is adds the legend without de-duplication of the labels:
-            # ax1.legend(
-            #     handles=lines_1 + lines_2,
-            #     labels=labels_1 + labels_2,
-            #     title=legend_title,
-            # )
+            # This code would add the legend without de-duplication of the labels:
+            # > ax1.legend(
+            # >     handles=lines_1 + lines_2,
+            # >     labels=labels_1 + labels_2,
+            # >     title=legend_title,
+            # > )
 
             # If a label occurs multiple times, remove it from the legend.
             # This for example might happen for the losses, if you have
@@ -1387,8 +1386,11 @@ def create_aggregate_estimate_visualization(
             parents=True,
             exist_ok=True,
         )
+        # Set `bbox_inches` and `pad_inches` to ensure the plot is saved without extra whitespace
         fig.savefig(
             fname=plot_save_path,
+            bbox_inches="tight",
+            pad_inches=0,
         )
 
         if verbosity >= Verbosity.NORMAL:

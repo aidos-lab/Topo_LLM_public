@@ -4,7 +4,7 @@
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (mail@ruppik.net)
+# Benjamin Matthias Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -33,8 +33,8 @@ from typing import TYPE_CHECKING
 
 import hydra
 import omegaconf
-
 import wandb
+
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging

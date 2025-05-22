@@ -23,7 +23,7 @@ class BaseModelMode(StrEnum):
 def main() -> None:
     """Generate violin plots for local estimates from different models."""
     ddof = 1  # Delta degrees of freedom for standard deviation calculation
-    save_arrays_in_output_dir: bool = False
+    save_arrays_in_output_dir: bool = True
 
     # Define the dataset names and masked levels
     dataset_name_choices: list[str] = [

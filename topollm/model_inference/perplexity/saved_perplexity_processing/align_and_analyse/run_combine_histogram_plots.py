@@ -4,7 +4,7 @@
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Matthias Ruppik (mail@ruppik.net)
 #
 # Code generation tools and workflows:
 # First versions of this code were potentially generated
@@ -117,10 +117,10 @@ def create_title_pdf(
     title: str,
     output_path: os.PathLike,
 ) -> None:
-    """Create a simple PDF with the title using reportlab."""
+    """Create a simple PDF with the title using reportlab.
 
-    # TODO: Fix the problem that this string is too long and not properly displayed in the PDF
-
+    Note: Sometimes, this string might be too long and not properly displayed in the PDF
+    """
     c = canvas.Canvas(
         filename=str(output_path),
         pagesize=(800, 100),
@@ -148,7 +148,7 @@ def add_title_page(
         output_path=title_pdf_path,
     )
 
-    # TODO: Find a way to remove the temp page after this script is run
+    # Note: Currently, the temp page is not removed after this script is run
 
     # Add the title page to the PdfWriter
     with pathlib.Path(title_pdf_path).open(

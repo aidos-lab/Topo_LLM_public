@@ -4,7 +4,7 @@
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Matthias Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -167,7 +167,7 @@ class ChunkedArrayStorageZarrFactory(ChunkedArrayStorageFactory):
             self.tmp_path,
             "zarr_chunked_array_storage_test",
         )
-        self.logger.info(f"Creating ZarrChunkedArrayStorage storage " f"at {storage_path = }")
+        self.logger.info(f"Creating ZarrChunkedArrayStorage storage at {storage_path = }")
 
         return chunked_array_storage_zarr.ChunkedArrayStorageZarr(
             array_properties=self.array_properties,

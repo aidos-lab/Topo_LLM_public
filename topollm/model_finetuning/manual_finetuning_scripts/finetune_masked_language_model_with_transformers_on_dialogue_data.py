@@ -2,7 +2,7 @@
 #
 # Copyright 2023 Heinrich Heine University Duesseldorf
 #
-# Authors: Benjamin Ruppik
+# Authors: Benjamin Matthias Ruppik
 # This code was generated with the help of AI writing assistants
 # including GitHub Copilot, ChatGPT and Bing Chat.
 #
@@ -51,7 +51,6 @@ from transformers import (
     pipeline,
 )
 
-
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # START Configure the logging module
 
@@ -64,8 +63,7 @@ timestamp = now.strftime("%Y%m%d-%H%M%S")
 
 logfile_path = pathlib.Path(
     "logs",
-    f"finetune_masked_language_model_with_transformers_on_dialogue_data"
-    f"_{timestamp}.log",
+    f"finetune_masked_language_model_with_transformers_on_dialogue_data_{timestamp}.log",
 )
 
 logging.basicConfig(
@@ -91,9 +89,7 @@ def handle_exception(exc_type, exc_value, exc_traceback):
         return
     else:
         # Log the exception
-        logger.critical(
-            "Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback)
-        )
+        logger.critical("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
 
 
 # Set the function to handle unhandled exceptions
@@ -125,12 +121,8 @@ tda_base_path_env = os.environ.get("TDA_BASE_PATH")
 if tda_base_path_env is None:
     raise ValueError("Environment variable 'TDA_BASE_PATH' is not set")
 else:
-    tda_base_path_env = os.path.expandvars(
-        tda_base_path_env
-    )  # Replace the $HOME part with the user's home directory
-    tda_base_path = pathlib.Path(
-        tda_base_path_env
-    ).resolve()  # Compute the canonical, absolute form
+    tda_base_path_env = os.path.expandvars(tda_base_path_env)  # Replace the $HOME part with the user's home directory
+    tda_base_path = pathlib.Path(tda_base_path_env).resolve()  # Compute the canonical, absolute form
     logger.info(f"tda_base_path: {tda_base_path}")
 
 # # check if the paths are valid directories
@@ -398,18 +390,13 @@ def main():
                 # Iterate over the validation sentences
                 logger.info(f"len(dataset['validation']): {len(dataset['validation'])}")
                 for row in tqdm(
-                    (
-                        dataset["validation"][:debug_index]
-                        if debug_index
-                        else dataset["validation"]
-                    ),
+                    (dataset["validation"][:debug_index] if debug_index else dataset["validation"]),
                     desc=f"dataset_desc: {dataset_desc} validation",
                 ):
                     utterance = " ".join(row["tokens"])
                     validation_file.write(utterance + "\n")
 
             else:
-
                 for dialogue_dict in tqdm(
                     dataset["train"][:debug_index] if debug_index else dataset["train"],
                     desc=f"dataset_desc: {dataset_desc} train",
@@ -424,11 +411,7 @@ def main():
                 logger.info(f"len(dataset['validation']): {len(dataset['validation'])}")
 
                 for dialogue_dict in tqdm(
-                    (
-                        dataset["validation"][:debug_index]
-                        if debug_index
-                        else dataset["validation"]
-                    ),
+                    (dataset["validation"][:debug_index] if debug_index else dataset["validation"]),
                     desc=f"dataset_desc: {dataset_desc} validation",
                 ):
                     for turn_dict in dialogue_dict["turns"]:
@@ -443,7 +426,6 @@ def main():
             raise ValueError("for conll2003 dataset, context cannot be dialogue")
 
         else:
-
             for dataset_desc, dataset in tqdm(datasets_dict.items()):
                 logger.info(f"dataset_desc: {dataset_desc}")
 
@@ -469,11 +451,7 @@ def main():
                 logger.info(f"len(dataset['validation']): {len(dataset['validation'])}")
 
                 for dialogue_dict in tqdm(
-                    (
-                        dataset["validation"][:debug_index]
-                        if debug_index
-                        else dataset["validation"]
-                    ),
+                    (dataset["validation"][:debug_index] if debug_index else dataset["validation"]),
                     desc=f"dataset_desc: {dataset_desc} validation",
                 ):
                     current_dialogue = ""
@@ -544,12 +522,10 @@ def main():
         "models",
         f"roberta-base_finetuned_on_{dataset_string}_train_context_{context}_debug_idx_{debug_index}",
     )
-    logging.info(f"finetuned_model_output_dir:\n" f"{finetuned_model_output_dir}")
+    logging.info(f"finetuned_model_output_dir:\n{finetuned_model_output_dir}")
 
     # Create the output directory if it does not exist
-    logging.info(
-        f"Creating finetuned_model_output_dir:\n{finetuned_model_output_dir}\n..."
-    )
+    logging.info(f"Creating finetuned_model_output_dir:\n{finetuned_model_output_dir}\n...")
     finetuned_model_output_dir.mkdir(
         parents=True,
         exist_ok=True,
@@ -564,7 +540,7 @@ def main():
     )
 
     # Create the output directory if it does not exist
-    logging.info(f"Creating logging_directory:\n" f"{logging_directory}\n...")
+    logging.info(f"Creating logging_directory:\n{logging_directory}\n...")
     logging_directory.mkdir(
         parents=True,
         exist_ok=True,

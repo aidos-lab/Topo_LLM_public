@@ -1,9 +1,13 @@
+"""Use WandB API to recreate plots from WandB runs."""
+
 import itertools
 import logging
 import pathlib
+from typing import TYPE_CHECKING
 
 import hydra
 import matplotlib.pyplot as plt
+import numpy as np
 import omegaconf
 import pandas as pd
 import seaborn as sns
@@ -11,11 +15,13 @@ import wandb
 from tqdm.auto import tqdm
 
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH, TOPO_LLM_REPOSITORY_BASE_PATH
-from topollm.config_classes.main_config import MainConfig
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.logging.setup_exception_logging import setup_exception_logging
 from topollm.typing.enums import Verbosity
+
+if TYPE_CHECKING:
+    from topollm.config_classes.main_config import MainConfig
 
 # Logger for this file
 global_logger: logging.Logger = logging.getLogger(
@@ -60,31 +66,59 @@ def main(
 
     use_scan_history = False
     grid_alpha: float = 0.25
-    number_of_samples_for_machine_learning_metrics: int | None = 3000
+
+    # number_of_samples_for_machine_learning_metrics: int | None = 100
+    # number_of_samples_for_machine_learning_metrics: int | None = 200
+    number_of_samples_for_machine_learning_metrics: int | None = 600
+    # number_of_samples_for_machine_learning_metrics: int | None = 3000
+
+    errorbar_version = "confidence_interval"
+
+    match errorbar_version:
+        case "confidence_interval":
+            (
+                errorbar,
+                errorbar_description,
+            ) = (
+                ("ci", 95),
+                "ci_95",
+            )
+        case "sd":
+            (
+                errorbar,
+                errorbar_description,
+            ) = (
+                "sd",
+                "sd",
+            )
 
     # Project is specified by <entity/project-name>
     wandb_id: str = main_config.analysis.wandb_export.wandb_id
     project_name: str = main_config.analysis.wandb_export.project_name
 
-    # (
-    #     wandb_filters,
-    #     wandb_filters_desc,
-    # ) = (
-    #     {
-    #         "$or": [
-    #             {"config.dataset.frac_train": 0.15},
-    #             {"config.dataset.frac_train": 0.3},
-    #         ],
-    #     },
-    #     "selected_frac_train",
-    # )
-    (
-        wandb_filters,
-        wandb_filters_desc,
-    ) = (
-        None,
-        "None",
-    )
+    use_wandb_filters: bool = False
+    match use_wandb_filters:
+        case False:
+            (
+                wandb_filters,
+                wandb_filters_desc,
+            ) = (
+                None,
+                "None",
+            )
+        case True:
+            (
+                wandb_filters,
+                wandb_filters_desc,
+            ) = (
+                {
+                    "$or": [
+                        {"config.dataset.frac_train": 0.15},
+                        {"config.dataset.frac_train": 0.3},
+                    ],
+                },
+                "selected_frac_train",
+            )
 
     samples: int = main_config.analysis.wandb_export.samples
 
@@ -153,13 +187,15 @@ def main(
                         #
                         history = run.scan_history()
 
-                        # metrics_list = [
-                        #     (
-                        #         row[x_axis_name],
-                        #         row[metric_name],
-                        #     )
-                        #     for row in tqdm(history)
-                        # ]
+                        # The following example code shows how to iterate through the history:
+                        #
+                        # > metrics_list = [
+                        # >     (
+                        # >         row[x_axis_name],
+                        # >         row[metric_name],
+                        # >     )
+                        # >     for row in tqdm(history)
+                        # > ]
 
                         concatenated_df = pd.DataFrame()  # Note: This is a placeholder
 
@@ -213,6 +249,21 @@ def main(
                 logger.info(
                     msg=f"Loading concatenated_df from {concatenated_df_save_path=} DONE",  # noqa: G004 - low overhead
                 )
+
+    # Remove runs with these names
+    names_to_remove: list[str] = [
+        # We want to remove this run,
+        # because otherwise we would have 6 runs with 'dataset.frac_train' == 0.1
+        "celestial-monkey-1",
+    ]
+    concatenated_df = concatenated_df[~concatenated_df["name"].isin(names_to_remove)]
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Remaining run names after removing specified runs:\n{concatenated_df['name'].unique()}",  # noqa: G004 - low overhead
+        )
+        logger.info(
+            msg=f"Number of runs after removing specified runs: {len(concatenated_df['name'].unique())}",  # noqa: G004 - low overhead
+        )
 
     # # # #
     # Select a specific subset of the data and create corresponding plots
@@ -285,15 +336,18 @@ def main(
             plot_df = plot_df[plot_df[metric_name].notna()]
 
             if number_of_samples_for_machine_learning_metrics is not None:
-                # Sample from the possible steps, then take all the rows which match these steps.
-                sampled_steps = (
-                    plot_df[x_axis_name]
-                    .sample(
-                        n=number_of_samples_for_machine_learning_metrics,
-                        random_state=42,
-                    )
-                    .unique()
+                # Take evenly spaced steps from the x axis range, then select all rows matching these steps.
+                x_min = plot_df[x_axis_name].min()
+                x_max = plot_df[x_axis_name].max()
+                # Generate evenly spaced values between min and max (inclusive)
+                sampled_steps = np.linspace(
+                    x_min,
+                    x_max,
+                    num=number_of_samples_for_machine_learning_metrics,
                 )
+                # Round to nearest multiple of 10
+                sampled_steps = (np.round(sampled_steps / 10) * 10).astype(int)
+                sampled_steps = pd.Series(sampled_steps).unique()
                 plot_df = plot_df[plot_df[x_axis_name].isin(sampled_steps)]
 
         if verbosity >= Verbosity.NORMAL:
@@ -336,7 +390,7 @@ def main(
             case None:
                 # - In this case, draw the curves for different runs separately.
                 # - Still, color the curves with the same training data fraction with the same color.
-                sns.lineplot(
+                ax = sns.lineplot(
                     data=plot_df,
                     x=x_axis_name,
                     y=metric_name,
@@ -351,7 +405,7 @@ def main(
             case _:
                 # - Group the runs with the same value in the group_by_column_name
                 # - Draw standard deviation bands.
-                sns.lineplot(
+                ax = sns.lineplot(
                     data=plot_df,
                     x=x_axis_name,
                     y=metric_name,
@@ -359,7 +413,7 @@ def main(
                     hue_order=hue_order,
                     units=None,
                     estimator="mean",
-                    errorbar=("ci", 95),
+                    errorbar=errorbar,
                     alpha=0.9,
                     legend=sns_legend,
                     ax=ax,  # <-- draw on *this* Axes, not the implicit one
@@ -377,6 +431,29 @@ def main(
             xlabel=x_axis_name_to_short_description[x_axis_name],
             ylabel=metric_to_short_description[metric_name],
         )
+
+        # ---------- Make certain hues dashed ----------
+        # Build hue->color mapping
+        palette = sns.color_palette(None, len(hue_order))
+        hue_to_color = dict(zip(hue_order, palette, strict=False))
+        dashed_hues = {"0.10", "0.15"}
+
+        for line in ax.lines:
+            line_color = tuple(
+                round(
+                    c,  # type: ignore - c is a float
+                    3,
+                )
+                for c in line.get_color()[0:3]
+            )
+            for hue, pal_color in hue_to_color.items():
+                pal_color_rounded = tuple(round(c, 3) for c in pal_color)
+                if line_color == pal_color_rounded:
+                    if hue in dashed_hues:
+                        line.set_linestyle("--")
+                    else:
+                        line.set_linestyle("-")
+                    break
 
         # ---------- Custom legend ----------
         match add_legend:
@@ -410,6 +487,7 @@ def main(
             f"{number_of_samples_for_machine_learning_metrics=}",
             f"{metric_name=}",
             f"{group_by_column_name=}",
+            f"{errorbar_description=}",
         )
 
         plot_output_path = pathlib.Path(
@@ -424,8 +502,12 @@ def main(
             logger.info(
                 msg=f"Saving plot to {plot_output_path=} ...",  # noqa: G004 - low overhead
             )
+        # Remove whitespace around the plot:
+        # https://stackoverflow.com/questions/11837979/removing-white-space-around-a-saved-image
         plt.savefig(
             plot_output_path,
+            bbox_inches="tight",
+            pad_inches=0,
         )
         if verbosity >= Verbosity.NORMAL:
             logger.info(

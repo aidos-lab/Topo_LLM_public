@@ -4,7 +4,7 @@
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Matthias Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -111,11 +111,11 @@ def main(cfg):
     # choose between vis_type "comparison", "twonn", "density", "iso", "lpca"
     vis_type = ""
 
-    dataset = pd.DataFrame({f"Column{i+1}": arr_no_pad[:, i] for i in range(arr_no_pad.shape[1])})
+    dataset = pd.DataFrame({f"Column{i + 1}": arr_no_pad[:, i] for i in range(arr_no_pad.shape[1])})
     dataset["class"] = "base"
 
     dataset_finetuned = pd.DataFrame(
-        {f"Column{i+1}": arr_no_pad_finetuned[:, i] for i in range(arr_no_pad_finetuned.shape[1])}
+        {f"Column{i + 1}": arr_no_pad_finetuned[:, i] for i in range(arr_no_pad_finetuned.shape[1])}
     )
     dataset_finetuned["class"] = "finetuned"
 

@@ -481,7 +481,7 @@
                 // "language_model.seed=41",
                 // "language_model.seed=42", // Note: seed=42 is already submitted
                 // "language_model.seed=43",
-                // "language_model.seed=43,44", // TODO: Still need to run seeds 44 for the long Trippy-R models
+                // "language_model.seed=43,44",
                 // "language_model.seed=42,43,44",
                 // "language_model.seed=1111,40,41",
                 //
@@ -2466,7 +2466,7 @@
             }
         },
         {
-            "name": "Task performance analysis - Local debugging - Create plots: mean for different seeds over checkpoints",
+            "name": "Task performance analysis - Local debugging - Create plots: mean for different seeds over checkpoints - Trippy-R",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/task_performance_analysis/plotting/run_create_distribution_plots_of_local_estimates.py",
@@ -2495,10 +2495,53 @@
                 //
                 //    >> START: Plotting options.
                 //
-                // "analysis/task_performance_analysis/plotting=all",
-                "analysis/task_performance_analysis/plotting=ertod",
-                // "analysis/task_performance_analysis/plotting=trippy_r_same_data_subsampling",
+                "analysis/task_performance_analysis/plotting=trippy_r_same_data_subsampling",
                 // "analysis/task_performance_analysis/plotting=trippy_r_different_sample_for_different_models",
+                //
+                // "analysis.task_performance_analysis.plotting.publication_ready=False",
+                "analysis.task_performance_analysis.plotting.publication_ready=True",
+                //
+                "analysis.task_performance_analysis.plotting.add_legend=True,False",
+                // "analysis.task_performance_analysis.plotting.add_legend=True",
+                // "analysis.task_performance_analysis.plotting.add_legend=False",
+                //
+                "analysis.task_performance_analysis.plotting.maximum_x_value=null",
+                //
+                //    >> END: Plotting options.
+                //
+                "feature_flags.task_performance_analysis.plotting_create_distribution_plots_over_model_checkpoints=False",
+                "feature_flags.task_performance_analysis.plotting_create_mean_plots_over_model_checkpoints_with_different_seeds=True",
+                "feature_flags.task_performance_analysis.plotting_create_distribution_plots_over_model_layers=False",
+            ],
+            "env": {
+                "PYTORCH_ENABLE_MPS_FALLBACK": "1"
+            }
+        },
+        {
+            "name": "Task performance analysis - Local debugging - Create plots: mean for different seeds over checkpoints - ERC",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/task_performance_analysis/plotting/run_create_distribution_plots_of_local_estimates.py",
+            "console": "integratedTerminal",
+            "args": [
+                // >>>> START: Hydra options
+                "--multirun",
+                "hydra/sweeper=basic",
+                "hydra/launcher=basic",
+                // "hydra/launcher=hpc_submission",
+                // "hydra.launcher.queue=CUDA",
+                // "hydra.launcher.template=RTX6000",
+                // "hydra.launcher.memory=32",
+                // "hydra.launcher.ncpus=2",  // <-- Make sure not to use more than 2 CPUs per GPU on the GTX1080TI and RTX6000 nodes.
+                // "hydra.launcher.ngpus=1",
+                // "hydra.launcher.walltime=00:10:00", // <-- The logging script should run very quickly.
+                // >>>> END: Hydra options
+                //
+                "tokenizer.add_prefix_space=False",
+                //
+                //    >> START: Plotting options.
+                //
+                "analysis/task_performance_analysis/plotting=ertod",
                 //
                 // "analysis.task_performance_analysis.plotting.publication_ready=False",
                 "analysis.task_performance_analysis.plotting.publication_ready=True",
@@ -2511,7 +2554,6 @@
                 "analysis.task_performance_analysis.plotting.maximum_x_value=7",
                 //
                 //    >> END: Plotting options.
-                //
                 //
                 "feature_flags.task_performance_analysis.plotting_create_distribution_plots_over_model_checkpoints=False",
                 "feature_flags.task_performance_analysis.plotting_create_mean_plots_over_model_checkpoints_with_different_seeds=True",

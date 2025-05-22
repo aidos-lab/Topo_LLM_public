@@ -4,7 +4,7 @@
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Matthias Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -126,7 +126,9 @@ def load_and_stack_embedding_data(
         number_of_sentences * number_of_tokens_per_sentence,
     )
 
-    # TODO: The "metadata" key in the batch saved in a metadata_chunk is currently lost. We need to add it to the full_df here if we want to use it in the downstream pipeline.
+    # Note:
+    # The "metadata" key in the batch saved in a metadata_chunk is currently lost.
+    # You would need to add it to the full_df here if you want to use it in the downstream pipeline.
 
     full_data_dict = {
         data_processing_column_names.embedding_vectors: list(array_np),

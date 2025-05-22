@@ -4,7 +4,7 @@
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (mail@ruppik.net)
+# Benjamin Matthias Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -443,5 +443,5 @@ class LocalEstimatesAndPredictionsContainer:
             logger=self.logger,
         )
 
-    # TODO: Implement methods to compare local estimates and loss values between two containers
-    # TODO: Implement methods to save the comparison results to disk
+    # Notes:
+    # - In this class, one could implement methods to compare local estimates and loss values between two containers
