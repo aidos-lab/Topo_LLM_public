@@ -211,13 +211,13 @@ In the following sections, we will explain how to set up the experiments that we
 
 #### Fine-tuning the language model
 
-TODO: Add instructions for finetuning the language model.
+For finetuning models on a language modeling task, we provide another uv run command, that can be used with different configurations:
 
 ```bash
 uv run finetune_language_model
 ```
 
-We provide a script to run the fine-tunings with the same parameters as in the paper at the following location:
+To run the fine-tunings with the same parameters as in the paper, use the following script:
 
 ```bash
 ./topollm/experiments/fine_tuning_induces_dataset_specific_shifts_in_heterogeneous_local_dimensions/run_multiple_finetunings.sh
@@ -236,6 +236,8 @@ The short model name `roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-d
 #### Local estimates computation for the finetuned models
 
 TODO: Explain how to compute local estimates for the finetuned models.
+
+#### Create the violin plots
 
 The violin plots in the paper, which compare the local estimate distribution between base and finetuned models, are created with the script:
 
@@ -269,9 +271,11 @@ uv run topollm/experiments/local_dimensions_detect_exhaustion_of_training_capabi
 
 #### Local estimates computation for the Trippy-R models
 
-
 TODO: Explain how to compute local estimates for the Trippy-R models.
-TODO: Explain how to create the plots comparing local dimensions and task performance for the Trippy-R models.
+
+#### Create plots comparing local dimensions and task performance for the Trippy-R models
+
+Once all data is available, you can run the script `topollm/experiments/local_dimensions_detect_exhaustion_of_training_capabilities/create_plots.sh`.
 
 ### Experiments: Local Dimensions Detect Overfitting
 
@@ -282,8 +286,10 @@ TODO: Explain how to train the ERC models.
 
 #### Local estimates computation for the ERC models
 
-
 TODO: Explain how to compute local estimates for the ERC models.
+
+#### Create plots comparing local dimensions and task performance for the ERC models
+
 TODO: Explain how to create the plots comparing local dimensions and task performance for the ERC models.
 
 ### Run tests
