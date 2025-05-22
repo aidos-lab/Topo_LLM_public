@@ -276,7 +276,11 @@ uv run topollm/experiments/local_dimensions_detect_exhaustion_of_training_capabi
 
 #### Local estimates computation for the Trippy-R models
 
-TODO: Explain how to compute local estimates for the Trippy-R models.
+Use this script to compute the local estimates for the TripPy-R data and models:
+
+```bash
+./topollm/experiments/local_dimensions_detect_exhaustion_of_training_capabilities/run_compute_local_estimates_for_trippy_r_checkpoints.sh
+```
 
 #### Create plots comparing local dimensions and task performance for the Trippy-R models
 
