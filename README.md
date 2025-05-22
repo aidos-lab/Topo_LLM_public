@@ -304,9 +304,11 @@ For reproducibility, we provide the exact training script that we used for train
 
 #### Local estimates computation for the ERC models
 
+Run the following script to compute the local estimates for the ERC models:
 
-
-TODO: Explain how to compute local estimates for the ERC models.
+```bash
+./topollm/experiments/local_dimensions_detect_overfitting/run_compute_local_estimates_for_erc_model_checkpoints.sh
+```
 
 #### Create plots comparing local dimensions and task performance for the ERC models
 
