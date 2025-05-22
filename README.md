@@ -235,14 +235,19 @@ The short model name `roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-d
 
 #### Local estimates computation for the finetuned models
 
-TODO: Explain how to compute local estimates for the finetuned models.
+To compute the local estimates for the base and finetuned models, you can use the pipeline, and select the model via the `language_model` parameter.
+We provide an example script to produce the data which is shown in the paper in Section 4.1:
+
+```bash
+./topollm/experiments/fine_tuning_induces_dataset_specific_shifts_in_heterogeneous_local_dimensions/run_compute_local_estimates_for_base_and_finetuned_models.sh
+```
 
 #### Create the violin plots
 
 The violin plots in the paper, which compare the local estimate distribution between base and finetuned models, are created with the script:
 
 ```bash
-topollm/plotting/plot_scripts_for_paper_draft/violin_plots_from_local_estimates.py
+uv run python3 topollm/plotting/plot_scripts_for_paper_draft/violin_plots_from_local_estimates.py
 ```
 
 ### Experiments: Local Dimensions Predict Grokking
@@ -294,6 +299,8 @@ For reproducibility, we provide the exact training script that we used for train
 - For the EmoWOZ data in a format compatible with this repository, check the config file `configs/data/ertod_emowoz.yaml`.
 
 #### Local estimates computation for the ERC models
+
+
 
 TODO: Explain how to compute local estimates for the ERC models.
 

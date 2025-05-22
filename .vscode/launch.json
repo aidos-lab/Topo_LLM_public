@@ -326,7 +326,7 @@
                 //    >> START: Hydra options
                 "--multirun",
                 "hydra/sweeper=basic",
-                "hydra/launcher=basic",
+                // "hydra/launcher=basic",
                 "hydra/launcher=hpc_submission",
                 "hydra.launcher.queue=CUDA",
                 "hydra.launcher.template=RTX6000",
@@ -345,11 +345,12 @@
                 //    >> START: Data options.
                 //
                 // >> Single dataset:
-                "data=multiwoz21",
+                // "data=multiwoz21",
                 // "data=sgd",
                 // "data=one-year-of-tsla-on-reddit",
                 // "data=wikitext-103-v1",
                 // >> Multiple datasets:
+                "data=multiwoz21,wikitext-103-v1,one-year-of-tsla-on-reddit",
                 // "data=sgd,one-year-of-tsla-on-reddit",
                 // "data=multiwoz21,sgd,one-year-of-tsla-on-reddit",
                 // "data=sgd,one-year-of-tsla-on-reddit,wikitext-103-v1,iclr_2024_submissions",
@@ -385,8 +386,8 @@
                 // "data.data_subsampling.split=train,dev,test",
                 "data.data_subsampling.split=train,validation,test",
                 //
-                // "data.data_subsampling.sampling_mode=random",
-                "data.data_subsampling.sampling_mode=take_first,random",
+                "data.data_subsampling.sampling_mode=random",
+                // "data.data_subsampling.sampling_mode=take_first,random",
                 // "data.data_subsampling.number_of_samples=7000",
                 "data.data_subsampling.number_of_samples=10000",
                 // "data.data_subsampling.number_of_samples=7000,10000",
@@ -399,9 +400,9 @@
                 //    >> START: Model options.
                 //
                 // >>>> Base models
-                // "language_model=roberta-base",
+                "language_model=roberta-base",
                 // "language_model=bert-base-uncased",
-                "language_model=gpt2-medium",
+                // "language_model=gpt2-medium",
                 //
                 "++language_model.checkpoint_no=-1", // <-- checkpoint_no not necessary for the base models, setting it to '-1' to skip unnecessary iterations over different choices
                 //
