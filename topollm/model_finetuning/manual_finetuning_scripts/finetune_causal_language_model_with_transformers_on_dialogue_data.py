@@ -2,7 +2,7 @@
 #
 # Copyright 2023 Heinrich Heine University Duesseldorf
 #
-# Authors: Benjamin Ruppik
+# Authors: Benjamin Matthias Ruppik
 # This code was generated with the help of AI writing assistants
 # including GitHub Copilot, ChatGPT and Bing Chat.
 #
@@ -49,7 +49,6 @@ from transformers import (
     pipeline,
 )
 
-
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # Configure the logging module
 
@@ -62,8 +61,7 @@ timestamp = now.strftime("%Y%m%d-%H%M%S")
 
 logfile_path = pathlib.Path(
     "logs",
-    f"finetune_causal_language_model_with_transformers_on_dialogue_data"
-    f"_{timestamp}.log",
+    f"finetune_causal_language_model_with_transformers_on_dialogue_data_{timestamp}.log",
 )
 
 logging.basicConfig(
@@ -89,9 +87,7 @@ def handle_exception(exc_type, exc_value, exc_traceback):
         return
     else:
         # Log the exception
-        logger.critical(
-            "Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback)
-        )
+        logger.critical("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
 
 
 # Set the function to handle unhandled exceptions
@@ -131,22 +127,15 @@ tda_base_path_env = os.environ.get("TDA_BASE_PATH")
 if tda_base_path_env is None:
     raise ValueError("Environment variable 'TDA_BASE_PATH' is not set")
 else:
-    tda_base_path_env = os.path.expandvars(
-        tda_base_path_env
-    )  # Replace the $HOME part with the user's home directory
-    tda_base_path = pathlib.Path(
-        tda_base_path_env
-    ).resolve()  # Compute the canonical, absolute form
+    tda_base_path_env = os.path.expandvars(tda_base_path_env)  # Replace the $HOME part with the user's home directory
+    tda_base_path = pathlib.Path(tda_base_path_env).resolve()  # Compute the canonical, absolute form
     logger.info(f"tda_base_path: {tda_base_path}")
 
 # check if the paths are valid directories
 if not term_extraction_base_path.is_dir():
-    raise ValueError(
-        f"term_extraction_base_path '{term_extraction_base_path}' "
-        f"is not a directory"
-    )
+    raise ValueError(f"term_extraction_base_path '{term_extraction_base_path}' is not a directory")
 if not tda_base_path.is_dir():
-    raise ValueError(f"tda_base_path '{tda_base_path}' " f"is not a directory")
+    raise ValueError(f"tda_base_path '{tda_base_path}' is not a directory")
 
 #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -393,11 +382,7 @@ def main():
             logger.info(f"len(dataset['validation']): {len(dataset['validation'])}")
 
             for dialogue_dict in tqdm(
-                (
-                    dataset["validation"][:debug_index]
-                    if debug_index
-                    else dataset["validation"]
-                ),
+                (dataset["validation"][:debug_index] if debug_index else dataset["validation"]),
                 desc=f"dataset_desc: {dataset_desc} validation",
             ):
                 for turn_dict in dialogue_dict["turns"]:
@@ -432,11 +417,7 @@ def main():
             logger.info(f"len(dataset['validation']): {len(dataset['validation'])}")
 
             for dialogue_dict in tqdm(
-                (
-                    dataset["validation"][:debug_index]
-                    if debug_index
-                    else dataset["validation"]
-                ),
+                (dataset["validation"][:debug_index] if debug_index else dataset["validation"]),
                 desc=f"dataset_desc: {dataset_desc} validation",
             ):
                 current_dialogue = ""
@@ -506,12 +487,10 @@ def main():
         "models",
         f"gpt2-large_finetuned_on_multiwoz21_and_sgd_train_context_{context}_debug_idx_{debug_index}",
     )
-    logging.info(f"finetuned_model_output_dir:\n" f"{finetuned_model_output_dir}")
+    logging.info(f"finetuned_model_output_dir:\n{finetuned_model_output_dir}")
 
     # Create the output directory if it does not exist
-    logging.info(
-        f"Creating finetuned_model_output_dir:\n{finetuned_model_output_dir}\n..."
-    )
+    logging.info(f"Creating finetuned_model_output_dir:\n{finetuned_model_output_dir}\n...")
     finetuned_model_output_dir.mkdir(
         parents=True,
         exist_ok=True,
@@ -526,7 +505,7 @@ def main():
     )
 
     # Create the output directory if it does not exist
-    logging.info(f"Creating logging_directory:\n" f"{logging_directory}\n...")
+    logging.info(f"Creating logging_directory:\n{logging_directory}\n...")
     logging_directory.mkdir(
         parents=True,
         exist_ok=True,

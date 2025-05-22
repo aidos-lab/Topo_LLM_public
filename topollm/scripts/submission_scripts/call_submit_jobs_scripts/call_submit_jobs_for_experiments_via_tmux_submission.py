@@ -6,7 +6,7 @@
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (mail@ruppik.net)
+# Benjamin Matthias Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -174,10 +174,7 @@ def submit_jobs_in_separate_tmux_sessions(
         iterable=combinations_to_call,
     ):
         print(  # noqa: T201 - we want this script to print
-            f">>> Current choices:\n"
-            f"\t{data_list_option = }\n"
-            f"\t{experiment_selector = }\n"
-            f"\t{model_group_option= }",
+            f">>> Current choices:\n\t{data_list_option = }\n\t{experiment_selector = }\n\t{model_group_option= }",
         )
 
         # Note: We shorten the segments of the session name to avoid a too long file name.

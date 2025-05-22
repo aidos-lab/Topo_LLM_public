@@ -4,7 +4,7 @@
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Matthias Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -59,16 +59,12 @@ class TokenizerModifierAddPaddingToken:
         tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast,
     ) -> PreTrainedTokenizer | PreTrainedTokenizerFast:
         if self.verbosity >= Verbosity.NORMAL:
-            self.logger.info(
-                f"Modifying tokenizer {tokenizer = } " f"by adding padding token {self.padding_token = } ..."
-            )
+            self.logger.info(f"Modifying tokenizer {tokenizer = } by adding padding token {self.padding_token = } ...")
 
         # Check if the tokenizer already has the padding token.
         if self.padding_token in tokenizer.all_special_tokens:
             if self.verbosity >= Verbosity.NORMAL:
-                self.logger.info(
-                    f"The tokenizer already has the padding token " f"{self.padding_token = }. " f"Nothing to do."
-                )
+                self.logger.info(f"The tokenizer already has the padding token {self.padding_token = }. Nothing to do.")
         else:
             num_added_tokens = tokenizer.add_special_tokens(
                 {"pad_token": self.padding_token},
@@ -93,7 +89,7 @@ class TokenizerModifierAddPaddingToken:
         model: PreTrainedModel,
     ) -> PreTrainedModel:
         if self.verbosity >= 1:
-            self.logger.info(f"Updating model " f"to match the modified tokenizer " f"{self.modified_tokenizer = } ...")
+            self.logger.info(f"Updating model to match the modified tokenizer {self.modified_tokenizer = } ...")
             log_model_info(
                 model=model,
                 model_name="model",
@@ -120,7 +116,7 @@ class TokenizerModifierAddPaddingToken:
 
         if self.verbosity >= 1:
             self.logger.info("Logging 'model' after potentially resizing token embeddings:")
-            self.logger.info(f"embeddings_module:\n" f"{embeddings_module}")
+            self.logger.info(f"embeddings_module:\n{embeddings_module}")
             log_model_info(
                 model=model,
                 model_name="model",

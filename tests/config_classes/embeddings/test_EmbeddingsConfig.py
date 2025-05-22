@@ -4,7 +4,7 @@
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Matthias Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -47,7 +47,7 @@ def test_hydra_with_EmbeddingsConfig() -> None:
             overrides=[],
         )
 
-        logger.info(f"cfg:\n" f"{pprint.pformat(cfg)}")
+        logger.info(f"cfg:\n{pprint.pformat(cfg)}")
 
         # This tests whether the configuration is valid
         config = EmbeddingsConfig.model_validate(
@@ -55,4 +55,4 @@ def test_hydra_with_EmbeddingsConfig() -> None:
         )
 
         logger.info(f"{type(config) = }")
-        logger.info(f"config:\n" f"{pprint.pformat(config)}")
+        logger.info(f"config:\n{pprint.pformat(config)}")

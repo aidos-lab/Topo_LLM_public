@@ -4,7 +4,7 @@
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (mail@ruppik.net)
+# Benjamin Matthias Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -39,8 +39,8 @@ import hydra
 import hydra.core.hydra_config
 import omegaconf
 import transformers
-
 import wandb
+
 from topollm.compute_embeddings.collate_batch_for_embedding import (
     collate_batch_and_move_to_device,
 )

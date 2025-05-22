@@ -4,7 +4,7 @@
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (mail@ruppik.net)
+# Benjamin Matthias Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -104,8 +104,7 @@ class DropoutConfig(ConfigBaseModel):
     mode: DropoutMode = Field(
         default=DropoutMode.DEFAULTS,
         title="Dropout mode.",
-        description="The dropout mode: Selecting 'DEFAULTS' "
-        "will use the default parameters for the given model class.",
+        description="The dropout mode: Selecting 'DEFAULTS' will use the default parameters for the given model class.",
     )
 
     probabilities: DropoutProbabilities = Field(

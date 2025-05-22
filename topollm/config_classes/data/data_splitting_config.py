@@ -4,7 +4,7 @@
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (mail@ruppik.net)
+# Benjamin Matthias Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -131,18 +131,22 @@ class DataSplittingConfig(ConfigBaseModel):
                         description: str = f"{NAME_PREFIXES['data_splitting_mode']}{KV_SEP}{self.data_splitting_mode}"
                         description += f"{ITEM_SEP}{NAME_PREFIXES['split_shuffle']}{KV_SEP}{self.split_shuffle}"
                         description += f"{ITEM_SEP}{NAME_PREFIXES['split_seed']}{KV_SEP}{self.split_seed}"
-                        description += f"{ITEM_SEP}{self.proportions.get_config_description(
-                            description_type=description_type,
-                            short_description_separator=short_description_separator,
-                        )}"
+                        description += f"{ITEM_SEP}{
+                            self.proportions.get_config_description(
+                                description_type=description_type,
+                                short_description_separator=short_description_separator,
+                            )
+                        }"
                     case DescriptionType.SHORT:
                         description: str = f"{self.data_splitting_mode}"
                         description += f"{short_description_separator}{self.split_shuffle}"
                         description += f"{short_description_separator}{self.split_seed}"
-                        description += f"{short_description_separator}{self.proportions.get_config_description(
-                            description_type=description_type,
-                            short_description_separator=short_description_separator,
-                        )}"
+                        description += f"{short_description_separator}{
+                            self.proportions.get_config_description(
+                                description_type=description_type,
+                                short_description_separator=short_description_separator,
+                            )
+                        }"
                     case _:
                         msg: str = f"Invalid {description_type = }"
                         raise ValueError(msg)

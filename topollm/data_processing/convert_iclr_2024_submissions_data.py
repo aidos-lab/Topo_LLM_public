@@ -4,7 +4,7 @@
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# Benjamin Matthias Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -132,7 +132,7 @@ def process_dataset(
             ),
         )
 
-        logger.info(f"Loading data from:\n" f"{csv_file_path = }\n...")
+        logger.info(f"Loading data from:\n{csv_file_path = }\n...")
         # The argument
         # `keep_default_na=False`
         # makes sure that string 'nan' is not interpreted as NaN.
@@ -142,7 +142,7 @@ def process_dataset(
             keep_default_na=False,
             low_memory=False,
         )
-        logger.info(f"Loading data from:\n" f"{csv_file_path = }\nDONE")
+        logger.info(f"Loading data from:\n{csv_file_path = }\nDONE")
 
         # Add additional columns.
         # Here: Combining title and abstract into additional column.

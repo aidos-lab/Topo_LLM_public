@@ -4,7 +4,7 @@
 # Computer Science Department
 #
 # Authors:
-# Benjamin Ruppik (mail@ruppik.net)
+# Benjamin Matthias Ruppik (mail@ruppik.net)
 # Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
 #
 # Code generation tools and workflows:
@@ -100,11 +100,7 @@ def get_token_ids_from_filter_tokens_config(
                 msg=f"{tokenizer.pad_token = }",  # noqa: G004 - low overhead
             )
         if tokenizer.pad_token_id is None:
-            msg = (
-                "The tokenizer padding token id is None."
-                "Since this is probably not intended, "
-                "we will raise an error."
-            )
+            msg = "The tokenizer padding token id is None.Since this is probably not intended, we will raise an error."
             raise ValueError(
                 msg,
             )
