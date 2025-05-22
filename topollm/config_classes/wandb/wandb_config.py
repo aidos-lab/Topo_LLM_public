@@ -4,7 +4,7 @@
 # [ANONYMIZED_DEPARTMENT]
 #
 # Authors:
-# Benjamin Ruppik (ruppik@hhu.de)
+# AUTHOR_1 (author1@example.com)
 # AUTHOR_2 (author2@example.com)
 #
 # Code generation tools and workflows:
