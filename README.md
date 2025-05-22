@@ -256,11 +256,11 @@ Refer to the separate `grokking` repository for instructions on how to run these
 To train the dialogue state tracking models for which we compute the local estimates, use the official [TripPy-R](https://gitlab.cs.uni-duesseldorf.de/general/dsml/trippy-r-public) codebase.
 This repository contains information on how to set up the environment, obtain the data, and run the training scripts.
 
-For reproducability, we provide the exact training script that we used for training the TripPy-R models here, and a script to convert the data from the TripPy-R output format to a format compatible with the local estimates computation pipeline.
+For reproducibility, we provide the exact training script that we used for training the TripPy-R models here, and a script to convert the data from the TripPy-R output format to a format compatible with the local estimates computation pipeline.
 
 ```bash
 # Train the TripPy-R models
-topollm/experiments/local_dimensions_detect_exhaustion_of_training_capabilities/run_train_and_run_eval_of_trippy_r_models.sh
+./topollm/experiments/local_dimensions_detect_exhaustion_of_training_capabilities/run_train_and_run_eval_of_trippy_r_models.sh
 # Convert the TripPy-R output format to a format compatible with the local estimates computation pipeline
 uv run topollm/experiments/local_dimensions_detect_exhaustion_of_training_capabilities/data_post_processing/load_cached_features_and_save_into_format_for_topo_llm.py --data_mode "trippy_r"
 ```
@@ -281,8 +281,17 @@ Once all data is available, you can run the script `topollm/experiments/local_di
 
 #### Train the ERC models
 
-[ConvLab-3](https://github.com/ConvLab/ConvLab-3/tree/master/convlab/dst/emodst/modeling)
-TODO: Explain how to train the ERC models.
+For training the Emotion Recognition Models, you should use the official [ConvLab-3](https://github.com/ConvLab/ConvLab-3/tree/master/convlab/dst/emodst/modeling) setup, which is explained in that repository.
+
+For reproducibility, we provide the exact training script that we used for training the ERC models here
+
+```bash
+./topollm/experiments/local_dimensions_detect_overfitting/run_train_erc_models.sh
+```
+
+- You need to update the values of the environment variables `CONVLAB3_REPOSITORY_BASE_PATH`.
+- To proceed with the local estimates computation, check the file paths in the model config file `configs/language_model/bert-base-uncased-ContextBERT-ERToD_emowoz_basic_setup.yaml`.
+- For the EmoWOZ data in a format compatible with this repository, check the config file `configs/data/ertod_emowoz.yaml`.
 
 #### Local estimates computation for the ERC models
 
@@ -290,7 +299,8 @@ TODO: Explain how to compute local estimates for the ERC models.
 
 #### Create plots comparing local dimensions and task performance for the ERC models
 
-TODO: Explain how to create the plots comparing local dimensions and task performance for the ERC models.
+- You first need to parse the model task performance results from the log files using the script `topollm/task_performance_analysis/erc_models/parse_EmoLoop_ContextBERT_ERToD_logfile.py`.
+- Once all data is available, you can run the script `topollm/experiments/local_dimensions_detect_overfitting/create_plots.sh`.
 
 ### Run tests
 

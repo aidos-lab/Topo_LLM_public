@@ -641,7 +641,7 @@ class TrippyDataset(Dataset):
 
     def __getitem__(self, index):
         result = {}
-        # Static elements. Copy, because they will be modified below. # TODO: make more efficient
+        # Static elements. Copy, because they will be modified below. # Note: This can probably be made more efficient
         for key in ["input_ids", "input_mask", "segment_ids", "usr_mask"]:
             result[key] = torch.tensor(getattr(self.features[index], key))
         result["start_pos"] = {}
@@ -721,7 +721,7 @@ class TrippyDataset(Dataset):
                     result["start_pos"][slot][1] = 1
                 pos_value = self.features[index].values[slot]
                 # For value matching: Only the correct value has a weight, all (!) others automatically become negative samples.
-                # TODO: Test subsampling negative samples.
+                # Note: We did not test subsampling negative samples.
 
                 # For attention based value matching
                 if self.encoded_slot_values is not None:

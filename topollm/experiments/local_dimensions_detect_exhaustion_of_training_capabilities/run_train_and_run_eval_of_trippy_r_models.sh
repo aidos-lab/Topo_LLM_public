@@ -1,3 +1,4 @@
+#!/bin/bash -li
 #PBS -l select=1:ncpus=2:mem=64gb:ngpus=1:accelerator_model=rtx8000
 #PBS -l walltime=59:59:00
 #PBS -A "ANONYMIZED_ACCOUNT"
