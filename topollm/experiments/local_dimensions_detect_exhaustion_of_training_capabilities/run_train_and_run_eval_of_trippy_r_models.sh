@@ -1,10 +1,10 @@
 #PBS -l select=1:ncpus=2:mem=64gb:ngpus=1:accelerator_model=rtx8000
 #PBS -l walltime=59:59:00
-#PBS -A "DialSys"
+#PBS -A "ANONYMIZED_ACCOUNT"
 #PBS -q "CUDA"
 #PBS -r y
-#PBS -e /gpfs/project/ruppik/job_logs
-#PBS -o /gpfs/project/ruppik/job_logs
+#PBS -e /gpfs/project/ANONYMIZED_ACCOUNT/job_logs
+#PBS -o /gpfs/project/ANONYMIZED_ACCOUNT/job_logs
 #PBS -N DO.run_eval.sh_trippy_r_checkpoints_multiwoz21
 
 # ======================================================================================================= #
@@ -41,8 +41,10 @@ echo ">>> [INFO] Parsing arguments ..."
 #
 DO_TRAINING="True"
 
-# NUM_TRAIN_EPOCHS=20
-NUM_TRAIN_EPOCHS=50
+NUM_TRAIN_EPOCHS=20
+# Uncomment the following line to set a large number of training epochs.
+#
+# NUM_TRAIN_EPOCHS=50
 
 # Set the warmup proportion based on the number of training epochs:
 # We want the warmup to occur for the first epoch, so we set it to 1 / NUM_TRAIN_EPOCHS.
@@ -63,13 +65,13 @@ STEPS_TO_RUN_IN_OUTER_LOOP=(
 )
 
 STEPS_TO_RUN_FOR_EVALUATION=(
-    # "train"
+    "train"
     "dev"
     "test"
 )
 
 STEPS_TO_RUN_FOR_METRIC_DST=(
-    # "train"
+    "train"
     "dev"
     "test"
 )
@@ -117,41 +119,13 @@ echo ">>> [INFO] Parsing arguments DONE"
 
 echo ">>> [INFO] Loading environment ..."
 
-if [[ $(hostname) == *"hilbert"* || $(hostname) == *"hpc"* ]]; then
-    echo ">>> Sourcing .bashrc ..."
-
-    source /gpfs/project/ruppik/.usr_tls/.bashrc
-    # source ~/.bashrc
-
-    echo ">>> Sourcing .bashrc DONE"
-
-    echo ">>> Loading environment modules ..."
-
-    # Modules ---------------------------------------------------------
-    # load_python
-    module load Python/3.12.3
-
-    # load_cuda
-    module load CUDA/11.7.1
-
-    echo ">>> Loading environment modules DONE"
-
-    export TOPO_LLM_REPOSITORY_BASE_PATH="/gpfs/project/ruppik/git-source/Topo_LLM"
-    export CONVLAB3_REPOSITORY_BASE_PATH="/gpfs/project/ruppik/git-source/ConvLab3"
-
-    # >>> Setup in Michael's environment:
-
-    # module load Python/3.8.3
-    # module load APEX/0.1
-
-    # export PYTHONPATH=/gpfs/project/$USER/tools/ConvLab3/:$PYTHONPATH
-fi
+# Note: Place your environment setup script here.
 
 echo ">>> [INFO] Python path before any modifications:PYTHONPATH=${PYTHONPATH}"
 
 CONVLAB3_PATH_LOCATION_TO_ADD_TO_PYTHONPATH=(
     "${CONVLAB3_REPOSITORY_BASE_PATH}/"
-    # This is the path to the ConvLab3 repository on the HPC
+    # Replace this with the path to the ConvLab3 repository on the HPC cluster if needed:
     "/gpfs/project/${USER}/git-source/ConvLab3/"
 )
 
@@ -208,8 +182,7 @@ echo ">>> [INFO] Running on host: $(hostname)"
 echo ">>> [INFO] Running on node: $(hostname -s)"
 echo ">>> [INFO] Running on job ID: ${PBS_JOBID}"
 
-# mode=scratch # scratch|local
-mode=local    # scratch|local
+mode=local
 copy_cached=1 # 0|1
 
 #echo "CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES}."
@@ -226,33 +199,9 @@ if [ -z ${PROJECT_FOLDER} ]; then
     PROJECT_FOLDER=$(dirname ${PROJECT_FOLDER})
 fi
 
-SCRATCH_FOLDER=/gpfs/scratch/${USER}/${PBS_JOBID}
-if [ $# -gt 0 ]; then
-    SCRATCH_FOLDER=$1
-fi
-
-if ! [[ $SCRATCH_FOLDER =~ ^/gpfs/scratch/${USER} ]]; then
-    echo "Invalid sync path ($SCRATCH_FOLDER). Should be a valid and path in /gpfs/scratch/${USER}. Aborting."
-    exit 1
-fi
-
-# Michael's environment:
-#
-# PBS_O_WORKDIR=${PROJECT_FOLDER}
-# cd "${PBS_O_WORKDIR}"
-
 mkdir -p logs
 
-if [ "$mode" = "local" ]; then
-    OUT_DIR=${CURRENT_SETUP_DESCRIPTION_DIR}
-else
-    OUT_DIR=${SCRATCH_FOLDER}/${CURRENT_SETUP_DESCRIPTION_DIR}
-    ln -s ${SCRATCH_FOLDER} scratch.${PBS_JOBID}
-    if [ "$copy_cached" = "1" ]; then
-        mkdir -p ${SCRATCH_FOLDER}
-        cp cached_* ${SCRATCH_FOLDER}
-    fi
-fi
+OUT_DIR=${CURRENT_SETUP_DESCRIPTION_DIR}
 
 # Main ------------------------------------------------------------
 
@@ -462,12 +411,6 @@ for x in ${SEEDS}; do
     done
     echo ">>> [INFO] Running seed loop with seed ${x} DONE"
 done
-
-if [ "$mode" = "scratch" ]; then
-    mv ${SCRATCH_FOLDER}/results* .
-    mv ${SCRATCH_FOLDER}/cached_* .
-    ./DO.cleanUp ${PBS_JOBID}
-fi
 
 echo ">>> [INFO] Job ${PBS_JOBID} finished. Exiting."
 exit 0

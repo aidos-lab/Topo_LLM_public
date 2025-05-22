@@ -4,6 +4,20 @@
 
 This repository contains code for analyzing the representations produced by contextual language models from a topological perspective.
 
+### Quick start
+
+```bash
+# Clone the repository and navigate to the directory
+git clone [REPOSITORY_URL] Topo_LLM
+cd Topo_LLM
+
+# Call the setup script to set the environment variables
+./topollm/setup/setup_environment.sh
+
+# Run the pipeline to compute local estimates with default parameters
+uv run pipeline_local_estimates
+```
+
 ## Installation
 
 ### Prerequisites
@@ -217,11 +231,17 @@ For example, the config file of a RoBERTa base model fine-tuned on the first 100
 configs/language_model/roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5.yaml
 ```
 
+The short model name `roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5` can then be used to select a model in the local estimates computation pipeline.
+
 #### Local estimates computation for the finetuned models
 
 TODO: Explain how to compute local estimates for the finetuned models.
 
-The violin plots in the paper, which compare the local estimate distribution between base and finetuned models, are created with the script `topollm/plotting/plot_scripts_for_paper_draft/violin_plots_from_local_estimates.py`.
+The violin plots in the paper, which compare the local estimate distribution between base and finetuned models, are created with the script:
+
+```bash
+topollm/plotting/plot_scripts_for_paper_draft/violin_plots_from_local_estimates.py
+```
 
 ### Experiments: Local Dimensions Predict Grokking
 
@@ -231,13 +251,24 @@ Refer to the separate `grokking` repository for instructions on how to run these
 
 #### Train the Trippy-R dialogue state tracking models
 
-TODO: Explain how to train the Trippy-R dialogue state tracking models.
-
 To train the dialogue state tracking models for which we compute the local estimates, use the official [TripPy-R](https://gitlab.cs.uni-duesseldorf.de/general/dsml/trippy-r-public) codebase.
+This repository contains information on how to set up the environment, obtain the data, and run the training scripts.
+
+For reproducability, we provide the exact training script that we used for training the TripPy-R models here, and a script to convert the data from the TripPy-R output format to a format compatible with the local estimates computation pipeline.
+
+```bash
+# Train the TripPy-R models
+topollm/experiments/local_dimensions_detect_exhaustion_of_training_capabilities/run_train_and_run_eval_of_trippy_r_models.sh
+# Convert the TripPy-R output format to a format compatible with the local estimates computation pipeline
+uv run topollm/experiments/local_dimensions_detect_exhaustion_of_training_capabilities/data_post_processing/load_cached_features_and_save_into_format_for_topo_llm.py --data_mode "trippy_r"
+```
+
+- You should probably update the values of the environment variables `CONVLAB3_REPOSITORY_BASE_PATH` and `TOOLS_DIR` to the location of your local ConvLab-3 and TripPy-R repositories.
+- To proceed with the local estimates computation, you also need to update the model file paths in the config file `configs/language_model/roberta-base-trippy_r_multiwoz21_short_runs.yaml` to the location where you place the model files.
+- Similarly, you need to update the data paths in the config file `configs/data/trippy_r_dataloaders_processed.yaml`.
 
 #### Local estimates computation for the Trippy-R models
 
-- Update the model file paths in the config file `configs/language_model/roberta-base-trippy_r_multiwoz21_short_runs.yaml` to the location where you place the model files.
 
 TODO: Explain how to compute local estimates for the Trippy-R models.
 TODO: Explain how to create the plots comparing local dimensions and task performance for the Trippy-R models.
