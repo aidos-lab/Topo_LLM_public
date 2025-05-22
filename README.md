@@ -4,12 +4,26 @@
 
 This repository contains code for analyzing the representations produced by contextual language models from a topological perspective.
 
+### Quick start
+
+```bash
+# Clone the repository and navigate to the directory
+git clone [REPOSITORY_URL] Topo_LLM
+cd Topo_LLM
+
+# Call the setup script to set the environment variables
+./topollm/setup/setup_environment.sh
+
+# Run the pipeline to compute local estimates with default parameters
+uv run pipeline_local_estimates
+```
+
 ## Installation
 
 ### Prerequisites
 
 - Python 3.12
-- `uv` package manager
+- [`uv`](https://docs.astral.sh/uv/) package manager
 
 #### MacOS specific instructions
 
@@ -76,7 +90,8 @@ This step can be achieved by running the setup script in the `topollm/setup/` di
 
 1. If required, e.g. when running jobs on an HPC cluster, set the correct environment variables in the `.env` file in the project root directory.
 
-2. For setting up the repository to support job submissions to the a HPC cluster using our custom Hydra launcher, follow the instructions here: [https://github.com/carelvniekerk/Hydra-HPC-Launcher]. Additional submission scripts are located in the `topollm/scripts/submission_scripts` directory.
+2. For setting up the repository to support job submissions to the a HPC cluster, follow the instructions using our [custom Hydra launcher](https://github.com/carelvniekerk/Hydra-HPC-Launcher).
+   Additional submission scripts are located in the `topollm/scripts/submission_scripts` directory.
 
 3. Download the files necessary for `nltk`: Start a python interpreter and run the following:
 
@@ -90,14 +105,8 @@ This step can be achieved by running the setup script in the `topollm/setup/` di
 
 ### Config file management
 
-- We use Hydra for the config managment:
-  [https://hydra.cc/docs/patterns/configuring_experiments/]
-
-- Overwrite config variable:
-  `python run.py run.seed=42`
-
-- Multirun example:
-  `python run.py --multirun run.seed=1,2,3,4`
+We use [Hydra](https://hydra.cc/docs/patterns/configuring_experiments/) for the config managment.
+Please see the documentation and the experiments below for examples on how to use the config files in `configs` and command line overrides.
 
 ### Data directory
 
@@ -107,32 +116,138 @@ Most of the shell scripts use this variable to set the data directory path.
 
 For compatibility, please make sure that these paths are set correctly and point to the same directory.
 
-## Datasets
+### Datasets
 
-- Dialogue data
-  - MultiWOZ
-  - SGD:
-    [https://github.com/google-research-datasets/dstc8-schema-guided-dialogue]
+The following datasets can be used via their config file in `configs/data`:
+
+- `multiwoz21.yaml`:
+  MultiWOZ2.1; [HuggingFace](https://huggingface.co/datasets/ConvLab/multiwoz21)
+- `ertod_emowoz.yaml`:
+  EmoWOZ; [HuggingFace](https://huggingface.co/datasets/hhu-dsml/emowoz)
+- `trippy_r_dataloaders_processed.yaml`:
+  TripPy-R training, validation, test data; [GitLab](https://gitlab.cs.uni-duesseldorf.de/general/dsml/trippy-r-public)
+- `sgd.yaml`:
+  SGD; [GitHub](https://github.com/google-research-datasets/dstc8-schema-guided-dialogue), [HuggingFace](https://huggingface.co/datasets/google-research-datasets/schema_guided_dstc8)
+- `wikitext-103-v1.yaml`:
+  Wikipedia; [HuggingFace](https://huggingface.co/datasets/Salesforce/wikitext/viewer/wikitext-103-v1)
+- `one-year-of-tsla-on-reddit.yaml`:
+  Reddit; [HuggingFace](https://huggingface.co/datasets/SocialGrep/one-year-of-tsla-on-reddit)
+
+To prepare the dialogue datasets, which will be saved as `.jsonl` files in the directory `data/datasets/dialogue_datasets`, use the script `topollm/data_processing/prepare_dialogue_data.py`.
+The dialogue dataset preparation requires an installation of [ConvLab-3](https://github.com/ConvLab/ConvLab-3), which is not included in the `uv` environment to avoid version conflicts.
 
 ## Usage
 
 ### General instructions to run the pipeline
 
-TODO: Add instructions for how to use and configure the uv run commands.
+We provide `uv run` commands in the `pyproject.toml` file for the most important entry points of the module.
+Most importantly, the following command runs the full pipeline:
+
+- from computing embeddings,
+- to the embedding data preparation (collecting token embeddings, removing padding token embedding),
+- and finally computing the local estimates (for example, the TwoNN-based local dimension).
 
 ```bash
-uv run pipeline_local_estimates # This runs the full pipeline embedding -> embeddings_data_prep -> compute local estimates
+uv run pipeline_local_estimates
 ```
+
+Usually, you will want to select a specific dataset and model to run the pipeline on, and change additional hyperparameters.
+You can do this by passing the parameters as command line arguments to the `uv run` command:
+
+```bash
+uv run pipeline_local_estimates \
+  data="wikitext-103-v1" \
+  data.data_subsampling.number_of_samples=512 \
+  data.data_subsampling.sampling_mode="random" \
+  data.data_subsampling.split="validation" \
+  data.data_subsampling.sampling_seed=778 \
+  language_model="roberta-base" \
+  embeddings.embedding_data_handler.mode="regular" \
+  embeddings_data_prep.sampling.num_samples=3000 \
+  local_estimates=twonn \
+  local_estimates.filtering.num_samples=500 \
+  local_estimates.pointwise.absolute_n_neighbors=128
+```
+
+The parameters in the command line override the default parameters in the config file.
+Here, we explain the parameters in the example command:
+
+- `data="wikitext-103-v1"`: Compute local estimates for the Wikipedia dataset.
+- `data.data_subsampling.number_of_samples=512`: Sample 512 sequences from the dataset (i.e., set `M=512` as size of the text corpus sequence sub-sample).
+- `data.data_subsampling.sampling_mode="random"`: Randomly sample the sequences from the dataset (other option is `take_first` for taking the first `M` sequences).
+- `data.data_subsampling.split="validation"`: Use the validation split of the dataset (other options are `train` and `test` or `dev`, depending on the dataset).
+- `data.data_subsampling.sampling_seed=778`: Set the random seed for the random sequences sampling.
+- `language_model="roberta-base"`: Use the RoBERTa base model for embeddings.
+- `embeddings.embedding_data_handler.mode="regular"`: Use the regular mode for the embeddings (other option is `masked_token` for masked language models).
+- `embeddings_data_prep.sampling.num_samples=3000`: This many non-padding tokens are sampled from the sequences in the embeddings data preparation step.
+- `local_estimates=twonn`: Compute the TwoNN-based local estimates (other options are `lpca` for local PCA based dimension estimates).
+- `local_estimates.filtering.num_samples=500`: This many non-padding tokens are sampled from the tokens (i.e., set `N=500` as size of the token sub-sample).
+- `local_estimates.pointwise.absolute_n_neighbors=128`: Use 128 neighbors for the pointwise local estimates (i.e., set `L=128` as the local neighborhood size).
+
+The results will be saved in the `data_dir` specified in the config file, and the file path will contain the information about the model and the dataset used, together with additional hyperparameter choices.
+For example, the results for the command above will be saved in the following directory:
+
+```bash
+data/analysis/local_estimates/data=wikitext-103-v1_strip-True_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags/split=validation_samples=512_sampling=random_sampling-seed=778/edh-mode=regular_lvl=token/add-prefix-space=False_max-len=512/model=roberta-base_task=masked_lm_dr=defaults/layer=-1_agg=mean/norm=None/sampling=random_seed=42_samples=3000/desc=twonn_samples=500_zerovec=keep_dedup=array_deduplicator_noise=do_nothing/
+```
+
+After the computation, this directory contains the following files:
+
+```bash
+.
+├── additional_distance_computations_results.json
+├── array_for_estimator.npy # <-- The array of vectors used for the local estimates computation (optional)
+├── global_estimate.npy # <-- The global estimate (optional)
+└── n-neighbors-mode=absolute_size_n-neighbors=128
+    ├── additional_pointwise_results_statistics.json # <-- The statistics of the pointwise results
+    ├── local_estimates_pointwise_array.npy # <-- The vector of pointwise local estimate results
+    └── local_estimates_pointwise_meta.pkl # <-- The metadata of the vector of the pointwise computation
+```
+
+As a reference, you can also take a look at the [VS Code launch configuration](.vscode/launch.json), which contains various configurations for running the pipeline in different ways.
+In the following sections, we will explain how to set up the experiments that we present in the paper.
 
 ### Experiments: Fine-Tuning Induces Dataset-Specific Shifts in Heterogeneous Local Dimensions
 
-TODO: Explain how to run these experiments.
-TODO: Add instructions for finetuning the language model.
-TODO: Explain how to compute local estimates for the finetuned models.
-TODO: Explain how to call the violin plot creation script.
+#### Fine-tuning the language model
+
+For finetuning models on a language modeling task, we provide another uv run command, that can be used with different configurations:
 
 ```bash
 uv run finetune_language_model
+```
+
+To run the fine-tunings with the same parameters as in the paper, use the following script:
+
+```bash
+./topollm/experiments/fine_tuning_induces_dataset_specific_shifts_in_heterogeneous_local_dimensions/run_multiple_finetunings.sh
+```
+
+By default, the fine-tuned models are saved in the `data/models/finetuned_models` directory, with paths that describe the model and the dataset used for fine-tuning.
+If successful, the fine-tuning script will also save a config file for the fine-tuned model into the `configs/language_model` using the short name of the model.
+For example, the config file of a RoBERTa base model fine-tuned on the first 10000 sequences of the MultiWOZ2.1 train dataset will be saved as:
+
+```bash
+configs/language_model/roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5.yaml
+```
+
+The short model name `roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5` can then be used to select a model in the local estimates computation pipeline.
+
+#### Local estimates computation for the finetuned models
+
+To compute the local estimates for the base and finetuned models, you can use the pipeline, and select the model via the `language_model` parameter.
+We provide an example script to produce the data which is shown in the paper in Section 4.1:
+
+```bash
+./topollm/experiments/fine_tuning_induces_dataset_specific_shifts_in_heterogeneous_local_dimensions/run_compute_local_estimates_for_base_and_finetuned_models.sh
+```
+
+#### Create the violin plots
+
+The violin plots in the paper, which compare the local estimate distribution between base and finetuned models, are created with the script:
+
+```bash
+uv run python3 topollm/plotting/plot_scripts_for_paper_draft/violin_plots_from_local_estimates.py
 ```
 
 ### Experiments: Local Dimensions Predict Grokking
@@ -141,15 +256,64 @@ Refer to the separate `grokking` repository for instructions on how to run these
 
 ### Experiments: Local Dimensions Detect Exhaustion of Training Capabilities
 
-TODO: Explain how to train the Trippy-R dialogue state tracking models.
-TODO: Explain how to compute local estimates for the Trippy-R models.
-TODO: Explain how to create the plots comparing local dimensions and task performance for the Trippy-R models.
+#### Train the Trippy-R dialogue state tracking models
+
+To train the dialogue state tracking models for which we compute the local estimates, use the official [TripPy-R](https://gitlab.cs.uni-duesseldorf.de/general/dsml/trippy-r-public) codebase.
+This repository contains information on how to set up the environment, obtain the data, and run the training scripts.
+
+For reproducibility, we provide the exact training script that we used for training the TripPy-R models here, and a script to convert the data from the TripPy-R output format to a format compatible with the local estimates computation pipeline.
+
+```bash
+# Train the TripPy-R models
+./topollm/experiments/local_dimensions_detect_exhaustion_of_training_capabilities/run_train_and_run_eval_of_trippy_r_models.sh
+# Convert the TripPy-R output format to a format compatible with the local estimates computation pipeline
+uv run topollm/experiments/local_dimensions_detect_exhaustion_of_training_capabilities/data_post_processing/load_cached_features_and_save_into_format_for_topo_llm.py --data_mode "trippy_r"
+```
+
+- You should probably update the values of the environment variables `CONVLAB3_REPOSITORY_BASE_PATH` and `TOOLS_DIR` to the location of your local ConvLab-3 and TripPy-R repositories.
+- To proceed with the local estimates computation, you also need to update the model file paths in the config file `configs/language_model/roberta-base-trippy_r_multiwoz21_short_runs.yaml` to the location where you place the model files.
+- Similarly, you need to update the data paths in the config file `configs/data/trippy_r_dataloaders_processed.yaml`.
+
+#### Local estimates computation for the Trippy-R models
+
+Use this script to compute the local estimates for the TripPy-R data and models:
+
+```bash
+./topollm/experiments/local_dimensions_detect_exhaustion_of_training_capabilities/run_compute_local_estimates_for_trippy_r_checkpoints.sh
+```
+
+#### Create plots comparing local dimensions and task performance for the Trippy-R models
+
+Once all data is available, you can run the script `topollm/experiments/local_dimensions_detect_exhaustion_of_training_capabilities/create_plots.sh`.
 
 ### Experiments: Local Dimensions Detect Overfitting
 
-TODO: Explain how to train the ERC models.
-TODO: Explain how to compute local estimates for the ERC models.
-TODO: Explain how to create the plots comparing local dimensions and task performance for the ERC models.
+#### Train the ERC models
+
+For training the Emotion Recognition Models, you should use the official [ConvLab-3](https://github.com/ConvLab/ConvLab-3/tree/master/convlab/dst/emodst/modeling) setup, which is explained in that repository.
+
+For reproducibility, we provide the exact training script that we used for training the ERC models here
+
+```bash
+./topollm/experiments/local_dimensions_detect_overfitting/run_train_erc_models.sh
+```
+
+- You need to update the values of the environment variables `CONVLAB3_REPOSITORY_BASE_PATH`.
+- To proceed with the local estimates computation, check the file paths in the model config file `configs/language_model/bert-base-uncased-ContextBERT-ERToD_emowoz_basic_setup.yaml`.
+- For the EmoWOZ data in a format compatible with this repository, check the config file `configs/data/ertod_emowoz.yaml`.
+
+#### Local estimates computation for the ERC models
+
+Run the following script to compute the local estimates for the ERC models:
+
+```bash
+./topollm/experiments/local_dimensions_detect_overfitting/run_compute_local_estimates_for_erc_model_checkpoints.sh
+```
+
+#### Create plots comparing local dimensions and task performance for the ERC models
+
+- You first need to parse the model task performance results from the log files using the script `topollm/task_performance_analysis/erc_models/parse_EmoLoop_ContextBERT_ERToD_logfile.py`.
+- Once all data is available, you can run the script `topollm/experiments/local_dimensions_detect_overfitting/create_plots.sh`.
 
 ### Run tests
 
