@@ -1,11 +1,11 @@
 # Copyright 2024-2025
-# Heinrich Heine University Dusseldorf,
-# Faculty of Mathematics and Natural Sciences,
-# Computer Science Department
+# [ANONYMIZED_INSTITUTION],
+# [ANONYMIZED_FACULTY],
+# [ANONYMIZED_DEPARTMENT]
 #
 # Authors:
-# Benjamin Matthias Ruppik (mail@ruppik.net)
-# Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
+# AUTHOR_1 (author1@example.com)
+# AUTHOR_2 (author2@example.com)
 #
 # Code generation tools and workflows:
 # First versions of this code were potentially generated
@@ -27,8 +27,8 @@
 
 """Download datasets and models into huggingface transformers cache.
 
-This is convenient for working with HHU ZIM, because we do not have internet access on the cluster,
-so we need to download the datasets and models to our local machines and then copy them to the cluster.
+This is convenient for working with a HPC cluster where we do not have internet access.
+In that case, we need to download the datasets and models to our local machines and then copy them to the cluster.
 """
 
 import argparse

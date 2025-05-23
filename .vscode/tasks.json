@@ -4,7 +4,7 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "rsync git repository to HHU Hilbert HPC",
+            "label": "rsync git repository to HPC cluster",
             "command": "./topollm/scripts/hhu_hilbert/sync_data/rsync_git_repository_to_hhu_hilbert.sh",
             "type": "shell",
             "group": {
@@ -18,7 +18,7 @@
             }
         },
         {
-            "label": "Local - Sync from local to HHU Hilbert HPC - Trippy-R code",
+            "label": "Local - Sync from local to HPC cluster - Trippy-R code",
             "command": "./topollm/scripts/hhu_hilbert/sync_data/rsync_trippy_r_code_to_hhu_hilbert.sh",
             "type": "shell",
             "group": {
@@ -33,7 +33,7 @@
             "problemMatcher": []
         },
         {
-            "label": "Local - Sync from HHU Hilbert HPC to local - Trippy-R evaluation results and model files",
+            "label": "Local - Sync from HPC cluster to local - Trippy-R evaluation results and model files",
             "command": "./topollm/scripts/hhu_hilbert/sync_data/rsync_trippy_or_trippy_r_evaluation_results_and_models_from_hhu_hilbert.sh",
             "type": "shell",
             "group": {
@@ -49,7 +49,7 @@
         },
         // START Weights and Biases related tasks (wandb)
         {
-            "label": "Local - Sync from HHU Hilbert HPC to local - (LARGE) - Full 'wandb' directory",
+            "label": "Local - Sync from HPC cluster to local - (LARGE) - Full 'wandb' directory",
             "command": "./topollm/scripts/hhu_hilbert/sync_data/sync_wandb/rsync_full_wandb_output_dir_from_hhu_hilbert.sh",
             "type": "shell",
             "group": {
@@ -63,7 +63,7 @@
             }
         },
         {
-            "label": "Local - Sync from HHU Hilbert HPC to local - Selected 'wandb' directories",
+            "label": "Local - Sync from HPC cluster to local - Selected 'wandb' directories",
             "command": "./topollm/scripts/hhu_hilbert/sync_data/sync_wandb/rsync_selected_wandb_output_dirs_from_hhu_hilbert.sh",
             "type": "shell",
             "group": {
@@ -139,7 +139,7 @@
             "problemMatcher": []
         },
         {
-            "label": "Local - Sync from HHU Hilbert HPC to local - 'hydra_output_dir' directory",
+            "label": "Local - Sync from HPC cluster to local - 'hydra_output_dir' directory",
             "command": "./topollm/scripts/hhu_hilbert/sync_data/rsync_hydra_output_dir_from_hhu_hilbert.sh",
             "type": "shell",
             "group": {
@@ -154,8 +154,8 @@
             "problemMatcher": []
         },
         {
-            "label": "Local - Sync from HHU Hilbert HPC to local - (LARGE) - 'analysis/distances_and_influence_on_losses_and_local_estimates' directory",
-            "detail": "rsync from HHU Hilbert HPC: 'analysis/distances_and_influence_on_losses_and_local_estimates'.",
+            "label": "Local - Sync from HPC cluster to local - (LARGE) - 'analysis/distances_and_influence_on_losses_and_local_estimates' directory",
+            "detail": "rsync from HPC cluster: 'analysis/distances_and_influence_on_losses_and_local_estimates'.",
             "command": "uv run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/distances_and_influence_on_losses_and_local_estimates/' --file-type all",
             "type": "shell",
             "group": {
@@ -169,8 +169,8 @@
             }
         },
         {
-            "label": "Local - Sync from HHU Hilbert HPC to local - Small files from 'analysis/distances_and_influence_on_losses_and_local_estimates' directory",
-            "detail": "rsync from HHU Hilbert HPC: Small files from 'analysis/distances_and_influence_on_losses_and_local_estimates'.",
+            "label": "Local - Sync from HPC cluster to local - Small files from 'analysis/distances_and_influence_on_losses_and_local_estimates' directory",
+            "detail": "rsync from HPC cluster: Small files from 'analysis/distances_and_influence_on_losses_and_local_estimates'.",
             "command": "uv run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/distances_and_influence_on_losses_and_local_estimates/' --syncing-mode 'exclude_large_predictions_and_metadata'",
             "type": "shell",
             "group": {
@@ -184,7 +184,7 @@
             }
         },
         {
-            "label": "Local - Sync from HHU Hilbert HPC to external drive - (LARGE) - 'analysis/distances_and_influence_on_losses_and_local_estimates' directory",
+            "label": "Local - Sync from HPC cluster to external drive - (LARGE) - 'analysis/distances_and_influence_on_losses_and_local_estimates' directory",
             "command": "uv run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/distances_and_influence_on_losses_and_local_estimates/' --syncing-mode 'all' --file-type 'all' --sync-to-external-drive",
             "type": "shell",
             "group": {
@@ -198,7 +198,7 @@
             }
         },
         {
-            "label": "Local - Sync from HHU Hilbert HPC to external drive - (LARGE) - 'analysis/prepared' and 'analysis/local_estimates' directories",
+            "label": "Local - Sync from HPC cluster to external drive - (LARGE) - 'analysis/prepared' and 'analysis/local_estimates' directories",
             "command": "uv run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/local_estimates/' 'data/analysis/prepared/' --file-type 'all' --sync_to_external_drive",
             "type": "shell",
             "group": {
@@ -212,8 +212,8 @@
             }
         },
         {
-            "label": "Local - Sync from HHU Hilbert HPC to local - (LARGE) - ALL file types 'analysis/local_estimates' directory",
-            "detail": "rsync from HHU Hilbert HPC: 'analysis/local_estimates'.",
+            "label": "Local - Sync from HPC cluster to local - (LARGE) - ALL file types 'analysis/local_estimates' directory",
+            "detail": "rsync from HPC cluster: 'analysis/local_estimates'.",
             "command": "uv run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/local_estimates/' --file-type 'all'",
             "type": "shell",
             "group": {
@@ -227,8 +227,8 @@
             }
         },
         {
-            "label": "Local - Sync from HHU Hilbert HPC to local - (LARGE) - 'data/saved_plots/local_estimates_projection/' directory",
-            "detail": "rsync from HHU Hilbert HPC: 'data/saved_plots/local_estimates_projection/'.",
+            "label": "Local - Sync from HPC cluster to local - (LARGE) - 'data/saved_plots/local_estimates_projection/' directory",
+            "detail": "rsync from HPC cluster: 'data/saved_plots/local_estimates_projection/'.",
             "command": "uv run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/saved_plots/local_estimates_projection/' --file-type 'all'",
             "type": "shell",
             "group": {
@@ -242,8 +242,8 @@
             }
         },
         {
-            "label": "Local - Sync from HHU Hilbert HPC to local - (MEDIUM-LARGE) - 'data/saved_plots/local_estimates_distribution_over_tokens/' directory",
-            "detail": "rsync from HHU Hilbert HPC: 'data/saved_plots/local_estimates_distribution_over_tokens/'.",
+            "label": "Local - Sync from HPC cluster to local - (MEDIUM-LARGE) - 'data/saved_plots/local_estimates_distribution_over_tokens/' directory",
+            "detail": "rsync from HPC cluster: 'data/saved_plots/local_estimates_distribution_over_tokens/'.",
             "command": "uv run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/saved_plots/local_estimates_distribution_over_tokens/' --file-type 'all'",
             "type": "shell",
             "group": {
@@ -257,7 +257,7 @@
             }
         },
         {
-            "label": "Local - Sync from HHU Hilbert HPC to local - ONLY .npy file types 'analysis/local_estimates' directory",
+            "label": "Local - Sync from HPC cluster to local - ONLY .npy file types 'analysis/local_estimates' directory",
             "command": "uv run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/local_estimates/' --file-type 'npy'",
             "type": "shell",
             "group": {
@@ -271,7 +271,7 @@
             }
         },
         {
-            "label": "Local - Sync from HHU Hilbert HPC to local - results_arrays, statistics from 'analysis/local_estimates/' directory",
+            "label": "Local - Sync from HPC cluster to local - results_arrays, statistics from 'analysis/local_estimates/' directory",
             "command": "uv run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/local_estimates/' --syncing-mode 'results_arrays_and_statistics'",
             "type": "shell",
             "group": {
@@ -285,7 +285,7 @@
             }
         },
         {
-            "label": "Local - Sync from HHU Hilbert HPC to local - (LARGE) - results_arrays, statistics, metadata from 'analysis/local_estimates/' directory",
+            "label": "Local - Sync from HPC cluster to local - (LARGE) - results_arrays, statistics, metadata from 'analysis/local_estimates/' directory",
             "command": "uv run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/local_estimates/' --syncing-mode 'results_array_and_statistics_and_metadata'",
             "type": "shell",
             "group": {
@@ -299,8 +299,8 @@
             }
         },
         {
-            "label": "Local - Sync from HHU Hilbert HPC to local - ALL file types 'data/analysis/training_and_evaluation_losses/' directory",
-            "detail": "rsync from HHU Hilbert HPC: 'data/analysis/training_and_evaluation_losses/'.",
+            "label": "Local - Sync from HPC cluster to local - ALL file types 'data/analysis/training_and_evaluation_losses/' directory",
+            "detail": "rsync from HPC cluster: 'data/analysis/training_and_evaluation_losses/'.",
             "command": "uv run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/training_and_evaluation_losses/' --file-type 'all'",
             "type": "shell",
             "group": {
@@ -314,8 +314,8 @@
             }
         },
         {
-            "label": "Local - Sync from HHU Hilbert HPC to local - ALL file types - Selected local estimates",
-            "detail": "rsync from HHU Hilbert HPC: ALL file types - Selected local estimates directories.",
+            "label": "Local - Sync from HPC cluster to local - ALL file types - Selected local estimates",
+            "detail": "rsync from HPC cluster: ALL file types - Selected local estimates directories.",
             "command": "uv run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/local_estimates/data=setsumbt_dataloaders_processed_0_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/split=dev_samples=10000_sampling=random_sampling-seed=778/edh-mode=regular_lvl=token/add-prefix-space=False_max-len=512/model=roberta-base-setsumbt_multiwoz21_seed-0_ckpt-2813_task=masked_lm_dr=defaults/layer=-1_agg=mean/norm=None/sampling=random_seed=42_samples=150000/desc=twonn_samples=60000_zerovec=keep_dedup=array_deduplicator_noise=do_nothing/' --syncing-mode 'all' --file-type 'all'",
             // Note: You can add more subdirectories by adding more arguments to the command
             "type": "shell",
@@ -330,8 +330,8 @@
             }
         },
         {
-            "label": "Local - Sync from HHU Hilbert HPC to local - ALL file types - Selected local estimates from Trippy-R training.",
-            "detail": "rsync from HHU Hilbert HPC: ALL file types - Selected local estimates from Trippy-R training.",
+            "label": "Local - Sync from HPC cluster to local - ALL file types - Selected local estimates from Trippy-R training.",
+            "detail": "rsync from HPC cluster: ALL file types - Selected local estimates from Trippy-R training.",
             "command": "uv run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/local_estimates/data=trippy_r_dataloaders_processed_multiwoz21_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/split=train_samples=7000_sampling=random_sampling-seed=778/edh-mode=regular_lvl=token/add-prefix-space=False_max-len=512/model=roberta-base_task=masked_lm_dr=defaults/' 'data/analysis/local_estimates/data=trippy_r_dataloaders_processed_multiwoz21_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/split=train_samples=7000_sampling=random_sampling-seed=778/edh-mode=regular_lvl=token/add-prefix-space=False_max-len=512/model=roberta-base-trippy_r_multiwoz21_seed-42_ckpt-1775_task=masked_lm_dr=defaults/' 'data/analysis/local_estimates/data=trippy_r_dataloaders_processed_multiwoz21_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/split=train_samples=7000_sampling=random_sampling-seed=778/edh-mode=regular_lvl=token/add-prefix-space=False_max-len=512/model=roberta-base-trippy_r_multiwoz21_seed-42_ckpt-35500_task=masked_lm_dr=defaults/' --syncing-mode 'all' --file-type 'all'",
             // Note: You can add more subdirectories by adding more arguments to the command
             "type": "shell",
@@ -346,8 +346,8 @@
             }
         },
         {
-            "label": "Local - Sync from HHU Hilbert HPC to local - ALL file types - Selected local estimates from SetSUMBT training.",
-            "detail": "rsync from HHU Hilbert HPC: ALL file types - Selected local estimates from SetSUMBT training.",
+            "label": "Local - Sync from HPC cluster to local - ALL file types - Selected local estimates from SetSUMBT training.",
+            "detail": "rsync from HPC cluster: ALL file types - Selected local estimates from SetSUMBT training.",
             "command": "uv run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/local_estimates/data=setsumbt_dataloaders_processed_0_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/split=dev_samples=10000_sampling=random_sampling-seed=778/edh-mode=regular_lvl=token/add-prefix-space=False_max-len=512/model=roberta-base_task=masked_lm_dr=defaults/' 'data/analysis/local_estimates/data=setsumbt_dataloaders_processed_0_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/split=dev_samples=10000_sampling=random_sampling-seed=778/edh-mode=regular_lvl=token/add-prefix-space=False_max-len=512/model=roberta-base-setsumbt_multiwoz21_seed-0_ckpt-2813_task=masked_lm_dr=defaults/' 'data/analysis/local_estimates/data=setsumbt_dataloaders_processed_0_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/split=dev_samples=10000_sampling=random_sampling-seed=778/edh-mode=regular_lvl=token/add-prefix-space=False_max-len=512/model=roberta-base-setsumbt_multiwoz21_seed-0_ckpt-126585_task=masked_lm_dr=defaults/' --syncing-mode 'all' --file-type 'all'",
             // Note: You can add more subdirectories by adding more arguments to the command
             "type": "shell",
@@ -362,8 +362,8 @@
             }
         },
         {
-            "label": "Local - Sync from HHU Hilbert HPC to local - results_arrays, statistics, metadata - Selected local estimates",
-            "detail": "rsync from HHU Hilbert HPC: Without array_for_estimator - Selected local estimates directories.",
+            "label": "Local - Sync from HPC cluster to local - results_arrays, statistics, metadata - Selected local estimates",
+            "detail": "rsync from HPC cluster: Without array_for_estimator - Selected local estimates directories.",
             "command": "uv run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/local_estimates/data=setsumbt_dataloaders_processed_0_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/split=dev_samples=10000_sampling=random_sampling-seed=778/edh-mode=regular_lvl=token/add-prefix-space=False_max-len=512/' --syncing-mode 'results_array_and_statistics_and_metadata' --file-type 'all'",
             // Note: You can add more subdirectories by adding more arguments to the command
             "type": "shell",
@@ -378,7 +378,7 @@
             }
         },
         {
-            "label": "Local - Sync from HHU Hilbert HPC to local - language model config directory",
+            "label": "Local - Sync from HPC cluster to local - language model config directory",
             "command": "./topollm/scripts/hhu_hilbert/sync_data/rsync_language_model_config_dir_from_hhu_hilbert.sh",
             "type": "shell",
             "group": {
@@ -392,7 +392,7 @@
             }
         },
         {
-            "label": "Local - Sync from local to HHU Hilbert HPC - huggingface cache",
+            "label": "Local - Sync from local to HPC cluster - huggingface cache",
             "command": "./topollm/scripts/hhu_hilbert/sync_data/rsync_huggingface_cache_to_hhu_hilbert.sh",
             "type": "shell",
             "group": {
@@ -406,7 +406,7 @@
             }
         },
         {
-            "label": "Local - Sync from HHU Hilbert HPC to local - 'data/embeddings/perplexity' directory",
+            "label": "Local - Sync from HPC cluster to local - 'data/embeddings/perplexity' directory",
             "command": "./topollm/scripts/hhu_hilbert/sync_data/rsync_perplexity_dir_from_hhu_hilbert.sh",
             "type": "shell",
             "group": {

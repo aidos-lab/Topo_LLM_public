@@ -1,11 +1,11 @@
 # Copyright 2024-2025
-# Heinrich Heine University Dusseldorf,
-# Faculty of Mathematics and Natural Sciences,
-# Computer Science Department
+# [ANONYMIZED_INSTITUTION],
+# [ANONYMIZED_FACULTY],
+# [ANONYMIZED_DEPARTMENT]
 #
 # Authors:
-# Benjamin Matthias Ruppik (mail@ruppik.net)
-# Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
+# AUTHOR_1 (author1@example.com)
+# AUTHOR_2 (author2@example.com)
 #
 # Code generation tools and workflows:
 # First versions of this code were potentially generated
@@ -77,7 +77,7 @@ if TYPE_CHECKING:
     from topollm.config_classes.main_config import MainConfig
 
 
-# Increase the wandb service wait time to prevent errors on HHU Hilbert.
+# Increase the wandb service wait time to prevent errors on HPC cluster.
 # https://github.com/wandb/wandb/issues/5214
 os.environ["WANDB__SERVICE_WAIT"] = "300"
 

@@ -1,11 +1,11 @@
 # Copyright 2024
-# Heinrich Heine University Dusseldorf,
-# Faculty of Mathematics and Natural Sciences,
-# Computer Science Department
+# [ANONYMIZED_INSTITUTION],
+# [ANONYMIZED_FACULTY],
+# [ANONYMIZED_DEPARTMENT]
 #
 # Authors:
-# Benjamin Matthias Ruppik (mail@ruppik.net)
-# Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
+# AUTHOR_1 (author1@example.com)
+# AUTHOR_2 (author2@example.com)
 #
 # Code generation tools and workflows:
 # First versions of this code were potentially generated
@@ -29,6 +29,8 @@ import pathlib
 
 import zarr
 
+from topollm.config_classes.constants import TOPO_LLM_REPOSITORY_BASE_PATH
+
 
 def main():
     # array_path = pathlib.Path(
@@ -41,7 +43,8 @@ def main():
     # )
 
     array_path = pathlib.Path(
-        "/Users/ruppik/Downloads/Topo_LLM/data/embeddings/test_array_dir",
+        TOPO_LLM_REPOSITORY_BASE_PATH,
+        "data/embeddings/test_array_dir",
     )
 
     print(f"{array_path = }")

@@ -1,11 +1,11 @@
 # Copyright 2024-2025
-# Heinrich Heine University Dusseldorf,
-# Faculty of Mathematics and Natural Sciences,
-# Computer Science Department
+# [ANONYMIZED_INSTITUTION],
+# [ANONYMIZED_FACULTY],
+# [ANONYMIZED_DEPARTMENT]
 #
 # Authors:
-# Benjamin Matthias Ruppik (mail@ruppik.net)
-# Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
+# AUTHOR_1 (author1@example.com)
+# AUTHOR_2 (author2@example.com)
 #
 # Code generation tools and workflows:
 # First versions of this code were potentially generated
@@ -25,7 +25,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Syncing parts of the analysis directory from HHU Hilbert to local machine."""
+"""Syncing parts of the analysis directory from HPC cluster to local machine."""
 
 import argparse
 import pprint
@@ -49,7 +49,7 @@ def sync_directories(
     dry_run_option: str,
     file_type: str,
 ) -> None:
-    """Sync directories from HHU Hilbert to the local machine."""
+    """Sync directories from HPC cluster to the local machine."""
     # Determine the include pattern based on file type.
     # See the following link for more information about include and exclude patterns in rsync:
     # https://stackoverflow.com/a/51480550/10011325

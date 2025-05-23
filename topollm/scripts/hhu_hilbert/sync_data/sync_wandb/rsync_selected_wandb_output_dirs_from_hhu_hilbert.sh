@@ -47,7 +47,7 @@ REPOSITORY_SUBDIRECTORY_PATH_LIST=(
     "wandb_output_dir/Topo_LLM_roberta-base_finetuning_for_ep-5_lr-linear_no_freeze_different_data_subsampling_seeds/"
 )
 
-SCRIPT_PATH="${TOPO_LLM_REPOSITORY_BASE_PATH}/topollm/scripts/hhu_hilbert/sync_data/rsync_selected_directories_from_hhu_hilbert.sh"
+SCRIPT_PATH="${TOPO_LLM_REPOSITORY_BASE_PATH}/topollm/scripts/cluster_backend/sync_data/rsync_selected_directories_from_cluster_backend.sh"
 
 ${SCRIPT_PATH} \
     ${DRY_RUN_FLAG} \

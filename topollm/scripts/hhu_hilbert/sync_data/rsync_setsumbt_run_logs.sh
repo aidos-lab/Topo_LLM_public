@@ -41,7 +41,7 @@ for SELECTED_FILE_PATH in "${SELECTED_FILE_PATH_LIST[@]}"; do
     mkdir -p "$(dirname $TARGET_FILE_PATH)"
 
     # ========================
-    echo ">>> Syncing data from HHU Hilbert server to local machine ..."
+    echo ">>> Syncing data from HPC cluster server to local machine ..."
 
     rsync \
         -avhz \

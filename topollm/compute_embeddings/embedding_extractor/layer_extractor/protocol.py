@@ -1,11 +1,11 @@
 # Copyright 2024
-# Heinrich Heine University Dusseldorf,
-# Faculty of Mathematics and Natural Sciences,
-# Computer Science Department
+# [ANONYMIZED_INSTITUTION],
+# [ANONYMIZED_FACULTY],
+# [ANONYMIZED_DEPARTMENT]
 #
 # Authors:
-# Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-muenchen.de)
-# Benjamin Matthias Ruppik (mail@ruppik.net)
+# AUTHOR_2 (author2@example.com)
+# AUTHOR_1 (author1@example.com)
 #
 # This code was generated with the help of AI writing assistants
 # including GitHub Copilot, ChatGPT, Bing Chat.

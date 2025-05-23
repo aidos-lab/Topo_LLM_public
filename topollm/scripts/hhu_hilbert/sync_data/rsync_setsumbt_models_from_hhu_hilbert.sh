@@ -55,7 +55,7 @@ check_variable "ZIM_USERNAME"
 check_variable "GPFS_PROJECT_DIR_DSML"
 
 # # # #
-# NOTE: This script is only syncing a subset of the models from the HHU Hilbert server,
+# NOTE: This script is only syncing a subset of the models from the HPC cluster server,
 # which are not all checkpoints of the model. This is for space reasons on the local machine.
 
 # Define the subfolder to sync
@@ -68,13 +68,13 @@ SOURCE_DIR="${REMOTE_HOST}:${GPFS_PROJECT_DIR_DSML}/${SELECTED_SUBFOLDER}"
 TARGET_DIR="${TOPO_LLM_REPOSITORY_BASE_PATH}/data/models/setsumbt_checkpoints/${SELECTED_SUBFOLDER}"
 mkdir -p "$TARGET_DIR"
 
-EXCLUDE_FROM_FILE="${TOPO_LLM_REPOSITORY_BASE_PATH}/topollm/scripts/hhu_hilbert/sync_data/rsync_setsumbt_models_excludes.txt"
+EXCLUDE_FROM_FILE="${TOPO_LLM_REPOSITORY_BASE_PATH}/topollm/scripts/cluster_backend/sync_data/rsync_setsumbt_models_excludes.txt"
 
 echo ">>> EXCLUDE_FROM_FILE=$EXCLUDE_FROM_FILE"
 
 # ========================
 
-echo ">>> Syncing data from HHU Hilbert server to local machine ..."
+echo ">>> Syncing data from HPC cluster server to local machine ..."
 
 # # # # # # # # # # # # # # # # # # # # # # # # #
 # Following rsync instructions from:

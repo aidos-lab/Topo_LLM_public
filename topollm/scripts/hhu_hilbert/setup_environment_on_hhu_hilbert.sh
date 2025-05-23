@@ -5,10 +5,9 @@
 # Note: This script only needs to be run once. It sets up the environment
 # variables in the .bashrc and .zshrc files in the home directory.
 
-
 echo "Setting up environment variables for Topo_LLM ..."
 
-# Setup for HHU Hilbert
+# Setup for HPC cluster
 #
 REPOSITORY_BASE_PATH="/gpfs/project/${USER_NAME}/git-source/Topo_LLM"
 
@@ -17,9 +16,9 @@ REPOSITORY_BASE_PATH="/gpfs/project/${USER_NAME}/git-source/Topo_LLM"
 # export TOPO_LLM_REPOSITORY_BASE_PATH=$REPOSITORY_BASE_PATH
 
 echo "Writing to $HOME/.bashrc ..."
-echo "export TOPO_LLM_REPOSITORY_BASE_PATH=$REPOSITORY_BASE_PATH" >> $HOME/.bashrc
+echo "export TOPO_LLM_REPOSITORY_BASE_PATH=$REPOSITORY_BASE_PATH" >>$HOME/.bashrc
 
-echo "Writing to $HOME/.zshrc ..." 
-echo "export TOPO_LLM_REPOSITORY_BASE_PATH=$REPOSITORY_BASE_PATH" >> $HOME/.zshrc
+echo "Writing to $HOME/.zshrc ..."
+echo "export TOPO_LLM_REPOSITORY_BASE_PATH=$REPOSITORY_BASE_PATH" >>$HOME/.zshrc
 
 echo "Setting up environment variables for Topo_LLM DONE"
