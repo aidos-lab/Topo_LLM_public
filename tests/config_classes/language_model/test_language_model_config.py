@@ -45,11 +45,11 @@ logger: logging.Logger = logging.getLogger(
 
 
 @pytest.mark.parametrize(
-    "config_name",
-    [
+    argnames="config_name",
+    argvalues=[
         "gpt2-medium",
         "roberta-base",
-        # "model-roberta-base_task-masked_lm_multiwoz21-train-10000-ner_tags_ftm-standard_lora-None_5e-05-constant-0.01-50",
+        "roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
     ],
 )
 def test_hydra_with_language_model_config(
