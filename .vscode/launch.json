@@ -399,20 +399,20 @@
                 //
                 //    >> START: Model options.
                 //
-                // >>>> Base models
+                // >>>> Base models 
                 "language_model=roberta-base",
                 // "language_model=bert-base-uncased",
                 // "language_model=gpt2-medium",
                 //
                 "++language_model.checkpoint_no=-1", // <-- checkpoint_no not necessary for the base models, setting it to '-1' to skip unnecessary iterations over different choices
                 //
-                // >>>> Fine-tuned models
-                // Individual:
+                // >>>> Fine-tuned models (Masked)
+                // >> Individual:
                 // "language_model=roberta-base-masked_lm-defaults_iclr_2024_submissions-rm-empty-True-do_nothing-ner_tags_train-5000-take_first-111_standard-None_5e-05-linear-0.01-5",
                 // "language_model=roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
                 // "language_model=roberta-base-masked_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
                 // "language_model=roberta-base-masked_lm-defaults_wikitext-103-v1-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
-                // Multiple:
+                // >> Multiple:
                 // "language_model=roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,roberta-base-masked_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,roberta-base-masked_lm-defaults_wikitext-103-v1-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
                 //
                 // "++language_model.checkpoint_no=400,800,1200,1600,2000,2400,2800",
@@ -458,14 +458,14 @@
                 //
                 // >>>> Trippy-R models
                 //
-                // >>>>>> Short Trippy-R runs
+                // >> Short Trippy-R runs
                 // "language_model=roberta-base-trippy_r_multiwoz21_short_runs",
                 // >> Note: The following line contains all the checkpoints available for a full short Trippy-R training run:
                 // "language_model.checkpoint_no=1775,3550,5325,7100,8875,10650,12425,14200,15975,17750,19525,21300,23075,24850,26625,28400,30175,31950,33725,35500",
                 // "language_model.checkpoint_no=1775,3550",
                 // "language_model.checkpoint_no=5325,7100,8875,10650,12425,14200,15975,17750,19525,21300,23075,24850,26625,28400,30175,31950,33725,35500",
                 //
-                // >>>>>> Long Trippy-R runs
+                // >> Long Trippy-R runs
                 // "language_model=roberta-base-trippy_r_multiwoz21_long_runs",
                 // "language_model.lr_scheduler_type=constant_schedule_with_warmup,linear_schedule_with_warmup",
                 // "language_model.lr_scheduler_type=linear_schedule_with_warmup",
@@ -571,19 +571,18 @@
                 //
                 //    >> START: Model options.
                 //
-                // >>>> Base models
+                // >>>> Base models (Autoregressive)
                 // "language_model=gpt2-medium",
                 //
                 // "++language_model.checkpoint_no=-1", // <-- checkpoint_no not necessary for the base models, setting it to '-1' to skip unnecessary iterations over different choices
                 //
-                // >>>> Fine-tuned models
+                // >>>> Fine-tuned models (Autoregressive)
                 // >> Individual:
                 // "language_model=gpt2-medium-causal_lm-defaults_iclr_2024_submissions-rm-empty-True-do_nothing-ner_tags_train-5000-take_first-111_standard-None_5e-05-linear-0.01-5",
                 // "language_model=gpt2-medium-causal_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
                 // "language_model=gpt2-medium-causal_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
                 // "language_model=gpt2-medium-causal_lm-defaults_sgd-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
                 // "language_model=gpt2-medium-causal_lm-defaults_wikitext-103-v1-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
-                // Running:
                 // >> Multiple:
                 "language_model=gpt2-medium-causal_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,gpt2-medium-causal_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,gpt2-medium-causal_lm-defaults_sgd-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,gpt2-medium-causal_lm-defaults_wikitext-103-v1-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
                 //
@@ -2683,7 +2682,7 @@
             }
         },
         {
-            "name": "Analyse local estimate distribution over tokens - Local debugging - ",
+            "name": "Analyse local estimate distribution over tokens - HPC cluster submission & Local debugging - ",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/analysis/distribution_over_tokens/analyse_local_estimate_distribution_over_tokens.py",
@@ -2695,12 +2694,13 @@
                 // ===== Local =====
                 // "hydra/launcher=basic",
                 // ===== HPC cluster CPU-machine =====
+                // Notes: 
+                // - Do NOT set the DEFAULT queue in the CPU template, as this will lead to problems. "hydra.launcher.queue=DEFAULT"
+                // - There used to be a problem with the CPU template here when setting memory=16 and ncpus=2
+                //   (in that case, CPUs and memory are taken from the template, not from the extra arguments).
+                //   As a workaround, we do not choose these problematic values here.
                 "hydra/launcher=hpc_submission",
-                "hydra.launcher.queue=DEFAULT",
                 "hydra.launcher.template=CPU",
-                // Note: There is a problem with the CPU template here when setting memory=16 and ncpus=2
-                // (in that case, CPUs and memory are taken from the template, not from the extra arguments).
-                // As a workaround, we do not choose these problematic values here.
                 "hydra.launcher.memory=17",
                 "hydra.launcher.ncpus=3",
                 "hydra.launcher.ngpus=0",
@@ -2711,7 +2711,7 @@
                 //
                 //    >> START: Data options.
                 //
-                // "data=multiwoz21",
+                "data=multiwoz21",
                 // "data=sgd",
                 // "data=one-year-of-tsla-on-reddit",
                 // "data=sgd,one-year-of-tsla-on-reddit",
@@ -2731,13 +2731,13 @@
                 // "data.data_subsampling.split=dev",
                 //
                 // >>>> Trippy datasets:
-                "data=trippy_dataloaders_processed",
+                // "data=trippy_dataloaders_processed",
                 //
                 // "data.data_subsampling.split=train",
                 // "data.data_subsampling.split=validation",
                 // "data.data_subsampling.split=test",
-                "data.data_subsampling.split=train,dev,test",
-                // "data.data_subsampling.split=train,validation,test",
+                // "data.data_subsampling.split=train,dev,test",
+                "data.data_subsampling.split=train,validation,test",
                 //
                 //
                 "data.data_subsampling.sampling_mode=random",
@@ -2748,7 +2748,38 @@
                 //
                 //    >> START: Model options.
                 //
+                // >>>> Base models (Masked)
                 // "language_model=roberta-base",
+                //
+                // >>>> Fine-tuned models (Masked)
+                // >> Individual:
+                // "language_model=roberta-base-masked_lm-defaults_iclr_2024_submissions-rm-empty-True-do_nothing-ner_tags_train-5000-take_first-111_standard-None_5e-05-linear-0.01-5",
+                // "language_model=roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+                // "language_model=roberta-base-masked_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+                // "language_model=roberta-base-masked_lm-defaults_wikitext-103-v1-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+                // >> Multiple:
+                // "language_model=roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,roberta-base-masked_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,roberta-base-masked_lm-defaults_wikitext-103-v1-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+                //
+                // >>>> Base models (Autoregressive)
+                // "language_model=gpt2-medium",
+                //
+                // "++language_model.checkpoint_no=-1", // <-- checkpoint_no not necessary for the base models, setting it to '-1' to skip unnecessary iterations over different choices
+                //
+                // >>>> Fine-tuned models (Autoregressive)
+                // >> Individual:
+                // "language_model=gpt2-medium-causal_lm-defaults_iclr_2024_submissions-rm-empty-True-do_nothing-ner_tags_train-5000-take_first-111_standard-None_5e-05-linear-0.01-5",
+                // "language_model=gpt2-medium-causal_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+                // "language_model=gpt2-medium-causal_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+                // "language_model=gpt2-medium-causal_lm-defaults_sgd-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+                // "language_model=gpt2-medium-causal_lm-defaults_wikitext-103-v1-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+                // >> Multiple:
+                // "language_model=gpt2-medium-causal_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,gpt2-medium-causal_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,gpt2-medium-causal_lm-defaults_sgd-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5,gpt2-medium-causal_lm-defaults_wikitext-103-v1-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+                //
+                // "++language_model.checkpoint_no=400,800,1200,1600,2000,2400,2800",
+                // "++language_model.checkpoint_no=1200",
+                // "++language_model.checkpoint_no=2800",
+                //
+                // >>>> ERC models
                 //
                 // "language_model=bert-base-uncased",
                 // "language_model=bert-base-uncased-SentiX",
@@ -2764,16 +2795,49 @@
                 // "language_model.checkpoint_no=1",
                 // "language_model.checkpoint_no=0,1,2,3,4",
                 //
+                // >>>> SetSUMBT models
+                //
                 // "language_model=roberta-base-setsumbt_multiwoz21",
                 // "language_model.seed=0",
                 // "language_model.checkpoint_no=2813,5626,8439,11252,14065,16878,19691,25317,33756,36569,39382,42195,50634,56260,70325,90016,109707,115333,126585", // <-- locally, we have metadata and local estimates for these checkpoints available for "language_model.seed=0"
                 // "language_model.seed=1",
                 // "language_model.checkpoint_no=109707", // <-- locally, we have these checkpoints available for "language_model.seed=1"
                 //
-                "language_model=roberta-base-trippy_multiwoz21",
-                "language_model.seed=42",
-                "language_model.checkpoint_no=3549,7098,10647,14196,17745,21294,24843,28392,31941,35490",
+                // >>>> TripPy models
+                //
+                // "language_model=roberta-base-trippy_multiwoz21",
+                // "language_model.seed=42",
+                // "language_model.checkpoint_no=3549,7098,10647,14196,17745,21294,24843,28392,31941,35490",
                 // "language_model.checkpoint_no=3549",
+                //
+                // >>>> TripPy-R models
+                //
+                // >> Short Trippy-R runs
+                // "language_model=roberta-base-trippy_r_multiwoz21_short_runs",
+                // >> Note: The following line contains all the checkpoints available for a full short Trippy-R training run:
+                // "language_model.checkpoint_no=1775,3550,5325,7100,8875,10650,12425,14200,15975,17750,19525,21300,23075,24850,26625,28400,30175,31950,33725,35500",
+                // "language_model.checkpoint_no=1775,3550",
+                // "language_model.checkpoint_no=5325,7100,8875,10650,12425,14200,15975,17750,19525,21300,23075,24850,26625,28400,30175,31950,33725,35500",
+                //
+                // >> Long Trippy-R runs
+                // "language_model=roberta-base-trippy_r_multiwoz21_long_runs",
+                // "language_model.lr_scheduler_type=constant_schedule_with_warmup,linear_schedule_with_warmup",
+                // "language_model.lr_scheduler_type=linear_schedule_with_warmup",
+                // Note: You can generate the comma-separated list of checkpoints for the long Trippy-R runs with the following python command:
+                // >>> ','.join(list(map(str, range(1775,88751,1775))))
+                // "language_model.checkpoint_no=1775,3550,5325,7100,8875,10650,12425,14200,15975,17750,19525,21300,23075,24850,26625,28400,30175,31950,33725,35500,37275,39050,40825,42600,44375,46150,47925,49700,51475,53250,55025,56800,58575,60350,62125,63900,65675,67450,69225,71000,72775,74550,76325,78100,79875,81650,83425,85200,86975,88750",
+                // "language_model.checkpoint_no=1775,3550",
+                // "language_model.checkpoint_no=5325",
+                // "language_model.checkpoint_no=7100,8875,10650,12425,14200,15975,17750,19525,21300,23075,24850,26625,28400,30175,31950,33725,35500,37275,39050,40825,42600,44375,46150,47925,49700,51475,53250,55025,56800,58575,60350,62125,63900,65675,67450,69225,71000,72775,74550,76325,78100,79875,81650,83425,85200,86975,88750",
+                //
+                // "language_model.seed=1111",
+                // "language_model.seed=40",
+                // "language_model.seed=41",
+                // "language_model.seed=42", // Note: seed=42 is already submitted
+                // "language_model.seed=43",
+                // "language_model.seed=43,44",
+                // "language_model.seed=42,43,44",
+                // "language_model.seed=1111,40,41",
                 //
                 //    >> END: Model options.
                 //
