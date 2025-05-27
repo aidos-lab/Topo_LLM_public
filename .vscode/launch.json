@@ -2683,7 +2683,7 @@
             }
         },
         {
-            "name": "Analyse local estimate distribution over tokens - HPC cluster submission & Local debugging - ",
+            "name": "Analyse local estimate distribution over tokens - Single HPC cluster submission & Local debugging - ",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/analysis/distribution_over_tokens/analyse_local_estimate_distribution_over_tokens.py",
@@ -2857,6 +2857,22 @@
                 //
                 //    >> START: Feature flags.
                 //    >> END: Feature flags.
+            ],
+            "env": {
+                "PYTORCH_ENABLE_MPS_FALLBACK": "1"
+            }
+        },
+        {
+            "name": "Submit: Analyse local estimate distribution over tokens - Local debugging - Dry run",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/analysis/distribution_over_tokens/submit_analyse_local_estimate_distribution.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--launcher",
+                "basic",
+                "--run-mode",
+                "dry_run",
             ],
             "env": {
                 "PYTORCH_ENABLE_MPS_FALLBACK": "1"
