@@ -129,6 +129,28 @@ def main(
         "local_estimates.pointwise.absolute_n_neighbors=128",
     ]
 
+    # --- Base models case ---
+    regular_data_args: list[str] = [
+        "data=multiwoz21,sgd,one-year-of-tsla-on-reddit,wikitext-103-v1",
+        "data.data_subsampling.split=train,validation,test",
+        "data.data_subsampling.sampling_mode=random",
+        "data.data_subsampling.number_of_samples=10000",
+        "data.data_subsampling.sampling_seed=778",
+        # Add more datasets here if needed
+    ]
+
+    base_models: list[str] = [
+        "roberta-base",
+        "gpt2-medium",
+    ]
+
+    # --- Fine-tuning case ---
+
+    regular_model_args_list: list[str] = [
+        "language_model=roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
+        # Add more model configurations as needed
+    ]
+
     # --- Trippy-R case ---
     trippy_r_data_args: list[str] = [
         "data=trippy_r_dataloaders_processed",
@@ -155,44 +177,58 @@ def main(
         "69225,71000,72775,74550,76325,78100,79875,81650,83425,85200,86975,88750"
     )
 
-    # --- Regular case ---
-    regular_data_args: list[str] = [
-        "data=multiwoz21,sgd,one-year-of-tsla-on-reddit,wikitext-103-v1",
+    # --- ERC models case ---
+    erc_data_args: list[str] = [
+        "data=ertod_emowoz",
+        "data.dataset_seed=50",
         "data.data_subsampling.split=train,validation,test",
         "data.data_subsampling.sampling_mode=random",
-        "data.data_subsampling.number_of_samples=10000",
+        "data.data_subsampling.number_of_samples=7000",
         "data.data_subsampling.sampling_seed=778",
-        # Add more datasets here if needed
     ]
 
-    regular_model_args_list: list[str] = [
-        "language_model=roberta-base",
-        "language_model=roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5",
-        "language_model=gpt2-medium",
-        # Add more model configurations as needed
-    ]
+    # TODO: Add ERC models and checkpoints here
 
-    regular_checkpoints: list[str] = [
-        "-1",  # Use -1 for all checkpoints, or list specific ones
-        "1200",
-        "2800",
-    ]
-
+    # --- Modes to process ---
     modes_to_process: list[str] = [
-        "regular",
+        "base_models",
+        "regular_fine_tuned_models",
         "trippy_r",
+        "erc_models",
     ]
 
     for mode in modes_to_process:
         match mode:
-            case "regular":
+            case "base_models":
+                if verbosity >= Verbosity.NORMAL:
+                    logger.info(
+                        msg="Running for base models.",
+                    )
+                for model in base_models:
+                    args: list[str] = (
+                        base_args
+                        + launcher_args
+                        + regular_data_args
+                        + [
+                            f"language_model={model}",
+                            "++language_model.checkpoint_no=-1",
+                        ]
+                        + embeddings_args
+                        + local_estimates_args
+                    )
+                    run_command(
+                        script=script,
+                        args=args,
+                        run_mode=run_mode,
+                    )
+
+            case "regular_fine_tuned_models":
                 if verbosity >= Verbosity.NORMAL:
                     logger.info(
                         msg="Running for regular fine-tuned models.",
                     )
-                # TODO: Start run for TripPy-R data and robert-base model
-                # TODO: Start run for regular data and roberta-base and gpt2-medium models and -1 checkpoint
-                # TODO: Start run for regular data and fine-tuned roberta-base models (1200, 2800 checkpoints) and fine-tuned gpt-2-medium model (1200, 2800 checkpoints)
+                # TODO: Start run for regular data and fine-tuned roberta-base models (1200, 2800 checkpoints)
+                # TODO: Start run for fine-tuned gpt-2-medium model (1200, 2800 checkpoints)
 
                 # args = (
                 #     base_args
@@ -217,6 +253,32 @@ def main(
                         msg="Running for TripPy-R models.",
                     )
 
+                if verbosity >= Verbosity.NORMAL:
+                    logger.info(
+                        msg="Running for TripPy-R base model.",
+                    )
+
+                args: list[str] = (
+                    base_args
+                    + launcher_args
+                    + trippy_r_data_args
+                    + [
+                        "language_model=robert-base",
+                        "++language_model.checkpoint_no=-1",
+                    ]
+                    + embeddings_args
+                    + local_estimates_args
+                )
+                run_command(
+                    script=script,
+                    args=args,
+                    run_mode=run_mode,
+                )
+
+                if verbosity >= Verbosity.NORMAL:
+                    logger.info(
+                        msg="Running for TripPy-R checkpoints.",
+                    )
                 for model in trippy_r_models:
                     match model:
                         case "roberta-base-trippy_r_multiwoz21_short_runs":
@@ -249,6 +311,17 @@ def main(
                         args=args,
                         run_mode=run_mode,
                     )
+
+            case "erc_models":
+                if verbosity >= Verbosity.NORMAL:
+                    logger.info(
+                        msg="Running for ERC models.",
+                    )
+
+                # TODO: Add the ERC models case here
+                logger.warning(  # TODO: Remove this warning when ERC models are implemented
+                    msg="ERC models case is not implemented yet.",
+                )
             case _:
                 msg: str = f"Unknown mode: {mode}"
                 raise ValueError(msg)
