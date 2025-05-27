@@ -657,11 +657,12 @@
                 // "data=setsumbt_dataloaders_processed",
                 // "data.dataset_seed=0",
                 //
-                // >>>> Trippy datasets
+                // >>>> TripPy datasets
+                // >> Note: The splits for TripPy are called: train,dev,test
                 // "data=trippy_dataloaders_processed",
                 //
-                // >>>> Trippy-R datasets.
-                // >> Note: The splits for Trippy-R are called: train,dev,test
+                // >>>> TripPy-R datasets.
+                // >> Note: The splits for TripPy-R are called: train,dev,test
                 "data=trippy_r_dataloaders_processed",
                 //
                 // "data.data_subsampling.split=train",
