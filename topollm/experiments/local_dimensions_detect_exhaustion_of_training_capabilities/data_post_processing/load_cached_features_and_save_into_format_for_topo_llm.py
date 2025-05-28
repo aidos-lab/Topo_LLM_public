@@ -12,17 +12,7 @@
 # GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
 # Afterwards, the generated segments were manually reviewed and edited.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+
 
 """Script for loading cached features and saving them into a format for the Topo_LLM repository."""
 
@@ -38,6 +28,7 @@ import torch
 from tqdm import tqdm
 
 from topollm.logging.create_and_configure_global_logger import create_and_configure_global_logger
+from topollm.typing.enums import Verbosity
 
 TOPO_LLM_REPOSITORY_BASE_PATH: str = os.path.expandvars(
     path=os.getenv(
@@ -94,7 +85,7 @@ def get_processed_data_paths_collection(
                 msg,
             )
 
-    if verbosity > 0:
+    if verbosity >= Verbosity.NORMAL:
         logger.info(
             msg=f"{data_mode=}",  # noqa: G004 - low overhead
         )
@@ -107,7 +98,7 @@ def get_processed_data_paths_collection(
         "post_processed_cached_features",
         "multiwoz21",
     )
-    if verbosity > 0:
+    if verbosity >= Verbosity.NORMAL:
         logger.info(
             msg=f"{post_processed_cached_features_dir=}",  # noqa: G004 - low overhead
         )
@@ -121,7 +112,7 @@ def get_processed_data_paths_collection(
         post_processed_cached_features_dir=post_processed_cached_features_dir,
     )
 
-    if verbosity > 0:
+    if verbosity >= Verbosity.NORMAL:
         logger.info(
             msg=f"processed_data_path_collection:\n{processed_data_path_collection}",  # noqa: G004 - low overhead
         )
@@ -145,9 +136,9 @@ def parse_arguments() -> argparse.Namespace:
 
     parser.add_argument(
         "--verbosity",
-        type=int,
-        default=1,
-        help="Verbosity level (0: no output, 1: info, 2: debug)",
+        type=Verbosity,
+        default=Verbosity.NORMAL,
+        help="Verbosity level.",
     )
 
     args: argparse.Namespace = parser.parse_args()
@@ -161,11 +152,11 @@ def main() -> None:
 
     args: argparse.Namespace = parse_arguments()
     data_mode: DataMode = args.data_mode
-    verbosity: int = args.verbosity
+    verbosity: Verbosity = args.verbosity
 
     number_of_elements_to_log: int = 5
 
-    if verbosity > 0:
+    if verbosity >= Verbosity.NORMAL:
         logger.info(
             msg=f"{TOPO_LLM_REPOSITORY_BASE_PATH=}",  # noqa: G004 - low overhead
         )
@@ -238,7 +229,7 @@ def main() -> None:
             f"cached_{split_identifier}_features",  # Note: File has no extension
         )
 
-        if verbosity > 0:
+        if verbosity >= Verbosity.NORMAL:
             logger.info(
                 msg=f"{file_path=}",  # noqa: G004 - low overhead
             )
@@ -253,7 +244,7 @@ def main() -> None:
         # Notes:
         # - The module 'utils_dst' needs to be accessible for this loading to work.
         # - `weights_only=False` is necessary because the saved object needs to execute code.
-        if verbosity > 0:
+        if verbosity >= Verbosity.NORMAL:
             logger.info(
                 msg=f"Loading cached features from {file_path=} ... (This might take some time)",  # noqa: G004 - low overhead
             )
@@ -261,7 +252,7 @@ def main() -> None:
             f=file_path,
             weights_only=False,
         )
-        if verbosity > 0:
+        if verbosity >= Verbosity.NORMAL:
             logger.info(
                 msg=f"Loading cached features from {file_path=} DONE",  # noqa: G004 - low overhead
             )
@@ -281,7 +272,7 @@ def main() -> None:
                 # - We only need the first element.
                 cached_features: list = loaded_features[0]
 
-        if verbosity > 0:
+        if verbosity >= Verbosity.NORMAL:
             logger.info(
                 msg=f"Loaded object of {type(cached_features)=} with {len(cached_features)=}",  # noqa: G004 - low overhead
             )
@@ -292,7 +283,7 @@ def main() -> None:
             )
             continue
 
-        if verbosity > 0:
+        if verbosity >= Verbosity.NORMAL:
             logger.info(
                 msg=f"List items are of type {type(cached_features[0])=}",  # noqa: G004 - low overhead
             )
@@ -351,7 +342,7 @@ def main() -> None:
             dim=0,
         )
 
-        if verbosity > 0:
+        if verbosity >= Verbosity.NORMAL:
             logger.info(
                 msg=f"Stacked tensors: {input_ids_stacked.shape=}, {attention_masks_stacked.shape=}",  # noqa: G004 - low overhead
             )
@@ -375,7 +366,7 @@ def main() -> None:
             exist_ok=True,
         )
 
-        if verbosity > 0:
+        if verbosity >= Verbosity.NORMAL:
             logger.info(
                 msg=f"Saving processed cached features to {output_path=} ...",  # noqa: G004 - low overhead
             )
@@ -384,7 +375,7 @@ def main() -> None:
             obj=result,
             f=output_path,
         )
-        if verbosity > 0:
+        if verbosity >= Verbosity.NORMAL:
             logger.info(
                 msg=f"Saving processed cached features to {output_path=} DONE",  # noqa: G004 - low overhead
             )

@@ -13,17 +13,7 @@
 # GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
 # Afterwards, the generated segments were manually reviewed and edited.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+
 
 import logging
 import pathlib
@@ -149,6 +139,9 @@ def load_and_stack_embedding_data(
         concatenated_pos_tags: list = [pos_tag for pos_tags in concatenated_pos_batches for pos_tag in pos_tags]
 
         full_data_dict["POS"] = concatenated_pos_tags
+
+    # TODO: Here we would need to add processing for other token-level metadata,
+    # TODO: such as the TripPy-R labels, if they are available in the metadata.
 
     full_df = pd.DataFrame(
         data=full_data_dict,
