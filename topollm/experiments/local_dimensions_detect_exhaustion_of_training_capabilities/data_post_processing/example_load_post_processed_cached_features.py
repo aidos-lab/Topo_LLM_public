@@ -41,9 +41,7 @@ from topollm.experiments.local_dimensions_detect_exhaustion_of_training_capabili
     ProcessedDataPathsCollection,
     get_processed_data_paths_collection,
 )
-from topollm.experiments.local_dimensions_detect_exhaustion_of_training_capabilities.logging.create_and_configure_global_logger import (
-    create_and_configure_global_logger,
-)
+from topollm.logging.create_and_configure_global_logger import create_and_configure_global_logger
 
 TOPO_LLM_REPOSITORY_BASE_PATH: str = os.path.expandvars(
     path=os.getenv(

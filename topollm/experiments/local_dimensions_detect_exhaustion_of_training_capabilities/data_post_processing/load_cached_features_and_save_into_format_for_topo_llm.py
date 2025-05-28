@@ -33,14 +33,11 @@ import pathlib
 import sys
 from dataclasses import dataclass
 from enum import StrEnum, auto
-from typing import TYPE_CHECKING
 
 import torch
 from tqdm import tqdm
 
-from topollm.experiments.local_dimensions_detect_exhaustion_of_training_capabilities.logging.create_and_configure_global_logger import (
-    create_and_configure_global_logger,
-)
+from topollm.logging.create_and_configure_global_logger import create_and_configure_global_logger
 
 TOPO_LLM_REPOSITORY_BASE_PATH: str = os.path.expandvars(
     path=os.getenv(
