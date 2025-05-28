@@ -4,7 +4,7 @@ set -e
 
 # Check if TOPO_LLM_REPOSITORY_BASE_PATH is set
 if [[ -z "${TOPO_LLM_REPOSITORY_BASE_PATH}" ]]; then
-    echo "Error: TOPO_LLM_REPOSITORY_BASE_PATH is not set."
+    echo "❌ Error: TOPO_LLM_REPOSITORY_BASE_PATH is not set."
     exit 1
 fi
 
@@ -18,11 +18,13 @@ SCRIPT_PATH="${TOPO_LLM_REPOSITORY_BASE_PATH}/"
 SCRIPT_PATH+="topollm/analysis/distribution_over_tokens/submit_analyse_local_estimate_distribution.py"
 
 # # # # # # # # # # # #
-LAUNCHER="basic"
-RUN_MODE="dry_run"
-
-# LAUNCHER="hpc_submission"
-# RUN_MODE="regular"
+# >> Local launch with dry run
+# LAUNCHER="basic"
+# RUN_MODE="dry_run"
+#
+# >> HPC submission with regular run mode
+LAUNCHER="hpc_submission"
+RUN_MODE="regular"
 # # # # # # # # # # # #
 
 echo "⏳ Starting submission script..."

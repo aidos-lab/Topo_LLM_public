@@ -303,7 +303,7 @@ def main(
                     + launcher_args
                     + trippy_r_data_args
                     + [
-                        "language_model=robert-base",
+                        "language_model=roberta-base",
                         "++language_model.checkpoint_no=-1",
                     ]
                     + embeddings_args
