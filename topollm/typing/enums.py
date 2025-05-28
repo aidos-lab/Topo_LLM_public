@@ -72,6 +72,7 @@ class DatasetType(StrEnum):
 
     SETSUMBT_DATALOADERS_PROCESSED = auto()
     TRIPPY_DATALOADERS_PROCESSED = auto()
+    TRIPPY_R_DATALOADERS_PROCESSED = auto()
 
 
 # ==============================

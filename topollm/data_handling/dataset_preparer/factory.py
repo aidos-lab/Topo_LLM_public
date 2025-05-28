@@ -97,7 +97,7 @@ def get_dataset_preparer(
                 verbosity=verbosity,
                 logger=logger,
             )
-        case DatasetType.TRIPPY_DATALOADERS_PROCESSED:
+        case DatasetType.TRIPPY_DATALOADERS_PROCESSED | DatasetType.TRIPPY_R_DATALOADERS_PROCESSED:
             result = dataset_preparer_trippy_dataloaders_processed.DatasetPreparerTrippyDataloadersProcessed(
                 data_config=data_config,
                 dataset_filter=dataset_filter,

@@ -66,3 +66,9 @@ class DataProcessingColumnNames(ConfigBaseModel):
         title="Column name for the decoded token_id information.",
         description="The column name for the decoded token_id information.",
     )
+
+    pos_tags_name: str = Field(
+        default="POS",
+        title="Column name for the part-of-speech tags.",
+        description="The column name for the part-of-speech tags.",
+    )

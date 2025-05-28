@@ -27,7 +27,9 @@ from topollm.embeddings_data_prep.load_pickle_files_from_meta_path import load_p
 from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 from topollm.typing.enums import Verbosity
 
-default_logger = logging.getLogger(__name__)
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 default_data_processing_column_names = DataProcessingColumnNames()
 
 
@@ -128,17 +130,19 @@ def load_and_stack_embedding_data(
 
     # # # #
     # Manually concatenate the elements in the POS metadata (if it exist)
-    if "POS" in loaded_metadata[0]["metadata"]:
+    if data_processing_column_names.pos_tags_name in loaded_metadata[0]["metadata"]:
         # POS collection is a
         # list of batches, where each batch is a list of sentences, where each sentence is a list of POS tags
-        pos_collection: list[list[list]] = [metadata_chunk["metadata"]["POS"] for metadata_chunk in loaded_metadata]
+        pos_collection: list[list[list]] = [
+            metadata_chunk["metadata"][data_processing_column_names.pos_tags_name] for metadata_chunk in loaded_metadata
+        ]
 
         concatenated_pos_batches: list = [pos_batch for pos_batches in pos_collection for pos_batch in pos_batches]
 
         # Concatenate the list of POS tags
         concatenated_pos_tags: list = [pos_tag for pos_tags in concatenated_pos_batches for pos_tag in pos_tags]
 
-        full_data_dict["POS"] = concatenated_pos_tags
+        full_data_dict[data_processing_column_names.pos_tags_name] = concatenated_pos_tags
 
     # TODO: Here we would need to add processing for other token-level metadata,
     # TODO: such as the TripPy-R labels, if they are available in the metadata.
