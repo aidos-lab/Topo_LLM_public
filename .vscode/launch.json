@@ -2916,8 +2916,10 @@
             "program": "topollm/experiments/local_dimensions_detect_exhaustion_of_training_capabilities/data_post_processing/load_cached_features_and_save_into_format_for_topo_llm.py",
             "console": "integratedTerminal",
             "args": [
-                "--data_mode",
+                "--data-mode",
                 "trippy_r",
+                "--metadata-handling-mode",
+                "create_and_save_bio_tags",
             ],
             "env": {
                 "PYTORCH_ENABLE_MPS_FALLBACK": "1"

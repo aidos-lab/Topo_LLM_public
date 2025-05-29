@@ -24,7 +24,10 @@ import sys
 from dataclasses import dataclass
 from enum import StrEnum, auto
 
+import click
+import pandas as pd
 import torch
+import transformers
 from tqdm import tqdm
 
 from topollm.logging.create_and_configure_global_logger import create_and_configure_global_logger
@@ -51,6 +54,13 @@ class DataMode(StrEnum):
 
     TRIPPY = auto()
     TRIPPY_R = auto()
+
+
+class MetadataHandlingMode(StrEnum):
+    """Enum for the metadata handling modes."""
+
+    IGNORE = auto()
+    CREATE_AND_SAVE_BIO_TAGS = auto()
 
 
 @dataclass
@@ -120,39 +130,38 @@ def get_processed_data_paths_collection(
     return processed_data_path_collection
 
 
-def parse_arguments() -> argparse.Namespace:
-    """Parse command line arguments."""
-    parser = argparse.ArgumentParser(
-        description="Load cached features and save them into a format for the Topo_LLM repository.",
-    )
-
-    parser.add_argument(
-        "--data_mode",
-        type=DataMode,
-        choices=list(DataMode),
-        default=DataMode.TRIPPY_R,
-        help="Data mode to use.",
-    )
-
-    parser.add_argument(
-        "--verbosity",
-        type=Verbosity,
-        default=Verbosity.NORMAL,
-        help="Verbosity level.",
-    )
-
-    args: argparse.Namespace = parser.parse_args()
-
-    return args
-
-
-def main() -> None:
+@click.command(
+    help="Load cached features and save them into a format for the Topo_LLM repository.",
+)
+@click.option(
+    "--data-mode",
+    type=click.Choice(choices=list(DataMode)),
+    default=DataMode.TRIPPY_R,
+    show_default=True,
+    help="Data mode to use.",
+)
+@click.option(
+    "--metadata-handling-mode",
+    type=click.Choice(choices=list(MetadataHandlingMode)),
+    default=MetadataHandlingMode.CREATE_AND_SAVE_BIO_TAGS,
+    show_default=True,
+    help="Metadata handling mode.",
+)
+@click.option(
+    "--verbosity",
+    type=Verbosity,
+    # Note: Do not add `type=click.Choice()` parameter here, as this is problematic with IntEnum in Click.
+    default=Verbosity.NORMAL,
+    show_default=True,
+    help="Verbosity level.",
+)
+def main(
+    data_mode: DataMode = DataMode.TRIPPY_R,
+    metadata_handling_mode: MetadataHandlingMode = MetadataHandlingMode.CREATE_AND_SAVE_BIO_TAGS,
+    verbosity: Verbosity = Verbosity.NORMAL,
+) -> None:
     """Load cached features and save them into a format for the Topo_LLM repository."""
     logger: logging.Logger = global_logger
-
-    args: argparse.Namespace = parse_arguments()
-    data_mode: DataMode = args.data_mode
-    verbosity: Verbosity = args.verbosity
 
     number_of_elements_to_log: int = 5
 
@@ -215,6 +224,16 @@ def main() -> None:
             raise ValueError(
                 msg,
             )
+
+    # ======================================================== #
+    # Prepare additional objects
+    # ======================================================== #
+
+    # The tokenizer is not strictly necessary for this script,
+    # but it is useful for debugging and understanding the data.
+    tokenizer = transformers.AutoTokenizer.from_pretrained(
+        pretrained_model_name_or_path="roberta-base",
+    )
 
     # ======================================================== #
     # Process data
@@ -331,6 +350,38 @@ def main() -> None:
             dialogue_ids_list.append(
                 current_dialogue_id,
             )
+
+            match metadata_handling_mode:
+                case MetadataHandlingMode.IGNORE:
+                    # Do nothing, just ignore the metadata.
+                    pass
+                case MetadataHandlingMode.CREATE_AND_SAVE_BIO_TAGS:
+                    # Create and save BIO tags if available.
+
+                    # Notes:
+                    # - For decoding of the current input ids, use:
+                    # > decoded_text: str = tokenizer.decode(current_input_ids, skip_special_tokens=False)
+
+                    # Create a dataframe for the current feature, with one column filled with the input_ids
+                    single_feature_df = pd.DataFrame(
+                        data={
+                            "input_ids": current_input_ids.tolist(),
+                            "attention_mask": current_attention_mask.tolist(),
+                        },
+                    )
+                    # Add column of decoded input ids to the dataframe.
+                    single_feature_df["input_ids_decoded"] = single_feature_df["input_ids"].apply(
+                        func=lambda x: tokenizer.decode(
+                            token_ids=x,
+                            skip_special_tokens=False,
+                        ),
+                    )
+
+                    # TODO: For debugging, create a pandas dataframe of aligned input_ids, decoded input_ids and BIO tags.
+
+                    # TODO: Save token-level BIO-tags as well, if available.
+
+                    pass  # TODO: This is here for setting breakpoints, remove in production code.
 
         # Stack the tensors of the individual input data features into a single tensor.
         input_ids_stacked: torch.Tensor = torch.stack(

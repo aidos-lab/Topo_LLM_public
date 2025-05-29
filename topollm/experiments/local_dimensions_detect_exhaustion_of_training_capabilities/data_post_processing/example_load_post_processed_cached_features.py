@@ -32,6 +32,7 @@ from topollm.experiments.local_dimensions_detect_exhaustion_of_training_capabili
     get_processed_data_paths_collection,
 )
 from topollm.logging.create_and_configure_global_logger import create_and_configure_global_logger
+from topollm.typing.enums import Verbosity
 
 TOPO_LLM_REPOSITORY_BASE_PATH: str = os.path.expandvars(
     path=os.getenv(
@@ -67,8 +68,8 @@ def parse_arguments() -> argparse.Namespace:
 
     parser.add_argument(
         "--verbosity",
-        type=int,
-        default=1,
+        type=Verbosity,
+        default=Verbosity.NORMAL,
         help="Verbosity level (0: no output, 1: info, 2: debug)",
     )
 
@@ -83,14 +84,14 @@ def main() -> None:
 
     args: argparse.Namespace = parse_arguments()
     data_mode: DataMode = args.data_mode
-    verbosity: int = args.verbosity
+    verbosity: Verbosity = args.verbosity
 
     number_of_elements_to_log: int = 5
     tokenizer = transformers.AutoTokenizer.from_pretrained(
         pretrained_model_name_or_path="roberta-base",
     )
 
-    if verbosity > 0:
+    if verbosity >= Verbosity.NORMAL:
         logger.info(
             msg=f"{TOPO_LLM_REPOSITORY_BASE_PATH=}",  # noqa: G004 - low overhead
         )
@@ -142,7 +143,7 @@ def main() -> None:
             f"{split_identifier}_processed_cached_features.pt",
         )
 
-        if verbosity > 0:
+        if verbosity >= Verbosity.NORMAL:
             logger.info(
                 msg=f"Loading processed cached features from {output_path=} ...",  # noqa: G004 - low overhead
             )
@@ -152,12 +153,12 @@ def main() -> None:
             map_location=torch.device(device="cpu"),
         )
 
-        if verbosity > 0:
+        if verbosity >= Verbosity.NORMAL:
             logger.info(
                 msg=f"Loading processed cached features from {output_path=} DONE",  # noqa: G004 - low overhead
             )
 
-        if verbosity > 0:
+        if verbosity >= Verbosity.NORMAL:
             logger.info(
                 msg=f"{split_identifier=}",  # noqa: G004 - low overhead
             )
@@ -175,7 +176,7 @@ def main() -> None:
                 f"{pprint.pformat(object=loaded_processed_cached_features.keys())}",
             )
 
-        if verbosity > 0:
+        if verbosity >= Verbosity.NORMAL:
             log_selected_loaded_processed_cached_features(
                 features_dict=loaded_processed_cached_features,
                 num_elements_to_log=number_of_elements_to_log,
