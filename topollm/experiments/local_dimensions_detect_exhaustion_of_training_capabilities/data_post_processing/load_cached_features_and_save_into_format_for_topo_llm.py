@@ -73,7 +73,7 @@ class ProcessedDataPathsCollection:
 
 def get_processed_data_paths_collection(
     data_mode: DataMode,
-    verbosity: int = 1,
+    verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> ProcessedDataPathsCollection:
     """Get the paths for the processed data."""
@@ -148,6 +148,13 @@ def get_processed_data_paths_collection(
     help="Metadata handling mode.",
 )
 @click.option(
+    "--number-of-elements-to-log",
+    type=int,
+    default=5,
+    show_default=True,
+    help="Number of elements to log.",
+)
+@click.option(
     "--verbosity",
     type=Verbosity,
     # Note: Do not add `type=click.Choice()` parameter here, as this is problematic with IntEnum in Click.
@@ -158,12 +165,11 @@ def get_processed_data_paths_collection(
 def main(
     data_mode: DataMode = DataMode.TRIPPY_R,
     metadata_handling_mode: MetadataHandlingMode = MetadataHandlingMode.CREATE_AND_SAVE_BIO_TAGS,
+    number_of_elements_to_log: int = 5,
     verbosity: Verbosity = Verbosity.NORMAL,
 ) -> None:
     """Load cached features and save them into a format for the Topo_LLM repository."""
     logger: logging.Logger = global_logger
-
-    number_of_elements_to_log: int = 5
 
     if verbosity >= Verbosity.NORMAL:
         logger.info(
@@ -326,13 +332,33 @@ def main(
         attention_mask_list: list = []
         dialogue_ids_list: list = []
 
-        for cached_feature in tqdm(
-            cached_features,
-            desc=f"Iterating over {split_identifier=} cached features",
+        for i, cached_feature in enumerate(
+            iterable=tqdm(
+                cached_features,
+                desc=f"Iterating over {split_identifier=} cached features",
+            ),
         ):
             # Note:
             # - `cached_feature` as an 'InputFeatures' object is not subscriptable,
             #   so we need to access via attributes and not via dictionary keys.
+            #
+            # > value: <utils_dst.InputFeatures object at 0x31b2ec4a0>
+            # > type: utils_dst.InputFeatures
+            # >
+            # > Public attributes:
+            # >     class_label_id: dict = {'attraction-area': 0, 'attraction-name': 0, …
+            # >     diag_state: dict = {'attraction-area': 0, 'attraction-name': 0, …
+            # >     guid: str = 'multiwoz21-train-0-0'
+            # >     hst_boundaries: list = []
+            # >     inform: dict = {'attraction-area': 'none', 'attraction-name': 'n…
+            # >     inform_slot: dict = {'attraction-area': 0, 'attraction-name': 0, …
+            # >     input_ids: list = [0, 524, 546, 13, 10, 317…
+            # >     input_mask: list = [1, 1, 1, 1, 1, 1, …
+            # >     refer_id: dict = {'attraction-area': 30, 'attraction-name': 30…
+            # >     segment_ids: list = [0, 0, 0, 0, 0, 0, …
+            # >     start_pos: dict = {'attraction-area': [0, 0, 0, …
+            # >     usr_mask: list = [0, 1, 1, 1, 1, 1, …
+            # >     values: dict = {'attraction-area': 'none', 'attraction-name': 'n…
             current_input_ids: torch.Tensor = torch.IntTensor(
                 cached_feature.input_ids,
             )
@@ -367,19 +393,28 @@ def main(
                         data={
                             "input_ids": current_input_ids.tolist(),
                             "attention_mask": current_attention_mask.tolist(),
+                            "usr_mask": cached_feature.usr_mask,
                         },
                     )
                     # Add column of decoded input ids to the dataframe.
                     single_feature_df["input_ids_decoded"] = single_feature_df["input_ids"].apply(
-                        func=lambda x: tokenizer.decode(
-                            token_ids=x,
-                            skip_special_tokens=False,
+                        func=lambda x: tokenizer.convert_ids_to_tokens(
+                            ids=x,
                         ),
                     )
 
-                    # TODO: For debugging, create a pandas dataframe of aligned input_ids, decoded input_ids and BIO tags.
+                    # Add columns which contain the values of the lists in the cached_feature.start_pos
+                    for (
+                        slot_name,
+                        start_positions,
+                    ) in cached_feature.start_pos.items():
+                        # Add a column for the slot name, with the start positions as values.
+                        single_feature_df["start_pos_" + slot_name] = start_positions
 
-                    # TODO: Save token-level BIO-tags as well, if available.
+                    # TODO: Save example single_feature_df as csv files for debugging (use the current_dialogue_id for the file name).
+                    # TODO: Log the single_feature_df via a rich table.
+                    # TODO: Convert the start positions to BIO tags.
+                    # TODO: Save token-level BIO-tags into the post-processed cached features.
 
                     pass  # TODO: This is here for setting breakpoints, remove in production code.
 
