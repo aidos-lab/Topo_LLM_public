@@ -69,6 +69,7 @@ class ProcessedDataPathsCollection:
 
     checkpoints_root_dir: pathlib.Path
     post_processed_cached_features_dir: pathlib.Path
+    example_cached_features_with_metadata_dir: pathlib.Path | None = None
 
 
 def get_processed_data_paths_collection(
@@ -117,9 +118,23 @@ def get_processed_data_paths_collection(
         exist_ok=True,
     )
 
+    example_cached_features_with_metadata_dir = pathlib.Path(
+        post_processed_cached_features_dir,
+        "example_cached_features_with_metadata",
+    )
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"{example_cached_features_with_metadata_dir=}",  # noqa: G004 - low overhead
+        )
+    example_cached_features_with_metadata_dir.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
     processed_data_path_collection = ProcessedDataPathsCollection(
         checkpoints_root_dir=checkpoints_root_dir,
         post_processed_cached_features_dir=post_processed_cached_features_dir,
+        example_cached_features_with_metadata_dir=example_cached_features_with_metadata_dir,
     )
 
     if verbosity >= Verbosity.NORMAL:
@@ -411,8 +426,30 @@ def main(
                         # Add a column for the slot name, with the start positions as values.
                         single_feature_df["start_pos_" + slot_name] = start_positions
 
-                    # TODO: Save example single_feature_df as csv files for debugging (use the current_dialogue_id for the file name).
-                    # TODO: Log the single_feature_df via a rich table.
+                    # Check if i is in the first or last elements to log
+                    if i < number_of_elements_to_log or i >= len(cached_features) - number_of_elements_to_log:
+                        if verbosity >= Verbosity.DEBUG:
+                            logger.debug(
+                                msg=f"single_feature_df.head() for {current_dialogue_id=}:\n{single_feature_df.head()}",  # noqa: G004 - low overhead
+                            )
+                        # TODO: Log the single_feature_df via a rich table.
+
+                        # Save the single_feature_df as a CSV file for debugging.
+                        if processed_data_path_collection.example_cached_features_with_metadata_dir is not None:
+                            example_csv_output_path = pathlib.Path(
+                                processed_data_path_collection.example_cached_features_with_metadata_dir,
+                                split_identifier,
+                                f"{current_dialogue_id}.csv",
+                            )
+                            example_csv_output_path.parent.mkdir(
+                                parents=True,
+                                exist_ok=True,
+                            )
+                            single_feature_df.to_csv(
+                                path_or_buf=example_csv_output_path,
+                                index=False,
+                            )
+
                     # TODO: Convert the start positions to BIO tags.
                     # TODO: Save token-level BIO-tags into the post-processed cached features.
 
