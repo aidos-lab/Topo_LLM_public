@@ -1,22 +1,5 @@
-# Copyright 2024-2025
-# [ANONYMIZED_INSTITUTION],
-# [ANONYMIZED_FACULTY],
-# [ANONYMIZED_DEPARTMENT]
-#
-# Authors:
-# AUTHOR_1 (author1@example.com)
-#
-# Code generation tools and workflows:
-# First versions of this code were potentially generated
-# with the help of AI writing assistants including
-# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
-# Afterwards, the generated segments were manually reviewed and edited.
-#
-
-
 """Script for loading cached features and saving them into a format for the Topo_LLM repository."""
 
-import argparse
 import logging
 import os
 import pathlib
@@ -26,6 +9,9 @@ from enum import StrEnum, auto
 
 import click
 import pandas as pd
+import rich
+import rich.console
+import rich.table
 import torch
 import transformers
 from tqdm import tqdm
@@ -432,7 +418,25 @@ def main(
                             logger.debug(
                                 msg=f"single_feature_df.head() for {current_dialogue_id=}:\n{single_feature_df.head()}",  # noqa: G004 - low overhead
                             )
-                        # TODO: Log the single_feature_df via a rich table.
+
+                        # Convert DataFrame to a Rich Table for more styling control
+                        console = rich.console.Console()
+                        rich_table = rich.table.Table(
+                            title=f"Single Feature DataFrame for {current_dialogue_id}",
+                            show_header=True,
+                            header_style="bold magenta",
+                        )
+                        for column in single_feature_df.columns:
+                            rich_table.add_column(
+                                column,
+                                style="dim",
+                                justify="left",
+                            )
+                        for _, row in single_feature_df.iterrows():
+                            rich_table.add_row(
+                                *[str(value) for value in row],
+                            )
+                        console.print(rich_table)
 
                         # Save the single_feature_df as a CSV file for debugging.
                         if processed_data_path_collection.example_cached_features_with_metadata_dir is not None:
