@@ -15,7 +15,7 @@ dataset_description_string: trippy_r_dataloaders_processed_${data.dataset_select
 
 dataset_selection_description_string: multiwoz21
 
-dataset_type: trippy_dataloaders_processed
+dataset_type: trippy_r_dataloaders_processed
 
 # data_dir is currently unused for the setsumbt_dataloaders_processed dataset
 data_dir: ${paths.data_dir}/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/post_processed_cached_features/${data.dataset_selection_description_string}

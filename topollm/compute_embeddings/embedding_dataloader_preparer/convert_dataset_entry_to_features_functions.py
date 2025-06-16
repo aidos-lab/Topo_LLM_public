@@ -13,17 +13,7 @@
 # GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
 # Afterwards, the generated segments were manually reviewed and edited.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+
 
 """Functions for converting dataset entries to features."""
 
@@ -48,7 +38,11 @@ def get_convert_dataset_entry_to_features_function(
             dataset_entry_to_features_function = convert_dataset_entry_to_features
         case DatasetType.HUGGINGFACE_DATASET_NAMED_ENTITY:
             dataset_entry_to_features_function = convert_dataset_entry_to_features_named_entity
-        case DatasetType.SETSUMBT_DATALOADERS_PROCESSED | DatasetType.TRIPPY_DATALOADERS_PROCESSED:
+        case (
+            DatasetType.SETSUMBT_DATALOADERS_PROCESSED
+            | DatasetType.TRIPPY_DATALOADERS_PROCESSED
+            | DatasetType.TRIPPY_R_DATALOADERS_PROCESSED
+        ):
             # In this mode, the dataset entries are already tokenized and can be directly used as features.
             dataset_entry_to_features_function = convert_dataset_entry_to_features_do_nothing
         case _:
@@ -92,6 +86,7 @@ def convert_dataset_entry_to_features_named_entity(
     tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast,
     column_name: str = "text",
     max_length: int = 512,
+    pos_tags_name: str = "POS",
 ) -> BatchEncoding:
     """Convert dataset entries/examples to features by tokenizing the text and padding/truncating to a maximum length."""
     split_words: list[list[str]] = [
@@ -130,6 +125,6 @@ def convert_dataset_entry_to_features_named_entity(
                 word_tags_one_sentence_tokens.append(None)
         all_word_tags_one_sentence_tokens.append(word_tags_one_sentence_tokens)
 
-    features["POS"] = all_word_tags_one_sentence_tokens
+    features[pos_tags_name] = all_word_tags_one_sentence_tokens
 
     return features

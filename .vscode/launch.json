@@ -2908,5 +2908,22 @@
                 "PYTORCH_ENABLE_MPS_FALLBACK": "1"
             }
         },
+        // TripPy-R analysis
+        {
+            "name": "Load cached features and save into format for Topo_LLM - Local debugging - TripPy-R data",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/experiments/local_dimensions_detect_exhaustion_of_training_capabilities/data_post_processing/load_cached_features_and_save_into_format_for_topo_llm.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--data-mode",
+                "trippy_r",
+                "--metadata-handling-mode",
+                "create_and_save_bio_tags",
+            ],
+            "env": {
+                "PYTORCH_ENABLE_MPS_FALLBACK": "1"
+            }
+        },
     ]
 }

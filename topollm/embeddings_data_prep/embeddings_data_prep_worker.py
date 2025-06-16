@@ -13,17 +13,7 @@
 # GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
 # Afterwards, the generated segments were manually reviewed and edited.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+
 
 """Prepare the embedding data of a model and its metadata for further analysis."""
 
@@ -74,13 +64,19 @@ def embeddings_data_prep_worker(
         logger=logger,
     )
 
-    tokenizer, _ = load_modified_tokenizer_from_main_config(
+    (
+        tokenizer,
+        _,
+    ) = load_modified_tokenizer_from_main_config(
         main_config=main_config,
         verbosity=verbosity,
         logger=logger,
     )
 
-    filtered_array, filtered_without_array_df = remove_padding_and_extra_tokens(
+    (
+        filtered_array,
+        filtered_without_array_df,
+    ) = remove_padding_and_extra_tokens(
         full_df=full_df,
         tokenizer=tokenizer,
         filter_tokens_config=main_config.embeddings_data_prep.filter_tokens,
@@ -102,7 +98,10 @@ def embeddings_data_prep_worker(
             logger=logger,
         )
 
-    filtered_subsampled_data, _ = sample_subsets_of_array_and_meta_df(
+    (
+        filtered_subsampled_data,
+        _,
+    ) = sample_subsets_of_array_and_meta_df(
         input_data=filtered_data,
         embeddings_data_prep_sampling_config=main_config.embeddings_data_prep.sampling,
         data_processing_column_names=main_config.data_processing_column_names,
@@ -111,7 +110,7 @@ def embeddings_data_prep_worker(
     )
 
     # Add the token names to the metadata DataFrame
-    filtered_subsampled_augmented_without_array_df = add_token_name_column_to_meta_frame(
+    filtered_subsampled_augmented_without_array_df: pd.DataFrame = add_token_name_column_to_meta_frame(
         input_df=filtered_subsampled_data.meta_df,
         tokenizer=tokenizer,
         data_processing_column_names=main_config.data_processing_column_names,

@@ -1,29 +1,3 @@
-# Copyright 2024-2025
-# [ANONYMIZED_INSTITUTION],
-# [ANONYMIZED_FACULTY],
-# [ANONYMIZED_DEPARTMENT]
-#
-# Authors:
-# AUTHOR_1 (author1@example.com)
-#
-# Code generation tools and workflows:
-# First versions of this code were potentially generated
-# with the help of AI writing assistants including
-# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
-# Afterwards, the generated segments were manually reviewed and edited.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 """Script for loading cached features and saving them into a format for the Topo_LLM repository."""
 
 import argparse
@@ -41,9 +15,8 @@ from topollm.experiments.local_dimensions_detect_exhaustion_of_training_capabili
     ProcessedDataPathsCollection,
     get_processed_data_paths_collection,
 )
-from topollm.experiments.local_dimensions_detect_exhaustion_of_training_capabilities.logging.create_and_configure_global_logger import (
-    create_and_configure_global_logger,
-)
+from topollm.logging.create_and_configure_global_logger import create_and_configure_global_logger
+from topollm.typing.enums import Verbosity
 
 TOPO_LLM_REPOSITORY_BASE_PATH: str = os.path.expandvars(
     path=os.getenv(
@@ -79,8 +52,8 @@ def parse_arguments() -> argparse.Namespace:
 
     parser.add_argument(
         "--verbosity",
-        type=int,
-        default=1,
+        type=Verbosity,
+        default=Verbosity.NORMAL,
         help="Verbosity level (0: no output, 1: info, 2: debug)",
     )
 
@@ -95,14 +68,14 @@ def main() -> None:
 
     args: argparse.Namespace = parse_arguments()
     data_mode: DataMode = args.data_mode
-    verbosity: int = args.verbosity
+    verbosity: Verbosity = args.verbosity
 
     number_of_elements_to_log: int = 5
     tokenizer = transformers.AutoTokenizer.from_pretrained(
         pretrained_model_name_or_path="roberta-base",
     )
 
-    if verbosity > 0:
+    if verbosity >= Verbosity.NORMAL:
         logger.info(
             msg=f"{TOPO_LLM_REPOSITORY_BASE_PATH=}",  # noqa: G004 - low overhead
         )
@@ -154,7 +127,7 @@ def main() -> None:
             f"{split_identifier}_processed_cached_features.pt",
         )
 
-        if verbosity > 0:
+        if verbosity >= Verbosity.NORMAL:
             logger.info(
                 msg=f"Loading processed cached features from {output_path=} ...",  # noqa: G004 - low overhead
             )
@@ -164,12 +137,12 @@ def main() -> None:
             map_location=torch.device(device="cpu"),
         )
 
-        if verbosity > 0:
+        if verbosity >= Verbosity.NORMAL:
             logger.info(
                 msg=f"Loading processed cached features from {output_path=} DONE",  # noqa: G004 - low overhead
             )
 
-        if verbosity > 0:
+        if verbosity >= Verbosity.NORMAL:
             logger.info(
                 msg=f"{split_identifier=}",  # noqa: G004 - low overhead
             )
@@ -187,7 +160,7 @@ def main() -> None:
                 f"{pprint.pformat(object=loaded_processed_cached_features.keys())}",
             )
 
-        if verbosity > 0:
+        if verbosity >= Verbosity.NORMAL:
             log_selected_loaded_processed_cached_features(
                 features_dict=loaded_processed_cached_features,
                 num_elements_to_log=number_of_elements_to_log,

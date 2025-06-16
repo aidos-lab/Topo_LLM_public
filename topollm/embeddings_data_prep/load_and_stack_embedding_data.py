@@ -13,17 +13,7 @@
 # GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
 # Afterwards, the generated segments were manually reviewed and edited.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+
 
 import logging
 import pathlib
@@ -37,7 +27,9 @@ from topollm.embeddings_data_prep.load_pickle_files_from_meta_path import load_p
 from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 from topollm.typing.enums import Verbosity
 
-default_logger = logging.getLogger(__name__)
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 default_data_processing_column_names = DataProcessingColumnNames()
 
 
@@ -138,17 +130,22 @@ def load_and_stack_embedding_data(
 
     # # # #
     # Manually concatenate the elements in the POS metadata (if it exist)
-    if "POS" in loaded_metadata[0]["metadata"]:
+    if data_processing_column_names.pos_tags_name in loaded_metadata[0]["metadata"]:
         # POS collection is a
         # list of batches, where each batch is a list of sentences, where each sentence is a list of POS tags
-        pos_collection: list[list[list]] = [metadata_chunk["metadata"]["POS"] for metadata_chunk in loaded_metadata]
+        pos_collection: list[list[list]] = [
+            metadata_chunk["metadata"][data_processing_column_names.pos_tags_name] for metadata_chunk in loaded_metadata
+        ]
 
         concatenated_pos_batches: list = [pos_batch for pos_batches in pos_collection for pos_batch in pos_batches]
 
         # Concatenate the list of POS tags
         concatenated_pos_tags: list = [pos_tag for pos_tags in concatenated_pos_batches for pos_tag in pos_tags]
 
-        full_data_dict["POS"] = concatenated_pos_tags
+        full_data_dict[data_processing_column_names.pos_tags_name] = concatenated_pos_tags
+
+    # TODO: Here we would need to add processing for other token-level metadata,
+    # TODO: such as the TripPy-R labels, if they are available in the metadata.
 
     full_df = pd.DataFrame(
         data=full_data_dict,

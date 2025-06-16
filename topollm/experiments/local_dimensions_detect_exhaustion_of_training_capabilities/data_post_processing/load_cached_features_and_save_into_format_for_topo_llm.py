@@ -1,46 +1,23 @@
-# Copyright 2024-2025
-# [ANONYMIZED_INSTITUTION],
-# [ANONYMIZED_FACULTY],
-# [ANONYMIZED_DEPARTMENT]
-#
-# Authors:
-# AUTHOR_1 (author1@example.com)
-#
-# Code generation tools and workflows:
-# First versions of this code were potentially generated
-# with the help of AI writing assistants including
-# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
-# Afterwards, the generated segments were manually reviewed and edited.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 """Script for loading cached features and saving them into a format for the Topo_LLM repository."""
 
-import argparse
 import logging
 import os
 import pathlib
 import sys
 from dataclasses import dataclass
 from enum import StrEnum, auto
-from typing import TYPE_CHECKING
 
+import click
+import pandas as pd
+import rich
+import rich.console
+import rich.table
 import torch
+import transformers
 from tqdm import tqdm
 
-from topollm.experiments.local_dimensions_detect_exhaustion_of_training_capabilities.logging.create_and_configure_global_logger import (
-    create_and_configure_global_logger,
-)
+from topollm.logging.create_and_configure_global_logger import create_and_configure_global_logger
+from topollm.typing.enums import Verbosity
 
 TOPO_LLM_REPOSITORY_BASE_PATH: str = os.path.expandvars(
     path=os.getenv(
@@ -65,17 +42,25 @@ class DataMode(StrEnum):
     TRIPPY_R = auto()
 
 
+class MetadataHandlingMode(StrEnum):
+    """Enum for the metadata handling modes."""
+
+    IGNORE = auto()
+    CREATE_AND_SAVE_BIO_TAGS = auto()
+
+
 @dataclass
 class ProcessedDataPathsCollection:
     """Class to store the input and output paths for the processed data."""
 
     checkpoints_root_dir: pathlib.Path
     post_processed_cached_features_dir: pathlib.Path
+    example_cached_features_with_metadata_dir: pathlib.Path | None = None
 
 
 def get_processed_data_paths_collection(
     data_mode: DataMode,
-    verbosity: int = 1,
+    verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> ProcessedDataPathsCollection:
     """Get the paths for the processed data."""
@@ -97,7 +82,7 @@ def get_processed_data_paths_collection(
                 msg,
             )
 
-    if verbosity > 0:
+    if verbosity >= Verbosity.NORMAL:
         logger.info(
             msg=f"{data_mode=}",  # noqa: G004 - low overhead
         )
@@ -110,7 +95,7 @@ def get_processed_data_paths_collection(
         "post_processed_cached_features",
         "multiwoz21",
     )
-    if verbosity > 0:
+    if verbosity >= Verbosity.NORMAL:
         logger.info(
             msg=f"{post_processed_cached_features_dir=}",  # noqa: G004 - low overhead
         )
@@ -119,12 +104,26 @@ def get_processed_data_paths_collection(
         exist_ok=True,
     )
 
+    example_cached_features_with_metadata_dir = pathlib.Path(
+        post_processed_cached_features_dir,
+        "example_cached_features_with_metadata",
+    )
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"{example_cached_features_with_metadata_dir=}",  # noqa: G004 - low overhead
+        )
+    example_cached_features_with_metadata_dir.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
     processed_data_path_collection = ProcessedDataPathsCollection(
         checkpoints_root_dir=checkpoints_root_dir,
         post_processed_cached_features_dir=post_processed_cached_features_dir,
+        example_cached_features_with_metadata_dir=example_cached_features_with_metadata_dir,
     )
 
-    if verbosity > 0:
+    if verbosity >= Verbosity.NORMAL:
         logger.info(
             msg=f"processed_data_path_collection:\n{processed_data_path_collection}",  # noqa: G004 - low overhead
         )
@@ -132,43 +131,48 @@ def get_processed_data_paths_collection(
     return processed_data_path_collection
 
 
-def parse_arguments() -> argparse.Namespace:
-    """Parse command line arguments."""
-    parser = argparse.ArgumentParser(
-        description="Load cached features and save them into a format for the Topo_LLM repository.",
-    )
-
-    parser.add_argument(
-        "--data_mode",
-        type=DataMode,
-        choices=list(DataMode),
-        default=DataMode.TRIPPY_R,
-        help="Data mode to use.",
-    )
-
-    parser.add_argument(
-        "--verbosity",
-        type=int,
-        default=1,
-        help="Verbosity level (0: no output, 1: info, 2: debug)",
-    )
-
-    args: argparse.Namespace = parser.parse_args()
-
-    return args
-
-
-def main() -> None:
+@click.command(
+    help="Load cached features and save them into a format for the Topo_LLM repository.",
+)
+@click.option(
+    "--data-mode",
+    type=click.Choice(choices=list(DataMode)),
+    default=DataMode.TRIPPY_R,
+    show_default=True,
+    help="Data mode to use.",
+)
+@click.option(
+    "--metadata-handling-mode",
+    type=click.Choice(choices=list(MetadataHandlingMode)),
+    default=MetadataHandlingMode.CREATE_AND_SAVE_BIO_TAGS,
+    show_default=True,
+    help="Metadata handling mode.",
+)
+@click.option(
+    "--number-of-elements-to-log",
+    type=int,
+    default=5,
+    show_default=True,
+    help="Number of elements to log.",
+)
+@click.option(
+    "--verbosity",
+    type=Verbosity,
+    # Note: Do not add `type=click.Choice()` parameter here, as this is problematic with IntEnum in Click.
+    default=Verbosity.NORMAL,
+    show_default=True,
+    help="Verbosity level.",
+)
+def main(
+    data_mode: DataMode = DataMode.TRIPPY_R,
+    metadata_handling_mode: MetadataHandlingMode = MetadataHandlingMode.CREATE_AND_SAVE_BIO_TAGS,
+    number_of_elements_to_log: int = 5,
+    verbosity: Verbosity = Verbosity.NORMAL,
+) -> None:
     """Load cached features and save them into a format for the Topo_LLM repository."""
     logger: logging.Logger = global_logger
 
-    args: argparse.Namespace = parse_arguments()
-    data_mode: DataMode = args.data_mode
-    verbosity: int = args.verbosity
-
-    number_of_elements_to_log: int = 5
-
-    if verbosity > 0:
+    if verbosity >= Verbosity.NORMAL:
         logger.info(
             msg=f"{TOPO_LLM_REPOSITORY_BASE_PATH=}",  # noqa: G004 - low overhead
         )
@@ -229,6 +233,16 @@ def main() -> None:
             )
 
     # ======================================================== #
+    # Prepare additional objects
+    # ======================================================== #
+
+    # The tokenizer is not strictly necessary for this script,
+    # but it is useful for debugging and understanding the data.
+    tokenizer = transformers.AutoTokenizer.from_pretrained(
+        pretrained_model_name_or_path="roberta-base",
+    )
+
+    # ======================================================== #
     # Process data
     # ======================================================== #
 
@@ -241,7 +255,7 @@ def main() -> None:
             f"cached_{split_identifier}_features",  # Note: File has no extension
         )
 
-        if verbosity > 0:
+        if verbosity >= Verbosity.NORMAL:
             logger.info(
                 msg=f"{file_path=}",  # noqa: G004 - low overhead
             )
@@ -256,7 +270,7 @@ def main() -> None:
         # Notes:
         # - The module 'utils_dst' needs to be accessible for this loading to work.
         # - `weights_only=False` is necessary because the saved object needs to execute code.
-        if verbosity > 0:
+        if verbosity >= Verbosity.NORMAL:
             logger.info(
                 msg=f"Loading cached features from {file_path=} ... (This might take some time)",  # noqa: G004 - low overhead
             )
@@ -264,7 +278,7 @@ def main() -> None:
             f=file_path,
             weights_only=False,
         )
-        if verbosity > 0:
+        if verbosity >= Verbosity.NORMAL:
             logger.info(
                 msg=f"Loading cached features from {file_path=} DONE",  # noqa: G004 - low overhead
             )
@@ -284,7 +298,7 @@ def main() -> None:
                 # - We only need the first element.
                 cached_features: list = loaded_features[0]
 
-        if verbosity > 0:
+        if verbosity >= Verbosity.NORMAL:
             logger.info(
                 msg=f"Loaded object of {type(cached_features)=} with {len(cached_features)=}",  # noqa: G004 - low overhead
             )
@@ -295,7 +309,7 @@ def main() -> None:
             )
             continue
 
-        if verbosity > 0:
+        if verbosity >= Verbosity.NORMAL:
             logger.info(
                 msg=f"List items are of type {type(cached_features[0])=}",  # noqa: G004 - low overhead
             )
@@ -319,13 +333,33 @@ def main() -> None:
         attention_mask_list: list = []
         dialogue_ids_list: list = []
 
-        for cached_feature in tqdm(
-            cached_features,
-            desc=f"Iterating over {split_identifier=} cached features",
+        for i, cached_feature in enumerate(
+            iterable=tqdm(
+                cached_features,
+                desc=f"Iterating over {split_identifier=} cached features",
+            ),
         ):
             # Note:
             # - `cached_feature` as an 'InputFeatures' object is not subscriptable,
             #   so we need to access via attributes and not via dictionary keys.
+            #
+            # > value: <utils_dst.InputFeatures object at 0x31b2ec4a0>
+            # > type: utils_dst.InputFeatures
+            # >
+            # > Public attributes:
+            # >     class_label_id: dict = {'attraction-area': 0, 'attraction-name': 0, …
+            # >     diag_state: dict = {'attraction-area': 0, 'attraction-name': 0, …
+            # >     guid: str = 'multiwoz21-train-0-0'
+            # >     hst_boundaries: list = []
+            # >     inform: dict = {'attraction-area': 'none', 'attraction-name': 'n…
+            # >     inform_slot: dict = {'attraction-area': 0, 'attraction-name': 0, …
+            # >     input_ids: list = [0, 524, 546, 13, 10, 317…
+            # >     input_mask: list = [1, 1, 1, 1, 1, 1, …
+            # >     refer_id: dict = {'attraction-area': 30, 'attraction-name': 30…
+            # >     segment_ids: list = [0, 0, 0, 0, 0, 0, …
+            # >     start_pos: dict = {'attraction-area': [0, 0, 0, …
+            # >     usr_mask: list = [0, 1, 1, 1, 1, 1, …
+            # >     values: dict = {'attraction-area': 'none', 'attraction-name': 'n…
             current_input_ids: torch.Tensor = torch.IntTensor(
                 cached_feature.input_ids,
             )
@@ -344,6 +378,87 @@ def main() -> None:
                 current_dialogue_id,
             )
 
+            match metadata_handling_mode:
+                case MetadataHandlingMode.IGNORE:
+                    # Do nothing, just ignore the metadata.
+                    pass
+                case MetadataHandlingMode.CREATE_AND_SAVE_BIO_TAGS:
+                    # Create and save BIO tags if available.
+
+                    # Notes:
+                    # - For decoding of the current input ids, use:
+                    # > decoded_text: str = tokenizer.decode(current_input_ids, skip_special_tokens=False)
+
+                    # Create a dataframe for the current feature, with one column filled with the input_ids
+                    single_feature_df = pd.DataFrame(
+                        data={
+                            "input_ids": current_input_ids.tolist(),
+                            "attention_mask": current_attention_mask.tolist(),
+                            "usr_mask": cached_feature.usr_mask,
+                        },
+                    )
+                    # Add column of decoded input ids to the dataframe.
+                    single_feature_df["input_ids_decoded"] = single_feature_df["input_ids"].apply(
+                        func=lambda x: tokenizer.convert_ids_to_tokens(
+                            ids=x,
+                        ),
+                    )
+
+                    # Add columns which contain the values of the lists in the cached_feature.start_pos
+                    for (
+                        slot_name,
+                        start_positions,
+                    ) in cached_feature.start_pos.items():
+                        # Add a column for the slot name, with the start positions as values.
+                        single_feature_df["start_pos_" + slot_name] = start_positions
+
+                    # Check if i is in the first or last elements to log
+                    if i < number_of_elements_to_log or i >= len(cached_features) - number_of_elements_to_log:
+                        if verbosity >= Verbosity.DEBUG:
+                            logger.debug(
+                                msg=f"single_feature_df.head() for {current_dialogue_id=}:\n{single_feature_df.head()}",  # noqa: G004 - low overhead
+                            )
+
+                        # Convert DataFrame to a Rich Table for more styling control
+                        console = rich.console.Console()
+                        rich_table = rich.table.Table(
+                            title=f"Single Feature DataFrame for {current_dialogue_id}",
+                            show_header=True,
+                            header_style="bold magenta",
+                        )
+                        for column in single_feature_df.columns:
+                            rich_table.add_column(
+                                column,
+                                style="dim",
+                                justify="left",
+                            )
+                        for _, row in single_feature_df.iterrows():
+                            rich_table.add_row(
+                                *[str(value) for value in row],
+                            )
+                        console.print(rich_table)
+
+                        # Save the single_feature_df as a CSV file for debugging.
+                        if processed_data_path_collection.example_cached_features_with_metadata_dir is not None:
+                            example_csv_output_path = pathlib.Path(
+                                processed_data_path_collection.example_cached_features_with_metadata_dir,
+                                split_identifier,
+                                f"{current_dialogue_id}.csv",
+                            )
+                            example_csv_output_path.parent.mkdir(
+                                parents=True,
+                                exist_ok=True,
+                            )
+                            single_feature_df.to_csv(
+                                path_or_buf=example_csv_output_path,
+                                index=False,
+                            )
+
+                    # TODO: Convert the start positions to BIO tags.
+                    # TODO: Save token-level BIO-tags into the post-processed cached features.
+
+                    pass  # TODO: This is here for setting breakpoints, remove in production code.
+
         # Stack the tensors of the individual input data features into a single tensor.
         input_ids_stacked: torch.Tensor = torch.stack(
             tensors=input_ids_list,
@@ -354,7 +469,7 @@ def main() -> None:
             dim=0,
         )
 
-        if verbosity > 0:
+        if verbosity >= Verbosity.NORMAL:
             logger.info(
                 msg=f"Stacked tensors: {input_ids_stacked.shape=}, {attention_masks_stacked.shape=}",  # noqa: G004 - low overhead
             )
@@ -378,7 +493,7 @@ def main() -> None:
             exist_ok=True,
         )
 
-        if verbosity > 0:
+        if verbosity >= Verbosity.NORMAL:
             logger.info(
                 msg=f"Saving processed cached features to {output_path=} ...",  # noqa: G004 - low overhead
             )
@@ -387,7 +502,7 @@ def main() -> None:
             obj=result,
             f=output_path,
         )
-        if verbosity > 0:
+        if verbosity >= Verbosity.NORMAL:
             logger.info(
                 msg=f"Saving processed cached features to {output_path=} DONE",  # noqa: G004 - low overhead
             )
