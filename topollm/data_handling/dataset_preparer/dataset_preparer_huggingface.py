@@ -82,6 +82,12 @@ class DatasetPreparerHuggingface:
         self,
     ) -> datasets.DatasetDict:
         """Load the dataset based from huggingface datasets based on configuration."""
+        # Note:
+        # If you want to load datasets which were saved via .save_to_disk(),
+        # you should use the `load_from_disk()` method instead of the `load_dataset()` method,
+        # because that will directly use the arrow files and the given directory as cache.
+        # See also:
+        # https://github.com/huggingface/datasets/issues/6703
         dataset_dict = datasets.load_dataset(
             path=self.data_config.dataset_path,
             name=self.data_config.dataset_name,

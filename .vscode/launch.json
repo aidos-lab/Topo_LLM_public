@@ -254,6 +254,55 @@
             }
         },
         {
+            "name": "Run pipeline - Local debugging - TwoNN; Huggingface dataloaders Pre-tokenized with BIO-tags - Run pipeline.",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
+            "console": "integratedTerminal",
+            "args": [
+                // >>>> START: Hydra options
+                "--multirun",
+                "hydra/sweeper=basic",
+                "hydra/launcher=basic",
+                // >>>> END: Hydra options
+                //
+                "tokenizer.add_prefix_space=False", // Note: This should be compatible with the pre-tokenization
+                //
+                //    >> START: Data options.
+                //
+                "data=multiwoz21_with_bio_tags",
+                //
+                "data.data_subsampling.split=validation",
+                "data.data_subsampling.number_of_samples=512",
+                //
+                //    >> END: Data options.
+                //
+                //    >> START: Model options.
+                //
+                "language_model=roberta-base",
+                //
+                //    >> END: Model options.
+                //
+                "embeddings.embedding_extraction.layer_indices=[-1]",
+                "embeddings_data_prep.sampling.num_samples=3000",
+                "embeddings_data_prep.sampling.sampling_mode=random",
+                //
+                "local_estimates=twonn",
+                //
+                "local_estimates.filtering.num_samples=500",
+                "local_estimates.compute_global_estimates=True",
+                "local_estimates.pointwise.n_neighbors_mode=absolute_size",
+                "local_estimates.pointwise.absolute_n_neighbors=128",
+                //
+                //    >> START: Feature flags.
+                "feature_flags.analysis.create_plots_in_local_estimates_worker=True",
+                //    >> END: Feature flags.
+            ],
+            "env": {
+                "PYTORCH_ENABLE_MPS_FALLBACK": "1"
+            }
+        },
+        {
             "name": "Run pipeline - Local debugging - lPCA; Stored dataloaders, SetSUMBT-dataloaders; - Run pipeline.",
             "type": "debugpy",
             "request": "launch",
