@@ -51,7 +51,7 @@ def collate_batch(
             - 'model_inputs':
                 A dictionary containing collated tensors for model input.
             - 'metadata':
-                A list of dictionaries containing metadata for each instance.
+                A dictionary containing metadata for each instance.
 
     """
     if model_input_names is None:
@@ -91,8 +91,8 @@ def move_collated_batch_to_device(
     if model_input_names is None:
         model_input_names = default_model_input_names
 
-    model_inputs = collated_batch["model_inputs"]
-    model_inputs: dict = {
+    model_inputs: dict = collated_batch["model_inputs"]
+    model_inputs_on_device: dict = {
         key: value.to(device=device)
         for key, value in model_inputs.items()
         if (
@@ -105,7 +105,7 @@ def move_collated_batch_to_device(
     }
 
     return {
-        "model_inputs": model_inputs,
+        "model_inputs": model_inputs_on_device,
         "metadata": collated_batch["metadata"],
     }
 
