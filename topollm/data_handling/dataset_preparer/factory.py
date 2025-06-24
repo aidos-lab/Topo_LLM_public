@@ -79,7 +79,11 @@ def get_dataset_preparer(
         )
 
     match data_config.dataset_type:
-        case DatasetType.HUGGINGFACE_DATASET | DatasetType.HUGGINGFACE_DATASET_NAMED_ENTITY:
+        case (
+            DatasetType.HUGGINGFACE_DATASET
+            | DatasetType.HUGGINGFACE_DATASET_PRETOKENIZED
+            | DatasetType.HUGGINGFACE_DATASET_NAMED_ENTITY
+        ):
             result = dataset_preparer_huggingface.DatasetPreparerHuggingface(
                 data_config=data_config,
                 dataset_filter=dataset_filter,

@@ -68,6 +68,7 @@ class DatasetType(StrEnum):
     """The different types of datasets."""
 
     HUGGINGFACE_DATASET = auto()
+    HUGGINGFACE_DATASET_PRETOKENIZED = auto()
     HUGGINGFACE_DATASET_NAMED_ENTITY = auto()
 
     SETSUMBT_DATALOADERS_PROCESSED = auto()

@@ -58,6 +58,9 @@ def collate_batch(
         model_input_names = default_model_input_names
 
     # Collate model input fields
+    # TODO: This assumes that for a given model_input_name, the elements item[model_input_name] all have the same shape.
+    # TODO: We need to ensure that this is the case for the pre-tokenized data, and create the attention mask accordingly.
+
     collated_batch: dict[
         str,
         torch.Tensor,
@@ -89,7 +92,7 @@ def move_collated_batch_to_device(
         model_input_names = default_model_input_names
 
     model_inputs = collated_batch["model_inputs"]
-    model_inputs = {
+    model_inputs: dict = {
         key: value.to(device=device)
         for key, value in model_inputs.items()
         if (
@@ -131,11 +134,11 @@ def collate_batch_and_move_to_device(
             - 'metadata': A dictionary containing metadata for each instance.
 
     """
-    collated_batch = collate_batch(
+    collated_batch: dict = collate_batch(
         batch=batch,
         model_input_names=model_input_names,
     )
-    collated_batch = move_collated_batch_to_device(
+    collated_batch: dict = move_collated_batch_to_device(
         collated_batch=collated_batch,
         device=device,
         model_input_names=model_input_names,

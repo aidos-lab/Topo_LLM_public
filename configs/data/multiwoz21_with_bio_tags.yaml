@@ -3,10 +3,11 @@ defaults:
   - data_subsampling: train_split_and_random
   - _self_
 
-column_name: token_id
+column_name: input_ids
 context: dataset_entry
 datasets_loading_function: load_from_disk
 dataset_description_string: multiwoz21_with_bio_tags
 dataset_path: ${paths.tdacontextual_repository_base_path}/data/term_extraction/BioTag_labels_via_tokenizer_offset/datasets_contextual_dialogues/labelmap-trippyr/use-canonical-val-False/data-multiwoz21/lvl-token/ctxt-utterance/model-roberta-base/mparam-aps-${tokenizer.add_prefix_space}_layer-10-hsout/norm-l2_trans-None/dbx-start-0_dbx-end-None/format=hf_dataset_dict
 dataset_name: null # Use default dataset name
+dataset_type: huggingface_dataset_pretokenized
 data_dir: null # Not used when directly loading from a dataset_path
