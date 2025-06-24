@@ -26,7 +26,7 @@ from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
 from topollm.config_classes.data.data_filtering_config import DataFilteringConfig
 from topollm.config_classes.data.data_splitting_config import DataSplittingConfig
 from topollm.config_classes.data.data_subsampling_config import DataSubsamplingConfig
-from topollm.typing.enums import DatasetType, DescriptionType
+from topollm.typing.enums import DatasetsLoadingFunction, DatasetType, DescriptionType
 
 
 class DataNormalizationConfig(ConfigBaseModel):
@@ -85,6 +85,12 @@ class DataConfig(ConfigBaseModel):
         default=DatasetType.HUGGINGFACE_DATASET,
         title="Dataset type.",
         description="The dataset type.",
+    )
+
+    datasets_loading_function: DatasetsLoadingFunction = Field(
+        default=DatasetsLoadingFunction.LOAD_DATASET,
+        title="HuggingFace datasets loading function",
+        description="The HuggingFace datasets loading function to use.",
     )
 
     data_splitting: DataSplittingConfig = Field(

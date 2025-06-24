@@ -75,6 +75,14 @@ class DatasetType(StrEnum):
     TRIPPY_R_DATALOADERS_PROCESSED = auto()
 
 
+@unique
+class DatasetsLoadingFunction(StrEnum):
+    """The HuggingFace loading function to use for loading."""
+
+    LOAD_DATASET = auto()
+    LOAD_FROM_DISK = auto()
+
+
 # ==============================
 
 
