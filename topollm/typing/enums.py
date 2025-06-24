@@ -68,11 +68,20 @@ class DatasetType(StrEnum):
     """The different types of datasets."""
 
     HUGGINGFACE_DATASET = auto()
+    HUGGINGFACE_DATASET_PRETOKENIZED = auto()
     HUGGINGFACE_DATASET_NAMED_ENTITY = auto()
 
     SETSUMBT_DATALOADERS_PROCESSED = auto()
     TRIPPY_DATALOADERS_PROCESSED = auto()
     TRIPPY_R_DATALOADERS_PROCESSED = auto()
+
+
+@unique
+class DatasetsLoadingFunction(StrEnum):
+    """The HuggingFace loading function to use for loading."""
+
+    LOAD_DATASET = auto()
+    LOAD_FROM_DISK = auto()
 
 
 # ==============================

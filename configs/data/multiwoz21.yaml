@@ -6,6 +6,6 @@ defaults:
 column_name: text
 context: dataset_entry
 dataset_description_string: multiwoz21
-dataset_path: json
+dataset_path: json # "json" is the name of a dataset builder, in this case you need to specify "data_dir" or "data_files" 
 dataset_name: multiwoz21
 data_dir: ${paths.data_dir}/datasets/dialogue_datasets/multiwoz21

@@ -26,7 +26,7 @@ from topollm.data_handling.dataset_filtering.protocol import DatasetFilter
 from topollm.data_handling.dataset_splitter.protocol import DatasetSplitter
 from topollm.data_handling.dataset_subsampler.protocol import DatasetSubsampler
 from topollm.logging.log_dataset_info import log_huggingface_dataset_info
-from topollm.typing.enums import Verbosity
+from topollm.typing.enums import DatasetsLoadingFunction, Verbosity
 
 default_logger: logging.Logger = logging.getLogger(
     name=__name__,
@@ -82,17 +82,33 @@ class DatasetPreparerHuggingface:
         self,
     ) -> datasets.DatasetDict:
         """Load the dataset based from huggingface datasets based on configuration."""
-        dataset_dict = datasets.load_dataset(
-            path=self.data_config.dataset_path,
-            name=self.data_config.dataset_name,
-            data_dir=self.data_config.data_dir,  # type: ignore - type annotation for path
-            trust_remote_code=True,
-        )
+        # Note:
+        # If you want to load datasets which were saved via `.save_to_disk()`,
+        # you should use the `.load_from_disk()` method instead of the `.load_dataset()` method,
+        # because that will directly use the arrow files and the given directory as cache.
+        # See also:
+        # https://github.com/huggingface/datasets/issues/6703
+        match self.data_config.datasets_loading_function:
+            case DatasetsLoadingFunction.LOAD_DATASET:
+                dataset_dict = datasets.load_dataset(
+                    path=self.data_config.dataset_path,
+                    name=self.data_config.dataset_name,
+                    data_dir=self.data_config.data_dir,  # type: ignore - type annotation for path
+                    trust_remote_code=True,
+                )
+            case DatasetsLoadingFunction.LOAD_FROM_DISK:
+                dataset_dict: datasets.Dataset | datasets.DatasetDict = datasets.load_from_disk(
+                    dataset_path=self.data_config.dataset_path,
+                )
+            case _:
+                msg: str = f"Unsupported datasets loading function: {self.data_config.datasets_loading_function = }."
+                raise ValueError(
+                    msg,
+                )
 
         if self.verbosity >= Verbosity.NORMAL:
             self.logger.info(
-                "dataset_dict:\n%s",
-                dataset_dict,
+                msg=f"dataset_dict:\n{dataset_dict}",  # noqa: G004 - low overhead
             )
 
         if not isinstance(
