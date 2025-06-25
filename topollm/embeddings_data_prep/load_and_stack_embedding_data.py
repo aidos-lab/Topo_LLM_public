@@ -1,19 +1,4 @@
-# Copyright 2024
-# [ANONYMIZED_INSTITUTION],
-# [ANONYMIZED_FACULTY],
-# [ANONYMIZED_DEPARTMENT]
-#
-# Authors:
-# AUTHOR_1 (author1@example.com)
-# AUTHOR_2 (author2@example.com)
-#
-# Code generation tools and workflows:
-# First versions of this code were potentially generated
-# with the help of AI writing assistants including
-# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
-# Afterwards, the generated segments were manually reviewed and edited.
-#
-
+"""Load and stack embedding data from precomputed files."""
 
 import logging
 import pathlib
@@ -41,7 +26,7 @@ def load_and_stack_embedding_data(
 ) -> pd.DataFrame:
     """Load the embedding data and metadata."""
     # Path for loading the precomputed embeddings
-    array_path = embeddings_path_manager.array_dir_absolute_path
+    array_path: pathlib.Path = embeddings_path_manager.array_dir_absolute_path
 
     if verbosity >= Verbosity.NORMAL:
         logger.info(
@@ -50,7 +35,7 @@ def load_and_stack_embedding_data(
         )
 
     if not array_path.exists():
-        msg = f"{array_path = } does not exist."
+        msg: str = f"{array_path = } does not exist."
         raise FileNotFoundError(
             msg,
         )
@@ -106,14 +91,14 @@ def load_and_stack_embedding_data(
     ]
 
     stacked_input_ids: np.ndarray = np.vstack(
-        input_ids_collection,
+        tup=input_ids_collection,
     )
     stacked_input_ids: np.ndarray = stacked_input_ids.reshape(
         stacked_input_ids.shape[0] * stacked_input_ids.shape[1],
     )
 
-    sentence_idx = np.array(
-        [np.ones(number_of_tokens_per_sentence) * i for i in range(number_of_sentences)],
+    sentence_idx: np.ndarray = np.array(
+        [np.ones(shape=number_of_tokens_per_sentence) * i for i in range(number_of_sentences)],
     ).reshape(
         number_of_sentences * number_of_tokens_per_sentence,
     )
@@ -122,7 +107,7 @@ def load_and_stack_embedding_data(
     # The "metadata" key in the batch saved in a metadata_chunk is currently lost.
     # You would need to add it to the full_df here if you want to use it in the downstream pipeline.
 
-    full_data_dict = {
+    full_data_dict: dict = {
         data_processing_column_names.embedding_vectors: list(array_np),
         data_processing_column_names.token_id: list(stacked_input_ids),
         data_processing_column_names.sentence_idx: [int(x) for x in sentence_idx],
@@ -131,8 +116,9 @@ def load_and_stack_embedding_data(
     # # # #
     # Manually concatenate the elements in the POS metadata (if it exist)
     if data_processing_column_names.pos_tags_name in loaded_metadata[0]["metadata"]:
-        # POS collection is a
-        # list of batches, where each batch is a list of sentences, where each sentence is a list of POS tags
+        # POS collection is a list of batches,
+        # where each batch is a list of sentences,
+        # where each sentence is a list of POS tags
         pos_collection: list[list[list]] = [
             metadata_chunk["metadata"][data_processing_column_names.pos_tags_name] for metadata_chunk in loaded_metadata
         ]

@@ -7,9 +7,12 @@ import torch
 from topollm.config_classes.tokenizer.tokenizer_config import TokenizerConfig
 from topollm.model_handling.loaded_model_container import LoadedModelContainer
 
+INPUT_IDS_COLUMN_NAME: str = "input_ids"
+ATTENTION_MASK_COLUMN_NAME: str = "attention_mask"
+
 default_model_input_names: list[str] = [
-    "input_ids",
-    "attention_mask",
+    INPUT_IDS_COLUMN_NAME,
+    ATTENTION_MASK_COLUMN_NAME,
 ]
 
 
@@ -41,6 +44,8 @@ def collate_batch(
     ----
         batch:
             The batch to collate.
+        loaded_model_container:
+            Loaded model container containing the tokenizer and model configuration.
         model_input_names:
             List of input names for the model.
 
@@ -59,18 +64,88 @@ def collate_batch(
 
     # Collate model input fields
     pad_token_id: int = loaded_model_container.tokenizer.pad_token_id  # type: ignore[attr-defined]
-    # TODO: This assumes that for a given model_input_name, the elements item[model_input_name] all have the same shape.
-    # TODO: If not, we need to pad using the tokenizer.pad_token_id
 
-    collated_batch: dict[
-        str,
-        torch.Tensor,
-    ] = {
-        model_input_name: torch.tensor(data=[item[model_input_name] for item in batch])
-        for model_input_name in model_input_names
+    # Determine target length: Take an explicit max length from the config,
+    # and check against the longest sequence in the current batch.
+    explicit_max_len: int = loaded_model_container.tokenizer_config.max_length
+    longest_in_batch: int = max(
+        len(sample[field]) for sample in batch for field in model_input_names if field != ATTENTION_MASK_COLUMN_NAME
+    )
+    if longest_in_batch > explicit_max_len:
+        msg: str = (
+            f"Longest sequence in batch ({longest_in_batch=}) exceeds explicit max length "
+            f"({explicit_max_len=}) from tokenizer config."
+        )
+        raise ValueError(
+            msg,
+        )
+    # Use the explicit max length from the tokenizer config as the target length.
+    target_len: int = explicit_max_len
+
+    # Ensure we always return an ``attention_mask``.
+    if ATTENTION_MASK_COLUMN_NAME not in model_input_names:
+        model_input_names.append(ATTENTION_MASK_COLUMN_NAME)
+
+    # Collect padded sequences for every requested field.
+    padded: dict[str, list[list[int]]] = {k: [] for k in model_input_names}
+
+    for sample in batch:
+        for field in model_input_names:
+            if field == ATTENTION_MASK_COLUMN_NAME:
+                if field in sample:
+                    seq = sample[field]
+                    padded_seq: list[int] = _pad_sequence(
+                        seq=seq,
+                        target_length=target_len,
+                        pad_val=0,
+                    )
+                else:
+                    # Create a mask from the first token field
+                    ref_field = INPUT_IDS_COLUMN_NAME if INPUT_IDS_COLUMN_NAME in sample else model_input_names[0]
+                    real_len = min(
+                        len(sample[ref_field]),
+                        target_len,
+                    )
+                    padded_seq = [1] * real_len + [0] * (target_len - real_len)
+                padded[field].append(padded_seq)
+            else:
+                seq = sample[field]
+                padded[field].append(
+                    _pad_sequence(
+                        seq=seq,
+                        target_length=target_len,
+                        pad_val=pad_token_id,
+                    ),
+                )
+
+    # Convert lists to tensors
+    collated_batch: dict[str, torch.Tensor] = {
+        name: torch.tensor(
+            data=values,
+            dtype=torch.long,
+        )
+        for name, values in padded.items()
     }
 
-    # TODO: We need to check whether the attention masks already exist, and if not need to create the attention mask accordingly.
+    # Check that the input_ids and attention_mask are present and have the same shape
+    if INPUT_IDS_COLUMN_NAME not in collated_batch:
+        msg: str = f"Collated batch is missing required model input names: {INPUT_IDS_COLUMN_NAME=}."
+        raise ValueError(
+            msg,
+        )
+    if ATTENTION_MASK_COLUMN_NAME not in collated_batch:
+        msg: str = f"Collated batch is missing required model input names: {ATTENTION_MASK_COLUMN_NAME=}."
+        raise ValueError(
+            msg,
+        )
+    if collated_batch[INPUT_IDS_COLUMN_NAME].shape != collated_batch[ATTENTION_MASK_COLUMN_NAME].shape:
+        msg: str = (
+            f"Collated batch has mismatched shapes for {INPUT_IDS_COLUMN_NAME=} and {ATTENTION_MASK_COLUMN_NAME=}: "
+            f"{collated_batch[INPUT_IDS_COLUMN_NAME].shape=} vs {collated_batch[ATTENTION_MASK_COLUMN_NAME].shape=}"
+        )
+        raise ValueError(
+            msg,
+        )
 
     # Collate metadata fields into lists
     metadata_keys: list = [k for k in batch[0] if k not in model_input_names]
