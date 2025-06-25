@@ -113,27 +113,50 @@ def load_and_stack_embedding_data(
     }
 
     # # # #
-    # Manually concatenate the elements in the POS metadata (if it exist)
-    if data_processing_column_names.pos_tags_name in loaded_metadata[0]["metadata"]:
-        # POS collection is a list of batches,
-        # where each batch is a list of sentences,
-        # where each sentence is a list of POS tags
-        pos_collection: list[list[list]] = [
-            metadata_chunk["metadata"][data_processing_column_names.pos_tags_name] for metadata_chunk in loaded_metadata
-        ]
+    # Manually concatenate the elements in the token-level metadata (if it exist)
+    for column_name in [
+        data_processing_column_names.bio_tags_name,
+        data_processing_column_names.pos_tags_name,
+    ]:
+        full_data_dict = process_token_level_metadata(
+            column_name=column_name,
+            loaded_metadata=loaded_metadata,
+            full_data_dict=full_data_dict,
+        )
 
-        concatenated_pos_batches: list = [pos_batch for pos_batches in pos_collection for pos_batch in pos_batches]
-
-        # Concatenate the list of POS tags
-        concatenated_pos_tags: list = [pos_tag for pos_tags in concatenated_pos_batches for pos_tag in pos_tags]
-
-        full_data_dict[data_processing_column_names.pos_tags_name] = concatenated_pos_tags
-
-    # TODO: Here we would need to add processing for other token-level metadata,
-    # TODO: such as the TripPy-R labels, if they are available in the metadata.
+    # TODO: Fix the problem with the wrong size of the arrays (for example, by padding the metadata).
 
     full_df = pd.DataFrame(
         data=full_data_dict,
     )
 
     return full_df
+
+
+def process_token_level_metadata(
+    column_name: str,
+    loaded_metadata: list,
+    full_data_dict: dict,
+) -> dict:
+    """Process token-level metadata and add it to the full data dictionary."""
+    if column_name in loaded_metadata[0]["metadata"]:
+        # The metadata is a list of batches,
+        # where each batch is a list of sentences,
+        # where each sentence is a list of token-wise tags (for example, POS tags or BIO-tags).
+        token_level_collection: list[list[list]] = [
+            metadata_chunk["metadata"][column_name] for metadata_chunk in loaded_metadata
+        ]
+
+        concatenated_token_level_batches: list = [
+            token_batch for token_batches in token_level_collection for token_batch in token_batches
+        ]
+
+        # Concatenate the list of token-wise tags
+        concatenated_token_level_tags: list = [
+            token_tag for token_tags in concatenated_token_level_batches for token_tag in token_tags
+        ]
+
+        # Add the concatenated token tags to the full_data_dict
+        full_data_dict[column_name] = concatenated_token_level_tags
+
+    return full_data_dict

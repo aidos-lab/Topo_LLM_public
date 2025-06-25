@@ -74,7 +74,7 @@ class DataProcessingColumnNames(ConfigBaseModel):
     )
 
     bio_tags_name: str = Field(
-        default="bio_tags",
+        default="bio_tag",
         title="Column name for the BIO tags.",
         description="The column name for the BIO tags.",
     )
