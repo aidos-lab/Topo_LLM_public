@@ -33,8 +33,8 @@ def add_token_name_column_to_meta_frame(
 ) -> pd.DataFrame:
     """Add a column with the meta tokens to the metadata DataFrame."""
     # Check that the input DataFrame has the necessary columns
-    if data_processing_column_names.token_id not in input_df.columns:
-        msg = f"The input DataFrame must have a column named {data_processing_column_names.token_id = }."
+    if data_processing_column_names.input_ids not in input_df.columns:
+        msg = f"The input DataFrame must have a column named {data_processing_column_names.input_ids = }."
         raise ValueError(msg)
 
     # x of type 'numpy.int64' needs to be explicitly converted to an integer,
@@ -43,7 +43,7 @@ def add_token_name_column_to_meta_frame(
     token_names_list = [
         tokenizer.convert_ids_to_tokens(int(x))
         for x in list(
-            input_df[data_processing_column_names.token_id],
+            input_df[data_processing_column_names.input_ids],
         )
     ]
 

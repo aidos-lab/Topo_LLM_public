@@ -55,7 +55,7 @@ def remove_padding_and_extra_tokens(
 
     # Remove the specified tokens from the data
     filtered_df = full_df[
-        ~full_df[data_processing_column_names.token_id].isin(
+        ~full_df[data_processing_column_names.input_ids].isin(
             token_ids_to_filter,
         )
     ]

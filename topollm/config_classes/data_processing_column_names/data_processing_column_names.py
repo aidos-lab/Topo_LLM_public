@@ -49,10 +49,10 @@ class DataProcessingColumnNames(ConfigBaseModel):
         description="The column name for the subsample index.",
     )
 
-    token_id: str = Field(
-        default="token_id",
-        title="Column name for the token_id, i.e., the number produced by the tokenizer.",
-        description="The column name for the token_id.",
+    input_ids: str = Field(
+        default="input_ids",
+        title="Column name for the input_ids, i.e., the number produced by the tokenizer.",
+        description="The column name for the input_ids.",
     )
 
     tokens_list: str = Field(
@@ -63,12 +63,18 @@ class DataProcessingColumnNames(ConfigBaseModel):
 
     token_name: str = Field(
         default="token_name",
-        title="Column name for the decoded token_id information.",
-        description="The column name for the decoded token_id information.",
+        title="Column name for the decoded input_ids information.",
+        description="The column name for the decoded input_ids information.",
     )
 
     pos_tags_name: str = Field(
         default="POS",
         title="Column name for the part-of-speech tags.",
         description="The column name for the part-of-speech tags.",
+    )
+
+    bio_tags_name: str = Field(
+        default="bio_tags",
+        title="Column name for the BIO tags.",
+        description="The column name for the BIO tags.",
     )

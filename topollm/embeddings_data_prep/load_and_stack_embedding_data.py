@@ -30,8 +30,7 @@ def load_and_stack_embedding_data(
 
     if verbosity >= Verbosity.NORMAL:
         logger.info(
-            "array_path:%s",
-            array_path,
+            msg=f"{array_path = }",  # noqa: G004 - low overhead
         )
 
     if not array_path.exists():
@@ -48,8 +47,7 @@ def load_and_stack_embedding_data(
 
     if verbosity >= Verbosity.NORMAL:
         logger.info(
-            "meta_path:%s",
-            meta_path,
+            msg=f"{meta_path = }",  # noqa: G004 - low overhead
         )
 
     if not meta_path.exists():
@@ -63,18 +61,18 @@ def load_and_stack_embedding_data(
         mode="r",
     )
 
-    array_np = np.array(
+    array_np: np.ndarray = np.array(
         array_zarr,
     )
-    number_of_sentences = array_np.shape[0]
-    number_of_tokens_per_sentence = array_np.shape[1]
+    number_of_sentences: int = array_np.shape[0]
+    number_of_tokens_per_sentence: int = array_np.shape[1]
 
     array_np = array_np.reshape(
         array_np.shape[0] * array_np.shape[1],
         array_np.shape[2],
     )
 
-    loaded_metadata = load_pickle_files_from_meta_path(
+    loaded_metadata: list = load_pickle_files_from_meta_path(
         meta_path=meta_path,
     )
 
@@ -87,7 +85,8 @@ def load_and_stack_embedding_data(
     # Note: This assumes that the batches saved in the embedding data computation are a dict which contains
     # different keys for the model_inputs and the metadata.
     input_ids_collection: list[list] = [
-        metadata_chunk["model_inputs"]["input_ids"].tolist() for metadata_chunk in loaded_metadata
+        metadata_chunk["model_inputs"][data_processing_column_names.input_ids].tolist()
+        for metadata_chunk in loaded_metadata
     ]
 
     stacked_input_ids: np.ndarray = np.vstack(
@@ -109,7 +108,7 @@ def load_and_stack_embedding_data(
 
     full_data_dict: dict = {
         data_processing_column_names.embedding_vectors: list(array_np),
-        data_processing_column_names.token_id: list(stacked_input_ids),
+        data_processing_column_names.input_ids: list(stacked_input_ids),
         data_processing_column_names.sentence_idx: [int(x) for x in sentence_idx],
     }
 

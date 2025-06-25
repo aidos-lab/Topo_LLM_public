@@ -149,7 +149,7 @@ def create_projection_plot(
         text="token_name",
         color="estimate",
         hover_data={
-            "token_id": True,
+            "input_ids": True,
             "sentence_idx": True,
             "subsample_idx": True,
             "token_name": True,
