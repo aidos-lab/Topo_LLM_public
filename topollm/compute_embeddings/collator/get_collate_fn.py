@@ -14,6 +14,7 @@ def get_collate_fn(
     partial_collate_fn = partial(
         collate_batch_and_move_to_device,
         device=loaded_model_container.device,
+        loaded_model_container=loaded_model_container,
         model_input_names=loaded_model_container.tokenizer.model_input_names,
     )
 

@@ -1,23 +1,11 @@
-# Copyright 2024
-# [ANONYMIZED_INSTITUTION],
-# [ANONYMIZED_FACULTY],
-# [ANONYMIZED_DEPARTMENT]
-#
-# Authors:
-# AUTHOR_1 (author1@example.com)
-# AUTHOR_2 (author2@example.com)
-#
-# Code generation tools and workflows:
-# First versions of this code were potentially generated
-# with the help of AI writing assistants including
-# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
-# Afterwards, the generated segments were manually reviewed and edited.
-#
-
+"""Collate a batch of data for embedding computation and move to device."""
 
 from typing import Any
 
 import torch
+
+from topollm.config_classes.tokenizer.tokenizer_config import TokenizerConfig
+from topollm.model_handling.loaded_model_container import LoadedModelContainer
 
 default_model_input_names: list[str] = [
     "input_ids",
@@ -25,8 +13,20 @@ default_model_input_names: list[str] = [
 ]
 
 
+def _pad_sequence(
+    seq: list[int],
+    target_length: int,
+    pad_val: int,
+) -> list[int]:
+    """Pad or truncate ``seq`` on the right up to ``target_length``."""
+    if len(seq) >= target_length:
+        return seq[:target_length]
+    return seq + [pad_val] * (target_length - len(seq))
+
+
 def collate_batch(
     batch: list,
+    loaded_model_container: LoadedModelContainer,
     model_input_names: list[str] | None = None,
 ) -> dict[
     str,
@@ -58,8 +58,9 @@ def collate_batch(
         model_input_names = default_model_input_names
 
     # Collate model input fields
+    pad_token_id: int = loaded_model_container.tokenizer.pad_token_id  # type: ignore[attr-defined]
     # TODO: This assumes that for a given model_input_name, the elements item[model_input_name] all have the same shape.
-    # TODO: We need to ensure that this is the case for the pre-tokenized data, and create the attention mask accordingly.
+    # TODO: If not, we need to pad using the tokenizer.pad_token_id
 
     collated_batch: dict[
         str,
@@ -69,8 +70,10 @@ def collate_batch(
         for model_input_name in model_input_names
     }
 
+    # TODO: We need to check whether the attention masks already exist, and if not need to create the attention mask accordingly.
+
     # Collate metadata fields into lists
-    metadata_keys = [k for k in batch[0] if k not in model_input_names]
+    metadata_keys: list = [k for k in batch[0] if k not in model_input_names]
     metadata_batch: dict[
         str,
         list[Any],
@@ -113,7 +116,8 @@ def move_collated_batch_to_device(
 def collate_batch_and_move_to_device(
     batch: list,
     device: torch.device,
-    model_input_names: list[str],
+    loaded_model_container: LoadedModelContainer,
+    model_input_names: list[str] | None = None,
 ) -> dict:
     """Collate the batch, move model input tensors to device, and keep metadata.
 
@@ -123,6 +127,8 @@ def collate_batch_and_move_to_device(
             The batch to collate.
         device:
             The device to move the tensors to.
+        tokenizer_config:
+            Configuration for the tokenizer.
         model_input_names:
             List of input names for the model.
 
@@ -136,6 +142,7 @@ def collate_batch_and_move_to_device(
     """
     collated_batch: dict = collate_batch(
         batch=batch,
+        loaded_model_container=loaded_model_container,
         model_input_names=model_input_names,
     )
     collated_batch: dict = move_collated_batch_to_device(
