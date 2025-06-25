@@ -18,15 +18,13 @@
 """Worker module to compute embedding vectors and store them to disk."""
 
 import logging
-from functools import partial
+from collections.abc import Callable
 from typing import TYPE_CHECKING
 
 import torch
 import torch.utils.data
 
-from topollm.compute_embeddings.collate_batch_for_embedding import (
-    collate_batch_and_move_to_device,
-)
+from topollm.compute_embeddings.collator.get_collate_fn import get_collate_fn
 from topollm.compute_embeddings.embedding_data_handler.factory import get_embedding_data_handler
 from topollm.compute_embeddings.embedding_dataloader_preparer.embedding_dataloader_preparer_context import (
     EmbeddingDataLoaderPreparerContext,
@@ -38,6 +36,7 @@ from topollm.compute_embeddings.embedding_extractor.factory import (
     get_embedding_extractor,
 )
 from topollm.config_classes.main_config import MainConfig
+from topollm.model_handling.loaded_model_container import LoadedModelContainer
 from topollm.model_handling.prepare_loaded_model_container import (
     prepare_device_and_tokenizer_and_model_from_main_config,
 )
@@ -56,7 +55,6 @@ if TYPE_CHECKING:
     from topollm.compute_embeddings.embedding_data_handler.base_embedding_data_handler import BaseEmbeddingDataHandler
     from topollm.compute_embeddings.embedding_dataloader_preparer.protocol import EmbeddingDataLoaderPreparer
     from topollm.compute_embeddings.embedding_extractor.protocol import EmbeddingExtractor
-    from topollm.model_handling.loaded_model_container import LoadedModelContainer
     from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
     from topollm.storage.array_storage.protocol import ChunkedArrayStorageProtocol
     from topollm.storage.metadata_storage.protocol import ChunkedMetadataStorageProtocol
@@ -101,12 +99,10 @@ def compute_and_store_embeddings(
             msg,
         )
 
-    # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Prepare data collator
-    partial_collate_fn = partial(
-        collate_batch_and_move_to_device,
-        device=loaded_model_container.device,
-        model_input_names=loaded_model_container.tokenizer.model_input_names,
+    collate_fn: Callable = get_collate_fn(
+        loaded_model_container=loaded_model_container,
     )
 
     preparer_context = EmbeddingDataLoaderPreparerContext(
@@ -114,7 +110,7 @@ def compute_and_store_embeddings(
         embeddings_config=main_config.embeddings,
         tokenizer_config=main_config.tokenizer,
         tokenizer=loaded_model_container.tokenizer,
-        collate_fn=partial_collate_fn,
+        collate_fn=collate_fn,
         verbosity=verbosity,
         logger=logger,
     )

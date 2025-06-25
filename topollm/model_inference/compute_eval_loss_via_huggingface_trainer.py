@@ -31,7 +31,7 @@ import omegaconf
 import transformers
 import wandb
 
-from topollm.compute_embeddings.collate_batch_for_embedding import (
+from topollm.compute_embeddings.collator.collate_batch_for_embedding import (
     collate_batch_and_move_to_device,
 )
 from topollm.compute_embeddings.embedding_dataloader_preparer.embedding_dataloader_preparer_context import (
