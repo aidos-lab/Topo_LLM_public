@@ -78,8 +78,7 @@ def load_and_stack_embedding_data(
 
     if verbosity >= Verbosity.DEBUG:
         logger.info(
-            "Loaded pickle files loaded_data:\n%s",
-            loaded_metadata,
+            msg=f"Loaded pickle files loaded_data:\n{loaded_metadata}",  # noqa: G004 - low overhead
         )
 
     # Note: This assumes that the batches saved in the embedding data computation are a dict which contains
@@ -124,7 +123,7 @@ def load_and_stack_embedding_data(
             full_data_dict=full_data_dict,
         )
 
-    # TODO: Fix the problem with the wrong size of the arrays (for example, by padding the metadata).
+    # TODO: Pass the 'dialogue_id' and 'turn_index' through the metadata handling
 
     full_df = pd.DataFrame(
         data=full_data_dict,

@@ -31,6 +31,8 @@ def collate_batch(
     batch: list,
     loaded_model_container: LoadedModelContainer,
     model_input_names: list[str] | None = None,
+    token_level_metadata_keys: list[str] | None = None,
+    metadata_pad_val: int = -100,
 ) -> dict[
     str,
     dict[
@@ -48,6 +50,12 @@ def collate_batch(
             Loaded model container containing the tokenizer and model configuration.
         model_input_names:
             List of input names for the model.
+        token_level_metadata_keys:
+            Keys in each sample whose values are token-level lists that should be
+            padded/truncated to the same length as the model inputs.
+            If ``None`` the function infers token-level keys by
+            inspecting the first sample for list-valued fields.
+            Padded sequences remain regular Python lists (they are *not* converted to tensors).
 
     Returns:
     -------
@@ -62,7 +70,9 @@ def collate_batch(
     if model_input_names is None:
         model_input_names = default_model_input_names
 
-    # Collate model input fields
+    # ------------------------------------------------------------------ #
+    # Collate model input fields                                         #
+    # ------------------------------------------------------------------ #
     pad_token_id: int = loaded_model_container.tokenizer.pad_token_id  # type: ignore[attr-defined]
 
     # Determine target length: Take an explicit max length from the config,
@@ -147,12 +157,37 @@ def collate_batch(
             msg,
         )
 
-    # Collate metadata fields into lists
-    metadata_keys: list = [k for k in batch[0] if k not in model_input_names]
+    # ------------------------------------------------------------------ #
+    # Collate metadata                                                   #
+    # ------------------------------------------------------------------ #
+    if token_level_metadata_keys is None:
+        token_level_metadata_keys = [
+            k for k, v in batch[0].items() if k not in model_input_names and isinstance(v, list)
+        ]
+
+    sequence_level_metadata_keys: list = [
+        k for k in batch[0] if k not in model_input_names and k not in token_level_metadata_keys
+    ]
+
     metadata_batch: dict[
         str,
-        list[Any],
-    ] = {metadata_key: [item[metadata_key] for item in batch] for metadata_key in metadata_keys}
+        Any,
+    ] = {}
+
+    # Sequence-level metadata (no padding)
+    for k in sequence_level_metadata_keys:
+        metadata_batch[k] = [item[k] for item in batch]
+
+    # Token-level metadata (pad / truncate, keep as Python lists)
+    for k in token_level_metadata_keys:
+        metadata_batch[k] = [
+            _pad_sequence(
+                seq=item[k],
+                target_length=target_len,
+                pad_val=metadata_pad_val,
+            )
+            for item in batch
+        ]
 
     return {
         "model_inputs": collated_batch,
