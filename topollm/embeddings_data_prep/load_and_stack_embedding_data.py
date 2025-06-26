@@ -1,19 +1,4 @@
-# Copyright 2024
-# [ANONYMIZED_INSTITUTION],
-# [ANONYMIZED_FACULTY],
-# [ANONYMIZED_DEPARTMENT]
-#
-# Authors:
-# AUTHOR_1 (author1@example.com)
-# AUTHOR_2 (author2@example.com)
-#
-# Code generation tools and workflows:
-# First versions of this code were potentially generated
-# with the help of AI writing assistants including
-# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
-# Afterwards, the generated segments were manually reviewed and edited.
-#
-
+"""Load and stack embedding data from precomputed files."""
 
 import logging
 import pathlib
@@ -41,16 +26,15 @@ def load_and_stack_embedding_data(
 ) -> pd.DataFrame:
     """Load the embedding data and metadata."""
     # Path for loading the precomputed embeddings
-    array_path = embeddings_path_manager.array_dir_absolute_path
+    array_path: pathlib.Path = embeddings_path_manager.array_dir_absolute_path
 
     if verbosity >= Verbosity.NORMAL:
         logger.info(
-            "array_path:%s",
-            array_path,
+            msg=f"{array_path = }",  # noqa: G004 - low overhead
         )
 
     if not array_path.exists():
-        msg = f"{array_path = } does not exist."
+        msg: str = f"{array_path = } does not exist."
         raise FileNotFoundError(
             msg,
         )
@@ -63,8 +47,7 @@ def load_and_stack_embedding_data(
 
     if verbosity >= Verbosity.NORMAL:
         logger.info(
-            "meta_path:%s",
-            meta_path,
+            msg=f"{meta_path = }",  # noqa: G004 - low overhead
         )
 
     if not meta_path.exists():
@@ -78,42 +61,42 @@ def load_and_stack_embedding_data(
         mode="r",
     )
 
-    array_np = np.array(
+    array_np: np.ndarray = np.array(
         array_zarr,
     )
-    number_of_sentences = array_np.shape[0]
-    number_of_tokens_per_sentence = array_np.shape[1]
+    number_of_sentences: int = array_np.shape[0]
+    number_of_tokens_per_sentence: int = array_np.shape[1]
 
     array_np = array_np.reshape(
         array_np.shape[0] * array_np.shape[1],
         array_np.shape[2],
     )
 
-    loaded_metadata = load_pickle_files_from_meta_path(
+    loaded_metadata: list = load_pickle_files_from_meta_path(
         meta_path=meta_path,
     )
 
     if verbosity >= Verbosity.DEBUG:
         logger.info(
-            "Loaded pickle files loaded_data:\n%s",
-            loaded_metadata,
+            msg=f"Loaded pickle files loaded_data:\n{loaded_metadata}",  # noqa: G004 - low overhead
         )
 
     # Note: This assumes that the batches saved in the embedding data computation are a dict which contains
     # different keys for the model_inputs and the metadata.
     input_ids_collection: list[list] = [
-        metadata_chunk["model_inputs"]["input_ids"].tolist() for metadata_chunk in loaded_metadata
+        metadata_chunk["model_inputs"][data_processing_column_names.input_ids].tolist()
+        for metadata_chunk in loaded_metadata
     ]
 
     stacked_input_ids: np.ndarray = np.vstack(
-        input_ids_collection,
+        tup=input_ids_collection,
     )
     stacked_input_ids: np.ndarray = stacked_input_ids.reshape(
         stacked_input_ids.shape[0] * stacked_input_ids.shape[1],
     )
 
-    sentence_idx = np.array(
-        [np.ones(number_of_tokens_per_sentence) * i for i in range(number_of_sentences)],
+    sentence_idx: np.ndarray = np.array(
+        [np.ones(shape=number_of_tokens_per_sentence) * i for i in range(number_of_sentences)],
     ).reshape(
         number_of_sentences * number_of_tokens_per_sentence,
     )
@@ -122,33 +105,57 @@ def load_and_stack_embedding_data(
     # The "metadata" key in the batch saved in a metadata_chunk is currently lost.
     # You would need to add it to the full_df here if you want to use it in the downstream pipeline.
 
-    full_data_dict = {
+    full_data_dict: dict = {
         data_processing_column_names.embedding_vectors: list(array_np),
-        data_processing_column_names.token_id: list(stacked_input_ids),
+        data_processing_column_names.input_ids: list(stacked_input_ids),
         data_processing_column_names.sentence_idx: [int(x) for x in sentence_idx],
     }
 
     # # # #
-    # Manually concatenate the elements in the POS metadata (if it exist)
-    if data_processing_column_names.pos_tags_name in loaded_metadata[0]["metadata"]:
-        # POS collection is a
-        # list of batches, where each batch is a list of sentences, where each sentence is a list of POS tags
-        pos_collection: list[list[list]] = [
-            metadata_chunk["metadata"][data_processing_column_names.pos_tags_name] for metadata_chunk in loaded_metadata
-        ]
+    # Manually concatenate the elements in the token-level metadata (if it exist)
+    for column_name in [
+        data_processing_column_names.bio_tags_name,
+        data_processing_column_names.pos_tags_name,
+    ]:
+        full_data_dict = process_token_level_metadata(
+            column_name=column_name,
+            loaded_metadata=loaded_metadata,
+            full_data_dict=full_data_dict,
+        )
 
-        concatenated_pos_batches: list = [pos_batch for pos_batches in pos_collection for pos_batch in pos_batches]
-
-        # Concatenate the list of POS tags
-        concatenated_pos_tags: list = [pos_tag for pos_tags in concatenated_pos_batches for pos_tag in pos_tags]
-
-        full_data_dict[data_processing_column_names.pos_tags_name] = concatenated_pos_tags
-
-    # TODO: Here we would need to add processing for other token-level metadata,
-    # TODO: such as the TripPy-R labels, if they are available in the metadata.
+    # TODO: Pass the 'dialogue_id' and 'turn_index' through the metadata handling
 
     full_df = pd.DataFrame(
         data=full_data_dict,
     )
 
     return full_df
+
+
+def process_token_level_metadata(
+    column_name: str,
+    loaded_metadata: list,
+    full_data_dict: dict,
+) -> dict:
+    """Process token-level metadata and add it to the full data dictionary."""
+    if column_name in loaded_metadata[0]["metadata"]:
+        # The metadata is a list of batches,
+        # where each batch is a list of sentences,
+        # where each sentence is a list of token-wise tags (for example, POS tags or BIO-tags).
+        token_level_collection: list[list[list]] = [
+            metadata_chunk["metadata"][column_name] for metadata_chunk in loaded_metadata
+        ]
+
+        concatenated_token_level_batches: list = [
+            token_batch for token_batches in token_level_collection for token_batch in token_batches
+        ]
+
+        # Concatenate the list of token-wise tags
+        concatenated_token_level_tags: list = [
+            token_tag for token_tags in concatenated_token_level_batches for token_tag in token_tags
+        ]
+
+        # Add the concatenated token tags to the full_data_dict
+        full_data_dict[column_name] = concatenated_token_level_tags
+
+    return full_data_dict
