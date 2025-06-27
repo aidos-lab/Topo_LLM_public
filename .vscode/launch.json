@@ -273,7 +273,8 @@
                 "data=multiwoz21_with_bio_tags",
                 //
                 "data.data_subsampling.split=validation",
-                "data.data_subsampling.number_of_samples=512",
+                // "data.data_subsampling.number_of_samples=512",
+                "data.data_subsampling.number_of_samples=128",
                 //
                 //    >> END: Data options.
                 //
