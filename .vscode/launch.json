@@ -270,11 +270,12 @@
                 //
                 //    >> START: Data options.
                 //
-                "data=multiwoz21_with_bio_tags",
+                // "data=multiwoz21_with_bio_tags",
+                "data=sgd_with_bio_tags",
                 //
                 "data.data_subsampling.split=validation",
-                // "data.data_subsampling.number_of_samples=512",
-                "data.data_subsampling.number_of_samples=128",
+                //"data.data_subsampling.number_of_samples=128",
+                "data.data_subsampling.number_of_samples=512",
                 //
                 //    >> END: Data options.
                 //
