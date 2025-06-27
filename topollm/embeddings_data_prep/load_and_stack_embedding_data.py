@@ -72,20 +72,20 @@ def load_and_stack_embedding_data(
         array_np.shape[2],
     )
 
-    loaded_metadata: list = load_pickle_files_from_meta_path(
+    loaded_metadata_chunks: list = load_pickle_files_from_meta_path(
         meta_path=meta_path,
     )
 
     if verbosity >= Verbosity.DEBUG:
         logger.info(
-            msg=f"Loaded pickle files loaded_data:\n{loaded_metadata}",  # noqa: G004 - low overhead
+            msg=f"Loaded pickle files loaded_metadata_chunks:\n{loaded_metadata_chunks}",  # noqa: G004 - low overhead
         )
 
     # Note: This assumes that the batches saved in the embedding data computation are a dict which contains
     # different keys for the model_inputs and the metadata.
     input_ids_collection: list[list] = [
         metadata_chunk["model_inputs"][data_processing_column_names.input_ids].tolist()
-        for metadata_chunk in loaded_metadata
+        for metadata_chunk in loaded_metadata_chunks
     ]
 
     stacked_input_ids: np.ndarray = np.vstack(
@@ -112,6 +112,11 @@ def load_and_stack_embedding_data(
     }
 
     # # # #
+    # Process the sequence-level metadata
+
+    # TODO: Pass the 'dialogue_id' and 'turn_index' through the metadata handling
+
+    # # # #
     # Manually concatenate the elements in the token-level metadata (if it exist)
     for column_name in [
         data_processing_column_names.bio_tags_name,
@@ -119,11 +124,9 @@ def load_and_stack_embedding_data(
     ]:
         full_data_dict = process_token_level_metadata(
             column_name=column_name,
-            loaded_metadata=loaded_metadata,
+            loaded_metadata=loaded_metadata_chunks,
             full_data_dict=full_data_dict,
         )
-
-    # TODO: Pass the 'dialogue_id' and 'turn_index' through the metadata handling
 
     full_df = pd.DataFrame(
         data=full_data_dict,
