@@ -177,23 +177,35 @@ def main(
         unique_values: list[str] = (
             local_estimates_container.pointwise_results_meta_frame[column_to_base_separation_on].unique().tolist()
         )
+        unique_values.sort()  # Sort the unique values for consistent ordering
         if verbosity >= Verbosity.NORMAL:
             logger.info(
                 msg=f"Unique values in {column_to_base_separation_on = }:\n{unique_values}",  # noqa: G004 - low overhead
             )
 
         # Intermediate step: Create a dictionary to hold arrays for each unique value
+        extracted_unique_value_to_array_dict: dict[str, np.ndarray] = {}
+        for unique_value in unique_values:
+            extracted_unique_value_to_array_dict[unique_value] = local_estimates_container.pointwise_results_array_np[
+                local_estimates_container.pointwise_results_meta_frame[column_to_base_separation_on] == unique_value
+            ]
 
-        # TODO: Implement this
+        extracted_arrays: list = [extracted_unique_value_to_array_dict[unique_value] for unique_value in unique_values]
+
+        ticks_and_labels: TicksAndLabels = TicksAndLabels(
+            xlabel=column_to_base_separation_on,
+            ylabel="pointwise_results_array_np",
+            xticks_labels=unique_values,
+        )
 
         for plot_size_config_violinplot in plot_size_config_violinplot_choices:
             (
                 fig,
                 ax,
             ) = make_distribution_violinplots_from_extracted_arrays(
-                extracted_arrays=[],  # TODO
+                extracted_arrays=extracted_arrays,
                 ticks_and_labels=ticks_and_labels,
-                plots_output_dir=output_root_dir,
+                plots_output_dir=current_output_dir,
                 plot_size_config=plot_size_config_violinplot,
                 verbosity=verbosity,
                 logger=logger,

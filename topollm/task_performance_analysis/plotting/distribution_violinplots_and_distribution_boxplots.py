@@ -69,7 +69,7 @@ def make_distribution_violinplots_from_extracted_arrays(
             ax.text(
                 x=i + 1,
                 y=float(mean),
-                s=f"Mean: {mean:.2f}\nMedian: {median:.2f}\nStd(ddof=1): {std:.2f}",
+                s=f"Mean: {mean:.2f}\nMedian: {median:.2f}\nStd(ddof=1): {std:.2f}\nCount: {len(extracted_array)}",
                 fontsize=6,
                 verticalalignment="bottom",
                 horizontalalignment="center",
