@@ -72,20 +72,20 @@ def load_and_stack_embedding_data(
         array_np.shape[2],
     )
 
-    loaded_metadata: list = load_pickle_files_from_meta_path(
+    loaded_metadata_chunks: list = load_pickle_files_from_meta_path(
         meta_path=meta_path,
     )
 
     if verbosity >= Verbosity.DEBUG:
         logger.info(
-            msg=f"Loaded pickle files loaded_data:\n{loaded_metadata}",  # noqa: G004 - low overhead
+            msg=f"Loaded pickle files loaded_metadata_chunks:\n{loaded_metadata_chunks}",  # noqa: G004 - low overhead
         )
 
     # Note: This assumes that the batches saved in the embedding data computation are a dict which contains
     # different keys for the model_inputs and the metadata.
     input_ids_collection: list[list] = [
         metadata_chunk["model_inputs"][data_processing_column_names.input_ids].tolist()
-        for metadata_chunk in loaded_metadata
+        for metadata_chunk in loaded_metadata_chunks
     ]
 
     stacked_input_ids: np.ndarray = np.vstack(
@@ -112,6 +112,21 @@ def load_and_stack_embedding_data(
     }
 
     # # # #
+    # Process the sequence-level metadata
+    for column_name in [
+        "dialogue_id",
+        "turn_index",
+    ]:
+        full_data_dict = process_sequence_level_metadata(
+            column_name=column_name,
+            loaded_metadata_chunks=loaded_metadata_chunks,
+            number_of_tokens_per_sentence=number_of_tokens_per_sentence,
+            full_data_dict=full_data_dict,
+            verbosity=verbosity,
+            logger=logger,
+        )
+
+    # # # #
     # Manually concatenate the elements in the token-level metadata (if it exist)
     for column_name in [
         data_processing_column_names.bio_tags_name,
@@ -119,11 +134,11 @@ def load_and_stack_embedding_data(
     ]:
         full_data_dict = process_token_level_metadata(
             column_name=column_name,
-            loaded_metadata=loaded_metadata,
+            loaded_metadata_chunks=loaded_metadata_chunks,
             full_data_dict=full_data_dict,
+            verbosity=verbosity,
+            logger=logger,
         )
-
-    # TODO: Pass the 'dialogue_id' and 'turn_index' through the metadata handling
 
     full_df = pd.DataFrame(
         data=full_data_dict,
@@ -132,18 +147,58 @@ def load_and_stack_embedding_data(
     return full_df
 
 
+def process_sequence_level_metadata(
+    column_name: str,
+    loaded_metadata_chunks: list,
+    number_of_tokens_per_sentence: int,
+    full_data_dict: dict,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
+) -> dict:
+    """Process sequence-level metadata and add it to the full data dictionary."""
+    if column_name in loaded_metadata_chunks[0]["metadata"]:
+        # The metadata is a list of batches,
+        # where each batch is a list of sentences,
+        # where each sentence is a list of sequence-level tags
+        # (for example, dialogue_id or turn_index).
+        sequence_level_collection: list[list] = [
+            metadata_chunk["metadata"][column_name] for metadata_chunk in loaded_metadata_chunks
+        ]
+
+        # Concatenate the list of sequence-level tags
+        concatenated_sequence_level_tags: list = [tag for tags in sequence_level_collection for tag in tags]
+
+        # Duplicate the sequence-level tags to match the number of tokens per sentence
+        concatenated_sequence_level_tags_one_for_each_token = [
+            tag for tag in concatenated_sequence_level_tags for _ in range(number_of_tokens_per_sentence)
+        ]
+
+        # Add the concatenated sequence tags to the full_data_dict
+        full_data_dict[column_name] = concatenated_sequence_level_tags_one_for_each_token
+    elif verbosity >= Verbosity.NORMAL:
+        # If the column is not found in the metadata, log a message
+        logger.info(
+            msg=f"Column {column_name=} not found in metadata. "  # noqa: G004 - low overhead
+            f"Skipping this column's sequence-level metadata processing.",
+        )
+
+    return full_data_dict
+
+
 def process_token_level_metadata(
     column_name: str,
-    loaded_metadata: list,
+    loaded_metadata_chunks: list,
     full_data_dict: dict,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
 ) -> dict:
     """Process token-level metadata and add it to the full data dictionary."""
-    if column_name in loaded_metadata[0]["metadata"]:
+    if column_name in loaded_metadata_chunks[0]["metadata"]:
         # The metadata is a list of batches,
         # where each batch is a list of sentences,
         # where each sentence is a list of token-wise tags (for example, POS tags or BIO-tags).
         token_level_collection: list[list[list]] = [
-            metadata_chunk["metadata"][column_name] for metadata_chunk in loaded_metadata
+            metadata_chunk["metadata"][column_name] for metadata_chunk in loaded_metadata_chunks
         ]
 
         concatenated_token_level_batches: list = [
@@ -157,5 +212,10 @@ def process_token_level_metadata(
 
         # Add the concatenated token tags to the full_data_dict
         full_data_dict[column_name] = concatenated_token_level_tags
+    elif verbosity >= Verbosity.NORMAL:
+        # If the column is not found in the metadata, log a message
+        logger.info(
+            msg=f"Column {column_name=} not found in metadata. Skipping this column's token-level metadata processing.",  # noqa: G004 - low overhead
+        )
 
     return full_data_dict

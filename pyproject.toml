@@ -18,7 +18,7 @@ dependencies = [
     "pydantic",
     "scikit-learn",
     "scikit-dimension",
-    "torch>=2.3,<2.4",
+    "torch>=2.3,<2.4",        # this restriction is needed to avoid issues with the HPC cluster
     "tqdm",
     "transformers>=4,<4.48",
     "zarr>=2,<3",
