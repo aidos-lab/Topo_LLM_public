@@ -2748,30 +2748,33 @@
                 "--multirun",
                 "hydra/sweeper=basic",
                 // ===== Local =====
-                // "hydra/launcher=basic",
+                "hydra/launcher=basic",
                 // ===== HPC cluster CPU-machine =====
                 // Notes: 
                 // - Do NOT set the DEFAULT queue in the CPU template, as this will lead to problems. "hydra.launcher.queue=DEFAULT"
                 // - There used to be a problem with the CPU template here when setting memory=16 and ncpus=2
                 //   (in that case, CPUs and memory are taken from the template, not from the extra arguments).
                 //   As a workaround, we do not choose these problematic values here.
-                "hydra/launcher=hpc_submission",
-                "hydra.launcher.template=CPU",
-                "hydra.launcher.memory=17",
-                "hydra.launcher.ncpus=3",
-                "hydra.launcher.ngpus=0",
-                "hydra.launcher.walltime=00:15:00", // <-- The plotting script should run very quickly.
+                //
+                // "hydra/launcher=hpc_submission",
+                // "hydra.launcher.template=CPU",
+                // "hydra.launcher.memory=17",
+                // "hydra.launcher.ncpus=3",
+                // "hydra.launcher.ngpus=0",
+                // "hydra.launcher.walltime=00:15:00", // <-- The plotting script should run very quickly.
+                //
                 // >>>> END: Hydra options
                 //
                 "tokenizer.add_prefix_space=False",
                 //
                 //    >> START: Data options.
                 //
-                "data=multiwoz21",
+                // "data=multiwoz21",
                 // "data=sgd",
                 // "data=one-year-of-tsla-on-reddit",
                 // "data=sgd,one-year-of-tsla-on-reddit",
                 // "data=multiwoz21,sgd,one-year-of-tsla-on-reddit",
+                "data=multiwoz21_with_bio_tags",
                 //
                 // >>>> ERC datasets:
                 // "data=ertod_emowoz",
@@ -2789,11 +2792,11 @@
                 // >>>> Trippy datasets:
                 // "data=trippy_dataloaders_processed",
                 //
-                // "data.data_subsampling.split=train",
+                "data.data_subsampling.split=train",
                 // "data.data_subsampling.split=validation",
                 // "data.data_subsampling.split=test",
                 // "data.data_subsampling.split=train,dev,test",
-                "data.data_subsampling.split=train,validation,test",
+                // "data.data_subsampling.split=train,validation,test",
                 //
                 //
                 "data.data_subsampling.sampling_mode=random",
@@ -2805,7 +2808,7 @@
                 //    >> START: Model options.
                 //
                 // >>>> Base models (Masked)
-                // "language_model=roberta-base",
+                "language_model=roberta-base",
                 //
                 // >>>> Fine-tuned models (Masked)
                 // >> Individual:
@@ -2819,7 +2822,7 @@
                 // >>>> Base models (Autoregressive)
                 // "language_model=gpt2-medium",
                 //
-                // "++language_model.checkpoint_no=-1", // <-- checkpoint_no not necessary for the base models, setting it to '-1' to skip unnecessary iterations over different choices
+                "++language_model.checkpoint_no=-1", // <-- checkpoint_no not necessary for the base models, setting it to '-1' to skip unnecessary iterations over different choices
                 //
                 // >>>> Fine-tuned models (Autoregressive)
                 // >> Individual:

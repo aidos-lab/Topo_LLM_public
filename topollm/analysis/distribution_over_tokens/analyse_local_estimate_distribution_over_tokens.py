@@ -1,20 +1,3 @@
-# Copyright 2024-2025
-# [ANONYMIZED_INSTITUTION],
-# [ANONYMIZED_FACULTY],
-# [ANONYMIZED_DEPARTMENT]
-#
-# Authors:
-# AUTHOR_1 (author1@example.com)
-# AUTHOR_2 (author2@example.com)
-#
-# Code generation tools and workflows:
-# First versions of this code were potentially generated
-# with the help of AI writing assistants including
-# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
-# Afterwards, the generated segments were manually reviewed and edited.
-#
-
-
 """Create plots of the local estimates and compare with other task performance measures."""
 
 import json
@@ -33,6 +16,7 @@ from matplotlib import pyplot as plt
 from sklearn.cluster import KMeans
 from tqdm import tqdm
 
+from topollm.analysis.local_estimates_computation.constants import INPUT_IDS_COLUMN_NAME
 from topollm.analysis.local_estimates_handling.saving.local_estimates_saving_manager import LocalEstimatesSavingManager
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
@@ -740,7 +724,7 @@ def get_tokens_with_extreme_estimate_value(
     """
     if columns_to_save is None:
         columns_to_save = [
-            "token_id",
+            INPUT_IDS_COLUMN_NAME,
             "sentence_idx",
             "subsample_idx",
             "token_name",
