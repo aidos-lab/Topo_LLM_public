@@ -55,9 +55,13 @@ class DataConfig(ConfigBaseModel):
     )
 
     dataset_description_string: str = Field(
-        default="one-year-of-tsla-on-reddit",
+        default="default-description-string",
         title="Dataset description string.",
-        description=("The dataset description string. This will be used for creating the file paths"),
+        description=("The dataset description string. This will be used for creating the file paths."),
+        examples=[
+            "one-year-of-tsla-on-reddit",
+            "multiwoz21_with_bio_tags",
+        ],
     )
 
     data_dir: pathlib.Path | None = Field(
@@ -67,12 +71,17 @@ class DataConfig(ConfigBaseModel):
     )
 
     dataset_path: str = Field(
-        default="SocialGrep/one-year-of-tsla-on-reddit",
+        default="default-dataset-path",
         title="Dataset identifier for huggingface datasets; "
         "path to the saved processed dataset for the SETSUMBT datasets.",
-        description="The dataset identifier to use for computing embeddings; "
-        "this is used for the `path=` argument for the huggingface datasets; "
-        "for the SETSUMBT datasets, this is the path to the saved processed dataset.",
+        description=(
+            "The dataset identifier to use for computing embeddings; "
+            "this is used for the `path=` argument for the huggingface datasets; "
+            "for the SETSUMBT datasets, this is the path to the saved processed dataset."
+        ),
+        examples=[
+            "SocialGrep/one-year-of-tsla-on-reddit",
+        ],
     )
 
     dataset_name: str | None = Field(
