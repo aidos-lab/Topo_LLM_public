@@ -1,20 +1,3 @@
-# Copyright 2024-2025
-# [ANONYMIZED_INSTITUTION],
-# [ANONYMIZED_FACULTY],
-# [ANONYMIZED_DEPARTMENT]
-#
-# Authors:
-# AUTHOR_1 (author1@example.com)
-# AUTHOR_2 (author2@example.com)
-#
-# Code generation tools and workflows:
-# First versions of this code were potentially generated
-# with the help of AI writing assistants including
-# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
-# Afterwards, the generated segments were manually reviewed and edited.
-#
-
-
 """Create plots of the local estimates and compare with other task performance measures."""
 
 import json
@@ -33,6 +16,7 @@ from matplotlib import pyplot as plt
 from sklearn.cluster import KMeans
 from tqdm import tqdm
 
+from topollm.analysis.local_estimates_computation.constants import BIO_TAGS_COLUMN_NAME, INPUT_IDS_COLUMN_NAME
 from topollm.analysis.local_estimates_handling.saving.local_estimates_saving_manager import LocalEstimatesSavingManager
 from topollm.config_classes.constants import HYDRA_CONFIGS_BASE_PATH
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
@@ -152,6 +136,11 @@ def main(
             y_max=15,
         ),
     ]
+    ticks_and_labels: TicksAndLabels = TicksAndLabels(
+        xlabel="main_config.language_model.checkpoint_no",
+        ylabel="pointwise_results_array_np",
+        xticks_labels=[str(object=main_config.language_model.checkpoint_no)],
+    )
 
     for plot_size_config_violinplot in plot_size_config_violinplot_choices:
         (
@@ -159,15 +148,75 @@ def main(
             ax,
         ) = make_distribution_violinplots_from_extracted_arrays(
             extracted_arrays=[local_estimates_container.pointwise_results_array_np],
-            ticks_and_labels=TicksAndLabels(
-                xlabel="main_config.language_model.checkpoint_no",
-                ylabel="pointwise_results_array_np",
-                xticks_labels=[str(object=main_config.language_model.checkpoint_no)],
-            ),
+            ticks_and_labels=ticks_and_labels,
             plots_output_dir=output_root_dir,
             plot_size_config=plot_size_config_violinplot,
             verbosity=verbosity,
             logger=logger,
+        )
+
+    # ================================================== #
+    # If additional metadata is available,
+    # create plots which are split by this data.
+    # ================================================== #
+
+    column_to_base_separation_on: str = BIO_TAGS_COLUMN_NAME
+
+    if column_to_base_separation_on in local_estimates_container.pointwise_results_meta_frame.columns:
+        logger.info(
+            msg=f"Creating plots separated by {column_to_base_separation_on = } ...",  # noqa: G004 - low overhead
+        )
+
+        current_output_dir: pathlib.Path = pathlib.Path(
+            output_root_dir,
+            f"plots_separated_by_{column_to_base_separation_on=}",
+        )
+
+        # # # #
+        # Create arrays for each unique value in the column to base separation on
+        unique_values: list[str] = (
+            local_estimates_container.pointwise_results_meta_frame[column_to_base_separation_on].unique().tolist()
+        )
+        unique_values.sort()  # Sort the unique values for consistent ordering
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg=f"Unique values in {column_to_base_separation_on = }:\n{unique_values}",  # noqa: G004 - low overhead
+            )
+
+        # Intermediate step: Create a dictionary to hold arrays for each unique value
+        extracted_unique_value_to_array_dict: dict[str, np.ndarray] = {}
+        for unique_value in unique_values:
+            extracted_unique_value_to_array_dict[unique_value] = local_estimates_container.pointwise_results_array_np[
+                local_estimates_container.pointwise_results_meta_frame[column_to_base_separation_on] == unique_value
+            ]
+
+        extracted_arrays: list = [extracted_unique_value_to_array_dict[unique_value] for unique_value in unique_values]
+
+        ticks_and_labels: TicksAndLabels = TicksAndLabels(
+            xlabel=column_to_base_separation_on,
+            ylabel="pointwise_results_array_np",
+            xticks_labels=unique_values,
+        )
+
+        for plot_size_config_violinplot in plot_size_config_violinplot_choices:
+            (
+                fig,
+                ax,
+            ) = make_distribution_violinplots_from_extracted_arrays(
+                extracted_arrays=extracted_arrays,
+                ticks_and_labels=ticks_and_labels,
+                plots_output_dir=current_output_dir,
+                plot_size_config=plot_size_config_violinplot,
+                verbosity=verbosity,
+                logger=logger,
+            )
+
+        logger.info(
+            msg=f"Creating plots separated by {column_to_base_separation_on = } DONE",  # noqa: G004 - low overhead
+        )
+    else:
+        logger.info(
+            msg=f"Column {column_to_base_separation_on = } not found in the metadata, skipping separation plots.",  # noqa: G004 - low overhead
         )
 
     # ================================================== #
@@ -574,8 +623,8 @@ def add_plot_for_single_cluster_id(
         token_summary: list = []
         for token, count in common_tokens:
             token_estimates: pd.Series = cluster_data[cluster_data["token_name"] == token][ESTIMATE_VALUE_COLUMN_NAME]
-            token_mean = token_estimates.mean()
-            token_std = token_estimates.std()
+            token_mean: float = token_estimates.mean()
+            token_std: float = token_estimates.std()
             token_summary.append(
                 f"{token} ({count=})\n{token_mean:.2f}±{token_std:.2f}",
             )
@@ -654,7 +703,7 @@ def get_example_tokens(
     random_state: int = 42,
 ) -> dict:
     """Retrieve example tokens from each cluster."""
-    example_tokens = {}
+    example_tokens: dict = {}
 
     for cluster_id in sorted(clustered_df["cluster"].unique()):
         sample_tokens = (
@@ -740,7 +789,7 @@ def get_tokens_with_extreme_estimate_value(
     """
     if columns_to_save is None:
         columns_to_save = [
-            "token_id",
+            INPUT_IDS_COLUMN_NAME,
             "sentence_idx",
             "subsample_idx",
             "token_name",

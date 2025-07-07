@@ -4,11 +4,9 @@ from typing import Any
 
 import torch
 
+from topollm.analysis.local_estimates_computation.constants import ATTENTION_MASK_COLUMN_NAME, INPUT_IDS_COLUMN_NAME
 from topollm.config_classes.tokenizer.tokenizer_config import TokenizerConfig
 from topollm.model_handling.loaded_model_container import LoadedModelContainer
-
-INPUT_IDS_COLUMN_NAME: str = "input_ids"
-ATTENTION_MASK_COLUMN_NAME: str = "attention_mask"
 
 default_model_input_names: list[str] = [
     INPUT_IDS_COLUMN_NAME,
