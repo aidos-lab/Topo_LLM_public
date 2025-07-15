@@ -6,7 +6,7 @@ authors = [
     { name = "AUTHOR_1", email = "author1@example.com" },
     { name = "AUTHOR_2", email = "author2@example.com" },
 ]
-requires-python = "~=3.12"
+requires-python = "~=3.12.0"
 readme = "README.md"
 dependencies = [
     "accelerate",
@@ -51,6 +51,7 @@ dependencies = [
     "tensorboardx>=2.6.2.2",
     "boto3>=1.37.20",
     "kaleido==0.2.1",         # There is an error on MacOS with ARM chip when installing one of the post versions of kaleido
+    "pyzmq<27",
 ]
 # Comments on pinned versions.
 #
