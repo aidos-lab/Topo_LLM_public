@@ -188,7 +188,7 @@
                 // >>>> END: Hydra options
                 "preferred_torch_backend=cpu", // Locally on a MacBook with 16GB of memory, loading Phi-3.5 on MPS is not possible
                 //
-                "tokenizer.add_prefix_space=False", // "tokenizer.add_prefix_space=True" is necessary to use the tokenizer with input split into words
+                "tokenizer.add_prefix_space=False",
                 //
                 //    >> START: Data options.
                 //
@@ -203,7 +203,8 @@
                 //
                 //    >> START: Model options.
                 //
-                "language_model=luster-rl-sent",
+                "language_model=Phi-3.5-mini-instruct",
+                // "language_model=luster-rl-sent",
                 // "++language_model.checkpoint_no=2813",
                 // "++language_model.checkpoint_no=2813,5626,8439",
                 //
