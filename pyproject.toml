@@ -12,7 +12,7 @@ dependencies = [
     "scikit-dimension",
     "torch>=2.3,<2.4",       # This restriction is needed to avoid issues with the HPC cluster
     "tqdm",
-    "transformers>=4,<4.48",
+    "transformers>=4,<4.50",
     "zarr>=2,<3",
     "tensorboard",
     "seaborn",

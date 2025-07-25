@@ -1,0 +1,8 @@
+defaults:
+  - tokenizer_modifier: do_nothing
+  - _self_
+
+lm_mode: clm
+
+pretrained_model_name_or_path: "microsoft/Phi-4-mini-instruct"
+short_model_name: "Phi-4-mini-instruct"

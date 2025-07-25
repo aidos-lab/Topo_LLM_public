@@ -20,7 +20,8 @@ DATA_LIST="multiwoz21_validation"
 
 # LANGUAGE_MODEL_LIST="roberta-base"
 # LANGUAGE_MODEL_LIST="roberta-base_finetuned-on-iclr_ftm-standard"
-LANGUAGE_MODEL_LIST="Phi-3.5-mini-instruct"
+# LANGUAGE_MODEL_LIST="Phi-3.5-mini-instruct"
+LANGUAGE_MODEL_LIST="Phi-4-mini-instruct"
 
 CHECKPOINT_NO="-1"
 # CHECKPOINT_NO="400"
