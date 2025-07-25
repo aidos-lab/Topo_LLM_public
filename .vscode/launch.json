@@ -743,6 +743,105 @@
             }
         },
         {
+            "name": "Run pipeline - HPC cluster submission - TwoNN - Fixed subsampling seed - Autoregressive: Phi-3.5, Phi-4; last layer only - Run pipeline.",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
+            "console": "integratedTerminal",
+            "args": [
+                //    >> START: Hydra options
+                "--multirun",
+                "hydra/sweeper=basic",
+                "hydra/launcher=basic",
+                "hydra/launcher=hpc_submission",
+                "hydra.launcher.queue=CUDA",
+                "hydra.launcher.template=RTX6000", // Note: 12 GB of GPU memory appears to not be enough for the GPT-2 pipeline, i.e., do not select the "hydra.launcher.template=GTX1080"
+                // "hydra.launcher.memory=64", // <-- The embeddings data prep step failed with 32GB of memory for the GPT2 medium model. 
+                "hydra.launcher.memory=50", // <-- The embeddings data prep step failed with 32GB of memory for the GPT2 medium model. 
+                "hydra.launcher.ncpus=2", // <-- Make sure not to use more than 2 CPUs per GPU on the GTX1080TI and RTX6000 nodes.
+                "hydra.launcher.ngpus=1",
+                "hydra.launcher.walltime=10:00:00", // <-- Note: Longer time for larger hidden dimension.
+                //    >> END: Hydra options
+                //
+                // >>>> Parameters to make sure that memory usage is within limits
+                "embeddings.batch_size=4",
+                "storage.chunk_size=32",
+                //
+                "tokenizer.add_prefix_space=False",
+                //
+                //    >> START: Data options.
+                //
+                // >> Single dataset:
+                "data=multiwoz21",
+                // "data=sgd",
+                // "data=one-year-of-tsla-on-reddit",
+                // "data=wikitext-103-v1",
+                // >> Multiple datasets:
+                // "data=sgd,one-year-of-tsla-on-reddit",
+                // "data=multiwoz21,sgd,one-year-of-tsla-on-reddit",
+                // "data=sgd,one-year-of-tsla-on-reddit,wikitext-103-v1,iclr_2024_submissions",
+                // "data=multiwoz21,sgd,one-year-of-tsla-on-reddit,wikitext-103-v1,iclr_2024_submissions",
+                //
+                "data.data_subsampling.split=train",
+                // "data.data_subsampling.split=dev",
+                // "data.data_subsampling.split=validation",
+                // "data.data_subsampling.split=test",
+                // "data.data_subsampling.split=train,test",
+                // "data.data_subsampling.split=train,dev,test",
+                // "data.data_subsampling.split=train,validation,test",
+                //
+                "data.data_subsampling.sampling_mode=random",
+                // "data.data_subsampling.sampling_mode=take_first,random",
+                // "data.data_subsampling.number_of_samples=7000",
+                "data.data_subsampling.number_of_samples=10000",
+                // "data.data_subsampling.number_of_samples=7000,10000",
+                // 
+                "data.data_subsampling.sampling_seed=778",
+                // "data.data_subsampling.sampling_seed=778,779,780",
+                //
+                //    >> END: Data options.
+                //
+                //    >> START: Model options.
+                //
+                // >>>> Base models (Autoregressive)
+                //
+                // "language_model=gpt2-medium",
+                "language_model=Phi-4-mini-instruct",
+                //
+                "++language_model.checkpoint_no=-1", // <-- checkpoint_no not necessary for the base models, setting it to '-1' to skip unnecessary iterations over different choices
+                //
+                // >>>> Fine-tuned models (Autoregressive)
+                //
+                // "++language_model.checkpoint_no=400,800,1200,1600,2000,2400,2800",
+                // "++language_model.checkpoint_no=1200",
+                // "++language_model.checkpoint_no=2800",
+                //
+                //
+                //    >> END: Model options.
+                //
+                "embeddings.embedding_data_handler.mode=regular", // 'masked_token' does not make sense for autoregressive models
+                //
+                "embeddings.embedding_extraction.layer_indices=[-1]",
+                "embeddings_data_prep.sampling.num_samples=150000",
+                "embeddings_data_prep.sampling.sampling_mode=random",
+                "embeddings_data_prep.sampling.seed=42",
+                //
+                "local_estimates=twonn",
+                //
+                "local_estimates.pointwise.n_neighbors_mode=absolute_size",
+                "local_estimates.filtering.deduplication_mode=array_deduplicator",
+                "local_estimates.filtering.num_samples=60000",
+                "local_estimates.pointwise.absolute_n_neighbors=128",
+                //
+                //    >> START: Feature flags.
+                "feature_flags.analysis.create_plots_in_local_estimates_worker=False", // <-- Decide whether to create plots in the local estimates worker.
+                //    >> END: Feature flags.
+            ],
+            "env": {
+                "PYTORCH_ENABLE_MPS_FALLBACK": "1"
+            }
+        },
+        {
             "name": "Run pipeline - HPC cluster submission - TwoNN - Different subsampling seed for each model seed - RoBERTa, BERT, GPT-2, ContextBERT-ERToD, SetSUMBT, Trippy, Trippy-R checkpoints; last layer only - Run pipeline.",
             "type": "debugpy",
             "request": "launch",
