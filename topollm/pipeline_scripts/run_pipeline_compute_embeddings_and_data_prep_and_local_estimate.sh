@@ -6,6 +6,21 @@ PYTHON_SCRIPT_NAME="run_pipeline_compute_embeddings_and_data_prep_and_local_esti
 RELATIVE_PYTHON_SCRIPT_PATH="topollm/pipeline_scripts/${PYTHON_SCRIPT_NAME}"
 ABSOLUTE_PYTHON_SCRIPT_PATH="${TOPO_LLM_REPOSITORY_BASE_PATH}/${RELATIVE_PYTHON_SCRIPT_PATH}"
 
+# >> Local run
+# HYDRA_LAUNCHER_ARGS_LIST=(
+#     "hydra/launcher=basic"
+#     "preferred_torch_backend=cpu" # Locally on a MacBook with 16GB of memory, loading Phi-3.5 on MPS is not possible
+# )
+# >> HPC run
+HYDRA_LAUNCHER_ARGS_LIST=(
+    "hydra/launcher=hpc_submission"
+    "hydra.launcher.queue=CUDA"
+    "hydra.launcher.template=RTX6000" # Note: 12 GB of GPU memory appears to not be enough for the GPT-2 pipeline, i.e., do not select the "hydra.launcher.template=GTX1080"
+    "hydra.launcher.memory=50" # <-- The embeddings data prep step failed with 32GB of memory for the GPT2 medium model. 
+    "hydra.launcher.ncpus=2" # <-- Make sure not to use more than 2 CPUs per GPU on the GTX1080TI and RTX6000 nodes.
+    "hydra.launcher.ngpus=1"
+    "hydra.launcher.walltime=04:00:00" # <-- The pipeline run for regular embeddings should only take a few minutes.
+)
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # START: Python script - Command line arguments
@@ -69,6 +84,8 @@ echo ">>> Calling python script ABSOLUTE_PYTHON_SCRIPT_PATH=${ABSOLUTE_PYTHON_SC
 
 uv run python3 $ABSOLUTE_PYTHON_SCRIPT_PATH \
     --multirun \
+    "hydra/sweeper=basic" \
+    "${HYDRA_LAUNCHER_ARGS_LIST[@]}" \
     data=$DATA_LIST \
     $DATASET_TYPE_LINE \
     language_model=$LANGUAGE_MODEL_LIST \

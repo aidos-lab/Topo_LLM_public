@@ -175,7 +175,7 @@
             }
         },
         {
-            "name": "Run pipeline - Local debugging - TwoNN; LUSTER; - Run pipeline.",
+            "name": "Run pipeline - Local debugging - TwoNN; LUSTER, Phi-3.5, Phi-4; - Run pipeline.",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
@@ -184,9 +184,23 @@
                 // >>>> START: Hydra options
                 "--multirun",
                 "hydra/sweeper=basic",
-                "hydra/launcher=basic",
+                // >> Local run
+                // "hydra/launcher=basic",
+                // "preferred_torch_backend=cpu", // Locally on a MacBook with 16GB of memory, loading Phi-3.5 on MPS is not possible
+                // >> HPC run
+                "hydra/launcher=hpc_submission",
+                "hydra.launcher.queue=CUDA",
+                "hydra.launcher.template=RTX6000", // Note: 12 GB of GPU memory appears to not be enough for the GPT-2 pipeline, i.e., do not select the "hydra.launcher.template=GTX1080"
+                // "hydra.launcher.memory=64", // <-- The embeddings data prep step failed with 32GB of memory for the GPT2 medium model. 
+                "hydra.launcher.memory=50", // <-- The embeddings data prep step failed with 32GB of memory for the GPT2 medium model. 
+                "hydra.launcher.ncpus=2", // <-- Make sure not to use more than 2 CPUs per GPU on the GTX1080TI and RTX6000 nodes.
+                "hydra.launcher.ngpus=1",
+                "hydra.launcher.walltime=04:00:00", // <-- The pipeline run for regular embeddings should only take a few minutes.
                 // >>>> END: Hydra options
-                "preferred_torch_backend=cpu", // Locally on a MacBook with 16GB of memory, loading Phi-3.5 on MPS is not possible
+                //
+                // >>>> Parameters to make sure that memory usage is within limits
+                "embeddings.batch_size=2",
+                "storage.chunk_size=32",
                 //
                 "tokenizer.add_prefix_space=False",
                 //
@@ -203,7 +217,9 @@
                 //
                 //    >> START: Model options.
                 //
-                "language_model=Phi-3.5-mini-instruct",
+                // "language_model=Phi-3.5-mini-instruct",
+                "language_model=Phi-4-mini-instruct",
+                //
                 // "language_model=luster-rl-sent",
                 // "++language_model.checkpoint_no=2813",
                 // "++language_model.checkpoint_no=2813,5626,8439",
