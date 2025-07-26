@@ -1,20 +1,3 @@
-# Copyright 2024
-# [ANONYMIZED_INSTITUTION],
-# [ANONYMIZED_FACULTY],
-# [ANONYMIZED_DEPARTMENT]
-#
-# Authors:
-# AUTHOR_1 (author1@example.com)
-# AUTHOR_2 (author2@example.com)
-#
-# Code generation tools and workflows:
-# First versions of this code were potentially generated
-# with the help of AI writing assistants including
-# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
-# Afterwards, the generated segments were manually reviewed and edited.
-#
-
-
 """Run inference with a language model."""
 
 import logging
@@ -61,7 +44,7 @@ def do_inference(
     )
     device = loaded_model_container.device
     tokenizer = loaded_model_container.tokenizer
-    lm_mode = loaded_model_container.lm_mode
+    lm_mode: LMmode = loaded_model_container.lm_mode
     model = loaded_model_container.model
 
     # Set up the model for evaluation.
@@ -70,7 +53,7 @@ def do_inference(
     if lm_mode == LMmode.MLM:
         if prompts is None:
             prompts = get_default_mlm_prompts(
-                mask_token=tokenizer.mask_token,
+                mask_token=tokenizer.mask_token,  # type: ignore - problem with inferring the correct type of the mask token
             )
         logger.info(
             "prompts:\n%s",
@@ -102,7 +85,7 @@ def do_inference(
             logger=logger,
         )
     else:
-        msg = f"Invalid lm_mode: {lm_mode = }"
+        msg: str = f"Invalid lm_mode: {lm_mode = }"
         raise ValueError(msg)
 
     return results
