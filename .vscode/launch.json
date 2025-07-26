@@ -754,12 +754,23 @@
                 "hydra/sweeper=basic",
                 "hydra/launcher=basic",
                 "hydra/launcher=hpc_submission",
-                "hydra.launcher.queue=CUDA",
-                "hydra.launcher.template=RTX6000", // Note: 12 GB of GPU memory appears to not be enough for the GPT-2 pipeline, i.e., do not select the "hydra.launcher.template=GTX1080"
-                // "hydra.launcher.memory=64", // <-- The embeddings data prep step failed with 32GB of memory for the GPT2 medium model. 
-                "hydra.launcher.memory=50", // <-- The embeddings data prep step failed with 32GB of memory for the GPT2 medium model. 
-                "hydra.launcher.ncpus=2", // <-- Make sure not to use more than 2 CPUs per GPU on the GTX1080TI and RTX6000 nodes.
-                "hydra.launcher.ngpus=1",
+                // ===== CPU-machine =====
+                "hydra.launcher.template=CPU",
+                // "hydra.launcher.queue=DEFAULT",
+                "hydra.launcher.ngpus=0",
+                "hydra.launcher.memory=129", //  
+                "hydra.launcher.ncpus=3", // <-- Make sure not to use more than 2 CPUs per GPU on the GTX1080TI and RTX6000 nodes.
+                // ===== GPU-machine =====
+                // Note: 16 GB of GPU memory appears to not be enough for the Phi-4 pipeline, 
+                // i.e., do NOT select: "hydra.launcher.template=GTX1080", "hydra.launcher.template=TESLAT4"
+                // TODO: There was a problem with not enough memory in the embeddings data prep step
+                // "hydra.launcher.memory=50", // <-- The embeddings data prep step FAILED with 50GB of memory for the Phi-4 model. 
+                // "hydra.launcher.queue=CUDA",
+                // "hydra.launcher.template=RTX6000",
+                // "hydra.launcher.ngpus=1",
+                // "hydra.launcher.memory=64", //  
+                // "hydra.launcher.ncpus=2", // <-- Make sure not to use more than 2 CPUs per GPU on the GTX1080TI and RTX6000 nodes.
+                // "hydra.launcher.ngpus=1",
                 "hydra.launcher.walltime=10:00:00", // <-- Note: Longer time for larger hidden dimension.
                 //    >> END: Hydra options
                 //
@@ -834,7 +845,12 @@
                 "local_estimates.pointwise.absolute_n_neighbors=128",
                 //
                 //    >> START: Feature flags.
-                "feature_flags.analysis.create_plots_in_local_estimates_worker=False", // <-- Decide whether to create plots in the local estimates worker.
+                // NOTE: Only skip the embedding computation if the embeddings are already available.
+                // TODO: We skip the embeddings computation while debugging the memory problem
+                // "feature_flags.compute_and_store_embeddings.skip_compute_and_store_embeddings_in_pipeline=False", // <-- Only set this to true if the embeddings are available
+                "feature_flags.compute_and_store_embeddings.skip_compute_and_store_embeddings_in_pipeline=True", // <-- Only set this to true if the embeddings are available
+                "feature_flags.embeddings_data_prep.skip_embeddings_data_prep_in_pipeline=False",
+                "feature_flags.analysis.create_plots_in_local_estimates_worker=True",
                 //    >> END: Feature flags.
             ],
             "env": {
