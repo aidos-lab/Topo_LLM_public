@@ -23,21 +23,37 @@ for VARIABLE_NAME in "${VARIABLES_TO_LOG_LIST[@]}"; do
 done
 
 PYTHON_SCRIPT_NAME="run_finetune_language_model_on_huggingface_dataset.py"
-PYTHON_SCRIPT_PATH="${TOPO_LLM_REPOSITORY_BASE_PATH}/topollm/model_finetuning/${PYTHON_SCRIPT_NAME}"
+RELATIVE_PYTHON_SCRIPT_PATH="topollm/model_finetuning/${PYTHON_SCRIPT_NAME}"
 
 # ==================================================== #
 # Select the parameters here
+
+BASE_ARGS=(
+    "--multirun"
+    "hydra/sweeper=basic"
+    "hydra/launcher=hpc_submission"
+)
+
+LAUNCHER_ARGS=(
+    "hydra.launcher.queue=CUDA"
+    "hydra.launcher.template=RTX6000"
+    "hydra.launcher.ngpus=1"
+    "hydra.launcher.memory=64"
+    "hydra.launcher.ncpus=2"
+    "hydra.launcher.walltime=20:00:00"
+)
 
 BASE_MODEL_LIST="Phi-3.5-mini-instruct_for_causal_lm"
 
 NUM_TRAIN_EPOCHS="5"
 
 SAVE_STEPS="400"
-EVAL_STEPS="100"
+# Note: We only evaluate every 400 steps to avoid a large number of costly evaluation runs.
+EVAL_STEPS="400"
 
-FINETUNING_DATASETS_LIST="train_and_eval_on_multiwoz21_train-samples-small"
+# FINETUNING_DATASETS_LIST="train_and_eval_on_multiwoz21_train-samples-small"
 
-# FINETUNING_DATASETS_LIST="train_and_eval_on_one-year-of-tsla-on-reddit_train-samples-small,train_and_eval_on_multiwoz21_train-samples-small"
+FINETUNING_DATASETS_LIST="train_and_eval_on_one-year-of-tsla-on-reddit_train-samples-small,train_and_eval_on_multiwoz21_train-samples-small"
 # FINETUNING_DATASETS_LIST="train_and_eval_on_multiwoz21,train_and_eval_on_sgd,train_and_eval_on_wikitext"
 # FINETUNING_DATASETS_LIST="train_and_eval_on_bbc,train_and_eval_on_iclr_2024_submissions,train_and_eval_on_multiwoz21,train_and_eval_on_sgd,train_and_eval_on_wikitext"
 # FINETUNING_DATASETS_LIST="train_and_eval_on_iclr_2024_submissions"
@@ -78,28 +94,48 @@ ADDITIONAL_OVERRIDES=""
 
 # ==================================================== #
 
-echo ">>> Calling script from PYTHON_SCRIPT_PATH=${PYTHON_SCRIPT_PATH} ..."
-
 echo ">>> CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES}"
 
-uv run python3 $PYTHON_SCRIPT_PATH \
-    --multirun \
-    finetuning/base_model="${BASE_MODEL_LIST}" \
-    finetuning.num_train_epochs="${NUM_TRAIN_EPOCHS}" \
-    finetuning.lr_scheduler_type="${LR_SCHEDULER_TYPE}" \
-    finetuning.save_steps="${SAVE_STEPS}" \
-    finetuning.eval_steps="${EVAL_STEPS}" \
-    finetuning.fp16="true" \
-    finetuning.batch_sizes.train="${BATCH_SIZE_TRAIN}" \
-    finetuning.batch_sizes.eval="${BATCH_SIZE_EVAL}" \
-    finetuning/finetuning_datasets="${FINETUNING_DATASETS_LIST}" \
-    finetuning/peft="${PEFT_LIST}" \
-    "${LORA_ARGUMENTS_LIST[@]}" \
-    finetuning/gradient_modifier="${GRADIENT_MODIFIER_LIST}" \
-    wandb.project=fine_tune_medium_models \
+# Build the argument list
+COMMON_ARGS=(
+    "finetuning/base_model=${BASE_MODEL_LIST}"
+    "finetuning.num_train_epochs=${NUM_TRAIN_EPOCHS}"
+    "finetuning.lr_scheduler_type=${LR_SCHEDULER_TYPE}"
+    "finetuning.save_steps=${SAVE_STEPS}"
+    "finetuning.eval_steps=${EVAL_STEPS}"
+    "finetuning.fp16=true"
+    "finetuning.batch_sizes.train=${BATCH_SIZE_TRAIN}"
+    "finetuning.batch_sizes.eval=${BATCH_SIZE_EVAL}"
+    "finetuning/finetuning_datasets=${FINETUNING_DATASETS_LIST}"
+    "finetuning/peft=${PEFT_LIST}"
+    "${LORA_ARGUMENTS_LIST[@]}"
+    "finetuning/gradient_modifier=${GRADIENT_MODIFIER_LIST}"
+    "wandb.project=fine_tune_medium_models"
     $ADDITIONAL_OVERRIDES
+)
 
-echo ">>> Calling script from PYTHON_SCRIPT_PATH=$PYTHON_SCRIPT_PATH DONE"
+ARGS=(
+    "${BASE_ARGS[@]}"
+    "${LAUNCHER_ARGS[@]}"
+    "${COMMON_ARGS[@]}"
+    "$@"
+)
+
+# Print the argument list
+echo "===================================================="
+echo ">> Argument list:"
+echo "===================================================="
+for arg in "${ARGS[@]}"; do
+    echo "  $arg"
+done
+echo "===================================================="
+
+echo ">>> Calling script from RELATIVE_PYTHON_SCRIPT_PATH=${RELATIVE_PYTHON_SCRIPT_PATH} ..."
+
+uv run python3 $RELATIVE_PYTHON_SCRIPT_PATH \
+    "${ARGS[@]}"
+
+echo ">>> Calling script from RELATIVE_PYTHON_SCRIPT_PATH=${RELATIVE_PYTHON_SCRIPT_PATH} DONE"
 
 # Exit with the exit code of the python command
 exit $?

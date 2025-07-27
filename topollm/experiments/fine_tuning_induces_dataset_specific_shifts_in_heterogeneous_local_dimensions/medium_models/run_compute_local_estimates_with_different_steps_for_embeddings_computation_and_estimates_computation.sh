@@ -42,11 +42,11 @@ MODE=$1; shift
 case "$MODE" in
   compute_embeddings)
     LAUNCHER_ARGS=(
-      "hydra.launcher.queue=CUDA"
-      "hydra.launcher.template=RTX6000"
-      "hydra.launcher.ngpus=1"
-      "hydra.launcher.memory=64"
-      "hydra.launcher.ncpus=2"
+        "hydra.launcher.queue=CUDA"
+        "hydra.launcher.template=RTX6000"
+        "hydra.launcher.ngpus=1"
+        "hydra.launcher.memory=64"
+        "hydra.launcher.ncpus=2"
     )
     FEATURE_FLAGS_ARGS=(
         "feature_flags.compute_and_store_embeddings.skip_compute_and_store_embeddings_in_pipeline=False"
@@ -75,42 +75,42 @@ case "$MODE" in
 esac
 
 BASE_ARGS=(
-  "--multirun"
-  "hydra/sweeper=basic"
-  "hydra/launcher=hpc_submission"
+    "--multirun"
+    "hydra/sweeper=basic"
+    "hydra/launcher=hpc_submission"
 )
 
 COMMON_ARGS=(
-  "hydra.launcher.walltime=10:00:00"
+    "hydra.launcher.walltime=10:00:00"
 
-  # --- memory-friendly settings ---------------------------------------------
-  "embeddings.batch_size=4"
-  "storage.chunk_size=32"
-  
-  "tokenizer.add_prefix_space=False"
+    # --- memory-friendly settings ---------------------------------------------
+    "embeddings.batch_size=4"
+    "storage.chunk_size=32"
 
-  # --- data ------------------------------------------------------------------
-  "data=multiwoz21,sgd,one-year-of-tsla-on-reddit,wikitext-103-v1,iclr_2024_submissions"
-  "data.data_subsampling.split=validation"
-  "data.data_subsampling.sampling_mode=random"
-  "data.data_subsampling.number_of_samples=10000"
-  "data.data_subsampling.sampling_seed=778"
+    "tokenizer.add_prefix_space=False"
 
-  # --- model -----------------------------------------------------------------
-  "language_model=Phi-3.5-mini-instruct"
-  "++language_model.checkpoint_no=-1"
+    # --- data ------------------------------------------------------------------
+    "data=multiwoz21,sgd,one-year-of-tsla-on-reddit,wikitext-103-v1,iclr_2024_submissions"
+    "data.data_subsampling.split=validation"
+    "data.data_subsampling.sampling_mode=random"
+    "data.data_subsampling.number_of_samples=10000"
+    "data.data_subsampling.sampling_seed=778"
 
-  # --- embeddings & local estimates -----------------------------------------
-  "embeddings.embedding_data_handler.mode=regular"
-  "embeddings.embedding_extraction.layer_indices=[-1]"
-  "embeddings_data_prep.sampling.num_samples=150000"
-  "embeddings_data_prep.sampling.sampling_mode=random"
-  "embeddings_data_prep.sampling.seed=42"
-  "local_estimates=twonn"
-  "local_estimates.pointwise.n_neighbors_mode=absolute_size"
-  "local_estimates.filtering.deduplication_mode=array_deduplicator"
-  "local_estimates.filtering.num_samples=60000"
-  "local_estimates.pointwise.absolute_n_neighbors=128"
+    # --- model -----------------------------------------------------------------
+    "language_model=Phi-3.5-mini-instruct"
+    "++language_model.checkpoint_no=-1"
+
+    # --- embeddings & local estimates -----------------------------------------
+    "embeddings.embedding_data_handler.mode=regular"
+    "embeddings.embedding_extraction.layer_indices=[-1]"
+    "embeddings_data_prep.sampling.num_samples=150000"
+    "embeddings_data_prep.sampling.sampling_mode=random"
+    "embeddings_data_prep.sampling.seed=42"
+    "local_estimates=twonn"
+    "local_estimates.pointwise.n_neighbors_mode=absolute_size"
+    "local_estimates.filtering.deduplication_mode=array_deduplicator"
+    "local_estimates.filtering.num_samples=60000"
+    "local_estimates.pointwise.absolute_n_neighbors=128"
 )
 
 # ---------------------------------------------------------------------------
@@ -128,13 +128,17 @@ ARGS=(
 )
 
 # Print the argument list
+echo "===================================================="
 echo ">> Argument list:"
+echo "===================================================="
 for arg in "${ARGS[@]}"; do
     echo "  $arg"
 done
+echo "===================================================="
 
 # Run the command
-uv run python3 "${RELATIVE_SCRIPT_PATH}" "${ARGS[@]}"
+uv run python3 "${RELATIVE_SCRIPT_PATH}" \
+    "${ARGS[@]}"
 
 echo ">> Script completed."
 
