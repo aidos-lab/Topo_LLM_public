@@ -1,10 +1,27 @@
 #!/bin/bash
 
-if [ -z "${TOPO_LLM_REPOSITORY_BASE_PATH:-}" ]; then
-    echo "@@@ Error: TOPO_LLM_REPOSITORY_BASE_PATH is not set." >&2
+# # # # # # # # # # # # # # # # # # # # # # # # #
+# Check if environment variables are set
+
+if [[ -z "${TOPO_LLM_REPOSITORY_BASE_PATH}" ]]; then
+    echo "❌ Error: TOPO_LLM_REPOSITORY_BASE_PATH is not set."
     exit 1
 fi
-echo "TOPO_LLM_REPOSITORY_BASE_PATH=${TOPO_LLM_REPOSITORY_BASE_PATH}"
+
+# Load environment variables from the .env file
+source "${TOPO_LLM_REPOSITORY_BASE_PATH}/.env"
+
+# # # # # # # # # # # # # # # # # # # # # # # # #
+# Log variables
+
+VARIABLES_TO_LOG_LIST=(
+    "TOPO_LLM_REPOSITORY_BASE_PATH" # example: /gpfs/project/$USER/git-source/Topo_LLM
+)
+
+for VARIABLE_NAME in "${VARIABLES_TO_LOG_LIST[@]}"; do
+    echo "💡 ${VARIABLE_NAME}=${!VARIABLE_NAME}"
+done
+
 
 SCRIPT_PATH="${TOPO_LLM_REPOSITORY_BASE_PATH}/topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py"
 
