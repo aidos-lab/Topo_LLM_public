@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # # # # # # # # # # # # # # # # # # # # # # # # #
 # Check if environment variables are set
 

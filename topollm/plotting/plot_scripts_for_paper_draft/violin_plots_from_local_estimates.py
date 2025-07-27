@@ -101,8 +101,7 @@ def main() -> None:
                 )  # Placeholder, which we will replace once we have fine-tuned version of the Phi-models
                 first_label: str = "Phi-3.5-mini-instruct"
                 first_model_path: str = "model=Phi-3.5-mini-instruct_task=masked_lm_dr=defaults"
-                # TODO: To create first versions of these plots, we will use the Phi-3.5-mini-instruct model again as the second model.
-                # TODO: Replace this with the fine-tuned versions once they are available.
+                # TODO: To create first versions of these plots, we will use the Phi-3.5-mini-instruct model again as the second model. Replace this with the fine-tuned versions once they are available.
                 second_models_and_labels: list[tuple[str, str]] = [
                     (
                         "model=Phi-3.5-mini-instruct_task=masked_lm_dr=defaults",
