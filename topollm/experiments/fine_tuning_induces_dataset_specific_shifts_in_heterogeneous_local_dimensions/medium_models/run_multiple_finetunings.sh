@@ -47,13 +47,15 @@ FINETUNING_DATASETS_LIST="train_and_eval_on_multiwoz21_train-samples-small"
 
 LR_SCHEDULER_TYPE="linear"
 
-# PEFT_LIST="lora"
-PEFT_LIST="standard"
-# PEFT_LIST="standard,lora"
+PEFT_LIST="lora"
+# PEFT_LIST="standard"
 
-# ADDITIONAL_OVERRIDES+=" ++finetuning.peft.r=16"
-# ADDITIONAL_OVERRIDES+=" ++finetuning.peft.lora_alpha=32"
-# ADDITIONAL_OVERRIDES+=" ++finetuning.peft.use_rslora=True"
+LORA_ARGUMENTS_LIST=(
+    "finetuning.peft.r=16"
+    "finetuning.peft.lora_alpha=32"
+    "finetuning.peft.use_rslora=True"
+    "finetuning.peft.target_modules=['o_proj','qkv_proj']"
+)
 
 GRADIENT_MODIFIER_LIST="do_nothing"
 
@@ -92,6 +94,7 @@ uv run python3 $PYTHON_SCRIPT_PATH \
     finetuning.batch_sizes.eval="${BATCH_SIZE_EVAL}" \
     finetuning/finetuning_datasets="${FINETUNING_DATASETS_LIST}" \
     finetuning/peft="${PEFT_LIST}" \
+    "${LORA_ARGUMENTS_LIST[@]}" \
     finetuning/gradient_modifier="${GRADIENT_MODIFIER_LIST}" \
     wandb.project=fine_tune_medium_models \
     $ADDITIONAL_OVERRIDES
