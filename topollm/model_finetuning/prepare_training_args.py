@@ -1,35 +1,50 @@
-# Copyright 2024
-# [ANONYMIZED_INSTITUTION],
-# [ANONYMIZED_FACULTY],
-# [ANONYMIZED_DEPARTMENT]
-#
-# Authors:
-# AUTHOR_1 (author1@example.com)
-# AUTHOR_2 (author2@example.com)
-#
-# Code generation tools and workflows:
-# First versions of this code were potentially generated
-# with the help of AI writing assistants including
-# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
-# Afterwards, the generated segments were manually reviewed and edited.
-#
-
-
 """Prepare the training arguments for the finetuning process."""
 
+import logging
 import os
 
+import torch
 import transformers
 
 from topollm.config_classes.finetuning.finetuning_config import FinetuningConfig
+from topollm.typing.enums import Verbosity
+
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 def prepare_training_args(
     finetuning_config: FinetuningConfig,
     finetuned_model_dir: os.PathLike,
+    device: torch.device,
     logging_dir: os.PathLike | None = None,
+    verbosity: Verbosity = Verbosity.NORMAL,
+    logger: logging.Logger = default_logger,
 ) -> transformers.TrainingArguments:
     """Prepare the training arguments for the finetuning process."""
+    match device.type:
+        case "cpu":
+            fp16: bool = finetuning_config.fp16
+            if finetuning_config.use_cpu is False:
+                logger.warning(
+                    msg="Selected device is CPU, but use_cpu is set to False. Setting use_cpu to True.",
+                )
+
+            use_cpu: bool = True
+        case "mps":
+            # MPS backend does not support fp16
+            fp16: bool = False
+            if finetuning_config.fp16:
+                logger.warning(
+                    msg="MPS backend does not support fp16. Setting fp16 to False.",
+                )
+
+            use_cpu: bool = finetuning_config.use_cpu
+        case _:
+            fp16: bool = finetuning_config.fp16
+            use_cpu: bool = finetuning_config.use_cpu
+
     # Note: the `label_names` argument appears to be necessary for the PEFT evaluation to work.
     # https://discuss.huggingface.co/t/eval-with-trainer-not-running-with-peft-lora-model/53286
     training_args = transformers.TrainingArguments(
@@ -47,7 +62,7 @@ def prepare_training_args(
         gradient_checkpointing_kwargs={
             "use_reentrant": False,
         },
-        fp16=finetuning_config.fp16,
+        fp16=fp16,
         warmup_steps=finetuning_config.warmup_steps,
         eval_strategy="steps",
         eval_steps=finetuning_config.eval_steps,
@@ -59,8 +74,13 @@ def prepare_training_args(
         report_to=finetuning_config.report_to,
         log_level=finetuning_config.log_level,
         logging_steps=finetuning_config.logging_steps,
-        use_cpu=finetuning_config.use_cpu,
+        use_cpu=use_cpu,
         seed=finetuning_config.seed,
     )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Prepared training arguments:\n{training_args}",  # noqa: G004 - low overhead
+        )
 
     return training_args

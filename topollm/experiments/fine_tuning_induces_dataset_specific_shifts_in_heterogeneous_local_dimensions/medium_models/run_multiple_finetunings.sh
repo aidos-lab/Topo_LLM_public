@@ -66,6 +66,8 @@ BATCH_SIZE_EVAL="${COMMON_BATCH_SIZE}"
 
 ADDITIONAL_OVERRIDES=""
 # ADDITIONAL_OVERRIDES+=" hydra.job.env_set.CUDA_VISIBLE_DEVICES=\"${CUDA_VISIBLE_DEVICES}\""
+# Note: You can explicitly set the preferred torch backend to avoid `ValueError: fp16 mixed precision requires a GPU (not 'mps')`. 
+# ADDITIONAL_OVERRIDES+=" preferred_torch_backend=cpu"
 
 # Comment out the `finetuning.max_steps` argument for full training.
 # Note: Setting this to anything but '-1' will lead to partial training.
@@ -91,6 +93,7 @@ uv run python3 $PYTHON_SCRIPT_PATH \
     finetuning/finetuning_datasets="${FINETUNING_DATASETS_LIST}" \
     finetuning/peft="${PEFT_LIST}" \
     finetuning/gradient_modifier="${GRADIENT_MODIFIER_LIST}" \
+    wandb.project=fine_tune_medium_models \
     $ADDITIONAL_OVERRIDES
 
 echo ">>> Calling script from PYTHON_SCRIPT_PATH=$PYTHON_SCRIPT_PATH DONE"
