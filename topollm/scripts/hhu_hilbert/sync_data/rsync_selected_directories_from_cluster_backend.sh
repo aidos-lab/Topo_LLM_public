@@ -25,6 +25,9 @@
 # >>> Example: Selected Trippy-R checkpoint from the long training runs
 # ${TOPO_LLM_REPOSITORY_BASE_PATH}/topollm/scripts/cluster_backend/sync_data/rsync_selected_directories_from_cluster_backend.sh --folders "data/models/trippy_r_checkpoints/multiwoz21/all_checkpoints/model_output/num_train_epochs=50/warmup_proportion=0.020/lr_scheduler_type=constant_schedule_with_warmup/results.1111/checkpoint-1775/"
 #
+# >>> Example: Selected plots
+# ${TOPO_LLM_REPOSITORY_BASE_PATH}/topollm/scripts/hhu_hilbert/sync_data/rsync_selected_directories_from_cluster_backend.sh --folders "data/saved_plots/local_estimates_projection/data=sgd_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/split=validation_samples=10000_sampling=random_sampling-seed=778/edh-mode=regular_lvl=token/add-prefix-space=False_max-len=512/model=Phi-3.5-mini-instruct_task=masked_lm_dr=defaults/"
+#
 # # # # # # # # # # # # # # # # # # # # # # # # #
 
 # # # # # # # # # # # # # # # # # # # # # # # # #
