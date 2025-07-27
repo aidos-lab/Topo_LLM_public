@@ -1,0 +1,11 @@
+defaults:
+  - tokenizer_modifier: do_nothing
+  - _self_
+
+lm_mode: mlm
+
+pretrained_model_name_or_path: "answerdotai/ModernBERT-base"
+short_model_name: "ModernBERT-base"
+
+# Note: The seed is unused for the base model. This is here to allow overriding the value without creating an error.
+seed: -1

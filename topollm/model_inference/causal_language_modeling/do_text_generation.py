@@ -1,20 +1,3 @@
-# Copyright 2024
-# [ANONYMIZED_INSTITUTION],
-# [ANONYMIZED_FACULTY],
-# [ANONYMIZED_DEPARTMENT]
-#
-# Authors:
-# AUTHOR_1 (author1@example.com)
-# AUTHOR_2 (author2@example.com)
-#
-# Code generation tools and workflows:
-# First versions of this code were potentially generated
-# with the help of AI writing assistants including
-# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
-# Afterwards, the generated segments were manually reviewed and edited.
-#
-
-
 """Generate text based on the provided prompts using causal language modeling."""
 
 import logging
@@ -24,8 +7,8 @@ import torch
 import transformers
 from tqdm import tqdm
 
-default_device = torch.device("cpu")
-default_logger = logging.getLogger(__name__)
+default_device = torch.device(device="cpu")
+default_logger: logging.Logger = logging.getLogger(name=__name__)
 
 
 def do_text_generation(
@@ -56,13 +39,17 @@ def do_text_generation(
         A list of lists containing generated text sequences for each prompt.
 
     """
-    text_generation_pipeline = transformers.pipeline(
+    # Notes:
+    # - We set `do_sample=True` to avoid problem with the `num_return_sequences` parameter,
+    # see: https://github.com/huggingface/transformers/issues/2415
+    text_generation_pipeline: transformers.Pipeline = transformers.pipeline(
         task="text-generation",
         model=model,
         tokenizer=tokenizer,
         device=device,
         max_length=max_length,
         num_return_sequences=num_return_sequences,
+        do_sample=True,
     )
 
     logger.info(
@@ -87,7 +74,7 @@ def do_text_generation(
             results,
             list,
         ):
-            msg = f"{results = } must be a list."
+            msg: str = f"{results = } must be a list."
             raise TypeError(msg)
 
         generated_texts: list[str] = [result["generated_text"] for result in results]
@@ -99,7 +86,7 @@ def do_text_generation(
 
         # Logging each generated text for the current prompt
         logger.info(
-            f"{prompt = }",  # noqa: G004 - low overhead
+            msg=f"{prompt = }",  # noqa: G004 - low overhead
         )
         logger.info(
             "generated_texts:\n%s",
