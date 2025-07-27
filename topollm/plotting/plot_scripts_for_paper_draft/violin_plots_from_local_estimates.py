@@ -5,9 +5,11 @@ import pathlib
 from collections import defaultdict
 from enum import StrEnum, auto, unique
 
+import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
+from tqdm import tqdm
 
 from topollm.config_classes.constants import TOPO_LLM_REPOSITORY_BASE_PATH
 
@@ -17,7 +19,9 @@ class BaseModelMode(StrEnum):
     """The different modes for base models."""
 
     ROBERTA_BASE = auto()
+
     GPT2_MEDIUM = auto()
+    PHI_35_MINI_INSTRUCT = auto()
 
 
 def main() -> None:
@@ -57,7 +61,7 @@ def main() -> None:
         match base_model_mode:
             case BaseModelMode.ROBERTA_BASE:
                 checkpoint_no: int = 2800
-                first_label = "RoBERTa"
+                first_label: str = "RoBERTa"
                 first_model_path: str = "model=roberta-base_task=masked_lm_dr=defaults"
                 second_models_and_labels: list[tuple[str, str]] = [
                     (
@@ -75,9 +79,9 @@ def main() -> None:
                 ]
             case BaseModelMode.GPT2_MEDIUM:
                 checkpoint_no: int = 1200
-                first_label = "GPT-2"
-                first_model_path = "model=gpt2-medium_task=masked_lm_dr=defaults"
-                second_models_and_labels = [
+                first_label: str = "GPT-2"
+                first_model_path: str = "model=gpt2-medium_task=masked_lm_dr=defaults"
+                second_models_and_labels: list[tuple[str, str]] = [
                     (
                         f"model=gpt2-medium-causal_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5_seed-1234_ckpt-{checkpoint_no}_task=causal_lm_dr=defaults",
                         "GPT-2 fine-tuned on MultiWOZ",
@@ -91,8 +95,22 @@ def main() -> None:
                         "GPT-2 fine-tuned on Wikitext",
                     ),
                 ]
+            case BaseModelMode.PHI_35_MINI_INSTRUCT:
+                checkpoint_no: int = (
+                    -1
+                )  # Placeholder, which we will replace once we have fine-tuned version of the Phi-models
+                first_label: str = "Phi-3.5-mini-instruct"
+                first_model_path: str = "model=Phi-3.5-mini-instruct_task=masked_lm_dr=defaults"
+                # TODO: To create first versions of these plots, we will use the Phi-3.5-mini-instruct model again as the second model.
+                # TODO: Replace this with the fine-tuned versions once they are available.
+                second_models_and_labels: list[tuple[str, str]] = [
+                    (
+                        "model=Phi-3.5-mini-instruct_task=masked_lm_dr=defaults",
+                        "Phi-3.5-mini-instruct",
+                    ),
+                ]
             case _:
-                msg: str = f"Unsupported base model mode: {base_model_mode}"
+                msg: str = f"Unsupported base model mode: {base_model_mode=}"
                 raise ValueError(
                     msg,
                 )
@@ -108,6 +126,24 @@ def main() -> None:
         )
 
         # Iterate over different choices
+
+        # Prepare the iterable for combinations
+        product_iter = itertools.product(
+            dataset_name_choices,
+            split_choices,
+            sampling_mode_choices,
+            edh_mode_choices,
+            second_models_and_labels,
+        )
+
+        total_iterations: int = (
+            len(dataset_name_choices)
+            * len(split_choices)
+            * len(sampling_mode_choices)
+            * len(edh_mode_choices)
+            * len(second_models_and_labels)
+        )
+
         for (
             dataset_name,
             split,
@@ -117,25 +153,23 @@ def main() -> None:
                 second_model,
                 second_label,
             ),
-        ) in itertools.product(
-            dataset_name_choices,
-            split_choices,
-            sampling_mode_choices,
-            edh_mode_choices,
-            second_models_and_labels,
+        ) in tqdm(
+            iterable=product_iter,
+            total=total_iterations,
+            desc="Generating violin plots",
         ):
             match sampling_mode:
                 case "random":
-                    split_and_subsample_path = (
+                    split_and_subsample_path: str = (
                         f"split={split}"
                         f"_samples=10000"
                         f"_sampling={sampling_mode}"
                         f"_sampling-seed={data_subsampling_sampling_seed}"
                     )
                 case "take_first":
-                    split_and_subsample_path = f"split={split}_samples=10000_sampling={sampling_mode}"
+                    split_and_subsample_path: str = f"split={split}_samples=10000_sampling={sampling_mode}"
                 case _:
-                    msg: str = f"Unsupported sampling mode: {sampling_mode}"
+                    msg: str = f"Unsupported sampling mode: {sampling_mode=}"
                     raise ValueError(
                         msg,
                     )
@@ -187,10 +221,10 @@ def main() -> None:
 
             try:
                 # Load the .npy files
-                data_array_1 = np.load(
+                data_array_1: np.ndarray = np.load(
                     file=file_path_1,
                 )
-                data_array_2 = np.load(
+                data_array_2: np.ndarray = np.load(
                     file=file_path_2,
                 )
 
@@ -230,8 +264,6 @@ def main() -> None:
                     fontsize=fontsize,
                 )
                 plt.yticks(fontsize=fontsize)
-
-                import matplotlib.patches as mpatches
 
                 # Retrieve colors for each violin from the plot
                 colors = [
