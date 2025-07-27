@@ -1,9 +1,26 @@
 #!/bin/bash
 
-# See the following for details on how to use Hydra multirun:
-# https://hydra.cc/docs/tutorials/basic/running_your_app/multi-run/
+# # # # # # # # # # # # # # # # # # # # # # # # #
+# Check if environment variables are set
 
-echo "TOPO_LLM_REPOSITORY_BASE_PATH=${TOPO_LLM_REPOSITORY_BASE_PATH}"
+if [[ -z "${TOPO_LLM_REPOSITORY_BASE_PATH}" ]]; then
+    echo "❌ Error: TOPO_LLM_REPOSITORY_BASE_PATH is not set."
+    exit 1
+fi
+
+# Load environment variables from the .env file
+source "${TOPO_LLM_REPOSITORY_BASE_PATH}/.env"
+
+# # # # # # # # # # # # # # # # # # # # # # # # #
+# Log variables
+
+VARIABLES_TO_LOG_LIST=(
+    "TOPO_LLM_REPOSITORY_BASE_PATH" # example: /gpfs/project/$USER/git-source/Topo_LLM
+)
+
+for VARIABLE_NAME in "${VARIABLES_TO_LOG_LIST[@]}"; do
+    echo "💡 ${VARIABLE_NAME}=${!VARIABLE_NAME}"
+done
 
 PYTHON_SCRIPT_NAME="run_finetune_language_model_on_huggingface_dataset.py"
 PYTHON_SCRIPT_PATH="${TOPO_LLM_REPOSITORY_BASE_PATH}/topollm/model_finetuning/${PYTHON_SCRIPT_NAME}"
@@ -11,16 +28,16 @@ PYTHON_SCRIPT_PATH="${TOPO_LLM_REPOSITORY_BASE_PATH}/topollm/model_finetuning/${
 # ==================================================== #
 # Select the parameters here
 
-# BASE_MODEL_LIST="gpt2-medium_for_causal_lm"
-BASE_MODEL_LIST="roberta-base_for_masked_lm"
+BASE_MODEL_LIST="Phi-3.5-mini-instruct_for_causal_lm"
 
 NUM_TRAIN_EPOCHS="5"
-# NUM_TRAIN_EPOCHS="50"
 
 SAVE_STEPS="400"
 EVAL_STEPS="100"
 
-FINETUNING_DATASETS_LIST="train_and_eval_on_one-year-of-tsla-on-reddit_train-samples-small,train_and_eval_on_multiwoz21_train-samples-small"
+FINETUNING_DATASETS_LIST="train_and_eval_on_multiwoz21_train-samples-small"
+
+# FINETUNING_DATASETS_LIST="train_and_eval_on_one-year-of-tsla-on-reddit_train-samples-small,train_and_eval_on_multiwoz21_train-samples-small"
 # FINETUNING_DATASETS_LIST="train_and_eval_on_multiwoz21,train_and_eval_on_sgd,train_and_eval_on_wikitext"
 # FINETUNING_DATASETS_LIST="train_and_eval_on_bbc,train_and_eval_on_iclr_2024_submissions,train_and_eval_on_multiwoz21,train_and_eval_on_sgd,train_and_eval_on_wikitext"
 # FINETUNING_DATASETS_LIST="train_and_eval_on_iclr_2024_submissions"
@@ -29,15 +46,16 @@ FINETUNING_DATASETS_LIST="train_and_eval_on_one-year-of-tsla-on-reddit_train-sam
 # FINETUNING_DATASETS_LIST="train_and_eval_on_one-year-of-tsla-on-reddit"
 
 LR_SCHEDULER_TYPE="linear"
-# LR_SCHEDULER_TYPE="constant"
 
 # PEFT_LIST="lora"
 PEFT_LIST="standard"
 # PEFT_LIST="standard,lora"
 
+# ADDITIONAL_OVERRIDES+=" ++finetuning.peft.r=16"
+# ADDITIONAL_OVERRIDES+=" ++finetuning.peft.lora_alpha=32"
+# ADDITIONAL_OVERRIDES+=" ++finetuning.peft.use_rslora=True"
+
 GRADIENT_MODIFIER_LIST="do_nothing"
-# GRADIENT_MODIFIER_LIST="freeze_first_layers_bert-style-models"
-# GRADIENT_MODIFIER_LIST="do_nothing,freeze_first_layers_bert-style-models"
 
 COMMON_BATCH_SIZE="8"
 
@@ -48,9 +66,6 @@ BATCH_SIZE_EVAL="${COMMON_BATCH_SIZE}"
 
 ADDITIONAL_OVERRIDES=""
 # ADDITIONAL_OVERRIDES+=" hydra.job.env_set.CUDA_VISIBLE_DEVICES=\"${CUDA_VISIBLE_DEVICES}\""
-# ADDITIONAL_OVERRIDES+=" ++finetuning.peft.r=16"
-# ADDITIONAL_OVERRIDES+=" ++finetuning.peft.lora_alpha=32"
-# ADDITIONAL_OVERRIDES+=" ++finetuning.peft.use_rslora=True"
 
 # Comment out the `finetuning.max_steps` argument for full training.
 # Note: Setting this to anything but '-1' will lead to partial training.
@@ -59,9 +74,9 @@ ADDITIONAL_OVERRIDES=""
 
 # ==================================================== #
 
-echo "Calling script from PYTHON_SCRIPT_PATH=${PYTHON_SCRIPT_PATH} ..."
+echo ">>> Calling script from PYTHON_SCRIPT_PATH=${PYTHON_SCRIPT_PATH} ..."
 
-echo "CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES}"
+echo ">>> CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES}"
 
 uv run python3 $PYTHON_SCRIPT_PATH \
     --multirun \
@@ -78,7 +93,7 @@ uv run python3 $PYTHON_SCRIPT_PATH \
     finetuning/gradient_modifier="${GRADIENT_MODIFIER_LIST}" \
     $ADDITIONAL_OVERRIDES
 
-echo "Calling script from PYTHON_SCRIPT_PATH=$PYTHON_SCRIPT_PATH DONE"
+echo ">>> Calling script from PYTHON_SCRIPT_PATH=$PYTHON_SCRIPT_PATH DONE"
 
 # Exit with the exit code of the python command
 exit $?
