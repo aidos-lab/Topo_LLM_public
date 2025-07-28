@@ -47,6 +47,7 @@ case "$MODE" in
         "hydra.launcher.ngpus=1"
         "hydra.launcher.memory=64"
         "hydra.launcher.ncpus=2"
+        "hydra.launcher.walltime=10:00:00"
     )
     FEATURE_FLAGS_ARGS=(
         "feature_flags.compute_and_store_embeddings.skip_compute_and_store_embeddings_in_pipeline=False"
@@ -63,6 +64,7 @@ case "$MODE" in
       "hydra.launcher.ngpus=0"
       "hydra.launcher.memory=129"
       "hydra.launcher.ncpus=3"
+      "hydra.launcher.walltime=04:00:00"
     )
     FEATURE_FLAGS_ARGS=(
         "feature_flags.compute_and_store_embeddings.skip_compute_and_store_embeddings_in_pipeline=True"
@@ -80,9 +82,16 @@ BASE_ARGS=(
     "hydra/launcher=hpc_submission"
 )
 
-COMMON_ARGS=(
-    "hydra.launcher.walltime=10:00:00"
 
+# --- model -----------------------------------------------------------------
+LANGUAGE_MODEL_ARGS=(
+    # "language_model=Phi-3.5-mini-instruct"
+    # "++language_model.checkpoint_no=-1"
+    "language_model='Phi-3.5-mini-instruct-causal_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-random-778_aps-False-mx-512_lora-16-32-o_proj_qkv_proj-0.01-True_5e-05-linear-0.01-5'"
+    # "language_model='Phi-3.5-mini-instruct-causal_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-random-778_aps-False-mx-512_lora-16-32-o_proj_qkv_proj-0.01-True_5e-05-linear-0.01-5'"
+)
+
+COMMON_ARGS=(
     # --- memory-friendly settings ---------------------------------------------
     "embeddings.batch_size=4"
     "storage.chunk_size=32"
@@ -90,15 +99,12 @@ COMMON_ARGS=(
     "tokenizer.add_prefix_space=False"
 
     # --- data ------------------------------------------------------------------
+    # "data=multiwoz21"
     "data=multiwoz21,sgd,one-year-of-tsla-on-reddit,wikitext-103-v1,iclr_2024_submissions"
     "data.data_subsampling.split=validation"
     "data.data_subsampling.sampling_mode=random"
     "data.data_subsampling.number_of_samples=10000"
     "data.data_subsampling.sampling_seed=778"
-
-    # --- model -----------------------------------------------------------------
-    "language_model=Phi-3.5-mini-instruct"
-    "++language_model.checkpoint_no=-1"
 
     # --- embeddings & local estimates -----------------------------------------
     "embeddings.embedding_data_handler.mode=regular"
@@ -122,6 +128,7 @@ echo ">> Running script: ${SCRIPT_PATH} ..."
 ARGS=(
     "${BASE_ARGS[@]}"
     "${LAUNCHER_ARGS[@]}"
+    "${LANGUAGE_MODEL_ARGS[@]}"
     "${COMMON_ARGS[@]}"
     "${FEATURE_FLAGS_ARGS[@]}"
     "$@"
