@@ -65,7 +65,7 @@ for OFFLINE_RUN_DIR in "${WANDB_PROJECT_DIR_PATH}"/offline-*; do
     else
       echo ">>> Syncing ${OFFLINE_RUN_DIR} to Weights and Biases ..."
       
-      wandb sync \
+      uv run wandb sync \
         --include-offline \
         "${OFFLINE_RUN_DIR}"
 

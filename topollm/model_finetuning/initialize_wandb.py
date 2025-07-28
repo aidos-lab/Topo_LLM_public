@@ -53,9 +53,13 @@ def initialize_wandb(
         dir=main_config.wandb.dir,
         entity=main_config.wandb.entity,  # Note: To make this None, use null in the hydra config
         project=main_config.wandb.project,
+        # Notes:
+        # - Previously, the `start_method` was set to "thread" to avoid issues with hydra multiprocessing, see
+        # https://docs.wandb.ai/guides/integrations/hydra#troubleshooting-multiprocessing
+        # But now, the `start_method` argument will be deprecated in the future versions of wandb,
+        # so we remove `start_method="thread"` from the `wandb.init` call.
         settings=wandb.Settings(
-            start_method="thread",  # Note: https://docs.wandb.ai/guides/integrations/hydra#troubleshooting-multiprocessing
-            _service_wait=300,
+            _service_wait=300,  # type: ignore - there is a problem with recognizing this argument
             init_timeout=300,
         ),
         tags=main_config.wandb.tags,

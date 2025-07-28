@@ -11,7 +11,7 @@ PYTHON_SCRIPT_PATH="${TOPO_LLM_REPOSITORY_BASE_PATH}/topollm/model_finetuning/${
 # ==================================================== #
 # Select the parameters here
 
-# BASE_MODEL_LIST="gpt2-medium"
+# BASE_MODEL_LIST="gpt2-medium_for_causal_lm"
 BASE_MODEL_LIST="roberta-base_for_masked_lm"
 
 NUM_TRAIN_EPOCHS="5"

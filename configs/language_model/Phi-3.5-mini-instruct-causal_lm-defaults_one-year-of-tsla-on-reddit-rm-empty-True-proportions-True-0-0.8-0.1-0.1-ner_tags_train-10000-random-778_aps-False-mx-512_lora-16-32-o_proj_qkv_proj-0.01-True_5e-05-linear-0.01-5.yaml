@@ -1,0 +1,16 @@
+checkpoint_no: 2800
+lm_mode: clm
+task_type: causal_lm
+pretrained_model_name_or_path: ${paths.data_dir}/models/finetuned_models/data=one-year-of-tsla-on-reddit_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags/split=train_samples=10000_sampling=random_sampling-seed=778/add-prefix-space=False_max-len=512/model=Phi-3.5-mini-instruct_task=causal_lm_dr=defaults/ftm=lora/r=16_alpha=32_lora-target=o_proj_qkv_proj_lora-dr=0.01_rslora=True/gradmod=do_nothing_target-freeze=/lr=5e-05_lr-scheduler-type=linear_wd=0.01/bs-train=8/ep=5/seed=1234/model_files/checkpoint-${language_model.checkpoint_no}
+model_log_file_path: null
+manual_tokenizer_override_pretrained_model_name_or_path: null
+seed: 1234
+short_model_name: Phi-3.5-mini-instruct_one-year-of-tsla-on-reddit_train-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_qkv_proj-0.01-True_5e-05-linear-0.01-5_seed-${language_model.seed}_ckpt-${language_model.checkpoint_no}
+dropout:
+  mode: defaults
+  probabilities:
+    hidden_dropout_prob: 0.1
+    attention_probs_dropout_prob: 0.1
+    classifier_dropout: null
+tokenizer_modifier:
+  mode: do_nothing

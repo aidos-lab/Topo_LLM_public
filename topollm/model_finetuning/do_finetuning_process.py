@@ -284,7 +284,10 @@ def do_finetuning_process(
     training_args: transformers.TrainingArguments = prepare_training_args(
         finetuning_config=finetuning_config,
         finetuned_model_dir=finetuned_model_dir,
+        device=device,
         logging_dir=logging_dir,
+        verbosity=verbosity,
+        logger=logger,
     )
 
     trainer: transformers.Trainer = transformers.Trainer(
