@@ -1,4 +1,5 @@
 defaults:
+  # TODO: Since the Llama-3.1-8B model does not appear to have a pad token set, we should carefully check these settings
   - tokenizer_modifier: do_nothing
   - _self_
 
