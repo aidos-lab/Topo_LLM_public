@@ -7,8 +7,12 @@ import torch
 import transformers
 from tqdm import tqdm
 
-default_device = torch.device(device="cpu")
-default_logger: logging.Logger = logging.getLogger(name=__name__)
+default_device = torch.device(
+    device="cpu",
+)
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 def do_text_generation(
@@ -60,7 +64,7 @@ def do_text_generation(
     all_generated_texts: list[list[str]] = []
 
     for prompt in tqdm(
-        prompts,
+        iterable=prompts,
         desc="Iterating over prompts",
     ):
         results: list[dict] = text_generation_pipeline(

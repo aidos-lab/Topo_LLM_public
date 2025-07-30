@@ -4,6 +4,10 @@ import logging
 import pprint
 from typing import TYPE_CHECKING
 
+import torch
+import transformers
+from transformers.modeling_utils import PreTrainedModel
+
 from topollm.config_classes.main_config import MainConfig
 from topollm.model_handling.prepare_loaded_model_container import (
     prepare_device_and_tokenizer_and_model_from_main_config,
@@ -42,10 +46,12 @@ def do_inference(
         verbosity=verbosity,
         logger=logger,
     )
-    device = loaded_model_container.device
-    tokenizer = loaded_model_container.tokenizer
+    device: torch.device = loaded_model_container.device
+    tokenizer: transformers.PreTrainedTokenizer | transformers.PreTrainedTokenizerFast = (
+        loaded_model_container.tokenizer
+    )
     lm_mode: LMmode = loaded_model_container.lm_mode
-    model = loaded_model_container.model
+    model: PreTrainedModel = loaded_model_container.model
 
     # Set up the model for evaluation.
     model.eval()
@@ -87,5 +93,7 @@ def do_inference(
     else:
         msg: str = f"Invalid lm_mode: {lm_mode = }"
         raise ValueError(msg)
+
+    # TODO: Assemble prompts and results into a dictionary; save the result to disk in json format
 
     return results

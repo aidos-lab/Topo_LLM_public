@@ -1,20 +1,3 @@
-# Copyright 2024
-# [ANONYMIZED_INSTITUTION],
-# [ANONYMIZED_FACULTY],
-# [ANONYMIZED_DEPARTMENT]
-#
-# Authors:
-# AUTHOR_1 (author1@example.com)
-# AUTHOR_2 (author2@example.com)
-#
-# Code generation tools and workflows:
-# First versions of this code were potentially generated
-# with the help of AI writing assistants including
-# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
-# Afterwards, the generated segments were manually reviewed and edited.
-#
-
-
 """Fill mask in a masked language model."""
 
 import logging
@@ -23,8 +6,12 @@ import pprint
 import torch
 import transformers
 
-default_device = torch.device("cpu")
-logger = logging.getLogger(__name__)
+default_device = torch.device(
+    device="cpu",
+)
+logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 def do_fill_mask(
@@ -35,7 +22,7 @@ def do_fill_mask(
     logger: logging.Logger = logger,
 ) -> list[list[dict]]:
     """Fill mask in a masked language model."""
-    fill_pipeline = transformers.pipeline(
+    fill_pipeline: transformers.Pipeline = transformers.pipeline(
         task="fill-mask",
         model=model,
         tokenizer=tokenizer,
@@ -47,10 +34,10 @@ def do_fill_mask(
     )
 
     result = fill_pipeline(
-        prompts,
+        inputs=prompts,
     )
     logger.info(
-        f"result:\n{pprint.pformat(result)}",  # noqa: G004 - low overhead
+        msg=f"result:\n{pprint.pformat(result)}",  # noqa: G004 - low overhead
     )
 
     return result  # type: ignore - problem with matching return type of pipeline

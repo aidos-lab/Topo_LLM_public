@@ -1,20 +1,3 @@
-# Copyright 2024
-# [ANONYMIZED_INSTITUTION],
-# [ANONYMIZED_FACULTY],
-# [ANONYMIZED_DEPARTMENT]
-#
-# Authors:
-# AUTHOR_1 (author1@example.com)
-# AUTHOR_2 (author2@example.com)
-#
-# Code generation tools and workflows:
-# First versions of this code were potentially generated
-# with the help of AI writing assistants including
-# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
-# Afterwards, the generated segments were manually reviewed and edited.
-#
-
-
 """Get default prompts for masked and causal language modeling."""
 
 
@@ -22,7 +5,7 @@ def get_default_mlm_prompts(
     mask_token: str,
 ) -> list[str]:
     """Get default masked language model prompts."""
-    prompts = [
+    prompts: list[str] = [
         f"I am looking for a {mask_token}.",
         f"I am looking for a {mask_token}, can you help me?",
         f"Can you find me a {mask_token}?",
@@ -42,7 +25,7 @@ def get_default_mlm_prompts(
 
 def get_default_clm_prompts() -> list[str]:
     """Get default causal language model prompts."""
-    prompts = [
+    prompts: list[str] = [
         "I am looking for a",
         "I am looking for a ",  # with space at the end
         "Can you find me a",
@@ -51,6 +34,8 @@ def get_default_clm_prompts() -> list[str]:
         "Nandos is a",
         "The train should go to",
         "No, it should be",
+        "No, you did not understand me! I want",
+        "I'm so excited to visit",
         "Cambridge is",
         "I would like to invest in",
         "What is the best",
