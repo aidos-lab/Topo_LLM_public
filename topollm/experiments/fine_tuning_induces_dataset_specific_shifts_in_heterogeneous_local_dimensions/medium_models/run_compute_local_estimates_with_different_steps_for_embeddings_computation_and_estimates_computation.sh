@@ -87,12 +87,19 @@ BASE_ARGS=(
 LANGUAGE_MODEL_ARGS=(
     # "language_model=Phi-3.5-mini-instruct"
     # "++language_model.checkpoint_no=-1"
-    "language_model='Phi-3.5-mini-instruct-causal_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-random-778_aps-False-mx-512_lora-16-32-o_proj_qkv_proj-0.01-True_5e-05-linear-0.01-5'"
+    "++language_model.checkpoint_no=800"
+    # "++language_model.checkpoint_no=1200" # <-- DONE
+    # "language_model='Phi-3.5-mini-instruct-causal_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-random-778_aps-False-mx-512_lora-16-32-o_proj_qkv_proj-0.01-True_5e-05-linear-0.01-5'"
     # "language_model='Phi-3.5-mini-instruct-causal_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-random-778_aps-False-mx-512_lora-16-32-o_proj_qkv_proj-0.01-True_5e-05-linear-0.01-5'"
+    # Two different models:
+    "language_model=Phi-3.5-mini-instruct-causal_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-random-778_aps-False-mx-512_lora-16-32-o_proj_qkv_proj-0.01-True_5e-05-linear-0.01-5,Phi-3.5-mini-instruct-causal_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-random-778_aps-False-mx-512_lora-16-32-o_proj_qkv_proj-0.01-True_5e-05-linear-0.01-5"
 )
 
 COMMON_ARGS=(
     # --- memory-friendly settings ---------------------------------------------
+    # Note:
+    # Increasing to "embeddings.batch_size=8" on the RTX6000-24GB for the "Phi-3.5-mini-instruct" model does NOT work,
+    # and leads to a CUDA out of memory error.
     "embeddings.batch_size=4"
     "storage.chunk_size=32"
 
@@ -100,7 +107,10 @@ COMMON_ARGS=(
 
     # --- data ------------------------------------------------------------------
     # "data=multiwoz21"
+    # "data=wikitext-103-v1"
     "data=multiwoz21,sgd,one-year-of-tsla-on-reddit,wikitext-103-v1,iclr_2024_submissions"
+    # Without wikitext-103-v1:
+    # "data=multiwoz21,sgd,one-year-of-tsla-on-reddit,iclr_2024_submissions"
     "data.data_subsampling.split=validation"
     "data.data_subsampling.sampling_mode=random"
     "data.data_subsampling.number_of_samples=10000"

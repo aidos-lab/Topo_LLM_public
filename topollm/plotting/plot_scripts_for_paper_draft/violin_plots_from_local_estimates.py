@@ -24,6 +24,14 @@ class BaseModelMode(StrEnum):
     PHI_35_MINI_INSTRUCT = auto()
 
 
+@unique
+class SaveFormat(StrEnum):
+    """The different formats for saving plots."""
+
+    PDF = "pdf"
+    PNG = "png"
+
+
 def main() -> None:
     """Generate violin plots for local estimates from different models."""
     ddof = 1  # Delta degrees of freedom for standard deviation calculation
@@ -66,15 +74,15 @@ def main() -> None:
                 second_models_and_labels: list[tuple[str, str]] = [
                     (
                         f"model=roberta-base-masked_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5_seed-1234_ckpt-{checkpoint_no}_task=masked_lm_dr=defaults",
-                        "RoBERTa fine-tuned on MultiWOZ",
+                        f"RoBERTa fine-tuned on MultiWOZ gs={checkpoint_no}",
                     ),
                     (
                         f"model=roberta-base-masked_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5_seed-1234_ckpt-{checkpoint_no}_task=masked_lm_dr=defaults",
-                        "RoBERTa fine-tuned on Reddit",
+                        f"RoBERTa fine-tuned on Reddit gs={checkpoint_no}",
                     ),
                     (
                         f"model=roberta-base-masked_lm-defaults_wikitext-103-v1-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5_seed-1234_ckpt-{checkpoint_no}_task=masked_lm_dr=defaults",
-                        "RoBERTa fine-tuned on Wikitext",
+                        f"RoBERTa fine-tuned on Wikitext gs={checkpoint_no}",
                     ),
                 ]
             case BaseModelMode.GPT2_MEDIUM:
@@ -84,30 +92,42 @@ def main() -> None:
                 second_models_and_labels: list[tuple[str, str]] = [
                     (
                         f"model=gpt2-medium-causal_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5_seed-1234_ckpt-{checkpoint_no}_task=causal_lm_dr=defaults",
-                        "GPT-2 fine-tuned on MultiWOZ",
+                        f"GPT-2 fine-tuned on MultiWOZ gs={checkpoint_no}",
                     ),
                     (
                         f"model=gpt2-medium-causal_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5_seed-1234_ckpt-{checkpoint_no}_task=causal_lm_dr=defaults",
-                        "GPT-2 fine-tuned on Reddit",
+                        f"GPT-2 fine-tuned on Reddit gs={checkpoint_no}",
                     ),
                     (
                         f"model=gpt2-medium-causal_lm-defaults_wikitext-103-v1-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5_seed-1234_ckpt-{checkpoint_no}_task=causal_lm_dr=defaults",
-                        "GPT-2 fine-tuned on Wikitext",
+                        f"GPT-2 fine-tuned on Wikitext gs={checkpoint_no}",
                     ),
                 ]
             case BaseModelMode.PHI_35_MINI_INSTRUCT:
-                checkpoint_no: int = (
-                    -1
-                )  # Placeholder, which we will replace once we have fine-tuned version of the Phi-models
                 first_label: str = "Phi-3.5-mini-instruct"
                 first_model_path: str = "model=Phi-3.5-mini-instruct_task=masked_lm_dr=defaults"
-                # TODO: To create first versions of these plots, we will use the Phi-3.5-mini-instruct model again as the second model. Replace this with the fine-tuned versions once they are available.
-                second_models_and_labels: list[tuple[str, str]] = [
-                    (
-                        "model=Phi-3.5-mini-instruct_task=masked_lm_dr=defaults",
-                        "Phi-3.5-mini-instruct",
-                    ),
+                checkpoint_no_options: list[int] = [
+                    800,
+                    1200,
+                    2800,
                 ]
+                second_models_and_labels: list[tuple[str, str]] = []
+
+                for checkpoint_no in checkpoint_no_options:
+                    second_models_and_labels.extend(
+                        [
+                            (
+                                f"model=Phi-3.5-mini-instruct_multiwoz21_train-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_qkv_proj-0.01-True_5e-05-linear-0.01-5"
+                                f"_seed-1234_ckpt-{checkpoint_no}_task=causal_lm_dr=defaults",
+                                f"Phi-3.5-mini-instruct fine-tuned on MultiWOZ gs={checkpoint_no}",
+                            ),
+                            (
+                                f"model=Phi-3.5-mini-instruct_one-year-of-tsla-on-reddit_train-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_qkv_proj-0.01-True_5e-05-linear-0.01-5"
+                                f"_seed-1234_ckpt-{checkpoint_no}_task=causal_lm_dr=defaults",
+                                f"Phi-3.5-mini-instruct fine-tuned on Reddit gs={checkpoint_no}",
+                            ),
+                        ]
+                    )
             case _:
                 msg: str = f"Unsupported base model mode: {base_model_mode=}"
                 raise ValueError(
@@ -308,16 +328,21 @@ def main() -> None:
                     parents=True,
                     exist_ok=True,
                 )
-                save_path = pathlib.Path(
-                    save_dir,
-                    "violin_plot.pdf",
-                )
 
-                plt.savefig(
-                    save_path,
-                    format="pdf",
-                    bbox_inches="tight",
-                )  # Save for submission
+                for save_format in SaveFormat:
+                    save_path = pathlib.Path(
+                        save_dir,
+                        f"violin_plot.{save_format.value}",
+                    )
+                    relative_paths.append(save_path)  # Add the relative path to the list
+
+                    plt.savefig(
+                        save_path,
+                        format=save_format.value,
+                        bbox_inches="tight",
+                    )
+
+                # Note: Only close the plot after saving in all formats.
                 plt.close()
 
                 if save_arrays_in_output_dir:
@@ -341,8 +366,6 @@ def main() -> None:
                         file=data_array_2_output_path,
                         arr=data_array_2,
                     )
-
-                relative_paths.append(save_path)  # Add the relative path to the list
 
             except FileNotFoundError as e:
                 print(  # noqa: T201 - we want this script to print

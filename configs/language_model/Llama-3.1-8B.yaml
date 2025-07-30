@@ -1,0 +1,9 @@
+defaults:
+  # TODO: Since the Llama-3.1-8B model does not appear to have a pad token set, we should carefully check these settings
+  - tokenizer_modifier: do_nothing
+  - _self_
+
+lm_mode: clm
+
+pretrained_model_name_or_path: "meta-llama/Llama-3.1-8B"
+short_model_name: "Llama-3.1-8B"
