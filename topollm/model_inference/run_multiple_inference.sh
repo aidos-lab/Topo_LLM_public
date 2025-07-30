@@ -28,7 +28,24 @@ ABSOLUTE_PYTHON_SCRIPT_PATH="${TOPO_LLM_REPOSITORY_BASE_PATH}/${RELATIVE_PYTHON_
 
 
 # ==================================================== #
-# Select the parameters here
+# >>> START Select parameters
+#
+# Notes on memory usage:
+# - "Phi-3.5-mini-instruct":
+#   (3.82B parameters, "hidden_size": 3072)
+#   24 GB of VRAM is enough for the model and fine-tuned variants.
+#   Inference is possible on a single RTX6000-24GB GPU.
+# - "Llama-3.1-8B":
+#   (8.03B parameters, "hidden_size": 4096)
+#   24 GB of VRAM is NOT enough, and leads to CUDA out of memory errors.
+#   48 GB of VRAM is enough for the model and fine-tuned variants.
+#   Inference is possible on a single RTX8000-48GB GPU.
+#
+# Example commands for starting interactive sessions on the HPC cluster:
+# - RTX6000-24GB:
+# > qsub -I -N DevSession -A DialSys -q CUDA -l select=1:ncpus=2:mem=32gb:ngpus=1:accelerator_model=rtx6000 -l walltime=8:00:00
+# - RTX8000-48GB:
+# > qsub -I -N DevSession -A DialSys -q CUDA -l select=1:ncpus=2:mem=32gb:ngpus=1:accelerator_model=rtx8000 -l walltime=8:00:00
 
 # LANGUAGE_MODEL_LIST="roberta-base"
 # LANGUAGE_MODEL_LIST="bert-base-uncased,gpt2-large,roberta-base"
@@ -39,7 +56,10 @@ ABSOLUTE_PYTHON_SCRIPT_PATH="${TOPO_LLM_REPOSITORY_BASE_PATH}/${RELATIVE_PYTHON_
 
 # LANGUAGE_MODEL_LIST="Phi-3.5-mini-instruct"
 # LANGUAGE_MODEL_LIST="Phi-3.5-mini-instruct-causal_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-random-778_aps-False-mx-512_lora-16-32-o_proj_qkv_proj-0.01-True_5e-05-linear-0.01-freeze--5"
-LANGUAGE_MODEL_LIST="Phi-3.5-mini-instruct-causal_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-random-778_aps-False-mx-512_lora-16-32-o_proj_qkv_proj-0.01-True_5e-05-linear-0.01-freeze--5"
+# LANGUAGE_MODEL_LIST="Phi-3.5-mini-instruct-causal_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-random-778_aps-False-mx-512_lora-16-32-o_proj_qkv_proj-0.01-True_5e-05-linear-0.01-freeze--5"
+
+LANGUAGE_MODEL_LIST="Llama-3.1-8B"
+
 
 LANGUAGE_MODEL_ARGS=(
     "language_model=$LANGUAGE_MODEL_LIST"
@@ -48,6 +68,7 @@ LANGUAGE_MODEL_ARGS=(
 
 ADDITIONAL_OVERRIDES=""
 
+# >>> START Select parameters
 # ==================================================== #
 
 # NOTE:
@@ -65,7 +86,7 @@ PREFERRED_TORCH_BACKEND="auto"
 
 # ==================================================== #
 
-echo "Calling python script."
+echo ">>> Calling model inference python script..."
 
 uv run python3 "$RELATIVE_PYTHON_SCRIPT_PATH" \
     --multirun \
@@ -75,6 +96,8 @@ uv run python3 "$RELATIVE_PYTHON_SCRIPT_PATH" \
     preferred_torch_backend=$PREFERRED_TORCH_BACKEND \
     $ADDITIONAL_OVERRIDES
 
-# Exit with status code 0
-echo "Finished running the script."
-exit 0
+echo ">>> Finished running model inference script."
+
+# Exit with last command's exit code
+echo ">>> Exiting with code $?."
+exit $?
