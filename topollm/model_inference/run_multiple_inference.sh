@@ -1,20 +1,31 @@
 #!/bin/bash
 
+# # # # # # # # # # # # # # # # # # # # # # # # #
+# Default values
+
 # Initialize dry_run flag to false
 dry_run=false
 
+# # # # # # # # # # # # # # # # # # # # # # # # #
+# Function to print usage
+usage() {
+    echo "💡 Usage: $0 [--dry-run]"
+    exit 1
+}
+
 # Parse command line options
 while [[ "$#" -gt 0 ]]; do
-  case $1 in
-    --dry-run)
-      dry_run=true
-      shift # Remove the --dry_run argument
-      ;;
-    *)
-      echo "❌ Error: Unknown option: $1"
-      exit 1
-      ;;
-  esac
+    case $1 in
+        --dry-run)
+            dry_run=true
+            shift # Remove the --dry_run argument
+            ;;
+        *)
+            echo "❌ Error: Unknown option: $1"
+            usage
+            exit 1
+            ;;
+    esac
 done
 
 # # # # # # # # # # # # # # # # # # # # # # # # #
