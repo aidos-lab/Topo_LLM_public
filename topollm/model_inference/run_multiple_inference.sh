@@ -1,5 +1,22 @@
 #!/bin/bash
 
+# Initialize dry_run flag to false
+dry_run=false
+
+# Parse command line options
+while [[ "$#" -gt 0 ]]; do
+  case $1 in
+    --dry-run)
+      dry_run=true
+      shift # Remove the --dry_run argument
+      ;;
+    *)
+      echo "❌ Error: Unknown option: $1"
+      exit 1
+      ;;
+  esac
+done
+
 # # # # # # # # # # # # # # # # # # # # # # # # #
 # Check if environment variables are set
 
@@ -47,6 +64,23 @@ ABSOLUTE_PYTHON_SCRIPT_PATH="${TOPO_LLM_REPOSITORY_BASE_PATH}/${RELATIVE_PYTHON_
 # - RTX8000-48GB:
 # > qsub -I -N DevSession -A DialSys -q CUDA -l select=1:ncpus=2:mem=32gb:ngpus=1:accelerator_model=rtx8000 -l walltime=8:00:00
 
+BASE_ARGS=(
+    "--multirun"
+    "hydra/sweeper=basic"
+)
+
+LAUNCHER_ARGS=(
+    "hydra/launcher=hpc_submission"
+    "hydra.launcher.queue=CUDA"
+    # "hydra.launcher.template=RTX6000"
+    "hydra.launcher.template=RTX8000"
+    "hydra.launcher.ngpus=1"
+    "hydra.launcher.memory=64"
+    "hydra.launcher.ncpus=2"
+    # The model inference is fast, so we can set a shorter walltime.
+    "hydra.launcher.walltime=1:00:00"
+)
+
 # LANGUAGE_MODEL_LIST="roberta-base"
 # LANGUAGE_MODEL_LIST="bert-base-uncased,gpt2-large,roberta-base"
 # LANGUAGE_MODEL_LIST="roberta-base,roberta-base_finetuned-on-multiwoz21_ftm-lora"
@@ -84,19 +118,42 @@ PREFERRED_TORCH_BACKEND="auto"
 # > "++hydra.job.env_set.CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES"
 # CUDA_VISIBLE_DEVICES=0
 
+COMMON_ARGS=(
+    "preferred_torch_backend=$PREFERRED_TORCH_BACKEND"
+    $ADDITIONAL_OVERRIDES
+)
+
 # ==================================================== #
 
-echo ">>> Calling model inference python script..."
+echo ">>> CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES}"
 
-uv run python3 "$RELATIVE_PYTHON_SCRIPT_PATH" \
-    --multirun \
-    hydra/sweeper=basic \
-    hydra/launcher=basic \
-    "${LANGUAGE_MODEL_ARGS[@]}" \
-    preferred_torch_backend=$PREFERRED_TORCH_BACKEND \
-    $ADDITIONAL_OVERRIDES
+ARGS=(
+    "${BASE_ARGS[@]}"
+    "${LAUNCHER_ARGS[@]}"
+    "${LANGUAGE_MODEL_ARGS[@]}"
+    "${COMMON_ARGS[@]}"
+    "$@"
+)
 
-echo ">>> Finished running model inference script."
+# Print the argument list
+echo "===================================================="
+echo ">> Argument list:"
+echo "===================================================="
+for arg in "${ARGS[@]}"; do
+    echo "  $arg"
+done
+echo "===================================================="
+
+echo ">>> Calling script from RELATIVE_PYTHON_SCRIPT_PATH=${RELATIVE_PYTHON_SCRIPT_PATH} ..."
+
+if [ "$dry_run" = true ]; then
+    echo "💡 [DRY RUN] Would run: uv run python3 $RELATIVE_PYTHON_SCRIPT_PATH ${ARGS[*]}"
+else
+    uv run python3 $RELATIVE_PYTHON_SCRIPT_PATH "${ARGS[@]}"
+fi
+
+echo ">>> Calling script from RELATIVE_PYTHON_SCRIPT_PATH=${RELATIVE_PYTHON_SCRIPT_PATH} DONE"
+
 
 # Exit with last command's exit code
 echo ">>> Exiting with code $?."

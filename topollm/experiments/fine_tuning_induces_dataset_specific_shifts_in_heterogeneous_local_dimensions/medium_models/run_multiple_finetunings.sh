@@ -31,10 +31,10 @@ RELATIVE_PYTHON_SCRIPT_PATH="topollm/model_finetuning/${PYTHON_SCRIPT_NAME}"
 BASE_ARGS=(
     "--multirun"
     "hydra/sweeper=basic"
-    "hydra/launcher=hpc_submission"
 )
 
 LAUNCHER_ARGS=(
+    "hydra/launcher=hpc_submission"
     "hydra.launcher.queue=CUDA"
     "hydra.launcher.template=RTX6000"
     "hydra.launcher.ngpus=1"
@@ -70,8 +70,34 @@ LORA_ARGUMENTS_LIST=(
     "finetuning.peft.r=16"
     "finetuning.peft.lora_alpha=32"
     "finetuning.peft.use_rslora=True"
-    "finetuning.peft.target_modules=['o_proj','qkv_proj']"
 )
+
+# > Target module names for LoRA
+# Check which base model you are using:
+# - "Phi-3.5-mini-instruct_for_causal_lm": ['o_proj','qkv_proj']
+# - "Llama-3.1-8B": ['o_proj','q_proj','k_proj','v_proj']
+
+case "$BASE_MODEL_LIST" in
+    "Phi-3.5-mini-instruct_for_causal_lm")
+        LORA_ARGUMENTS_LIST+=(
+            "finetuning.peft.target_modules=['o_proj','qkv_proj']"
+        )
+        ;;
+    "Llama-3.1-8B_for_causal_lm")
+        # Notes:
+        # - In addition to the attention layers, we could target the MLP linear layers
+        #   ['gate_proj', 'up_proj', 'down_proj'] 
+        #   as well.
+        LORA_ARGUMENTS_LIST+=(
+            "finetuning.peft.target_modules=['o_proj','q_proj','k_proj','v_proj']"
+        )
+        ;;
+    *)
+        echo "⚠️ Warning: Unknown base model '$BASE_MODEL_LIST'. Please specify target_modules for LoRA manually."
+        ;;
+esac
+
+
 
 GRADIENT_MODIFIER_LIST="do_nothing"
 
