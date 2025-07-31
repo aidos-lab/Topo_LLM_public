@@ -56,43 +56,44 @@ def do_inference(
     # Set up the model for evaluation.
     model.eval()
 
-    if lm_mode == LMmode.MLM:
-        if prompts is None:
-            prompts = get_default_mlm_prompts(
-                mask_token=tokenizer.mask_token,  # type: ignore - problem with inferring the correct type of the mask token
+    match lm_mode:
+        case LMmode.MLM:
+            if prompts is None:
+                prompts = get_default_mlm_prompts(
+                    mask_token=tokenizer.mask_token,  # type: ignore - problem with inferring the correct type of the mask token
+                )
+            logger.info(
+                "prompts:\n%s",
+                pprint.pformat(prompts),
             )
-        logger.info(
-            "prompts:\n%s",
-            pprint.pformat(prompts),
-        )
 
-        results = do_fill_mask(
-            tokenizer=tokenizer,
-            model=model,
-            prompts=prompts,
-            device=device,
-            logger=logger,
-        )
-    elif lm_mode == LMmode.CLM:
-        if prompts is None:
-            prompts = get_default_clm_prompts()
-        logger.info(
-            "prompts:\n%s",
-            pprint.pformat(prompts),
-        )
+            results = do_fill_mask(
+                tokenizer=tokenizer,
+                model=model,
+                prompts=prompts,
+                device=device,
+                logger=logger,
+            )
+        case LMmode.CLM:
+            if prompts is None:
+                prompts = get_default_clm_prompts()
+            logger.info(
+                "prompts:\n%s",
+                pprint.pformat(prompts),
+            )
 
-        results = do_text_generation(
-            tokenizer=tokenizer,
-            model=model,
-            prompts=prompts,
-            max_length=main_config.inference.max_length,
-            num_return_sequences=main_config.inference.num_return_sequences,
-            device=device,
-            logger=logger,
-        )
-    else:
-        msg: str = f"Invalid lm_mode: {lm_mode = }"
-        raise ValueError(msg)
+            results = do_text_generation(
+                tokenizer=tokenizer,
+                model=model,
+                prompts=prompts,
+                max_length=main_config.inference.max_length,
+                num_return_sequences=main_config.inference.num_return_sequences,
+                device=device,
+                logger=logger,
+            )
+        case _:
+            msg: str = f"Invalid lm_mode: {lm_mode = }"
+            raise ValueError(msg)
 
     # TODO: Assemble prompts and results into a dictionary; save the result to disk in json format
 

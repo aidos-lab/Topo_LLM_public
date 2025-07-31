@@ -40,6 +40,7 @@ def get_default_clm_prompts() -> list[str]:
         "I would like to invest in",
         "What is the best",
         "Can you recommend a good",
+        "Proof:",
     ]
 
     return prompts
