@@ -32,7 +32,6 @@ default_logger: logging.Logger = logging.getLogger(
 
 def do_inference(
     main_config: MainConfig,
-    prompts: list[str] | None = None,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> list[list]:
@@ -56,6 +55,8 @@ def do_inference(
     # Set up the model for evaluation.
     model.eval()
 
+    prompts: list[str] | None = main_config.inference.prompts
+
     match lm_mode:
         case LMmode.MLM:
             if prompts is None:
@@ -63,8 +64,7 @@ def do_inference(
                     mask_token=tokenizer.mask_token,  # type: ignore - problem with inferring the correct type of the mask token
                 )
             logger.info(
-                "prompts:\n%s",
-                pprint.pformat(prompts),
+                msg=f"prompts:\n{pprint.pformat(object=prompts)}",  # noqa: G004 - low overhead
             )
 
             results = do_fill_mask(
@@ -78,8 +78,7 @@ def do_inference(
             if prompts is None:
                 prompts = get_default_clm_prompts()
             logger.info(
-                "prompts:\n%s",
-                pprint.pformat(prompts),
+                msg=f"prompts:\n{pprint.pformat(object=prompts)}",  # noqa: G004 - low overhead
             )
 
             results = do_text_generation(
@@ -121,6 +120,11 @@ def do_inference(
             strict=False,
         ),
     )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Combined results:\n{pprint.pformat(object=combined_results, width=200)}",  # noqa: G004 - low overhead
+        )
 
     # TODO: Save the result to disk in json format
 

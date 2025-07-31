@@ -1,19 +1,3 @@
-# Copyright 2024
-# [ANONYMIZED_INSTITUTION],
-# [ANONYMIZED_FACULTY],
-# [ANONYMIZED_DEPARTMENT]
-#
-# Authors:
-# AUTHOR_1 (author1@example.com)
-#
-# Code generation tools and workflows:
-# First versions of this code were potentially generated
-# with the help of AI writing assistants including
-# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
-# Afterwards, the generated segments were manually reviewed and edited.
-#
-
-
 """Configuration class for inference."""
 
 from pydantic import Field
@@ -34,4 +18,10 @@ class InferenceConfig(ConfigBaseModel):
         default=3,
         title="Number of returned sequences.",
         description="The number of returned sequences.",
+    )
+
+    prompts: list[str] | None = Field(
+        default=None,
+        title="Prompts for inference.",
+        description="A list of prompts to use for inference. If None, default prompts will be used.",
     )

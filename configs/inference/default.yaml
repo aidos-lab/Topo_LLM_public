@@ -1,2 +1,3 @@
 max_length: 100
 num_return_sequences: 3
+prompts: null

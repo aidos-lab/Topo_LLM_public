@@ -1373,6 +1373,9 @@
                 //
                 //    >> END Model options.
                 //
+                // "inference.prompts=null", // Use default prompts
+                "inference.prompts=['The hotel should be in the', 'I would like to invest in', 'Eigenspaces corresponding to distinct eigenvalues are']",
+                //
                 "feature_flags.wandb.use_wandb=False",
                 "wandb.project=Topo_LLM_DEBUG",
             ],
