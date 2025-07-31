@@ -47,7 +47,7 @@ def main(
         logger=global_logger,
     )
 
-    do_inference(
+    _ = do_inference(
         main_config=main_config,
         prompts=None,
         logger=global_logger,

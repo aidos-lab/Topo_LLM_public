@@ -95,6 +95,33 @@ def do_inference(
             msg: str = f"Invalid lm_mode: {lm_mode = }"
             raise ValueError(msg)
 
-    # TODO: Assemble prompts and results into a dictionary; save the result to disk in json format
+    # # # #
+    # Collect prompts and results in a dictionary.
+
+    if not isinstance(
+        results,
+        list,
+    ):
+        msg = f"Expected results to be a list, got {type(results)=}"
+        raise TypeError(
+            msg,
+        )
+
+    if len(prompts) != len(results):
+        msg = f"Number of prompts ({len(prompts)=}) does not match number of results ({len(results)=})."
+        raise ValueError(msg)
+
+    combined_results: dict[
+        str,
+        list,
+    ] = dict(
+        zip(
+            prompts,
+            results,
+            strict=False,
+        ),
+    )
+
+    # TODO: Save the result to disk in json format
 
     return results
