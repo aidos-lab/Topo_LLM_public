@@ -1376,6 +1376,10 @@
                 // "inference.prompts=null", // Use default prompts
                 "inference.prompts=['The hotel should be in the', 'I would like to invest in', 'Eigenspaces corresponding to distinct eigenvalues are']",
                 //
+                // Notes: 
+                // - For causal language modeling, the sampling in inference might depend on the global_seed.
+                "global_seed=1111",
+                //
                 "feature_flags.wandb.use_wandb=False",
                 "wandb.project=Topo_LLM_DEBUG",
             ],

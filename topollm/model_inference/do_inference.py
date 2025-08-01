@@ -1,6 +1,7 @@
 """Run inference with a language model."""
 
 import logging
+import pathlib
 import pprint
 from typing import TYPE_CHECKING
 
@@ -20,6 +21,7 @@ from topollm.model_inference.default_prompts import (
     get_default_mlm_prompts,
 )
 from topollm.model_inference.masked_language_modeling.do_fill_mask import do_fill_mask
+from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 from topollm.typing.enums import LMmode, Verbosity
 
 if TYPE_CHECKING:
@@ -32,6 +34,9 @@ default_logger: logging.Logger = logging.getLogger(
 
 def do_inference(
     main_config: MainConfig,
+    embeddings_path_manager: EmbeddingsPathManager,
+    *,
+    add_timestamp_to_filename: bool = True,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> list[list]:
@@ -125,6 +130,16 @@ def do_inference(
         logger.info(
             msg=f"Combined results:\n{pprint.pformat(object=combined_results, width=200)}",  # noqa: G004 - low overhead
         )
+
+    save_folder: pathlib.Path = embeddings_path_manager.get_model_inference_dir_absolute_path()
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Saving inference results to {save_folder=}",  # noqa: G004 - low overhead
+        )
+
+    # TODO: To create different files for different prompts, we will hash the prompts.
+    # TODO: To check whether the results are really deterministic, we can add a timestamp to the filename.
 
     # TODO: Save the result to disk in json format
 

@@ -498,6 +498,31 @@ class EmbeddingsPathManagerSeparateDirectories:
 
         return path
 
+    ### Model inference results
+
+    def get_model_inference_root_dir_absolute_path(
+        self,
+    ) -> pathlib.Path:
+        path = pathlib.Path(
+            self.analysis_dir,
+            "model_inference",
+        )
+
+        return path
+
+    def get_model_inference_dir_absolute_path(
+        self,
+    ) -> pathlib.Path:
+        path = pathlib.Path(
+            self.get_model_inference_root_dir_absolute_path(),
+            self.get_tokenizer_language_model_combination_path(),
+            # Note:
+            # - The sampling in inference might depend on the global_seed, so we include it in the path.
+            f"global_seed={self.main_config.global_seed}",
+        )
+
+        return path
+
     ### Losses from language model fine-tuning training and evaluation
 
     def get_training_and_evaluation_losses_root_dir_absolute_path(
