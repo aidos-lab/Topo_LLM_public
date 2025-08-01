@@ -27,7 +27,7 @@ class InferenceConfig(ConfigBaseModel):
     )
 
     include_timestamp_in_filename: bool = Field(
-        default=True,
+        default=False,
         title="Include timestamp in filename.",
         description="If True, the timestamp will be included in the filename of the inference results.",
     )

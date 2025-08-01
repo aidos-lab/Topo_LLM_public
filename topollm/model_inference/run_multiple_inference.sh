@@ -68,6 +68,7 @@ ABSOLUTE_PYTHON_SCRIPT_PATH="${TOPO_LLM_REPOSITORY_BASE_PATH}/${RELATIVE_PYTHON_
 #   24 GB of VRAM is NOT enough, and leads to CUDA out of memory errors.
 #   48 GB of VRAM is enough for the model and fine-tuned variants.
 #   Inference is possible on a single RTX8000-48GB GPU.
+#   Do NOT use an RTX6000-24GB GPU for this model, as it will lead to CUDA out of memory errors.
 #
 # Example commands for starting interactive sessions on the HPC cluster:
 # - RTX6000-24GB:
@@ -83,8 +84,9 @@ BASE_ARGS=(
 LAUNCHER_ARGS=(
     "hydra/launcher=hpc_submission"
     "hydra.launcher.queue=CUDA"
-    # "hydra.launcher.template=RTX6000"
-    "hydra.launcher.template=RTX8000"
+    # >>> GPU selection
+    "hydra.launcher.template=RTX6000"
+    # "hydra.launcher.template=RTX8000"
     "hydra.launcher.ngpus=1"
     "hydra.launcher.memory=64"
     "hydra.launcher.ncpus=2"
@@ -93,7 +95,7 @@ LAUNCHER_ARGS=(
 )
 
 # LANGUAGE_MODEL_LIST="roberta-base"
-# LANGUAGE_MODEL_LIST="bert-base-uncased,gpt2-large,roberta-base"
+# LANGUAGE_MODEL_LIST="bert-base-uncased,roberta-base,gpt2-large"
 # LANGUAGE_MODEL_LIST="roberta-base,roberta-base_finetuned-on-multiwoz21_ftm-lora"
 # LANGUAGE_MODEL_LIST="bert-base-uncased,bert-base-uncased_finetuned-on-xsum_ftm-standard,bert-base-uncased_finetuned-on-multiwoz21_ftm-standard,bert-base-uncased_finetuned-on-sgd_ftm-lora"
 # LANGUAGE_MODEL_LIST="roberta-base_finetuned-on-one-year-of-tsla-on-reddit_ftm-standard_freeze-first-6-layers_overfitted"
@@ -103,8 +105,8 @@ LAUNCHER_ARGS=(
 # LANGUAGE_MODEL_LIST="gpt2-large"
 
 LANGUAGE_MODEL_LIST="Phi-3.5-mini-instruct"
-# LANGUAGE_MODEL_LIST="Phi-3.5-mini-instruct-causal_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-random-778_aps-False-mx-512_lora-16-32-o_proj_qkv_proj-0.01-True_5e-05-linear-0.01-freeze-5"
-# LANGUAGE_MODEL_LIST="Phi-3.5-mini-instruct-causal_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-random-778_aps-False-mx-512_lora-16-32-o_proj_qkv_proj-0.01-True_5e-05-linear-0.01-freeze-5"
+# LANGUAGE_MODEL_LIST="Phi-3.5-mini-instruct-causal_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-random-778_aps-False-mx-512_lora-16-32-o_proj_qkv_proj-0.01-True_5e-05-linear-0.01-5"
+# LANGUAGE_MODEL_LIST="Phi-3.5-mini-instruct-causal_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-random-778_aps-False-mx-512_lora-16-32-o_proj_qkv_proj-0.01-True_5e-05-linear-0.01-5"
 
 # LANGUAGE_MODEL_LIST="Llama-3.1-8B"
 

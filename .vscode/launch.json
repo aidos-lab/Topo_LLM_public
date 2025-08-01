@@ -1381,6 +1381,8 @@
                 // "global_seed=1111",
                 "global_seed=1111,1112",
                 //
+                "inference.include_timestamp_in_filename=True",
+                //
                 "feature_flags.wandb.use_wandb=False",
                 "wandb.project=Topo_LLM_DEBUG",
             ],
