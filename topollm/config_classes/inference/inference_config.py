@@ -25,3 +25,9 @@ class InferenceConfig(ConfigBaseModel):
         title="Prompts for inference.",
         description="A list of prompts to use for inference. If None, default prompts will be used.",
     )
+
+    include_timestamp_in_filename: bool = Field(
+        default=True,
+        title="Include timestamp in filename.",
+        description="If True, the timestamp will be included in the filename of the inference results.",
+    )

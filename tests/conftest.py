@@ -1,20 +1,3 @@
-# Copyright 2024-2025
-# [ANONYMIZED_INSTITUTION],
-# [ANONYMIZED_FACULTY],
-# [ANONYMIZED_DEPARTMENT]
-#
-# Authors:
-# AUTHOR_1 (author1@example.com)
-# AUTHOR_2 (author2@example.com)
-#
-# Code generation tools and workflows:
-# First versions of this code were potentially generated
-# with the help of AI writing assistants including
-# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
-# Afterwards, the generated segments were manually reviewed and edited.
-#
-
-
 """Fixtures for the tests."""
 
 import datetime
@@ -84,7 +67,9 @@ from topollm.typing.enums import (
     Verbosity,
 )
 
-logger = logging.getLogger(__name__)
+logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # START Configuration of pytest
@@ -134,10 +119,10 @@ def pytest_configure(
     """Create a custom path to the log file if log_file is not mentioned in pytest.ini file."""
     if not config.option.log_file:
         timestamp = datetime.datetime.strftime(
-            datetime.datetime.now(
-                tz=datetime.timezone.utc,
+            self=datetime.datetime.now(
+                tz=datetime.UTC,
             ),
-            "%Y-%m-%d_%H-%M-%S_%Z",
+            format="%Y-%m-%d_%H-%M-%S_%Z",
         )
         # Note: the doubling {{ and }} is necessary to escape the curly braces
         config.option.log_file = f"logs/pytest-logs_{timestamp}.log"
