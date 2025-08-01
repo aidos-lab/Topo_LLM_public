@@ -89,7 +89,7 @@ LAUNCHER_ARGS=(
     "hydra.launcher.memory=64"
     "hydra.launcher.ncpus=2"
     # The model inference is fast, so we can set a shorter walltime.
-    "hydra.launcher.walltime=1:00:00"
+    "hydra.launcher.walltime=00:30:00"
 )
 
 # LANGUAGE_MODEL_LIST="roberta-base"
@@ -99,12 +99,12 @@ LAUNCHER_ARGS=(
 # LANGUAGE_MODEL_LIST="roberta-base_finetuned-on-one-year-of-tsla-on-reddit_ftm-standard_freeze-first-6-layers_overfitted"
 # LANGUAGE_MODEL_LIST="roberta-base_finetuned-on-multiwoz21_ftm-standard_full-dataset"
 
-LANGUAGE_MODEL_LIST="gpt2" # <-- Smallest GPT-2 model with 137M parameters.
+# LANGUAGE_MODEL_LIST="gpt2" # <-- Smallest GPT-2 model with 137M parameters.
 # LANGUAGE_MODEL_LIST="gpt2-large"
 
-# LANGUAGE_MODEL_LIST="Phi-3.5-mini-instruct"
-# LANGUAGE_MODEL_LIST="Phi-3.5-mini-instruct-causal_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-random-778_aps-False-mx-512_lora-16-32-o_proj_qkv_proj-0.01-True_5e-05-linear-0.01-freeze--5"
-# LANGUAGE_MODEL_LIST="Phi-3.5-mini-instruct-causal_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-random-778_aps-False-mx-512_lora-16-32-o_proj_qkv_proj-0.01-True_5e-05-linear-0.01-freeze--5"
+LANGUAGE_MODEL_LIST="Phi-3.5-mini-instruct"
+# LANGUAGE_MODEL_LIST="Phi-3.5-mini-instruct-causal_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-random-778_aps-False-mx-512_lora-16-32-o_proj_qkv_proj-0.01-True_5e-05-linear-0.01-freeze-5"
+# LANGUAGE_MODEL_LIST="Phi-3.5-mini-instruct-causal_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-random-778_aps-False-mx-512_lora-16-32-o_proj_qkv_proj-0.01-True_5e-05-linear-0.01-freeze-5"
 
 # LANGUAGE_MODEL_LIST="Llama-3.1-8B"
 
@@ -133,6 +133,8 @@ PREFERRED_TORCH_BACKEND="auto"
 # CUDA_VISIBLE_DEVICES=0
 
 COMMON_ARGS=(
+    # "global_seed=1111"
+    "global_seed=1111,1112"
     "preferred_torch_backend=$PREFERRED_TORCH_BACKEND"
     $ADDITIONAL_OVERRIDES
 )

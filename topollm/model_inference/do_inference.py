@@ -245,8 +245,16 @@ def do_inference(
             msg=f"Saving inference results to {save_path=} ...",  # noqa: G004 - low overhead
         )
 
-    # TODO: Save the result to disk in json format
-    logger.warning(msg="Saving inference results to disk is not yet implemented. ")
+    with save_path.open(
+        mode="w",
+        encoding="utf-8",
+    ) as file:
+        json.dump(
+            obj=combined_results,
+            fp=file,
+            ensure_ascii=False,
+            indent=4,
+        )
 
     if verbosity >= Verbosity.NORMAL:
         logger.info(

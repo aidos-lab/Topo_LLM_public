@@ -1378,7 +1378,8 @@
                 //
                 // Notes: 
                 // - For causal language modeling, the sampling in inference might depend on the global_seed.
-                "global_seed=1111",
+                // "global_seed=1111",
+                "global_seed=1111,1112",
                 //
                 "feature_flags.wandb.use_wandb=False",
                 "wandb.project=Topo_LLM_DEBUG",
