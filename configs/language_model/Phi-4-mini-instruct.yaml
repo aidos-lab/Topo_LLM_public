@@ -3,6 +3,7 @@ defaults:
   - _self_
 
 lm_mode: clm
+task_type: causal_lm
 
 pretrained_model_name_or_path: "microsoft/Phi-4-mini-instruct"
 short_model_name: "Phi-4-mini-instruct"

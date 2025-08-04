@@ -3,6 +3,7 @@ defaults:
   - _self_
 
 lm_mode: clm
+task_type: causal_lm
 
 pretrained_model_name_or_path: gpt2-large
 short_model_name: ${language_model.pretrained_model_name_or_path}

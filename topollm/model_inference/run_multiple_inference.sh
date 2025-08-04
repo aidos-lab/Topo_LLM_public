@@ -83,16 +83,16 @@ BASE_ARGS=(
     "hydra/sweeper=basic"
 )
 
-LAUNCHER_ARGS=(
+HYDRA_LAUNCHER_ARGS=(
     "hydra/launcher=hpc_submission"
     "hydra.launcher.queue=CUDA"
     # >>> GPU selection
     # "hydra.launcher.template=RTX6000"
     "hydra.launcher.template=RTX8000"
     # >>> Other resources
-    "hydra.launcher.ngpus=1"
     "hydra.launcher.memory=64"
     "hydra.launcher.ncpus=2"
+    "hydra.launcher.ngpus=1"
     # The model inference is fast, so we can set a shorter walltime.
     "hydra.launcher.walltime=00:30:00"
 )
@@ -100,6 +100,9 @@ LAUNCHER_ARGS=(
 # Notes:
 # - Model parameter counts are taking from the Hugging Face model card from the 'Safetensors' section.
 #   Thus, the counts might differ from the model card's 'Model description' section.
+
+
+# ===== RoBERTa and BERT models ===== #
 
 # LANGUAGE_MODEL_LIST="roberta-base"
 # LANGUAGE_MODEL_LIST="bert-base-uncased,roberta-base,gpt2-large"
@@ -119,7 +122,7 @@ LAUNCHER_ARGS=(
 
 # LANGUAGE_MODEL_LIST="gpt2-large" # <-- Large GPT-2 model with 774M parameters (Safetensors: 812M parameters).
 
-# ===== Phi-3.5 models ===== #
+# ===== Phi-3.5 and Phi-4 models ===== #
 # https://huggingface.co/collections/microsoft/phi-3-6626e15e9585a200d2d761e3
 
 # LANGUAGE_MODEL_LIST="Phi-3.5-mini-instruct" # <-- "microsoft/Phi-3.5-mini-instruct" model with 3.82B parameters.
@@ -147,9 +150,13 @@ LANGUAGE_MODEL_ARGS=(
     # "++language_model.checkpoint_no=400,800,1200,1600,2000,2400,2800"
 )
 
+PREFERRED_TORCH_BACKEND="auto"
+# PREFERRED_TORCH_BACKEND="cpu"
+
+
 ADDITIONAL_OVERRIDES=""
 
-# >>> START Select parameters
+# >>> END: Select parameters
 # ==================================================== #
 
 # NOTE:
@@ -157,13 +164,6 @@ ADDITIONAL_OVERRIDES=""
 # the inference of the "gpt2-large" model appears to be broken.
 # This is why we can set the preferred_torch_backend to "cpu" here.
 
-PREFERRED_TORCH_BACKEND="auto"
-# PREFERRED_TORCH_BACKEND="cpu"
-
-# Note:
-# Do NOT set the CUDA_VISIBLE_DEVICES environment variable on the HPC cluster.
-# > "++hydra.job.env_set.CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES"
-# CUDA_VISIBLE_DEVICES=0
 
 COMMON_ARGS=(
     # "global_seed=1111"
@@ -172,17 +172,21 @@ COMMON_ARGS=(
     $ADDITIONAL_OVERRIDES
 )
 
-# ==================================================== #
-
-echo ">>> CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES}"
-
 ARGS=(
     "${BASE_ARGS[@]}"
-    "${LAUNCHER_ARGS[@]}"
+    "${HYDRA_LAUNCHER_ARGS[@]}"
     "${LANGUAGE_MODEL_ARGS[@]}"
     "${COMMON_ARGS[@]}"
     "$@"
 )
+
+# Note:
+# Do NOT set the CUDA_VISIBLE_DEVICES environment variable on the HPC cluster.
+# > "++hydra.job.env_set.CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES"
+# CUDA_VISIBLE_DEVICES=0
+echo ">>> CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES}"
+
+# ==================================================== #
 
 # Print the argument list
 echo "===================================================="
