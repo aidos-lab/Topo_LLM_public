@@ -70,8 +70,8 @@ HYDRA_LAUNCHER_ARGS=(
     # Notes: 
     # - Locally on a MacBook Pro M1 with 16GB of memory, 
     #   loading Phi-3.5 on MPS is not possible.
-    "preferred_torch_backend=auto"
-    # "preferred_torch_backend=cpu"
+    # "preferred_torch_backend=auto"
+    "preferred_torch_backend=cpu"
 )
 #
 # >> HPC run
@@ -130,7 +130,7 @@ DATA_ARGS=(
 # ===== Gemma models ===== #
 # https://huggingface.co/collections/google/gemma-3-release-67c6c6f89c4f76621268bb6d
 
-LANGUAGE_MODEL_LIST="gemma-3-1b-pt" # <-- (Safetensors: 1,000M parameters)
+# LANGUAGE_MODEL_LIST="gemma-3-1b-pt" # <-- (Safetensors: 1,000M parameters)
 # LANGUAGE_MODEL_LIST="gemma-3-1b-it" # <-- (Safetensors: 1,000M parameters)
 
 # ===== LLama models ===== #
@@ -138,7 +138,7 @@ LANGUAGE_MODEL_LIST="gemma-3-1b-pt" # <-- (Safetensors: 1,000M parameters)
 # Notes:
 # - There is no 8B variant of the Llama-3.2 models.
 
-# LANGUAGE_MODEL_LIST="Llama-3.1-8B" # <-- (Safetensors: 8.03B parameters)
+LANGUAGE_MODEL_LIST="Llama-3.1-8B" # <-- (Safetensors: 8.03B parameters)
 
 # # # # # # # # # # # # # # # # # # # #
 
@@ -172,7 +172,8 @@ EMBEDDINGS_ARGS=(
     "embeddings.embedding_extraction.layer_indices=$LAYER_INDICES_LIST"
 )
 
-DATA_NUMBER_OF_SAMPLES="128"
+DATA_NUMBER_OF_SAMPLES="16"
+# DATA_NUMBER_OF_SAMPLES="128"
 # DATA_NUMBER_OF_SAMPLES="512"
 # DATA_NUMBER_OF_SAMPLES="3000"
 
@@ -198,6 +199,12 @@ STORAGE_ARGS=(
     "storage.chunk_size=$STORAGE_CHUNK_SIZE"
 )
 
+FEATURE_FLAGS_ARGS=(
+    # NOTE: Only skip the embedding computation if the embeddings are already available.
+    "feature_flags.compute_and_store_embeddings.skip_compute_and_store_embeddings_in_pipeline=False"
+    "feature_flags.analysis.create_plots_in_local_estimates_worker=True"
+)
+
 # END: Python script - Command line arguments
 # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
@@ -219,6 +226,7 @@ ARGS=(
     "${SAMPLING_ARGS[@]}"
     "${LOCAL_ESTIMATES_ARGS[@]}"
     "${STORAGE_ARGS[@]}"
+    "${FEATURE_FLAGS_ARGS[@]}"
     "${COMMON_ARGS[@]}"
     "$@"
 )

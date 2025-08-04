@@ -32,7 +32,7 @@ def finetune_model(
     logger: logging.Logger = default_logger,
 ) -> None:
     """Finetune a model using the provided trainer."""
-    if verbosity >= 1:
+    if verbosity >= Verbosity.NORMAL:
         logger.info(
             msg="Calling trainer.train() ...",
         )

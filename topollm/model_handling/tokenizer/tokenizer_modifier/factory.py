@@ -1,20 +1,3 @@
-# Copyright 2024
-# [ANONYMIZED_INSTITUTION],
-# [ANONYMIZED_FACULTY],
-# [ANONYMIZED_DEPARTMENT]
-#
-# Authors:
-# AUTHOR_1 (author1@example.com)
-# AUTHOR_2 (author2@example.com)
-#
-# Code generation tools and workflows:
-# First versions of this code were potentially generated
-# with the help of AI writing assistants including
-# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
-# Afterwards, the generated segments were manually reviewed and edited.
-#
-
-
 """Factory for tokenizer modifier."""
 
 import logging
@@ -26,6 +9,7 @@ from topollm.model_handling.tokenizer.tokenizer_modifier import (
     protocol,
     tokenizer_modifier_add_padding_token,
     tokenizer_modifier_do_nothing,
+    tokenizer_modifier_set_pad_token_to_other_special_token,
 )
 from topollm.typing.enums import TokenizerModifierMode, Verbosity
 
@@ -44,22 +28,38 @@ def get_tokenizer_modifier(
 
     if verbosity >= Verbosity.NORMAL:
         logger.info(
-            f"{mode = }",  # noqa: G004 - low overhead
+            msg=f"{mode = }",  # noqa: G004 - low overhead
         )
 
-    if mode == TokenizerModifierMode.DO_NOTHING:
-        modifier = tokenizer_modifier_do_nothing.TokenizerModifierDoNothing(
-            verbosity=verbosity,
-            logger=logger,
-        )
-    elif mode == TokenizerModifierMode.ADD_PADDING_TOKEN:
-        modifier = tokenizer_modifier_add_padding_token.TokenizerModifierAddPaddingToken(
-            padding_token=tokenizer_modifier_config.padding_token,
-            verbosity=verbosity,
-            logger=logger,
-        )
-    else:
-        msg: str = f"Unknown {mode = }"
-        raise ValueError(msg)
+    match mode:
+        case TokenizerModifierMode.DO_NOTHING:
+            modifier = tokenizer_modifier_do_nothing.TokenizerModifierDoNothing(
+                verbosity=verbosity,
+                logger=logger,
+            )
+        case TokenizerModifierMode.ADD_PADDING_TOKEN:
+            if tokenizer_modifier_config.padding_token is None:
+                msg: str = (
+                    "TokenizerModifierMode.ADD_PADDING_TOKEN requires a padding token to be set. "
+                    "Please provide a valid padding token in the configuration."
+                )
+                raise ValueError(
+                    msg,
+                )
+
+            modifier = tokenizer_modifier_add_padding_token.TokenizerModifierAddPaddingToken(
+                padding_token=tokenizer_modifier_config.padding_token,
+                verbosity=verbosity,
+                logger=logger,
+            )
+        case TokenizerModifierMode.REPLACE_PAD_TOKEN_WITH_OTHER_SPECIAL_TOKEN:
+            modifier = tokenizer_modifier_set_pad_token_to_other_special_token.TokenizerModifierSetPadTokenToOtherSpecialToken(
+                other_special_token_identifier=tokenizer_modifier_config.replace_pad_token_with_other_special_token_identifier,
+                verbosity=verbosity,
+                logger=logger,
+            )
+        case _:
+            msg: str = f"Unknown {mode = }"
+            raise ValueError(msg)
 
     return modifier

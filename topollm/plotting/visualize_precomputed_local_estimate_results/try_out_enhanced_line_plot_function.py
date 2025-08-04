@@ -168,19 +168,19 @@ def line_plot_grouped_by_categorical_column(
 
         # Save the plot as a PDF.
         output_file = output_folder / f"{plot_name}.pdf"
-        if verbosity >= 1:
+        if verbosity >= Verbosity.NORMAL:
             logger.info(f"Saving plot to {output_file} ...")
         plt.savefig(output_file, bbox_inches="tight", format="pdf")
-        if verbosity >= 1:
+        if verbosity >= Verbosity.NORMAL:
             logger.info(f"Saving plot to {output_file} DONE")
 
         # Save the raw data as a CSV.
         output_file_raw_data = output_folder / f"{plot_name}_raw_data.csv"
         output_file_raw_data.parent.mkdir(parents=True, exist_ok=True)
-        if verbosity >= 1:
+        if verbosity >= Verbosity.NORMAL:
             logger.info(f"Saving raw data to {output_file_raw_data} ...")
         df.to_csv(output_file_raw_data, index=False)
-        if verbosity >= 1:
+        if verbosity >= Verbosity.NORMAL:
             logger.info(f"Saving raw data to {output_file_raw_data} DONE")
 
 

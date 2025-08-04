@@ -51,7 +51,7 @@ def get_torch_device(
     else:
         device = torch.device("cpu")
 
-    if verbosity >= 1:
+    if verbosity >= Verbosity.NORMAL:
         logger.info(
             f"{device = }",  # noqa: G004 - low overhead
         )

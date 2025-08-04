@@ -3,6 +3,7 @@ defaults:
   - _self_
 
 lm_mode: clm
+task_type: causal_lm
 
 pretrained_model_name_or_path: ${paths.luster_repository_base_path}/data/model_checkpoints/luster-rl(sent)
 short_model_name: luster-rl-sent

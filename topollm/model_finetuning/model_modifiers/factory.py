@@ -40,7 +40,7 @@ def get_model_modifier(
 ) -> ModelModifier:
     """Get a model modifier for the given configuration."""
     finetuning_mode = peft_config.finetuning_mode
-    if verbosity >= 1:
+    if verbosity >= Verbosity.NORMAL:
         logger.info(f"{finetuning_mode = }")  # noqa: G004 - low overhead
 
     if finetuning_mode == FinetuningMode.STANDARD:
@@ -52,7 +52,7 @@ def get_model_modifier(
             peft_config=peft_config,
         )
 
-        if verbosity >= 1:
+        if verbosity >= Verbosity.NORMAL:
             logger.info("Preparing LoRA adapter ...")
             logger.info(
                 "lora_config:\n%s",
@@ -66,7 +66,7 @@ def get_model_modifier(
             logger=logger,
         )
 
-        if verbosity >= 1:
+        if verbosity >= Verbosity.NORMAL:
             logger.info("Preparing LoRA adapter DONE.")
     else:
         msg = f"Unknown training mode: {finetuning_mode = }"

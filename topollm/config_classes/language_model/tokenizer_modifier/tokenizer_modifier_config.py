@@ -1,20 +1,3 @@
-# Copyright 2024
-# [ANONYMIZED_INSTITUTION],
-# [ANONYMIZED_FACULTY],
-# [ANONYMIZED_DEPARTMENT]
-#
-# Authors:
-# AUTHOR_1 (author1@example.com)
-# AUTHOR_2 (author2@example.com)
-#
-# Code generation tools and workflows:
-# First versions of this code were potentially generated
-# with the help of AI writing assistants including
-# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
-# Afterwards, the generated segments were manually reviewed and edited.
-#
-
-
 """Configuration class for modifying the tokenizer."""
 
 from pydantic import Field
@@ -31,7 +14,14 @@ class TokenizerModifierConfig(ConfigBaseModel):
         description="The mode of the tokenizer modifier.",
     )
 
-    padding_token: str = Field(
+    padding_token: str | None = Field(
         default="<|pad|>",
-        description="The string representation of the padding token.",
+        description="The string representation of the padding token. "
+        "Can be set to None if not needed or if the tokenizer does not have a padding token.",
+    )
+
+    replace_pad_token_with_other_special_token_identifier: str = Field(
+        default="eos_token",
+        description="The identifier of the other special token to replace the padding token with. "
+        "Only used if the mode is REPLACE_PAD_TOKEN_WITH_OTHER_SPECIAL_TOKEN.",
     )

@@ -271,7 +271,7 @@ class FinetuningPathManagerBasic:
         """
         path = None
 
-        if self.verbosity >= 1:
+        if self.verbosity >= Verbosity.NORMAL:
             self.logger.info(
                 "logging_dir:\n%s",
                 path,
