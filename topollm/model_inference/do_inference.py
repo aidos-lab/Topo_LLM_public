@@ -207,7 +207,7 @@ def do_inference(
         zip(
             prompts,
             results,
-            strict=False,
+            strict=True,
         ),
     )
 

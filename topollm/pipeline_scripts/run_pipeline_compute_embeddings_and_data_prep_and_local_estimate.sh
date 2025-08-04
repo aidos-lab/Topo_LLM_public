@@ -1,26 +1,93 @@
 #!/bin/bash
 
-echo "TOPO_LLM_REPOSITORY_BASE_PATH=${TOPO_LLM_REPOSITORY_BASE_PATH}"
+# # # # # # # # # # # # # # # # # # # # # # # # #
+# Default values
+
+# Initialize dry_run flag to false
+dry_run=false
+
+# # # # # # # # # # # # # # # # # # # # # # # # #
+# Function to print usage
+usage() {
+    echo "💡 Usage: $0 [--dry-run]"
+    exit 1
+}
+
+# Parse command line options
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        --dry-run)
+            dry_run=true
+            shift # Remove the --dry_run argument
+            ;;
+        *)
+            echo "❌ Error: Unknown option: $1"
+            usage
+            exit 1
+            ;;
+    esac
+done
+
+# # # # # # # # # # # # # # # # # # # # # # # # #
+# Check if environment variables are set
+
+if [[ -z "${TOPO_LLM_REPOSITORY_BASE_PATH}" ]]; then
+    echo "❌ Error: TOPO_LLM_REPOSITORY_BASE_PATH is not set."
+    exit 1
+fi
+
+# Load environment variables from the .env file
+source "${TOPO_LLM_REPOSITORY_BASE_PATH}/.env"
+
+# # # # # # # # # # # # # # # # # # # # # # # # #
+# Log variables
+
+VARIABLES_TO_LOG_LIST=(
+    "TOPO_LLM_REPOSITORY_BASE_PATH" # example: /gpfs/project/$USER/git-source/Topo_LLM
+)
+
+for VARIABLE_NAME in "${VARIABLES_TO_LOG_LIST[@]}"; do
+    echo "💡 ${VARIABLE_NAME}=${!VARIABLE_NAME}"
+done
 
 PYTHON_SCRIPT_NAME="run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py"
 RELATIVE_PYTHON_SCRIPT_PATH="topollm/pipeline_scripts/${PYTHON_SCRIPT_NAME}"
 ABSOLUTE_PYTHON_SCRIPT_PATH="${TOPO_LLM_REPOSITORY_BASE_PATH}/${RELATIVE_PYTHON_SCRIPT_PATH}"
 
-# >> Local run
-# HYDRA_LAUNCHER_ARGS_LIST=(
-#     "hydra/launcher=basic"
-#     "preferred_torch_backend=cpu" # Locally on a MacBook with 16GB of memory, loading Phi-3.5 on MPS is not possible
-# )
-# >> HPC run
-HYDRA_LAUNCHER_ARGS_LIST=(
-    "hydra/launcher=hpc_submission"
-    "hydra.launcher.queue=CUDA"
-    "hydra.launcher.template=RTX6000" # Note: 12 GB of GPU memory appears to not be enough for the GPT-2 pipeline, i.e., do not select the "hydra.launcher.template=GTX1080"
-    "hydra.launcher.memory=50" # <-- The embeddings data prep step failed with 32GB of memory for the GPT2 medium model. 
-    "hydra.launcher.ncpus=2" # <-- Make sure not to use more than 2 CPUs per GPU on the GTX1080TI and RTX6000 nodes.
-    "hydra.launcher.ngpus=1"
-    "hydra.launcher.walltime=04:00:00" # <-- The pipeline run for regular embeddings should only take a few minutes.
+
+# ==================================================== #
+# >>> START Select parameters
+
+BASE_ARGS=(
+    "--multirun"
+    "hydra/sweeper=basic"
 )
+
+# >> Local run
+#
+HYDRA_LAUNCHER_ARGS=(
+    "hydra/launcher=basic"
+    # Notes: 
+    # - Locally on a MacBook Pro M1 with 16GB of memory, 
+    #   loading Phi-3.5 on MPS is not possible.
+    "preferred_torch_backend=auto"
+    # "preferred_torch_backend=cpu"
+)
+#
+# >> HPC run
+#
+# HYDRA_LAUNCHER_ARGS=(
+#     "hydra/launcher=hpc_submission"
+#     "hydra.launcher.queue=CUDA"
+#     # >>> GPU selection
+#     "hydra.launcher.template=RTX6000" # Note: 12 GB of GPU memory appears to not be enough for the GPT-2 pipeline, i.e., do not select the "hydra.launcher.template=GTX1080"
+#     # >>> Other resources
+#     "hydra.launcher.memory=50" # <-- The embeddings data prep step failed with 32GB of memory for the GPT2 medium model. 
+#     "hydra.launcher.ncpus=2" # <-- Make sure not to use more than 2 CPUs per GPU on the GTX1080TI and RTX6000 nodes.
+#     "hydra.launcher.ngpus=1"
+#     # The pipeline run for regular embeddings can take longer than an hour for large models.
+#     "hydra.launcher.walltime=04:00:00" 
+# )
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # START: Python script - Command line arguments
@@ -33,6 +100,13 @@ DATASET_TYPE_LINE=""
 # DATA_LIST="multiwoz21_validation,iclr_2024_submissions,wikitext"
 DATA_LIST="multiwoz21_validation"
 
+DATA_ARGS=(
+    "data=$DATA_LIST"
+    $DATASET_TYPE_LINE
+)
+ 
+# ===== RoBERTa and BERT models ===== #
+
 # LANGUAGE_MODEL_LIST="roberta-base"
 # LANGUAGE_MODEL_LIST="roberta-base_finetuned-on-iclr_ftm-standard"
 
@@ -43,12 +117,40 @@ DATA_LIST="multiwoz21_validation"
 #
 # LANGUAGE_MODEL_LIST="ModernBERT-base"
 
+# ===== GPT-2 models ===== #
+
+# LANGUAGE_MODEL_LIST="gpt2" # <-- Smallest GPT-2 model with 124M parameters (Safetensors: 137M parameters).
+
+# ===== Phi-3.5 and Phi-4 models ===== #
+# https://huggingface.co/collections/microsoft/phi-3-6626e15e9585a200d2d761e3
+
 # LANGUAGE_MODEL_LIST="Phi-3.5-mini-instruct"
-LANGUAGE_MODEL_LIST="Phi-4-mini-instruct"
+# LANGUAGE_MODEL_LIST="Phi-4-mini-instruct"
+
+# ===== Gemma models ===== #
+# https://huggingface.co/collections/google/gemma-3-release-67c6c6f89c4f76621268bb6d
+
+LANGUAGE_MODEL_LIST="gemma-3-1b-pt" # <-- (Safetensors: 1,000M parameters)
+# LANGUAGE_MODEL_LIST="gemma-3-1b-it" # <-- (Safetensors: 1,000M parameters)
+
+# ===== LLama models ===== #
+
+# Notes:
+# - There is no 8B variant of the Llama-3.2 models.
+
+# LANGUAGE_MODEL_LIST="Llama-3.1-8B" # <-- (Safetensors: 8.03B parameters)
+
+# # # # # # # # # # # # # # # # # # # #
 
 CHECKPOINT_NO="-1"
 # CHECKPOINT_NO="400"
 # CHECKPOINT_NO="400,800,1200"
+# CHECKPOINT_NO="400,800,1200,1600,2000,2400,2800"
+
+LANGUAGE_MODEL_ARGS=(
+    "language_model=$LANGUAGE_MODEL_LIST"
+    "++language_model.checkpoint_no=$CHECKPOINT_NO"
+)
 
 # Notes: 
 # - For larger models, we need to reduce the batch size to avoid OOM errors on the GPU.
@@ -65,48 +167,91 @@ STORAGE_CHUNK_SIZE="32"
 LAYER_INDICES_LIST="[-1]"
 # LAYER_INDICES_LIST="[-1],[-2]"
 
-# DATA_NUMBER_OF_SAMPLES="128"
-DATA_NUMBER_OF_SAMPLES="512"
+EMBEDDINGS_ARGS=(
+    "embeddings.batch_size=$EMBEDDINGS_BATCH_SIZE"
+    "embeddings.embedding_extraction.layer_indices=$LAYER_INDICES_LIST"
+)
+
+DATA_NUMBER_OF_SAMPLES="128"
+# DATA_NUMBER_OF_SAMPLES="512"
 # DATA_NUMBER_OF_SAMPLES="3000"
 
 # EMBEDDINGS_DATA_PREP_NUM_SAMPLES="1000"
 EMBEDDINGS_DATA_PREP_NUM_SAMPLES="30000"
 # EMBEDDINGS_DATA_PREP_NUM_SAMPLES="10000,20000"
 
-ADDITIONAL_OVERRIDES=""
+SAMPLING_ARGS=(
+    "data.data_subsampling.number_of_samples=$DATA_NUMBER_OF_SAMPLES"
+    "embeddings_data_prep.sampling.num_samples=$EMBEDDINGS_DATA_PREP_NUM_SAMPLES"
+    "embeddings_data_prep.sampling.sampling_mode=random"
+)
+
+LOCAL_ESTIMATES_ARGS=(
+    "local_estimates=twonn"
+    "local_estimates.filtering.num_samples=500"
+    "local_estimates.compute_global_estimates=True"
+    "local_estimates.pointwise.n_neighbors_mode=absolute_size"
+    "local_estimates.pointwise.absolute_n_neighbors=128"
+)
+
+STORAGE_ARGS=(
+    "storage.chunk_size=$STORAGE_CHUNK_SIZE"
+)
 
 # END: Python script - Command line arguments
 # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
+ADDITIONAL_OVERRIDES=""
+
+# >>> END: Select parameters
 # ==================================================== #
 
-echo ">>> Calling python script ABSOLUTE_PYTHON_SCRIPT_PATH=${ABSOLUTE_PYTHON_SCRIPT_PATH} ..."
-
-uv run python3 $ABSOLUTE_PYTHON_SCRIPT_PATH \
-    --multirun \
-    "hydra/sweeper=basic" \
-    "${HYDRA_LAUNCHER_ARGS_LIST[@]}" \
-    data=$DATA_LIST \
-    $DATASET_TYPE_LINE \
-    language_model=$LANGUAGE_MODEL_LIST \
-    +language_model.checkpoint_no=$CHECKPOINT_NO \
-    embeddings.batch_size=$EMBEDDINGS_BATCH_SIZE \
-    embeddings.embedding_extraction.layer_indices=$LAYER_INDICES_LIST \
-    "data.data_subsampling.number_of_samples=$DATA_NUMBER_OF_SAMPLES" \
-    embeddings_data_prep.sampling.num_samples=$EMBEDDINGS_DATA_PREP_NUM_SAMPLES \
-    "embeddings_data_prep.sampling.sampling_mode=random" \
-    "local_estimates=twonn" \
-    "local_estimates.filtering.num_samples=500" \
-    "local_estimates.compute_global_estimates=True" \
-    "local_estimates.pointwise.n_neighbors_mode=absolute_size" \
-    "local_estimates.pointwise.absolute_n_neighbors=128" \
-    "storage.chunk_size=$STORAGE_CHUNK_SIZE" \
+COMMON_ARGS=(
     $ADDITIONAL_OVERRIDES
+)
 
+ARGS=(
+    "${BASE_ARGS[@]}"
+    "${HYDRA_LAUNCHER_ARGS[@]}"
+    "${DATA_ARGS[@]}"
+    "${LANGUAGE_MODEL_ARGS[@]}"
+    "${EMBEDDINGS_ARGS[@]}"
+    "${SAMPLING_ARGS[@]}"
+    "${LOCAL_ESTIMATES_ARGS[@]}"
+    "${STORAGE_ARGS[@]}"
+    "${COMMON_ARGS[@]}"
+    "$@"
+)
 
-echo ">>> Finished python script."
+# Note:
+# Do NOT set the CUDA_VISIBLE_DEVICES environment variable on the HPC cluster.
+# > "++hydra.job.env_set.CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES"
+# CUDA_VISIBLE_DEVICES=0
+echo ">>> CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES}"
 
 # ==================================================== #
 
-# Exit with return code from the last command.
+# Print the argument list
+echo "===================================================="
+echo ">> Argument list:"
+echo "===================================================="
+for arg in "${ARGS[@]}"; do
+    echo "  $arg"
+done
+echo "===================================================="
+
+echo ">>> Calling script from RELATIVE_PYTHON_SCRIPT_PATH=${RELATIVE_PYTHON_SCRIPT_PATH} ..."
+
+if [ "$dry_run" = true ]; then
+    echo "💡 [DRY RUN] Would run: uv run python3 $RELATIVE_PYTHON_SCRIPT_PATH ${ARGS[*]}"
+else
+    uv run python3 $RELATIVE_PYTHON_SCRIPT_PATH "${ARGS[@]}"
+fi
+
+echo ">>> Calling script from RELATIVE_PYTHON_SCRIPT_PATH=${RELATIVE_PYTHON_SCRIPT_PATH} DONE"
+
+# ==================================================== #
+
+# Exit with last command's exit code
+echo ">>> Exiting with code $?."
 exit $?

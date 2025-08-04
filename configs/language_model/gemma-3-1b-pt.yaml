@@ -1,0 +1,10 @@
+defaults:
+  # Note: `gemma-3` models appear to have a pad_token set.
+  - tokenizer_modifier: do_nothing
+  - _self_
+
+lm_mode: clm
+task_type: causal_lm
+
+pretrained_model_name_or_path: "google/gemma-3-1b-pt"
+short_model_name: "gemma-3-1b-pt"
