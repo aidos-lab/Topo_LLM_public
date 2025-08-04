@@ -199,6 +199,12 @@ STORAGE_ARGS=(
     "storage.chunk_size=$STORAGE_CHUNK_SIZE"
 )
 
+FEATURE_FLAGS_ARGS=(
+    # NOTE: Only skip the embedding computation if the embeddings are already available.
+    "feature_flags.compute_and_store_embeddings.skip_compute_and_store_embeddings_in_pipeline=False"
+    "feature_flags.analysis.create_plots_in_local_estimates_worker=True"
+)
+
 # END: Python script - Command line arguments
 # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
@@ -220,6 +226,7 @@ ARGS=(
     "${SAMPLING_ARGS[@]}"
     "${LOCAL_ESTIMATES_ARGS[@]}"
     "${STORAGE_ARGS[@]}"
+    "${FEATURE_FLAGS_ARGS[@]}"
     "${COMMON_ARGS[@]}"
     "$@"
 )
