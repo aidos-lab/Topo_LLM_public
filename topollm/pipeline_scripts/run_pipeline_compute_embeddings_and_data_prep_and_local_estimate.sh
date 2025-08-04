@@ -130,8 +130,15 @@ DATA_ARGS=(
 # ===== Gemma models ===== #
 # https://huggingface.co/collections/google/gemma-3-release-67c6c6f89c4f76621268bb6d
 
-# LANGUAGE_MODEL_LIST="gemma-3-1b-pt" # <-- (Safetensors: 1,000M parameters)
-LANGUAGE_MODEL_LIST="gemma-3-1b-it" # <-- (Safetensors: 1,000M parameters)
+LANGUAGE_MODEL_LIST="gemma-3-1b-pt" # <-- (Safetensors: 1,000M parameters)
+# LANGUAGE_MODEL_LIST="gemma-3-1b-it" # <-- (Safetensors: 1,000M parameters)
+
+# ===== LLama models ===== #
+
+# Notes:
+# - There is no 8B variant of the Llama-3.2 models.
+
+# LANGUAGE_MODEL_LIST="Llama-3.1-8B" # <-- (Safetensors: 8.03B parameters)
 
 # # # # # # # # # # # # # # # # # # # #
 
