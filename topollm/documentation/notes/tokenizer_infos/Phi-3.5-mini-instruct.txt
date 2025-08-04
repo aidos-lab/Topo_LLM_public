@@ -1,0 +1,19 @@
+>>> tokenizer = transformers.AutoTokenizer.from_pretrained("microsoft/Phi-3.5-mini-instruct")
+>>> tokenizer
+LlamaTokenizerFast(name_or_path='microsoft/Phi-3.5-mini-instruct', vocab_size=32000, model_max_length=131072, is_fast=True, padding_side='left', truncation_side='right', special_tokens={'bos_token': '<s>', 'eos_token': '<|endoftext|>', 'unk_token': '<unk>', 'pad_token': '<|endoftext|>'}, clean_up_tokenization_spaces=False, added_tokens_decoder={
+        0: AddedToken("<unk>", rstrip=False, lstrip=False, single_word=False, normalized=False, special=True),
+        1: AddedToken("<s>", rstrip=False, lstrip=False, single_word=False, normalized=False, special=True),
+        2: AddedToken("</s>", rstrip=True, lstrip=False, single_word=False, normalized=False, special=False),
+        32000: AddedToken("<|endoftext|>", rstrip=False, lstrip=False, single_word=False, normalized=False, special=True),
+        32001: AddedToken("<|assistant|>", rstrip=True, lstrip=False, single_word=False, normalized=False, special=True),
+        32002: AddedToken("<|placeholder1|>", rstrip=True, lstrip=False, single_word=False, normalized=False, special=True),
+        32003: AddedToken("<|placeholder2|>", rstrip=True, lstrip=False, single_word=False, normalized=False, special=True),
+        32004: AddedToken("<|placeholder3|>", rstrip=True, lstrip=False, single_word=False, normalized=False, special=True),
+        32005: AddedToken("<|placeholder4|>", rstrip=True, lstrip=False, single_word=False, normalized=False, special=True),
+        32006: AddedToken("<|system|>", rstrip=True, lstrip=False, single_word=False, normalized=False, special=True),
+        32007: AddedToken("<|end|>", rstrip=True, lstrip=False, single_word=False, normalized=False, special=True),
+        32008: AddedToken("<|placeholder5|>", rstrip=True, lstrip=False, single_word=False, normalized=False, special=True),
+        32009: AddedToken("<|placeholder6|>", rstrip=True, lstrip=False, single_word=False, normalized=False, special=True),
+        32010: AddedToken("<|user|>", rstrip=True, lstrip=False, single_word=False, normalized=False, special=True),
+}
+)
