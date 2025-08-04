@@ -1,20 +1,3 @@
-# Copyright 2024-2025
-# [ANONYMIZED_INSTITUTION],
-# [ANONYMIZED_FACULTY],
-# [ANONYMIZED_DEPARTMENT]
-#
-# Authors:
-# AUTHOR_1 (author1@example.com)
-# AUTHOR_2 (author2@example.com)
-#
-# Code generation tools and workflows:
-# First versions of this code were potentially generated
-# with the help of AI writing assistants including
-# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
-# Afterwards, the generated segments were manually reviewed and edited.
-#
-
-
 """Enums used in the configuration classes."""
 
 from enum import Enum, IntEnum, StrEnum, auto, unique
@@ -116,7 +99,7 @@ class AggregationType(StrEnum):
 class Level(StrEnum):
     """The different levels for the embedding vector extraction."""
 
-    TOKEN = auto()  # noqa: S105 - not a password token
+    TOKEN = auto()  # > noqa: S105 - not a password token
     WVFS = auto()
     DATASET_ENTRY = auto()
 

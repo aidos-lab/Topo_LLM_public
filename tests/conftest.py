@@ -118,10 +118,9 @@ def pytest_configure(
 ) -> None:
     """Create a custom path to the log file if log_file is not mentioned in pytest.ini file."""
     if not config.option.log_file:
-        timestamp = datetime.datetime.strftime(
-            self=datetime.datetime.now(
-                tz=datetime.UTC,
-            ),
+        timestamp: str = datetime.datetime.now(
+            tz=datetime.UTC,
+        ).strftime(
             format="%Y-%m-%d_%H-%M-%S_%Z",
         )
         # Note: the doubling {{ and }} is necessary to escape the curly braces

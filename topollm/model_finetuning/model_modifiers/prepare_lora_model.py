@@ -87,7 +87,7 @@ def prepare_lora_model(
     lora_model.to(
         device=device,  # type: ignore - problem with torch.device type
     )
-    if verbosity >= 1:
+    if verbosity >= Verbosity.NORMAL:
         logger.info(
             msg=f"Moving model to {device = } DONE",  # noqa: G004 - low overhead
         )

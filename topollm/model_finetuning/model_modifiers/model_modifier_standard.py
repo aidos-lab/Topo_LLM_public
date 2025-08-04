@@ -43,7 +43,7 @@ class ModelModifierStandard:
         self,
         model: PreTrainedModel,
     ) -> peft.peft_model.PeftModel | PreTrainedModel:
-        if self.verbosity >= 1:
+        if self.verbosity >= Verbosity.NORMAL:
             self.logger.info("Using base model without modifications.")
             self.logger.info("Returning unmodified model.")
 
