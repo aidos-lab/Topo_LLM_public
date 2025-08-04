@@ -38,6 +38,16 @@ class TokenizerModifierSetPadTokenToOtherSpecialToken:
                 "in its special tokens map. Thus, cannot set the padding token to it."
             )
             raise ValueError(msg)
+        # Check that the special token exists as an attribute of the tokenizer
+        if not hasattr(
+            tokenizer,
+            self.other_special_token_identifier,
+        ):
+            msg: str = (
+                f"Tokenizer does not have the special token '{self.other_special_token_identifier=}' "
+                "as an attribute. Thus, cannot set the padding token to it."
+            )
+            raise ValueError(msg)
 
         if self.verbosity >= Verbosity.NORMAL:
             self.logger.info(
