@@ -23,5 +23,5 @@ class TokenizerModifierConfig(ConfigBaseModel):
     replace_pad_token_with_other_special_token_identifier: str = Field(
         default="eos_token",
         description="The identifier of the other special token to replace the padding token with. "
-        "Only used if the mode is SET_PAD_TOKEN_TO_OTHER_SPECIAL_TOKEN.",
+        "Only used if the mode is REPLACE_PAD_TOKEN_WITH_OTHER_SPECIAL_TOKEN.",
     )
