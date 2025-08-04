@@ -1,18 +1,18 @@
 [project]
 dependencies = [
     "accelerate",
-    "datasets<3.6", # This restriction is needed to avoid issues with the HPC cluster
-    "pyarrow<21", # This restriction is needed to avoid issues with the HPC cluster
+    "datasets<3.6",                 # This restriction is needed to avoid issues with the HPC cluster
+    "pyarrow<21",                   # This restriction is needed to avoid issues with the HPC cluster
     "hydra-core",
     "gitpython",
-    "gudhi<=3.10", # `gudhi` (v3.11.0) is not available on the HPC cluster
+    "gudhi<=3.10",                  # `gudhi` (v3.11.0) is not available on the HPC cluster
     "pandas",
     "pydantic",
     "scikit-learn",
     "scikit-dimension",
-    "torch>=2.3,<2.4", # This restriction is needed to avoid issues with the HPC cluster
+    "torch>=2.3,<2.4",              # This restriction is needed to avoid issues with the HPC cluster
     "tqdm",
-    "transformers>=4,<4.50",
+    "transformers>=4.50,<4.51",     # Note: `transformers>=4.50` is required for the `gemma-3` models.
     "zarr>=2,<3",
     "tensorboard",
     "seaborn",
@@ -38,12 +38,12 @@ dependencies = [
     "markupsafe",
     "wat",
     "numba",
-    "numpy>=2,<2.3", # This restriction is needed to avoid issues with the HPC cluster
-    "networkit<=11", # This restriction is needed to avoid issues with the HPC cluster
+    "numpy>=2,<2.3",                # This restriction is needed to avoid issues with the HPC cluster
+    "networkit<=11",                # This restriction is needed to avoid issues with the HPC cluster
     "tensorboardx>=2.6.2.2",
     "boto3>=1.37.20",
-    "kaleido==0.2.1", # There is an error on MacOS with ARM chip when installing one of the post versions of kaleido
-    "pyzmq<27", # This restriction is needed to avoid issues with the HPC cluster
+    "kaleido==0.2.1",               # There is an error on MacOS with ARM chip when installing one of the post versions of kaleido
+    "pyzmq<27",                     # This restriction is needed to avoid issues with the HPC cluster
     "sentencepiece>=0.2.0",
     "plotly>=6.2.0",
     "huggingface-hub[cli]>=0.34.1",

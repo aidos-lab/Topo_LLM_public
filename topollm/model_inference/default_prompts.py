@@ -41,6 +41,7 @@ def get_default_clm_prompts() -> list[str]:
         "What is the best stock to buy tomorrow?",
         "What is the best",
         "Can you recommend a good",
+        "The Eiffel tower is located in",
         "Eigenspaces corresponding to distinct eigenvalues are",
         "Eigenspaces corresponding to distinct eigenvalues are always linearly independent. Proof:",
         "Proof:",

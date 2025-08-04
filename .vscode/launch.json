@@ -1440,12 +1440,16 @@
                 //
                 //    >> START Model options.
                 //
-                "language_model=gpt2",
+                // "language_model=gpt2",
+                //
+                // "language_model=gemma-3-1b-pt",
+                // "language_model=gemma-3-1b-it",
+                "language_model=gemma-3-1b-pt,gemma-3-1b-it",
                 //
                 //    >> END Model options.
                 //
                 // "inference.prompts=null", // Use default prompts
-                "inference.prompts=['The hotel should be in the', 'I would like to invest in', 'Eigenspaces corresponding to distinct eigenvalues are']",
+                "inference.prompts=['The hotel should be in the', 'I would like to invest in', 'The Eiffel tower is located in', 'Eigenspaces corresponding to distinct eigenvalues are']",
                 //
                 // Notes: 
                 // - For causal language modeling, the sampling in inference might depend on the global_seed.

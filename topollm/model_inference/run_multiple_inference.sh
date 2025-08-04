@@ -89,6 +89,7 @@ LAUNCHER_ARGS=(
     # >>> GPU selection
     # "hydra.launcher.template=RTX6000"
     "hydra.launcher.template=RTX8000"
+    # >>> Other resources
     "hydra.launcher.ngpus=1"
     "hydra.launcher.memory=64"
     "hydra.launcher.ncpus=2"
@@ -119,17 +120,25 @@ LAUNCHER_ARGS=(
 # LANGUAGE_MODEL_LIST="gpt2-large" # <-- Large GPT-2 model with 774M parameters (Safetensors: 812M parameters).
 
 # ===== Phi-3.5 models ===== #
+# https://huggingface.co/collections/microsoft/phi-3-6626e15e9585a200d2d761e3
 
 # LANGUAGE_MODEL_LIST="Phi-3.5-mini-instruct" # <-- "microsoft/Phi-3.5-mini-instruct" model with 3.82B parameters.
 
 # LANGUAGE_MODEL_LIST="Phi-3.5-mini-instruct-causal_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-random-778_aps-False-mx-512_lora-16-32-o_proj_qkv_proj-0.01-True_5e-05-linear-0.01-5"
 # LANGUAGE_MODEL_LIST="Phi-3.5-mini-instruct-causal_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-random-778_aps-False-mx-512_lora-16-32-o_proj_qkv_proj-0.01-True_5e-05-linear-0.01-5"
 
+# ===== Gemma models ===== #
+# https://huggingface.co/collections/google/gemma-3-release-67c6c6f89c4f76621268bb6d
+
+LANGUAGE_MODEL_LIST="gemma-3-1b-pt" # <-- (Safetensors: 1,000M parameters)
+
+
 # ===== LLama models ===== #
 
 # Notes:
 # - There is no 8B variant of the Llama-3.2 models.
-LANGUAGE_MODEL_LIST="Llama-3.1-8B" # <-- (Safetensors: 8.03B parameters)
+
+# LANGUAGE_MODEL_LIST="Llama-3.1-8B" # <-- (Safetensors: 8.03B parameters)
 
 
 LANGUAGE_MODEL_ARGS=(
