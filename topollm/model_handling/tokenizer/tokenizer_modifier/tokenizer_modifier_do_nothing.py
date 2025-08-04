@@ -39,6 +39,8 @@ class TokenizerModifierDoNothing:
         model: PreTrainedModel,
     ) -> PreTrainedModel:
         if self.verbosity >= Verbosity.NORMAL:
-            self.logger.info("Returning unmodified model.")
+            self.logger.info(
+                msg="Returning unmodified model.",
+            )
 
         return model

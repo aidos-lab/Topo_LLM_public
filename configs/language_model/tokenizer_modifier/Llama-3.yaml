@@ -1,0 +1,3 @@
+mode: replace_pad_token_with_other_special_token
+padding_token: null
+replace_pad_token_with_other_special_token_identifier: "eos_token"

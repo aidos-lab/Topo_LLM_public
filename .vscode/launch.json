@@ -79,9 +79,6 @@
                 // "language_model=gpt2",
                 // "language_model=gpt2-medium",
                 //
-                "language_model=gemma-3-1b-pt",
-                // "language_model=gemma-3-1b-it",
-                //
                 // "language_model=bert-base-uncased-ContextBERT-ERToD_emowoz_basic_setup",
                 // "language_model.seed=42",
                 // "language_model.checkpoint_no=0",
@@ -180,7 +177,7 @@
             }
         },
         {
-            "name": "Run pipeline - Debugging (Local and Cluster) - TwoNN; LUSTER, Phi-3.5, Phi-4; - Run pipeline.",
+            "name": "Run pipeline - Debugging (Local and Cluster) - TwoNN; LUSTER, Phi-3.5, Phi-4, Gemma-3; - Run pipeline.",
             "type": "debugpy",
             "request": "launch",
             "program": "topollm/pipeline_scripts/run_pipeline_compute_embeddings_and_data_prep_and_local_estimate.py",
@@ -224,6 +221,9 @@
                 //
                 // "language_model=Phi-3.5-mini-instruct",
                 "language_model=Phi-4-mini-instruct",
+                //
+                // "language_model=gemma-3-1b-pt",
+                // "language_model=gemma-3-1b-it",
                 //
                 // "language_model=luster-rl-sent",
                 // "++language_model.checkpoint_no=2813",

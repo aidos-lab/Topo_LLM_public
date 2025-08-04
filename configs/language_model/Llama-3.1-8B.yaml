@@ -1,6 +1,6 @@
 defaults:
-  # TODO: Since the Llama-3.1-8B model does not appear to have a pad token set, we should carefully check these settings
-  - tokenizer_modifier: do_nothing
+  # Note: Since the Llama-3.1-8B model does not have a pad token set, it needs to be handled with a specific tokenizer modifier.
+  - tokenizer_modifier: Llama-3
   - _self_
 
 lm_mode: clm

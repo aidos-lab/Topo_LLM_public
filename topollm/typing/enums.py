@@ -291,6 +291,7 @@ class TokenizerModifierMode(StrEnum):
 
     DO_NOTHING = auto()
     ADD_PADDING_TOKEN = auto()
+    REPLACE_PAD_TOKEN_WITH_OTHER_SPECIAL_TOKEN = auto()
 
 
 @unique

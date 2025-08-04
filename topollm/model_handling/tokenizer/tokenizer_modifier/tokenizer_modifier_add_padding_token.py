@@ -49,7 +49,9 @@ class TokenizerModifierAddPaddingToken:
                 )
         else:
             num_added_tokens: int = tokenizer.add_special_tokens(
-                special_tokens_dict={"pad_token": self.padding_token},
+                special_tokens_dict={
+                    "pad_token": self.padding_token,
+                },
             )
 
             if self.verbosity >= Verbosity.NORMAL:
@@ -60,7 +62,7 @@ class TokenizerModifierAddPaddingToken:
                     msg=f"{tokenizer = }",  # noqa: G004 - low overhead
                 )
                 self.logger.info(
-                    "Important: Make sure to also resize "
+                    msg="Important: Make sure to also resize "
                     "the token embedding matrix "
                     "of the model so that its embedding matrix "
                     "matches the tokenizer.",
