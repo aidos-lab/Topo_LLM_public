@@ -17,7 +17,11 @@ defaults:
   - _self_
 
 n_jobs: 1
-global_seed: 1111 # The main_config global_seed is currently rarely used, as we have separate seeds for the subsampling and finetuning.
+# Notes:
+# - The main_config global_seed is currently rarely used, as we have separate seeds for the subsampling and finetuning.
+# - The local estimates computation should thus not depend on the main_config global_seed.
+# - In the model inference, the global_seed is used to set the seed for the random number generator, which is used for sampling. 
+global_seed: 1111 
 verbosity: 1
 preferred_torch_backend: auto
 

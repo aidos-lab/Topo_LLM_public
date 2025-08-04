@@ -258,6 +258,21 @@
             }
         },
         {
+            "label": "Local - Sync from HPC cluster to local - (SMALL) - 'data/analysis/model_inference/' directory",
+            "detail": "rsync from HPC cluster: 'data/analysis/model_inference/'.",
+            "command": "uv run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/model_inference/' --file-type 'all'",
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": false
+            }
+        },
+        {
             "label": "Local - Sync from HPC cluster to local - ONLY .npy file types 'analysis/local_estimates' directory",
             "command": "uv run python ./topollm/scripts/hhu_hilbert/sync_data/rsync_directories_from_hhu_hilbert.py --directories 'data/analysis/local_estimates/' --file-type 'npy'",
             "type": "shell",

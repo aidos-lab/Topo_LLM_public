@@ -1,20 +1,3 @@
-# Copyright 2024
-# [ANONYMIZED_INSTITUTION],
-# [ANONYMIZED_FACULTY],
-# [ANONYMIZED_DEPARTMENT]
-#
-# Authors:
-# AUTHOR_1 (author1@example.com)
-# AUTHOR_2 (author2@example.com)
-#
-# Code generation tools and workflows:
-# First versions of this code were potentially generated
-# with the help of AI writing assistants including
-# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
-# Afterwards, the generated segments were manually reviewed and edited.
-#
-
-
 """Run model inference on example data."""
 
 import logging
@@ -26,7 +9,11 @@ import omegaconf
 
 from topollm.logging.initialize_configuration_and_log import initialize_configuration
 from topollm.logging.setup_exception_logging import setup_exception_logging
+from topollm.model_handling.set_seed import set_seed
 from topollm.model_inference.do_inference import do_inference
+from topollm.path_management.embeddings.factory import get_embeddings_path_manager
+from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
+from topollm.typing.enums import Verbosity
 
 if TYPE_CHECKING:
     from topollm.config_classes.main_config import MainConfig
@@ -49,22 +36,37 @@ def main(
     config: omegaconf.DictConfig,
 ) -> None:
     """Run the script."""
-    global_logger.info(
+    logger: logging.Logger = global_logger
+    logger.info(
         msg="Running script ...",
     )
 
     main_config: MainConfig = initialize_configuration(
         config=config,
-        logger=global_logger,
+        logger=logger,
     )
 
-    do_inference(
+    verbosity: Verbosity = main_config.verbosity
+
+    set_seed(
+        seed=main_config.global_seed,
+        logger=logger,
+    )
+
+    embeddings_path_manager: EmbeddingsPathManager = get_embeddings_path_manager(
         main_config=main_config,
-        prompts=None,
-        logger=global_logger,
+        verbosity=verbosity,
+        logger=logger,
     )
 
-    global_logger.info(
+    _ = do_inference(
+        main_config=main_config,
+        embeddings_path_manager=embeddings_path_manager,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+    logger.info(
         msg="Running script DONE",
     )
 

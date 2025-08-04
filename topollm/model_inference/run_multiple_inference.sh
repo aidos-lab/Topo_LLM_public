@@ -1,6 +1,34 @@
 #!/bin/bash
 
 # # # # # # # # # # # # # # # # # # # # # # # # #
+# Default values
+
+# Initialize dry_run flag to false
+dry_run=false
+
+# # # # # # # # # # # # # # # # # # # # # # # # #
+# Function to print usage
+usage() {
+    echo "💡 Usage: $0 [--dry-run]"
+    exit 1
+}
+
+# Parse command line options
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        --dry-run)
+            dry_run=true
+            shift # Remove the --dry_run argument
+            ;;
+        *)
+            echo "❌ Error: Unknown option: $1"
+            usage
+            exit 1
+            ;;
+    esac
+done
+
+# # # # # # # # # # # # # # # # # # # # # # # # #
 # Check if environment variables are set
 
 if [[ -z "${TOPO_LLM_REPOSITORY_BASE_PATH}" ]]; then
@@ -28,26 +56,91 @@ ABSOLUTE_PYTHON_SCRIPT_PATH="${TOPO_LLM_REPOSITORY_BASE_PATH}/${RELATIVE_PYTHON_
 
 
 # ==================================================== #
-# Select the parameters here
+# >>> START Select parameters
+#
+# Notes on memory usage:
+# - "Phi-3.5-mini-instruct":
+#   (3.82B parameters, "hidden_size": 3072)
+#   24 GB of VRAM is enough for the model and fine-tuned variants.
+#   Inference is possible on a single RTX6000-24GB GPU.
+# - "Llama-3.1-8B":
+#   (8.03B parameters, "hidden_size": 4096)
+#   24 GB of VRAM is NOT enough, and leads to CUDA out of memory errors.
+#   48 GB of VRAM is enough for the model and fine-tuned variants.
+#   Inference is possible on a single RTX8000-48GB GPU.
+#   Do NOT use an RTX6000-24GB GPU for this model, as it will lead to CUDA out of memory errors.
+#
+# Example commands for starting interactive sessions on the HPC cluster:
+#
+# - RTX6000-24GB:
+# > qsub -I -N DevSession -A DialSys -q CUDA -l select=1:ncpus=2:mem=32gb:ngpus=1:accelerator_model=rtx6000 -l walltime=8:00:00
+#
+# - RTX8000-48GB:
+# > qsub -I -N DevSession -A DialSys -q CUDA -l select=1:ncpus=2:mem=32gb:ngpus=1:accelerator_model=rtx8000 -l walltime=8:00:00
+
+BASE_ARGS=(
+    "--multirun"
+    "hydra/sweeper=basic"
+)
+
+LAUNCHER_ARGS=(
+    "hydra/launcher=hpc_submission"
+    "hydra.launcher.queue=CUDA"
+    # >>> GPU selection
+    # "hydra.launcher.template=RTX6000"
+    "hydra.launcher.template=RTX8000"
+    "hydra.launcher.ngpus=1"
+    "hydra.launcher.memory=64"
+    "hydra.launcher.ncpus=2"
+    # The model inference is fast, so we can set a shorter walltime.
+    "hydra.launcher.walltime=00:30:00"
+)
+
+# Notes:
+# - Model parameter counts are taking from the Hugging Face model card from the 'Safetensors' section.
+#   Thus, the counts might differ from the model card's 'Model description' section.
 
 # LANGUAGE_MODEL_LIST="roberta-base"
-# LANGUAGE_MODEL_LIST="bert-base-uncased,gpt2-large,roberta-base"
+# LANGUAGE_MODEL_LIST="bert-base-uncased,roberta-base,gpt2-large"
 # LANGUAGE_MODEL_LIST="roberta-base,roberta-base_finetuned-on-multiwoz21_ftm-lora"
 # LANGUAGE_MODEL_LIST="bert-base-uncased,bert-base-uncased_finetuned-on-xsum_ftm-standard,bert-base-uncased_finetuned-on-multiwoz21_ftm-standard,bert-base-uncased_finetuned-on-sgd_ftm-lora"
 # LANGUAGE_MODEL_LIST="roberta-base_finetuned-on-one-year-of-tsla-on-reddit_ftm-standard_freeze-first-6-layers_overfitted"
 # LANGUAGE_MODEL_LIST="roberta-base_finetuned-on-multiwoz21_ftm-standard_full-dataset"
 
-# LANGUAGE_MODEL_LIST="Phi-3.5-mini-instruct"
-# LANGUAGE_MODEL_LIST="Phi-3.5-mini-instruct-causal_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-random-778_aps-False-mx-512_lora-16-32-o_proj_qkv_proj-0.01-True_5e-05-linear-0.01-freeze--5"
-LANGUAGE_MODEL_LIST="Phi-3.5-mini-instruct-causal_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-random-778_aps-False-mx-512_lora-16-32-o_proj_qkv_proj-0.01-True_5e-05-linear-0.01-freeze--5"
+# ===== GPT-2 models ===== #
+
+# LANGUAGE_MODEL_LIST="gpt2" # <-- Smallest GPT-2 model with 124M parameters (Safetensors: 137M parameters).
+
+# LANGUAGE_MODEL_LIST="gpt2-medium" # <-- Medium GPT-2 model with 355M parameters (Safetensors: 380M parameters).
+
+# LANGUAGE_MODEL_LIST="gpt2-medium-causal_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5"
+# LANGUAGE_MODEL_LIST="gpt2-medium-causal_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-take_first-111_standard-None_5e-05-linear-0.01-5"
+
+# LANGUAGE_MODEL_LIST="gpt2-large" # <-- Large GPT-2 model with 774M parameters (Safetensors: 812M parameters).
+
+# ===== Phi-3.5 models ===== #
+
+# LANGUAGE_MODEL_LIST="Phi-3.5-mini-instruct" # <-- "microsoft/Phi-3.5-mini-instruct" model with 3.82B parameters.
+
+# LANGUAGE_MODEL_LIST="Phi-3.5-mini-instruct-causal_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-random-778_aps-False-mx-512_lora-16-32-o_proj_qkv_proj-0.01-True_5e-05-linear-0.01-5"
+# LANGUAGE_MODEL_LIST="Phi-3.5-mini-instruct-causal_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-random-778_aps-False-mx-512_lora-16-32-o_proj_qkv_proj-0.01-True_5e-05-linear-0.01-5"
+
+# ===== LLama models ===== #
+
+# Notes:
+# - There is no 8B variant of the Llama-3.2 models.
+LANGUAGE_MODEL_LIST="Llama-3.1-8B" # <-- (Safetensors: 8.03B parameters)
+
 
 LANGUAGE_MODEL_ARGS=(
     "language_model=$LANGUAGE_MODEL_LIST"
     # "++language_model.checkpoint_no=400"
+    # "++language_model.checkpoint_no=400,800,1200,1600,2000,2400,2800"
 )
 
 ADDITIONAL_OVERRIDES=""
 
+# >>> START Select parameters
 # ==================================================== #
 
 # NOTE:
@@ -63,18 +156,45 @@ PREFERRED_TORCH_BACKEND="auto"
 # > "++hydra.job.env_set.CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES"
 # CUDA_VISIBLE_DEVICES=0
 
+COMMON_ARGS=(
+    # "global_seed=1111"
+    "global_seed=1111,1112"
+    "preferred_torch_backend=$PREFERRED_TORCH_BACKEND"
+    $ADDITIONAL_OVERRIDES
+)
+
 # ==================================================== #
 
-echo "Calling python script."
+echo ">>> CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES}"
 
-uv run python3 "$RELATIVE_PYTHON_SCRIPT_PATH" \
-    --multirun \
-    hydra/sweeper=basic \
-    hydra/launcher=basic \
-    "${LANGUAGE_MODEL_ARGS[@]}" \
-    preferred_torch_backend=$PREFERRED_TORCH_BACKEND \
-    $ADDITIONAL_OVERRIDES
+ARGS=(
+    "${BASE_ARGS[@]}"
+    "${LAUNCHER_ARGS[@]}"
+    "${LANGUAGE_MODEL_ARGS[@]}"
+    "${COMMON_ARGS[@]}"
+    "$@"
+)
 
-# Exit with status code 0
-echo "Finished running the script."
-exit 0
+# Print the argument list
+echo "===================================================="
+echo ">> Argument list:"
+echo "===================================================="
+for arg in "${ARGS[@]}"; do
+    echo "  $arg"
+done
+echo "===================================================="
+
+echo ">>> Calling script from RELATIVE_PYTHON_SCRIPT_PATH=${RELATIVE_PYTHON_SCRIPT_PATH} ..."
+
+if [ "$dry_run" = true ]; then
+    echo "💡 [DRY RUN] Would run: uv run python3 $RELATIVE_PYTHON_SCRIPT_PATH ${ARGS[*]}"
+else
+    uv run python3 $RELATIVE_PYTHON_SCRIPT_PATH "${ARGS[@]}"
+fi
+
+echo ">>> Calling script from RELATIVE_PYTHON_SCRIPT_PATH=${RELATIVE_PYTHON_SCRIPT_PATH} DONE"
+
+
+# Exit with last command's exit code
+echo ">>> Exiting with code $?."
+exit $?

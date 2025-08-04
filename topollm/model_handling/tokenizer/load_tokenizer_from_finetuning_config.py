@@ -1,20 +1,3 @@
-# Copyright 2024
-# [ANONYMIZED_INSTITUTION],
-# [ANONYMIZED_FACULTY],
-# [ANONYMIZED_DEPARTMENT]
-#
-# Authors:
-# AUTHOR_1 (author1@example.com)
-# AUTHOR_2 (author2@example.com)
-#
-# Code generation tools and workflows:
-# First versions of this code were potentially generated
-# with the help of AI writing assistants including
-# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
-# Afterwards, the generated segments were manually reviewed and edited.
-#
-
-
 """Load a tokenizer from a FinetuningConfig object."""
 
 import logging
@@ -25,7 +8,9 @@ from topollm.model_handling.tokenizer.tokenizer_modifier.protocol import Tokeniz
 from topollm.typing.enums import Verbosity
 from topollm.typing.types import TransformersTokenizer
 
-default_logger = logging.getLogger(__name__)
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 def load_modified_tokenizer_from_finetuning_config(
@@ -50,4 +35,7 @@ def load_modified_tokenizer_from_finetuning_config(
     # Make sure not to accidentally modify the tokenizer pad token (tokenizer.pad_token) here.
     # In particular, it is not custom to set the pad token to the eos token for masked language model training.
 
-    return tokenizer, tokenizer_modifier
+    return (
+        tokenizer,
+        tokenizer_modifier,
+    )

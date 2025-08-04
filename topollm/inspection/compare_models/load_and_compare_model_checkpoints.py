@@ -72,6 +72,7 @@ def main(
 
     embeddings_path_manager: EmbeddingsPathManager = get_embeddings_path_manager(
         main_config=main_config,
+        verbosity=verbosity,
         logger=logger,
     )
 
