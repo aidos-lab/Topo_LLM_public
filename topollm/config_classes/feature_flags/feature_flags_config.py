@@ -100,6 +100,12 @@ class LocalEstimatesSavingFeatureFlagsConfig(ConfigBaseModel):
 class AnalysisFeatureFlagsConfig(ConfigBaseModel):
     """Feature flags for the analysis process."""
 
+    skip_global_and_pointwise_local_estimates_worker_in_pipeline: bool = Field(
+        default=False,
+        title="Skip global and pointwise local estimates worker in pipeline.",
+        description="Whether to skip the global and pointwise local estimates worker in the pipeline.",
+    )
+
     create_plots_in_local_estimates_worker: bool = Field(
         default=False,
         title="Create plots in local estimates worker.",

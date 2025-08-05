@@ -77,6 +77,7 @@ case "$MODE" in
     FEATURE_FLAGS_ARGS=(
         "feature_flags.compute_and_store_embeddings.skip_compute_and_store_embeddings_in_pipeline=False"
         "feature_flags.embeddings_data_prep.skip_embeddings_data_prep_in_pipeline=True"
+        "feature_flags.analysis.skip_global_and_pointwise_local_estimates_worker_in_pipeline=True"
         "feature_flags.analysis.create_plots_in_local_estimates_worker=False"
     )
     ;;
@@ -94,12 +95,28 @@ case "$MODE" in
     FEATURE_FLAGS_ARGS=(
         "feature_flags.compute_and_store_embeddings.skip_compute_and_store_embeddings_in_pipeline=True"
         "feature_flags.embeddings_data_prep.skip_embeddings_data_prep_in_pipeline=False"
+        "feature_flags.analysis.skip_global_and_pointwise_local_estimates_worker_in_pipeline=False"
         "feature_flags.analysis.create_plots_in_local_estimates_worker=True"
     )
     ;;
   *)
     echo "❌ Error: Unknown mode: $MODE"; usage ; exit 1;;
 esac
+
+# Function to adjust GPU template based on selected language model
+adjust_launcher_template_for_model() {
+    local model_name="$1"
+    if [[ "$MODE" == "compute_embeddings" && "$model_name" == "Llama-3.1-8B" ]]; then
+        # Replace template RTX6000 with RTX8000 in LAUNCHER_ARGS
+        for i in "${!LAUNCHER_ARGS[@]}"; do
+            if [[ "${LAUNCHER_ARGS[$i]}" == "hydra.launcher.template=RTX6000" ]]; then
+                LAUNCHER_ARGS[$i]="hydra.launcher.template=RTX8000"
+            fi
+        done
+    fi
+}
+
+
 BASE_ARGS=(
     "--multirun"
     "hydra/sweeper=basic"
@@ -123,9 +140,10 @@ LANGUAGE_MODEL_ARGS=(
     # "language_model=Llama-3.2-1B" # <-- (Safetensors: 1.24B parameters)
     # "language_model=Llama-3.2-3B" # <-- (Safetensors: 3.21B parameters)
     # > Two smaller models combined:
-    "language_model=Llama-3.2-1B,Llama-3.2-3B"
+    # "language_model=Llama-3.2-1B,Llama-3.2-3B"
     #
-    # TODO
+    # > Medium (8B) model:
+    "language_model=Llama-3.1-8B" # <-- (Safetensors: 8.03B parameters)"
     #
     # > Checkpoints:
     # "++language_model.checkpoint_no=-1"
@@ -133,6 +151,10 @@ LANGUAGE_MODEL_ARGS=(
     # "++language_model.checkpoint_no=1200"
     #
 )
+
+# Potentially adjusting the GPU template 
+# after setting LANGUAGE_MODEL_ARGS and LAUNCHER_ARGS
+adjust_launcher_template_for_model "${LANGUAGE_MODEL_ARGS[0]#language_model=}"
 
 COMMON_ARGS=(
     # --- memory-friendly settings ---------------------------------------------
@@ -171,7 +193,7 @@ COMMON_ARGS=(
 # ---------------------------------------------------------------------------
 export PYTORCH_ENABLE_MPS_FALLBACK=1
 
-echo ">> Running script: ${SCRIPT_PATH} ..."
+echo ">> Running script: ${RELATIVE_SCRIPT_PATH} ..."
 
 # Build the argument list
 ARGS=(
