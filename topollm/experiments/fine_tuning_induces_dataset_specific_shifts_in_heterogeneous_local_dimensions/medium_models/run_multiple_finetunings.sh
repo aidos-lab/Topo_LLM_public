@@ -55,6 +55,38 @@ RELATIVE_PYTHON_SCRIPT_PATH="topollm/model_finetuning/${PYTHON_SCRIPT_NAME}"
 
 # ==================================================== #
 # Select the parameters here
+#
+# Note: Some LAUNCHER_ARGS might be modified later in the script.
+
+BASE_ARGS=(
+    "--multirun"
+    "hydra/sweeper=basic"
+)
+
+LAUNCHER_ARGS=(
+    "hydra/launcher=hpc_submission"
+    "hydra.launcher.queue=CUDA"
+    "hydra.launcher.template=RTX6000"
+    "hydra.launcher.ngpus=1"
+    "hydra.launcher.memory=64"
+    "hydra.launcher.ncpus=2"
+    "hydra.launcher.walltime=20:00:00"
+)
+
+# # # # # # # # # # # # # # # # # # # # # # #
+
+# > 1B parameter models:
+
+# BASE_MODEL_LIST="Llama-3.2-1B_for_causal_lm"
+
+# > 3-4B parameter models:
+
+# BASE_MODEL_LIST="Phi-3.5-mini-instruct_for_causal_lm"
+# BASE_MODEL_LIST="Llama-3.2-3B_for_causal_lm"
+
+# > 8B parameter models:
+
+BASE_MODEL_LIST="Llama-3.1-8B_for_causal_lm"
 
 # Notes on resource requirements:
 #
@@ -62,28 +94,24 @@ RELATIVE_PYTHON_SCRIPT_PATH="topollm/model_finetuning/${PYTHON_SCRIPT_NAME}"
 #   with the selected LoRA-configuration (r=16, only targeting attention projection matrices)
 #   works on an RTX6000-24GB
 
-BASE_ARGS=(
-    "--multirun"
-    "hydra/sweeper=basic"
-)
-
-# LAUNCHER_ARGS=(
-#     "hydra/launcher=hpc_submission"
-#     "hydra.launcher.queue=CUDA"
-#     "hydra.launcher.template=RTX6000"
-#     "hydra.launcher.ngpus=1"
-#     "hydra.launcher.memory=64"
-#     "hydra.launcher.ncpus=2"
-#     "hydra.launcher.walltime=20:00:00"
-# )
-
-# # # # # # # # # # # # # # # # # # # # # # #
-
-# BASE_MODEL_LIST="Phi-3.5-mini-instruct_for_causal_lm"
-
-# BASE_MODEL_LIST="Llama-3.2-1B_for_causal_lm"
-BASE_MODEL_LIST="Llama-3.2-3B_for_causal_lm"
-
+# Function to adjust GPU template based on selected language model
+adjust_launcher_template_for_model() {
+    local model_name="$1"
+    if [[ "$BASE_MODEL_LIST" == "Llama-3.1-8B_for_causal_lm" ]]; then
+        # Replace template RTX6000 with A100 in LAUNCHER_ARGS
+        echo ">> Replacing launcher template with A100"
+        for i in "${!LAUNCHER_ARGS[@]}"; do
+            if [[ "${LAUNCHER_ARGS[$i]}" == "hydra.launcher.template=RTX6000" ]]; then
+                LAUNCHER_ARGS[$i]="hydra.launcher.template=A100_80GB"
+            fi
+        done
+    fi
+}
+# Adjust the launcher template based on the selected base model
+echo ">> Adjusting launcher template for base model: ${BASE_MODEL_LIST} ..."
+adjust_launcher_template_for_model "${BASE_MODEL_LIST}"
+echo ">> Adjusted LAUNCHER_ARGS:"
+echo "${LAUNCHER_ARGS[@]}"
 
 # # # # # # # # # # # # # # # # # # # # # # #
 
@@ -125,8 +153,7 @@ case "$BASE_MODEL_LIST" in
             "finetuning.peft.target_modules=['o_proj','qkv_proj']"
         )
         ;;
-    "Llama-3.2-1B_for_causal_lm"|"Llama-3.1-8B_for_causal_lm")
-    # TODO: Add the other Llama models here
+    "Llama-3.2-1B_for_causal_lm"|"Llama-3.2-3B_for_causal_lm"|"Llama-3.1-8B_for_causal_lm")
         # Notes:
         # - In addition to the attention layers, we could target the MLP linear layers
         #   ['gate_proj', 'up_proj', 'down_proj'] 
