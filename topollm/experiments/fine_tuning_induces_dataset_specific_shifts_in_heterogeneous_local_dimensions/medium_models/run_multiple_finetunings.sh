@@ -1,6 +1,34 @@
 #!/bin/bash
 
 # # # # # # # # # # # # # # # # # # # # # # # # #
+# Default values
+
+# Initialize dry_run flag to false
+dry_run=false
+
+# # # # # # # # # # # # # # # # # # # # # # # # #
+# Function to print usage
+usage() {
+    echo "💡 Usage: $0 [--dry-run]"
+    exit 1
+}
+
+# Parse command line options
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        --dry-run)
+            dry_run=true
+            shift # Remove the --dry_run argument
+            ;;
+        *)
+            echo "❌ Error: Unknown option: $1"
+            usage
+            exit 1
+            ;;
+    esac
+done
+
+# # # # # # # # # # # # # # # # # # # # # # # # #
 # Check if environment variables are set
 
 if [[ -z "${TOPO_LLM_REPOSITORY_BASE_PATH}" ]]; then
@@ -166,8 +194,12 @@ echo "===================================================="
 
 echo ">>> Calling script from RELATIVE_PYTHON_SCRIPT_PATH=${RELATIVE_PYTHON_SCRIPT_PATH} ..."
 
-uv run python3 $RELATIVE_PYTHON_SCRIPT_PATH \
-    "${ARGS[@]}"
+if [ "$dry_run" = true ]; then
+    echo "💡 [DRY RUN] Would run:"
+    echo "uv run python3 $RELATIVE_PYTHON_SCRIPT_PATH ${ARGS[*]}"
+else
+    uv run python3 $RELATIVE_PYTHON_SCRIPT_PATH "${ARGS[@]}"
+fi
 
 echo ">>> Calling script from RELATIVE_PYTHON_SCRIPT_PATH=${RELATIVE_PYTHON_SCRIPT_PATH} DONE"
 
