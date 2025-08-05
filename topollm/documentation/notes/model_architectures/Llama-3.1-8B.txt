@@ -1,3 +1,6 @@
+>>> import transformers
+>>> transformers.__version__
+'4.50.3'
 >>> model = transformers.AutoModel.from_pretrained("meta-llama/Llama-3.1-8B")
 >>> model
 LlamaModel(
