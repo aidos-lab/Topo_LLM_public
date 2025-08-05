@@ -154,10 +154,10 @@ HYDRA_LAUNCHER_ARGS=(
 
 # LANGUAGE_MODEL_LIST="Llama-3.2-1B" # <-- (Safetensors: 1.24B parameters)
 # LANGUAGE_MODEL_LIST="Llama-3.2-3B" # <-- (Safetensors: 3.21B parameters)
+LANGUAGE_MODEL_LIST="Llama-3.2-1B,Llama-3.2-3B"
 
 # LANGUAGE_MODEL_LIST="Llama-3.1-8B" # <-- (Safetensors: 8.03B parameters)
 
-LANGUAGE_MODEL_LIST="Llama-3.2-1B,Llama-3.2-3B"
 
 # ======================== #
 
@@ -216,7 +216,8 @@ echo "===================================================="
 echo ">>> Calling script from RELATIVE_PYTHON_SCRIPT_PATH=${RELATIVE_PYTHON_SCRIPT_PATH} ..."
 
 if [ "$dry_run" = true ]; then
-    echo "💡 [DRY RUN] Would run: uv run python3 $RELATIVE_PYTHON_SCRIPT_PATH ${ARGS[*]}"
+    echo "💡 [DRY RUN] Would run:"
+    echo "uv run python3 $RELATIVE_PYTHON_SCRIPT_PATH ${ARGS[*]}"
 else
     uv run python3 $RELATIVE_PYTHON_SCRIPT_PATH "${ARGS[@]}"
 fi

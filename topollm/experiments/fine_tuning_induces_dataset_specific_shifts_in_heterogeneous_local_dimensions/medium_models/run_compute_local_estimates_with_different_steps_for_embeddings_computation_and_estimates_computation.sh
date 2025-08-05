@@ -28,16 +28,41 @@ RELATIVE_SCRIPT_PATH+="run_pipeline_compute_embeddings_and_data_prep_and_local_e
 ABSOLUTE_SCRIPT_PATH="${TOPO_LLM_REPOSITORY_BASE_PATH}/${RELATIVE_SCRIPT_PATH}"
 
 usage() {
-    echo "Usage: $0 [MODE]"
+    echo "💡 Usage: $0 [MODE] [--dry-run]"
     echo "Modes:"
-    echo "  compute_embeddings     Run the script to compute embeddings."
+    echo "  compute_embeddings      Run the script to compute embeddings."
     echo "  compute_local_estimates Run the script to compute local estimates."
+    echo "Options:"
+    echo "  --dry-run               Print the command that would be run, but do not execute it."
+    exit 1
 }
 
-# Default mode if no argument is provided
-# (note that default_mode is not a valid mode, but it can be used for testing)
-[[ $# -eq 0 ]] && set -- default_mode 
-MODE=$1; shift
+# --- Parse arguments: allow [MODE] and [--dry-run] in any order ---
+MODE=""
+dry_run=false
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        compute_embeddings|compute_local_estimates)
+            MODE="$1"
+            shift
+            ;;
+        --dry-run)
+            dry_run=true
+            shift
+            ;;
+        *)
+            echo "❌ Error: Unknown argument: $1"
+            usage
+            ;;
+    esac
+done
+
+# Default mode if not provided
+if [[ -z "$MODE" ]]; then
+    echo "❌ Error: No mode specified."
+    usage
+fi
 
 case "$MODE" in
   compute_embeddings)
@@ -73,9 +98,8 @@ case "$MODE" in
     )
     ;;
   *)
-    echo "Unknown mode: $MODE"; usage ; exit 1;;
+    echo "❌ Error: Unknown mode: $MODE"; usage ; exit 1;;
 esac
-
 BASE_ARGS=(
     "--multirun"
     "hydra/sweeper=basic"
@@ -85,14 +109,29 @@ BASE_ARGS=(
 
 # --- model -----------------------------------------------------------------
 LANGUAGE_MODEL_ARGS=(
+    # ===== Phi-3.5 and Phi-4 models ===== #
+    #
     # "language_model=Phi-3.5-mini-instruct"
-    # "++language_model.checkpoint_no=-1"
-    "++language_model.checkpoint_no=800"
-    # "++language_model.checkpoint_no=1200" # <-- DONE
     # "language_model='Phi-3.5-mini-instruct-causal_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-random-778_aps-False-mx-512_lora-16-32-o_proj_qkv_proj-0.01-True_5e-05-linear-0.01-5'"
     # "language_model='Phi-3.5-mini-instruct-causal_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-random-778_aps-False-mx-512_lora-16-32-o_proj_qkv_proj-0.01-True_5e-05-linear-0.01-5'"
-    # Two different models:
-    "language_model=Phi-3.5-mini-instruct-causal_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-random-778_aps-False-mx-512_lora-16-32-o_proj_qkv_proj-0.01-True_5e-05-linear-0.01-5,Phi-3.5-mini-instruct-causal_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-random-778_aps-False-mx-512_lora-16-32-o_proj_qkv_proj-0.01-True_5e-05-linear-0.01-5"
+    # > Two different models:
+    # "language_model=Phi-3.5-mini-instruct-causal_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-random-778_aps-False-mx-512_lora-16-32-o_proj_qkv_proj-0.01-True_5e-05-linear-0.01-5,Phi-3.5-mini-instruct-causal_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-random-778_aps-False-mx-512_lora-16-32-o_proj_qkv_proj-0.01-True_5e-05-linear-0.01-5"
+    #
+    # ===== LLama models ===== #
+    #
+    # > Smaller (1B and 3B) models:
+    # "language_model=Llama-3.2-1B" # <-- (Safetensors: 1.24B parameters)
+    # "language_model=Llama-3.2-3B" # <-- (Safetensors: 3.21B parameters)
+    # > Two smaller models combined:
+    "language_model=Llama-3.2-1B,Llama-3.2-3B"
+    #
+    # TODO
+    #
+    # > Checkpoints:
+    # "++language_model.checkpoint_no=-1"
+    # "++language_model.checkpoint_no=800"
+    # "++language_model.checkpoint_no=1200"
+    #
 )
 
 COMMON_ARGS=(
@@ -109,7 +148,7 @@ COMMON_ARGS=(
     # "data=multiwoz21"
     # "data=wikitext-103-v1"
     "data=multiwoz21,sgd,one-year-of-tsla-on-reddit,wikitext-103-v1,iclr_2024_submissions"
-    # Without wikitext-103-v1:
+    # > Without wikitext-103-v1:
     # "data=multiwoz21,sgd,one-year-of-tsla-on-reddit,iclr_2024_submissions"
     "data.data_subsampling.split=validation"
     "data.data_subsampling.sampling_mode=random"
@@ -153,11 +192,14 @@ for arg in "${ARGS[@]}"; do
 done
 echo "===================================================="
 
-# Run the command
-uv run python3 "${RELATIVE_SCRIPT_PATH}" \
-    "${ARGS[@]}"
+# Run or dry-run the command
+if [ "$dry_run" = true ]; then
+    echo "💡 [DRY RUN] Would run:"
+    echo "uv run python3 $RELATIVE_SCRIPT_PATH ${ARGS[*]}"
+else
+    uv run python3 "$RELATIVE_SCRIPT_PATH" "${ARGS[@]}"
+fi
 
 echo ">> Script completed."
-
 echo "Exiting with last status: $?"
 exit $?
