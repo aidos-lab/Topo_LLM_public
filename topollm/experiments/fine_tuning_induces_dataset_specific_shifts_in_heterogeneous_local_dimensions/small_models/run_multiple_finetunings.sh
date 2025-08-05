@@ -6,13 +6,15 @@
 echo "TOPO_LLM_REPOSITORY_BASE_PATH=${TOPO_LLM_REPOSITORY_BASE_PATH}"
 
 PYTHON_SCRIPT_NAME="run_finetune_language_model_on_huggingface_dataset.py"
-PYTHON_SCRIPT_PATH="${TOPO_LLM_REPOSITORY_BASE_PATH}/topollm/model_finetuning/${PYTHON_SCRIPT_NAME}"
+RELATIVE_PYTHON_SCRIPT_PATH="topollm/model_finetuning/${PYTHON_SCRIPT_NAME}"
+
+ABSOLUTE_PYTHON_SCRIPT_PATH="${TOPO_LLM_REPOSITORY_BASE_PATH}/${RELATIVE_PYTHON_SCRIPT_PATH}"
 
 # ==================================================== #
 # Select the parameters here
 
-# BASE_MODEL_LIST="gpt2-medium_for_causal_lm"
-BASE_MODEL_LIST="roberta-base_for_masked_lm"
+BASE_MODEL_LIST="gpt2-medium_for_causal_lm"
+# BASE_MODEL_LIST="roberta-base_for_masked_lm"
 
 NUM_TRAIN_EPOCHS="5"
 # NUM_TRAIN_EPOCHS="50"
@@ -59,11 +61,18 @@ ADDITIONAL_OVERRIDES=""
 
 # ==================================================== #
 
-echo "Calling script from PYTHON_SCRIPT_PATH=${PYTHON_SCRIPT_PATH} ..."
+echo "Calling script from RELATIVE_PYTHON_SCRIPT_PATH=${RELATIVE_PYTHON_SCRIPT_PATH} ..."
 
 echo "CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES}"
 
-uv run python3 $PYTHON_SCRIPT_PATH \
+# This environment variable is needed to avoid MPS-related issues on macOS for the GPT-2 models:
+# NotImplementedError: The operator 'aten::linalg_cholesky_ex.L' is not currently implemented for the MPS device. 
+# If you want this op to be added in priority during the prototype phase of this feature, please comment on https://github.com/pytorch/pytorch/issues/77764. 
+# As a temporary fix, you can set the environment variable `PYTORCH_ENABLE_MPS_FALLBACK=1` to use the CPU as a fallback for this op. 
+# WARNING: this will be slower than running natively on MPS.
+export PYTORCH_ENABLE_MPS_FALLBACK=1
+
+uv run python3 $RELATIVE_PYTHON_SCRIPT_PATH \
     --multirun \
     finetuning/base_model="${BASE_MODEL_LIST}" \
     finetuning.num_train_epochs="${NUM_TRAIN_EPOCHS}" \
@@ -78,7 +87,7 @@ uv run python3 $PYTHON_SCRIPT_PATH \
     finetuning/gradient_modifier="${GRADIENT_MODIFIER_LIST}" \
     $ADDITIONAL_OVERRIDES
 
-echo "Calling script from PYTHON_SCRIPT_PATH=$PYTHON_SCRIPT_PATH DONE"
+echo "Calling script from RELATIVE_PYTHON_SCRIPT_PATH=$RELATIVE_PYTHON_SCRIPT_PATH DONE"
 
 # Exit with the exit code of the python command
 exit $?

@@ -1,19 +1,3 @@
-# Copyright 2024-2025
-# [ANONYMIZED_INSTITUTION],
-# [ANONYMIZED_FACULTY],
-# [ANONYMIZED_DEPARTMENT]
-#
-# Authors:
-# AUTHOR_1 (author1@example.com)
-#
-# Code generation tools and workflows:
-# First versions of this code were potentially generated
-# with the help of AI writing assistants including
-# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
-# Afterwards, the generated segments were manually reviewed and edited.
-#
-
-
 """Initialize the main configuration and log the configuration and git information."""
 
 import logging
@@ -119,13 +103,13 @@ def log_python_env_info(
     except Exception:  # noqa: BLE001 - We want to proceed no matter what the error is
         logger.info(msg="Unable to determine Python version/path")
 
-    # Check Poetry environment
+    # Check the virtual environment
     try:
-        result = subprocess.run(
+        result: subprocess.CompletedProcess[str] = subprocess.run(
             args=[
-                "poetry",
-                "env",
-                "info",
+                "uv",
+                "pip",
+                "list",
             ],
             capture_output=True,
             text=True,
@@ -134,15 +118,15 @@ def log_python_env_info(
         if result.returncode == 0:
             env_info: str = result.stdout.strip()
             logger.info(
-                msg=f"Poetry environment:\n{env_info}",  # noqa: G004 - low overhead
+                msg=f"Virtual environment:\n{env_info}",  # noqa: G004 - low overhead
             )
         else:
             logger.info(
-                msg="Not running in a Poetry environment",
+                msg="Not running in a virtual environment",
             )
     except Exception:  # noqa: BLE001 - We want to proceed no matter what the error is
         logger.info(
-            msg="Unable to determine Poetry environment",
+            msg="Unable to determine virtual environment",
         )
 
 

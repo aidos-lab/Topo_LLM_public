@@ -67,17 +67,25 @@ BASE_ARGS=(
     "hydra/sweeper=basic"
 )
 
-LAUNCHER_ARGS=(
-    "hydra/launcher=hpc_submission"
-    "hydra.launcher.queue=CUDA"
-    "hydra.launcher.template=RTX6000"
-    "hydra.launcher.ngpus=1"
-    "hydra.launcher.memory=64"
-    "hydra.launcher.ncpus=2"
-    "hydra.launcher.walltime=20:00:00"
-)
+# LAUNCHER_ARGS=(
+#     "hydra/launcher=hpc_submission"
+#     "hydra.launcher.queue=CUDA"
+#     "hydra.launcher.template=RTX6000"
+#     "hydra.launcher.ngpus=1"
+#     "hydra.launcher.memory=64"
+#     "hydra.launcher.ncpus=2"
+#     "hydra.launcher.walltime=20:00:00"
+# )
 
-BASE_MODEL_LIST="Phi-3.5-mini-instruct_for_causal_lm"
+# # # # # # # # # # # # # # # # # # # # # # #
+
+# BASE_MODEL_LIST="Phi-3.5-mini-instruct_for_causal_lm"
+
+# BASE_MODEL_LIST="Llama-3.2-1B_for_causal_lm"
+BASE_MODEL_LIST="Llama-3.2-3B_for_causal_lm"
+
+
+# # # # # # # # # # # # # # # # # # # # # # #
 
 NUM_TRAIN_EPOCHS="5"
 
@@ -117,7 +125,8 @@ case "$BASE_MODEL_LIST" in
             "finetuning.peft.target_modules=['o_proj','qkv_proj']"
         )
         ;;
-    "Llama-3.1-8B_for_causal_lm")
+    "Llama-3.2-1B_for_causal_lm"|"Llama-3.1-8B_for_causal_lm")
+    # TODO: Add the other Llama models here
         # Notes:
         # - In addition to the attention layers, we could target the MLP linear layers
         #   ['gate_proj', 'up_proj', 'down_proj'] 
