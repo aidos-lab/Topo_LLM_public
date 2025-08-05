@@ -28,6 +28,12 @@ RELATIVE_PYTHON_SCRIPT_PATH="topollm/model_finetuning/${PYTHON_SCRIPT_NAME}"
 # ==================================================== #
 # Select the parameters here
 
+# Notes on resource requirements:
+#
+# - Fine-tuning the "Phi-3.5-mini-instruct_for_causal_lm" model (Safetensors: 3.82B parameters) 
+#   with the selected LoRA-configuration (r=16, only targeting attention projection matrices)
+#   works on an RTX6000-24GB
+
 BASE_ARGS=(
     "--multirun"
     "hydra/sweeper=basic"
@@ -94,6 +100,8 @@ case "$BASE_MODEL_LIST" in
         ;;
     *)
         echo "⚠️ Warning: Unknown base model '$BASE_MODEL_LIST'. Please specify target_modules for LoRA manually."
+        echo "⚠️ The script will exit now to avoid potential configuration issues."
+        exit 1
         ;;
 esac
 
