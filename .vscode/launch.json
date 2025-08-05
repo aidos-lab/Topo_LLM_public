@@ -1447,7 +1447,9 @@
                 //
                 // "language_model=gemma-3-1b-pt",
                 // "language_model=gemma-3-1b-it",
-                "language_model=gemma-3-1b-pt,gemma-3-1b-it",
+                // "language_model=gemma-3-1b-pt,gemma-3-1b-it",
+                //
+                "language_model=Llama-3.2-1B",
                 //
                 //    >> END Model options.
                 //
