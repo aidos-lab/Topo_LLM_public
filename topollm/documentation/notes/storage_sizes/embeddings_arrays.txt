@@ -1,0 +1,40 @@
+# ========================================================================= #
+# This file contains the storage sizes of embeddings arrays
+# for different models and configurations.
+# ========================================================================= #
+
+➜ add-prefix-space=False_max-len=512 pwd
+
+$TOPO_LLM_REPOSITORY_BASE_PATH/data/embeddings/arrays/data=multiwoz21_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags/split=validation_samples=10000_sampling=random_sampling-seed=778/edh-mode=regular_lvl=token/add-prefix-space=False_max-len=512
+
+➜ add-prefix-space=False_max-len=512 du -sh ./*
+
+71G     ./model=Llama-3.1-8B_task=causal_lm_dr=defaults
+33G     ./model=Llama-3.2-1B_task=causal_lm_dr=defaults
+52G     ./model=Llama-3.2-3B_task=causal_lm_dr=defaults
+55G     ./model=Phi-3.5-mini-instruct_multiwoz21_train-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_qkv_proj-0.01-True_5e-05-linear-0.01-5_seed-1234_ckpt-1200_task=causal_lm_dr=defaults
+55G     ./model=Phi-3.5-mini-instruct_multiwoz21_train-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_qkv_proj-0.01-True_5e-05-linear-0.01-5_seed-1234_ckpt-2800_task=causal_lm_dr=defaults
+55G     ./model=Phi-3.5-mini-instruct_multiwoz21_train-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_qkv_proj-0.01-True_5e-05-linear-0.01-5_seed-1234_ckpt-800_task=causal_lm_dr=defaults
+54G     ./model=Phi-3.5-mini-instruct_one-year-of-tsla-on-reddit_train-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_qkv_proj-0.01-True_5e-05-linear-0.01-5_seed-1234_ckpt-1200_task=causal_lm_dr=defaults
+54G     ./model=Phi-3.5-mini-instruct_one-year-of-tsla-on-reddit_train-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_qkv_proj-0.01-True_5e-05-linear-0.01-5_seed-1234_ckpt-2800_task=causal_lm_dr=defaults
+54G     ./model=Phi-3.5-mini-instruct_one-year-of-tsla-on-reddit_train-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_qkv_proj-0.01-True_5e-05-linear-0.01-5_seed-1234_ckpt-800_task=causal_lm_dr=defaults
+52G     ./model=Phi-3.5-mini-instruct_task=masked_lm_dr=defaults
+
+# ========================================================================= #
+
+➜ add-prefix-space=False_max-len=512 pwd
+
+$TOPO_LLM_REPOSITORY_BASE_PATH/data/embeddings/arrays/data=one-year-of-tsla-on-reddit_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags/split=validation_samples=10000_sampling=random_sampling-seed=778/edh-mode=regular_lvl=token/add-prefix-space=False_max-len=512
+
+➜ add-prefix-space=False_max-len=512 du -sh ./*
+
+71G     ./model=Llama-3.1-8B_task=causal_lm_dr=defaults
+34G     ./model=Llama-3.2-1B_task=causal_lm_dr=defaults
+52G     ./model=Llama-3.2-3B_task=causal_lm_dr=defaults
+55G     ./model=Phi-3.5-mini-instruct_multiwoz21_train-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_qkv_proj-0.01-True_5e-05-linear-0.01-5_seed-1234_ckpt-1200_task=causal_lm_dr=defaults
+55G     ./model=Phi-3.5-mini-instruct_multiwoz21_train-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_qkv_proj-0.01-True_5e-05-linear-0.01-5_seed-1234_ckpt-2800_task=causal_lm_dr=defaults
+55G     ./model=Phi-3.5-mini-instruct_multiwoz21_train-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_qkv_proj-0.01-True_5e-05-linear-0.01-5_seed-1234_ckpt-800_task=causal_lm_dr=defaults
+54G     ./model=Phi-3.5-mini-instruct_one-year-of-tsla-on-reddit_train-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_qkv_proj-0.01-True_5e-05-linear-0.01-5_seed-1234_ckpt-1200_task=causal_lm_dr=defaults
+55G     ./model=Phi-3.5-mini-instruct_one-year-of-tsla-on-reddit_train-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_qkv_proj-0.01-True_5e-05-linear-0.01-5_seed-1234_ckpt-2800_task=causal_lm_dr=defaults
+54G     ./model=Phi-3.5-mini-instruct_one-year-of-tsla-on-reddit_train-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_qkv_proj-0.01-True_5e-05-linear-0.01-5_seed-1234_ckpt-800_task=causal_lm_dr=defaults
+53G     ./model=Phi-3.5-mini-instruct_task=masked_lm_dr=defaults
