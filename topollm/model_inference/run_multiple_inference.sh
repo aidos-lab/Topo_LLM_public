@@ -87,8 +87,8 @@ HYDRA_LAUNCHER_ARGS=(
     "hydra/launcher=hpc_submission"
     "hydra.launcher.queue=CUDA"
     # >>> GPU selection
-    "hydra.launcher.template=RTX6000"
-    # "hydra.launcher.template=RTX8000"
+    # "hydra.launcher.template=RTX6000"
+    "hydra.launcher.template=RTX8000"
     # >>> Other resources
     "hydra.launcher.memory=64"
     "hydra.launcher.ncpus=2"
@@ -174,7 +174,7 @@ HYDRA_LAUNCHER_ARGS=(
 # LANGUAGE_MODEL_LIST="Llama-3.2-3B-causal_lm-defaults_one-year-of-tsla-on-reddit-r-T-pr-T-0-0.8-0.1-0.1-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5"
 
 # > Two fine-tuned variants of the 3B model combined:
-LANGUAGE_MODEL_LIST="Llama-3.2-3B-causal_lm-defaults_multiwoz21-r-T-dn-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5,Llama-3.2-3B-causal_lm-defaults_one-year-of-tsla-on-reddit-r-T-pr-T-0-0.8-0.1-0.1-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5"
+# LANGUAGE_MODEL_LIST="Llama-3.2-3B-causal_lm-defaults_multiwoz21-r-T-dn-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5,Llama-3.2-3B-causal_lm-defaults_one-year-of-tsla-on-reddit-r-T-pr-T-0-0.8-0.1-0.1-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5"
 
 # > Two smaller Llama base models combined:
 # LANGUAGE_MODEL_LIST="Llama-3.2-1B,Llama-3.2-3B"
@@ -182,8 +182,18 @@ LANGUAGE_MODEL_LIST="Llama-3.2-3B-causal_lm-defaults_multiwoz21-r-T-dn-ner_tags_
 # >> Medium models (more resource-intensive):
 
 # > 8B parameter models:
+# 
+# Note:
+# - Remember to switch to the appropriate GPU with enough VRAM for the 8B models.
 
 # LANGUAGE_MODEL_LIST="Llama-3.1-8B" # <-- (Safetensors: 8.03B parameters)
+
+# > Single fine-tuned variants of the 8B model:
+# LANGUAGE_MODEL_LIST="Llama-3.1-8B-causal_lm-defaults_multiwoz21-r-T-dn-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5"
+# LANGUAGE_MODEL_LIST="Llama-3.1-8B-causal_lm-defaults_one-year-of-tsla-on-reddit-r-T-pr-T-0-0.8-0.1-0.1-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5"
+
+# > Two fine-tuned variants of the 8B model combined:
+LANGUAGE_MODEL_LIST="Llama-3.1-8B-causal_lm-defaults_multiwoz21-r-T-dn-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5,Llama-3.1-8B-causal_lm-defaults_one-year-of-tsla-on-reddit-r-T-pr-T-0-0.8-0.1-0.1-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5"
 
 
 # ======================== #

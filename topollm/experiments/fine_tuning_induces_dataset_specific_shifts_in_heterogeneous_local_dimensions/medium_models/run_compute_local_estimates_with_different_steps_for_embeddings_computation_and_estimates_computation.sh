@@ -103,11 +103,33 @@ case "$MODE" in
     echo "❌ Error: Unknown mode: $MODE"; usage ; exit 1;;
 esac
 
+# # # # # #
+# Modify the launcher template based on the selected language model
+
+# List of all 8B models
+EIGHT_B_MODELS=(
+    "Llama-3.1-8B"
+    "Llama-3.1-8B-causal_lm-defaults_multiwoz21-r-T-dn-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5"
+    "Llama-3.1-8B-causal_lm-defaults_one-year-of-tsla-on-reddit-r-T-pr-T-0-0.8-0.1-0.1-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5"
+    # Add other 8B model names here as needed
+)
+
+# Helper function to check if a model is in the 8B list
+is_eight_b_model() {
+    local model="$1"
+    for eight_b in "${EIGHT_B_MODELS[@]}"; do
+        if [[ "$model" == "$eight_b" ]]; then
+            return 0
+        fi
+    done
+    return 1
+}
+
 # Function to adjust GPU template based on selected language model
 adjust_launcher_template_for_model() {
     local model_name="$1"
-    # We need a sufficiently large GPU for forward passes of the Llama-3.1-8B model.
-    if [[ "$MODE" == "compute_embeddings" && "$model_name" == "Llama-3.1-8B" ]]; then
+    # We need a sufficiently large GPU for forward passes of the 8B models.
+    if [[ "$MODE" == "compute_embeddings" ]] && is_eight_b_model "$model_name"; then
         # Replace template RTX6000 with RTX8000 in LAUNCHER_ARGS
         for i in "${!LAUNCHER_ARGS[@]}"; do
             if [[ "${LAUNCHER_ARGS[$i]}" == "hydra.launcher.template=RTX6000" ]]; then
@@ -115,8 +137,9 @@ adjust_launcher_template_for_model() {
             fi
         done
     fi
-    # We need enough RAM for the local estimates computation for the Llama-3.1-8B model.
-    if [[ "$MODE" == "compute_local_estimates" && "$model_name" == "Llama-3.1-8B" ]]; then
+    # We need enough RAM for the local estimates computation for the 8B models 
+    # (which have higher-dimensional embeddings).
+    if [[ "$MODE" == "compute_local_estimates" ]] && is_eight_b_model "$model_name"; then
         # Replace memory 64 with 129 in LAUNCHER_ARGS
         for i in "${!LAUNCHER_ARGS[@]}"; do
             if [[ "${LAUNCHER_ARGS[$i]}" == "hydra.launcher.memory=129" ]]; then
@@ -156,8 +179,8 @@ LANGUAGE_MODEL_ARGS=(
     # > 3B parameter model:
     # "language_model=Llama-3.2-3B" # <-- (Safetensors: 3.21B parameters)
     # "language_model=Llama-3.2-3B-causal_lm-defaults_multiwoz21-r-T-dn-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5"
-    "language_model=Llama-3.2-3B-causal_lm-defaults_one-year-of-tsla-on-reddit-r-T-pr-T-0-0.8-0.1-0.1-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5"
-    # STARTED: Compute embeddings step for 3B Llama models.
+    # "language_model=Llama-3.2-3B-causal_lm-defaults_one-year-of-tsla-on-reddit-r-T-pr-T-0-0.8-0.1-0.1-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5"
+    # RUNNING: Compute embeddings step for 3B Llama models.
     # TODO: Compute local estimates step for 3B Llama models.
     #
     #
@@ -165,13 +188,14 @@ LANGUAGE_MODEL_ARGS=(
     # "language_model=Llama-3.2-1B,Llama-3.2-3B"
     #
     # >> Medium models (more resource-intensive):
+    # Note: Make sure to use the appropriate GPU template for these models.
     #
     # > 8B parameter model:
     # "language_model=Llama-3.1-8B" # <-- (Safetensors: 8.03B parameters)"
-    # # TODO: Create configs for the 8B Llama models and integrate them here.
-    # # TODO: IMPORTANT Edit the resource selection in the LAUNCHER_ARGS for the 8B Llama models.
-    # # TODO: Compute embeddings step for 8B Llama models.
-    # # TODO: Compute local estimates step for 8B Llama models.
+    # "language_model=Llama-3.1-8B-causal_lm-defaults_multiwoz21-r-T-dn-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5"
+    "language_model=Llama-3.1-8B-causal_lm-defaults_one-year-of-tsla-on-reddit-r-T-pr-T-0-0.8-0.1-0.1-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5"
+    # RUNNING: Compute embeddings step for 8B Llama models.
+    # TODO: Compute local estimates step for 8B Llama models.
     #
     # > Checkpoints:
     # "++language_model.checkpoint_no=-1"

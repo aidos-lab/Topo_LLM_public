@@ -159,11 +159,11 @@ RELATIVE_PYTHON_SCRIPT_PATH="topollm/model_finetuning/${PYTHON_SCRIPT_NAME}"
 # > 3-4B parameter models:
 
 # BASE_MODEL_LIST="Phi-3.5-mini-instruct_for_causal_lm"
-BASE_MODEL_LIST="Llama-3.2-3B_for_causal_lm"
+# BASE_MODEL_LIST="Llama-3.2-3B_for_causal_lm"
 
 # > 8B parameter models:
 
-# BASE_MODEL_LIST="Llama-3.1-8B_for_causal_lm"
+BASE_MODEL_LIST="Llama-3.1-8B_for_causal_lm"
 
 # Notes on resource requirements:
 #
