@@ -89,7 +89,7 @@ case "$MODE" in
       "hydra.launcher.template=CPU"
       "hydra.launcher.ngpus=0"
       "hydra.launcher.memory=129"
-      "hydra.launcher.ncpus=3"
+      "hydra.launcher.ncpus=5"
       "hydra.launcher.walltime=04:00:00"
     )
     FEATURE_FLAGS_ARGS=(
@@ -106,11 +106,21 @@ esac
 # Function to adjust GPU template based on selected language model
 adjust_launcher_template_for_model() {
     local model_name="$1"
+    # We need a sufficiently large GPU for forward passes of the Llama-3.1-8B model.
     if [[ "$MODE" == "compute_embeddings" && "$model_name" == "Llama-3.1-8B" ]]; then
         # Replace template RTX6000 with RTX8000 in LAUNCHER_ARGS
         for i in "${!LAUNCHER_ARGS[@]}"; do
             if [[ "${LAUNCHER_ARGS[$i]}" == "hydra.launcher.template=RTX6000" ]]; then
                 LAUNCHER_ARGS[$i]="hydra.launcher.template=RTX8000"
+            fi
+        done
+    fi
+    # We need enough RAM for the local estimates computation for the Llama-3.1-8B model.
+    if [[ "$MODE" == "compute_local_estimates" && "$model_name" == "Llama-3.1-8B" ]]; then
+        # Replace memory 64 with 129 in LAUNCHER_ARGS
+        for i in "${!LAUNCHER_ARGS[@]}"; do
+            if [[ "${LAUNCHER_ARGS[$i]}" == "hydra.launcher.memory=129" ]]; then
+                LAUNCHER_ARGS[$i]="hydra.launcher.memory=255"
             fi
         done
     fi
