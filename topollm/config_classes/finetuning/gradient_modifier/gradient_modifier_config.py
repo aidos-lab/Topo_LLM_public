@@ -1,20 +1,3 @@
-# Copyright 2024-2025
-# [ANONYMIZED_INSTITUTION],
-# [ANONYMIZED_FACULTY],
-# [ANONYMIZED_DEPARTMENT]
-#
-# Authors:
-# AUTHOR_1 (author1@example.com)
-# AUTHOR_2 (author2@example.com)
-#
-# Code generation tools and workflows:
-# First versions of this code were potentially generated
-# with the help of AI writing assistants including
-# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
-# Afterwards, the generated segments were manually reviewed and edited.
-#
-
-
 """Configuration class for the gradient modifier."""
 
 from pydantic import Field
@@ -22,6 +5,7 @@ from pydantic import Field
 from topollm.config_classes.config_base_model import ConfigBaseModel
 from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
 from topollm.path_management.convert_object_to_valid_path_part import convert_list_to_path_part
+from topollm.path_management.target_modules_to_path_part import target_modules_to_path_part
 from topollm.typing.enums import DescriptionType, GradientModifierMode
 
 
@@ -51,14 +35,14 @@ class GradientModifierConfig(ConfigBaseModel):
                     f"{ITEM_SEP}"
                     f"{NAME_PREFIXES['target_modules_to_freeze']}"
                     f"{KV_SEP}"
-                    f"{target_modules_to_freeze_to_path_part(target_modules_to_freeze=self.target_modules_to_freeze)}"
+                    f"{target_modules_to_path_part(target_modules=self.target_modules_to_freeze)}"
                 )
             case DescriptionType.SHORT:
                 description: str = (
                     NAME_PREFIXES["target_modules_to_freeze_short"]
                     + short_description_separator
-                    + target_modules_to_freeze_to_path_part(
-                        target_modules_to_freeze=self.target_modules_to_freeze,
+                    + target_modules_to_path_part(
+                        target_modules=self.target_modules_to_freeze,
                     )
                 )
             case _:
@@ -68,12 +52,3 @@ class GradientModifierConfig(ConfigBaseModel):
                 )
 
         return description
-
-
-def target_modules_to_freeze_to_path_part(
-    target_modules_to_freeze: list[str],
-) -> str:
-    """Convert the target_modules_to_freeze to a path part."""
-    return convert_list_to_path_part(
-        input_list=target_modules_to_freeze,
-    )
