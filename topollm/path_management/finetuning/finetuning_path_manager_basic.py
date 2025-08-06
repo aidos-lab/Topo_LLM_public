@@ -126,7 +126,7 @@ class FinetuningPathManagerBasic:
             + str(
                 # Note: the short finetuning parameters description does NOT contain:
                 # - the finetuning seed
-                # - the current epoch
+                # - the current global step/epoch/checkpoint number
                 # We handle these through value interpolation via the hydra config system.
                 object=self.get_finetuning_parameters_description_for_short_model_name(
                     short_description_separator=short_description_separator,

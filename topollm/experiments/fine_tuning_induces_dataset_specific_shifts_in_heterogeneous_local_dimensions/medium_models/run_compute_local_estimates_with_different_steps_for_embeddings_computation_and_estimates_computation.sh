@@ -146,18 +146,26 @@ LANGUAGE_MODEL_ARGS=(
     #
     # ===== LLama models ===== #
     #
-    # > Smaller (1B and 3B) models:
+    # >> Smaller models:
+    #
+    # > 1B parameter model:
     # "language_model=Llama-3.2-1B" # <-- (Safetensors: 1.24B parameters)
+    # "language_model=Llama-3.2-1B-causal_lm-defaults_multiwoz21-r-T-dn-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5"
+    "language_model=Llama-3.2-1B-causal_lm-defaults_one-year-of-tsla-on-reddit-r-T-pr-T-0-0.8-0.1-0.1-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5"
+    #
+    # > 3B parameter model:
     # "language_model=Llama-3.2-3B" # <-- (Safetensors: 3.21B parameters)
+    #
+    #
     # > Two smaller models combined:
     # "language_model=Llama-3.2-1B,Llama-3.2-3B"
     #
-    # > Medium (8B) model:
-    "language_model=Llama-3.1-8B" # <-- (Safetensors: 8.03B parameters)"
+    # >> Medium (8B) model:
+    # "language_model=Llama-3.1-8B" # <-- (Safetensors: 8.03B parameters)"
     #
     # > Checkpoints:
     # "++language_model.checkpoint_no=-1"
-    # "++language_model.checkpoint_no=800"
+    "++language_model.checkpoint_no=800"
     # "++language_model.checkpoint_no=1200"
     #
 )
@@ -182,17 +190,21 @@ COMMON_ARGS=(
     "data=multiwoz21,sgd,one-year-of-tsla-on-reddit,wikitext-103-v1,iclr_2024_submissions"
     # > Without wikitext-103-v1:
     # "data=multiwoz21,sgd,one-year-of-tsla-on-reddit,iclr_2024_submissions"
+
+    # --- data subsampling -----------------------------------------------------
     "data.data_subsampling.split=validation"
     "data.data_subsampling.sampling_mode=random"
     "data.data_subsampling.number_of_samples=10000"
     "data.data_subsampling.sampling_seed=778"
 
-    # --- embeddings & local estimates -----------------------------------------
+    # --- embeddings -----------------------------------------
     "embeddings.embedding_data_handler.mode=regular"
     "embeddings.embedding_extraction.layer_indices=[-1]"
     "embeddings_data_prep.sampling.num_samples=150000"
     "embeddings_data_prep.sampling.sampling_mode=random"
     "embeddings_data_prep.sampling.seed=42"
+
+    # --- local estimates ------------------------------------------------------
     "local_estimates=twonn"
     "local_estimates.pointwise.n_neighbors_mode=absolute_size"
     "local_estimates.filtering.deduplication_mode=array_deduplicator"

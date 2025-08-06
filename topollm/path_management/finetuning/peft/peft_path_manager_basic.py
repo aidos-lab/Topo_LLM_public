@@ -5,6 +5,7 @@ import pathlib
 
 from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
 from topollm.config_classes.finetuning.peft.peft_config import PEFTConfig
+from topollm.config_classes.values_to_short_string import bool_to_short_string
 from topollm.path_management.target_modules_to_path_part import target_modules_to_path_part
 from topollm.typing.enums import DescriptionType, FinetuningMode, Verbosity
 
@@ -166,7 +167,7 @@ class PEFTPathManagerBasic:
                             f"{short_description_separator}"
                             f"{self.peft_config.lora_dropout}"
                             f"{short_description_separator}"
-                            f"{self.peft_config.use_rslora}"
+                            f"{bool_to_short_string(value=self.peft_config.use_rslora)}"
                         )
                     case _:
                         msg: str = f"Unknown finetuning_mode: {self.peft_config.finetuning_mode = }"

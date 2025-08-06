@@ -1,26 +1,10 @@
-# Copyright 2024-2025
-# [ANONYMIZED_INSTITUTION],
-# [ANONYMIZED_FACULTY],
-# [ANONYMIZED_DEPARTMENT]
-#
-# Authors:
-# AUTHOR_1 (author1@example.com)
-# AUTHOR_2 (author2@example.com)
-#
-# Code generation tools and workflows:
-# First versions of this code were potentially generated
-# with the help of AI writing assistants including
-# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
-# Afterwards, the generated segments were manually reviewed and edited.
-#
-
-
 """Configuration for filtering data."""
 
 from pydantic import Field
 
 from topollm.config_classes.config_base_model import ConfigBaseModel
 from topollm.config_classes.constants import KV_SEP, NAME_PREFIXES
+from topollm.config_classes.values_to_short_string import bool_to_short_string
 from topollm.typing.enums import DescriptionType
 
 
@@ -55,8 +39,8 @@ class DataFilteringConfig(ConfigBaseModel):
                 )
             case DescriptionType.SHORT:
                 description = (
-                    f"{NAME_PREFIXES['data_filtering_remove_empty_sequences']}{short_description_separator}"
-                    f"{self.remove_empty_sequences}"
+                    f"{NAME_PREFIXES['data_filtering_remove_empty_sequences_short']}{short_description_separator}"
+                    f"{bool_to_short_string(value=self.remove_empty_sequences)}"
                 )
             case _:
                 msg: str = f"Unknown {description_type = }"
