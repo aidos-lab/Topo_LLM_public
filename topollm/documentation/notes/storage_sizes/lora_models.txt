@@ -1,0 +1,9 @@
+➜ add-prefix-space=False_max-len=512 git(feature/additional_llama_models) pwd
+
+$TOPO_LLM_REPOSITORY_BASE_PATH/data/models/finetuned_models/data=one-year-of-tsla-on-reddit_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags/split=train_samples=10000_sampling=random_sampling-seed=778/add-prefix-space=False_max-len=512
+
+➜ add-prefix-space=False_max-len=512 git(feature/additional_llama_models) du -sh ./*
+1.5G    ./model=Llama-3.1-8B_task=causal_lm_dr=defaults
+489M    ./model=Llama-3.2-1B_task=causal_lm_dr=defaults
+1.1G    ./model=Llama-3.2-3B_task=causal_lm_dr=defaults
+949M    ./model=Phi-3.5-mini-instruct_task=causal_lm_dr=defaults
