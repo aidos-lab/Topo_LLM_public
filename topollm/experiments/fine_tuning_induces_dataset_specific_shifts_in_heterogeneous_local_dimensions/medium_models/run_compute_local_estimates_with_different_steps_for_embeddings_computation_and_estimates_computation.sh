@@ -146,22 +146,32 @@ LANGUAGE_MODEL_ARGS=(
     #
     # ===== LLama models ===== #
     #
-    # >> Smaller models:
+    # >> Smaller models (less resource-intensive):
     #
     # > 1B parameter model:
     # "language_model=Llama-3.2-1B" # <-- (Safetensors: 1.24B parameters)
     # "language_model=Llama-3.2-1B-causal_lm-defaults_multiwoz21-r-T-dn-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5"
-    "language_model=Llama-3.2-1B-causal_lm-defaults_one-year-of-tsla-on-reddit-r-T-pr-T-0-0.8-0.1-0.1-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5"
+    # "language_model=Llama-3.2-1B-causal_lm-defaults_one-year-of-tsla-on-reddit-r-T-pr-T-0-0.8-0.1-0.1-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5"
     #
     # > 3B parameter model:
     # "language_model=Llama-3.2-3B" # <-- (Safetensors: 3.21B parameters)
+    # "language_model=Llama-3.2-3B-causal_lm-defaults_multiwoz21-r-T-dn-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5"
+    "language_model=Llama-3.2-3B-causal_lm-defaults_one-year-of-tsla-on-reddit-r-T-pr-T-0-0.8-0.1-0.1-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5"
+    # STARTED: Compute embeddings step for 3B Llama models.
+    # TODO: Compute local estimates step for 3B Llama models.
     #
     #
-    # > Two smaller models combined:
+    # > Two smaller Llama base models combined:
     # "language_model=Llama-3.2-1B,Llama-3.2-3B"
     #
-    # >> Medium (8B) model:
+    # >> Medium models (more resource-intensive):
+    #
+    # > 8B parameter model:
     # "language_model=Llama-3.1-8B" # <-- (Safetensors: 8.03B parameters)"
+    # # TODO: Create configs for the 8B Llama models and integrate them here.
+    # # TODO: IMPORTANT Edit the resource selection in the LAUNCHER_ARGS for the 8B Llama models.
+    # # TODO: Compute embeddings step for 8B Llama models.
+    # # TODO: Compute local estimates step for 8B Llama models.
     #
     # > Checkpoints:
     # "++language_model.checkpoint_no=-1"
