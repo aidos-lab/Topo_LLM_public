@@ -147,6 +147,7 @@ def do_inference(
 
     prompts: list[str] | None = main_config.inference.prompts
 
+    results: list[list[str]] | list[list[dict]]
     match lm_mode:
         case LMmode.MLM:
             if prompts is None:
@@ -157,13 +158,15 @@ def do_inference(
                 msg=f"prompts:\n{pprint.pformat(object=prompts)}",  # noqa: G004 - low overhead
             )
 
-            results = do_fill_mask(
+            # Assign to separate variable first to avoid type narrowing issues.
+            results_mlm: list[list[dict]] = do_fill_mask(
                 tokenizer=tokenizer,
                 model=model,
                 prompts=prompts,
                 device=device,
                 logger=logger,
             )
+            results = results_mlm
         case LMmode.CLM:
             if prompts is None:
                 prompts = get_default_clm_prompts()
@@ -171,15 +174,18 @@ def do_inference(
                 msg=f"prompts:\n{pprint.pformat(object=prompts)}",  # noqa: G004 - low overhead
             )
 
-            results = do_text_generation(
+            # Assign to separate variable first to avoid type narrowing issues.
+            results_clm: list[list[str]] = do_text_generation(
                 tokenizer=tokenizer,
                 model=model,
                 prompts=prompts,
                 max_length=main_config.inference.max_length,
+                max_new_tokens=main_config.inference.max_new_tokens,
                 num_return_sequences=main_config.inference.num_return_sequences,
                 device=device,
                 logger=logger,
             )
+            results = results_clm
         case _:
             msg: str = f"Invalid lm_mode: {lm_mode = }"
             raise ValueError(msg)

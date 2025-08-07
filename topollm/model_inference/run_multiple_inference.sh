@@ -87,8 +87,8 @@ HYDRA_LAUNCHER_ARGS=(
     "hydra/launcher=hpc_submission"
     "hydra.launcher.queue=CUDA"
     # >>> GPU selection
-    # "hydra.launcher.template=RTX6000"
-    "hydra.launcher.template=RTX8000"
+    "hydra.launcher.template=RTX6000"
+    # "hydra.launcher.template=RTX8000"
     # >>> Other resources
     "hydra.launcher.memory=64"
     "hydra.launcher.ncpus=2"
@@ -138,7 +138,13 @@ HYDRA_LAUNCHER_ARGS=(
 #   but they are usually supposed to be used with a certain contrained decoding strategy.
 #   Nevertheless, for testing. we plug them into our inference setup here.
 
+# > Base model:
+# LANGUAGE_MODEL_LIST="Phi-3.5-mini-instruct"
+
 # LANGUAGE_MODEL_LIST="luster-rl-sent"
+
+# > Models combined:
+LANGUAGE_MODEL_LIST="Phi-3.5-mini-instruct,luster-rl-sent"
 
 # ===== Gemma models ===== #
 # https://huggingface.co/collections/google/gemma-3-release-67c6c6f89c4f76621268bb6d
@@ -193,7 +199,7 @@ HYDRA_LAUNCHER_ARGS=(
 # LANGUAGE_MODEL_LIST="Llama-3.1-8B-causal_lm-defaults_one-year-of-tsla-on-reddit-r-T-pr-T-0-0.8-0.1-0.1-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5"
 
 # > Two fine-tuned variants of the 8B model combined:
-LANGUAGE_MODEL_LIST="Llama-3.1-8B-causal_lm-defaults_multiwoz21-r-T-dn-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5,Llama-3.1-8B-causal_lm-defaults_one-year-of-tsla-on-reddit-r-T-pr-T-0-0.8-0.1-0.1-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5"
+# LANGUAGE_MODEL_LIST="Llama-3.1-8B-causal_lm-defaults_multiwoz21-r-T-dn-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5,Llama-3.1-8B-causal_lm-defaults_one-year-of-tsla-on-reddit-r-T-pr-T-0-0.8-0.1-0.1-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5"
 
 
 # ======================== #
@@ -201,7 +207,7 @@ LANGUAGE_MODEL_LIST="Llama-3.1-8B-causal_lm-defaults_multiwoz21-r-T-dn-ner_tags_
 LANGUAGE_MODEL_ARGS=(
     "language_model=$LANGUAGE_MODEL_LIST"
     # "++language_model.checkpoint_no=400"
-    "++language_model.checkpoint_no=400,800,1200,1600,2000,2400,2800"
+    # "++language_model.checkpoint_no=400,800,1200,1600,2000,2400,2800"
 )
 
 PREFERRED_TORCH_BACKEND="auto"
