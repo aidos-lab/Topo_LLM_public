@@ -1,18 +1,24 @@
 """Generate violin plots for local estimates from different models."""
 
 import itertools
+import logging
 import pathlib
 from collections import defaultdict
 from enum import StrEnum, auto, unique
 
+import click
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
-from pydantic import BaseModel
 from tqdm import tqdm
 
 from topollm.config_classes.constants import TOPO_LLM_REPOSITORY_BASE_PATH
+from topollm.typing.enums import Verbosity
+
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 @unique
@@ -37,8 +43,26 @@ class SaveFormat(StrEnum):
     PNG = "png"
 
 
-def main() -> None:
+@click.command()
+@click.option(
+    "--model-group",
+    type=click.Choice(
+        choices=[
+            "all",
+            "phi",
+            "llama",
+        ],
+    ),
+    default="all",
+    help="Select base models: all, phi, or llama",
+)
+def main(
+    model_group: str,
+) -> None:
     """Generate violin plots for local estimates from different models."""
+    logger: logging.Logger = default_logger
+    verbosity: Verbosity = Verbosity.NORMAL
+
     ddof = 1  # Delta degrees of freedom for standard deviation calculation
     save_arrays_in_output_dir: bool = True
 
@@ -68,15 +92,25 @@ def main() -> None:
     # List to store all relative paths
     relative_paths: list[pathlib.Path] = []
 
-    # for base_model_mode in BaseModelMode:
-    for base_model_mode in [
-        BaseModelMode.ROBERTA_BASE,
-        BaseModelMode.GPT2_MEDIUM,
-        BaseModelMode.PHI_35_MINI_INSTRUCT,
-        BaseModelMode.LLAMA_32_1B,
-        BaseModelMode.LLAMA_32_3B,
-        BaseModelMode.LLAMA_31_8B,
-    ]:
+    # Prepare base_model_modes based on command-line option
+    match model_group:
+        case "all":
+            base_model_modes = list(BaseModelMode)
+        case "phi":
+            base_model_modes = [BaseModelMode.PHI_35_MINI_INSTRUCT]
+        case "llama":
+            base_model_modes = [
+                BaseModelMode.LLAMA_32_1B,
+                BaseModelMode.LLAMA_32_3B,
+                BaseModelMode.LLAMA_31_8B,
+            ]
+        case _:
+            msg: str = f"Unsupported model group: {model_group=}"
+            raise ValueError(
+                msg,
+            )
+
+    for base_model_mode in base_model_modes:
         # List of second models and corresponding labels
 
         match base_model_mode:
@@ -385,6 +419,11 @@ def main() -> None:
                         f"violin_plot.{save_format.value}",
                     )
                     relative_paths.append(save_path)  # Add the relative path to the list
+
+                    if verbosity >= Verbosity.NORMAL:
+                        print(  # noqa: T201 - we want this script to print
+                            f"Saving plot to: {save_path=}",
+                        )
 
                     plt.savefig(
                         save_path,
