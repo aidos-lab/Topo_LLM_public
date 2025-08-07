@@ -1,20 +1,3 @@
-# Copyright 2024-2025
-# [ANONYMIZED_INSTITUTION],
-# [ANONYMIZED_FACULTY],
-# [ANONYMIZED_DEPARTMENT]
-#
-# Authors:
-# AUTHOR_1 (author1@example.com)
-# AUTHOR_2 (author2@example.com)
-#
-# Code generation tools and workflows:
-# First versions of this code were potentially generated
-# with the help of AI writing assistants including
-# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
-# Afterwards, the generated segments were manually reviewed and edited.
-#
-
-
 """Worker function which goes through the pipeline."""
 
 import logging
@@ -108,20 +91,29 @@ def worker_for_pipeline(
         logger.info(
             msg=logger_section_separation_line,
         )
-        logger.info(
-            msg="Calling local estimates worker ...",
+
+    if not main_config.feature_flags.analysis.skip_global_and_pointwise_local_estimates_worker_in_pipeline:
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg="Calling local estimates worker ...",
+            )
+
+        global_and_pointwise_local_estimates_worker(
+            main_config=main_config,
+            verbosity=main_config.verbosity,
+            logger=logger,
         )
 
-    global_and_pointwise_local_estimates_worker(
-        main_config=main_config,
-        verbosity=main_config.verbosity,
-        logger=logger,
-    )
+        if verbosity >= Verbosity.NORMAL:
+            logger.info(
+                msg="Calling local estimates worker DONE",
+            )
+    elif verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg="Skipping local estimates worker because of feature flag.",
+        )
 
     if verbosity >= Verbosity.NORMAL:
-        logger.info(
-            msg="Calling local estimates worker DONE",
-        )
         logger.info(
             msg=logger_section_separation_line,
         )

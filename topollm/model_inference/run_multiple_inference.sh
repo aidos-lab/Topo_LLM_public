@@ -125,7 +125,7 @@ HYDRA_LAUNCHER_ARGS=(
 # ===== Phi-3.5 and Phi-4 models ===== #
 # https://huggingface.co/collections/microsoft/phi-3-6626e15e9585a200d2d761e3
 
-# LANGUAGE_MODEL_LIST="Phi-3.5-mini-instruct" # <-- "microsoft/Phi-3.5-mini-instruct" model with 3.82B parameters.
+# LANGUAGE_MODEL_LIST="Phi-3.5-mini-instruct" # <-- "microsoft/Phi-3.5-mini-instruct" model with 3.8B parameters (Safetensors: 3.82B parameters).
 
 # LANGUAGE_MODEL_LIST="Phi-3.5-mini-instruct-causal_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-random-778_aps-False-mx-512_lora-16-32-o_proj_qkv_proj-0.01-True_5e-05-linear-0.01-5"
 # LANGUAGE_MODEL_LIST="Phi-3.5-mini-instruct-causal_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-random-778_aps-False-mx-512_lora-16-32-o_proj_qkv_proj-0.01-True_5e-05-linear-0.01-5"
@@ -143,27 +143,69 @@ HYDRA_LAUNCHER_ARGS=(
 # ===== Gemma models ===== #
 # https://huggingface.co/collections/google/gemma-3-release-67c6c6f89c4f76621268bb6d
 
-LANGUAGE_MODEL_LIST="gemma-3-1b-pt" # <-- (Safetensors: 1,000M parameters)
+# LANGUAGE_MODEL_LIST="gemma-3-1b-pt" # <-- (Safetensors: 1,000M parameters)
 # LANGUAGE_MODEL_LIST="gemma-3-1b-it" # <-- (Safetensors: 1,000M parameters)
 
 
 # ===== LLama models ===== #
 
 # Notes:
-# - There is no 8B variant of the Llama-3.2 models.
+# - There is no 8B variant of the Llama-3.2 models, this only exists for the Llama-3.1 models.
+
+# >> Smaller models (less resource-intensive):
+
+# > 1B parameter models:
+
+# LANGUAGE_MODEL_LIST="Llama-3.2-1B" # <-- (Safetensors: 1.24B parameters)
+
+# > Single fine-tuned variants of the 1B model:
+# LANGUAGE_MODEL_LIST="Llama-3.2-1B-causal_lm-defaults_multiwoz21-r-T-dn-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5"
+# LANGUAGE_MODEL_LIST="Llama-3.2-1B-causal_lm-defaults_one-year-of-tsla-on-reddit-r-T-pr-T-0-0.8-0.1-0.1-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5"
+
+# > Two fine-tuned variants of the 1B model combined:
+# LANGUAGE_MODEL_LIST="Llama-3.2-1B-causal_lm-defaults_multiwoz21-r-T-dn-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5,Llama-3.2-1B-causal_lm-defaults_one-year-of-tsla-on-reddit-r-T-pr-T-0-0.8-0.1-0.1-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5"
+
+# > 3B parameter models:
+
+# LANGUAGE_MODEL_LIST="Llama-3.2-3B" # <-- (Safetensors: 3.21B parameters)
+
+# > Single fine-tuned variants of the 3B model:
+# LANGUAGE_MODEL_LIST="Llama-3.2-3B-causal_lm-defaults_multiwoz21-r-T-dn-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5"
+# LANGUAGE_MODEL_LIST="Llama-3.2-3B-causal_lm-defaults_one-year-of-tsla-on-reddit-r-T-pr-T-0-0.8-0.1-0.1-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5"
+
+# > Two fine-tuned variants of the 3B model combined:
+# LANGUAGE_MODEL_LIST="Llama-3.2-3B-causal_lm-defaults_multiwoz21-r-T-dn-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5,Llama-3.2-3B-causal_lm-defaults_one-year-of-tsla-on-reddit-r-T-pr-T-0-0.8-0.1-0.1-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5"
+
+# > Two smaller Llama base models combined:
+# LANGUAGE_MODEL_LIST="Llama-3.2-1B,Llama-3.2-3B"
+
+# >> Medium models (more resource-intensive):
+
+# > 8B parameter models:
+# 
+# Note:
+# - Remember to switch to the appropriate GPU with enough VRAM for the 8B models.
 
 # LANGUAGE_MODEL_LIST="Llama-3.1-8B" # <-- (Safetensors: 8.03B parameters)
 
+# > Single fine-tuned variants of the 8B model:
+# LANGUAGE_MODEL_LIST="Llama-3.1-8B-causal_lm-defaults_multiwoz21-r-T-dn-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5"
+# LANGUAGE_MODEL_LIST="Llama-3.1-8B-causal_lm-defaults_one-year-of-tsla-on-reddit-r-T-pr-T-0-0.8-0.1-0.1-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5"
+
+# > Two fine-tuned variants of the 8B model combined:
+LANGUAGE_MODEL_LIST="Llama-3.1-8B-causal_lm-defaults_multiwoz21-r-T-dn-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5,Llama-3.1-8B-causal_lm-defaults_one-year-of-tsla-on-reddit-r-T-pr-T-0-0.8-0.1-0.1-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5"
+
+
+# ======================== #
 
 LANGUAGE_MODEL_ARGS=(
     "language_model=$LANGUAGE_MODEL_LIST"
     # "++language_model.checkpoint_no=400"
-    # "++language_model.checkpoint_no=400,800,1200,1600,2000,2400,2800"
+    "++language_model.checkpoint_no=400,800,1200,1600,2000,2400,2800"
 )
 
 PREFERRED_TORCH_BACKEND="auto"
 # PREFERRED_TORCH_BACKEND="cpu"
-
 
 ADDITIONAL_OVERRIDES=""
 
@@ -211,7 +253,8 @@ echo "===================================================="
 echo ">>> Calling script from RELATIVE_PYTHON_SCRIPT_PATH=${RELATIVE_PYTHON_SCRIPT_PATH} ..."
 
 if [ "$dry_run" = true ]; then
-    echo "💡 [DRY RUN] Would run: uv run python3 $RELATIVE_PYTHON_SCRIPT_PATH ${ARGS[*]}"
+    echo "💡 [DRY RUN] Would run:"
+    echo "uv run python3 $RELATIVE_PYTHON_SCRIPT_PATH ${ARGS[*]}"
 else
     uv run python3 $RELATIVE_PYTHON_SCRIPT_PATH "${ARGS[@]}"
 fi

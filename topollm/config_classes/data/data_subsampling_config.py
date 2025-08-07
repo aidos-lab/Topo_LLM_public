@@ -1,26 +1,10 @@
-# Copyright 2024-2025
-# [ANONYMIZED_INSTITUTION],
-# [ANONYMIZED_FACULTY],
-# [ANONYMIZED_DEPARTMENT]
-#
-# Authors:
-# AUTHOR_1 (author1@example.com)
-# AUTHOR_2 (author2@example.com)
-#
-# Code generation tools and workflows:
-# First versions of this code were potentially generated
-# with the help of AI writing assistants including
-# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
-# Afterwards, the generated segments were manually reviewed and edited.
-#
-
-
 """Configuration class for specifying data subsampling."""
 
 from pydantic import Field
 
 from topollm.config_classes.config_base_model import ConfigBaseModel
 from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
+from topollm.config_classes.values_to_short_string import data_sampling_mode_to_short_string, split_to_short_string
 from topollm.typing.enums import DataSamplingMode, Split
 
 
@@ -57,11 +41,11 @@ class DataSubsamplingConfig(ConfigBaseModel):
     ) -> str:
         """Return a short description of the configuration."""
         description: str = (
-            f"{self.split}"
+            f"{split_to_short_string(self.split)}"
             f"{short_description_separator}"
             f"{self.number_of_samples}"
             f"{short_description_separator}"
-            f"{self.sampling_mode}"
+            f"{data_sampling_mode_to_short_string(data_sampling_mode=self.sampling_mode)}"
             f"{short_description_separator}"
             f"{self.sampling_seed}"
         )

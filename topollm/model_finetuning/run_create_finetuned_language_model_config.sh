@@ -1,6 +1,6 @@
 #!/bin/bash
 
-python3 run_finetune_language_model_on_huggingface_dataset.py \
+uv run python3 run_finetune_language_model_on_huggingface_dataset.py \
     feature_flags.finetuning.skip_finetuning=true \
     feature_flags.wandb.use_wandb=false
 

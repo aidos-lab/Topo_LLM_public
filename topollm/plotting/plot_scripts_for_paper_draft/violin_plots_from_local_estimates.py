@@ -1,10 +1,12 @@
 """Generate violin plots for local estimates from different models."""
 
 import itertools
+import logging
 import pathlib
 from collections import defaultdict
 from enum import StrEnum, auto, unique
 
+import click
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import numpy as np
@@ -12,6 +14,11 @@ import seaborn as sns
 from tqdm import tqdm
 
 from topollm.config_classes.constants import TOPO_LLM_REPOSITORY_BASE_PATH
+from topollm.typing.enums import Verbosity
+
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 @unique
@@ -23,6 +30,10 @@ class BaseModelMode(StrEnum):
     GPT2_MEDIUM = auto()
     PHI_35_MINI_INSTRUCT = auto()
 
+    LLAMA_32_1B = auto()
+    LLAMA_32_3B = auto()
+    LLAMA_31_8B = auto()
+
 
 @unique
 class SaveFormat(StrEnum):
@@ -32,8 +43,26 @@ class SaveFormat(StrEnum):
     PNG = "png"
 
 
-def main() -> None:
+@click.command()
+@click.option(
+    "--model-group",
+    type=click.Choice(
+        choices=[
+            "all",
+            "phi",
+            "llama",
+        ],
+    ),
+    default="all",
+    help="Select base models: all, phi, or llama",
+)
+def main(
+    model_group: str,
+) -> None:
     """Generate violin plots for local estimates from different models."""
+    logger: logging.Logger = default_logger
+    verbosity: Verbosity = Verbosity.NORMAL
+
     ddof = 1  # Delta degrees of freedom for standard deviation calculation
     save_arrays_in_output_dir: bool = True
 
@@ -63,7 +92,25 @@ def main() -> None:
     # List to store all relative paths
     relative_paths: list[pathlib.Path] = []
 
-    for base_model_mode in BaseModelMode:
+    # Prepare base_model_modes based on command-line option
+    match model_group:
+        case "all":
+            base_model_modes = list(BaseModelMode)
+        case "phi":
+            base_model_modes = [BaseModelMode.PHI_35_MINI_INSTRUCT]
+        case "llama":
+            base_model_modes = [
+                BaseModelMode.LLAMA_32_1B,
+                BaseModelMode.LLAMA_32_3B,
+                BaseModelMode.LLAMA_31_8B,
+            ]
+        case _:
+            msg: str = f"Unsupported model group: {model_group=}"
+            raise ValueError(
+                msg,
+            )
+
+    for base_model_mode in base_model_modes:
         # List of second models and corresponding labels
 
         match base_model_mode:
@@ -126,7 +173,44 @@ def main() -> None:
                                 f"_seed-1234_ckpt-{checkpoint_no}_task=causal_lm_dr=defaults",
                                 f"Phi-3.5-mini-instruct fine-tuned on Reddit gs={checkpoint_no}",
                             ),
-                        ]
+                        ],
+                    )
+            case BaseModelMode.LLAMA_32_1B | BaseModelMode.LLAMA_32_3B | BaseModelMode.LLAMA_31_8B:
+                match base_model_mode:
+                    case BaseModelMode.LLAMA_32_1B:
+                        base_model_str_part = "Llama-3.2-1B"
+                    case BaseModelMode.LLAMA_32_3B:
+                        base_model_str_part = "Llama-3.2-3B"
+                    case BaseModelMode.LLAMA_31_8B:
+                        base_model_str_part = "Llama-3.1-8B"
+                    case _:
+                        msg: str = f"Unsupported base model mode for Llama models: {base_model_mode=}"
+                        raise ValueError(
+                            msg,
+                        )
+
+                first_label: str = base_model_str_part
+                first_model_path: str = f"model={base_model_str_part}_task=causal_lm_dr=defaults"
+
+                checkpoint_no_options: list[int] = [
+                    800,
+                ]
+                second_models_and_labels: list[tuple[str, str]] = []
+
+                for checkpoint_no in checkpoint_no_options:
+                    second_models_and_labels.extend(
+                        [
+                            (
+                                f"model={base_model_str_part}-causal_lm-defaults_multiwoz21-r-T-dn-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5"
+                                f"_seed-1234_ckpt-{checkpoint_no}_task=causal_lm_dr=defaults",
+                                f"{base_model_str_part} fine-tuned on MultiWOZ gs={checkpoint_no}",
+                            ),
+                            (
+                                f"model={base_model_str_part}-causal_lm-defaults_one-year-of-tsla-on-reddit-r-T-pr-T-0-0.8-0.1-0.1-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5"
+                                f"_seed-1234_ckpt-{checkpoint_no}_task=causal_lm_dr=defaults",
+                                f"{base_model_str_part} fine-tuned on Reddit gs={checkpoint_no}",
+                            ),
+                        ],
                     )
             case _:
                 msg: str = f"Unsupported base model mode: {base_model_mode=}"
@@ -335,6 +419,11 @@ def main() -> None:
                         f"violin_plot.{save_format.value}",
                     )
                     relative_paths.append(save_path)  # Add the relative path to the list
+
+                    if verbosity >= Verbosity.NORMAL:
+                        print(  # noqa: T201 - we want this script to print
+                            f"Saving plot to: {save_path=}",
+                        )
 
                     plt.savefig(
                         save_path,

@@ -28,16 +28,41 @@ RELATIVE_SCRIPT_PATH+="run_pipeline_compute_embeddings_and_data_prep_and_local_e
 ABSOLUTE_SCRIPT_PATH="${TOPO_LLM_REPOSITORY_BASE_PATH}/${RELATIVE_SCRIPT_PATH}"
 
 usage() {
-    echo "Usage: $0 [MODE]"
+    echo "💡 Usage: $0 [MODE] [--dry-run]"
     echo "Modes:"
-    echo "  compute_embeddings     Run the script to compute embeddings."
+    echo "  compute_embeddings      Run the script to compute embeddings."
     echo "  compute_local_estimates Run the script to compute local estimates."
+    echo "Options:"
+    echo "  --dry-run               Print the command that would be run, but do not execute it."
+    exit 1
 }
 
-# Default mode if no argument is provided
-# (note that default_mode is not a valid mode, but it can be used for testing)
-[[ $# -eq 0 ]] && set -- default_mode 
-MODE=$1; shift
+# --- Parse arguments: allow [MODE] and [--dry-run] in any order ---
+MODE=""
+dry_run=false
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        compute_embeddings|compute_local_estimates)
+            MODE="$1"
+            shift
+            ;;
+        --dry-run)
+            dry_run=true
+            shift
+            ;;
+        *)
+            echo "❌ Error: Unknown argument: $1"
+            usage
+            ;;
+    esac
+done
+
+# Default mode if not provided
+if [[ -z "$MODE" ]]; then
+    echo "❌ Error: No mode specified."
+    usage
+fi
 
 case "$MODE" in
   compute_embeddings)
@@ -52,6 +77,7 @@ case "$MODE" in
     FEATURE_FLAGS_ARGS=(
         "feature_flags.compute_and_store_embeddings.skip_compute_and_store_embeddings_in_pipeline=False"
         "feature_flags.embeddings_data_prep.skip_embeddings_data_prep_in_pipeline=True"
+        "feature_flags.analysis.skip_global_and_pointwise_local_estimates_worker_in_pipeline=True"
         "feature_flags.analysis.create_plots_in_local_estimates_worker=False"
     )
     ;;
@@ -63,18 +89,66 @@ case "$MODE" in
       "hydra.launcher.template=CPU"
       "hydra.launcher.ngpus=0"
       "hydra.launcher.memory=129"
-      "hydra.launcher.ncpus=3"
+      "hydra.launcher.ncpus=5"
       "hydra.launcher.walltime=04:00:00"
     )
     FEATURE_FLAGS_ARGS=(
         "feature_flags.compute_and_store_embeddings.skip_compute_and_store_embeddings_in_pipeline=True"
         "feature_flags.embeddings_data_prep.skip_embeddings_data_prep_in_pipeline=False"
+        "feature_flags.analysis.skip_global_and_pointwise_local_estimates_worker_in_pipeline=False"
         "feature_flags.analysis.create_plots_in_local_estimates_worker=True"
     )
     ;;
   *)
-    echo "Unknown mode: $MODE"; usage ; exit 1;;
+    echo "❌ Error: Unknown mode: $MODE"; usage ; exit 1;;
 esac
+
+# # # # # #
+# Modify the launcher template based on the selected language model
+
+# List of all 8B models
+EIGHT_B_MODELS=(
+    "Llama-3.1-8B"
+    "Llama-3.1-8B-causal_lm-defaults_multiwoz21-r-T-dn-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5"
+    "Llama-3.1-8B-causal_lm-defaults_one-year-of-tsla-on-reddit-r-T-pr-T-0-0.8-0.1-0.1-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5"
+    # Add other 8B model names here as needed
+)
+
+# Helper function to check if a model is in the 8B list
+is_eight_b_model() {
+    local model="$1"
+    for eight_b in "${EIGHT_B_MODELS[@]}"; do
+        if [[ "$model" == "$eight_b" ]]; then
+            return 0
+        fi
+    done
+    return 1
+}
+
+# Function to adjust GPU template based on selected language model
+adjust_launcher_template_for_model() {
+    local model_name="$1"
+    # We need a sufficiently large GPU for forward passes of the 8B models.
+    if [[ "$MODE" == "compute_embeddings" ]] && is_eight_b_model "$model_name"; then
+        # Replace template RTX6000 with RTX8000 in LAUNCHER_ARGS
+        for i in "${!LAUNCHER_ARGS[@]}"; do
+            if [[ "${LAUNCHER_ARGS[$i]}" == "hydra.launcher.template=RTX6000" ]]; then
+                LAUNCHER_ARGS[$i]="hydra.launcher.template=RTX8000"
+            fi
+        done
+    fi
+    # We need enough RAM for the local estimates computation for the 8B models 
+    # (which have higher-dimensional embeddings).
+    if [[ "$MODE" == "compute_local_estimates" ]] && is_eight_b_model "$model_name"; then
+        # Replace memory 64 with 129 in LAUNCHER_ARGS
+        for i in "${!LAUNCHER_ARGS[@]}"; do
+            if [[ "${LAUNCHER_ARGS[$i]}" == "hydra.launcher.memory=129" ]]; then
+                LAUNCHER_ARGS[$i]="hydra.launcher.memory=255"
+            fi
+        done
+    fi
+}
+
 
 BASE_ARGS=(
     "--multirun"
@@ -85,15 +159,50 @@ BASE_ARGS=(
 
 # --- model -----------------------------------------------------------------
 LANGUAGE_MODEL_ARGS=(
+    # ===== Phi-3.5 and Phi-4 models ===== #
+    #
     # "language_model=Phi-3.5-mini-instruct"
-    # "++language_model.checkpoint_no=-1"
-    "++language_model.checkpoint_no=800"
-    # "++language_model.checkpoint_no=1200" # <-- DONE
     # "language_model='Phi-3.5-mini-instruct-causal_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-random-778_aps-False-mx-512_lora-16-32-o_proj_qkv_proj-0.01-True_5e-05-linear-0.01-5'"
     # "language_model='Phi-3.5-mini-instruct-causal_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-random-778_aps-False-mx-512_lora-16-32-o_proj_qkv_proj-0.01-True_5e-05-linear-0.01-5'"
-    # Two different models:
-    "language_model=Phi-3.5-mini-instruct-causal_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-random-778_aps-False-mx-512_lora-16-32-o_proj_qkv_proj-0.01-True_5e-05-linear-0.01-5,Phi-3.5-mini-instruct-causal_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-random-778_aps-False-mx-512_lora-16-32-o_proj_qkv_proj-0.01-True_5e-05-linear-0.01-5"
+    # > Two different models:
+    # "language_model=Phi-3.5-mini-instruct-causal_lm-defaults_multiwoz21-rm-empty-True-do_nothing-ner_tags_train-10000-random-778_aps-False-mx-512_lora-16-32-o_proj_qkv_proj-0.01-True_5e-05-linear-0.01-5,Phi-3.5-mini-instruct-causal_lm-defaults_one-year-of-tsla-on-reddit-rm-empty-True-proportions-True-0-0.8-0.1-0.1-ner_tags_train-10000-random-778_aps-False-mx-512_lora-16-32-o_proj_qkv_proj-0.01-True_5e-05-linear-0.01-5"
+    #
+    # ===== LLama models ===== #
+    #
+    # >> Smaller models (less resource-intensive):
+    #
+    # > 1B parameter model:
+    # "language_model=Llama-3.2-1B" # <-- (Safetensors: 1.24B parameters)
+    # "language_model=Llama-3.2-1B-causal_lm-defaults_multiwoz21-r-T-dn-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5"
+    # "language_model=Llama-3.2-1B-causal_lm-defaults_one-year-of-tsla-on-reddit-r-T-pr-T-0-0.8-0.1-0.1-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5"
+    #
+    # > 3B parameter model:
+    # "language_model=Llama-3.2-3B" # <-- (Safetensors: 3.21B parameters)
+    # "language_model=Llama-3.2-3B-causal_lm-defaults_multiwoz21-r-T-dn-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5"
+    # "language_model=Llama-3.2-3B-causal_lm-defaults_one-year-of-tsla-on-reddit-r-T-pr-T-0-0.8-0.1-0.1-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5"
+    #
+    #
+    # > Two smaller Llama base models combined:
+    # "language_model=Llama-3.2-1B,Llama-3.2-3B"
+    #
+    # >> Medium models (more resource-intensive):
+    # Note: Make sure to use the appropriate GPU template for these models.
+    #
+    # > 8B parameter model:
+    # "language_model=Llama-3.1-8B" # <-- (Safetensors: 8.03B parameters)"
+    # "language_model=Llama-3.1-8B-causal_lm-defaults_multiwoz21-r-T-dn-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5"
+    "language_model=Llama-3.1-8B-causal_lm-defaults_one-year-of-tsla-on-reddit-r-T-pr-T-0-0.8-0.1-0.1-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5"
+    #
+    # > Checkpoints:
+    # "++language_model.checkpoint_no=-1"
+    "++language_model.checkpoint_no=800"
+    # "++language_model.checkpoint_no=1200"
+    #
 )
+
+# Potentially adjusting the GPU template 
+# after setting LANGUAGE_MODEL_ARGS and LAUNCHER_ARGS
+adjust_launcher_template_for_model "${LANGUAGE_MODEL_ARGS[0]#language_model=}"
 
 COMMON_ARGS=(
     # --- memory-friendly settings ---------------------------------------------
@@ -109,19 +218,23 @@ COMMON_ARGS=(
     # "data=multiwoz21"
     # "data=wikitext-103-v1"
     "data=multiwoz21,sgd,one-year-of-tsla-on-reddit,wikitext-103-v1,iclr_2024_submissions"
-    # Without wikitext-103-v1:
+    # > Without wikitext-103-v1:
     # "data=multiwoz21,sgd,one-year-of-tsla-on-reddit,iclr_2024_submissions"
+
+    # --- data subsampling -----------------------------------------------------
     "data.data_subsampling.split=validation"
     "data.data_subsampling.sampling_mode=random"
     "data.data_subsampling.number_of_samples=10000"
     "data.data_subsampling.sampling_seed=778"
 
-    # --- embeddings & local estimates -----------------------------------------
+    # --- embeddings -----------------------------------------
     "embeddings.embedding_data_handler.mode=regular"
     "embeddings.embedding_extraction.layer_indices=[-1]"
     "embeddings_data_prep.sampling.num_samples=150000"
     "embeddings_data_prep.sampling.sampling_mode=random"
     "embeddings_data_prep.sampling.seed=42"
+
+    # --- local estimates ------------------------------------------------------
     "local_estimates=twonn"
     "local_estimates.pointwise.n_neighbors_mode=absolute_size"
     "local_estimates.filtering.deduplication_mode=array_deduplicator"
@@ -132,7 +245,7 @@ COMMON_ARGS=(
 # ---------------------------------------------------------------------------
 export PYTORCH_ENABLE_MPS_FALLBACK=1
 
-echo ">> Running script: ${SCRIPT_PATH} ..."
+echo ">> Running script: ${RELATIVE_SCRIPT_PATH} ..."
 
 # Build the argument list
 ARGS=(
@@ -153,11 +266,14 @@ for arg in "${ARGS[@]}"; do
 done
 echo "===================================================="
 
-# Run the command
-uv run python3 "${RELATIVE_SCRIPT_PATH}" \
-    "${ARGS[@]}"
+# Run or dry-run the command
+if [ "$dry_run" = true ]; then
+    echo "💡 [DRY RUN] Would run:"
+    echo "uv run python3 $RELATIVE_SCRIPT_PATH ${ARGS[*]}"
+else
+    uv run python3 "$RELATIVE_SCRIPT_PATH" "${ARGS[@]}"
+fi
 
 echo ">> Script completed."
-
 echo "Exiting with last status: $?"
 exit $?

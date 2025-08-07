@@ -1,18 +1,4 @@
-# Copyright 2023-2024
-# [ANONYMIZED_INSTITUTION],
-# [ANONYMIZED_FACULTY],
-# [ANONYMIZED_DEPARTMENT]
-#
-# Authors:
-# AUTHOR_1 (author1@example.com)
-#
-# Code generation tools and workflows:
-# First versions of this code were potentially generated
-# with the help of AI writing assistants including
-# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
-# Afterwards, the generated segments were manually reviewed and edited.
-#
-
+"""Convert a list to a string suitable for file paths."""
 
 import warnings
 
@@ -34,7 +20,9 @@ def convert_list_to_path_part(
 
     Returns:
     -------
-        str: A string suitable for file paths.
+        str:
+            A string suitable for file paths.
+            Note that for an empty list, the function returns the empty string.
 
     """
     if input_list is None:
@@ -43,7 +31,7 @@ def convert_list_to_path_part(
     # Convert the elements of the list to strings
     input_list_with_string_values: list[str] = [str(object=item) for item in input_list]
     # Join the string values with the specified delimiter
-    path_part = delimiter.join(
+    path_part: str = delimiter.join(
         input_list_with_string_values,
     )
 
@@ -51,7 +39,7 @@ def convert_list_to_path_part(
         path_part=path_part,
     ):
         warnings.warn(
-            f"{path_part = } is not suitable for file paths.",
+            message=f"{path_part = } is not suitable for file paths.",
             stacklevel=1,
         )
 

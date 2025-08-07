@@ -1,20 +1,3 @@
-# Copyright 2024-2025
-# [ANONYMIZED_INSTITUTION],
-# [ANONYMIZED_FACULTY],
-# [ANONYMIZED_DEPARTMENT]
-#
-# Authors:
-# AUTHOR_1 (author1@example.com)
-# AUTHOR_2 (author2@example.com)
-#
-# Code generation tools and workflows:
-# First versions of this code were potentially generated
-# with the help of AI writing assistants including
-# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
-# Afterwards, the generated segments were manually reviewed and edited.
-#
-
-
 """Create the config for the language model resulting from fine-tuning."""
 
 import logging
@@ -73,8 +56,7 @@ def dump_language_model_config_to_file(
 
     if verbosity >= Verbosity.NORMAL:
         logger.info(
-            "generated_config_path:\n%s",
-            generated_config_path,
+            msg=f"generated_config_path:\n{generated_config_path}",  # noqa: G004 - low overhead
         )
 
     # Convert to yaml string
@@ -120,19 +102,35 @@ def dump_language_model_config_to_file(
             new_language_model_config_yaml_data,
         )
 
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Writing the new language model config to {generated_config_path=} ...",  # noqa: G004
+        )
     with generated_config_path.open(
         mode="w",
     ) as file:
         file.write(
             new_language_model_config_yaml_data,
         )
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Writing the new language model config to {generated_config_path=} DONE",  # noqa: G004
+        )
 
     # Append the name of the generated config to the logs file
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Appending the name of the generated config to {generated_configs_logs_file_path=} ...",  # noqa: G004
+        )
     with generated_configs_logs_file_path.open(
         mode="a",
     ) as file:
         file.write(
             f"{config_file_name}\n",
+        )
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Appending the name of the generated config to {generated_configs_logs_file_path=} DONE",  # noqa: G004
         )
 
 

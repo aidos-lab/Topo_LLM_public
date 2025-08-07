@@ -1,20 +1,3 @@
-# Copyright 2024-2025
-# [ANONYMIZED_INSTITUTION],
-# [ANONYMIZED_FACULTY],
-# [ANONYMIZED_DEPARTMENT]
-#
-# Authors:
-# AUTHOR_1 (author1@example.com)
-# AUTHOR_2 (author2@example.com)
-#
-# Code generation tools and workflows:
-# First versions of this code were potentially generated
-# with the help of AI writing assistants including
-# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
-# Afterwards, the generated segments were manually reviewed and edited.
-#
-
-
 """Basic path manager for the PEFT finetuning mode."""
 
 import logging
@@ -22,7 +5,8 @@ import pathlib
 
 from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
 from topollm.config_classes.finetuning.peft.peft_config import PEFTConfig
-from topollm.path_management.convert_object_to_valid_path_part import convert_list_to_path_part
+from topollm.config_classes.values_to_short_string import bool_to_short_string
+from topollm.path_management.target_modules_to_path_part import target_modules_to_path_part
 from topollm.typing.enums import DescriptionType, FinetuningMode, Verbosity
 
 default_logger: logging.Logger = logging.getLogger(
@@ -183,7 +167,7 @@ class PEFTPathManagerBasic:
                             f"{short_description_separator}"
                             f"{self.peft_config.lora_dropout}"
                             f"{short_description_separator}"
-                            f"{self.peft_config.use_rslora}"
+                            f"{bool_to_short_string(value=self.peft_config.use_rslora)}"
                         )
                     case _:
                         msg: str = f"Unknown finetuning_mode: {self.peft_config.finetuning_mode = }"
@@ -197,22 +181,3 @@ class PEFTPathManagerBasic:
                 )
 
         return description
-
-
-def target_modules_to_path_part(
-    target_modules: list[str] | str | None,
-) -> str:
-    """Convert the target_modules to a path part."""
-    if target_modules is None:
-        target_modules_path_part: str = "None"
-    elif isinstance(
-        target_modules,
-        str,
-    ):
-        target_modules_path_part: str = target_modules
-    else:
-        target_modules_path_part: str = convert_list_to_path_part(
-            input_list=target_modules,
-        )
-
-    return target_modules_path_part

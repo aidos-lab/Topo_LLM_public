@@ -1,9 +1,9 @@
 >>> import transformers
 >>> transformers.__version__
 '4.50.3'
->>> tokenizer = transformers.AutoTokenizer.from_pretrained("meta-llama/Llama-3.1-8B")
+>>> tokenizer = transformers.AutoTokenizer.from_pretrained("meta-llama/Llama-3.2-1B")
 >>> tokenizer
-PreTrainedTokenizerFast(name_or_path='meta-llama/Llama-3.1-8B', vocab_size=128000, model_max_length=131072, is_fast=True, padding_side='right', truncation_side='right', special_tokens={'bos_token': '<|begin_of_text|>', 'eos_token': '<|end_of_text|>'}, clean_up_tokenization_spaces=True, added_tokens_decoder={
+PreTrainedTokenizerFast(name_or_path='meta-llama/Llama-3.2-1B', vocab_size=128000, model_max_length=131072, is_fast=True, padding_side='right', truncation_side='right', special_tokens={'bos_token': '<|begin_of_text|>', 'eos_token': '<|end_of_text|>'}, clean_up_tokenization_spaces=True, added_tokens_decoder={
         128000: AddedToken("<|begin_of_text|>", rstrip=False, lstrip=False, single_word=False, normalized=False, special=True),
         128001: AddedToken("<|end_of_text|>", rstrip=False, lstrip=False, single_word=False, normalized=False, special=True),
         128002: AddedToken("<|reserved_special_token_0|>", rstrip=False, lstrip=False, single_word=False, normalized=False, special=True),
@@ -262,4 +262,7 @@ PreTrainedTokenizerFast(name_or_path='meta-llama/Llama-3.1-8B', vocab_size=12800
         128255: AddedToken("<|reserved_special_token_247|>", rstrip=False, lstrip=False, single_word=False, normalized=False, special=True),
 }
 )
+>>> tokenizer.special_tokens_map
+{'bos_token': '<|begin_of_text|>', 'eos_token': '<|end_of_text|>'}
+>>> tokenizer.pad_token
 >>>

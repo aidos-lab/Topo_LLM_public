@@ -1,26 +1,10 @@
-# Copyright 2024-2025
-# [ANONYMIZED_INSTITUTION],
-# [ANONYMIZED_FACULTY],
-# [ANONYMIZED_DEPARTMENT]
-#
-# Authors:
-# AUTHOR_1 (author1@example.com)
-# AUTHOR_2 (author2@example.com)
-#
-# Code generation tools and workflows:
-# First versions of this code were potentially generated
-# with the help of AI writing assistants including
-# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
-# Afterwards, the generated segments were manually reviewed and edited.
-#
-
-
 """Configuration class for specifying data split."""
 
 from pydantic import Field
 
 from topollm.config_classes.config_base_model import ConfigBaseModel
 from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
+from topollm.config_classes.values_to_short_string import bool_to_short_string
 from topollm.typing.enums import DataSplitMode, DescriptionType
 
 
@@ -110,7 +94,8 @@ class DataSplittingConfig(ConfigBaseModel):
                     case DescriptionType.LONG:
                         description: str = f"{NAME_PREFIXES['data_splitting_mode']}{KV_SEP}{self.data_splitting_mode}"
                     case DescriptionType.SHORT:
-                        description: str = f"{self.data_splitting_mode}"
+                        # Short description for DO_NOTHING mode is just "dn"
+                        description: str = "dn"
                     case _:
                         msg: str = f"Invalid {description_type = }"
                         raise ValueError(msg)
@@ -128,8 +113,9 @@ class DataSplittingConfig(ConfigBaseModel):
                             )
                         }"
                     case DescriptionType.SHORT:
-                        description: str = f"{self.data_splitting_mode}"
-                        description += f"{short_description_separator}{self.split_shuffle}"
+                        # Short description for PROPORTIONS mode is "pr"
+                        description: str = "pr"
+                        description += f"{short_description_separator}{bool_to_short_string(value=self.split_shuffle)}"
                         description += f"{short_description_separator}{self.split_seed}"
                         description += f"{short_description_separator}{
                             self.proportions.get_config_description(

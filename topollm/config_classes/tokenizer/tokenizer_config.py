@@ -1,24 +1,10 @@
-# Copyright 2024
-# [ANONYMIZED_INSTITUTION],
-# [ANONYMIZED_FACULTY],
-# [ANONYMIZED_DEPARTMENT]
-#
-# Authors:
-# AUTHOR_1 (author1@example.com)
-# AUTHOR_2 (author2@example.com)
-#
-# Code generation tools and workflows:
-# First versions of this code were potentially generated
-# with the help of AI writing assistants including
-# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
-# Afterwards, the generated segments were manually reviewed and edited.
-#
-
+"""Tokenizer configuration class."""
 
 from pydantic import Field
 
 from topollm.config_classes.config_base_model import ConfigBaseModel
 from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
+from topollm.config_classes.values_to_short_string import bool_to_short_string
 from topollm.typing.enums import DescriptionType
 
 
@@ -65,7 +51,7 @@ class TokenizerConfig(ConfigBaseModel):
                 description: str = (
                     f"{NAME_PREFIXES['add_prefix_space_short']}"
                     f"{short_description_separator}"
-                    f"{str(object=self.add_prefix_space)}"
+                    f"{bool_to_short_string(value=self.add_prefix_space)}"
                     f"{short_description_separator}"
                     f"{NAME_PREFIXES['max_length_short']}"
                     f"{short_description_separator}"

@@ -2,6 +2,7 @@ defaults:
   - _self_
 
 analysis:
+  skip_global_and_pointwise_local_estimates_worker_in_pipeline: false
   create_plots_in_local_estimates_worker: false
   compare_sampling_methods:
     do_iterate_all_partial_search_base_directories: true

@@ -66,28 +66,33 @@ BASE_ARGS=(
 # >> Local run
 #
 HYDRA_LAUNCHER_ARGS=(
-    "hydra/launcher=basic"
-    # Notes: 
-    # - Locally on a MacBook Pro M1 with 16GB of memory, 
-    #   loading Phi-3.5 on MPS is not possible.
-    # "preferred_torch_backend=auto"
-    "preferred_torch_backend=cpu"
+    # "hydra/launcher=basic"
+    # # Notes: 
+    # # - Locally on a MacBook Pro M1 with 16GB of memory, 
+    # #   loading Phi-3.5 on MPS is not possible.
+    # # "preferred_torch_backend=auto"
+    # "preferred_torch_backend=cpu"
 )
 #
 # >> HPC run
 #
-# HYDRA_LAUNCHER_ARGS=(
-#     "hydra/launcher=hpc_submission"
-#     "hydra.launcher.queue=CUDA"
-#     # >>> GPU selection
-#     "hydra.launcher.template=RTX6000" # Note: 12 GB of GPU memory appears to not be enough for the GPT-2 pipeline, i.e., do not select the "hydra.launcher.template=GTX1080"
-#     # >>> Other resources
-#     "hydra.launcher.memory=50" # <-- The embeddings data prep step failed with 32GB of memory for the GPT2 medium model. 
-#     "hydra.launcher.ncpus=2" # <-- Make sure not to use more than 2 CPUs per GPU on the GTX1080TI and RTX6000 nodes.
-#     "hydra.launcher.ngpus=1"
-#     # The pipeline run for regular embeddings can take longer than an hour for large models.
-#     "hydra.launcher.walltime=04:00:00" 
-# )
+HYDRA_LAUNCHER_ARGS=(
+    "hydra/launcher=hpc_submission"
+    "hydra.launcher.queue=CUDA"
+    # >>> GPU selection
+    # > Notes: 
+    # > - 12 GB of GPU memory appears to not be enough for the GPT-2 pipeline, i.e., do not select "hydra.launcher.template=GTX1080" for GPT-2.
+    # > - 24 GB of GPU memory is enough for the embedding computation for the 1B and 3B variants of the Llama-3 models,
+    # >   but NOT enough for the 8B variant. For the 8B variant, do NOT select "hydra.launcher.template=RTX6000". 
+    # "hydra.launcher.template=RTX6000"
+    "hydra.launcher.template=RTX8000"
+    # >>> Other resources
+    "hydra.launcher.memory=50" # <-- The embeddings data prep step failed with 32GB of memory for the GPT2 medium model. 
+    "hydra.launcher.ncpus=2" # <-- Make sure not to use more than 2 CPUs per GPU on the GTX1080TI and RTX6000 nodes.
+    "hydra.launcher.ngpus=1"
+    # The pipeline run for regular embeddings can take longer than an hour for large models.
+    "hydra.launcher.walltime=04:00:00" 
+)
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # START: Python script - Command line arguments
@@ -124,7 +129,7 @@ DATA_ARGS=(
 # ===== Phi-3.5 and Phi-4 models ===== #
 # https://huggingface.co/collections/microsoft/phi-3-6626e15e9585a200d2d761e3
 
-# LANGUAGE_MODEL_LIST="Phi-3.5-mini-instruct"
+# LANGUAGE_MODEL_LIST="Phi-3.5-mini-instruct" # <-- "microsoft/Phi-3.5-mini-instruct" model with 3.8B parameters (Safetensors: 3.82B parameters).
 # LANGUAGE_MODEL_LIST="Phi-4-mini-instruct"
 
 # ===== Gemma models ===== #
@@ -136,9 +141,15 @@ DATA_ARGS=(
 # ===== LLama models ===== #
 
 # Notes:
-# - There is no 8B variant of the Llama-3.2 models.
+# - There is no 8B variant of the Llama-3.2 models, this only exists for the Llama-3.1 models.
+
+# LANGUAGE_MODEL_LIST="Llama-3.2-1B" # <-- (Safetensors: 1.24B parameters)
+# LANGUAGE_MODEL_LIST="Llama-3.2-3B" # <-- (Safetensors: 3.21B parameters)
 
 LANGUAGE_MODEL_LIST="Llama-3.1-8B" # <-- (Safetensors: 8.03B parameters)
+
+# Multiple Llama-3 models:
+# LANGUAGE_MODEL_LIST="Llama-3.2-1B,Llama-3.2-3B,Llama-3.1-8B"
 
 # # # # # # # # # # # # # # # # # # # #
 
@@ -172,9 +183,9 @@ EMBEDDINGS_ARGS=(
     "embeddings.embedding_extraction.layer_indices=$LAYER_INDICES_LIST"
 )
 
-DATA_NUMBER_OF_SAMPLES="16"
+# DATA_NUMBER_OF_SAMPLES="16"
 # DATA_NUMBER_OF_SAMPLES="128"
-# DATA_NUMBER_OF_SAMPLES="512"
+DATA_NUMBER_OF_SAMPLES="512"
 # DATA_NUMBER_OF_SAMPLES="3000"
 
 # EMBEDDINGS_DATA_PREP_NUM_SAMPLES="1000"

@@ -1,20 +1,3 @@
-# Copyright 2024-2025
-# [ANONYMIZED_INSTITUTION],
-# [ANONYMIZED_FACULTY],
-# [ANONYMIZED_DEPARTMENT]
-#
-# Authors:
-# AUTHOR_1 (author1@example.com)
-# AUTHOR_2 (author2@example.com)
-#
-# Code generation tools and workflows:
-# First versions of this code were potentially generated
-# with the help of AI writing assistants including
-# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
-# Afterwards, the generated segments were manually reviewed and edited.
-#
-
-
 """Path manager for finetuning with basic functionality."""
 
 import logging
@@ -143,7 +126,7 @@ class FinetuningPathManagerBasic:
             + str(
                 # Note: the short finetuning parameters description does NOT contain:
                 # - the finetuning seed
-                # - the current epoch
+                # - the current global step/epoch/checkpoint number
                 # We handle these through value interpolation via the hydra config system.
                 object=self.get_finetuning_parameters_description_for_short_model_name(
                     short_description_separator=short_description_separator,
@@ -193,7 +176,7 @@ class FinetuningPathManagerBasic:
     def finetuning_reproducibility_description(
         self,
     ) -> str:
-        description: str = NAME_PREFIXES["seed"] + KV_SEP + str(self.finetuning_config.seed)
+        description: str = NAME_PREFIXES["seed"] + KV_SEP + str(object=self.finetuning_config.seed)
 
         return description
 

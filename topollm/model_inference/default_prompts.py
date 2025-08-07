@@ -35,6 +35,7 @@ def get_default_clm_prompts() -> list[str]:
         "The train should go to",
         "No, it should be",
         "No, you did not understand me! I want",
+        "user: Are you kidding me? You are the",
         "I'm so excited to visit",
         "Cambridge is",
         "I would like to invest in",

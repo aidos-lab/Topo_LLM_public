@@ -1,0 +1,3 @@
+defaults:
+  - ../../language_model@_here_: Llama-3.2-3B
+  - _self_
