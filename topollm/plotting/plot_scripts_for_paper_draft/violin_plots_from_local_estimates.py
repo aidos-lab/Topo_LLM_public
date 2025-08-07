@@ -9,6 +9,7 @@ import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
+from pydantic import BaseModel
 from tqdm import tqdm
 
 from topollm.config_classes.constants import TOPO_LLM_REPOSITORY_BASE_PATH
@@ -24,6 +25,8 @@ class BaseModelMode(StrEnum):
     PHI_35_MINI_INSTRUCT = auto()
 
     LLAMA_32_1B = auto()
+    LLAMA_32_3B = auto()
+    LLAMA_31_8B = auto()
 
 
 @unique
@@ -67,10 +70,12 @@ def main() -> None:
 
     # for base_model_mode in BaseModelMode:
     for base_model_mode in [
-        # BaseModelMode.ROBERTA_BASE,
-        # BaseModelMode.GPT2_MEDIUM,
-        # BaseModelMode.PHI_35_MINI_INSTRUCT,
+        BaseModelMode.ROBERTA_BASE,
+        BaseModelMode.GPT2_MEDIUM,
+        BaseModelMode.PHI_35_MINI_INSTRUCT,
         BaseModelMode.LLAMA_32_1B,
+        BaseModelMode.LLAMA_32_3B,
+        BaseModelMode.LLAMA_31_8B,
     ]:
         # List of second models and corresponding labels
 
@@ -136,9 +141,22 @@ def main() -> None:
                             ),
                         ],
                     )
-            case BaseModelMode.LLAMA_32_1B:
-                first_label: str = "Llama-3.1-8B"
-                first_model_path: str = "model=Llama-3.2-1B_task=causal_lm_dr=defaults"
+            case BaseModelMode.LLAMA_32_1B | BaseModelMode.LLAMA_32_3B | BaseModelMode.LLAMA_31_8B:
+                match base_model_mode:
+                    case BaseModelMode.LLAMA_32_1B:
+                        base_model_str_part = "Llama-3.2-1B"
+                    case BaseModelMode.LLAMA_32_3B:
+                        base_model_str_part = "Llama-3.2-3B"
+                    case BaseModelMode.LLAMA_31_8B:
+                        base_model_str_part = "Llama-3.1-8B"
+                    case _:
+                        msg: str = f"Unsupported base model mode for Llama models: {base_model_mode=}"
+                        raise ValueError(
+                            msg,
+                        )
+
+                first_label: str = base_model_str_part
+                first_model_path: str = f"model={base_model_str_part}_task=causal_lm_dr=defaults"
 
                 checkpoint_no_options: list[int] = [
                     800,
@@ -149,14 +167,14 @@ def main() -> None:
                     second_models_and_labels.extend(
                         [
                             (
-                                f"model=Llama-3.2-1B-causal_lm-defaults_multiwoz21-r-T-dn-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5"
+                                f"model={base_model_str_part}-causal_lm-defaults_multiwoz21-r-T-dn-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5"
                                 f"_seed-1234_ckpt-{checkpoint_no}_task=causal_lm_dr=defaults",
-                                f"Llama-3.2-1B fine-tuned on MultiWOZ gs={checkpoint_no}",
+                                f"{base_model_str_part} fine-tuned on MultiWOZ gs={checkpoint_no}",
                             ),
                             (
-                                f"model=Llama-3.2-1B-causal_lm-defaults_one-year-of-tsla-on-reddit-r-T-pr-T-0-0.8-0.1-0.1-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5"
+                                f"model={base_model_str_part}-causal_lm-defaults_one-year-of-tsla-on-reddit-r-T-pr-T-0-0.8-0.1-0.1-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5"
                                 f"_seed-1234_ckpt-{checkpoint_no}_task=causal_lm_dr=defaults",
-                                f"Llama-3.2-1B fine-tuned on Reddit gs={checkpoint_no}",
+                                f"{base_model_str_part} fine-tuned on Reddit gs={checkpoint_no}",
                             ),
                         ],
                     )

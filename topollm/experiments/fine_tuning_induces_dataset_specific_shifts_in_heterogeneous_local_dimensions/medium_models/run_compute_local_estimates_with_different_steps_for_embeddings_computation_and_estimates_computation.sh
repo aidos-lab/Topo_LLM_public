@@ -180,8 +180,6 @@ LANGUAGE_MODEL_ARGS=(
     # "language_model=Llama-3.2-3B" # <-- (Safetensors: 3.21B parameters)
     # "language_model=Llama-3.2-3B-causal_lm-defaults_multiwoz21-r-T-dn-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5"
     # "language_model=Llama-3.2-3B-causal_lm-defaults_one-year-of-tsla-on-reddit-r-T-pr-T-0-0.8-0.1-0.1-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5"
-    # RUNNING: Compute embeddings step for 3B Llama models.
-    # TODO: Compute local estimates step for 3B Llama models.
     #
     #
     # > Two smaller Llama base models combined:
@@ -194,8 +192,6 @@ LANGUAGE_MODEL_ARGS=(
     # "language_model=Llama-3.1-8B" # <-- (Safetensors: 8.03B parameters)"
     # "language_model=Llama-3.1-8B-causal_lm-defaults_multiwoz21-r-T-dn-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5"
     "language_model=Llama-3.1-8B-causal_lm-defaults_one-year-of-tsla-on-reddit-r-T-pr-T-0-0.8-0.1-0.1-ner_tags_tr-10000-r-778_aps-F-mx-512_lora-16-32-o_proj_q_proj_k_proj_v_proj-0.01-T_5e-05-linear-0.01-f-None-5"
-    # RUNNING: Compute embeddings step for 8B Llama models.
-    # TODO: Compute local estimates step for 8B Llama models.
     #
     # > Checkpoints:
     # "++language_model.checkpoint_no=-1"
