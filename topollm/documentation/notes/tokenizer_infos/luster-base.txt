@@ -1,9 +1,10 @@
+>>> import os
 >>> import transformers
 >>> transformers.__version__
 '4.50.3'
->>> tokenizer = transformers.AutoTokenizer.from_pretrained("microsoft/Phi-3.5-mini-instruct")
+>>> tokenizer = transformers.AutoTokenizer.from_pretrained(os.environ.get("LUSTER_REPOSITORY_BASE_PATH") + "/data/model_checkpoints/luster-base")
 >>> tokenizer
-LlamaTokenizerFast(name_or_path='microsoft/Phi-3.5-mini-instruct', vocab_size=32000, model_max_length=131072, is_fast=True, padding_side='left', truncation_side='right', special_tokens={'bos_token': '<s>', 'eos_token': '<|endoftext|>', 'unk_token': '<unk>', 'pad_token': '<|endoftext|>'}, clean_up_tokenization_spaces=False, added_tokens_decoder={
+LlamaTokenizerFast(name_or_path='$LUSTER_REPOSITORY_BASE_PATH/data/model_checkpoints/luster-base', vocab_size=32000, model_max_length=131072, is_fast=True, padding_side='left', truncation_side='left', special_tokens={'bos_token': '<s>', 'eos_token': '<|endoftext|>', 'unk_token': '<unk>', 'pad_token': '<|endoftext|>'}, clean_up_tokenization_spaces=False, added_tokens_decoder={
         0: AddedToken("<unk>", rstrip=False, lstrip=False, single_word=False, normalized=False, special=True),
         1: AddedToken("<s>", rstrip=False, lstrip=False, single_word=False, normalized=False, special=True),
         2: AddedToken("</s>", rstrip=True, lstrip=False, single_word=False, normalized=False, special=False),
