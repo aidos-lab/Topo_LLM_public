@@ -141,10 +141,18 @@ HYDRA_LAUNCHER_ARGS=(
 # > Base model:
 # LANGUAGE_MODEL_LIST="Phi-3.5-mini-instruct"
 
+# LANGUAGE_MODEL_LIST="luster-base"
+# LANGUAGE_MODEL_LIST="luster-base-emotion"
+# LANGUAGE_MODEL_LIST="luster-chitchat"
+# LANGUAGE_MODEL_LIST="luster-full"
 # LANGUAGE_MODEL_LIST="luster-rl-sent"
+# LANGUAGE_MODEL_LIST="luster-rl-succ"
 
-# > Models combined:
-LANGUAGE_MODEL_LIST="Phi-3.5-mini-instruct,luster-rl-sent"
+# > Base model and alternative model combined:
+# LANGUAGE_MODEL_LIST="Phi-3.5-mini-instruct,luster-rl-sent"
+
+# > All LUSTER models combined:
+LANGUAGE_MODEL_LIST="luster-base,luster-base-emotion,luster-chitchat,luster-full,luster-rl-sent,luster-rl-succ"
 
 # ===== Gemma models ===== #
 # https://huggingface.co/collections/google/gemma-3-release-67c6c6f89c4f76621268bb6d

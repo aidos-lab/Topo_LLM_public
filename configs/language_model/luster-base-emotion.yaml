@@ -1,0 +1,9 @@
+defaults:
+  - tokenizer_modifier: do_nothing
+  - _self_
+
+lm_mode: clm
+task_type: causal_lm
+
+pretrained_model_name_or_path: ${paths.luster_repository_base_path}/data/model_checkpoints/luster-base-emotion
+short_model_name: luster-base-emotion
