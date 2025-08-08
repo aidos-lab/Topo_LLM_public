@@ -151,8 +151,11 @@ HYDRA_LAUNCHER_ARGS=(
 # > Base model and alternative model combined:
 # LANGUAGE_MODEL_LIST="Phi-3.5-mini-instruct,luster-rl-sent"
 
+# > Selection of LUSTER models trained via ArcherTrainer:
+LANGUAGE_MODEL_LIST="luster-full,luster-rl-succ"
+
 # > All LUSTER models combined:
-LANGUAGE_MODEL_LIST="luster-base,luster-base-emotion,luster-chitchat,luster-full,luster-rl-sent,luster-rl-succ"
+# LANGUAGE_MODEL_LIST="luster-base,luster-base-emotion,luster-chitchat,luster-full,luster-rl-sent,luster-rl-succ"
 
 # ===== Gemma models ===== #
 # https://huggingface.co/collections/google/gemma-3-release-67c6c6f89c4f76621268bb6d
