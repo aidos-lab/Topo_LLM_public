@@ -9,6 +9,7 @@ __pycache__
 # Names for backup virtual environments
 .venv.backup.*
 
+tests/temp_files/
 .coverage
 .coverage.*
 

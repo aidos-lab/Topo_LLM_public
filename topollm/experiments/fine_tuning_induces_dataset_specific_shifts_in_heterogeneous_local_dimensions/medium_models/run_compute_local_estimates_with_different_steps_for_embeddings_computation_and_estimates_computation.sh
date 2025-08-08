@@ -197,8 +197,7 @@ LANGUAGE_MODEL_ARGS=(
     #
     # > Selection of LUSTER models trained via ArcherTrainer:
     "language_model=luster-full,luster-rl-succ"
-    # TODO: Run compute_embeddings
-    # TODO: Run compute_local_estimates
+    # RUNNING: Run compute_local_estimates
     #
     # > All six variants of LUSTER models:
     # "language_model=luster-base,luster-base-emotion,luster-chitchat,luster-full,luster-rl-sent,luster-rl-succ"
