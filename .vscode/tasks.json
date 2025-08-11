@@ -4,22 +4,8 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "rsync git repository to HPC cluster",
-            "command": "./topollm/scripts/hhu_hilbert/sync_data/rsync_git_repository_to_hhu_hilbert.sh",
-            "type": "shell",
-            "group": {
-                "kind": "build",
-                "isDefault": false
-            },
-            "presentation": {
-                "reveal": "always",
-                "panel": "new",
-                "focus": false
-            }
-        },
-        {
             "label": "Local - Sync from local to HPC cluster - Trippy-R code",
-            "command": "./topollm/scripts/hhu_hilbert/sync_data/rsync_trippy_r_code_to_hhu_hilbert.sh",
+            "command": "./topollm/scripts/hhu_hilbert/sync_data/rsync_to_cluster_backend.sh --group trippy-r-code",
             "type": "shell",
             "group": {
                 "kind": "build",
@@ -409,7 +395,7 @@
         },
         {
             "label": "Local - Sync from local to HPC cluster - huggingface cache",
-            "command": "./topollm/scripts/hhu_hilbert/sync_data/rsync_huggingface_cache_to_hhu_hilbert.sh",
+            "command": "./topollm/scripts/hhu_hilbert/sync_data/rsync_to_cluster_backend.sh --group hf-cache",
             "type": "shell",
             "group": {
                 "kind": "build",

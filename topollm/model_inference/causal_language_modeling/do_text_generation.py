@@ -19,7 +19,8 @@ def do_text_generation(
     tokenizer: transformers.PreTrainedTokenizer | transformers.PreTrainedTokenizerFast,
     model: transformers.PreTrainedModel,
     prompts: list[str],
-    max_length: int = 50,
+    max_length: int | None = None,
+    max_new_tokens: int | None = 100,
     num_return_sequences: int = 3,
     device: torch.device = default_device,
     logger: logging.Logger = default_logger,
@@ -51,14 +52,14 @@ def do_text_generation(
         model=model,
         tokenizer=tokenizer,
         device=device,
+        max_new_tokens=max_new_tokens,
         max_length=max_length,
         num_return_sequences=num_return_sequences,
         do_sample=True,
     )
 
     logger.info(
-        "prompts:\n%s",
-        pprint.pformat(prompts),
+        msg=f"prompts:\n{pprint.pformat(prompts)}",  # noqa: G004 - low overhead
     )
 
     all_generated_texts: list[list[str]] = []

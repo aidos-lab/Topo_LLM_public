@@ -100,8 +100,12 @@ default-groups = ["dev", "cpu", "gpu"]
 # default = true
 
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["uv_build>=0.8.6,<0.9.0"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "topollm"
+module-root = ""
 
 [tool.ruff]
 # extend = "$HOME/.config/ruff.toml"

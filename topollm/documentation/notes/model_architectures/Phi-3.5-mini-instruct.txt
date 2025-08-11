@@ -1,3 +1,6 @@
+>>> import transformers
+>>> transformers.__version__
+'4.50.3'
 >>> model = transformers.AutoModelForCausalLM.from_pretrained("microsoft/Phi-3.5-mini-instruct")
 Loading checkpoint shards: 100%|█████████████████████████| 2/2 [00:19<00:00, 10.00s/it]
 >>> model
