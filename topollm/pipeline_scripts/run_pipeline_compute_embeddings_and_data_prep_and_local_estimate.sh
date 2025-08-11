@@ -156,12 +156,12 @@ DATASET_TYPE_LINE=""
 DATA_ARGS=(
     # "data=multiwoz21_validation"
     # "data=multiwoz21_validation,iclr_2024_submissions,wikitext"
-    # TODO: Try out the LUSTER data
-    # TODO: Column 'source' and 'target' for LUSTER data
+    # TODO: Create concatenated 'source' + 'target' column for LUSTER data
     # TODO: Use concatenated 'source' + 'target' for LUSTER data
     # TODO: Implement the token mask for the local estimates computation
     "data=luster"
     "data.column_name=source"
+    # "data.column_name=target"
     $DATASET_TYPE_LINE
 )
  

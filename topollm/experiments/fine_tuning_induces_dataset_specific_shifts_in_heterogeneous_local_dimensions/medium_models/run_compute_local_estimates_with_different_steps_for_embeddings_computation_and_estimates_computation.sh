@@ -195,8 +195,11 @@ LANGUAGE_MODEL_ARGS=(
     #
     # ===== LUSTER models ===== #
     #
+    # > Base model:
+    "language_model=Phi-3.5-mini-instruct"
+    #
     # > Selection of LUSTER models trained via ArcherTrainer:
-    "language_model=luster-full,luster-rl-succ"
+    # "language_model=luster-full,luster-rl-succ"
     #
     # > All six variants of LUSTER models:
     # "language_model=luster-base,luster-base-emotion,luster-chitchat,luster-full,luster-rl-sent,luster-rl-succ"
@@ -225,12 +228,19 @@ COMMON_ARGS=(
     # --- data ------------------------------------------------------------------
     # "data=multiwoz21"
     # "data=wikitext-103-v1"
-    "data=multiwoz21,sgd,one-year-of-tsla-on-reddit,wikitext-103-v1,iclr_2024_submissions"
+    # "data=multiwoz21,sgd,one-year-of-tsla-on-reddit,wikitext-103-v1,iclr_2024_submissions"
+    
     # > Without wikitext-103-v1:
     # "data=multiwoz21,sgd,one-year-of-tsla-on-reddit,iclr_2024_submissions"
 
+    # > LUSTER data
+    "data=luster"
+    "data.column_name=source"
+
     # --- data subsampling -----------------------------------------------------
-    "data.data_subsampling.split=validation"
+    # "data.data_subsampling.split=validation"
+    "data.data_subsampling.split=train,validation,test"
+    
     "data.data_subsampling.sampling_mode=random"
     "data.data_subsampling.number_of_samples=10000"
     "data.data_subsampling.sampling_seed=778"
