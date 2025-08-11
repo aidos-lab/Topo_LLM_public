@@ -13,6 +13,12 @@ LANGUAGE_MODEL="Llama-3.2-1B"
 
 PROMPTS="['The hotel should be in the', 'I would like to invest in', 'The Eiffel tower is located in', 'Eigenspaces corresponding to distinct eigenvalues are']"
 
+MAX_LENGTH="null"
+MAX_NEW_TOKENS="150"
+
+# MAX_LENGTH="null"
+# MAX_NEW_TOKENS="null"
+
 uv run python3 topollm/model_inference/run_inference_pipeline.py \
     --multirun \
     hydra/sweeper="basic" \
@@ -20,6 +26,8 @@ uv run python3 topollm/model_inference/run_inference_pipeline.py \
     preferred_torch_backend="auto" \
     language_model="$LANGUAGE_MODEL" \
     inference.prompts="$PROMPTS" \
+    inference.max_length="$MAX_LENGTH" \
+    inference.max_new_tokens="$MAX_NEW_TOKENS" \
     global_seed="1111" \
     inference.include_timestamp_in_filename="True" \
     feature_flags.wandb.use_wandb="False" \
