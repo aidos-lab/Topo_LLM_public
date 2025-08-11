@@ -3,30 +3,56 @@
 # # # # # # # # # # # # # # # # # # # # # # # # #
 # Default values
 
-# Initialize dry_run flag to false
+# Initialize flags / required parameters
 dry_run=false
+launcher=""  # <-- REQUIRED. Must be provided via --launcher <basic|basic_cpu|hpc_submission>
 
 # # # # # # # # # # # # # # # # # # # # # # # # #
 # Function to print usage
 usage() {
-    echo "💡 Usage: $0 [--dry-run]"
+    echo "💡 Usage: $0 --launcher <basic|basic_cpu|hpc_submission> [--dry-run] [additional hydra overrides ...]"
+    echo "    --launcher <value> : REQUIRED. Select launcher type ('basic', 'basic_cpu', or 'hpc_submission')."
+    echo "    --dry-run          : Only print the constructed command, do not execute it."
+    echo "    [additional args]  : Any further arguments are passed through as Hydra overrides."
     exit 1
 }
 
-# Parse command line options
+POSITIONAL_ARGS=()
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         --dry-run)
             dry_run=true
-            shift # Remove the --dry_run argument
+            shift
             ;;
-        *)
+        --launcher)
+            if [[ -n "$2" && ! "$2" =~ ^-- ]]; then
+                launcher="$2"
+                shift 2
+            else
+                echo "❌ Error: --launcher requires a value ('basic' | 'basic_cpu' | 'hpc_submission')"
+                usage
+            fi
+            ;;
+        --help|-h)
+            usage
+            ;;
+        --*)
             echo "❌ Error: Unknown option: $1"
             usage
-            exit 1
+            ;;
+        *)
+            POSITIONAL_ARGS+=("$1")
+            shift
             ;;
     esac
 done
+set -- "${POSITIONAL_ARGS[@]}"
+
+# Validate required parameters
+if [[ -z "$launcher" ]]; then
+    echo "❌ Error: --launcher argument is required."
+    usage
+fi
 
 # # # # # # # # # # # # # # # # # # # # # # # # #
 # Check if environment variables are set
@@ -54,6 +80,14 @@ PYTHON_SCRIPT_NAME="run_pipeline_compute_embeddings_and_data_prep_and_local_esti
 RELATIVE_PYTHON_SCRIPT_PATH="topollm/pipeline_scripts/${PYTHON_SCRIPT_NAME}"
 ABSOLUTE_PYTHON_SCRIPT_PATH="${TOPO_LLM_REPOSITORY_BASE_PATH}/${RELATIVE_PYTHON_SCRIPT_PATH}"
 
+echo "===================================================="
+echo ">> Parsed arguments:"
+echo "===================================================="
+echo "  dry_run: ${dry_run}"
+echo "  launcher: ${launcher}"
+echo "  positional args (passed through): ${POSITIONAL_ARGS[*]}"
+echo "===================================================="
+
 
 # ==================================================== #
 # >>> START Select parameters
@@ -63,36 +97,53 @@ BASE_ARGS=(
     "hydra/sweeper=basic"
 )
 
-# >> Local run
+# Launcher selection (required --launcher argument)
 #
-HYDRA_LAUNCHER_ARGS=(
-    "hydra/launcher=basic"
-    # Notes: 
-    # - Locally on a MacBook Pro M1 with 16GB of memory, 
-    #   loading Phi-3.5 on MPS is not possible.
-    # "preferred_torch_backend=auto"
-    "preferred_torch_backend=cpu"
-)
+# Notes: 
+# - Locally on a MacBook Pro M1 with 16GB of memory, 
+#   loading Phi-3.5 on MPS is not possible.
 #
-# >> HPC run
-#
-HYDRA_LAUNCHER_ARGS=(
-    # "hydra/launcher=hpc_submission"
-    # "hydra.launcher.queue=CUDA"
-    # # >>> GPU selection
-    # # > Notes: 
-    # # > - 12 GB of GPU memory appears to not be enough for the GPT-2 pipeline, i.e., do not select "hydra.launcher.template=GTX1080" for GPT-2.
-    # # > - 24 GB of GPU memory is enough for the embedding computation for the 1B and 3B variants of the Llama-3 models,
-    # # >   but NOT enough for the 8B variant. For the 8B variant, do NOT select "hydra.launcher.template=RTX6000". 
-    # # "hydra.launcher.template=RTX6000"
-    # "hydra.launcher.template=RTX8000"
-    # # >>> Other resources
-    # "hydra.launcher.memory=50" # <-- The embeddings data prep step failed with 32GB of memory for the GPT2 medium model. 
-    # "hydra.launcher.ncpus=2" # <-- Make sure not to use more than 2 CPUs per GPU on the GTX1080TI and RTX6000 nodes.
-    # "hydra.launcher.ngpus=1"
-    # # The pipeline run for regular embeddings can take longer than an hour for large models.
-    # "hydra.launcher.walltime=04:00:00" 
-)
+case "$launcher" in
+    basic)
+        # >> Local run
+        LAUNCHER_ARGS=(
+            "hydra/launcher=basic"
+            "preferred_torch_backend=auto"
+        )
+        ;;
+    basic_cpu)
+        # >> Local run
+        # Same as 'basic' except for explicit CPU torch backend selection
+        LAUNCHER_ARGS=(
+            "hydra/launcher=basic"
+            "preferred_torch_backend=cpu"
+        )
+        ;;
+    hpc_submission)
+        # >> HPC run
+        LAUNCHER_ARGS=(
+            "hydra/launcher=hpc_submission"
+            "hydra.launcher.queue=CUDA"
+            # >>> GPU selection
+            # > Notes: 
+            # > - 12 GB of GPU memory appears to not be enough for the GPT-2 pipeline, i.e., do not select "hydra.launcher.template=GTX1080" for GPT-2.
+            # > - 24 GB of GPU memory is enough for the embedding computation for the 1B and 3B variants of the Llama-3 models,
+            # >   but NOT enough for the 8B variant. For the 8B variant, do NOT select "hydra.launcher.template=RTX6000". 
+            "hydra.launcher.template=RTX6000"
+            # "hydra.launcher.template=RTX8000"
+            # >>> Other resources
+            "hydra.launcher.memory=50"   # <-- The embeddings data prep step failed with 32GB of memory for the GPT2 medium model.
+            "hydra.launcher.ncpus=2"     # <-- Make sure not to use more than 2 CPUs per GPU on the GTX1080TI and RTX6000 nodes.
+            "hydra.launcher.ngpus=1"
+            # The pipeline run for regular embeddings can take longer than an hour for large models.
+            "hydra.launcher.walltime=04:00:00" 
+        )
+        ;;
+    *)
+        echo "❌ Error: Unknown launcher value '$launcher' (expected one of: basic, basic_cpu, hpc_submission)."
+        usage
+        ;;
+esac
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # START: Python script - Command line arguments
@@ -252,7 +303,7 @@ COMMON_ARGS=(
 
 ARGS=(
     "${BASE_ARGS[@]}"
-    "${HYDRA_LAUNCHER_ARGS[@]}"
+    "${LAUNCHER_ARGS[@]}"
     "${DATA_ARGS[@]}"
     "${LANGUAGE_MODEL_ARGS[@]}"
     "${EMBEDDINGS_ARGS[@]}"
