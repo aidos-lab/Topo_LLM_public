@@ -66,32 +66,32 @@ BASE_ARGS=(
 # >> Local run
 #
 HYDRA_LAUNCHER_ARGS=(
-    # "hydra/launcher=basic"
-    # # Notes: 
-    # # - Locally on a MacBook Pro M1 with 16GB of memory, 
-    # #   loading Phi-3.5 on MPS is not possible.
-    # # "preferred_torch_backend=auto"
-    # "preferred_torch_backend=cpu"
+    "hydra/launcher=basic"
+    # Notes: 
+    # - Locally on a MacBook Pro M1 with 16GB of memory, 
+    #   loading Phi-3.5 on MPS is not possible.
+    # "preferred_torch_backend=auto"
+    "preferred_torch_backend=cpu"
 )
 #
 # >> HPC run
 #
 HYDRA_LAUNCHER_ARGS=(
-    "hydra/launcher=hpc_submission"
-    "hydra.launcher.queue=CUDA"
-    # >>> GPU selection
-    # > Notes: 
-    # > - 12 GB of GPU memory appears to not be enough for the GPT-2 pipeline, i.e., do not select "hydra.launcher.template=GTX1080" for GPT-2.
-    # > - 24 GB of GPU memory is enough for the embedding computation for the 1B and 3B variants of the Llama-3 models,
-    # >   but NOT enough for the 8B variant. For the 8B variant, do NOT select "hydra.launcher.template=RTX6000". 
-    # "hydra.launcher.template=RTX6000"
-    "hydra.launcher.template=RTX8000"
-    # >>> Other resources
-    "hydra.launcher.memory=50" # <-- The embeddings data prep step failed with 32GB of memory for the GPT2 medium model. 
-    "hydra.launcher.ncpus=2" # <-- Make sure not to use more than 2 CPUs per GPU on the GTX1080TI and RTX6000 nodes.
-    "hydra.launcher.ngpus=1"
-    # The pipeline run for regular embeddings can take longer than an hour for large models.
-    "hydra.launcher.walltime=04:00:00" 
+    # "hydra/launcher=hpc_submission"
+    # "hydra.launcher.queue=CUDA"
+    # # >>> GPU selection
+    # # > Notes: 
+    # # > - 12 GB of GPU memory appears to not be enough for the GPT-2 pipeline, i.e., do not select "hydra.launcher.template=GTX1080" for GPT-2.
+    # # > - 24 GB of GPU memory is enough for the embedding computation for the 1B and 3B variants of the Llama-3 models,
+    # # >   but NOT enough for the 8B variant. For the 8B variant, do NOT select "hydra.launcher.template=RTX6000". 
+    # # "hydra.launcher.template=RTX6000"
+    # "hydra.launcher.template=RTX8000"
+    # # >>> Other resources
+    # "hydra.launcher.memory=50" # <-- The embeddings data prep step failed with 32GB of memory for the GPT2 medium model. 
+    # "hydra.launcher.ncpus=2" # <-- Make sure not to use more than 2 CPUs per GPU on the GTX1080TI and RTX6000 nodes.
+    # "hydra.launcher.ngpus=1"
+    # # The pipeline run for regular embeddings can take longer than an hour for large models.
+    # "hydra.launcher.walltime=04:00:00" 
 )
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -102,11 +102,15 @@ HYDRA_LAUNCHER_ARGS=(
 DATASET_TYPE_LINE=""
 # DATASET_TYPE_LINE="+data.dataset_type=huggingface_dataset_named_entity"
 
-# DATA_LIST="multiwoz21_validation,iclr_2024_submissions,wikitext"
-DATA_LIST="multiwoz21_validation"
-
 DATA_ARGS=(
-    "data=$DATA_LIST"
+    # "data=multiwoz21_validation"
+    # "data=multiwoz21_validation,iclr_2024_submissions,wikitext"
+    # TODO: Try out the LUSTER data
+    # TODO: Column 'source' and 'target' for LUSTER data
+    # TODO: Use concatenated 'source' + 'target' for LUSTER data
+    # TODO: Implement the token mask for the local estimates computation
+    "data=luster"
+    "data.column_name=source"
     $DATASET_TYPE_LINE
 )
  
@@ -132,6 +136,24 @@ DATA_ARGS=(
 # LANGUAGE_MODEL_LIST="Phi-3.5-mini-instruct" # <-- "microsoft/Phi-3.5-mini-instruct" model with 3.8B parameters (Safetensors: 3.82B parameters).
 # LANGUAGE_MODEL_LIST="Phi-4-mini-instruct"
 
+# ===== LUSTER models ===== #
+# https://arxiv.org/abs/2507.01594
+#
+# Notes:
+# - These models are fine-tuned versions of the "microsoft/Phi-3.5-mini-instruct" model,
+#   but they are usually supposed to be used with a certain contrained decoding strategy.
+#   Nevertheless, for testing. we plug them into our inference setup here.
+
+# > Base model:
+LANGUAGE_MODEL_LIST="Phi-3.5-mini-instruct"
+
+# LANGUAGE_MODEL_LIST="luster-base"
+# LANGUAGE_MODEL_LIST="luster-base-emotion"
+# LANGUAGE_MODEL_LIST="luster-chitchat"
+# LANGUAGE_MODEL_LIST="luster-full"
+# LANGUAGE_MODEL_LIST="luster-rl-sent"
+# LANGUAGE_MODEL_LIST="luster-rl-succ"
+
 # ===== Gemma models ===== #
 # https://huggingface.co/collections/google/gemma-3-release-67c6c6f89c4f76621268bb6d
 
@@ -146,7 +168,7 @@ DATA_ARGS=(
 # LANGUAGE_MODEL_LIST="Llama-3.2-1B" # <-- (Safetensors: 1.24B parameters)
 # LANGUAGE_MODEL_LIST="Llama-3.2-3B" # <-- (Safetensors: 3.21B parameters)
 
-LANGUAGE_MODEL_LIST="Llama-3.1-8B" # <-- (Safetensors: 8.03B parameters)
+# LANGUAGE_MODEL_LIST="Llama-3.1-8B" # <-- (Safetensors: 8.03B parameters)
 
 # Multiple Llama-3 models:
 # LANGUAGE_MODEL_LIST="Llama-3.2-1B,Llama-3.2-3B,Llama-3.1-8B"
