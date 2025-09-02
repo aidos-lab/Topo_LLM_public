@@ -28,11 +28,13 @@ class BaseModelMode(StrEnum):
     ROBERTA_BASE = auto()
 
     GPT2_MEDIUM = auto()
-    PHI_35_MINI_INSTRUCT = auto()
 
     LLAMA_32_1B = auto()
     LLAMA_32_3B = auto()
     LLAMA_31_8B = auto()
+
+    PHI_35_MINI_INSTRUCT = auto()
+    PHI_35_MINI_INSTRUCT_FOR_LUSTER_MODELS = auto()
 
 
 @unique
@@ -50,11 +52,12 @@ class SaveFormat(StrEnum):
         choices=[
             "all",
             "phi",
+            "phi_luster",
             "llama",
         ],
     ),
     default="all",
-    help="Select base models: all, phi, or llama",
+    help="Select base model group.",
 )
 def main(
     model_group: str,
@@ -74,11 +77,17 @@ def main(
         "data=sgd_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags",
         "data=wikitext-103-v1_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags",
         "data=wikitext-103-v1_strip-True_rm-empty=True_spl-mode=proportions_spl-shuf=True_spl-seed=0_tr=0.8_va=0.1_te=0.1_ctxt=dataset_entry_feat-col=ner_tags",
+        # LUSTER data
+        "data=luster_column=source_rm-empty=True_spl-mode=do_nothing_ctxt=dataset_entry_feat-col=ner_tags",
     ]
     split_choices: list[str] = [
         "train",
         "validation",
         "test",
+    ]
+    samples_choices: list[int] = [
+        7000,
+        10000,
     ]
     sampling_mode_choices: list[str] = [
         "random",
@@ -95,11 +104,17 @@ def main(
     # Prepare base_model_modes based on command-line option
     match model_group:
         case "all":
-            base_model_modes = list(BaseModelMode)
+            base_model_modes: list[BaseModelMode] = list(BaseModelMode)
         case "phi":
-            base_model_modes = [BaseModelMode.PHI_35_MINI_INSTRUCT]
+            base_model_modes: list[BaseModelMode] = [
+                BaseModelMode.PHI_35_MINI_INSTRUCT,
+            ]
+        case "phi_luster":
+            base_model_modes: list[BaseModelMode] = [
+                BaseModelMode.PHI_35_MINI_INSTRUCT_FOR_LUSTER_MODELS,
+            ]
         case "llama":
-            base_model_modes = [
+            base_model_modes: list[BaseModelMode] = [
                 BaseModelMode.LLAMA_32_1B,
                 BaseModelMode.LLAMA_32_3B,
                 BaseModelMode.LLAMA_31_8B,
@@ -175,6 +190,36 @@ def main(
                             ),
                         ],
                     )
+            case BaseModelMode.PHI_35_MINI_INSTRUCT_FOR_LUSTER_MODELS:
+                first_label: str = "Phi-3.5-mini-instruct"
+                first_model_path: str = "model=Phi-3.5-mini-instruct_task=causal_lm_dr=defaults"
+
+                second_models_and_labels: list[tuple[str, str]] = [
+                    (
+                        "model=luster-base_task=causal_lm_dr=defaults",
+                        "LUSTER base model",
+                    ),
+                    (
+                        "model=luster-base-emotion_task=causal_lm_dr=defaults",
+                        "LUSTER base emotion model",
+                    ),
+                    (
+                        "model=luster-chitchat_task=causal_lm_dr=defaults",
+                        "LUSTER chitchat model",
+                    ),
+                    (
+                        "model=luster-full_task=causal_lm_dr=defaults",
+                        "LUSTER full model",
+                    ),
+                    (
+                        "model=luster-rl-sent_task=causal_lm_dr=defaults",
+                        "LUSTER RL sentiment model",
+                    ),
+                    (
+                        "model=luster-rl-succ_task=causal_lm_dr=defaults",
+                        "LUSTER RL success model",
+                    ),
+                ]
             case BaseModelMode.LLAMA_32_1B | BaseModelMode.LLAMA_32_3B | BaseModelMode.LLAMA_31_8B:
                 match base_model_mode:
                     case BaseModelMode.LLAMA_32_1B:
@@ -231,9 +276,10 @@ def main(
         # Iterate over different choices
 
         # Prepare the iterable for combinations
-        product_iter = itertools.product(
+        product_iter: itertools.product = itertools.product(
             dataset_name_choices,
             split_choices,
+            samples_choices,
             sampling_mode_choices,
             edh_mode_choices,
             second_models_and_labels,
@@ -242,6 +288,7 @@ def main(
         total_iterations: int = (
             len(dataset_name_choices)
             * len(split_choices)
+            * len(samples_choices)
             * len(sampling_mode_choices)
             * len(edh_mode_choices)
             * len(second_models_and_labels)
@@ -250,6 +297,7 @@ def main(
         for (
             dataset_name,
             split,
+            samples,
             sampling_mode,
             edh_mode,
             (
@@ -265,12 +313,12 @@ def main(
                 case "random":
                     split_and_subsample_path: str = (
                         f"split={split}"
-                        f"_samples=10000"
+                        f"_samples={samples}"
                         f"_sampling={sampling_mode}"
                         f"_sampling-seed={data_subsampling_sampling_seed}"
                     )
                 case "take_first":
-                    split_and_subsample_path: str = f"split={split}_samples=10000_sampling={sampling_mode}"
+                    split_and_subsample_path: str = f"split={split}_samples={samples}_sampling={sampling_mode}"
                 case _:
                     msg: str = f"Unsupported sampling mode: {sampling_mode=}"
                     raise ValueError(

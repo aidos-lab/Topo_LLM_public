@@ -196,10 +196,10 @@ LANGUAGE_MODEL_ARGS=(
     # ===== LUSTER models ===== #
     #
     # > Base model:
-    # "language_model=Phi-3.5-mini-instruct"
+    "language_model=Phi-3.5-mini-instruct"
     #
     # > All six variants of LUSTER models:
-    "language_model=luster-base,luster-base-emotion,luster-chitchat,luster-full,luster-rl-sent,luster-rl-succ"
+    # "language_model=luster-base,luster-base-emotion,luster-chitchat,luster-full,luster-rl-sent,luster-rl-succ"
     #
     # > Selection of LUSTER models trained via ArcherTrainer:
     # "language_model=luster-full,luster-rl-succ"
