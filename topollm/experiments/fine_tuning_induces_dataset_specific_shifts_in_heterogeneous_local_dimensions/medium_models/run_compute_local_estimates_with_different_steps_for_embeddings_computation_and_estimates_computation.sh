@@ -196,13 +196,13 @@ LANGUAGE_MODEL_ARGS=(
     # ===== LUSTER models ===== #
     #
     # > Base model:
-    "language_model=Phi-3.5-mini-instruct"
+    # "language_model=Phi-3.5-mini-instruct"
+    #
+    # > All six variants of LUSTER models:
+    "language_model=luster-base,luster-base-emotion,luster-chitchat,luster-full,luster-rl-sent,luster-rl-succ"
     #
     # > Selection of LUSTER models trained via ArcherTrainer:
     # "language_model=luster-full,luster-rl-succ"
-    #
-    # > All six variants of LUSTER models:
-    # "language_model=luster-base,luster-base-emotion,luster-chitchat,luster-full,luster-rl-sent,luster-rl-succ"
     #
     # ----- Checkpoints: -----
     "++language_model.checkpoint_no=-1"
@@ -235,14 +235,18 @@ COMMON_ARGS=(
 
     # > LUSTER data
     "data=luster"
-    "data.column_name=source"
+    # "data.column_name=source"
+    "data.column_name=source_target"
 
     # --- data subsampling -----------------------------------------------------
     # "data.data_subsampling.split=validation"
     "data.data_subsampling.split=train,validation,test"
     
     "data.data_subsampling.sampling_mode=random"
-    "data.data_subsampling.number_of_samples=10000"
+
+    "data.data_subsampling.number_of_samples=7000"
+    # "data.data_subsampling.number_of_samples=10000"
+    
     "data.data_subsampling.sampling_seed=778"
 
     # --- embeddings -----------------------------------------

@@ -3,11 +3,11 @@ defaults:
   - data_subsampling: train_split_and_random
   - _self_
 
-# TODO: Implement concatenating the 'source' and 'target' columns for the LUSTER dataset
-column_name: source
+column_name: source_target
 context: dataset_entry
 
 dataset_description_string: luster_column=${data.column_name}
 dataset_path: csv
 
-data_dir: ${paths.luster_repository_base_path}/data/datasets/data_dfs
+data_dir: ${paths.luster_repository_base_path}/data/datasets/processed_data/data_dfs
+
