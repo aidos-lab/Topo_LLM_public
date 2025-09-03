@@ -29,7 +29,7 @@ from topollm.config_classes.data.dataset_map_config import DatasetMapConfig
 from topollm.config_classes.embeddings.embedding_extraction_config import EmbeddingExtractionConfig
 from topollm.config_classes.embeddings.embeddings_config import EmbeddingsConfig
 from topollm.config_classes.embeddings_data_prep.embeddings_data_prep_config import EmbeddingsDataPrepConfig
-from topollm.config_classes.embeddings_data_prep.sampling_config import EmbeddingsDataPrepSamplingConfig
+from topollm.config_classes.embeddings_data_prep.sampling_config import SamplingConfig
 from topollm.config_classes.finetuning.batch_sizes.batch_sizes_config import BatchSizesConfig
 from topollm.config_classes.finetuning.finetuning_config import FinetuningConfig
 from topollm.config_classes.finetuning.finetuning_datasets.finetuning_datasets_config import FinetuningDatasetsConfig
@@ -162,7 +162,7 @@ def main_config_with_small_dataset_and_model(
         embedding_extraction=embeddings_extraction_config,
     )
 
-    embeddings_data_prep_sampling_config = EmbeddingsDataPrepSamplingConfig(
+    embeddings_data_prep_sampling_config = SamplingConfig(
         num_samples=1_000,
     )
 

@@ -7,7 +7,7 @@ from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
 from topollm.typing.enums import EmbeddingsDataPrepSamplingMode
 
 
-class EmbeddingsDataPrepSamplingConfig(ConfigBaseModel):
+class SamplingConfig(ConfigBaseModel):
     """Configurations for specifying sampling in the embeddings data prep step."""
 
     num_samples: int = Field(

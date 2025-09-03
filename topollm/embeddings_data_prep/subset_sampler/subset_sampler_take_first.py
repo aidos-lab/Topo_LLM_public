@@ -21,7 +21,7 @@ import logging
 
 import numpy as np
 
-from topollm.config_classes.embeddings_data_prep.sampling_config import EmbeddingsDataPrepSamplingConfig
+from topollm.config_classes.embeddings_data_prep.sampling_config import SamplingConfig
 from topollm.embeddings_data_prep.prepared_data_containers import PreparedData
 from topollm.logging.log_array_info import log_array_info
 from topollm.typing.enums import Verbosity
@@ -34,7 +34,7 @@ class SubsetSamplerTakeFirst:
 
     def __init__(
         self,
-        embeddings_data_prep_sampling_config: EmbeddingsDataPrepSamplingConfig,
+        embeddings_data_prep_sampling_config: SamplingConfig,
         verbosity: Verbosity = Verbosity.NORMAL,
         logger: logging.Logger = default_logger,
     ) -> None:

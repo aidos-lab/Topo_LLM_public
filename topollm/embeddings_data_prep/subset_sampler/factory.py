@@ -2,7 +2,7 @@
 
 import logging
 
-from topollm.config_classes.embeddings_data_prep.sampling_config import EmbeddingsDataPrepSamplingConfig
+from topollm.config_classes.embeddings_data_prep.sampling_config import SamplingConfig
 from topollm.embeddings_data_prep.subset_sampler.protocol import SubsetSampler
 from topollm.embeddings_data_prep.subset_sampler.subset_sampler_random import SubsetSamplerRandom
 from topollm.embeddings_data_prep.subset_sampler.subset_sampler_take_first import SubsetSamplerTakeFirst
@@ -14,7 +14,7 @@ default_logger: logging.Logger = logging.getLogger(
 
 
 def get_subset_sampler(
-    embeddings_data_prep_sampling_config: EmbeddingsDataPrepSamplingConfig,
+    embeddings_data_prep_sampling_config: SamplingConfig,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
 ) -> SubsetSampler:

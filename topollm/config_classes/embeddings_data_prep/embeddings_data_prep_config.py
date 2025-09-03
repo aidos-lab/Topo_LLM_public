@@ -7,8 +7,9 @@ from pydantic import Field
 from topollm.config_classes.config_base_model import ConfigBaseModel
 from topollm.config_classes.embeddings_data_prep.filter_tokens_config import FilterTokensConfig
 from topollm.config_classes.embeddings_data_prep.sampling_config import (
-    EmbeddingsDataPrepSamplingConfig,
+    SamplingConfig,
 )
+from topollm.config_classes.embeddings_data_prep.token_masking_config import TokenMaskingConfig
 
 
 class EmbeddingsDataPrepConfig(ConfigBaseModel):
@@ -21,14 +22,20 @@ class EmbeddingsDataPrepConfig(ConfigBaseModel):
 
     """
 
+    token_masking: TokenMaskingConfig = Field(
+        default=TokenMaskingConfig(),
+        title="Token masking.",
+        description="Configurations for token masking.",
+    )
+
     filter_tokens: FilterTokensConfig = Field(
         default=FilterTokensConfig(),
         title="Filter tokens.",
         description="Configurations for filtering tokens.",
     )
 
-    sampling: EmbeddingsDataPrepSamplingConfig = Field(
-        default=EmbeddingsDataPrepSamplingConfig(),
+    sampling: SamplingConfig = Field(
+        default=SamplingConfig(),
         title="Sampling configurations.",
         description="Configurations for specifying sampling.",
     )
@@ -38,7 +45,7 @@ class EmbeddingsDataPrepConfig(ConfigBaseModel):
     ) -> pathlib.Path:
         """Get the partial path for the embeddings data preparation."""
         path: pathlib.Path = pathlib.Path(
-            # TODO: We will add additional config information here once we implement the token masking
+            self.token_masking.config_description,
             self.sampling.config_description,
         )
 

@@ -7,7 +7,7 @@ from pandas import DataFrame
 
 from topollm.config_classes.data_processing_column_names.data_processing_column_names import DataProcessingColumnNames
 from topollm.config_classes.embeddings_data_prep.sampling_config import (
-    EmbeddingsDataPrepSamplingConfig,
+    SamplingConfig,
 )
 from topollm.embeddings_data_prep.prepared_data_containers import PreparedData
 from topollm.embeddings_data_prep.subset_sampler.factory import get_subset_sampler
@@ -21,7 +21,7 @@ default_logger: logging.Logger = logging.getLogger(name=__name__)
 
 def sample_subsets_of_array_and_meta_df(
     input_data: PreparedData,
-    embeddings_data_prep_sampling_config: EmbeddingsDataPrepSamplingConfig,
+    embeddings_data_prep_sampling_config: SamplingConfig,
     data_processing_column_names: DataProcessingColumnNames = default_data_processing_column_names,
     verbosity: Verbosity = Verbosity.NORMAL,
     logger: logging.Logger = default_logger,
