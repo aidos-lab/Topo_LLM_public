@@ -45,6 +45,12 @@ SPLIT_DIRECTORY_LIST=(
 
 MODEL_DIRECTORY_LIST=(
     "model=Phi-3.5-mini-instruct_task=causal_lm_dr=defaults"
+    "model=luster-base_task=causal_lm_dr=defaults"
+    "model=luster-base-emotion_task=causal_lm_dr=defaults"
+    "model=luster-chitchat_task=causal_lm_dr=defaults"
+    "model=luster-full_task=causal_lm_dr=defaults"
+    "model=luster-rl-sent_task=causal_lm_dr=defaults"
+    "model=luster-rl-succ_task=causal_lm_dr=defaults"
 )
 
 
