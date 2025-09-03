@@ -48,9 +48,6 @@
                 // >>>> END: Hydra options
                 //
                 "tokenizer.add_prefix_space=False", // "tokenizer.add_prefix_space=True" is necessary to use the tokenizer with input split into words
-                //
-                //    >> START: Data options.
-                //
                 "data=multiwoz21",
                 // "data=sgd",
                 // "data=one-year-of-tsla-on-reddit",
@@ -64,29 +61,22 @@
                 // "data.use_context=False",
                 // "data.dataset_seed=50",
                 //
-                //
                 "data.data_subsampling.sampling_mode=random",
-                "data.data_subsampling.number_of_samples=512",
+                "data.data_subsampling.number_of_samples=128",
+                // "data.data_subsampling.number_of_samples=512",
                 "data.data_subsampling.split=validation",
-                //
-                //    >> END: Data options.
-                //    >> START: Model options.
                 //
                 // "language_model=roberta-base",
                 // "language_model=bert-base-uncased",
                 // "language_model=bert-base-uncased-SentiX",
-                //
-                // "language_model=gpt2",
+                "language_model=gpt2", // <-- Smallest GPT-2 model (137M params)
                 // "language_model=gpt2-medium",
-                //
                 // "language_model=bert-base-uncased-ContextBERT-ERToD_emowoz_basic_setup",
                 // "language_model.seed=42",
                 // "language_model.checkpoint_no=0",
                 // "language_model.checkpoint_no=1",
                 // "language_model.checkpoint_no=1,2",
                 // "language_model.use_context=True", // <-- This is the debugging model we might have saved locally
-                //
-                //    >> END: Model options.
                 //
                 // "embeddings.embedding_data_handler.mode=masked_token",
                 "embeddings.embedding_extraction.layer_indices=[-1]",
@@ -105,7 +95,6 @@
                 "local_estimates.pointwise.absolute_n_neighbors=128",
                 //
                 //    >> START: Feature flags.
-                //    >> NOTE: Only skip the embedding computation if the embeddings are already available.
                 "feature_flags.compute_and_store_embeddings.skip_compute_and_store_embeddings_in_pipeline=False", // <-- Only set this to true if the embeddings are available
                 "feature_flags.embeddings_data_prep.skip_embeddings_data_prep_in_pipeline=False",
                 "feature_flags.analysis.create_plots_in_local_estimates_worker=True",

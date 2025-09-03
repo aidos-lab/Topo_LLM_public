@@ -1,20 +1,3 @@
-# Copyright 2024-2025
-# [ANONYMIZED_INSTITUTION],
-# [ANONYMIZED_FACULTY],
-# [ANONYMIZED_DEPARTMENT]
-#
-# Authors:
-# AUTHOR_1 (author1@example.com)
-# AUTHOR_2 (author2@example.com)
-#
-# Code generation tools and workflows:
-# First versions of this code were potentially generated
-# with the help of AI writing assistants including
-# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
-# Afterwards, the generated segments were manually reviewed and edited.
-#
-
-
 """Prepare the embedding data of a model and its metadata for further analysis."""
 
 import logging
@@ -92,11 +75,13 @@ def embeddings_data_prep_worker(
 
     if verbosity >= Verbosity.NORMAL:
         logger.info(
-            "Logging information about `filtered_data`:",
+            msg="Logging information about `filtered_data`:",
         )
         filtered_data.log_info(
             logger=logger,
         )
+
+    # TODO: Add possibility to filter vectors based on a token mask (which is part of the metadata).
 
     (
         filtered_subsampled_data,
