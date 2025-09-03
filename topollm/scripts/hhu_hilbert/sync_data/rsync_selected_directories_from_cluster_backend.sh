@@ -142,8 +142,10 @@ for SELECTED_SUBFOLDER in "${SELECTED_SUBFOLDERS_LIST[@]}"; do
     # ========================
 
     echo ">>> Syncing data from HPC cluster server to local machine ..."
+    echo ">>> DRY_RUN_FLAG=$DRY_RUN_FLAG"
     echo ">>> SOURCE_DIR=$SOURCE_DIR"
     echo ">>> TARGET_DIR=$TARGET_DIR"
+    echo "" # Empty line for better readability
 
     rsync \
         -avhz \
@@ -160,6 +162,8 @@ for SELECTED_SUBFOLDER in "${SELECTED_SUBFOLDERS_LIST[@]}"; do
 
     # Increment the index
     SELECTED_SUBFOLDER_INDEX=$((SELECTED_SUBFOLDER_INDEX + 1))
+
+    echo "" # Empty line for better readability
     echo "--------------------------------------------------------------------------------"
 done
 

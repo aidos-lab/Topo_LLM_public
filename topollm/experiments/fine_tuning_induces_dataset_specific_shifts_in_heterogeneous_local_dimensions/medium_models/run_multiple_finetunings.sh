@@ -102,7 +102,7 @@ case "$launcher" in
         ;;
     basic_cpu)
         LAUNCHER_ARGS=(
-            "hydra/launcher=basic_cpu"
+            "hydra/launcher=basic"
             "preferred_torch_backend=cpu"
         )
         ;;
