@@ -34,7 +34,7 @@ class EmbeddingsDataPrepSamplingConfig(ConfigBaseModel):
         self,
     ) -> str:
         """Get the description of the config."""
-        desc = (
+        desc: str = (
             f"{NAME_PREFIXES['sampling_mode']}{KV_SEP}{self.sampling_mode}"
             f"{ITEM_SEP}"
             f"{NAME_PREFIXES['seed']}{KV_SEP}{self.seed!s}"

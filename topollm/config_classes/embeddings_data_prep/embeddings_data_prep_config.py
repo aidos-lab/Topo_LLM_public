@@ -1,5 +1,7 @@
 """Configuration class for embedding data preparation."""
 
+import pathlib
+
 from pydantic import Field
 
 from topollm.config_classes.config_base_model import ConfigBaseModel
@@ -10,7 +12,14 @@ from topollm.config_classes.embeddings_data_prep.sampling_config import (
 
 
 class EmbeddingsDataPrepConfig(ConfigBaseModel):
-    """Configurations for specifying data preparation."""
+    """Configurations for specifying data preparation.
+
+    Notes:
+    - We use a feature flag in a different config group to enable or disable saving of the metadata sentences.
+    - This config does not provide a config description, since the file paths in the path managers
+    are assembled from the config descriptions of certain components of this config.
+
+    """
 
     filter_tokens: FilterTokensConfig = Field(
         default=FilterTokensConfig(),
@@ -24,12 +33,13 @@ class EmbeddingsDataPrepConfig(ConfigBaseModel):
         description="Configurations for specifying sampling.",
     )
 
-    # Note: We use a feature flag in a different config group to enable or disable saving of the metadata sentences.
-    @property
-    def config_description(
+    def get_partial_path(
         self,
-    ) -> str:
-        """Get the description of the config."""
-        desc: str = f"{self.sampling.config_description}"
+    ) -> pathlib.Path:
+        """Get the partial path for the embeddings data preparation."""
+        path: pathlib.Path = pathlib.Path(
+            # TODO: We will add additional config information here once we implement the token masking
+            self.sampling.config_description,
+        )
 
-        return desc
+        return path
