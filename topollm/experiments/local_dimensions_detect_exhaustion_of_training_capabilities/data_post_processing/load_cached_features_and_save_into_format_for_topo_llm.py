@@ -454,11 +454,6 @@ def main(
                                 index=False,
                             )
 
-                    # TODO: Convert the start positions to BIO tags.
-                    # TODO: Save token-level BIO-tags into the post-processed cached features.
-
-                    pass  # TODO: This is here for setting breakpoints, remove in production code.
-
         # Stack the tensors of the individual input data features into a single tensor.
         input_ids_stacked: torch.Tensor = torch.stack(
             tensors=input_ids_list,

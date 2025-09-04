@@ -231,6 +231,14 @@ class LrSchedulerType(StrEnum):
 
 
 @unique
+class EmbeddingsDataPrepTokenMaskingMode(StrEnum):
+    """The different modes for token masking in the embeddings data prep step."""
+
+    NO_MASKING = auto()
+    BASED_ON_META_COLUMN = auto()
+
+
+@unique
 class EmbeddingsDataPrepSamplingMode(StrEnum):
     """The different modes for sampling in the embeddings data prep step."""
 

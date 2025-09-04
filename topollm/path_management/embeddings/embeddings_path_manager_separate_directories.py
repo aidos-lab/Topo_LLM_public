@@ -238,7 +238,7 @@ class EmbeddingsPathManagerSeparateDirectories:
             self.analysis_dir,
             "prepared",
             self.get_data_embeddings_tokenizer_language_model_embedding_extraction_transformations_path(),
-            self.main_config.embeddings_data_prep.config_description,
+            self.main_config.embeddings_data_prep.get_partial_path(),
         )
 
         return path
@@ -299,7 +299,7 @@ class EmbeddingsPathManagerSeparateDirectories:
         """
         path = pathlib.Path(
             self.get_data_embeddings_tokenizer_language_model_embedding_extraction_transformations_path(),
-            self.main_config.embeddings_data_prep.config_description,
+            self.main_config.embeddings_data_prep.get_partial_path(),
             self.main_config.local_estimates.config_description,
         )
 

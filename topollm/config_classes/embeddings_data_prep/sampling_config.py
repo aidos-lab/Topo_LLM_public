@@ -1,19 +1,4 @@
-# Copyright 2024
-# [ANONYMIZED_INSTITUTION],
-# [ANONYMIZED_FACULTY],
-# [ANONYMIZED_DEPARTMENT]
-#
-# Authors:
-# AUTHOR_1 (author1@example.com)
-# AUTHOR_2 (author2@example.com)
-#
-# Code generation tools and workflows:
-# First versions of this code were potentially generated
-# with the help of AI writing assistants including
-# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
-# Afterwards, the generated segments were manually reviewed and edited.
-#
-
+"""Configurations for specifying sampling in the embeddings data prep step."""
 
 from pydantic import Field
 
@@ -22,7 +7,7 @@ from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES
 from topollm.typing.enums import EmbeddingsDataPrepSamplingMode
 
 
-class EmbeddingsDataPrepSamplingConfig(ConfigBaseModel):
+class SamplingConfig(ConfigBaseModel):
     """Configurations for specifying sampling in the embeddings data prep step."""
 
     num_samples: int = Field(
@@ -49,7 +34,7 @@ class EmbeddingsDataPrepSamplingConfig(ConfigBaseModel):
         self,
     ) -> str:
         """Get the description of the config."""
-        desc = (
+        desc: str = (
             f"{NAME_PREFIXES['sampling_mode']}{KV_SEP}{self.sampling_mode}"
             f"{ITEM_SEP}"
             f"{NAME_PREFIXES['seed']}{KV_SEP}{self.seed!s}"

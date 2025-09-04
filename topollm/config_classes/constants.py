@@ -57,6 +57,8 @@ NAME_PREFIXES: dict[
     "description": "desc",
     "dropout_mode": "dr",
     "embedding_data_handler_mode": "edh-mode",
+    "embeddings_data_prep_token_masking_mode": "t-m",
+    "embeddings_data_prep_token_mask_meta_column_name": "t-m-col",
     "epoch": "ep",
     "feature_column_name": "feat-col",
     "FinetuningMode": "ftm",

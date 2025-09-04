@@ -1,0 +1,49 @@
+{
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "run_general_comparisons.py",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/analysis/compare_sampling_methods/run_general_comparisons.py",
+            "console": "integratedTerminal",
+            "args": []
+        },
+        {
+            "name": "run_general_comparisons.py; without iteration",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/analysis/compare_sampling_methods/run_general_comparisons.py",
+            "console": "integratedTerminal",
+            "args": [
+                "feature_flags.analysis.compare_sampling_methods.do_iterate_all_partial_search_base_directories=False"
+            ]
+        },
+        {
+            "name": "run_general_comparisons.py; without iteration; only noise analysis",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/analysis/compare_sampling_methods/run_general_comparisons.py",
+            "console": "integratedTerminal",
+            "args": [
+                "feature_flags.analysis.compare_sampling_methods.do_iterate_all_partial_search_base_directories=False",
+                "feature_flags.analysis.compare_sampling_methods.do_noise_analysis=True",
+                "feature_flags.analysis.compare_sampling_methods.do_checkpoint_analysis=False",
+                "feature_flags.analysis.compare_sampling_methods.do_data_subsampling_number_of_samples_analysis=False"
+            ]
+        },
+        {
+            "name": "run_general_comparisons.py; with iteration; but without expensive plots during iteration",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "topollm/analysis/compare_sampling_methods/run_general_comparisons.py",
+            "console": "integratedTerminal",
+            "args": [
+                "feature_flags.analysis.compare_sampling_methods.do_iterate_all_partial_search_base_directories=True",
+                "feature_flags.analysis.compare_sampling_methods.do_analysis_influence_of_local_estimates_n_neighbors=False",
+                "feature_flags.analysis.compare_sampling_methods.do_create_boxplot_of_mean_over_different_sampling_seeds=False"
+            ]
+        }
+    ]
+}

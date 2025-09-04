@@ -1,26 +1,7 @@
-# Copyright 2024-2025
-# [ANONYMIZED_INSTITUTION],
-# [ANONYMIZED_FACULTY],
-# [ANONYMIZED_DEPARTMENT]
-#
-# Authors:
-# AUTHOR_1 (author1@example.com)
-# AUTHOR_2 (author2@example.com)
-#
-# Code generation tools and workflows:
-# First versions of this code were potentially generated
-# with the help of AI writing assistants including
-# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
-# Afterwards, the generated segments were manually reviewed and edited.
-#
-
-
 """Prepare the embedding data of a model and its metadata for further analysis."""
 
 import logging
 from typing import TYPE_CHECKING
-
-import pandas as pd
 
 from topollm.config_classes.main_config import MainConfig
 from topollm.embeddings_data_prep.add_additional_metadata_to_meta_df import (
@@ -28,6 +9,7 @@ from topollm.embeddings_data_prep.add_additional_metadata_to_meta_df import (
     add_token_name_column_to_meta_frame,
 )
 from topollm.embeddings_data_prep.load_and_stack_embedding_data import load_and_stack_embedding_data
+from topollm.embeddings_data_prep.mask_tokens_of_arrays_and_meta import mask_tokens_of_arrays_and_meta
 from topollm.embeddings_data_prep.prepared_data_containers import PreparedData
 from topollm.embeddings_data_prep.remove_padding_and_extra_tokens import remove_padding_and_extra_tokens
 from topollm.embeddings_data_prep.sample_subsets_of_arrays_and_meta import sample_subsets_of_array_and_meta_df
@@ -39,6 +21,8 @@ from topollm.path_management.embeddings.factory import get_embeddings_path_manag
 from topollm.typing.enums import Verbosity
 
 if TYPE_CHECKING:
+    import pandas as pd
+
     from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 
 default_logger: logging.Logger = logging.getLogger(
@@ -92,17 +76,41 @@ def embeddings_data_prep_worker(
 
     if verbosity >= Verbosity.NORMAL:
         logger.info(
-            "Logging information about `filtered_data`:",
+            msg="Logging information about `filtered_data`:",
         )
         filtered_data.log_info(
             logger=logger,
         )
 
+    # # # #
+    # Filter vectors based on a token mask (which is part of the metadata).
+
+    (
+        filtered_masked_data,
+        _,
+    ) = mask_tokens_of_arrays_and_meta(
+        input_data=filtered_data,
+        token_masking_config=main_config.embeddings_data_prep.token_masking,
+        verbosity=verbosity,
+        logger=logger,
+    )
+
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg="Logging information about `filtered_masked_data`:",
+        )
+        filtered_masked_data.log_info(
+            logger=logger,
+        )
+
+    # # # #
+    # Take token subsample
+
     (
         filtered_subsampled_data,
         _,
     ) = sample_subsets_of_array_and_meta_df(
-        input_data=filtered_data,
+        input_data=filtered_masked_data,
         embeddings_data_prep_sampling_config=main_config.embeddings_data_prep.sampling,
         data_processing_column_names=main_config.data_processing_column_names,
         verbosity=verbosity,
@@ -137,7 +145,7 @@ def embeddings_data_prep_worker(
 
     if verbosity >= Verbosity.NORMAL:
         logger.info(
-            "Logging information about `filtered_subsampled_prepared_data`:",
+            msg="Logging information about `filtered_subsampled_prepared_data`:",
         )
         filtered_subsampled_prepared_data.log_info(
             logger=logger,

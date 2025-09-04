@@ -1,39 +1,26 @@
-# Copyright 2024
-# [ANONYMIZED_INSTITUTION],
-# [ANONYMIZED_FACULTY],
-# [ANONYMIZED_DEPARTMENT]
-#
-# Authors:
-# AUTHOR_1 (author1@example.com)
-# AUTHOR_2 (author2@example.com)
-#
-# Code generation tools and workflows:
-# First versions of this code were potentially generated
-# with the help of AI writing assistants including
-# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
-# Afterwards, the generated segments were manually reviewed and edited.
-#
-
-
 """Configuration class for embedding data preparation."""
+
+import pathlib
 
 from pydantic import Field
 
 from topollm.config_classes.config_base_model import ConfigBaseModel
 from topollm.config_classes.embeddings_data_prep.filter_tokens_config import FilterTokensConfig
 from topollm.config_classes.embeddings_data_prep.sampling_config import (
-    EmbeddingsDataPrepSamplingConfig,
+    SamplingConfig,
 )
+from topollm.config_classes.embeddings_data_prep.token_masking_config import TokenMaskingConfig
 
 
 class EmbeddingsDataPrepConfig(ConfigBaseModel):
-    """Configurations for specifying data preparation."""
+    """Configurations for specifying data preparation.
 
-    sampling: EmbeddingsDataPrepSamplingConfig = Field(
-        default=EmbeddingsDataPrepSamplingConfig(),
-        title="Sampling configurations.",
-        description="Configurations for specifying sampling.",
-    )
+    Notes:
+    - We use a feature flag in a different config group to enable or disable saving of the metadata sentences.
+    - This config does not provide a config description, since the file paths in the path managers
+    are assembled from the config descriptions of certain components of this config.
+
+    """
 
     filter_tokens: FilterTokensConfig = Field(
         default=FilterTokensConfig(),
@@ -41,12 +28,25 @@ class EmbeddingsDataPrepConfig(ConfigBaseModel):
         description="Configurations for filtering tokens.",
     )
 
-    # Note: We use a feature flag in a different config group to enable or disable saving of the metadata sentences.
-    @property
-    def config_description(
-        self,
-    ) -> str:
-        """Get the description of the config."""
-        desc = f"{self.sampling.config_description}"
+    token_masking: TokenMaskingConfig = Field(
+        default=TokenMaskingConfig(),
+        title="Token masking.",
+        description="Configurations for token masking.",
+    )
 
-        return desc
+    sampling: SamplingConfig = Field(
+        default=SamplingConfig(),
+        title="Sampling configurations.",
+        description="Configurations for specifying sampling.",
+    )
+
+    def get_partial_path(
+        self,
+    ) -> pathlib.Path:
+        """Get the partial path for the embeddings data preparation."""
+        path: pathlib.Path = pathlib.Path(
+            self.token_masking.config_description,
+            self.sampling.config_description,
+        )
+
+        return path

@@ -1,4 +1,8 @@
+token_masking:
+  token_masking_mode: "no_masking"
+  token_mask_meta_column_name: "token_mask"
+
 sampling:
   num_samples: 30000
-  sampling_mode: random
+  sampling_mode: "random"
   seed: 42
