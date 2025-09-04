@@ -3,10 +3,12 @@
 import logging
 
 import numpy as np
+import pandas as pd
 
 from topollm.config_classes.embeddings_data_prep.token_masking_config import TokenMaskingConfig
 from topollm.embeddings_data_prep.prepared_data_containers import PreparedData
 from topollm.logging.log_array_info import log_array_info
+from topollm.logging.log_dataframe_info import log_dataframe_info
 from topollm.typing.enums import Verbosity
 
 default_logger: logging.Logger = logging.getLogger(
@@ -36,25 +38,53 @@ class TokenMaskerBasedOnMetaColumn:
         PreparedData,
         np.ndarray,
     ]:
+        """Mask tokens based on a metadata column."""
+        array: np.ndarray = input_data.array
+        meta_df: pd.DataFrame = input_data.meta_df
+
         # Check that the column exists in the metadata DataFrame
-        if self.token_masking_config.token_mask_meta_column_name not in input_data.meta_df.columns:
+        if self.token_masking_config.token_mask_meta_column_name not in meta_df.columns:
             msg: str = (
                 f"Column '{self.token_masking_config.token_mask_meta_column_name=}' not found "
-                f"in metadata DataFrame (columns: {input_data.meta_df.columns.tolist()=})."
+                f"in metadata DataFrame (columns: {meta_df.columns.tolist()=})."
             )
             self.logger.error(
                 msg=msg,
             )
             raise ValueError(msg)
 
-        # TODO: Implement this
+        # Only keep array rows and meta rows where the column is non-zero / True
+        row_indices_to_keep: pd.Series = meta_df[self.token_masking_config.token_mask_meta_column_name].astype(bool)
+        masked_array: np.ndarray = array[row_indices_to_keep.to_numpy(), :]
+        masked_meta_df: pd.DataFrame = meta_df[row_indices_to_keep]
 
-        msg = "TokenMaskerBasedOnMetaColumn not implemented yet."
-        raise NotImplementedError(
-            msg,
+        non_masked_indices: np.ndarray = np.where(row_indices_to_keep)[0]
+
+        masked_data = PreparedData(
+            array=masked_array,
+            meta_df=masked_meta_df,
         )
 
+        if self.verbosity >= Verbosity.NORMAL:
+            log_array_info(
+                array_=masked_array,
+                array_name="masked_array",
+                logger=self.logger,
+            )
+            log_dataframe_info(
+                df=masked_meta_df,
+                df_name="masked_meta_df",
+                logger=self.logger,
+            )
+            self.logger.info(
+                msg=f"Before masking:\n\t{array.shape = }\n\t{meta_df.shape = }",  # noqa: G004 - low overhead
+            )
+
+            self.logger.info(
+                msg=f"After masking:\n\t{masked_array.shape = }\n\t{masked_meta_df.shape = }",  # noqa: G004 - low overhead
+            )
+
         return (
-            output_data,
+            masked_data,
             non_masked_indices,
         )

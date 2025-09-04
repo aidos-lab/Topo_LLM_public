@@ -27,10 +27,14 @@ class TokenMaskingConfig(ConfigBaseModel):
         self,
     ) -> str:
         """Get the description of the config."""
-        desc: str = (
-            f"{NAME_PREFIXES['embeddings_data_prep_token_masking_mode']}{KV_SEP}{self.token_masking_mode}"
-            f"{ITEM_SEP}"
-            f"{NAME_PREFIXES['embeddings_data_prep_token_mask_meta_column_name']}{KV_SEP}{self.token_mask_meta_column_name}"
-        )
+        desc: str = f"{NAME_PREFIXES['embeddings_data_prep_token_masking_mode']}{KV_SEP}{self.token_masking_mode}"
+        match self.token_masking_mode:
+            case EmbeddingsDataPrepTokenMaskingMode.NO_MASKING:
+                pass
+            case EmbeddingsDataPrepTokenMaskingMode.BASED_ON_META_COLUMN:
+                desc += (
+                    f"{ITEM_SEP}"
+                    f"{NAME_PREFIXES['embeddings_data_prep_token_mask_meta_column_name']}{KV_SEP}{self.token_mask_meta_column_name}"
+                )
 
         return desc
