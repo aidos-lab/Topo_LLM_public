@@ -4,6 +4,7 @@ import logging
 
 from topollm.config_classes.embeddings_data_prep.token_masking_config import TokenMaskingConfig
 from topollm.embeddings_data_prep.token_masker.protocol import TokenMasker
+from topollm.embeddings_data_prep.token_masker.token_masker_based_on_meta_column import TokenMaskerBasedOnMetaColumn
 from topollm.embeddings_data_prep.token_masker.token_masker_no_masking import TokenMaskerNoMasking
 from topollm.typing.enums import EmbeddingsDataPrepTokenMaskingMode, Verbosity
 
@@ -34,11 +35,11 @@ def get_token_masker(
                 logger.info(
                     msg="Using masking based on meta column via TokenMaskerBasedOnMetaColumn.",
                 )
-
-            # TODO: Implement TokenMaskerBasedOnMetaColumn and include in factory
-
-            msg = "TokenMaskerBasedOnMetaColumn not implemented yet."
-            raise NotImplementedError(msg)
+            result = TokenMaskerBasedOnMetaColumn(
+                token_masking_config=token_masking_config,
+                verbosity=verbosity,
+                logger=logger,
+            )
         case _:
             msg: str = f"Token masking mode {token_masking_config.token_masking_mode = } not supported."
             raise ValueError(

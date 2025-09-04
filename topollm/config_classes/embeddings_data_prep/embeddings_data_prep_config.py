@@ -22,16 +22,16 @@ class EmbeddingsDataPrepConfig(ConfigBaseModel):
 
     """
 
-    token_masking: TokenMaskingConfig = Field(
-        default=TokenMaskingConfig(),
-        title="Token masking.",
-        description="Configurations for token masking.",
-    )
-
     filter_tokens: FilterTokensConfig = Field(
         default=FilterTokensConfig(),
         title="Filter tokens.",
         description="Configurations for filtering tokens.",
+    )
+
+    token_masking: TokenMaskingConfig = Field(
+        default=TokenMaskingConfig(),
+        title="Token masking.",
+        description="Configurations for token masking.",
     )
 
     sampling: SamplingConfig = Field(
