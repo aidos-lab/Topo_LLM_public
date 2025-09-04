@@ -1,9 +1,9 @@
 """Sample subsets of the arrays and metadata."""
 
 import logging
+from typing import TYPE_CHECKING
 
 import numpy as np
-from pandas import DataFrame
 
 from topollm.config_classes.data_processing_column_names.data_processing_column_names import DataProcessingColumnNames
 from topollm.config_classes.embeddings_data_prep.sampling_config import (
@@ -11,8 +11,12 @@ from topollm.config_classes.embeddings_data_prep.sampling_config import (
 )
 from topollm.embeddings_data_prep.prepared_data_containers import PreparedData
 from topollm.embeddings_data_prep.subset_sampler.factory import get_subset_sampler
-from topollm.embeddings_data_prep.subset_sampler.protocol import SubsetSampler
 from topollm.typing.enums import Verbosity
+
+if TYPE_CHECKING:
+    import pandas as pd
+
+    from topollm.embeddings_data_prep.subset_sampler.protocol import SubsetSampler
 
 default_data_processing_column_names = DataProcessingColumnNames()
 
@@ -45,7 +49,7 @@ def sample_subsets_of_array_and_meta_df(
 
     # # # #
     # Add the subsample index to the metadata DataFrame
-    subsampled_df: DataFrame = sampled_data.meta_df
+    subsampled_df: pd.DataFrame = sampled_data.meta_df
     subsampled_df[data_processing_column_names.subsample_idx] = list(
         subsample_idx_vector,
     )

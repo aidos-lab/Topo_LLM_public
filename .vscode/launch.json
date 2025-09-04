@@ -48,48 +48,33 @@
                 // >>>> END: Hydra options
                 "tokenizer.add_prefix_space=False",
                 "data=multiwoz21",
-                // "data=sgd",
-                // "data=one-year-of-tsla-on-reddit",
-                // "data=wikitext-103-v1",
                 // >>>> ERC datasets
                 // "data=ertod_emowoz",
                 // "data.dataset_seed=42",
                 // "data.use_context=False",
-                // "data.dataset_seed=50",
                 //
                 "data.data_subsampling.sampling_mode=random",
                 "data.data_subsampling.number_of_samples=128",
-                // "data.data_subsampling.number_of_samples=512",
                 "data.data_subsampling.split=validation",
                 //
                 // "language_model=roberta-base",
-                // "language_model=bert-base-uncased",
-                "language_model=gpt2", // <-- Smallest GPT-2 model (137M params)
+                "language_model=gpt2",
                 // "language_model=gpt2-medium",
                 // "language_model=bert-base-uncased-ContextBERT-ERToD_emowoz_basic_setup",
                 // "language_model.seed=42",
                 // "language_model.checkpoint_no=0",
                 //
-                // "embeddings.embedding_data_handler.mode=masked_token",
                 "embeddings.embedding_extraction.layer_indices=[-1]",
                 "embeddings_data_prep.sampling.num_samples=3000",
                 "embeddings_data_prep.sampling.sampling_mode=random",
-                // "embeddings_data_prep.sampling.sampling_mode=take_first",
-                //
                 "local_estimates=twonn",
                 // "local_estimates=lpca",
                 // "local_estimates.estimator.lpca_ver=FO",
                 // "local_estimates.estimator.lpca_ver=Fan",
-                //
                 "local_estimates.filtering.num_samples=500",
                 "local_estimates.compute_global_estimates=True",
                 "local_estimates.pointwise.n_neighbors_mode=absolute_size",
                 "local_estimates.pointwise.absolute_n_neighbors=128",
-                //    >> START: Feature flags.
-                "feature_flags.compute_and_store_embeddings.skip_compute_and_store_embeddings_in_pipeline=False",
-                "feature_flags.embeddings_data_prep.skip_embeddings_data_prep_in_pipeline=False",
-                "feature_flags.analysis.create_plots_in_local_estimates_worker=True",
-                //    >> END: Feature flags.
             ],
             "env": {
                 "PYTORCH_ENABLE_MPS_FALLBACK": "1"

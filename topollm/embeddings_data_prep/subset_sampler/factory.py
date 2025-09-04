@@ -41,7 +41,7 @@ def get_subset_sampler(
                 logger=logger,
             )
         case _:
-            msg: str = f"Sampling mode {embeddings_data_prep_sampling_config.sampling_mode} not supported."
+            msg: str = f"Sampling mode {embeddings_data_prep_sampling_config.sampling_mode = } not supported."
             raise ValueError(
                 msg,
             )
