@@ -236,7 +236,8 @@ COMMON_ARGS=(
     # > LUSTER data
     "data=luster"
     # "data.column_name=source"
-    "data.column_name=source_target"
+    "data.column_name=target"
+    # "data.column_name=source_target"
 
     # --- data subsampling -----------------------------------------------------
     # "data.data_subsampling.split=validation"
