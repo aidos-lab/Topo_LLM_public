@@ -1,8 +1,6 @@
 {
-    "python.analysis.typeCheckingMode": "standard",
     "python.analysis.autoImportCompletions": true,
     "python.analysis.inlayHints.functionReturnTypes": false,
-    "python.analysis.diagnosticSeverityOverrides": {},
     "[python]": {
         "editor.formatOnSave": true,
         "editor.codeActionsOnSave": {
@@ -21,4 +19,8 @@
     // Copilot settings
     "chat.agent.enabled": true,
     "github.copilot.nextEditSuggestions.enabled": true,
+    "files.associations": {
+        // Use 'JSON with Comments' mode (jsonc) for backups of the old launch.json files
+        "launch.*.json": "jsonc"
+    },
 }

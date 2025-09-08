@@ -1,25 +1,8 @@
-# Copyright 2024-2025
-# [ANONYMIZED_INSTITUTION],
-# [ANONYMIZED_FACULTY],
-# [ANONYMIZED_DEPARTMENT]
-#
-# Authors:
-# AUTHOR_1 (author1@example.com)
-# AUTHOR_2 (author2@example.com)
-#
-# Code generation tools and workflows:
-# First versions of this code were potentially generated
-# with the help of AI writing assistants including
-# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
-# Afterwards, the generated segments were manually reviewed and edited.
-#
-
-
 """Worker module to compute embedding vectors and store them to disk."""
 
 import logging
 from collections.abc import Callable
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import torch
 import torch.utils.data
@@ -101,7 +84,7 @@ def compute_and_store_embeddings(
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Prepare data collator
-    collate_fn: Callable = get_collate_fn(
+    collate_fn: Callable[..., Any] = get_collate_fn(
         loaded_model_container=loaded_model_container,
     )
 
