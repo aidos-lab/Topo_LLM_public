@@ -58,7 +58,7 @@ def convert_dataset_entry_to_features(
     column_name: str = "text",
     max_length: int = 512,
 ) -> BatchEncoding:
-    """Convert dataset entries/examples to features by tokenizing the text and padding/truncating to a maximum length."""
+    """Convert dataset entries to features by tokenizing the text and padding/truncating to a maximum length."""
     features: BatchEncoding = tokenizer(
         dataset_entry[column_name],
         max_length=max_length,
@@ -76,7 +76,10 @@ def convert_dataset_entry_to_features_named_entity(
     max_length: int = 512,
     pos_tags_name: str = "POS",
 ) -> BatchEncoding:
-    """Convert dataset entries/examples to features by tokenizing the text and padding/truncating to a maximum length."""
+    """Convert dataset entries to features by tokenizing the text and padding/truncating to a maximum length.
+
+    Additionally, compute part-of-speech (POS) tags for each token and include them in the features.
+    """
     split_words: list[list[str]] = [
         nltk.word_tokenize(
             text=sent,

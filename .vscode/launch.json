@@ -48,6 +48,7 @@
                 "data.data_subsampling.number_of_samples=128",
                 "data.data_subsampling.split=validation",
                 "language_model=gpt2",
+                // "language_model=luster-full",
                 "embeddings.embedding_extraction.layer_indices=[-1]",
                 "embeddings_data_prep.token_masking.token_masking_mode=based_on_meta_column",
                 "embeddings_data_prep.token_masking.token_mask_meta_column_name=sentence_idx",
