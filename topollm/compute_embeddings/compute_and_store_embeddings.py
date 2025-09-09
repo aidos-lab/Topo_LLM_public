@@ -1,11 +1,9 @@
 """Worker module to compute embedding vectors and store them to disk."""
 
 import logging
-from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
 import torch
-import torch.utils.data
 
 from topollm.compute_embeddings.collator.get_collate_fn import get_collate_fn
 from topollm.compute_embeddings.embedding_data_handler.factory import get_embedding_data_handler
@@ -19,7 +17,6 @@ from topollm.compute_embeddings.embedding_extractor.factory import (
     get_embedding_extractor,
 )
 from topollm.config_classes.main_config import MainConfig
-from topollm.model_handling.loaded_model_container import LoadedModelContainer
 from topollm.model_handling.prepare_loaded_model_container import (
     prepare_device_and_tokenizer_and_model_from_main_config,
 )
@@ -35,9 +32,14 @@ from topollm.storage.StorageDataclasses import ArrayProperties
 from topollm.typing.enums import Verbosity
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    import torch.utils.data
+
     from topollm.compute_embeddings.embedding_data_handler.base_embedding_data_handler import BaseEmbeddingDataHandler
     from topollm.compute_embeddings.embedding_dataloader_preparer.protocol import EmbeddingDataLoaderPreparer
     from topollm.compute_embeddings.embedding_extractor.protocol import EmbeddingExtractor
+    from topollm.model_handling.loaded_model_container import LoadedModelContainer
     from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
     from topollm.storage.array_storage.protocol import ChunkedArrayStorageProtocol
     from topollm.storage.metadata_storage.protocol import ChunkedMetadataStorageProtocol

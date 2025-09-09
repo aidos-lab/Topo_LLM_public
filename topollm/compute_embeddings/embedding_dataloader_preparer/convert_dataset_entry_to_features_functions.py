@@ -38,18 +38,22 @@ def get_convert_dataset_entry_to_features_function(
 
 def convert_dataset_entry_to_features_do_nothing(
     dataset_entry: dict,
-    tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast,
-    column_name: str = "text",
-    max_length: int = 512,
+    _tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast,
+    _column_name: str = "text",
+    _max_length: int = 512,
 ) -> BatchEncoding:
-    """Do nothing."""
+    """Do nothing.
+
+    Note that the arguments `_tokenizer`, `_column_name`, and `_max_length` are not used,
+    but are included to match the signature of other conversion functions.
+    """
     return BatchEncoding(
         data=dataset_entry,
     )
 
 
 def convert_dataset_entry_to_features(
-    dataset_entry: dict,
+    dataset_entry: dict[str, list],
     tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast,
     column_name: str = "text",
     max_length: int = 512,
@@ -88,7 +92,7 @@ def convert_dataset_entry_to_features_named_entity(
         is_split_into_words=True,
     )
 
-    word_ids = [features.word_ids(batch_index=i) for i in range(len(split_words))]
+    word_ids: list[list[int | None]] = [features.word_ids(batch_index=i) for i in range(len(split_words))]
 
     dataset_tokenized = features.input_ids
 
@@ -101,7 +105,7 @@ def convert_dataset_entry_to_features_named_entity(
         word_tags_one_sentence = [word_tags_one_sentence[i][1] for i in range(len(word_tags_one_sentence))]
         word_ids_one_sentence = word_ids[sentence_idx]
 
-        word_tags_one_sentence_tokens = []
+        word_tags_one_sentence_tokens: list = []
         for i in word_ids_one_sentence:
             if i is not None:
                 word_tags_one_sentence_tokens.append(word_tags_one_sentence[i])

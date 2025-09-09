@@ -42,10 +42,9 @@ class EmbeddingDataLoaderPreparerHuggingfaceWithTokenization(EmbeddingDataLoader
     ) -> datasets.Dataset:
         """Tokenizes dataset."""
         # Make a partial function for mapping tokenizer over the dataset.
-        # Note that the max_length parameter is taken from the config,
-        # but depending on the convert_dataset_entry_to_features_function,
-        # it might not be used.
-        # We cannot use self.sequence_length here, because this might lead to infinite recursion.
+        # Note that the `max_length` parameter is taken from the config,
+        # but depending on the `convert_dataset_entry_to_features_function`, it might not be used.
+        # We cannot use `self.sequence_length` here, because this might lead to infinite recursion.
         partial_map_fn = partial(
             self.convert_dataset_entry_to_features_function,
             tokenizer=self.preparer_context.tokenizer,
@@ -63,8 +62,7 @@ class EmbeddingDataLoaderPreparerHuggingfaceWithTokenization(EmbeddingDataLoader
 
         if self.verbosity >= Verbosity.NORMAL:
             self.logger.info(
-                "dataset_tokenized:\n%s",
-                dataset_tokenized,
+                msg=f"dataset_tokenized:\n{dataset_tokenized}",  # noqa: G004 - low overhead
             )
             log_huggingface_dataset_info(
                 dataset=dataset_tokenized,
