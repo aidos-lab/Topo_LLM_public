@@ -1,5 +1,6 @@
 """Functions for converting dataset entries to features."""
 
+import warnings
 from collections.abc import Callable
 
 import nltk
@@ -29,6 +30,8 @@ def get_convert_dataset_entry_to_features_function(
         ):
             # In this mode, the dataset entries are already tokenized and can be directly used as features.
             dataset_entry_to_features_function: Callable = convert_dataset_entry_to_features_do_nothing
+        case DatasetType.LUSTER_DATASET:
+            dataset_entry_to_features_function: Callable = convert_dataset_entry_to_features_luster_data
         case _:
             msg: str = f"Unsupported {data_config.dataset_type = }"
             raise ValueError(msg)
@@ -65,6 +68,36 @@ def convert_dataset_entry_to_features(
         padding="max_length",
         truncation="longest_first",
     )
+
+    return features
+
+
+def convert_dataset_entry_to_features_luster_data(
+    dataset_entry: dict[str, list],
+    tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast,
+    column_name: str = "source_target",
+    max_length: int = 512,
+) -> BatchEncoding:
+    """Convert dataset entries to features specific for LUSTER data.
+
+    In addition to the tokenization, this function creates specific masks to highlight certain parts of the input text.
+    """
+    tokenized_entries: BatchEncoding = tokenizer(
+        dataset_entry[column_name],
+        max_length=max_length,
+        padding="max_length",
+        truncation="longest_first",
+    )
+
+    # TODO: Implement the function specific for LUSTER data.
+
+    warnings.warn(
+        message="convert_dataset_entry_to_features_luster_data is not yet implemented. Using basic tokenization instead.",
+        stacklevel=2,
+        category=UserWarning,
+    )
+
+    features = tokenized_entries  # TODO: Replace this with actual features including masks.
 
     return features
 

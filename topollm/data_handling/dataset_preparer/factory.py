@@ -1,20 +1,3 @@
-# Copyright 2024-2025
-# [ANONYMIZED_INSTITUTION],
-# [ANONYMIZED_FACULTY],
-# [ANONYMIZED_DEPARTMENT]
-#
-# Authors:
-# AUTHOR_1 (author1@example.com)
-# AUTHOR_2 (author2@example.com)
-#
-# Code generation tools and workflows:
-# First versions of this code were potentially generated
-# with the help of AI writing assistants including
-# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
-# Afterwards, the generated segments were manually reviewed and edited.
-#
-
-
 """Factory function to instantiate dataset preparers."""
 
 import logging
@@ -83,6 +66,7 @@ def get_dataset_preparer(
             DatasetType.HUGGINGFACE_DATASET
             | DatasetType.HUGGINGFACE_DATASET_PRETOKENIZED
             | DatasetType.HUGGINGFACE_DATASET_NAMED_ENTITY
+            | DatasetType.LUSTER_DATASET
         ):
             result = dataset_preparer_huggingface.DatasetPreparerHuggingface(
                 data_config=data_config,
