@@ -1,20 +1,3 @@
-# Copyright 2024
-# [ANONYMIZED_INSTITUTION],
-# [ANONYMIZED_FACULTY],
-# [ANONYMIZED_DEPARTMENT]
-#
-# Authors:
-# AUTHOR_1 (author1@example.com)
-# AUTHOR_2 (author2@example.com)
-#
-# Code generation tools and workflows:
-# First versions of this code were potentially generated
-# with the help of AI writing assistants including
-# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
-# Afterwards, the generated segments were manually reviewed and edited.
-#
-
-
 """Fixtures for the embedding dataloader preparer tests."""
 
 from functools import partial
@@ -28,9 +11,6 @@ from topollm.compute_embeddings.collator.collate_batch_for_embedding import (
 )
 from topollm.compute_embeddings.embedding_dataloader_preparer.embedding_dataloader_preparer_context import (
     EmbeddingDataLoaderPreparerContext,
-)
-from topollm.compute_embeddings.embedding_dataloader_preparer.embedding_dataloader_preparer_huggingface import (
-    EmbeddingDataLoaderPreparerHuggingfaceWithTokenization,
 )
 from topollm.compute_embeddings.embedding_dataloader_preparer.factory import get_embedding_dataloader_preparer
 from topollm.compute_embeddings.embedding_dataloader_preparer.protocol import (

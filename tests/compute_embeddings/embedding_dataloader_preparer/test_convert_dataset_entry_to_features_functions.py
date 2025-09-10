@@ -1,3 +1,17 @@
+"""Tests functions for converting dataset entries to features in embedding_dataloader_preparer module."""
+
+import logging
+
+from transformers.tokenization_utils_base import BatchEncoding
+
+from topollm.compute_embeddings.embedding_dataloader_preparer.convert_dataset_entry_to_features_functions import (
+    convert_dataset_entry_to_features,
+)
+from topollm.config_classes.language_model.language_model_config import LanguageModelConfig
+from topollm.config_classes.tokenizer.tokenizer_config import TokenizerConfig
+from topollm.model_handling.tokenizer.load_tokenizer import load_modified_tokenizer
+from topollm.typing.enums import Verbosity
+
 dataset_entry_luster_data_example: dict[
     str,
     list,
@@ -25,6 +39,36 @@ dataset_entry_luster_data_example: dict[
 }
 
 
-def test_convert_dataset_entry_to_features():
-    pass
-    # TODO: Implement tests
+def test_convert_dataset_entry_to_features(
+    language_model_config: LanguageModelConfig,
+    tokenizer_config: TokenizerConfig,
+    verbosity: Verbosity,
+    logger_fixture: logging.Logger,
+) -> None:
+    """Test convert_dataset_entry_to_features function."""
+    column_name = "source_target"
+
+    (
+        tokenizer,
+        _tokenizer_modifier,
+    ) = load_modified_tokenizer(
+        language_model_config=language_model_config,
+        tokenizer_config=tokenizer_config,
+        verbosity=verbosity,
+        logger=logger_fixture,
+    )
+
+    features: BatchEncoding = convert_dataset_entry_to_features(
+        dataset_entry=dataset_entry_luster_data_example,
+        tokenizer=tokenizer,
+        column_name=column_name,
+        max_length=512,
+    )
+
+    assert isinstance(  # noqa: S101 - pytest assertion
+        features,
+        BatchEncoding,
+    )
+    assert "input_ids" in features  # noqa: S101 - pytest assertion
+    assert "attention_mask" in features  # noqa: S101 - pytest assertion
+    assert len(features.input_ids) == len(dataset_entry_luster_data_example[column_name])  # noqa: S101 - pytest assertion
