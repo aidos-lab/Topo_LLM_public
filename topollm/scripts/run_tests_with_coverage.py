@@ -1,21 +1,5 @@
 #!/usr/bin/env python3
 
-# Copyright 2024
-# [ANONYMIZED_INSTITUTION],
-# [ANONYMIZED_FACULTY],
-# [ANONYMIZED_DEPARTMENT]
-#
-# Authors:
-# AUTHOR_1 (author1@example.com)
-#
-# Code generation tools and workflows:
-# First versions of this code were potentially generated
-# with the help of AI writing assistants including
-# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
-# Afterwards, the generated segments were manually reviewed and edited.
-#
-
-
 """Run tests in the tests directory, and create an html coverage report in the htmlcov directory."""
 
 import argparse
@@ -52,11 +36,11 @@ def parse_arguments() -> argparse.Namespace:
 
 def main() -> None:
     """Run the tests."""
-    args = parse_arguments()
+    args: argparse.Namespace = parse_arguments()
 
-    keep_test_data_flag = "--keep-test-data" if args.keep_test_data else ""
-    selected_test_cases = [] if args.run_slow_tests else ["-m", "not slow"]
-    additional_pytest_options = "--capture=no" if args.capture_output else ""
+    keep_test_data_flag: str = "--keep-test-data" if args.keep_test_data else ""
+    selected_test_cases: list[str] = [] if args.run_slow_tests else ["-m", "not slow"]
+    additional_pytest_options: str = "--capture=no" if args.capture_output else ""
 
     os.environ["WANDB_MODE"] = "disabled"
     # Warning: Using `export WANDB_DISABLED=true` leads to the following error:
@@ -84,8 +68,8 @@ def main() -> None:
     command = [arg for arg in command if arg]
 
     # Run the command
-    result = subprocess.run(  # noqa: S603 - we trust the command
-        command,
+    result: subprocess.CompletedProcess[str] = subprocess.run(  # noqa: S603 - we trust the command
+        args=command,
         text=True,
         check=True,
     )

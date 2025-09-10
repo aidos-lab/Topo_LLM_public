@@ -1,7 +1,9 @@
 """Tests functions for converting dataset entries to features in embedding_dataloader_preparer module."""
 
+import copy
 import logging
 
+import pytest
 from transformers.tokenization_utils_base import BatchEncoding
 
 from topollm.compute_embeddings.embedding_dataloader_preparer.convert_dataset_entry_to_features_functions import (
@@ -12,6 +14,8 @@ from topollm.config_classes.tokenizer.tokenizer_config import TokenizerConfig
 from topollm.model_handling.tokenizer.load_tokenizer import load_modified_tokenizer
 from topollm.typing.enums import Verbosity
 
+# Global dataset entry example for LUSTER dataset type.
+# This is a small example with 4 entries.
 dataset_entry_luster_data_example: dict[
     str,
     list,
@@ -39,7 +43,15 @@ dataset_entry_luster_data_example: dict[
 }
 
 
+@pytest.fixture
+def dataset_entry() -> dict[str, list]:
+    """Fixture for dataset entry."""
+    # Return a deep copy of the global dataset entry example to avoid mutation issues in tests.
+    return copy.deepcopy(dataset_entry_luster_data_example)
+
+
 def test_convert_dataset_entry_to_features(
+    dataset_entry: dict[str, list],
     language_model_config: LanguageModelConfig,
     tokenizer_config: TokenizerConfig,
     verbosity: Verbosity,
@@ -59,7 +71,7 @@ def test_convert_dataset_entry_to_features(
     )
 
     features: BatchEncoding = convert_dataset_entry_to_features(
-        dataset_entry=dataset_entry_luster_data_example,
+        dataset_entry=dataset_entry,
         tokenizer=tokenizer,
         column_name=column_name,
         max_length=512,
@@ -71,4 +83,4 @@ def test_convert_dataset_entry_to_features(
     )
     assert "input_ids" in features  # noqa: S101 - pytest assertion
     assert "attention_mask" in features  # noqa: S101 - pytest assertion
-    assert len(features.input_ids) == len(dataset_entry_luster_data_example[column_name])  # noqa: S101 - pytest assertion
+    assert len(features.input_ids) == len(dataset_entry[column_name])  # noqa: S101 - pytest assertion

@@ -21,6 +21,7 @@ class EmbeddingDataLoaderPreparerContext:
     tokenizer_config: TokenizerConfig
     tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast
     collate_fn: Callable[[list], dict]
+
     verbosity: Verbosity = Verbosity.NORMAL
     logger: logging.Logger = field(
         default_factory=lambda: logging.getLogger(
