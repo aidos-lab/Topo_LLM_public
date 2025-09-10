@@ -8,11 +8,12 @@ from transformers.tokenization_utils_base import BatchEncoding
 
 from topollm.compute_embeddings.embedding_dataloader_preparer.convert_dataset_entry_to_features_functions import (
     convert_dataset_entry_to_features,
+    convert_dataset_entry_to_features_luster_data,
 )
 from topollm.config_classes.language_model.language_model_config import LanguageModelConfig
 from topollm.config_classes.tokenizer.tokenizer_config import TokenizerConfig
 from topollm.model_handling.tokenizer.load_tokenizer import load_modified_tokenizer
-from topollm.typing.enums import Verbosity
+from topollm.typing.enums import LMmode, TaskType, Verbosity
 
 # Global dataset entry example for LUSTER dataset type.
 # This is a small example with 4 entries.
@@ -50,6 +51,21 @@ def dataset_entry() -> dict[str, list]:
     return copy.deepcopy(dataset_entry_luster_data_example)
 
 
+def check_features_basic_properties(
+    features: BatchEncoding,
+    dataset_entry: dict[str, list],
+    column_name: str,
+) -> None:
+    """Check basic properties of the features."""
+    assert isinstance(  # noqa: S101 - pytest assertion
+        features,
+        BatchEncoding,
+    )
+    assert "input_ids" in features  # noqa: S101 - pytest assertion
+    assert "attention_mask" in features  # noqa: S101 - pytest assertion
+    assert len(features.input_ids) == len(dataset_entry[column_name])  # noqa: S101 - pytest assertion
+
+
 def test_convert_dataset_entry_to_features(
     dataset_entry: dict[str, list],
     language_model_config: LanguageModelConfig,
@@ -77,10 +93,50 @@ def test_convert_dataset_entry_to_features(
         max_length=512,
     )
 
-    assert isinstance(  # noqa: S101 - pytest assertion
-        features,
-        BatchEncoding,
+    check_features_basic_properties(
+        features=features,
+        dataset_entry=dataset_entry,
+        column_name=column_name,
     )
-    assert "input_ids" in features  # noqa: S101 - pytest assertion
-    assert "attention_mask" in features  # noqa: S101 - pytest assertion
-    assert len(features.input_ids) == len(dataset_entry[column_name])  # noqa: S101 - pytest assertion
+
+
+def test_convert_dataset_entry_to_features_luster_data(
+    dataset_entry: dict[str, list],
+    tokenizer_config: TokenizerConfig,
+    verbosity: Verbosity,
+    logger_fixture: logging.Logger,
+) -> None:
+    """Test convert_dataset_entry_to_features_luster_data function."""
+    column_name = "source_target"
+
+    language_model_config = LanguageModelConfig(
+        lm_mode=LMmode.CLM,
+        task_type=TaskType.CAUSAL_LM,
+        pretrained_model_name_or_path="microsoft/Phi-3.5-mini-instruct",
+        short_model_name="Phi-3.5-mini-instruct",
+    )
+
+    (
+        tokenizer,
+        _tokenizer_modifier,
+    ) = load_modified_tokenizer(
+        language_model_config=language_model_config,
+        tokenizer_config=tokenizer_config,
+        verbosity=verbosity,
+        logger=logger_fixture,
+    )
+
+    features: BatchEncoding = convert_dataset_entry_to_features_luster_data(
+        dataset_entry=dataset_entry,
+        tokenizer=tokenizer,
+        column_name=column_name,
+        max_length=512,
+    )
+
+    check_features_basic_properties(
+        features=features,
+        dataset_entry=dataset_entry,
+        column_name=column_name,
+    )
+    # TODO: Implement further tests to check whether the token masks are created correctly
+    pass  # TODO: For setting breakpoints, remove if unnecessary
