@@ -5,7 +5,6 @@ from typing import Any
 import torch
 
 from topollm.analysis.local_estimates_computation.constants import ATTENTION_MASK_COLUMN_NAME, INPUT_IDS_COLUMN_NAME
-from topollm.config_classes.tokenizer.tokenizer_config import TokenizerConfig
 from topollm.model_handling.loaded_model_container import LoadedModelContainer
 
 default_model_input_names: list[str] = [
@@ -26,7 +25,7 @@ def _pad_sequence(
 
 
 def collate_batch(
-    batch: list,
+    batch: list[dict],
     loaded_model_container: LoadedModelContainer,
     model_input_names: list[str] | None = None,
     token_level_metadata_keys: list[str] | None = None,
@@ -51,7 +50,7 @@ def collate_batch(
         token_level_metadata_keys:
             Keys in each sample whose values are token-level lists that should be
             padded/truncated to the same length as the model inputs.
-            If ``None`` the function infers token-level keys by
+            If `None` the function infers token-level keys by
             inspecting the first sample for list-valued fields.
             Padded sequences remain regular Python lists (they are *not* converted to tensors).
 
@@ -187,10 +186,12 @@ def collate_batch(
             for item in batch
         ]
 
-    return {
+    output: dict = {
         "model_inputs": collated_batch,
         "metadata": metadata_batch,
     }
+
+    return output
 
 
 def move_collated_batch_to_device(
@@ -235,8 +236,8 @@ def collate_batch_and_move_to_device(
             The batch to collate.
         device:
             The device to move the tensors to.
-        tokenizer_config:
-            Configuration for the tokenizer.
+        loaded_model_container:
+            Loaded model container containing the tokenizer and model configuration.
         model_input_names:
             List of input names for the model.
 

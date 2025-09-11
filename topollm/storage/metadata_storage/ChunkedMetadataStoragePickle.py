@@ -15,6 +15,7 @@ def chunk_identifier_str(
     chunk_identifier: ChunkIdentifier,
     fill_zeros: int = 5,
 ) -> str:
+    """Create a string representation of a chunk identifier by padding with zeros."""
     return str(chunk_identifier.chunk_idx).zfill(fill_zeros)
 
 
@@ -99,7 +100,7 @@ class ChunkedMetadataStoragePickle:
             file=chunk_file_path,
             mode="rb",
         ) as file:
-            batch = pickle.load(
+            batch = pickle.load(  # noqa: S301 - we trust our own pickle files
                 file=file,
             )
 

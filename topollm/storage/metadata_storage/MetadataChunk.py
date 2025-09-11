@@ -1,3 +1,5 @@
+"""Dataclass to hold a single metadata chunk."""
+
 from dataclasses import dataclass
 from typing import Any
 
@@ -17,6 +19,7 @@ class MetadataChunk:
         self,
         other: Any,
     ) -> bool:
+        """Override equality check to compare MetadataChunk instances."""
         if not isinstance(
             other,
             MetadataChunk,

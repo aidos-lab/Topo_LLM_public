@@ -145,7 +145,7 @@ def _mask_from_span(
     return mask
 
 
-def build_basic_segment_masks(
+def build_basic_segment_masks_for_encoded_text(
     texts: list[str],
     encodings: BatchEncoding,
     delimiter: str = "</s>",
@@ -153,14 +153,14 @@ def build_basic_segment_masks(
     """Tokenize and build masks for the last system, state, and database segments.
 
     Args:
-      delimiter: Segment delimiter.
+        texts: List of full dataset entry strings.
+        encodings: BatchEncoding with offset_mapping and special_tokens_mask.
+        delimiter: Segment delimiter.
 
     Returns:
-      (encoding, masks) where:
-        - encoding: BatchEncoding with input_ids, offset_mapping, etc.
-        - masks: dict with keys:
+        masks: dict with keys:
             'mask_system_last', 'mask_state', 'mask_database'
-          Each value is a list of masks (one per example).
+            Each value is a list of masks (one per example).
 
     """
     offsets_batch: list[list[tuple[int, int]]] = encodings.offset_mapping
@@ -261,7 +261,7 @@ def convert_dataset_entry_to_features_luster_data(
         return_special_tokens_mask=True,
     )
 
-    segment_masks: dict[str, list[list[int]]] = build_basic_segment_masks(
+    segment_masks: dict[str, list[list[int]]] = build_basic_segment_masks_for_encoded_text(
         texts=dataset_entry[column_name],
         encodings=tokenized_entries,
         delimiter="</s>",

@@ -105,7 +105,7 @@ class EmbeddingDataLoaderPreparerHuggingfaceWithTokenization(EmbeddingDataLoader
         # Not that you need to set `num_workers=0` so that the data loading
         # runs in the main process.
         # This appears to be necessary with the "mps" backend.
-        dataloader = torch.utils.data.DataLoader(
+        dataloader: torch.utils.data.DataLoader = torch.utils.data.DataLoader(
             dataset=dataset_tokenized,  # type: ignore - typing issue with Dataset
             batch_size=self.preparer_context.embeddings_config.batch_size,
             shuffle=False,
@@ -115,8 +115,7 @@ class EmbeddingDataLoaderPreparerHuggingfaceWithTokenization(EmbeddingDataLoader
 
         if self.verbosity >= Verbosity.NORMAL:
             self.logger.info(
-                "dataloader:\n%s",
-                dataloader,
+                msg=f"dataloader:\n{dataloader}",  # noqa: G004 - low overhead
             )
 
         return dataloader
