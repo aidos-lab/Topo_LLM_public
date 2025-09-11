@@ -51,7 +51,7 @@
                 // "language_model=luster-full",
                 "embeddings.embedding_extraction.layer_indices=[-1]",
                 "embeddings_data_prep.token_masking.token_masking_mode=based_on_meta_column",
-                "embeddings_data_prep.token_masking.token_mask_meta_column_name=generated_response",
+                "embeddings_data_prep.token_masking.token_mask_meta_column_name=mask_system_last",
                 // "embeddings_data_prep.token_masking.token_mask_meta_column_name=sentence_idx", // <- For debugging the token masking (since we do not have a filled column yet).
                 "embeddings_data_prep.sampling.num_samples=3000",
                 "embeddings_data_prep.sampling.sampling_mode=random",

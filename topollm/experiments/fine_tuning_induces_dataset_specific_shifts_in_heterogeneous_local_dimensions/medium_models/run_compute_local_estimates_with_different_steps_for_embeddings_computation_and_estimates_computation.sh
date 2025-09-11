@@ -198,8 +198,12 @@ LANGUAGE_MODEL_ARGS=(
     # > Base model:
     # "language_model=Phi-3.5-mini-instruct"
     #
+    "language_model=luster-full"
+    "embeddings_data_prep.token_masking.token_masking_mode=based_on_meta_column"
+    "embeddings_data_prep.token_masking.token_mask_meta_column_name=mask_system_last"
+    #
     # > All six variants of LUSTER models:
-    "language_model=luster-base,luster-base-emotion,luster-chitchat,luster-full,luster-rl-sent,luster-rl-succ"
+    # "language_model=luster-base,luster-base-emotion,luster-chitchat,luster-full,luster-rl-sent,luster-rl-succ"
     #
     # > Selection of LUSTER models trained via ArcherTrainer:
     # "language_model=luster-full,luster-rl-succ"
@@ -236,8 +240,8 @@ COMMON_ARGS=(
     # > LUSTER data
     "data=luster"
     # "data.column_name=source"
-    "data.column_name=target"
-    # "data.column_name=source_target"
+    # "data.column_name=target"
+    "data.column_name=source_target"
 
     # --- data subsampling -----------------------------------------------------
     # "data.data_subsampling.split=validation"

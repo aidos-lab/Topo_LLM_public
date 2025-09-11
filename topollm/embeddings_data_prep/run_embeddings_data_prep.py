@@ -1,30 +1,6 @@
-# Copyright 2024-2025
-# [ANONYMIZED_INSTITUTION],
-# [ANONYMIZED_FACULTY],
-# [ANONYMIZED_DEPARTMENT]
-#
-# Authors:
-# AUTHOR_1 (author1@example.com)
-# AUTHOR_2 (author2@example.com)
-#
-# Code generation tools and workflows:
-# First versions of this code were potentially generated
-# with the help of AI writing assistants including
-# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
-# Afterwards, the generated segments were manually reviewed and edited.
-#
-
-
 """Prepare the embedding data of a model and its metadata for further analysis.
 
-The script outputs two numpy arrays of subsamples
-of the respective arrays that correspond to the
-embeddings of the base model and the fine-tuned model,
-respectively.
-The arrays are stored in the directory where this
-script is executed.
-Since paddings are removed from the embeddings,
-the resulting size of the arrays will usually be
+Since paddings are removed from the embeddings, the resulting size of the arrays will usually be
 significantly lower than the specified sample size
 (often ~5% of the specified size).
 """
