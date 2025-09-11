@@ -48,7 +48,7 @@ def add_token_name_column_to_meta_frame(
     ]
 
     # Add the decoded tokens to the DataFrame
-    input_df[data_processing_column_names.token_name] = token_names_list
+    input_df.loc[:, data_processing_column_names.token_name] = token_names_list
 
     return input_df
 

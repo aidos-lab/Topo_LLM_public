@@ -1,20 +1,3 @@
-# Copyright 2024-2025
-# [ANONYMIZED_INSTITUTION],
-# [ANONYMIZED_FACULTY],
-# [ANONYMIZED_DEPARTMENT]
-#
-# Authors:
-# AUTHOR_1 (author1@example.com)
-# AUTHOR_2 (author2@example.com)
-#
-# Code generation tools and workflows:
-# First versions of this code were potentially generated
-# with the help of AI writing assistants including
-# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
-# Afterwards, the generated segments were manually reviewed and edited.
-#
-
-
 """Test the compute_and_store_embeddings function."""
 
 import logging
@@ -36,6 +19,10 @@ def test_compute_and_store_embeddings(
     logger_fixture: logging.Logger,
 ) -> None:
     """Test the compute_and_store_embeddings function."""
+    # Set a smaller number of samples for testing purposes.
+    # Otherwise, the embedding computation will take too long.
+    main_config.data.data_subsampling.number_of_samples = 200
+
     compute_and_store_embeddings(
         main_config=main_config,
         logger=logger_fixture,

@@ -1,20 +1,3 @@
-# Copyright 2024
-# [ANONYMIZED_INSTITUTION],
-# [ANONYMIZED_FACULTY],
-# [ANONYMIZED_DEPARTMENT]
-#
-# Authors:
-# AUTHOR_1 (author1@example.com)
-# AUTHOR_2 (author2@example.com)
-#
-# Code generation tools and workflows:
-# First versions of this code were potentially generated
-# with the help of AI writing assistants including
-# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
-# Afterwards, the generated segments were manually reviewed and edited.
-#
-
-
 import logging
 import os
 import pathlib
@@ -23,7 +6,9 @@ import pickle
 from topollm.storage.metadata_storage.MetadataChunk import MetadataChunk
 from topollm.storage.StorageDataclasses import ChunkIdentifier
 
-default_logger: logging.Logger = logging.getLogger(name=__name__)
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 def chunk_identifier_str(
