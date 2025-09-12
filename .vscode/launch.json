@@ -52,6 +52,7 @@
                 "embeddings.embedding_extraction.layer_indices=[-1]",
                 "embeddings_data_prep.token_masking.token_masking_mode=based_on_meta_column",
                 "embeddings_data_prep.token_masking.token_mask_meta_column_name=mask_system_last",
+                // "embeddings_data_prep.token_masking.token_mask_meta_column_name=mask_database,mask_state",
                 // "embeddings_data_prep.token_masking.token_mask_meta_column_name=sentence_idx", // <- For debugging the token masking (since we do not have a filled column yet).
                 "embeddings_data_prep.sampling.num_samples=3000",
                 "embeddings_data_prep.sampling.sampling_mode=random",
@@ -59,6 +60,7 @@
                 "local_estimates.filtering.num_samples=500",
                 "local_estimates.pointwise.n_neighbors_mode=absolute_size",
                 "local_estimates.pointwise.absolute_n_neighbors=128",
+                "feature_flags.compute_and_store_embeddings.skip_compute_and_store_embeddings_in_pipeline=False",
             ],
             "env": {
                 "PYTORCH_ENABLE_MPS_FALLBACK": "1"
