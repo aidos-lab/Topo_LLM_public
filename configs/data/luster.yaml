@@ -9,5 +9,7 @@ context: dataset_entry
 dataset_description_string: luster_column=${data.column_name}
 dataset_path: csv
 
+dataset_type: luster_dataset
+
 data_dir: ${paths.luster_repository_base_path}/data/datasets/processed_data/data_dfs
 

@@ -44,7 +44,7 @@ dependencies = [
     "boto3>=1.37.20",
     "kaleido==0.2.1",               # There is an error on MacOS with ARM chip when installing one of the post versions of kaleido
     "pyzmq<27",                     # This restriction is needed to avoid issues with the HPC cluster
-    "sentencepiece>=0.2.0",
+    "sentencepiece>=0.2.0,<0.2.1",  # This restriction is needed to avoid issues with the HPC cluster
     "plotly>=6.2.0",
     "huggingface-hub[cli]>=0.34.1",
 ]
@@ -128,6 +128,7 @@ quote-style = "double"
 indent-style = "space"
 
 [tool.pyright]
+typeCheckingMode = "standard"
 include = ["topollm", "tests"]
 exclude = [
     "**/node_modules",

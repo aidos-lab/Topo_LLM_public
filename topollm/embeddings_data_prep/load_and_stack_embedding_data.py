@@ -2,6 +2,7 @@
 
 import logging
 import pathlib
+import pprint
 
 import numpy as np
 import pandas as pd
@@ -113,10 +114,17 @@ def load_and_stack_embedding_data(
 
     # # # #
     # Process the sequence-level metadata
-    for column_name in [
+    sequence_level_metadata_column_names: list[str] = [
         "dialogue_id",
         "turn_index",
-    ]:
+    ]
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Processing the following sequence-level metadata columns:\n"  # noqa: G004 - low overhead
+            f"{pprint.pformat(object=sequence_level_metadata_column_names)}",
+        )
+
+    for column_name in sequence_level_metadata_column_names:
         full_data_dict = process_sequence_level_metadata(
             column_name=column_name,
             loaded_metadata_chunks=loaded_metadata_chunks,
@@ -128,10 +136,31 @@ def load_and_stack_embedding_data(
 
     # # # #
     # Manually concatenate the elements in the token-level metadata (if it exist)
-    for column_name in [
+
+    # Determine the token-level metadata columns to process.
+    # Check the first entry in the loaded metadata chunks to see which columns are present
+    available_metadata_keys: list[str] = loaded_metadata_chunks[0]["metadata"].keys()
+
+    # Column names which start with 'mask_' contain token-level masks, and should be processed
+    token_level_mask_columns: list[str] = [
+        column_name for column_name in available_metadata_keys if column_name.startswith("mask_")
+    ]
+
+    # Select the token-level metadata columns which we want to process:
+    # - BIO-tags and POS-tags are always processed if they exist
+    # - Any column which starts with 'mask_' is processed
+    token_level_metadata_column_names: list[str] = [
         data_processing_column_names.bio_tags_name,
         data_processing_column_names.pos_tags_name,
-    ]:
+        *token_level_mask_columns,
+    ]
+    if verbosity >= Verbosity.NORMAL:
+        logger.info(
+            msg=f"Processing the following token-level metadata columns:\n"  # noqa: G004 - low overhead
+            f"{pprint.pformat(object=token_level_metadata_column_names)}",
+        )
+
+    for column_name in token_level_metadata_column_names:
         full_data_dict = process_token_level_metadata(
             column_name=column_name,
             loaded_metadata_chunks=loaded_metadata_chunks,

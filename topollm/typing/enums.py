@@ -54,9 +54,11 @@ class DatasetType(StrEnum):
     HUGGINGFACE_DATASET_PRETOKENIZED = auto()
     HUGGINGFACE_DATASET_NAMED_ENTITY = auto()
 
+    # Specific datasets for certain models
     SETSUMBT_DATALOADERS_PROCESSED = auto()
     TRIPPY_DATALOADERS_PROCESSED = auto()
     TRIPPY_R_DATALOADERS_PROCESSED = auto()
+    LUSTER_DATASET = auto()
 
 
 @unique

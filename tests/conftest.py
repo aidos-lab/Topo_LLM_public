@@ -663,7 +663,10 @@ def tokenizer(
     logger_fixture: logging.Logger,
 ) -> transformers.PreTrainedTokenizer | transformers.PreTrainedTokenizerFast:
     """Return a tokenizer object."""
-    tokenizer, _ = load_modified_tokenizer(
+    (
+        tokenizer,
+        _,
+    ) = load_modified_tokenizer(
         language_model_config=main_config.language_model,
         tokenizer_config=main_config.tokenizer,
         verbosity=verbosity,

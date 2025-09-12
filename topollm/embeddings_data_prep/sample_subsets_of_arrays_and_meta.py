@@ -50,7 +50,7 @@ def sample_subsets_of_array_and_meta_df(
     # # # #
     # Add the subsample index to the metadata DataFrame
     subsampled_df: pd.DataFrame = sampled_data.meta_df
-    subsampled_df[data_processing_column_names.subsample_idx] = list(
+    subsampled_df.loc[:, data_processing_column_names.subsample_idx] = list(
         subsample_idx_vector,
     )
 

@@ -1,20 +1,3 @@
-# Copyright 2024-2025
-# [ANONYMIZED_INSTITUTION],
-# [ANONYMIZED_FACULTY],
-# [ANONYMIZED_DEPARTMENT]
-#
-# Authors:
-# AUTHOR_1 (author1@example.com)
-# AUTHOR_2 (author2@example.com)
-#
-# Code generation tools and workflows:
-# First versions of this code were potentially generated
-# with the help of AI writing assistants including
-# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
-# Afterwards, the generated segments were manually reviewed and edited.
-#
-
-
 """Remove padding and extra tokens from the data."""
 
 import logging
@@ -54,9 +37,9 @@ def remove_padding_and_extra_tokens(
     )
 
     # Remove the specified tokens from the data
-    filtered_df = full_df[
+    filtered_df: pd.DataFrame = full_df[
         ~full_df[data_processing_column_names.input_ids].isin(
-            token_ids_to_filter,
+            values=token_ids_to_filter,
         )
     ]
 

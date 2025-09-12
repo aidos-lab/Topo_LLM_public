@@ -92,7 +92,7 @@ def load_modified_tokenizer(
             logger.info(
                 msg=">>> Note: Using manual tokenizer override. @@@",
             )
-        tokenizer = load_tokenizer(
+        tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast = load_tokenizer(
             pretrained_model_name_or_path=language_model_config.manual_tokenizer_override_pretrained_model_name_or_path,
             tokenizer_config=tokenizer_config,
             verbosity=verbosity,
@@ -116,7 +116,7 @@ def load_modified_tokenizer(
         logger=logger,
     )
 
-    tokenizer_modified = tokenizer_modifier.modify_tokenizer(
+    tokenizer_modified: PreTrainedTokenizer | PreTrainedTokenizerFast = tokenizer_modifier.modify_tokenizer(
         tokenizer=tokenizer,
     )
 
@@ -128,4 +128,7 @@ def load_modified_tokenizer(
             logger=logger,
         )
 
-    return tokenizer_modified, tokenizer_modifier
+    return (
+        tokenizer_modified,
+        tokenizer_modifier,
+    )

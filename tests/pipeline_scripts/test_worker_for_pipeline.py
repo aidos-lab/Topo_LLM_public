@@ -1,26 +1,8 @@
-# Copyright 2024
-# [ANONYMIZED_INSTITUTION],
-# [ANONYMIZED_FACULTY],
-# [ANONYMIZED_DEPARTMENT]
-#
-# Authors:
-# AUTHOR_1 (author1@example.com)
-# AUTHOR_2 (author2@example.com)
-#
-# Code generation tools and workflows:
-# First versions of this code were potentially generated
-# with the help of AI writing assistants including
-# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
-# Afterwards, the generated segments were manually reviewed and edited.
-#
-
-
 """Test the worker_for_pipeline function."""
 
 import logging
 
 import pytest
-import torch
 
 from topollm.config_classes.data.data_config import DataConfig
 from topollm.config_classes.data.data_splitting_config import DataSplittingConfig, Proportions
@@ -94,10 +76,10 @@ def pretrained_model_name_or_path_and_short_model_name() -> tuple[str, str]:
     # NOTE: There appears to be a problem with the compatibility of the embeddings of these debugging models.
     # The problem appears to be that the tokenizer is not compatible with the embedding layer of the model.
     #
-    # result = (
-    #     "hf-internal-testing/tiny-random-RobertaModel",
-    #     "tiny-random-RobertaModel",
-    # )
+    # > result = (
+    # >     "hf-internal-testing/tiny-random-RobertaModel",
+    # >     "tiny-random-RobertaModel",
+    # > )
 
     result = (
         "roberta-base",
@@ -174,7 +156,6 @@ def main_config_with_small_dataset_and_model(
         zero_vector_handling_mode=ZeroVectorHandlingMode.REMOVE,
     )
     local_estimates_config = LocalEstimatesConfig(
-        method_description="twonn",
         filtering=local_estimates_filtering_config,
     )
 
@@ -207,8 +188,7 @@ def test_worker_for_pipeline(
         msg="Testing `worker_for_pipeline` ...",
     )
     logger_fixture.info(
-        "main_config_with_small_dataset_and_model:%s",
-        main_config_with_small_dataset_and_model,
+        msg=f"main_config_with_small_dataset_and_model:{main_config_with_small_dataset_and_model}",  # noqa: G004 - low overhead
     )
 
     worker_for_pipeline(

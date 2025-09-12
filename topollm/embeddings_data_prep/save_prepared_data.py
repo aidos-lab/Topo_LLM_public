@@ -1,20 +1,3 @@
-# Copyright 2024
-# [ANONYMIZED_INSTITUTION],
-# [ANONYMIZED_FACULTY],
-# [ANONYMIZED_DEPARTMENT]
-#
-# Authors:
-# AUTHOR_1 (author1@example.com)
-# AUTHOR_2 (author2@example.com)
-#
-# Code generation tools and workflows:
-# First versions of this code were potentially generated
-# with the help of AI writing assistants including
-# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
-# Afterwards, the generated segments were manually reviewed and edited.
-#
-
-
 """Saving and loading of prepared data."""
 
 import logging
@@ -27,7 +10,9 @@ from topollm.embeddings_data_prep.prepared_data_containers import PreparedData
 from topollm.path_management.embeddings.protocol import EmbeddingsPathManager
 from topollm.typing.enums import Verbosity
 
-default_logger = logging.getLogger(__name__)
+default_logger: logging.Logger = logging.getLogger(
+    name=__name__,
+)
 
 
 def save_prepared_data(
@@ -37,7 +22,7 @@ def save_prepared_data(
     logger: logging.Logger = default_logger,
 ) -> None:
     """Save the prepared data."""
-    prepared_data_dir_absolute_path = embeddings_path_manager.prepared_data_dir_absolute_path
+    prepared_data_dir_absolute_path: pathlib.Path = embeddings_path_manager.prepared_data_dir_absolute_path
 
     if verbosity >= Verbosity.NORMAL:
         logger.info(
@@ -55,7 +40,7 @@ def save_prepared_data(
     # Save the prepared data
     if verbosity >= Verbosity.NORMAL:
         logger.info(
-            f"Saving prepared data to {prepared_data_dir_absolute_path = } ...",  # noqa: G004 - low overhead
+            msg=f"Saving prepared data to {prepared_data_dir_absolute_path = } ...",  # noqa: G004 - low overhead
         )
 
     np.save(
@@ -69,7 +54,7 @@ def save_prepared_data(
 
     if verbosity >= Verbosity.NORMAL:
         logger.info(
-            f"Saving prepared data to {prepared_data_dir_absolute_path = } DONE",  # noqa: G004 - low overhead
+            msg=f"Saving prepared data to {prepared_data_dir_absolute_path = } DONE",  # noqa: G004 - low overhead
         )
 
 
@@ -79,15 +64,15 @@ def load_prepared_data(
     logger: logging.Logger = default_logger,
 ) -> PreparedData:
     """Load the prepared data."""
-    prepared_data_array_save_path = embeddings_path_manager.get_prepared_data_array_save_path()
-    prepared_data_meta_save_path = embeddings_path_manager.get_prepared_data_meta_save_path()
+    prepared_data_array_save_path: pathlib.Path = embeddings_path_manager.get_prepared_data_array_save_path()
+    prepared_data_meta_save_path: pathlib.Path = embeddings_path_manager.get_prepared_data_meta_save_path()
 
     if verbosity >= Verbosity.NORMAL:
         logger.info(
-            f"{prepared_data_array_save_path = }",  # noqa: G004 - low overhead
+            msg=f"{prepared_data_array_save_path = }",  # noqa: G004 - low overhead
         )
         logger.info(
-            f"{prepared_data_meta_save_path = }",  # noqa: G004 - low overhead
+            msg=f"{prepared_data_meta_save_path = }",  # noqa: G004 - low overhead
         )
 
     array = np.load(
@@ -95,7 +80,7 @@ def load_prepared_data(
     )
 
     meta_df = pd.read_pickle(  # noqa: S301 - we trust the data since it is our own
-        prepared_data_meta_save_path,
+        filepath_or_buffer=prepared_data_meta_save_path,
     )
 
     prepared_data = PreparedData(
