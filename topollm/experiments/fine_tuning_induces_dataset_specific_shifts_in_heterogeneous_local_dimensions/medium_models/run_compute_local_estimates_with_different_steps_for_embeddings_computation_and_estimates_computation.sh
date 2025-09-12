@@ -199,12 +199,13 @@ LANGUAGE_MODEL_ARGS=(
     # "language_model=Phi-3.5-mini-instruct"
     #
     # "language_model=luster-full"
-    # LUSTER variants without luster-full:
+    # > LUSTER variants without luster-full:
     "language_model=luster-base,luster-base-emotion,luster-chitchat,luster-rl-sent,luster-rl-succ"
     #
     "embeddings_data_prep.token_masking.token_masking_mode=based_on_meta_column"
-    "embeddings_data_prep.token_masking.token_mask_meta_column_name=mask_system_last"
+    # "embeddings_data_prep.token_masking.token_mask_meta_column_name=mask_system_last"
     # "embeddings_data_prep.token_masking.token_mask_meta_column_name=mask_state,mask_database"
+    "embeddings_data_prep.token_masking.token_mask_meta_column_name=mask_system_last,mask_state,mask_database"
     #
     # > All six variants of LUSTER models:
     # "language_model=luster-base,luster-base-emotion,luster-chitchat,luster-full,luster-rl-sent,luster-rl-succ"
