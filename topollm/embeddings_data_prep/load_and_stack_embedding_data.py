@@ -139,7 +139,7 @@ def load_and_stack_embedding_data(
 
     # Determine the token-level metadata columns to process.
     # Check the first entry in the loaded metadata chunks to see which columns are present
-    available_metadata_keys: list[str] = loaded_metadata_chunks[0]["metadata"].keys()
+    available_metadata_keys: list[str] = list(loaded_metadata_chunks[0]["metadata"].keys())
 
     # Column names which start with 'mask_' contain token-level masks, and should be processed
     token_level_mask_columns: list[str] = [

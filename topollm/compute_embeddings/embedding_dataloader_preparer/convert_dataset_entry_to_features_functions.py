@@ -1,10 +1,16 @@
-"""Functions for converting dataset entries to features."""
+"""Dataset entry -> feature conversion utilities and mask visualization.
+
+Provides conversion helpers for different dataset types.
+"""
 
 import re
-import warnings
-from collections.abc import Callable, Iterable
+from collections.abc import Callable
+from typing import Literal
 
 import nltk
+from rich import box
+from rich.console import Console
+from rich.table import Table
 from transformers import BatchEncoding, PreTrainedTokenizer, PreTrainedTokenizerFast
 
 from topollm.config_classes.data.data_config import DataConfig
@@ -13,10 +19,7 @@ from topollm.typing.enums import DatasetType
 
 def get_convert_dataset_entry_to_features_function(
     data_config: DataConfig,
-) -> Callable[
-    ...,
-    BatchEncoding,
-]:
+) -> Callable[..., BatchEncoding]:
     """Get the function to convert a dataset entry to features."""
     match data_config.dataset_type:
         case DatasetType.HUGGINGFACE_DATASET:
@@ -94,8 +97,11 @@ def _find_last_label_span(
       A 2-tuple (start, end) in character indices, or None if not found.
 
     """
-    flags = 0 if case_sensitive else re.IGNORECASE
-    pattern = re.compile(rf"{re.escape(label)}\s*:\s*", flags)
+    flags: Literal[0] | re.RegexFlag = 0 if case_sensitive else re.IGNORECASE
+    pattern: re.Pattern[str] = re.compile(
+        pattern=rf"{re.escape(pattern=label)}\s*:\s*",
+        flags=flags,
+    )
     last = None
 
     for m in pattern.finditer(text):
@@ -126,12 +132,15 @@ def _mask_from_span(
       A list of 0/1 ints with same length as offsets.
 
     """
-    mask = [0] * len(offsets)
+    mask: list[int] = [0] * len(offsets)
     if span is None:
         return mask
 
-    a, b = span
-    for i, (s, e) in enumerate(offsets):
+    (
+        a,
+        b,
+    ) = span
+    for i, (s, e) in enumerate(iterable=offsets):
         # Skip special/pad encoded as (0,0) by some tokenizers
         if s == 0 and e == 0:
             continue
@@ -140,7 +149,7 @@ def _mask_from_span(
             mask[i] = 1
 
     if special_tokens_mask is not None:
-        mask = [m if special_tokens_mask[i] == 0 else 0 for i, m in enumerate(mask)]
+        mask = [m if special_tokens_mask[i] == 0 else 0 for i, m in enumerate(iterable=mask)]
 
     return mask
 
@@ -208,38 +217,128 @@ def debug_str_masks(
     features: BatchEncoding,
     tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast,
     mask_keys: list[str] | None = None,
+    *,
+    max_rows: int | None = None,
 ) -> str:
-    """Pretty-print tokens and aligned masks for manual inspection.
+    """Return a rich table with one row per token and one column per mask.
 
-    Args:
-      features: BatchEncoding with input_ids, offset_mapping, etc.
-      tokenizer: HF tokenizer.
-      mask_keys: If provided, only include these masks; otherwise all masks in features.
+    Layout:
+        Columns: [Idx, Token, <mask_*> ...]
+        Each mask column shows 0/1 with highlighted 1 values.
+
+    Parameters
+    ----------
+    features : BatchEncoding
+        Must include ``input_ids`` and mask arrays (keys starting with ``mask_``).
+    tokenizer : PreTrainedTokenizer | PreTrainedTokenizerFast
+        Tokenizer used to decode IDs.
+    mask_keys : list[str] | None
+        Explicit list of mask keys; auto-detected if None.
+    max_rows : int | None
+        Optional limit of token rows (useful for very long sequences).
 
     """
-    if mask_keys is None:
-        mask_keys = [k for k in features if re.match(r"^mask_", k)]
+    mask_keys = _derive_mask_keys(
+        features=features,
+        explicit=mask_keys,
+    )
+    if not mask_keys:
+        return "(No mask_* keys found.)"
 
-    def fmt(row: Iterable[int | str]) -> str:
-        return " ".join(str(x)[:cell].ljust(cell) for x in row)
+    console = Console(
+        width=180,
+        record=True,
+        soft_wrap=False,
+    )
 
-    output_lines: list[str] = []
+    for batch_idx in range(len(features.input_ids)):
+        _render_single_example(
+            console=console,
+            tokenizer=tokenizer,
+            features=features,
+            batch_idx=batch_idx,
+            mask_keys=mask_keys,
+            max_rows=max_rows,
+        )
 
-    for index in range(len(features.input_ids)):
-        cell = 12
-        lines = []
+    return console.export_text()
 
-        tokens = tokenizer.convert_ids_to_tokens(features.input_ids[index])
-        lines.append(fmt(["Token", *tokens]))
 
-        for key in mask_keys:
-            if key in features:
-                mask = features[key][index]  # type: ignore - this access via key is valid for BatchEncoding objects
-                lines.append(fmt([key, *mask]))
+def _derive_mask_keys(
+    features: BatchEncoding,
+    explicit: list[str] | None,
+) -> list[str]:
+    if explicit is not None:
+        return explicit
+    return [k for k in features if k.startswith("mask_")]
 
-        output_lines.append("\n".join(lines))
 
-    return "\n".join(output_lines)
+def _clean_token(tok: str) -> str:
+    if tok == "":
+        return "∅"
+    return tok.replace(
+        "\n",
+        "⏎",
+    ).replace(
+        "\t",
+        "⇥",
+    )
+
+
+def _render_single_example(
+    *,
+    console: Console,
+    tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast,
+    features: BatchEncoding,
+    batch_idx: int,
+    mask_keys: list[str],
+    max_rows: int | None,
+) -> None:
+    tokens: list[str] = tokenizer.convert_ids_to_tokens(
+        features.input_ids[batch_idx],
+    )  # type: ignore - we know the converted type is list[str]
+    masks_per_key: dict[
+        str,
+        list[int],
+    ] = {k: list(features[k][batch_idx]) for k in mask_keys if k in features}  # type: ignore[index]
+
+    table = Table(
+        title=f"Example {batch_idx} (tokens={len(tokens)})",
+        show_header=True,
+        header_style="bold magenta",
+        box=box.SIMPLE_HEAVY,
+        padding=(0, 1),
+    )
+    table.add_column(
+        header="Idx",
+        style="bold cyan",
+        no_wrap=True,
+    )
+    table.add_column(
+        header="Token",
+        style="bold white",
+    )
+    for mk in mask_keys:
+        if mk in masks_per_key:
+            table.add_column(
+                header=mk,
+                style="bold green",
+                no_wrap=True,
+            )
+
+    limit = len(tokens) if max_rows is None else min(max_rows, len(tokens))
+    for i in range(limit):
+        row: list[str] = [str(i), _clean_token(tokens[i])]
+        for mk in mask_keys:
+            if mk in masks_per_key:
+                v = masks_per_key[mk][i]
+                row.append("[bold green]1[/]" if v == 1 else "0")
+        table.add_row(*row)
+    if max_rows is not None and limit < len(tokens):
+        ellipsis_row: list[str] = ["…", f"(truncated {len(tokens) - limit} tokens)"]
+        ellipsis_row.extend(["…" for _ in range(len(table.columns) - 2)])
+        table.add_row(*ellipsis_row)
+    console.print(table)
 
 
 def convert_dataset_entry_to_features_luster_data(
@@ -309,7 +408,7 @@ def convert_dataset_entry_to_features_named_entity(
 
     dataset_tokenized = features.input_ids
 
-    pos_tag = [nltk.pos_tag(tokens=sent) for sent in split_words]
+    pos_tag: list[list] = [nltk.pos_tag(tokens=sent) for sent in split_words]
 
     all_word_tags_one_sentence_tokens = []
 
