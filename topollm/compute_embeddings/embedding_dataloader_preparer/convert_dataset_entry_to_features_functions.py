@@ -104,14 +104,25 @@ def _find_last_label_span(
     )
     last = None
 
-    for m in pattern.finditer(text):
-        marker_start, marker_end = m.start(), m.end()
-        seg_end = text.find(delimiter, marker_end)
+    for m in pattern.finditer(
+        string=text,
+    ):
+        (
+            marker_start,
+            marker_end,
+        ) = m.start(), m.end()
+        seg_end: int = text.find(
+            delimiter,
+            marker_end,
+        )
         if seg_end == -1:
             seg_end = len(text)
-        span_start = marker_start if include_marker else marker_end
-        span_end = seg_end
-        last = (span_start, span_end)
+        span_start: int = marker_start if include_marker else marker_end
+        span_end: int = seg_end
+        last: tuple[int, int] = (
+            span_start,
+            span_end,
+        )
 
     return last
 
@@ -182,41 +193,45 @@ def build_basic_segment_masks_for_encoded_text(
         "mask_action": [],
     }
 
-    for text, offsets, specials in zip(
+    for (
+        text,
+        offsets,
+        specials,
+    ) in zip(
         texts,
         offsets_batch,
         specials_batch,
         strict=True,
     ):
-        span_sys = _find_last_label_span(
+        span_sys: tuple[int, int] | None = _find_last_label_span(
             text=text,
             label="system",
             delimiter=delimiter,
             include_marker=False,
         )
-        span_state = _find_last_label_span(
+        span_state: tuple[int, int] | None = _find_last_label_span(
             text=text,
             label="state",
             delimiter=delimiter,
             include_marker=False,
         )
-        span_db = _find_last_label_span(
+        span_db: tuple[int, int] | None = _find_last_label_span(
             text=text,
             label="database",
             delimiter=delimiter,
             include_marker=False,
         )
-        span_action = _find_last_label_span(
+        span_action: tuple[int, int] | None = _find_last_label_span(
             text=text,
             label="action",
             delimiter=delimiter,
             include_marker=False,
         )
 
-        out["mask_system_last"].append(_mask_from_span(offsets, span_sys, specials))
-        out["mask_state"].append(_mask_from_span(offsets, span_state, specials))
-        out["mask_database"].append(_mask_from_span(offsets, span_db, specials))
-        out["mask_action"].append(_mask_from_span(offsets, span_action, specials))
+        out["mask_system_last"].append(_mask_from_span(offsets=offsets, span=span_sys, special_tokens_mask=specials))
+        out["mask_state"].append(_mask_from_span(offsets=offsets, span=span_state, special_tokens_mask=specials))
+        out["mask_database"].append(_mask_from_span(offsets=offsets, span=span_db, special_tokens_mask=specials))
+        out["mask_action"].append(_mask_from_span(offsets=offsets, span=span_action, special_tokens_mask=specials))
 
     return out
 
