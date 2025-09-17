@@ -9,8 +9,8 @@ from transformers.tokenization_utils_base import BatchEncoding
 from topollm.compute_embeddings.embedding_dataloader_preparer.convert_dataset_entry_to_features_functions import (
     convert_dataset_entry_to_features,
     convert_dataset_entry_to_features_luster_data,
-    debug_str_masks,
 )
+from topollm.compute_embeddings.embedding_dataloader_preparer.extract_spans import debug_str_masks
 from topollm.config_classes.language_model.language_model_config import LanguageModelConfig
 from topollm.config_classes.tokenizer.tokenizer_config import TokenizerConfig
 from topollm.model_handling.tokenizer.load_tokenizer import load_modified_tokenizer
