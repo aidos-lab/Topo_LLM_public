@@ -123,8 +123,7 @@ def pytest_configure(
         ).strftime(
             format="%Y-%m-%d_%H-%M-%S_%Z",
         )
-        # Note: the doubling {{ and }} is necessary to escape the curly braces
-        config.option.log_file = f"logs/pytest-logs_{timestamp}.log"
+        config.option.log_file = f"logs/pytest/pytest-logs_{timestamp}.log"
 
 
 # END Configuration of pytest

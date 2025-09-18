@@ -198,7 +198,8 @@ LANGUAGE_MODEL_ARGS=(
     # > Base model:
     # "language_model=Phi-3.5-mini-instruct"
     #
-    "language_model=luster-full"
+    "language_model=luster-chitchat"
+    # "language_model=luster-full"
     # > LUSTER variants without luster-full:
     # "language_model=luster-base,luster-base-emotion,luster-chitchat,luster-rl-sent,luster-rl-succ"
     #
