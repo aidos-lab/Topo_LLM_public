@@ -92,8 +92,11 @@ DEFAULT_DIALOGUE_ACT_SLOTS: list[str] = [
     "internet",
     "parking",
     "address",
+    "entrance fee",
     "postcode",
+    "phone",
     "ref",
+    "reference",
 ]
 
 
