@@ -105,17 +105,21 @@ def _extract_action_values(
     slots: list[str],
 ) -> list[str]:
     """Return ordered list of candidate VALUE strings parsed from a dialogue act."""
-    clauses = [c.strip() for c in dialogue_act_text.split(";") if c.strip()]
+    clauses: list[str] = [c.strip() for c in dialogue_act_text.split(";") if c.strip()]
     values: list[str] = []
-    slots_sorted = sorted(slots, key=len, reverse=True)  # prefer multiword slots first
+    slots_sorted: list[str] = sorted(
+        slots,
+        key=len,
+        reverse=True,
+    )  # prefer multiword slots first
 
     for clause in clauses:
         parts: list[str] = clause.split()
         if not parts:
             continue
         # strip common intent token (inform / nooffer / request / recommend / etc.)
-        intent = parts[0]
-        tail = clause[len(intent) :].strip()
+        intent: str = parts[0]
+        tail: str = clause[len(intent) :].strip()
 
         # Try to match "<slot> <value>" (or "<slot>: <value>") with longest slot name
         matched_slot = None
@@ -191,13 +195,13 @@ def build_system_utterance_content_masks_from_dialogue_act_for_encoded_text(
         specials_batch,
         strict=True,
     ):
-        sys_span = _find_last_label_span(
+        sys_span: tuple[int, int] | None = _find_last_label_span(
             text=text,
             label="system",
             delimiter=delimiter,
             include_marker=False,
         )
-        act_span = _find_last_label_span(
+        act_span: tuple[int, int] | None = _find_last_label_span(
             text=text,
             label="action",
             delimiter=delimiter,
@@ -218,18 +222,21 @@ def build_system_utterance_content_masks_from_dialogue_act_for_encoded_text(
             continue
 
         # Extract action values and match them inside the last system span
-        action_text = text[act_span[0] : act_span[1]]
-        values = _extract_action_values(action_text, dialogue_act_slots)
+        action_text: str = text[act_span[0] : act_span[1]]
+        values: list[str] = _extract_action_values(
+            dialogue_act_text=action_text,
+            slots=dialogue_act_slots,
+        )
 
-        sys_sub = text[sys_span[0] : sys_span[1]]
-        content_union = [0] * len(offsets)
+        sys_sub: str = text[sys_span[0] : sys_span[1]]
+        content_union: list[int] = [0] * len(offsets)
 
         for val in values:
-            pat = _compile_value_regex(val)
+            pat: re.Pattern[str] = _compile_value_regex(value=val)
             for m in pat.finditer(sys_sub):
-                a = sys_span[0] + m.start()
-                b = sys_span[0] + m.end()
-                msk = _mask_from_span(
+                a: int = sys_span[0] + m.start()
+                b: int = sys_span[0] + m.end()
+                msk: list[int] = _mask_from_span(
                     offsets=offsets,
                     span=(a, b),
                     special_tokens_mask=specials,
@@ -244,7 +251,7 @@ def build_system_utterance_content_masks_from_dialogue_act_for_encoded_text(
                 ]
 
         # Non-content = tokens in system span AND not in content
-        noncontent = [
+        noncontent: list[int] = [
             int(s and not c)
             for s, c in zip(
                 system_span_mask,
