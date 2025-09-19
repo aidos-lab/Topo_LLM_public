@@ -1,35 +1,7 @@
-# coding=utf-8
-#
-# Copyright 2024
-# [ANONYMIZED_INSTITUTION],
-# [ANONYMIZED_FACULTY],
-# [ANONYMIZED_DEPARTMENT]
-#
-# Authors:
-# AUTHOR_1 (author1@example.com)
-#
-# Code generation tools and workflows:
-# First versions of this code were potentially generated
-# with the help of AI writing assistants including
-# GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
-# Afterwards, the generated segments were manually reviewed and edited.
-#
-
-
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# START Imports
-
-# System imports
 import warnings
 
-# Third-party imports
 from torch.utils.data import Dataset
 from tqdm.auto import tqdm
-
-# Local imports
-
-# END Imports
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
 class DialogueUtteranceDataset(Dataset):
