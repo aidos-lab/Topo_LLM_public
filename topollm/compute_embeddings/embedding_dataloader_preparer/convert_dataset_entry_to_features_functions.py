@@ -5,14 +5,14 @@ Provides conversion helpers for different dataset types.
 
 import re
 from collections.abc import Callable
-from typing import Literal
 
 import nltk
-from rich import box
-from rich.console import Console
-from rich.table import Table
 from transformers import BatchEncoding, PreTrainedTokenizer, PreTrainedTokenizerFast
 
+from topollm.compute_embeddings.embedding_dataloader_preparer.extract_spans import (
+    _find_last_label_span,
+    _mask_from_span,
+)
 from topollm.config_classes.data.data_config import DataConfig
 from topollm.typing.enums import DatasetType
 
@@ -76,82 +76,196 @@ def convert_dataset_entry_to_features(
     return features
 
 
-def _find_last_label_span(
-    text: str,
-    label: str,
-    delimiter: str = "</s>",
-    *,
-    include_marker: bool = False,
-    case_sensitive: bool = False,
-) -> tuple[int, int] | None:
-    """Find the [start, end) character span of the last '<label> : ... </s>' segment.
-
-    Args:
-      text: Full dataset entry string.
-      label: Segment label, e.g., 'system', 'state', 'database'.
-      delimiter: End-of-segment delimiter.
-      include_marker: If True, include the leading 'label :' in the span.
-      case_sensitive: Match case-sensitively if True.
-
-    Returns:
-      A 2-tuple (start, end) in character indices, or None if not found.
-
-    """
-    flags: Literal[0] | re.RegexFlag = 0 if case_sensitive else re.IGNORECASE
-    pattern: re.Pattern[str] = re.compile(
-        pattern=rf"{re.escape(pattern=label)}\s*:\s*",
-        flags=flags,
-    )
-    last = None
-
-    for m in pattern.finditer(text):
-        marker_start, marker_end = m.start(), m.end()
-        seg_end = text.find(delimiter, marker_end)
-        if seg_end == -1:
-            seg_end = len(text)
-        span_start = marker_start if include_marker else marker_end
-        span_end = seg_end
-        last = (span_start, span_end)
-
-    return last
+# List of known slot names used for parsing dialogue acts.
+# This list is used to identify and separate slot names from their values when processing dialogue acts.
+DEFAULT_DIALOGUE_ACT_SLOTS: list[str] = [
+    "price range",
+    "pricerange",
+    "area",
+    "food",
+    "type",
+    "name",
+    "stars",
+    "choice",
+    "book time",
+    "book day",
+    "book people",
+    "internet",
+    "parking",
+    "address",
+    "entrance fee",
+    "postcode",
+    "phone",
+    "ref",
+    "reference",
+]
 
 
-def _mask_from_span(
-    offsets: list[tuple[int, int]],
-    span: tuple[int, int] | None,
-    special_tokens_mask: list[int] | None = None,
-) -> list[int]:
-    """Build a 0/1 mask for tokens whose char offsets intersect the given span.
+def _extract_action_values(
+    dialogue_act_text: str,
+    slots: list[str],
+) -> list[str]:
+    """Return ordered list of candidate VALUE strings parsed from a dialogue act."""
+    clauses: list[str] = [c.strip() for c in dialogue_act_text.split(";") if c.strip()]
+    values: list[str] = []
+    slots_sorted: list[str] = sorted(
+        slots,
+        key=len,
+        reverse=True,
+    )  # prefer multiword slots first
 
-    Args:
-      offsets: (start, end) per token. (start==end) often indicates special/pad.
-      span: (a, b) character span in the same text; None -> all zeros.
-      special_tokens_mask: If provided, any token with value==1 is zeroed.
-
-    Returns:
-      A list of 0/1 ints with same length as offsets.
-
-    """
-    mask: list[int] = [0] * len(offsets)
-    if span is None:
-        return mask
-
-    (
-        a,
-        b,
-    ) = span
-    for i, (s, e) in enumerate(iterable=offsets):
-        # Skip special/pad encoded as (0,0) by some tokenizers
-        if s == 0 and e == 0:
+    for clause in clauses:
+        parts: list[str] = clause.split()
+        if not parts:
             continue
-        # Overlap test for half-open intervals
-        if s < b and e > a:
-            mask[i] = 1
+        # strip common intent token (inform / nooffer / request / recommend / etc.)
+        intent: str = parts[0]
+        tail: str = clause[len(intent) :].strip()
 
-    if special_tokens_mask is not None:
-        mask = [m if special_tokens_mask[i] == 0 else 0 for i, m in enumerate(iterable=mask)]
+        # Try to match "<slot> <value>" (or "<slot>: <value>") with longest slot name
+        matched_slot = None
+        for sname in slots_sorted:
+            low_tail = tail.lower()
+            low_slot = sname.lower()
+            if low_tail.startswith(low_slot + " ") or low_tail.startswith(low_slot + ":"):
+                matched_slot = sname
+                # everything after the slot name (minus separators) is the value
+                raw_val = tail[len(sname) :].lstrip(" :")
+                if raw_val:
+                    values.append(raw_val)
+                break
+            if low_tail == low_slot:
+                matched_slot = sname  # no value present (e.g., 'request area')
+                break
+        if matched_slot is not None:
+            continue
 
-    return mask
+        # Fallback: common numeric value pattern like "choice 18"
+        m_choice = re.search(r"\bchoice\s+([0-9]+)\b", clause, flags=re.IGNORECASE)
+        if m_choice:
+            values.append(m_choice.group(1))
+            continue
+
+        # Last fallback: take the trailing token-ish phrase as a value guess.
+        # Match an alphanumeric sequence (optionally including spaces and hyphens) at the end of the string
+        m_tail: re.Match[str] | None = re.search(r"([A-Za-z0-9][A-Za-z0-9\s\-]*)$", tail)
+        if m_tail:
+            cand = m_tail.group(1).strip()
+            if cand:
+                values.append(cand)
+
+    # Deduplicate but keep order
+    seen: set[str] = set()
+    out: list[str] = []
+    for v in values:
+        k = v.lower()
+        if k not in seen:
+            seen.add(k)
+            out.append(v)
+    return out
+
+
+def _compile_value_regex(value: str) -> re.Pattern[str]:
+    """Case-insensitive whole-word-ish match; allow simple plurals for alpha values."""
+    v = value.strip()
+    if not v:
+        return re.compile(r"(?!x)x")  # match nothing
+    if v.isalpha():
+        return re.compile(rf"\b{re.escape(v)}(?:s|es)?\b", flags=re.IGNORECASE)
+    return re.compile(rf"\b{re.escape(v)}\b", flags=re.IGNORECASE)
+
+
+def build_system_utterance_content_masks_from_dialogue_act_for_encoded_text(
+    texts: list[str],
+    encodings: BatchEncoding,
+    *,
+    delimiter: str = "</s>",
+    dialogue_act_slots: list[str] = DEFAULT_DIALOGUE_ACT_SLOTS,
+) -> dict[str, list[list[int]]]:
+    """Create masks over the last system utterance: content (union of action values) and non-content."""
+    offsets_batch: list[list[tuple[int, int]]] = encodings.offset_mapping
+    specials_batch: list[list[int]] = encodings.special_tokens_mask
+
+    out: dict[str, list[list[int]]] = {
+        "mask_system_content": [],
+        "mask_system_noncontent": [],
+    }
+
+    for text, offsets, specials in zip(
+        texts,
+        offsets_batch,
+        specials_batch,
+        strict=True,
+    ):
+        sys_span: tuple[int, int] | None = _find_last_label_span(
+            text=text,
+            label="system",
+            delimiter=delimiter,
+            include_marker=False,
+        )
+        act_span: tuple[int, int] | None = _find_last_label_span(
+            text=text,
+            label="action",
+            delimiter=delimiter,
+            include_marker=False,
+        )
+
+        # Base system span mask (all tokens of the last system utterance)
+        system_span_mask = _mask_from_span(
+            offsets=offsets,
+            span=sys_span,
+            special_tokens_mask=specials,
+        )
+
+        # If either span missing → empty content/non-content (or non-content = system, if you prefer)
+        if sys_span is None or act_span is None:
+            out["mask_system_content"].append([0] * len(offsets))
+            out["mask_system_noncontent"].append([0] * len(offsets))
+            continue
+
+        # Extract action values and match them inside the last system span
+        action_text: str = text[act_span[0] : act_span[1]]
+        values: list[str] = _extract_action_values(
+            dialogue_act_text=action_text,
+            slots=dialogue_act_slots,
+        )
+
+        sys_sub: str = text[sys_span[0] : sys_span[1]]
+        content_union: list[int] = [0] * len(offsets)
+
+        for val in values:
+            pat: re.Pattern[str] = _compile_value_regex(value=val)
+            for m in pat.finditer(sys_sub):
+                a: int = sys_span[0] + m.start()
+                b: int = sys_span[0] + m.end()
+                msk: list[int] = _mask_from_span(
+                    offsets=offsets,
+                    span=(a, b),
+                    special_tokens_mask=specials,
+                )
+                content_union = [
+                    int(x or y)
+                    for x, y in zip(
+                        content_union,
+                        msk,
+                        strict=True,
+                    )
+                ]
+
+        # Non-content = tokens in system span AND not in content
+        noncontent: list[int] = [
+            int(s and not c)
+            for s, c in zip(
+                system_span_mask,
+                content_union,
+                strict=True,
+            )
+        ]
+
+        out["mask_system_content"].append(content_union)
+        out["mask_system_noncontent"].append(noncontent)
+
+    return out
 
 
 def build_basic_segment_masks_for_encoded_text(
@@ -176,169 +290,53 @@ def build_basic_segment_masks_for_encoded_text(
     specials_batch: list[list[int]] = encodings.special_tokens_mask
 
     out: dict[str, list[list[int]]] = {
-        "mask_system_last": [],
         "mask_state": [],
         "mask_database": [],
+        "mask_action": [],
+        "mask_system_last": [],
     }
 
-    for text, offsets, specials in zip(
+    for (
+        text,
+        offsets,
+        specials,
+    ) in zip(
         texts,
         offsets_batch,
         specials_batch,
         strict=True,
     ):
-        span_sys = _find_last_label_span(
-            text,
-            "system",
+        span_state: tuple[int, int] | None = _find_last_label_span(
+            text=text,
+            label="state",
             delimiter=delimiter,
             include_marker=False,
         )
-        span_state = _find_last_label_span(
-            text,
-            "state",
+        span_db: tuple[int, int] | None = _find_last_label_span(
+            text=text,
+            label="database",
             delimiter=delimiter,
             include_marker=False,
         )
-        span_db = _find_last_label_span(
-            text,
-            "database",
+        span_action: tuple[int, int] | None = _find_last_label_span(
+            text=text,
+            label="action",
+            delimiter=delimiter,
+            include_marker=False,
+        )
+        span_sys: tuple[int, int] | None = _find_last_label_span(
+            text=text,
+            label="system",
             delimiter=delimiter,
             include_marker=False,
         )
 
-        out["mask_system_last"].append(_mask_from_span(offsets, span_sys, specials))
-        out["mask_state"].append(_mask_from_span(offsets, span_state, specials))
-        out["mask_database"].append(_mask_from_span(offsets, span_db, specials))
+        out["mask_state"].append(_mask_from_span(offsets=offsets, span=span_state, special_tokens_mask=specials))
+        out["mask_database"].append(_mask_from_span(offsets=offsets, span=span_db, special_tokens_mask=specials))
+        out["mask_action"].append(_mask_from_span(offsets=offsets, span=span_action, special_tokens_mask=specials))
+        out["mask_system_last"].append(_mask_from_span(offsets=offsets, span=span_sys, special_tokens_mask=specials))
 
     return out
-
-
-def debug_str_masks(
-    features: BatchEncoding,
-    tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast,
-    mask_keys: list[str] | None = None,
-    *,
-    max_rows: int | None = None,
-) -> str:
-    """Return a rich table with one row per token and one column per mask.
-
-    Layout:
-        Columns: [Idx, Token, <mask_*> ...]
-        Each mask column shows 0/1 with highlighted 1 values.
-
-    Parameters
-    ----------
-    features : BatchEncoding
-        Must include ``input_ids`` and mask arrays (keys starting with ``mask_``).
-    tokenizer : PreTrainedTokenizer | PreTrainedTokenizerFast
-        Tokenizer used to decode IDs.
-    mask_keys : list[str] | None
-        Explicit list of mask keys; auto-detected if None.
-    max_rows : int | None
-        Optional limit of token rows (useful for very long sequences).
-
-    """
-    mask_keys = _derive_mask_keys(
-        features=features,
-        explicit=mask_keys,
-    )
-    if not mask_keys:
-        return "(No mask_* keys found.)"
-
-    console = Console(
-        width=180,
-        record=True,
-        soft_wrap=False,
-    )
-
-    for batch_idx in range(len(features.input_ids)):
-        _render_single_example(
-            console=console,
-            tokenizer=tokenizer,
-            features=features,
-            batch_idx=batch_idx,
-            mask_keys=mask_keys,
-            max_rows=max_rows,
-        )
-
-    return console.export_text()
-
-
-def _derive_mask_keys(
-    features: BatchEncoding,
-    explicit: list[str] | None,
-) -> list[str]:
-    if explicit is not None:
-        return explicit
-    return [k for k in features if k.startswith("mask_")]
-
-
-def _clean_token(tok: str) -> str:
-    if tok == "":
-        return "∅"
-    return tok.replace(
-        "\n",
-        "⏎",
-    ).replace(
-        "\t",
-        "⇥",
-    )
-
-
-def _render_single_example(
-    *,
-    console: Console,
-    tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast,
-    features: BatchEncoding,
-    batch_idx: int,
-    mask_keys: list[str],
-    max_rows: int | None,
-) -> None:
-    tokens: list[str] = tokenizer.convert_ids_to_tokens(
-        features.input_ids[batch_idx],
-    )  # type: ignore - we know the converted type is list[str]
-    masks_per_key: dict[
-        str,
-        list[int],
-    ] = {k: list(features[k][batch_idx]) for k in mask_keys if k in features}  # type: ignore[index]
-
-    table = Table(
-        title=f"Example {batch_idx} (tokens={len(tokens)})",
-        show_header=True,
-        header_style="bold magenta",
-        box=box.SIMPLE_HEAVY,
-        padding=(0, 1),
-    )
-    table.add_column(
-        header="Idx",
-        style="bold cyan",
-        no_wrap=True,
-    )
-    table.add_column(
-        header="Token",
-        style="bold white",
-    )
-    for mk in mask_keys:
-        if mk in masks_per_key:
-            table.add_column(
-                header=mk,
-                style="bold green",
-                no_wrap=True,
-            )
-
-    limit = len(tokens) if max_rows is None else min(max_rows, len(tokens))
-    for i in range(limit):
-        row: list[str] = [str(i), _clean_token(tokens[i])]
-        for mk in mask_keys:
-            if mk in masks_per_key:
-                v = masks_per_key[mk][i]
-                row.append("[bold green]1[/]" if v == 1 else "0")
-        table.add_row(*row)
-    if max_rows is not None and limit < len(tokens):
-        ellipsis_row: list[str] = ["…", f"(truncated {len(tokens) - limit} tokens)"]
-        ellipsis_row.extend(["…" for _ in range(len(table.columns) - 2)])
-        table.add_row(*ellipsis_row)
-    console.print(table)
 
 
 def convert_dataset_entry_to_features_luster_data(
@@ -366,11 +364,21 @@ def convert_dataset_entry_to_features_luster_data(
         delimiter="</s>",
     )
 
+    system_content_masks: dict[str, list[list[int]]] = (
+        build_system_utterance_content_masks_from_dialogue_act_for_encoded_text(
+            texts=dataset_entry[column_name],
+            encodings=tokenized_entries,
+            delimiter="</s>",
+            dialogue_act_slots=DEFAULT_DIALOGUE_ACT_SLOTS,
+        )
+    )
+
     # Combine the tokenized entries with the segment masks
     features = BatchEncoding(
         data={
             **tokenized_entries,
             **segment_masks,
+            **system_content_masks,  # adds 'mask_system_content' and 'mask_system_noncontent'
         },
         encoding=tokenized_entries.encodings,
     )
