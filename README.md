@@ -90,7 +90,7 @@ This step can be achieved by running the setup script in the `topollm/setup/` di
 
 1. If required, e.g. when running jobs on an HPC cluster, set the correct environment variables in the `.env` file in the project root directory.
 
-2. For setting up the repository to support job submissions to the a HPC cluster, follow the instructions using our [custom Hydra launcher]([ANONYMIZED_HYDRA_HPC_LAUNCHER_LINK]).
+2. For setting up the repository to support job submissions to the a HPC cluster, follow the instructions using our [Hydra HPC Launcher](https://github.com/carelvniekerk/Hydra-HPC-Launcher).
    Additional submission scripts are located in the `topollm/scripts/submission_scripts` directory.
 
 3. Download the files necessary for `nltk`: Start a python interpreter and run the following:
@@ -250,9 +250,9 @@ The violin plots in the paper, which compare the local estimate distribution bet
 uv run python3 topollm/plotting/plot_scripts_for_paper_draft/violin_plots_from_local_estimates.py
 ```
 
-### Experiments: Local Dimensions Predict Grokking
+### Experiments: Local Dimensions Detect Grokking
 
-Refer to the separate `grokking` repository for instructions on how to run these experiments.
+Refer to our separate [`grokking-via-lid` repository](https://github.com/aidos-lab/grokking-via-lid) for instructions on how to run these experiments.
 
 ### Experiments: Local Dimensions Detect Exhaustion of Training Capabilities
 
