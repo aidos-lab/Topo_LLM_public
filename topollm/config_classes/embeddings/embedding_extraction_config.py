@@ -1,17 +1,3 @@
-# Copyright 2024
-# [ANONYMIZED_INSTITUTION],
-# [ANONYMIZED_FACULTY],
-# [ANONYMIZED_DEPARTMENT]
-#
-# Authors:
-# AUTHOR_2 (author2@example.com)
-# AUTHOR_1 (author1@example.com)
-#
-# This code was generated with the help of AI writing assistants
-# including GitHub Copilot, ChatGPT, Bing Chat.
-#
-
-
 from pydantic import BaseModel, Field
 
 from topollm.config_classes.constants import ITEM_SEP, KV_SEP, NAME_PREFIXES

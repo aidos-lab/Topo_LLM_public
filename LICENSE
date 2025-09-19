@@ -1,7 +1,7 @@
 MIT License
 
-Copyright (c) 2025 AUTHOR_1 (author1@example.com)
-Copyright (c) 2025 AUTHOR_2 (author2@example.com)
+Copyright (c) 2024-2025 Benjamin Matthias Ruppik (mail@ruppik.net)
+Copyright (c) 2024-2025 Julius von Rohrscheidt (julius.rohrscheidt@helmholtz-munich.de)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -20,3 +20,9 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+Code generation tools and workflows:
+First versions of this code were potentially generated
+with the help of AI writing assistants including
+GitHub Copilot, ChatGPT, Microsoft Copilot, Google Gemini.
+Afterwards, the generated segments were manually reviewed and edited.
