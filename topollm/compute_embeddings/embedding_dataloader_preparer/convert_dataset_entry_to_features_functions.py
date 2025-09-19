@@ -76,7 +76,8 @@ def convert_dataset_entry_to_features(
     return features
 
 
-# Default set to separate slot *name* from slot *value* in the dialogue act.
+# List of known slot names used for parsing dialogue acts.
+# This list is used to identify and separate slot names from their values when processing dialogue acts.
 DEFAULT_DIALOGUE_ACT_SLOTS: list[str] = [
     "price range",
     "pricerange",
