@@ -19,7 +19,7 @@ def _derive_mask_keys(
 
 
 def _clean_token(tok: str) -> str:
-    if tok == "":
+    if not tok:
         return "∅"
     return tok.replace(
         "\n",
