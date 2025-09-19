@@ -146,8 +146,9 @@ def _extract_action_values(
             values.append(m_choice.group(1))
             continue
 
-        # Last fallback: take the trailing token-ish phrase as a value guess
-        m_tail = re.search(r"([A-Za-z0-9][A-Za-z0-9\s\-]*)$", tail)
+        # Last fallback: take the trailing token-ish phrase as a value guess.
+        # Match an alphanumeric sequence (optionally including spaces and hyphens) at the end of the string
+        m_tail: re.Match[str] | None = re.search(r"([A-Za-z0-9][A-Za-z0-9\s\-]*)$", tail)
         if m_tail:
             cand = m_tail.group(1).strip()
             if cand:
