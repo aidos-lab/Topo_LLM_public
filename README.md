@@ -3,6 +3,13 @@
 ## Overview
 
 This repository contains code for analyzing the representations produced by contextual language models from a topological perspective.
+In particular, we study changes in the **local intrinsic dimension (LID)** of the model's hidden states in different scenarios.
+
+Details can be found in our paper [Less is More: Local Intrinsic Dimensions of Contextual Language Models](https://arxiv.org/abs/2506.01034).
+
+**Abstract:**
+
+> Understanding the internal mechanisms of large language models (LLMs) remains a challenging and complex endeavor. Even fundamental questions, such as how fine-tuning affects model behavior, often require extensive empirical evaluation. In this paper, we introduce a novel perspective based on the geometric properties of contextual latent embeddings to study the effects of training and fine-tuning. To that end, we measure the local dimensions of a contextual language model's latent space and analyze their shifts during training and fine-tuning. We show that the local dimensions provide insights into the model's training dynamics and generalization ability. Specifically, the mean of the local dimensions predicts when the model's training capabilities are exhausted, as exemplified in a dialogue state tracking task, overfitting, as demonstrated in an emotion recognition task, and grokking, as illustrated with an arithmetic task. Furthermore, our experiments suggest a practical heuristic: reductions in the mean local dimension tend to accompany and predict subsequent performance gains. Through this exploration, we aim to provide practitioners with a deeper understanding of the implications of fine-tuning on embedding spaces, facilitating informed decisions when configuring models for specific applications. The results of this work contribute to the ongoing discourse on the interpretability, adaptability, and generalizability of LLMs by bridging the gap between intrinsic model mechanisms and geometric properties in the respective embeddings.
 
 ### Quick start
 
@@ -90,7 +97,7 @@ This step can be achieved by running the setup script in the `topollm/setup/` di
 
 1. If required, e.g. when running jobs on an HPC cluster, set the correct environment variables in the `.env` file in the project root directory.
 
-2. For setting up the repository to support job submissions to the a HPC cluster, follow the instructions using our [custom Hydra launcher]([ANONYMIZED_HYDRA_HPC_LAUNCHER_LINK]).
+2. For setting up the repository to support job submissions to the a HPC cluster, follow the instructions using our [Hydra HPC Launcher](https://github.com/carelvniekerk/Hydra-HPC-Launcher).
    Additional submission scripts are located in the `topollm/scripts/submission_scripts` directory.
 
 3. Download the files necessary for `nltk`: Start a python interpreter and run the following:
@@ -250,9 +257,9 @@ The violin plots in the paper, which compare the local estimate distribution bet
 uv run python3 topollm/plotting/plot_scripts_for_paper_draft/violin_plots_from_local_estimates.py
 ```
 
-### Experiments: Local Dimensions Predict Grokking
+### Experiments: Local Dimensions Detect Grokking
 
-Refer to the separate `grokking` repository for instructions on how to run these experiments.
+Refer to our separate [`grokking-via-lid` repository](https://github.com/aidos-lab/grokking-via-lid) for instructions on how to run these experiments.
 
 ### Experiments: Local Dimensions Detect Exhaustion of Training Capabilities
 
@@ -321,4 +328,19 @@ We provide a python script that can be called via a poetry run command to run th
 
 ```bash
 uv run tests
+```
+
+## Citation
+
+```tex
+@misc{ruppik2025morelocalintrinsicdimensions,
+      title={Less is More: Local Intrinsic Dimensions of Contextual Language Models}, 
+      author={Benjamin Matthias Ruppik and Julius von Rohrscheidt and Carel van Niekerk and Michael Heck and Renato Vukovic and Shutong Feng and Hsien-chin Lin and Nurul Lubis and Bastian Rieck and Marcus Zibrowius and Milica Gašić},
+      year={2025},
+      eprint={2506.01034},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL},
+      url={https://arxiv.org/abs/2506.01034},
+      note={To appear in NeurIPS 2025},
+}
 ```
