@@ -3,6 +3,13 @@
 ## Overview
 
 This repository contains code for analyzing the representations produced by contextual language models from a topological perspective.
+In particular, we study changes in the **local intrinsic dimension (LID)** of the model's hidden states in different scenarios.
+
+Details can be found in our paper [Less is More: Local Intrinsic Dimensions of Contextual Language Models](https://arxiv.org/abs/2506.01034).
+
+```tex
+Understanding the internal mechanisms of large language models (LLMs) remains a challenging and complex endeavor. Even fundamental questions, such as how fine-tuning affects model behavior, often require extensive empirical evaluation. In this paper, we introduce a novel perspective based on the geometric properties of contextual latent embeddings to study the effects of training and fine-tuning. To that end, we measure the local dimensions of a contextual language model's latent space and analyze their shifts during training and fine-tuning. We show that the local dimensions provide insights into the model's training dynamics and generalization ability. Specifically, the mean of the local dimensions predicts when the model's training capabilities are exhausted, as exemplified in a dialogue state tracking task, overfitting, as demonstrated in an emotion recognition task, and grokking, as illustrated with an arithmetic task. Furthermore, our experiments suggest a practical heuristic: reductions in the mean local dimension tend to accompany and predict subsequent performance gains. Through this exploration, we aim to provide practitioners with a deeper understanding of the implications of fine-tuning on embedding spaces, facilitating informed decisions when configuring models for specific applications. The results of this work contribute to the ongoing discourse on the interpretability, adaptability, and generalizability of LLMs by bridging the gap between intrinsic model mechanisms and geometric properties in the respective embeddings.
+```
 
 ### Quick start
 
@@ -321,4 +328,19 @@ We provide a python script that can be called via a poetry run command to run th
 
 ```bash
 uv run tests
+```
+
+## Citation
+
+```tex
+@misc{ruppik2025morelocalintrinsicdimensions,
+      title={Less is More: Local Intrinsic Dimensions of Contextual Language Models}, 
+      author={Benjamin Matthias Ruppik and Julius von Rohrscheidt and Carel van Niekerk and Michael Heck and Renato Vukovic and Shutong Feng and Hsien-chin Lin and Nurul Lubis and Bastian Rieck and Marcus Zibrowius and Milica Gašić},
+      year={2025},
+      eprint={2506.01034},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL},
+      url={https://arxiv.org/abs/2506.01034},
+      note={To appear in NeurIPS 2025},
+}
 ```
